@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cxp:make xmlns:cxp="http://www.tenbusch.info/cxproc">
+  <cxp:subst string="%DIR%" dir="dialog"/>
+  <cxp:subst string="%FILE%" filename="dialog"/>
+  <cxp:system mkdir="result" view="yes"/>
+  <cxp:system message="**** test-system-001:  ****"/>
+  <cxp:copy from="source.txt" to="result/target.txt" view="yes"/>
+  <cxp:system dialog="This is a Dialog!"/>
+  <cxp:system message="**** Selected directory '%DIR%' and file '%FILE%' ****"/>
+  <cxp:system exec="echo **** HELLO TEST ****" />
+  <cxp:system call="call/test-call.bat" />
+</cxp:make>

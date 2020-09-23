@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cxp:make xmlns:cxp="http://www.tenbusch.info/cxproc">
+  <cxp:system message="test collection"/>
+  <cxp:xml eval="yes" name="xml/config-pie-import-xml.cxp"/>
+  <cxp:xml eval="yes" name="plain/config-pie-import-plain.cxp"/>
+  <cxp:xml eval="yes" name="circular/config-circular.cxp"/>
+  <cxp:xml eval="yes" name="csv/config-pie-import-csv.cxp"/>
+  <cxp:xml eval="yes" name="cxp/config-pie-import-cxp.cxp"/>
+  <cxp:xml eval="yes" name="line/config-pie-import-line.cxp"/>
+  <cxp:xml eval="yes" name="log/config-pie-import-log.cxp"/>
+  <cxp:xml eval="yes" name="script/config-pie-import-script.cxp"/>
+</cxp:make>

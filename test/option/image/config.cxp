@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cxp:make xmlns:cxp="http://www.tenbusch.info/cxproc" log="3">
+  <cxp:subst string="%PATH_IMG%" to="result/Tux.png"/>
+  <cxp:system mkdir="result"/>
+  <cxp:copy from="../../contrib/pie/www/Test/Pictures/Tux.png" to="%PATH_IMG%"/>
+  <cxp:system message="Read comment file according to image file"/>
+  <cxp:plain name="result/test-image.txt">
+    <cxp:image src="%PATH_IMG%"/>
+  </cxp:plain>
+  <cxp:system message="Write comment file according to image file"/>
+  <cxp:image to="%PATH_IMG%">
+    <cxp:plain>ffhksjhf 
+
+fshfkshfnmxy,nc,
+
+skölkaösk 
+</cxp:plain>
+  </cxp:image>
+  <cxp:system message="Re-Read comment file according to image file"/>
+  <cxp:plain name="result/test-image-2.txt">
+    <cxp:image src="%PATH_IMG%"/>
+  </cxp:plain>
+  <cxp:system message="Read image informations as PIE XML"/>
+  <cxp:xml name="result/test-image.xml">
+    <cxp:xml>
+      <pie>
+        <p>TEST</p>
+        <import>
+          <import type="cxp">
+            <cxp:plain>
+              <cxp:image src="%PATH_IMG%"/>
+            </cxp:plain>
+          </import>
+        </import>
+      </pie>
+    </cxp:xml>
+  </cxp:xml>
+  <cxp:system message="Read and scale an existing image file"/>
+  <cxp:image to="result/test-image.png" frame="900x800">
+    <cxp:image src="%PATH_IMG%"/>
+  </cxp:image>
+</cxp:make>

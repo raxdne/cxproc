@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<pie>
+  <section>
+    <h>Block Test</h>
+    <section>
+      <h>Full Test Import "cxp" to XML</h>
+	  <p>before import</p>
+      <import type="script">
+	  1 + 1
+      </import>
+	  <p>after import</p>
+    </section>
+  </section>
+</pie>

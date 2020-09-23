@@ -1,0 +1,31 @@
+
+2007 Ende
+
+; Osterfeiertage (s.a. http://www.ptb.de/cms/fachabteilungen/abt4/fb-44/ag-441/darstellung-der-gesetzlichen-zeit/wann-ist-ostern.html)
+0000@e-52 Gumpiger Dunschtig
+0000@e-48 Rosenmontag
+0000@e-46 Aschermittwoch
+0000@e-3 Gründonnerstag
+0000@e-2 + Karfreitag
+0000@e Ostersonntag
+0000@e+1 + Ostermontag
+0000@e+39 + Himmelfahrt
+0000@e+50 + Pfingstmontag
+0000@e+60 + Fronleichnam
+
+; feste Tage
+00000101 + Neujahr
+00000106 + Heilige Drei Könige
+00000501 + Tag der Arbeit
+00001003 + Tag der dt. Einheit
+00001101 + Allerheiligen
+
+00001224 Heiligabend
+00001225 + Erster Weihnachtsfeiertag
+00001226 + Zweiter Weihnachtsfeiertag
+00001231 Silvester
+
+; s. swtim-1.rc, daylight-saving time BRD
+;000003sun9 Beginn Sommerzeit (+1h 02:00 --> 03:00 Uhr)%i1981
+;000009sun9 Ende Sommerzeit (-1h 03:00 --> 02:00 Uhr)%i1981#1995
+;000010sun9 Ende Sommerzeit (-1h 03:00 --> 02:00 Uhr)%i1996

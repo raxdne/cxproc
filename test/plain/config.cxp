@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cxp:make xmlns:cxp="http://www.tenbusch.info/cxproc">
+  <cxp:subst string="%CONTENT%">
+    <cxp:plain name="test-content-isolat1.txt"/>
+  </cxp:subst>
+  <cxp:subst string="%CONTENT16%">
+    <cxp:plain name="test-content-utf16be.txt"/>
+  </cxp:subst>
+  <cxp:system mkdir="result"/>
+  <cxp:system message="*** Test 0a: Set a cache BUFFER ***"/>
+  <cxp:plain name="result/test-plain-0a.txt" cache="yes">
+    TEST CACHE
+  </cxp:plain>
+  <cxp:plain name="result/test-plain-0a1.txt">
+    <cxp:plain name="result/test-plain-0a.txt"/>
+  </cxp:plain>
+  <cxp:system message="*** Test 0b: caching of an existing plain text file with cache name ***"/>
+  <cxp:plain name="result/test-plain-0a1.txt" cacheas="TEST-0b"/>
+  <cxp:plain name="result/test-plain-0b.txt">
+    <cxp:plain name="TEST-0b"/>
+  </cxp:plain>
+  <cxp:plain cacheas="TEST-0b">
+    <cxp:plain name="Length_1024.txt"/>
+  </cxp:plain>
+  <cxp:plain name="result/test-plain-0b1.txt">
+    <cxp:plain name="TEST-0b"/>
+  </cxp:plain>
+  <cxp:system message="TEST 1: write a text node into a text file"/>
+  <cxp:plain name="result/test-plain-äÖüß.txt">
+    <cxp:plain>Umlaute Ä Ö Ü</cxp:plain>
+  </cxp:plain>
+  <cxp:plain name="result/test-plain-1.txt">Dies ist ein Test
+</cxp:plain>
+  <cxp:system message="TEST 2: write a text node and a file into a text file"/>
+  <cxp:plain name="result/test-plain-2.txt">
+    <cxp:plain name="result/test-plain-1.txt"/>
+    <cxp:plain>
+Dies ist noch ein Test
+</cxp:plain>
+  </cxp:plain>
+  <cxp:system message="TEST 3: transform a DOM into a text file"/>
+  <cxp:plain name="result/test-plain-3.txt">
+    <cxp:xml name="test-plain-3.xml"/>
+    <cxp:xsl name="MakePlain.xsl"/>
+  </cxp:plain>
+  <cxp:system message="TEST 4: concatenate a text file three times"/>
+  <cxp:plain name="result/test-plain-4.txt" mode="append">
+    <cxp:plain name="result/test-plain-1.txt"/>
+    <cxp:plain name="result/test-plain-1.txt"/>
+    <cxp:plain name="result/test-plain-1.txt"/>
+  </cxp:plain>
+  <cxp:system message="TEST 5: write content of a text file with 'byte order mark' to a new file"/>
+  <cxp:plain name="result/test-plain-5.txt">
+    <cxp:plain name="test-unicode-bom.txt"/>
+  </cxp:plain>
+  <cxp:plain name="result/test-plain-5b.txt">
+    <cxp:plain name="test-unicode16-bom.txt"/>
+  </cxp:plain>
+  <cxp:system message="TEST 6: write substituted content into a new file"/>
+  <cxp:plain name="result/test-plain-6.txt">%CONTENT%</cxp:plain>
+  <cxp:plain name="result/test-plain-6b.txt">%CONTENT16%</cxp:plain>
+  <cxp:system message="TEST 7: write content of a text file to stdout"/>
+  <cxp:plain name="-">
+    <cxp:plain name="result/test-plain-1.txt"/>
+  </cxp:plain>
+  <cxp:system message="TEST 8: read from HTTP-Server"/>
+  <cxp:plain name="result/test-plain-8.txt">
+    <cxp:plain name="http://localhost/"/>
+  </cxp:plain>
+  <cxp:system message="*** Test 12: parsing of an existing XML file ***"/>
+  <cxp:plain valid="no" name="result/this_is_a_bug.txt">
+This text must not processed!
+  </cxp:plain>
+  <cxp:system message="*** Test 13: output encoding ***"/>
+  <cxp:plain name="result/test-plain-enc-default.txt">
+TEST ENCODING: ABC ÖÄÜß DEF
+  </cxp:plain>
+  <cxp:plain name="result/test-plain-enc-false.txt" encoding="DUMMY">
+TEST ENCODING: ABC ÖÄÜß DEF
+  </cxp:plain>
+  <cxp:plain name="result/test-plain-enc-utf-8.txt" encoding="utf-8">
+TEST ENCODING: ABC ÖÄÜß DEF
+  </cxp:plain>
+  <cxp:plain name="result/test-plain-enc-utf-16.txt" encoding="UTF-16LE">
+TEST ENCODING: ABC ÖÄÜß DEF
+  </cxp:plain>
+  <cxp:plain name="result/test-plain-enc-iso-8859-1.txt" encoding="iso-8859-1">
+TEST ENCODING: ABC ÖÄÜß DEF
+  </cxp:plain>
+</cxp:make>

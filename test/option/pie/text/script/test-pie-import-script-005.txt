@@ -1,0 +1,7 @@
+
+* import script test script="Date();"
+
+#begin_of_script
+
+'Now is ' + Date();
+

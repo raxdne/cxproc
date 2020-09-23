@@ -1,0 +1,87 @@
+; TEST
+
+* Section 1
+
+** Section 1.1
+
+#begin_of_pre
+ABC
+ABC
+ABC
+#end_of_pre
+
+#begin_of_cxp
+<pie><section><section><section><h>Section</h></section></section></section></pie>
+#end_of_cxp
+
+#begin_of_skip
+ABC 
+ABC
+ABC
+
+#end_of_skip
+
+; hidden
+
+#begin_of_csv
+sep=,
+
+ABC
+ABC,ABC
+ABC
+#end_of_csv
+
+#begin_of_script
+2*2*2
+#end_of_script
+
+*** Section 1.1.1
+
+** Section 1.2
+
+%%% Section 1.2.1 hidden
+
+%%%% Section 1.2.1.1 hidden
+
+%%%%% Section 1.2.1.1.1 hidden
+
+** Section 1.3
+
++ A
+
+-- aa
+
++ B
+
+-- aa
+
+-- bb
+
++ C
+
+-- aa
+
+-- bb
+
+-- cc
+
+
+** Section 1.4
+
+* Section 2
+
+** Section 2.1
+
+#begin_of_line
+* Section 3
+** Section 3.1
+ABC
+-DEF
+-HIJ
+#end_of_line
+
+par par par
+
+#begin_of_skip
+ABC 
+ABC

@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<cxp:make xmlns:cxp="http://www.tenbusch.info/cxproc" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+  <!--  -->
+  <cxp:subst string="%FOLDER%" default="folder" dir="dialog"/>
+  <cxp:subst string="%FILE%" default="file" filename="dialog"/>
+  <cxp:system dialog="Result '%FOLDER%' and '%FILE%'"/>
+</cxp:make>

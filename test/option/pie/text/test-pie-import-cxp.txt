@@ -1,0 +1,30 @@
+
+* Block Test
+
+** Full Test Import "cxp" to XML
+
+before import
+
+#begin_of_cxp
+<xml>
+  <dir>
+	<dir name="."/>
+  </dir>
+  <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.0">
+	<xsl:output method="xml" encoding="UTF-8"/>
+	<xsl:template match="/">
+	  <xsl:element name="pie">
+		<xsl:element name="list">
+		  <xsl:for-each select="descendant::file[@name]">
+			<xsl:element name="p">
+			  <xsl:value-of select="@name"/>
+			</xsl:element>
+		  </xsl:for-each>
+		</xsl:element>
+	  </xsl:element>
+	</xsl:template>
+  </xsl:stylesheet>
+</xml>
+#end_of_cxp
+
+after import

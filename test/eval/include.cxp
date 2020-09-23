@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cxp:make xmlns:cxp="http://www.tenbusch.info/cxproc">
+  <cxp:xml name="result/test-eval-001.pie">
+    <foo>
+      <node>A</node>
+      <node>B</node>
+      <node>C</node>
+    </foo>
+  </cxp:xml>
+</cxp:make>

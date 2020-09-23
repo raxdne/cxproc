@@ -1,0 +1,28 @@
+;
+;
+
+; use a subset of "man date"
+
+00000001 First of month
+00000015 Middle of month
+00000001-1 Last of month
+
+00000101 First of year
+00000101+124 125th day of year
+00000101-1 Last of year
+
+; every monday
+0000*w99mon KW %V/%Y
+0000*w99mon,tue,wed,thu,fri work day %N
+; weekend is @FREE
+0000*w99sat,sun +
+
+; every day
+00000000 %a %d.%m. (%j)
+
+0000*w99 %V/%Y
+000000 %Y %m
+; every whole year
+0000 %Y
+
+; Bug

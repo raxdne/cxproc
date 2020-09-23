@@ -1,0 +1,28 @@
+
+* Test of URL and Link Markup
+
+	http://www.xyz.com/this-ressouce-is-name/ |#aaa|AAA| http://www.uvw.ch/
+
+ pre URL |http://www.abc.de/ |ABC| post URL
+ 
+ |test.html|
+ 
+ |test.html|Test|
+
+ |#test|Test|
+
+ |test.html|Test
+
+ |||
+
+ |test.html||
+ 
+   |http://www.xyz.com/this-ressouce-is-name/|| dakdölakdö
+
+ #anchor#
+
+ |#anchor|Test
+
+  pre URL |http://www.abc.de/ |ABC| post URL|test.html|Test|	
+  
+

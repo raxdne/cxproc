@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<pie>
+  <section>
+    <h>Import of PIE XML file</h>
+    <import name="test-pie-5.pie"/>
+    <import name="test-pie-1.txt"/>
+  </section>
+</pie>

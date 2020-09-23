@@ -1,0 +1,381 @@
+# s. http://www.oracle.com/technetwork/articles/srivastava-namespaces-092580.html
+
+default namespace = "http://www.tenbusch.info/cxproc"
+namespace a = "http://relaxng.org/ns/compatibility/annotations/1.0"
+namespace cxp = "http://www.tenbusch.info/cxproc"
+namespace pie = "http://www.tenbusch.info/pie"
+namespace rng = "http://relaxng.org/ns/structure/1.0"
+
+flagType &= "yes" | "no"
+start |= pie
+pie &=
+  element pie {
+    element * { text }+,
+    attribute date { flagType }?,
+    attribute figure { flagType }?,
+    attribute hidden { flagType }?,
+    attribute import { flagType }?,
+    attribute offset { flagType }?,
+    attribute tags { flagType }?,
+    attribute url { flagType }?,
+    attribute xpath { flagType }?
+  }
+start |= file
+file &=
+  element file {
+    attribute cacheas { xsd:string }?,
+    attribute cache { xsd:string }?,
+    attribute context { xsd:string }?,
+    attribute encoding { xsd:string }?,
+    attribute name { xsd:string }?,
+    attribute search { xsd:string }?,
+    attribute valid { xsd:string }?,
+    attribute verbosity { xsd:unsignedByte }?
+  }
+start |= calendar
+calendar &=
+  element calendar {
+    (element col {
+       (pie | xml)*,
+       attribute id { xsd:string }
+     }+)*,
+    attribute year { xsd:string }?,
+    attribute coordinate { xsd:string }?,
+    attribute timezone { xsd:string }?,
+    attribute subst { xsd:string }?,
+    attribute type { xsd:string }?
+  }
+start |= xml
+xml &=
+  element xml {
+    ((calendar
+      | db
+      | dir
+      | file
+      | image
+      | \include
+      | json
+      | pathnet
+      | pathtable
+      | plain
+      | query
+      | script
+      | subst
+      | xhtml
+      | xml
+      | xsl
+      | element * { text }
+      | zip)*
+     | (pie)*
+     | (element * { text }*)*)*,
+    attribute cacheas { xsd:string }?,
+    attribute cache { xsd:string }?,
+    attribute context { xsd:string }?,
+    attribute encoding { xsd:string }?,
+    attribute eval { xsd:string }?,
+    attribute name { xsd:string }?,
+    attribute search { xsd:string }?,
+    attribute valid { xsd:string }?
+  }
+start |= \include
+\include &=
+  element include {
+    attribute cacheas { xsd:string }?,
+    attribute cache { xsd:string }?,
+    attribute context { xsd:string }?,
+    attribute encoding { xsd:string }?,
+    attribute name { xsd:string }?,
+    attribute search { xsd:string }?,
+    attribute valid { xsd:string }?
+  }
+start |= html
+html &=
+  element html {
+    element * { text }+
+  }
+start |= xhtml
+xhtml &=
+  element xhtml {
+    (html
+     | xhtml
+     | xml
+     | xsl
+     | element * { text })*,
+    attribute valid { xsd:string }?,
+    attribute name { xsd:string }?,
+    attribute cache { xsd:string }?,
+    attribute cacheas { xsd:string }?
+  }
+start |= plain
+plain &=
+  element plain {
+    (db
+     | query
+     | script
+     | image
+     | plain
+     | xml
+     | xsl
+     | element * { text })*,
+    attribute name { xsd:string }?,
+    attribute valid { xsd:string }?,
+    attribute cacheas { xsd:string }?,
+    attribute cache { xsd:string }?,
+    attribute mode { xsd:string }?,
+    attribute encoding { xsd:string }?,
+    attribute context { xsd:string }?
+  }
+start |= json
+json &=
+  element json {
+    attribute name { xsd:string }?,
+    attribute valid { xsd:string }?,
+    attribute cacheas { xsd:string }?,
+    attribute cache { xsd:string }?,
+    attribute encoding { xsd:string }?,
+    attribute context { xsd:string }?
+  }
+start |= xsl
+xsl &=
+  element xsl {
+    (element variable {
+       attribute name { xsd:string },
+       attribute select { xsd:string }
+     }*
+     | xml
+     | xsl
+     | element * { text })?,
+    attribute name { xsd:string }?,
+    attribute xpath { xsd:string }?,
+    attribute cache { xsd:string }?
+  }
+start |= copy
+copy &=
+  element copy {
+    attribute from { xsd:string },
+    attribute to { xsd:string }?,
+    attribute search { xsd:string }?
+  }
+start |= query
+query &=
+  element query {
+    element query { xsd:string },
+    attribute declaration { xsd:string }?
+  }
+start |= db
+db &=
+  element db {
+    (dir | query | plain)*,
+    attribute append { xsd:string }?,
+    attribute dump { xsd:string }?,
+    attribute name { xsd:string }?,
+    attribute valid { xsd:string }?,
+    attribute write { xsd:string }?
+  }
+start |= dir
+dir &=
+  element dir {
+    (dir | file)*,
+    attribute depth { xsd:unsignedByte }?,
+    attribute grep { xsd:string }?,
+    attribute imatch { xsd:string }?,
+    attribute match { xsd:string }?,
+    attribute maxdepth { xsd:unsignedByte }?,
+    attribute name { xsd:string }?,
+    attribute verbosity { xsd:unsignedByte }?
+  }
+start |= subst
+subst &=
+  element subst {
+    (plain)*,
+    attribute string { xsd:string },
+    attribute filename { xsd:string }?,
+    attribute dir { xsd:string }?,
+    attribute to { xsd:string }?,
+    attribute script { xsd:string }?,
+    attribute file { xsd:string }?,
+    attribute default { xsd:string }?,
+    attribute argv { xsd:string }?,
+    attribute escaping { xsd:string }?,
+    attribute env { xsd:string }?,
+    attribute valid { xsd:string }?,
+    attribute cgi { xsd:string }?,
+    attribute host { xsd:string }?,
+    attribute program { xsd:string }?,
+    attribute now { xsd:string }?
+  }
+start |= description
+description &= element description { xsd:string }
+start |= make
+make &=
+  element make {
+    description?,
+    (copy
+     | db
+     | dir
+     | each
+     | file
+     | image
+     | \include
+     | make
+     | pathnet
+     | pathtable
+     | plain
+     | script
+     | subst
+     | system
+     | thread
+     | xhtml
+     | xml
+     | xsl
+     | element * { text }
+     | zip)*,
+    attribute log { xsd:string }?,
+    attribute context { xsd:string }?,
+    attribute thread { flagType }?
+  }
+start |= thread
+thread &=
+  element thread {
+    (copy
+     | db
+     | dir
+     | each
+     | file
+     | image
+     | \include
+     | make
+     | pathnet
+     | pathtable
+     | plain
+     | script
+     | subst
+     | system
+     | thread
+     | xhtml
+     | xml
+     | xsl
+     | element * { text }
+     | zip)*,
+    attribute thread { xsd:integer }?,
+    attribute context { xsd:string }?
+  }
+start |= each
+each &=
+  element each {
+    element from {
+      xsd:string
+      #   <xs:complexType mixed="true">
+      #     <xs:choice>
+      #       <xs:sequence>
+      #   <xs:complexType mixed="true">
+      #	<xs:attribute name="name" type="xs:string"/>
+      #   </xs:complexType>
+      #       </xs:sequence>
+      #       <xs:sequence>
+      #	<xs:element ref="cxp:xml"/>
+      #		<xs:element ref="cxp:xsl"/>
+      # <xs:any namespace="http://www.w3.org/1999/XSL/Transform" processContents="skip"/>
+      # 
+      #       </xs:sequence>
+      #       <xs:sequence>
+      #	<xs:element ref="cxp:xhtml"/>
+      #		<xs:element ref="cxp:xsl"/>
+      # <xs:any namespace="http://www.w3.org/1999/XSL/Transform" processContents="skip"/>
+      # 
+      #       </xs:sequence>
+      #     </xs:choice>
+      #     </xs:complexType>
+      
+    },
+    (copy
+     | db
+     | dir
+     | each
+     | file
+     | image
+     | \include
+     | make
+     | pathnet
+     | pathtable
+     | plain
+     | script
+     | subst
+     | system
+     | thread
+     | xhtml
+     | xml
+     | xsl
+     | element * { text }
+     | zip)*,
+    attribute name { xsd:string }
+  }
+start |= system
+system &=
+  element system {
+    attribute call { xsd:string }?,
+    attribute chdir { xsd:string }?,
+    attribute dialog { xsd:string }?,
+    attribute exec { xsd:string }?,
+    attribute message { xsd:string }?,
+    attribute mkdir { xsd:string }?,
+    attribute rmdir { xsd:string }?
+  }
+start |= image
+image &=
+  element image {
+    (element image {
+       attribute src { xsd:string }
+     }
+     | plain)*,
+    attribute frame { xsd:string }?,
+    attribute src { xsd:string }?,
+    attribute to { xsd:string }?
+  }
+start |= script
+script &=
+  element script {
+    (element variable {
+       (xml | plain)?,
+       attribute name { xsd:string },
+       attribute select { xsd:string }?
+     })*,
+    attribute name { xsd:string }?,
+    attribute search { xsd:string }?
+  }
+start |= zip
+zip &=
+  element zip {
+    (script
+     | plain
+     | xml
+     | dir
+     | element file {
+         attribute map { xsd:string }?,
+         attribute context { xsd:string }?,
+         attribute name { xsd:string }?,
+         attribute valid { xsd:string }?
+       })*,
+    attribute name { xsd:string },
+    attribute context { xsd:string }?,
+    attribute level { xsd:unsignedByte }?,
+    attribute valid { xsd:string }?
+  }
+start |= pathnet
+pathnet &=
+  element pathnet {
+    (xml)*,
+    attribute start { xsd:string },
+    attribute target { xsd:string },
+    attribute lmax { xsd:unsignedByte },
+    attribute lmin { xsd:unsignedByte }
+  }
+start |= pathtable
+pathtable &=
+  element pathtable {
+    (xml)*,
+    attribute start { xsd:string },
+    attribute target { xsd:string },
+    attribute lmax { xsd:unsignedByte },
+    attribute lmin { xsd:unsignedByte }
+  }

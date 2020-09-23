@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cxp:make xmlns:cxp="http://www.tenbusch.info/cxproc">
+  <cxp:system mkdir="result"/>
+  <!--
+  <cxp:system message="**** test-system-001: Call a shell command ****"/>
+  <cxp:system exec="echo &quot;* Test &quot; &gt; result/test-system-1.txt"/>
+  <cxp:system message="**** test-system-002: Call a shell command with different encoding ****"/>
+  <cxp:system exec="echo &quot;* Test ÄÖÜ &quot; &gt; result/test-system-öü.txt"/>
+  -->
+  <cxp:system message="**** test-system-003: Call copy command without target ****"/>
+  <cxp:copy from="rwz.xxx"/>
+  <cxp:system message="**** test-system-004: Call copy command without from ****"/>
+  <cxp:copy to="result/"/>
+  <cxp:system message="**** test-system-005: Call copy command with non-existing source file ****"/>
+  <cxp:copy from="rwz.xxx" to="result"/>
+  <cxp:system message="**** test-system-006: Call copy command with non-existing target directory ****"/>
+  <cxp:copy from="source.dat" to="result/tmp-2/"/>
+  <cxp:system message="**** test-system-007: Call copy command target directory only ****"/>
+  <cxp:copy from="source.dat" to="result"/>
+  <cxp:system message="**** test-system-008: Call copy command source path and target directory only ****"/>
+  <cxp:copy from="source.zip" to="result"/>
+  <cxp:system message="**** test-system-009: Call copy command new filename in target directory ****"/>
+  <cxp:copy from="source.dat" to="result/xyz.dat"/>
+  <cxp:system message="**** test-system-009b: Call copy file content to stdout ****"/>
+  <cxp:copy from="source.txt" to="-"/>
+  <cxp:system message="**** test-system-0010: Call copy command into an non-existing directory ****"/>
+  <cxp:copy from="source.dat" to="result/abc/def/hij/klm/xyz.dat"/>
+  <cxp:system message="**** test-system-0011: Create a new directory ****"/>
+  <cxp:system mkdir="result/AAAääB/mmxnv"/>
+  <cxp:system message="**** test-system-0012: Create and delete a new directory ****"/>
+  <cxp:system mkdir="result/TO_DELETE"/>
+  <cxp:system rmdir="result/TO_DELETE"/>
+  <cxp:system message="**** test-system-0012b: try to remove a non-empty directory ****"/>
+  <cxp:system rmdir="result/abc/def/hij"/>
+  <cxp:system message="**** test-system-0013: Call copy command with search option ****"/>
+  <cxp:copy from="pie.css" to="result" search="yes"/>
+  <cxp:copy from="pie.css" to="" search="yes"/>
+  <cxp:copy from="html/red/presentation.css" to="result" search="yes"/>
+  <!--
+  <cxp:system message="**** test-system-0014: Change directory and call a script file ****"/>
+  <cxp:system chdir="result"/>
+  -->
+</cxp:make>

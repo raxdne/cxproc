@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<cxp:make xmlns:cxp="http://www.tenbusch.info/cxproc" log="3">
+  <cxp:system message="*** Test 2: parsing of an existing XML file of eval flag attribute ***"/>
+  <cxp:xml name="test-xml-eval.xml"/>
+  <cxp:xml eval="yes">
+    <cxp:xml name="test-xml-eval.xml"/>
+  </cxp:xml>
+  <cxp:xml>
+    <cxp:xml name="test-xml-eval.xml" eval="yes" context=".."/>
+  </cxp:xml>
+</cxp:make>
+

@@ -1,0 +1,8 @@
+{"name": "Global", "children": [
+{"name": ":: This is a project", "children": [
+{"name": "This is a project :: Sub project"},
+{"name": "This is a project :: Sub project 2", "children": [
+{"name": "Sub project 2 :: Test slide"},
+{"name": "Sub project 2 :: Test slide"}]},
+{"name": "This is a project :: Sub project 3", "children": [
+{"name": "Sub project 3 :: Sub sub project 3.1"}]}]}]}

@@ -1,0 +1,19 @@
+
+AAAA	BBBB	FFFFFF	RRRR
+20080202 FFF	  eee 	 TTT
+dgjkjjjf&fffffffff;"ffffffff&ffffffff";;fffffffffffff
+;;alkjflkdjlkfj;dsökföskf:öldös
+ödlkfös,"ölEKÖQLKEW",QÖLWKEÖQLE,11111.0,LL
+
+
+	dgldgöldkgö
+* skjflsj
+** lsdfkölköf
+fgdf	&	&	fsf
+#begin_of_skip
+this has to be skipped!!
+#end_of_skip
+* section A
+333333	 	HHHHH	fjdlfkjfl,.-,-,
+; this is not valid
+

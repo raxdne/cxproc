@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<cxp:make xmlns:cxp="http://www.tenbusch.info/cxproc" log="3">
+  <cxp:system mkdir="../../tmp"/>
+  <cxp:system message="*** test-xml-cache-001: Set a cache DOM ***"/>
+  <cxp:xml name="result/test-xml-cache-001.xml" cache="yes">
+    <cxp:xml>
+      <dummy>
+        <p>TEST CACHE</p>
+      </dummy>
+    </cxp:xml>
+  </cxp:xml>
+  <cxp:xml name="result/test-xml-cache-001-001.xml">
+    <cxp:xml name="result/test-xml-cache-001.xml"/>
+  </cxp:xml>
+  <cxp:system message="*** test-xml-cache-002: caching of an existing XML file with cache name ***"/>
+  <cxp:xml name="result/test-xml-cache-001-001.xml" cacheas="TEST-0b"/>
+  <cxp:xml name="result/test-xml-cache-001-002.xml">
+    <cxp:xml name="TEST-0b"/>
+  </cxp:xml>
+  <cxp:xml cacheas="TEST-0b">
+    <cxp:xml name="baustelle.pie"/>
+  </cxp:xml>
+  <cxp:xml name="result/test-xml-cache-001-003.xml">
+    <cxp:xml name="TEST-0b"/>
+  </cxp:xml>
+  <cxp:xml name="TEST-0b" cacheas="TEST-0c"/>
+  <cxp:xml name="result/test-xml-cache-001-004.xml">
+    <cxp:xml name="TEST-0c"/>
+  </cxp:xml>
+</cxp:make>

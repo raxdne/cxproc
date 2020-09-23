@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<cxp:make xmlns:cxp="http://www.tenbusch.info/cxproc" log="2">
+  <cxp:subst string="%2%" argv="2" default="."/>
+  <cxp:system message="Write search index for '%2%'"/>
+  <cxp:xml name="-">
+    <cxp:xml>
+      <cxp:dir verbosity="2" index="skip" match="\.(xsl|cxp|xml|css|png|html|xhtml|js|rng)$">
+        <cxp:dir name="%2%"/>
+      </cxp:dir>
+    </cxp:xml>
+    <cxp:xsl name="XmlDirIndex.xsl"/>
+  </cxp:xml>
+</cxp:make>

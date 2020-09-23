@@ -1,0 +1,70 @@
+<?xml version="1.0"?>
+<cxp:make xmlns:cxp="http://www.tenbusch.info/cxproc" log="1">
+  <cxp:system mkdir="result"/>
+  <cxp:system message="**** test-xsl-001: XSL file not found"/>
+  <cxp:xml name="result/test-xsl-001.xml">
+    <cxp:xml name="../xml/baustelle.pie"/>
+    <cxp:xsl name="NotExisting.xsl"/>
+    <cxp:xsl name="NotExisting.xsl"/>
+  </cxp:xml>
+  <cxp:system message="**** test-xsl-002: XSL file not valid"/>
+  <cxp:xml name="result/test-xsl-002.xml">
+    <cxp:xml name="../xml/baustelle.pie"/>
+    <cxp:xsl name="NotValid.xsl"/>
+  </cxp:xml>
+  <cxp:system message="**** test-xsl-003: XSL file valid"/>
+  <cxp:xml name="result/test-xsl-003.xml">
+    <cxp:xml name="../xml/baustelle.pie"/>
+    <cxp:xsl name="TestValidate.xsl"/>
+  </cxp:xml>
+  <cxp:system message="**** test-xsl-004: embedded XSL file"/>
+  <cxp:xml name="result/test-xsl-004.xml">
+    <cxp:xml name="../xml/baustelle.pie"/>
+    <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.0">
+      <xsl:output method="xml" encoding="ISO-8859-1"/>
+      <xsl:template match="@*|node()">
+        <xsl:choose>
+          <xsl:when test="@VALID = 'no' or @valid = 'no'"/>
+          <xsl:otherwise>
+            <xsl:copy>
+              <xsl:apply-templates select="@*|node()"/>
+            </xsl:copy>
+          </xsl:otherwise>
+        </xsl:choose>
+      </xsl:template>
+    </xsl:stylesheet>
+  </cxp:xml>
+  <cxp:system message="*** test-xsl-005: parsing of an existing XML file, transforming by XSL and save into a new XML file ***"/>
+  <cxp:xml name="result/test-xsl-005.html">
+    <cxp:xml name="../xml/baustelle.pie"/>
+    <cxp:xsl name="pie2html.xsl" cache="yes"/>
+  </cxp:xml>
+  <cxp:system message="*** test-xsl-006: parsing of an existing HTML file, transforming by XSL and save into a new XML file  ***"/>
+  <cxp:xml name="result/test-xsl-006.pie">
+    <cxp:xhtml name="result/test-xsl-005.html"/>
+    <cxp:xsl name="html2pie.xsl"/>
+  </cxp:xml>
+  <cxp:system message="*** test-xsl-007: XPath ***"/>
+  <cxp:xml name="result/test-xsl-007.xml">
+    <cxp:xml name="test-xsl-4.xml"/>
+    <cxp:xpath select="/calendar/year[1]/month[1]/day[position() &gt; 21]"/>
+  </cxp:xml>
+  <cxp:system message="*** test-xsl-008: XSL only transformation ***"/>
+  <cxp:xml name="result/test-xsl-008.html">
+    <cxp:xsl name="Hello.xsl"/>
+  </cxp:xml>
+  <cxp:system message="*** test-xsl-009: parsing of an existing XML file, substituting and transforming by XSL and save into a new XML file ***"/>
+  <cxp:xml name="result/test-xsl-009.html">
+    <cxp:xml name="../xml/baustelle.pie"/>
+    <cxp:subst string="Baustelle" to="elletsauB"/>
+    <cxp:xsl name="pie2html.xsl" cache="yes"/>
+  </cxp:xml>
+  <cxp:system message="*** test-xsl-010: XSL only transformation using subst ***"/>
+  <cxp:xml name="result/test-xsl-010.html">
+    <cxp:xsl name="TestVariable.xsl">
+      <cxp:variable name="test" select="'AAA'"/>
+      <cxp:variable name="time" now="'%H:%M:%S'"/>
+      <cxp:variable name="host" env="HOSTNAME" default="'ABC'"/>
+    </cxp:xsl>
+  </cxp:xml>
+</cxp:make>

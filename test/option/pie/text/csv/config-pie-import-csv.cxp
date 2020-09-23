@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cxp:make xmlns:cxp="http://www.tenbusch.info/cxproc">
+  <cxp:system mkdir="result"/>
+  <cxp:system message="**** test-pie-import-csv-000: import of csv-oriented file"/>
+  <cxp:xml name="result/test-pie-import-csv-001.pie">
+    <cxp:xml>
+      <cxp:pie>
+        <import name="test-pie-import-csv-001.csv" type="csv"/>
+      </cxp:pie>
+    </cxp:xml>
+  </cxp:xml>
+</cxp:make>

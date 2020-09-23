@@ -1,0 +1,11 @@
+
+Die Suche nach :: einer in einer ::bestimmten Situation :: ::geeigneten PK kann
+als ein allgemeines technisches Problem ::konstruktionsmethodisch nach
+[pahl97a] und der VDI-Richtlinie 2221 angegangen werden
+(s.a. Abb. vdi2221). 
+
+Die folgenden Betrachtungen beziehen sich auf die
+Entwicklung von PKn nicht aber ::auf die Entwicklung der eigentlichen
+Produkte. Es wird lediglich die ::Herangehensweise übernommen
+(Methodik).
+

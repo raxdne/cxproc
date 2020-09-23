@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<pie>
+  <section>
+    <h>Block Test</h>
+    <section>
+      <h>Full Test Import "cxp" to XML</h>
+	  <p>before import</p>
+      <import type="cxp">
+        <xml>
+          <dir>
+            <dir name="."/>
+          </dir>
+          <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.0">
+            <xsl:output method="xml" encoding="UTF-8"/>
+            <xsl:template match="/">
+              <xsl:element name="pie">
+                <xsl:element name="list">
+                  <xsl:for-each select="descendant::file[@name]">
+                    <xsl:element name="p">
+                      <xsl:value-of select="@name"/>
+                    </xsl:element>
+                  </xsl:for-each>
+                </xsl:element>
+              </xsl:element>
+            </xsl:template>
+          </xsl:stylesheet>
+        </xml>
+      </import>
+	  <p>after import</p>
+    </section>
+  </section>
+</pie>

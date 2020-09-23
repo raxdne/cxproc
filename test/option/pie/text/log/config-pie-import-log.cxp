@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cxp:make xmlns:cxp="http://www.tenbusch.info/cxproc">
+  <cxp:system mkdir="result"/>
+  <cxp:system message="**** test-pie-import-log-001: "/>
+  <cxp:xml name="result/test-pie-import-log-001.pie">
+    <cxp:pie url="yes" figure="no" date="no">
+      <import name="test-pie-import-log-001.txt" format="log"/>
+    </cxp:pie>
+  </cxp:xml>
+  <cxp:system message="**** test-pie-import-log-002: Logfile imports per line and per paragraph"/>
+  <cxp:xml name="result/test-pie-import-log-002.pie">
+    <cxp:pie url="yes" date="yes" figure="no" offset="yes">
+      <import name="test-pie-import-log-002-001.cal" format="log" type="line"/>
+      <import name="test-pie-import-log-002-002.cal" format="log"/>
+    </cxp:pie>
+  </cxp:xml>
+  <cxp:system message="**** test-pie-import-log-003: Logfile import per paragraph and DOM"/>
+  <cxp:xml name="result/test-pie-import-log-003.pie">
+    <cxp:pie url="yes" figure="no" hidden="no" date="yes">
+      <import name="test-pie-import-log-003.txt" format="log"/>
+    </cxp:pie>
+  </cxp:xml>
+  <cxp:system message="**** test-pie-import-log-004: import from logformatted text node"/>
+  <cxp:xml name="result/test-pie-import-log-004.pie">
+    <cxp:pie url="yes" figure="no" date="yes" import="yes" offset="yes">
+      <import type="log">
+20101103 AAA
+20101105 BBB
+20101107 CCC
+20101109 DEF
+      </import>
+    </cxp:pie>
+  </cxp:xml>
+</cxp:make>

@@ -1,0 +1,1326 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cxp:make xmlns:cxp="http://www.tenbusch.info/cxproc" dir="pwd" log="1">
+  <cxp:subst string="%SOURCEDIR%" argv="2" default="'tmp'"/>
+  <cxp:subst string="%BASENAME%" dir="%SOURCEDIR%"/>
+  <cxp:subst string="%TAG%" now="%Y%m%d"/>
+  <cxp:system message="Checking results in '%SOURCEDIR%'"/>
+  <!--  -->
+  <cxp:plain name="-">
+    <xml>
+      <dir name="%SOURCEDIR%" depth="9" verbosity="2"/>
+    </xml>
+    <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.0">
+      <xsl:output method="text"/>
+      <xsl:variable name="newline">
+        <xsl:text>
+</xsl:text>
+      </xsl:variable>
+      <xsl:variable name="str_sep">
+        <xsl:text>;</xsl:text>
+      </xsl:variable>
+      <xsl:template match="/">
+        <xsl:if test="not(count(pie/dir//file[@name]) = 11)">
+          <xsl:value-of select="concat('DIR',$str_sep,'%SOURCEDIR%',$str_sep,count(pie/dir//file[@name]),$str_sep,'ERROR',$str_sep,'COUNT',$newline)"/>
+	</xsl:if>
+	<xsl:choose>
+	  <xsl:when test="pie/dir/file">
+            <xsl:call-template name="test_a_dir">
+              <xsl:with-param name="str_dir" select="'%BASENAME%'"/>
+            </xsl:call-template>
+	  </xsl:when>
+	  <xsl:otherwise>
+            <xsl:value-of select="concat('DIR',$str_sep,'%SOURCEDIR%',$str_sep,$str_sep,'ERROR',$str_sep,'EMPTY',$newline)"/>
+	  </xsl:otherwise>
+	</xsl:choose>
+	<!-- test result of config-article.cxp -->
+	<xsl:choose>
+	  <xsl:when test="not(pie/dir[@name = 'tmp']/dir[@name = 'cxproc']/dir[@name = '%TAG%-article'])">
+            <xsl:value-of select="concat('DIR',$str_sep,'%TAG%-article',$str_sep,$str_sep,'ERROR',$str_sep,'EXISTS',$newline)"/>
+	  </xsl:when>
+          <xsl:when test="not(count(pie/dir[@name = 'tmp']/dir[@name = 'cxproc']/dir[@name = '%TAG%-article']/file[@name]) = 4)">
+            <xsl:value-of select="concat('FILE',$str_sep,'%TAG%-article',$str_sep,count(pie/dir[@name = 'tmp']/dir[@name = 'cxproc']/dir[@name = '%TAG%-article']/file[@name]),$str_sep,'ERROR',$str_sep,'COUNT',$newline)"/>
+	  </xsl:when>
+          <xsl:when test="sum(pie/dir[@name = 'tmp']/dir[@name = 'cxproc']/dir[@name = '%TAG%-article']/file[@name]/@size) &lt; 74000">
+            <xsl:value-of select="concat('FILE',$str_sep,'%TAG%-article',$str_sep,sum(pie/dir[@name = 'tmp']/dir[@name = 'cxproc']/dir[@name = '%TAG%-article']/file[@name]/@size),$str_sep,'ERROR',$str_sep,'SIZE',$newline)"/>
+	  </xsl:when>
+	  <xsl:otherwise>
+	  </xsl:otherwise>
+	</xsl:choose>
+	<!-- test result of config-presentation.cxp -->
+	<xsl:choose>
+	  <xsl:when test="not(pie/dir[@name = 'tmp']/dir[@name = 'cxproc']/dir[@name = '%TAG%-presentation'])">
+            <xsl:value-of select="concat('DIR',$str_sep,'%TAG%-presentation',$str_sep,$str_sep,'ERROR',$str_sep,'EXISTS',$newline)"/>
+	  </xsl:when>
+          <xsl:when test="not(count(pie/dir[@name = 'tmp']/dir[@name = 'cxproc']/dir[@name = '%TAG%-presentation']/file[@name]) = 41)">
+            <xsl:value-of select="concat('FILE',$str_sep,'%TAG%-presentation',$str_sep,count(pie/dir[@name = 'tmp']/dir[@name = 'cxproc']/dir[@name = '%TAG%-presentation']/file[@name]),$str_sep,'ERROR',$str_sep,'COUNT',$newline)"/>
+	  </xsl:when>
+          <xsl:when test="sum(pie/dir[@name = 'tmp']/dir[@name = 'cxproc']/dir[@name = '%TAG%-presentation']/file[@name]/@size) &lt; 333000">
+            <xsl:value-of select="concat('FILE',$str_sep,'%TAG%-presentation',$str_sep,sum(pie/dir[@name = 'tmp']/dir[@name = 'cxproc']/dir[@name = '%TAG%-presentation']/file[@name]/@size),$str_sep,'ERROR',$str_sep,'SIZE',$newline)"/>
+	  </xsl:when>
+	  <xsl:otherwise>
+	  </xsl:otherwise>
+	</xsl:choose>
+	<!-- test result of system/config.cxp -->
+	<xsl:choose>
+	  <xsl:when test="not(pie/dir[@name = 'tmp']/dir[@name = 'tmp-2'])">
+            <xsl:value-of select="concat('DIR',$str_sep,'tmp-2',$str_sep,$str_sep,'ERROR',$str_sep,'EXISTS',$newline)"/>
+	  </xsl:when>
+          <xsl:when test="not(pie/dir[@name = 'tmp']/dir[@name = 'tmp-2']/file[@name = 'source.dat'])">
+            <xsl:value-of select="concat('FILE',$str_sep,'tmp-2',$str_sep,$str_sep,'ERROR',$str_sep,'EXISTS',$newline)"/>
+	  </xsl:when>
+          <xsl:when test="not(pie/dir[@name = 'tmp']/dir[@name = 'tmp-2']/file[@name = 'source.dat']/@size = 345)">
+            <xsl:value-of select="concat('FILE',$str_sep,'tmp-2',$str_sep,pie/dir[@name = 'tmp']/dir[@name = 'tmp-2']/file[@name = 'source.dat']/@size,$str_sep,'ERROR',$str_sep,'SIZE',$newline)"/>
+	  </xsl:when>
+	  <xsl:otherwise>
+	  </xsl:otherwise>
+	</xsl:choose>
+	
+      </xsl:template>
+      <xsl:template name="test_a_dir">
+        <xsl:param name="str_dir"/>
+        <xsl:for-each select="pie/dir[@name='tmp']">
+  
+  <xsl:if test="file[starts-with(@name,'test-pie-')]">
+  <!-- TEST dom TEST -->
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'content.xml'"/>
+    <xsl:with-param name="int_min" select="3060"/>
+    <xsl:with-param name="int_elements" select="19"/>
+    <xsl:with-param name="str_tip" select="'Content of ODT'"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-pie-14-locator.pie'"/>
+    <xsl:with-param name="int_min" select="650"/>
+    <xsl:with-param name="int_elements" select="10"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-pie-14-locator-removed.pie'"/>
+    <xsl:with-param name="int_min" select="370"/>
+    <xsl:with-param name="int_elements" select="10"/>
+  </xsl:call-template>
+  </xsl:if>
+
+  <xsl:if test="file[starts-with(@name,'test-xml-')]">
+  <!-- TEST xml TEST -->
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-xml-0a.xml'"/>
+    <xsl:with-param name="int_min" select="50"/>
+    <xsl:with-param name="int_elements" select="2"/>
+    <xsl:with-param name="str_tip" select="'Minimum'"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-xml-0a1.xml'"/>
+    <xsl:with-param name="int_min" select="50"/>
+    <xsl:with-param name="int_elements" select="2"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-xml-0b.xml'"/>
+    <xsl:with-param name="int_min" select="50"/>
+    <xsl:with-param name="int_elements" select="2"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-xml-0b1.xml'"/>
+    <xsl:with-param name="int_min" select="140"/>
+    <xsl:with-param name="int_elements" select="3"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-xml-0c.xml'"/>
+    <xsl:with-param name="int_min" select="140"/>
+    <xsl:with-param name="int_elements" select="3"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-xml-1a.xml'"/>
+    <xsl:with-param name="int_min" select="150"/>
+    <xsl:with-param name="int_elements" select="3"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-xml-1b.xml'"/>
+    <xsl:with-param name="int_min" select="120"/>
+    <xsl:with-param name="int_elements" select="3"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-xml-1c.pie'"/>
+    <xsl:with-param name="int_min" select="140"/>
+    <xsl:with-param name="int_elements" select="3"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-xml-5.xml'"/>
+    <xsl:with-param name="int_min" select="150"/>
+    <xsl:with-param name="int_elements" select="5"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-xml-6.xml'"/>
+    <xsl:with-param name="int_min" select="46"/>
+    <xsl:with-param name="int_elements" select="1"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-xml-7a.xml'"/>
+    <xsl:with-param name="int_min" select="350"/>
+    <xsl:with-param name="int_elements" select="8"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-xml-7b.xml'"/>
+    <xsl:with-param name="int_min" select="60"/>
+    <xsl:with-param name="int_elements" select="2"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-xml-7c.xml'"/>
+    <xsl:with-param name="int_min" select="190"/>
+    <xsl:with-param name="int_elements" select="6"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-xml-8.xml'"/>
+    <xsl:with-param name="int_min" select="200"/>
+    <xsl:with-param name="int_elements" select="9"/>
+  </xsl:call-template>
+  </xsl:if>
+  
+  <xsl:if test="file[starts-with(@name,'test-xsl-')]">
+  <!-- TEST xsl TEST -->
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-xsl-1.html'"/>
+    <xsl:with-param name="int_min" select="660"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-xsl-2.pie'"/>
+    <xsl:with-param name="int_min" select="190"/>
+    <xsl:with-param name="int_elements" select="5"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-xsl-3.html'"/>
+    <xsl:with-param name="int_min" select="4420"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-xsl-4.xml'"/>
+    <xsl:with-param name="int_min" select="2670"/>
+    <xsl:with-param name="int_elements" select="32"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-xsl-5.html'"/>
+    <xsl:with-param name="int_min" select="205"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-xsl-6.xml'"/>
+    <xsl:with-param name="flag_exists" select="false()"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-xsl-7.xml'"/>
+    <xsl:with-param name="flag_exists" select="false()"/>
+  </xsl:call-template>
+  </xsl:if>
+  
+  <xsl:if test="file[starts-with(@name,'test-xhtml-')]">
+  <!-- TEST xhtml TEST -->
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-xhtml-0a.html'"/>
+    <xsl:with-param name="int_min" select="155"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-xhtml-0a1.html'"/>
+    <xsl:with-param name="int_min" select="155"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-xhtml-0b.html'"/>
+    <xsl:with-param name="int_min" select="260"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-xhtml-0b1.html'"/>
+    <xsl:with-param name="int_min" select="210"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-xhtml-0e.html'"/>
+    <xsl:with-param name="int_min" select="300"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-xhtml-1a.html'"/>
+    <xsl:with-param name="int_min" select="140"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-xhtml-1a.xml'"/>
+    <xsl:with-param name="int_min" select="400"/>
+    <!-- TODO: <xsl:with-param name="int_elements" select="4"/> -->
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-xhtml-1b.html'"/>
+    <xsl:with-param name="int_min" select="210"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-xhtml-2.html'"/>
+    <xsl:with-param name="int_min" select="50"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-xhtml-3a.html'"/>
+    <xsl:with-param name="int_min" select="410"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-xhtml-3b.html'"/>
+    <xsl:with-param name="int_min" select="730"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-xhtml-3c.html'"/>
+    <xsl:with-param name="int_min" select="410"/>
+  </xsl:call-template>
+  </xsl:if>
+  
+  <xsl:if test="file[starts-with(@name,'test-calendar-')]">
+  <!-- TEST calendar TEST -->
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-calendar-1a.xml'"/>
+    <xsl:with-param name="int_min" select="300"/>
+    <xsl:with-param name="int_elements" select="-1"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-calendar-1b.xml'"/>
+    <xsl:with-param name="int_min" select="33900"/>
+    <xsl:with-param name="int_elements" select="383"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-calendar-1c.xml'"/>
+    <xsl:with-param name="int_min" select="33900"/>
+    <xsl:with-param name="int_elements" select="383"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-calendar-1d.xml'"/>
+    <xsl:with-param name="int_min" select="48840"/>
+    <xsl:with-param name="int_elements" select="383"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-calendar-2.xml'"/>
+    <xsl:with-param name="int_min" select="100360"/>
+    <xsl:with-param name="int_elements" select="1138"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-calendar-3.xml'"/>
+    <xsl:with-param name="int_min" select="245000"/>
+    <xsl:with-param name="int_elements" select="3368"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-calendar-col-legende.pie'"/>
+    <xsl:with-param name="int_min" select="1490"/>
+    <xsl:with-param name="int_elements" select="23"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-calendar-3b.xml'"/>
+    <xsl:with-param name="int_min" select="33190"/>
+    <xsl:with-param name="int_elements" select="384"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-calendar-3c.xml'"/>
+    <xsl:with-param name="int_min" select="33230"/>
+    <xsl:with-param name="int_elements" select="385"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-calendar-1999.xml'"/>
+    <xsl:with-param name="int_min" select="33900"/>
+    <xsl:with-param name="int_elements" select="383"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-calendar-2001.xml'"/>
+    <xsl:with-param name="int_min" select="33900"/>
+    <xsl:with-param name="int_elements" select="383"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-calendar-2003.xml'"/>
+    <xsl:with-param name="int_min" select="33900"/>
+    <xsl:with-param name="int_elements" select="383"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-calendar-4b.xml'"/>
+    <xsl:with-param name="int_min" select="34140"/>
+    <xsl:with-param name="int_elements" select="387"/>
+  </xsl:call-template>
+   <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-calendar-5.html'"/>
+    <xsl:with-param name="int_min" select="92100"/>
+  </xsl:call-template>
+ <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-calendar-6.xml'"/>
+    <xsl:with-param name="int_min" select="33300"/>
+    <xsl:with-param name="int_elements" select="386"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-calendar-7.xml'"/>
+    <xsl:with-param name="int_min" select="76010"/>
+    <xsl:with-param name="int_elements" select="906"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-calendar-8-default-2014.xml'"/>
+    <xsl:with-param name="int_min" select="33800"/>
+    <xsl:with-param name="int_elements" select="382"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-calendar-8-mday-2014.xml'"/>
+    <xsl:with-param name="int_min" select="33810"/>
+    <xsl:with-param name="int_elements" select="382"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-calendar-8-month-2014.xml'"/>
+    <xsl:with-param name="int_min" select="1130"/>
+    <xsl:with-param name="int_elements" select="17"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-calendar-8-wday-2014.xml'"/>
+    <xsl:with-param name="int_min" select="34640"/>
+    <xsl:with-param name="int_elements" select="423"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-calendar-8-week-2014.xml'"/>
+    <xsl:with-param name="int_min" select="1390"/>
+    <xsl:with-param name="int_elements" select="58"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-calendar-8-year-2014.xml'"/>
+    <xsl:with-param name="int_min" select="320"/>
+    <xsl:with-param name="int_elements" select="5"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-calendar-9-month.xml'"/>
+    <xsl:with-param name="int_min" select="7910"/>
+    <xsl:with-param name="int_elements" select="104"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-calendar-9-week.xml'"/>
+    <xsl:with-param name="int_min" select="19000"/>
+    <xsl:with-param name="int_elements" select="281"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-calendar-9-year.xml'"/>
+    <xsl:with-param name="int_min" select="3430"/>
+    <xsl:with-param name="int_elements" select="46"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-calendar-10-week.xml'"/>
+    <xsl:with-param name="int_min" select="249820"/>
+    <xsl:with-param name="int_elements" select="9178"/>
+  </xsl:call-template>
+</xsl:if>
+
+  <!-- TODO: command TEST -->
+
+  <xsl:if test="file[starts-with(@name,'test-dir-')]">
+  <!-- TEST dir TEST -->
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-dir-verbosity-default.xml'"/>
+    <xsl:with-param name="int_min" select="1960"/>
+    <xsl:with-param name="int_elements" select="51"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-dir-verbosity-0.xml'"/>
+    <xsl:with-param name="int_min" select="450"/>
+    <xsl:with-param name="int_elements" select="10"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-dir-verbosity-1.xml'"/>
+    <xsl:with-param name="int_min" select="1900"/>
+    <xsl:with-param name="int_elements" select="51"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-dir-verbosity-2.xml'"/>
+    <xsl:with-param name="int_min" select="5020"/>
+    <xsl:with-param name="int_elements" select="63"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-dir-verbosity-3.xml'"/>
+    <xsl:with-param name="int_min" select="4171140"/>
+    <xsl:with-param name="int_elements" select="57860"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-dir-verbosity-4.xml'"/>
+    <xsl:with-param name="int_min" select="4271270"/>
+    <xsl:with-param name="int_elements" select="57876"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-dir-verbosity-max.xml'"/>
+    <xsl:with-param name="int_min" select="4271270"/>
+    <xsl:with-param name="int_elements" select="57876"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-dir-match.xml'"/>
+    <xsl:with-param name="int_min" select="1500"/>
+    <xsl:with-param name="int_elements" select="37"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-dir-grep.xml'"/>
+    <xsl:with-param name="int_min" select="5330"/>
+    <xsl:with-param name="int_elements" select="0"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-dir-match-grep.xml'"/>
+    <xsl:with-param name="int_min" select="2690"/>
+    <xsl:with-param name="int_elements" select="37"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-dir-error.xml'"/>
+    <xsl:with-param name="int_min" select="210"/>
+    <xsl:with-param name="int_elements" select="3"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-dir-&#xC4;&#xD6;&#xDC;-dir.xml'"/>
+    <xsl:with-param name="int_min" select="380"/>
+    <xsl:with-param name="int_elements" select="544"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-dir-&#xC4;&#xD6;&#xDC;-file.xml'"/>
+    <xsl:with-param name="int_min" select="1490"/>
+    <xsl:with-param name="int_elements" select="544"/>
+  </xsl:call-template>
+  </xsl:if>
+  
+  <xsl:if test="file[starts-with(@name,'test-each-')]">
+  <!-- TEST each TEST -->
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-each-1.pie'"/>
+    <xsl:with-param name="int_min" select="450"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-each-2.pie'"/>
+    <xsl:with-param name="int_min" select="450"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-each-3.pie'"/>
+    <xsl:with-param name="int_min" select="450"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-each-4.pie'"/>
+    <xsl:with-param name="int_min" select="450"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-each-5.pie'"/>
+    <xsl:with-param name="int_min" select="450"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-each-6.pie'"/>
+    <xsl:with-param name="int_min" select="450"/>
+  </xsl:call-template>
+  </xsl:if>
+  
+  <!-- TEST eval TEST -->
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-eval-1.pie'"/>
+    <xsl:with-param name="int_min" select="700"/>
+  </xsl:call-template>
+
+  <!-- TODO: image TEST -->
+  
+  <xsl:if test="file[starts-with(@name,'test-js-')]">
+  <!-- TEST js TEST -->
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-js-2.xml'"/>
+    <xsl:with-param name="int_min" select="230"/>
+    <xsl:with-param name="int_elements" select="12"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-js-3.txt'"/>
+    <xsl:with-param name="int_min" select="8"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-js-3b.txt'"/>
+    <xsl:with-param name="int_max" select="2"/>
+  </xsl:call-template>
+  </xsl:if>
+  
+  <xsl:if test="file[starts-with(@name,'test-json-')]">
+  <!-- TEST json TEST -->
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-json-1.xml'"/>
+    <xsl:with-param name="int_min" select="710"/>
+    <xsl:with-param name="int_elements" select="13"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-json-2.xml'"/>
+    <xsl:with-param name="int_min" select="1390"/>
+    <xsl:with-param name="int_elements" select="23"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-json-3.xml'"/>
+    <xsl:with-param name="int_min" select="490"/>
+    <xsl:with-param name="int_elements" select="11"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-json-7.xml'"/>
+    <xsl:with-param name="int_min" select="690"/>
+    <xsl:with-param name="int_elements" select="15"/>
+  </xsl:call-template>
+  </xsl:if>
+  
+  <xsl:if test="file[starts-with(@name,'test-petrinet-')]">
+  <!-- TEST petrinet TEST -->
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-petrinet-1.xml'"/>
+    <xsl:with-param name="int_min" select="12600"/>
+    <xsl:with-param name="int_elements" select="261"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-petrinet-1b.xml'"/>
+    <xsl:with-param name="int_min" select="790"/>
+    <xsl:with-param name="int_elements" select="18"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-petrinet-1.xsl'"/>
+    <xsl:with-param name="int_min" select="1470"/>
+    <xsl:with-param name="int_elements" select="28"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-petrinet-2.xml'"/>
+    <xsl:with-param name="int_min" select="3630"/>
+    <xsl:with-param name="int_elements" select="74"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-petrinet-2.xsl'"/>
+    <xsl:with-param name="int_min" select="5690"/>
+    <xsl:with-param name="int_elements" select="99"/>
+  </xsl:call-template>
+  </xsl:if>
+  
+  <xsl:if test="file[starts-with(@name,'test-pie-')]">
+  <!-- TEST pie TEST -->
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-pie-0.pie'"/>
+    <xsl:with-param name="int_min" select="400"/>
+    <xsl:with-param name="int_elements" select="4"/>
+    <xsl:with-param name="str_tip" select="'non-existant source file'"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-pie-1.pie'"/>
+    <xsl:with-param name="int_min" select="630"/>
+    <xsl:with-param name="int_elements" select="18"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-pie-2.pie'"/>
+    <xsl:with-param name="int_min" select="3290"/>
+    <xsl:with-param name="int_elements" select="21"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-pie-2.html'"/>
+    <xsl:with-param name="int_min" select="4100"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-pie-2.mm'"/>
+    <xsl:with-param name="int_min" select="530"/>
+    <xsl:with-param name="int_elements" select="11"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-pie-2c.pie'"/>
+    <xsl:with-param name="int_min" select="500"/>
+    <xsl:with-param name="int_elements" select="11"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-pie-2d.pie'"/>
+    <xsl:with-param name="int_min" select="4800"/>
+    <xsl:with-param name="int_elements" select="49"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-pie-3.txt'"/>
+    <xsl:with-param name="int_min" select="3390"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-pie-4.pie'"/>
+    <xsl:with-param name="int_min" select="1690"/>
+    <xsl:with-param name="int_elements" select="37"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-pie-5.pie'"/>
+    <xsl:with-param name="int_min" select="650"/>
+    <xsl:with-param name="int_elements" select="13"/>
+  </xsl:call-template>
+    <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-pie-5.html'"/>
+    <xsl:with-param name="int_min" select="570"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-pie-6.pie'"/>
+    <xsl:with-param name="int_min" select="3700"/>
+    <xsl:with-param name="int_elements" select="57"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-pie-6.html'"/>
+    <xsl:with-param name="int_min" select="4420"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-pie-8.pie'"/>
+    <xsl:with-param name="int_min" select="3100"/>
+    <xsl:with-param name="int_elements" select="67"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-pie-8.html'"/>
+    <xsl:with-param name="int_min" select="3200"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-pie-9.pie'"/>
+    <xsl:with-param name="int_min" select="7970"/>
+    <xsl:with-param name="int_elements" select="180"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-pie-9.html'"/>
+    <xsl:with-param name="int_min" select="9400"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-pie-10.pie'"/>
+    <xsl:with-param name="int_min" select="2100"/>
+    <xsl:with-param name="int_elements" select="41"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-pie-11.pie'"/>
+    <xsl:with-param name="int_min" select="5660"/>
+    <xsl:with-param name="int_elements" select="183"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-pie-12.pie'"/>
+    <xsl:with-param name="int_min" select="1350"/>
+    <xsl:with-param name="int_elements" select="32"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-pie-13.pie'"/>
+    <xsl:with-param name="int_min" select="620"/>
+    <xsl:with-param name="int_elements" select="14"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-pie-13b.pie'"/>
+    <xsl:with-param name="int_min" select="1200"/>
+    <xsl:with-param name="int_elements" select="18"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-pie-14.pie'"/>
+    <xsl:with-param name="int_min" select="910"/>
+    <xsl:with-param name="int_elements" select="15"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-pie-14b.pie'"/>
+    <xsl:with-param name="int_min" select="1700"/>
+    <xsl:with-param name="int_elements" select="28"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-pie-15.pie'"/>
+    <xsl:with-param name="int_min" select="190"/>
+    <xsl:with-param name="int_elements" select="5"/>
+    <xsl:with-param name="str_tip" select="'xsl + xpath'"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-pie-16.html'"/>
+    <xsl:with-param name="int_min" select="190"/>
+    <xsl:with-param name="int_elements" select="15"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-pie-17.pie'"/>
+    <xsl:with-param name="int_min" select="1600"/>
+    <xsl:with-param name="int_elements" select="29"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-pie-18.pie'"/>
+    <xsl:with-param name="int_min" select="2400"/>
+    <xsl:with-param name="int_elements" select="45"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-pie-19.pie'"/>
+    <xsl:with-param name="int_min" select="650"/>
+    <xsl:with-param name="int_elements" select="12"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-pie-19b.pie'"/>
+    <xsl:with-param name="int_min" select="670"/>
+    <xsl:with-param name="int_elements" select="9"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-pie-21.pie'"/>
+    <xsl:with-param name="int_min" select="900"/>
+    <xsl:with-param name="int_elements" select="11"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-pie-22.pie'"/>
+    <xsl:with-param name="int_min" select="6080"/>
+    <xsl:with-param name="int_elements" select="55"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-pie-23a.pie'"/>
+    <xsl:with-param name="int_min" select="600"/>
+    <xsl:with-param name="int_elements" select="9"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-pie-23b.pie'"/>
+    <xsl:with-param name="int_min" select="600"/>
+    <xsl:with-param name="int_elements" select="10"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-pie-23c.pie'"/>
+    <xsl:with-param name="int_min" select="600"/>
+    <xsl:with-param name="int_elements" select="7"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-pie-23c.txt'"/>
+    <xsl:with-param name="int_min" select="10"/>
+    <xsl:with-param name="str_tip" select="'each from plain'"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-pie-25.pie'"/>
+    <xsl:with-param name="int_min" select="590"/>
+    <xsl:with-param name="int_elements" select="18"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-pie-26.pie'"/>
+    <xsl:with-param name="int_min" select="660"/>
+    <xsl:with-param name="int_elements" select="17"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-pie-27.pie'"/>
+    <xsl:with-param name="int_min" select="3490"/>
+    <xsl:with-param name="int_elements" select="27"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-pie-28.pie'"/>
+    <xsl:with-param name="flag_exists" select="false()"/>
+  </xsl:call-template>
+</xsl:if>
+
+  <xsl:if test="file[starts-with(@name,'test-plain-')]">
+  <!-- TEST plain TEST -->
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-plain-0a.txt'"/>
+    <xsl:with-param name="int_min" select="18"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-plain-0a1.txt'"/>
+    <xsl:with-param name="int_min" select="18"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-plain-0b.txt'"/>
+    <xsl:with-param name="int_min" select="18"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-plain-0b1.txt'"/>
+    <xsl:with-param name="int_min" select="1024"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-plain-&#xE4;&#xD6;&#xFC;&#xDF;.txt'"/>
+    <xsl:with-param name="int_min" select="16"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-plain-1.txt'"/>
+    <xsl:with-param name="int_min" select="18"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-plain-2.txt'"/>
+    <xsl:with-param name="int_min" select="42"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-plain-3.txt'"/>
+    <xsl:with-param name="int_min" select="15"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-plain-4.txt'"/>
+    <xsl:with-param name="int_min" select="50"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-plain-5.txt'"/>
+    <xsl:with-param name="int_min" select="74"/>
+    <xsl:with-param name="str_tip" select="'text file with byte order mark UTF-8'"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-plain-5b.txt'"/>
+    <xsl:with-param name="int_min" select="150"/>
+    <xsl:with-param name="str_tip" select="'text file with byte order mark UTF-16'"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-plain-6.txt'"/>
+    <xsl:with-param name="int_min" select="20"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-plain-6b.txt'"/>
+    <xsl:with-param name="int_min" select="40"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-plain-8.txt'"/>
+    <xsl:with-param name="int_min" select="1024"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'this_is_a_bug.txt'"/>
+    <xsl:with-param name="flag_exists" select="false()"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-plain-enc-default.txt'"/>
+    <xsl:with-param name="int_min" select="35"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-plain-enc-false.txt'"/>
+    <xsl:with-param name="int_min" select="35"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-plain-enc-iso-8859-1.txt'"/>
+    <xsl:with-param name="int_min" select="31"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-plain-enc-utf-16.txt'"/>
+    <xsl:with-param name="int_min" select="62"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-plain-enc-utf-8.txt'"/>
+    <xsl:with-param name="int_min" select="35"/>
+  </xsl:call-template>
+</xsl:if>
+
+  <!-- TODO: rp TEST -->
+  
+  <xsl:if test="file[starts-with(@name,'test-db-')]">
+  <!-- TEST sql TEST -->
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-db-1.db3'"/>
+    <xsl:with-param name="int_min" select="2018"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-db-2.xml'"/>
+    <xsl:with-param name="int_min" select="680"/>
+    <xsl:with-param name="int_elements" select="20"/>
+  </xsl:call-template>
+   <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-db-3-verbosity-default.xml'"/>
+    <xsl:with-param name="int_min" select="250"/>
+    <xsl:with-param name="int_elements" select="4"/>
+  </xsl:call-template>
+   <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-db-3-verbosity-1.xml'"/>
+    <xsl:with-param name="int_min" select="250"/>
+    <xsl:with-param name="int_elements" select="4"/>
+  </xsl:call-template>
+   <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-db-3-verbosity-2.xml'"/>
+    <xsl:with-param name="int_min" select="970"/>
+    <xsl:with-param name="int_elements" select="22"/>
+  </xsl:call-template>
+   <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-db-3-verbosity-3.xml'"/>
+    <xsl:with-param name="int_min" select="1730"/>
+    <xsl:with-param name="int_elements" select="40"/>
+  </xsl:call-template>
+   <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-db-3-verbosity-max.xml'"/>
+    <xsl:with-param name="int_min" select="4520"/>
+    <xsl:with-param name="int_elements" select="41"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-db-4.txt'"/>
+    <xsl:with-param name="int_min" select="35"/>
+    <xsl:with-param name="str_tip" select="'SQLite query result'"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-db-4b.txt'"/>
+    <xsl:with-param name="flag_exists" select="false()"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-db-5-verbosity-1.db3'"/>
+    <xsl:with-param name="int_min" select="8192"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-db-5-verbosity-2.db3'"/>
+    <xsl:with-param name="int_min" select="8192"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-db-5-verbosity-3.db3'"/>
+    <xsl:with-param name="int_min" select="8192"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-db-5-verbosity-max.db3'"/>
+    <xsl:with-param name="int_min" select="8192"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-db-5-decl.xml'"/>
+    <xsl:with-param name="int_min" select="260"/>
+    <xsl:with-param name="int_elements" select="278"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-db-5-decl.html'"/>
+    <xsl:with-param name="int_min" select="260"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-db-6a.csv'"/>
+    <xsl:with-param name="int_min" select="907"/>
+    <xsl:with-param name="str_tip" select="'SQLite nested database query result'"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-db-6b.xml'"/>
+    <xsl:with-param name="int_min" select="21930"/>
+    <xsl:with-param name="int_elements" select="154"/>
+    <xsl:with-param name="str_tip" select="'SQLite nested database query result'"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-db-6c.csv'"/>
+    <xsl:with-param name="int_min" select="165"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-db-8-in-memory.xml'"/>
+    <xsl:with-param name="int_min" select="260"/>
+    <xsl:with-param name="int_elements" select="6"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-db-9.db3'"/>
+    <xsl:with-param name="flag_exists" select="false()"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-db-10-insert-dom.db3'"/>
+    <xsl:with-param name="int_min" select="780"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-db-11-insert-dom.db3'"/>
+    <xsl:with-param name="int_min" select="780"/>
+  </xsl:call-template>
+</xsl:if>
+
+  <xsl:if test="file[starts-with(@name,'test-subst-')]">
+  <!-- TEST subst TEST -->
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-subst-1.txt'"/>
+    <xsl:with-param name="int_min" select="700"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-subst-2.xml'"/>
+    <xsl:with-param name="int_min" select="200"/>
+    <xsl:with-param name="int_elements" select="6"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-subst-3.xml'"/>
+    <xsl:with-param name="int_min" select="14"/>
+    <xsl:with-param name="int_elements" select="4"/>
+  </xsl:call-template>
+  </xsl:if>
+  
+  <!-- TEST system TEST -->
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-system-1.txt'"/>
+    <xsl:with-param name="int_min" select="8"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-system-&#xF6;&#xFC;.txt'"/>
+    <xsl:with-param name="int_min" select="8"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'rwz.xxx'"/>
+    <xsl:with-param name="flag_exists" select="false()"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'source.dat'"/>
+    <xsl:with-param name="int_min" select="345"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'xyz.dat'"/>
+    <xsl:with-param name="int_min" select="345"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'source.zip'"/>
+    <xsl:with-param name="int_min" select="515"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'source.txt'"/>
+    <xsl:with-param name="flag_exists" select="false()"/>
+  </xsl:call-template>
+  <xsl:choose>
+    <xsl:when test="not(dir[@name = 'abc']/dir[@name = 'def']/dir[@name = 'hij']/dir[@name = 'klm']/file[@name = 'xyz.dat' and @size = 345])">
+      <xsl:value-of select="concat('DIR',$str_sep,'abc/def/hij/klm/xyz.dat',$str_sep,$str_sep,'ERROR',$str_sep,'EXISTS',$newline)"/>
+    </xsl:when>
+    <xsl:otherwise>
+    </xsl:otherwise>
+  </xsl:choose>
+  <xsl:choose>
+    <xsl:when test="not(dir[@name = 'AAAääB']/dir[@name = 'mmxnv'])">
+      <xsl:value-of select="concat('DIR',$str_sep,'AAAääB/mmxnv',$str_sep,$str_sep,'ERROR',$str_sep,'EXISTS',$newline)"/>
+    </xsl:when>
+    <xsl:otherwise>
+    </xsl:otherwise>
+  </xsl:choose>
+  <xsl:choose>
+    <xsl:when test="dir[@name = 'TO_DELETE']">
+      <xsl:value-of select="concat('TO_DELETE',$str_sep,$str_sep,'ERROR',$str_sep,'DELETE',$newline)"/>
+    </xsl:when>
+    <xsl:otherwise>
+    </xsl:otherwise>
+  </xsl:choose>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'pie.css'"/>
+    <xsl:with-param name="int_min" select="5544"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'presentation.css'"/>
+    <xsl:with-param name="int_min" select="1956"/>
+    <xsl:with-param name="str_tip" select="'copy command with search option and partial path'"/>
+  </xsl:call-template>
+  
+  <xsl:if test="file[starts-with(@name,'test-threads-')]">
+  <!-- TEST thread TEST -->
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-threads-plain-1.txt'"/>
+    <xsl:with-param name="int_min" select="16"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-threads-plain-2.txt'"/>
+    <xsl:with-param name="int_min" select="17"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-threads-pie.pie'"/>
+    <xsl:with-param name="int_min" select="1058"/>
+    <xsl:with-param name="int_elements" select="16"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-threads-E1.pie'"/>
+    <xsl:with-param name="int_min" select="181"/>
+    <xsl:with-param name="int_elements" select="3"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-threads-E2.pie'"/>
+    <xsl:with-param name="int_min" select="181"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-threads-E3.pie'"/>
+    <xsl:with-param name="int_min" select="181"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-threads-E4.pie'"/>
+    <xsl:with-param name="int_min" select="181"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-threads-E5.pie'"/>
+    <xsl:with-param name="int_min" select="181"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-threads-E6.pie'"/>
+    <xsl:with-param name="int_min" select="181"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-threads-E7.pie'"/>
+    <xsl:with-param name="int_min" select="181"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-threads-E8.pie'"/>
+    <xsl:with-param name="int_min" select="181"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-threads-bin.xml'"/>
+    <xsl:with-param name="int_min" select="610"/>
+    <xsl:with-param name="int_elements" select="15"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-threads-doc.xml'"/>
+    <xsl:with-param name="int_min" select="270"/>
+    <xsl:with-param name="int_elements" select="4"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-threads-dummy.xml'"/>
+    <xsl:with-param name="int_min" select="210"/>
+    <xsl:with-param name="int_elements" select="4"/>
+  </xsl:call-template>
+  </xsl:if>
+  
+  <!-- TEST worst TEST -->
+
+  <xsl:if test="file[starts-with(@name,'test-zip-')]">
+  <!-- TEST zip TEST -->
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-zip-1a.tar'"/>
+    <xsl:with-param name="int_min" select="10750"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-zip-1a.zip'"/>
+    <xsl:with-param name="int_min" select="2090"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-zip-1b.zip'"/>
+    <xsl:with-param name="int_min" select="2000"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-zip-1c.zip'"/>
+    <xsl:with-param name="int_min" select="1950"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-zip-1d.zip'"/>
+    <xsl:with-param name="int_min" select="2000"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-zip-2a.zip'"/>
+    <xsl:with-param name="int_max" select="0"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-zip-2b.zip'"/>
+    <xsl:with-param name="int_max" select="0"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-zip-3a.pie'"/>
+    <xsl:with-param name="int_max" select="0"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-zip-3b.pie'"/>
+    <xsl:with-param name="int_max" select="0"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-zip-4.zip'"/>
+    <xsl:with-param name="int_max" select="0"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-zip-5.zip'"/>
+    <xsl:with-param name="int_max" select="0"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-zip-6.zip'"/>
+    <xsl:with-param name="int_max" select="0"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-zip-7a.png'"/>
+    <xsl:with-param name="int_min" select="345"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-zip-7b.txt'"/>
+    <xsl:with-param name="int_min" select="100"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-zip-7c.png'"/>
+    <xsl:with-param name="int_max" select="0"/>
+  </xsl:call-template>
+  <xsl:call-template name="test_a_file">
+    <xsl:with-param name="str_name_file" select="'test-zip-7d.xml'"/>
+    <xsl:with-param name="int_min" select="2960"/>
+    <xsl:with-param name="int_elements" select="19"/>
+  </xsl:call-template>
+  </xsl:if>
+  
+</xsl:for-each>
+      </xsl:template>
+      <xsl:template name="test_a_file">
+        <xsl:param name="str_name_file" select="''"/>
+        <xsl:param name="flag_exists" select="true()"/>
+        <xsl:param name="int_min" select="-1"/>
+        <xsl:param name="int_max" select="-1"/>
+        <xsl:param name="int_elements" select="-1"/>
+        <xsl:param name="str_tip" select="''"/>
+
+	<xsl:choose>
+          <xsl:when test="string-length($str_name_file) &lt; 1">
+            <xsl:value-of select="concat('FILE',$str_sep,$str_name_file,$str_sep,$str_sep,'ERROR',$str_sep,'NAME',$str_sep,$str_tip,$newline)"/>
+          </xsl:when>
+          <xsl:when test="count(file[@name = $str_name_file]) &lt; 1 and $flag_exists">
+            <xsl:value-of select="concat('FILE',$str_sep,$str_name_file,$str_sep,$str_sep,'ERROR',$str_sep,'EXISTS',$str_sep,$str_tip,$newline)"/>
+          </xsl:when>
+          <xsl:when test="file[@name=$str_name_file and $int_elements &gt; -1 and not(document(concat('%SOURCEDIR%','/',@name)))]">
+            <xsl:value-of select="concat('FILE',$str_sep,$str_name_file,$str_sep,$str_sep,'ERROR',$str_sep,'PARSE',$str_sep,$str_tip,$newline)"/>
+          </xsl:when>
+          <xsl:when test="file[@name=$str_name_file and $int_elements &gt; -1 and not(count(document(concat('%SOURCEDIR%','/',@name))/descendant::*) = $int_elements)]">
+            <xsl:value-of select="concat('FILE',$str_sep,$str_name_file,$str_sep,count(document(concat('%SOURCEDIR%','/',file[@name=$str_name_file]/@name))/descendant::*),$str_sep,$int_elements,$str_sep,'ERROR',$str_sep,'NODES',$str_sep,$str_tip,$newline)"/>
+          </xsl:when>
+          <xsl:when test="file[@name=$str_name_file and ($int_min &gt; -1 and @size &lt; $int_min) or ($int_max &gt; -1 and @size &gt; $int_max)]">
+            <xsl:value-of select="concat('FILE',$str_sep,$str_name_file,$str_sep,file[@name=$str_name_file]/@size,$str_sep,$int_min,$str_sep,'ERROR',$str_sep,'SIZE',$str_sep,$str_tip,$newline)"/>
+          </xsl:when>
+          <xsl:otherwise>
+            <!--
+		<xsl:value-of select="concat('FILE',$str_sep,$str_name_file,$str_sep,$str_sep,'OK',$str_sep,$str_tip,$newline)"/>
+	    -->
+          </xsl:otherwise>
+        </xsl:choose>
+
+      </xsl:template>
+      <!-- TODO: test DOM statistics (number of nodes etc) -->
+    </xsl:stylesheet>
+  </cxp:plain>
+  <cxp:xml name="-" valid="no">
+    <xml>
+      <dir name="%SOURCEDIR%" depth="3" verbosity="2"/>
+    </xml>
+    <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.0">
+      <xsl:output method="xml"/>
+      <xsl:template match="/">
+        <xsl:element name="f">
+          <xsl:for-each select="pie/dir[@name]">
+            <xsl:call-template name="test_generate">
+              <xsl:with-param name="str_name_test" select="'zip'"/>
+            </xsl:call-template>
+            <xsl:call-template name="test_generate">
+              <xsl:with-param name="str_name_test" select="'calendar'"/>
+            </xsl:call-template>
+            <xsl:call-template name="test_generate">
+              <xsl:with-param name="str_name_test" select="'cgi'"/>
+            </xsl:call-template>
+            <xsl:call-template name="test_generate">
+              <xsl:with-param name="str_name_test" select="'command'"/>
+            </xsl:call-template>
+            <xsl:call-template name="test_generate">
+              <xsl:with-param name="str_name_test" select="'dir'"/>
+            </xsl:call-template>
+            <xsl:call-template name="test_generate">
+              <xsl:with-param name="str_name_test" select="'each'"/>
+            </xsl:call-template>
+            <xsl:call-template name="test_generate">
+              <xsl:with-param name="str_name_test" select="'eval'"/>
+            </xsl:call-template>
+            <xsl:call-template name="test_generate">
+              <xsl:with-param name="str_name_test" select="'image'"/>
+            </xsl:call-template>
+            <xsl:call-template name="test_generate">
+              <xsl:with-param name="str_name_test" select="'js'"/>
+            </xsl:call-template>
+            <xsl:call-template name="test_generate">
+              <xsl:with-param name="str_name_test" select="'json'"/>
+            </xsl:call-template>
+            <xsl:call-template name="test_generate">
+              <xsl:with-param name="str_name_test" select="'petrinet'"/>
+            </xsl:call-template>
+            <xsl:call-template name="test_generate">
+              <xsl:with-param name="str_name_test" select="'pie'"/>
+            </xsl:call-template>
+            <xsl:call-template name="test_generate">
+              <xsl:with-param name="str_name_test" select="'plain'"/>
+            </xsl:call-template>
+            <xsl:call-template name="test_generate">
+              <xsl:with-param name="str_name_test" select="'rp'"/>
+            </xsl:call-template>
+            <xsl:call-template name="test_generate">
+              <xsl:with-param name="str_name_test" select="'sql'"/>
+            </xsl:call-template>
+            <xsl:call-template name="test_generate">
+              <xsl:with-param name="str_name_test" select="'subst'"/>
+            </xsl:call-template>
+            <xsl:call-template name="test_generate">
+              <xsl:with-param name="str_name_test" select="'system'"/>
+            </xsl:call-template>
+            <xsl:call-template name="test_generate">
+              <xsl:with-param name="str_name_test" select="'thread'"/>
+            </xsl:call-template>
+            <xsl:call-template name="test_generate">
+              <xsl:with-param name="str_name_test" select="'worst'"/>
+            </xsl:call-template>
+            <xsl:call-template name="test_generate">
+              <xsl:with-param name="str_name_test" select="'xhtml'"/>
+            </xsl:call-template>
+            <xsl:call-template name="test_generate">
+              <xsl:with-param name="str_name_test" select="'xml'"/>
+            </xsl:call-template>
+            <xsl:call-template name="test_generate">
+              <xsl:with-param name="str_name_test" select="'xsl'"/>
+            </xsl:call-template>
+          </xsl:for-each>
+        </xsl:element>
+      </xsl:template>
+      <xsl:template name="test_generate">
+        <xsl:param name="str_name_test"/>
+        <xsl:comment>
+          <xsl:value-of select="concat(' TEST ', $str_name_test,' TEST ')"/>
+        </xsl:comment>
+        <xsl:for-each select="file[starts-with(@name,concat('test-', $str_name_test))]">
+          <xsl:sort select="@name"/>
+          <xsl:variable name="str_name_file" select="@name"/>
+          <xsl:element name="xsl:call-template">
+            <xsl:attribute name="name">test_a_file</xsl:attribute>
+            <xsl:element name="xsl:with-param">
+              <xsl:attribute name="name">str_name_file</xsl:attribute>
+              <xsl:attribute name="select">
+                <xsl:text>'</xsl:text>
+                <xsl:value-of select="$str_name_file"/>
+                <xsl:text>'</xsl:text>
+              </xsl:attribute>
+            </xsl:element>
+            <xsl:element name="xsl:with-param">
+              <xsl:attribute name="name">int_min</xsl:attribute>
+              <xsl:attribute name="select">
+                <xsl:value-of select="floor(@size div 10) * 10"/>
+              </xsl:attribute>
+            </xsl:element>
+          </xsl:element>
+        </xsl:for-each>
+      </xsl:template>
+      <!-- TODO: test DOM statistics (number of nodes etc) -->
+    </xsl:stylesheet>
+  </cxp:xml>
+  <!--  -->
+</cxp:make>

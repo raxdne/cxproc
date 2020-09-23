@@ -1,0 +1,10 @@
+<?xml version="1.0" ?>
+<pie>
+  <section>
+    <h>HTML embedding</h>
+    <body>
+      <h2>H2</h2>
+      <p>PAR with <b>bold</b> and <i>italic</i> and <u>underlined</u></p>
+    </body>
+  </section>
+</pie>

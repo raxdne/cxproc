@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cxp:make xmlns:cxp="http://www.tenbusch.info/cxproc" log="3" thread="yes">
+  <cxp:system mkdir="result"/>
+  <cxp:plain name="result/test-threads-plain-1.txt">
+** Import I
+
+  </cxp:plain>
+  <cxp:plain name="result/test-threads-plain-2.txt">
+** Import II
+
+  </cxp:plain>
+  <cxp:xml name="result/test-threads-pie.pie">
+    <cxp:pie>
+      <section>
+        <h>Thread Test</h>
+        <import name="result/test-threads-plain-1.txt"/>
+        <import name="result/test-threads-plain-2.txt"/>
+      </section>
+    </cxp:pie>
+  </cxp:xml>
+  <!--  -->
+  <cxp:make>
+    <cxp:system message="T1"/>
+  </cxp:make>
+  <cxp:system message="A"/>
+  <cxp:make>
+    <cxp:system message="T2"/>
+  </cxp:make>
+  <!--  -->
+  <cxp:each name="%N%">
+    <cxp:from>E1 E2 E3 E4 E5 E6 E7 E8</cxp:from>
+    <cxp:make>
+      <cxp:system message="%N%"/>
+      <cxp:copy from="../pie/test-pie-5.pie" to="result/test-threads-%N%.pie"/>
+    </cxp:make>
+  </cxp:each>
+  <cxp:system message="TEST: a multi-source threading PIE document"/>
+  <cxp:xml name="result/test-threads-pie.xml">
+    <cxp:xml>
+      <cxp:pie>
+        <section>
+          <h>Thread Test</h>
+          <import name="result/test-threads-plain-1.txt"/>
+          <import type="cxp">
+            <cxp:xml>
+              <cxp:xml name="result/test-threads-pie.pie"/>
+              <cxp:xsl name="Validate.xsl"/>
+            </cxp:xml>
+          </import>
+        </section>
+      </cxp:pie>
+    </cxp:xml>
+  </cxp:xml>
+  <!--  -->
+  <cxp:make>
+    <cxp:xml name="../pie/test-pie-5.pie"/>
+  </cxp:make>
+  <cxp:make>
+    <cxp:xml name="../pie/test-pie-16.pie"/>
+  </cxp:make>
+  <cxp:make>
+    <cxp:xml name="../pie/test-pie-17.pie"/>
+  </cxp:make>
+  <!--  -->
+  <cxp:each name="%D%">
+    <cxp:from>bin dummy doc</cxp:from>
+    <cxp:make context="../..">
+      <cxp:xml name="tmp/test-threads-%D%.xml">
+        <cxp:dir name="%D%"/>
+      </cxp:xml>
+    </cxp:make>
+  </cxp:each>
+  <cxp:system message="TODO: a multitreading database access"/>
+  <cxp:system message="TODO: a multitreading download"/>
+</cxp:make>

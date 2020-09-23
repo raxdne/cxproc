@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE cxp:make PUBLIC "-//A. Tenbusch//DTD CXPROC Draft//EN" "http://www.tenbusch.info/cxproc/cxp.dtd">
+<cxp:make xmlns:cxp="http://www.tenbusch.info/cxproc" CXP_PATH="../../tmp" log="3">
+  <cxp:subst string="%FILE%" filename="."/>
+  <cxp:subst string="%DIR%" dir="ofFile"/>
+  <cxp:system chdir="%DIR%/../../tmp"/>
+  <cxp:each name="%D%">
+    <cxp:from>A B C D E</cxp:from>
+    <cxp:system mkdir="%D%"/>
+    <cxp:copy from="%FILE%" to="%D%/%D%.cxp"/>
+    <cxp:system chdir="%D%"/>
+  </cxp:each>
+  <cxp:system chdir="%DIR%/../../tmp"/>
+  <cxp:each name="%D%">
+    <cxp:from>0 A B c d e</cxp:from>
+    <cxp:system mkdir="%D%"/>
+    <cxp:copy from="%FILE%" to="%D%/%D%.cxp"/>
+    <cxp:system chdir="%D%"/>
+  </cxp:each>
+  <cxp:system chdir="%DIR%/../../tmp"/>
+  <cxp:copy from="B/C/C.cxp" to="found.cxp" search="yes"/>
+</cxp:make>

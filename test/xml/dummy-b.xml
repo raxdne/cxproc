@@ -1,0 +1,4 @@
+<?xml version="1.0"?>
+<dummy-b id="123">
+  <dummy-b-child idref="123"/>
+</dummy-b>

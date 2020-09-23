@@ -1,0 +1,60 @@
+; Speicherung <test-pie-8.txt 30.11.2016 22:46:38 developer>
+
+* Test for URL recognition
+
+isolated URL
+
+http://freemail.web.de/
+
+ftp://ftp.dante.de
+
+mailto:tester@test.org
+
+multiple http URLs in one paragraph
+
+http://www.google.de http://www.froogle.de http://www.google.com/codesearch http://www.metager.de http://www.altavista.com
+
+mixed types of URLs with words between
+
+A1 http://www.wikipedia.org/ AAAA ftp://ftp.dante.de HHH
+ftp://ftp.gnu.org JJJ
+mailto:tester@test.org III http://www.altavista.com LLL
+
+mixed types of URLs
+
+http://www.wikipedia.org/ ftp://ftp.dante.de ftp://ftp.gnu.org
+mailto:tester@test.org http://www.altavista.com
+
+** URL in header ftp://ftp.dante.de
+
+*** http://freemail.web.de/
+
+* Test Link Markup
+
+	http://www.xyz.com/this-ressouce-is-name/ |#aaa|AAA| http://www.uvw.ch/
+
+ pre URL |http://www.abc.de/ |ABC| post URL
+ 
+ |test.html|
+ 
+ |test.html|Test|
+
+ |#test|Test|
+
+ |test.html|Test
+
+ |||
+
+ |test.html||
+ 
+   |http://www.xyz.com/this-ressouce-is-name/|| dakdölakdö
+
+ #anchor#
+
+ |#anchor|Test
+
+  pre URL |http://www.abc.de/ |ABC| post URL|test.html|Test|	
+  
+
+
+End of test.

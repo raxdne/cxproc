@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cxp:make xmlns:cxp="http://www.tenbusch.info/cxproc">
+  <cxp:system mkdir="result"/>
+  <cxp:system message="**** test-pie-import-xml-000-001: file doesnt exist, emtpy PIE node"/>
+  <cxp:xml name="result/test-pie-import-xml-000-001.pie">
+    <cxp:pie>
+    </cxp:pie>
+  </cxp:xml>
+  <cxp:system message="**** test-pie-import-xml-000-002: file doesnt exist, emtpy PIE node"/>
+  <cxp:xml name="result/test-pie-import-xml-000-002.pie">
+    <cxp:pie>
+      <import name="test-pie-import-xml-000.pie"/>
+    </cxp:pie>
+  </cxp:xml>
+  <cxp:system message="**** test-pie-import-xml-001-001: XML pie node ***"/>
+  <cxp:xml name="result/test-pie-import-xml-001-001.pie">
+    <cxp:pie>
+      <section>
+        <h>Import Test</h>
+        <section>
+          <h>Section</h>
+          <section>
+            <h>Section</h>
+            <p>ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC</p>
+          </section>
+        </section>
+        <section>
+          <section>
+            <h>A</h>
+            <p>Nur ein → Test</p>
+          </section>
+          <section>
+            <h>B</h>
+          </section>
+          <section>
+            <h>C</h>
+          </section>
+        </section>
+      </section>
+    </cxp:pie>
+  </cxp:xml>
+  <cxp:system message="**** test-pie-import-xml-001-002: simple XML pie/import ***"/>
+  <cxp:xml name="result/test-pie-import-xml-001-002.pie">
+    <cxp:pie>
+      <section>
+        <h>Import Test</h>
+        <import name="test-pie-import-xml-001.pie"/>
+      </section>
+    </cxp:pie>
+  </cxp:xml>
+  <cxp:system message="**** test-pie-import-xml-001-003: simple XML import ***"/>
+  <cxp:xml name="result/test-pie-import-xml-001-003.pie">
+    <cxp:xml name="test-pie-import-xml-001.pie"/>
+  </cxp:xml>
+  <cxp:system message="**** test-pie-import-xml-002: two simple XML pie/imports ***"/>
+  <cxp:xml name="result/test-pie-import-xml-002.pie">
+    <cxp:pie tags="no">
+      <section>
+        <h>Import Test</h>
+        <import name="test-pie-import-xml-001.pie"/>
+        <import name="test-pie-import-xml-002.pie"/>
+      </section>
+    </cxp:pie>
+  </cxp:xml>
+  <cxp:system message="**** test-pie-import-xml-003: import of PIE file containing subst nodes"/>
+  <cxp:xml name="result/test-pie-import-xml-003.pie">
+    <cxp:pie>
+      <import name="test-pie-import-xml-003.pie"/>
+    </cxp:pie>
+  </cxp:xml>
+  <cxp:system message="**** test-pie-import-xml-004: import of non-parseable PIE file"/>
+  <cxp:xml name="result/test-pie-import-xml-004.pie">
+    <cxp:pie>
+      <import name="test-pie-import-xml-004.pie"/>
+    </cxp:pie>
+  </cxp:xml>
+  <cxp:system message="**** test-pie-import-xml-007: Stylesheet shortcut as XPath"/>
+  <cxp:xml name="result/test-pie-import-xml-007.pie">
+    <cxp:xml name="test-pie-import-xml-007.pie"/>
+    <cxp:xpath select="/pie/section[1]/h[1]"/>
+  </cxp:xml>
+</cxp:make>

@@ -1,0 +1,19 @@
+
+* Import test
+
+** direct import
+
+#import("sub-1/sub-1-1/test-pie-22-1-1.txt")
+
+#import("sub-1/sub-1-2/sub-1-2-1/test-pie-22-1-2-1.txt")
+
+#import("sub-1/sub-1-2/sub-1-2-2/test-pie-22-1-2-2.txt")
+
+#import("sub-1/sub-1-2/test-pie-22-1-2.txt")
+
+#import("sub-1/test-pie-22-1.txt")
+
+
+** nested import
+
+#import("sub-1/test-pie-22-1.txt")

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cxp:make xmlns:cxp="http://www.tenbusch.info/cxproc">
+  <cxp:system message="test collection"/>
+  <cxp:xml name="../result/test-xml-include-sub11.xml">
+    <dummy>
+      <cxp:include name="sub11/dummy-a.xml"/>
+    </dummy>
+  </cxp:xml>
+  <cxp:xml name="../result/test-xml-dir-sub11.xml">
+    <cxp:dir>
+      <cxp:dir name="sub11"/>
+      <cxp:dir name="sub12"/>
+    </cxp:dir>
+  </cxp:xml>
+</cxp:make>

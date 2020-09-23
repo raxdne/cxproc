@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cxp:make xmlns:cxp="http://www.tenbusch.info/cxproc">
+  <cxp:system mkdir="result"/>
+  <cxp:system message="**** test-pie-import-line-001: import of line-oriented PIE file"/>
+  <cxp:xml name="result/test-pie-import-line-001.pie">
+    <cxp:xml>
+      <cxp:pie>
+        <import name="test-pie-import-line-001.txt" type="line"/>
+      </cxp:pie>
+    </cxp:xml>
+  </cxp:xml>
+</cxp:make>

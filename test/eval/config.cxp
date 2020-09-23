@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<cxp:make xmlns:cxp="http://www.tenbusch.info/cxproc">
+  <cxp:system mkdir="result"/>
+  <cxp:system message="*** test-eval-001: config include ***"/>
+  <cxp:include name="include.cxp"/>
+</cxp:make>

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cxp:make xmlns:cxp="http://www.tenbusch.info/cxproc">
+  <cxp:system mkdir="result"/>
+    <cxp:system message="*** test-xml-include-000: include XML in a new context ***"/>
+    <cxp:xml name="result/test-xml-include-000.xml">
+      <cxp:include name="not-exist.xml"/>
+    </cxp:xml>
+    <cxp:system message="*** test-xml-include-001: include XML in a new context ***"/>
+    <cxp:xml name="result/test-xml-include-001.xml">
+      <cxp:include name="baustelle.pie"/>
+    </cxp:xml>
+    <cxp:system message="*** test-xml-include-002: include XML in a new context ***"/>
+    <cxp:xml name="result/test-xml-include-002.xml">
+      <cxp:include name="dummy-a.xml"/>
+    </cxp:xml>
+    <cxp:system message="*** test-xml-include-003: include XML in a new context ***"/>
+    <cxp:xml name="result/test-xml-include-003.xml">
+      <dummy>
+        <cxp:include name="dummy-a.xml"/>
+        <cxp:include name="dummy-b.xml"/>
+        <cxp:include name="dummy-c.xml"/>
+      </dummy>
+    </cxp:xml>
+</cxp:make>

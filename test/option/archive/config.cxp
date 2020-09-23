@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="utf-8"?>
+<cxp:make xmlns:cxp="http://www.tenbusch.info/cxproc">
+  <cxp:system mkdir="result"/>
+  <cxp:system message="*** Test 1a: compressing of existing files ***"/>
+  <cxp:zip name="result/test-zip-001a.zip" level="3" context="..">
+    <cxp:dir name="plain">
+      <cxp:file name="config-single.cxp"/>
+      <cxp:file name="config.cxp"/>
+      <cxp:file name="Length_1024.txt"/>
+      <cxp:file name="test-content-isolat1.txt"/>
+      <cxp:file name="test-content-utf16be.txt"/>
+      <cxp:file name="test-unicode16-bom.txt"/>
+    </cxp:dir>
+  </cxp:zip>
+  <cxp:zip name="result/test-zip-001a.tar" level="3" context="..">
+    <cxp:dir name="plain">
+      <cxp:file name="config-single.cxp"/>
+      <cxp:file name="config.cxp"/>
+      <cxp:file name="Length_1024.txt"/>
+      <cxp:file name="test-content-isolat1.txt"/>
+      <cxp:file name="test-content-utf16be.txt"/>
+      <cxp:file name="test-unicode16-bom.txt"/>
+    </cxp:dir>
+  </cxp:zip>
+  <cxp:system message="*** Test 1b: compressing of existing files ***"/>
+  <cxp:zip name="result/test-zip-001b.zip" level="3" context="..">
+    <cxp:file name="plain/config-single.cxp"/>
+    <cxp:file name="plain/config.cxp"/>
+    <cxp:file name="plain/Length_1024.txt"/>
+    <cxp:file name="plain/test-content-isolat1.txt"/>
+    <cxp:file name="plain/test-content-utf16be.txt"/>
+    <cxp:file name="plain/test-unicode16-bom.txt"/>
+  </cxp:zip>
+  <cxp:system message="*** Test 1c: compressing of existing files with path mapping ***"/>
+  <cxp:zip name="result/test-zip-001c.zip" level="3" context="..">
+    <cxp:file name="plain/config-single.cxp"/>
+    <cxp:file name="plain/config.cxp" map="mapped/t-1c-1.cxp"/>
+    <cxp:file name="plain/Length_1024.txt"/>
+    <cxp:file name="plain/test-content-isolat1.txt" map="mapped/t-1c-2.cxp"/>
+    <cxp:file name="plain/test-content-utf16be.txt" map="mapped/t-1c-3.cxp"/>
+    <cxp:file name="plain/test-unicode16-bom.txt"/>
+  </cxp:zip>
+  <cxp:system message="*** Test 1d: compressing of existing files from text node ***"/>
+  <cxp:zip name="result/test-zip-001d.zip" context="..">
+    <cxp:plain>
+plain/config-single.cxp
+plain/config.cxp
+plain/Length_1024.txt
+
+
+plain/test-content-isolat1.txt
+plain/test-content-utf16be.txt
+plain/test-unicode16-bom.txt</cxp:plain>
+  </cxp:zip>
+  <cxp:system message="*** Test 1e: compressing of SQL filtered files ***"/>
+  <cxp:zip name="result/test-zip-001e.zip" context=".." valid="no">
+    <cxp:plain>
+      <cxp:db>
+        <cxp:dir>
+          <cxp:dir name="pie" depth="2"/>
+        </cxp:dir>
+      </cxp:db>
+      <cxp:query>SELECT path || '/' || name FROM directory WHERE ext LIKE 'txt';</cxp:query>
+    </cxp:plain>
+  </cxp:zip>
+  <cxp:system message="*** Test 2a: compressing of existing tree, not filtered ***"/>
+  <cxp:zip name="result/test-zip-002a.zip" context=".." level="3">
+    <cxp:xml>
+      <cxp:dir>
+        <cxp:dir name="pie" depth="2"/>
+      </cxp:dir>
+    </cxp:xml>
+  </cxp:zip>
+  <cxp:system message="*** Test 2b: compressing of existing files, filtered by XSLT ***"/>
+  <cxp:zip name="result/test-zip-002b.zip" context=".." level="0">
+    <cxp:xml>
+      <cxp:xml>
+        <cxp:dir>
+          <cxp:dir name="pie" depth="2"/>
+        </cxp:dir>
+      </cxp:xml>
+      <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.0">
+        <xsl:output method="xml"/>
+        <xsl:template match="@*|node()">
+          <xsl:choose>
+            <xsl:when test="name()='file' and not(contains(@name,'.txt'))"/>
+            <xsl:otherwise>
+              <xsl:copy>
+                <xsl:apply-templates select="@*|node()"/>
+              </xsl:copy>
+            </xsl:otherwise>
+          </xsl:choose>
+        </xsl:template>
+      </xsl:stylesheet>
+    </cxp:xml>
+  </cxp:zip>
+  <cxp:system message="*** Test 3a: listing of existing ZIP file content as DOM ***"/>
+  <cxp:xml name="result/test-zip-003a.pie">
+    <cxp:zip name="result/test-zip-002a.zip"/>
+  </cxp:xml>
+  <cxp:system message="*** Test 3b: listing of existing ZIP file ***"/>
+  <cxp:xml name="result/test-zip-003b.pie">
+    <cxp:file name="result/test-zip-002a.zip" verbosity="4"/>
+  </cxp:xml>
+  <cxp:system message="*** TODO Test 4: compressing of script generated path ***"/>
+  <cxp:zip name="result/test-zip-004.zip" level="3" context=".." valid="no">
+    <cxp:script>
+	var strPath = 'ajax/' + 'ClassTester.js';
+
+	strPath;
+    </cxp:script>
+  </cxp:zip>
+  <cxp:system message="*** TODO Test 5: compressing of script generated content ***"/>
+
+  <cxp:system message="*** TODO Test 6: compressing of existing URL content with path mapping ***"/>
+  <cxp:zip name="result/test-zip-006.zip" level="3" valid="no">
+    <cxp:file name="http://de.wikipedia.org/wiki/Fritz_Walter" map="wikipedia.org/Fritz_Walter.html"/>
+  </cxp:zip>
+  <cxp:system message="*** Test 7a: extract content from of existing ZIP file ***"/>
+  <cxp:copy from="test-zip-007.zip!sub/weiter.png" to="result/test-zip-007a.png"/>
+  <cxp:system message="*** Test 7b: extract content from of existing ZIP file ***"/>
+  <cxp:plain name="result/test-zip-007b.txt">
+    <cxp:plain name="test-zip-007.zip!sub/a.txt"/>
+    <cxp:plain name="test-zip-007.zip!sub/b.txt"/>
+  </cxp:plain>
+  <cxp:system message="*** Test 7c: extract content from of existing ZIP file ***"/>
+  <cxp:image to="result/test-zip-007c.png">
+    <cxp:image src="test-zip-007.zip!sub/weiter.png"/>
+  </cxp:image>
+  <cxp:system message="*** Test 7d: extract content from of existing ODT file ***"/>
+  <cxp:copy from="../pie/test-pie-20.odt!content.xml" to="result/test-zip-007d.xml"/>
+</cxp:make>

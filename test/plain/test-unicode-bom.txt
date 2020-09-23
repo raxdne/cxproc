@@ -1,0 +1,4 @@
+﻿* Unicode Byte Order Mark (BOM) 
+
+s. http://unicode.org/faq/utf_bom.html
+

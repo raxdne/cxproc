@@ -1,0 +1,39 @@
+
+* Test for DATE recognition
+
+isolated DATE
+
+20070806
+
+2007*w32mon
+
+multiple DATEs in one paragraph
+
+20070806 20070931 20081109 ksdjflksd
+
+mixed types of DATEs with words between
+
+A1 20070811 AAAA 20070913 HHH
+2007*w32fri JJJ 2007*w33fri JJJ
+
+** DATE in header 20070817
+
+German date 12.4.2009 is valid
+
+32.13.1899 is not valid
+
+*** 20070827
+
+** Import
+
+#import("test-pie-8.txt",root,csv)
+
+** Mix of date and href links
+
+20070811 http://www.xyz.org/ aödlakdö
+
+20070918 http://www.xyz.org/ aödlakdö http://www.abc.org/ aödlakdö
+
+#import("test-pie-9.txt",,,log)
+
+End of test.

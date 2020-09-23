@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cxp:make xmlns:cxp="http://www.tenbusch.info/cxproc">
+  <cxp:system mkdir="result"/>
+  <cxp:system message="*** Test 1: iteration keys from string ***"/>
+  <cxp:each name="%N%">
+    <cxp:from> 1 2 3 4 5 6  </cxp:from>
+    <cxp:xhtml name="result/test-each-%N%.html">
+      <cxp:xml name="result/test-each-%N%.pie" cache="yes">
+        <cxp:pie>
+          <import name="simple.txt"/>
+        </cxp:pie>
+      </cxp:xml>
+      <cxp:xsl name="pie2html.xsl" cache="yes">
+        <cxp:variable name="i_x" select="%N%"/>
+        <cxp:variable name="flag_tree" select="true()"/>
+      </cxp:xsl>
+    </cxp:xhtml>
+  </cxp:each>
+  <cxp:system message="*** Test 2: iteration keys from plain text file ***"/>
+  <cxp:each name="%R%">
+    <cxp:from>
+      <cxp:plain name="ids.txt"/>
+    </cxp:from>
+    <cxp:xhtml name="result/test-each-%R%%R%.html">
+      <cxp:xml>
+        <cxp:pie>
+          <import name="simple.txt"/>
+        </cxp:pie>
+      </cxp:xml>
+      <cxp:xsl name="Validate.xsl"/>
+      <cxp:xsl name="pie2html.xsl"/>
+    </cxp:xhtml>
+  </cxp:each>
+  <cxp:system message="*** Test 3: iteration keys processed via XSLT ***"/>
+  <cxp:each name="%Q%">
+    <cxp:from>
+      <cxp:plain>
+        <cxp:xml>
+	  <tests><test id="1"/><test id="3"/><test id="5"/></tests>
+        </cxp:xml>
+	<xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.0">
+	  <xsl:output method="text"/>
+	  <xsl:template match="/">
+	    <xsl:for-each select="//*[@id and not(@id='')]">
+	      <xsl:value-of select="@id"/>
+	      <xsl:text> </xsl:text>
+	    </xsl:for-each>
+	  </xsl:template>
+	</xsl:stylesheet>
+      </cxp:plain>
+    </cxp:from>
+    <cxp:xml name="result/test-each-%Q%.xml">
+      <cxp:xml name="result/test-each-%Q%.pie"/>
+      <cxp:xsl name="Validate.xsl"/>
+    </cxp:xml>
+  </cxp:each>
+  <cxp:system message="*** Test 4: many iteration keys ***"/>
+  <cxp:each name="%Z%">
+    <cxp:from>
+      <cxp:plain>
+        <cxp:xml>
+          <cxp:dir name=".."/>
+        </cxp:xml>
+        <cxp:xsl name="ListFiles.xsl">
+	</cxp:xsl>
+      </cxp:plain>
+    </cxp:from>
+    <cxp:system message="%Z%"/>
+  </cxp:each>
+</cxp:make>

@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cxp:make xmlns:cxp="http://www.tenbusch.info/cxproc">
+  <cxp:system mkdir="result"/>
+  <cxp:system message="**** test-pie-import-plain-000: file doesnt exist, emtpy PIE node"/>
+  <cxp:xml name="result/test-pie-import-plain-000.pie">
+    <cxp:pie>
+      <import name="test-pie-import-plain-000.txt"/>
+    </cxp:pie>
+  </cxp:xml>
+  <cxp:system message="**** test-pie-import-plain-001: simple file"/>
+  <cxp:xml name="result/test-pie-import-plain-001.pie">
+    <cxp:pie>
+      <import name="test-pie-import-plain-001.txt"/>
+    </cxp:pie>
+  </cxp:xml>
+  <cxp:system message="**** test-pie-import-plain-001-001: import of preformatted file"/>
+  <cxp:xml name="result/test-pie-import-plain-001-001.pie">
+    <cxp:xml>
+      <cxp:pie>
+        <import name="test-pie-import-plain-001-001.txt" type="pre"/>
+      </cxp:pie>
+    </cxp:xml>
+  </cxp:xml>
+  <cxp:system message="**** test-pie-import-plain-002: medium file with nested instructions"/>
+  <cxp:xml name="result/test-pie-import-plain-002.pie">
+    <cxp:pie>
+      <import name="test-pie-import-plain-002.txt"/>
+    </cxp:pie>
+  </cxp:xml>
+  <cxp:system message="**** test-pie-import-plain-003: parsing of a text file using different options"/>
+  <cxp:xml name="result/test-pie-import-plain-003.pie">
+    <cxp:pie url="no" figure="no" todo="no">
+      <import name="test-pie-import-plain-003.txt"/>
+    </cxp:pie>
+  </cxp:xml>
+  <cxp:xml name="result/test-pie-import-plain-003-001.pie">
+    <cxp:pie url="yes" figure="yes" todo="yes">
+      <import name="test-pie-import-plain-003.txt"/>
+    </cxp:pie>
+  </cxp:xml>
+  <cxp:system message="**** test-pie-import-plain-004: parsing of a text file with URLs"/>
+  <cxp:xml name="result/test-pie-import-plain-004.pie">
+    <cxp:pie url="yes">
+      <import name="test-pie-import-plain-004.txt"/>
+    </cxp:pie>
+  </cxp:xml>
+  <cxp:system message="**** test-pie-import-plain-005: concatenation of plain files"/>
+  <cxp:xml name="result/test-pie-import-plain-005.pie">
+    <cxp:pie>
+      <import name="test-pie-import-plain-005-001.txt"/>
+      <import name="test-pie-import-plain-005-002.txt"/>
+    </cxp:pie>
+  </cxp:xml>
+  <cxp:system message="**** test-pie-import-plain-006: mix of files and strings"/>
+  <cxp:xml name="result/test-pie-import-plain-006.pie">
+    <cxp:pie>
+      <import type="cxp">
+        <cxp:plain>* FGHI</cxp:plain>
+        <cxp:plain>** JKLMÖÄÜßHH</cxp:plain>
+        <cxp:plain name="test-pie-import-plain-001.txt"/>
+        <cxp:plain>ABCDE</cxp:plain>
+        <cxp:plain name="test-pie-import-plain-005-002.txt"/>
+      </import>
+    </cxp:pie>
+  </cxp:xml>
+  <cxp:system message="**** test-pie-import-plain-007: parsing of embedded dates"/>
+  <cxp:xml name="result/test-pie-import-plain-007.pie">
+    <cxp:pie url="yes" figure="no" hidden="no" date="yes" import="yes">
+      <import name="test-pie-import-plain-007.txt"/>
+    </cxp:pie>
+  </cxp:xml>
+  <cxp:system message="**** test-pie-import-plain-008: import from plain text node"/>
+  <cxp:xml name="result/test-pie-import-plain-008-001.pie">
+    <cxp:pie url="yes" figure="no" date="yes" import="yes">
+      <import>
+
+* ABC
+
+** DDD
+
+*** EEE
+
+fksjhfksh ökäöläröwer
+
+
+      </import>
+    </cxp:pie>
+  </cxp:xml>
+  <cxp:xml name="result/test-pie-import-plain-008-002.pie">
+    <cxp:pie>
+* ABC
+
+** DDD
+
+*** EEE
+
+fksjhfksh ökäöläröwer
+    </cxp:pie>
+  </cxp:xml>
+  <cxp:system message="**** test-pie-import-plain-009: handling of empty text file"/>
+  <cxp:xml name="result/test-pie-import-plain-009.pie">
+    <cxp:pie url="yes" figure="no" date="yes" import="yes">
+      <section>
+        <h>Empty files</h>
+        <import name="test-pie-import-plain-009-001.txt"/>
+        <import name="test-pie-import-plain-009-002.txt"/>
+      </section>
+    </cxp:pie>
+  </cxp:xml>
+</cxp:make>

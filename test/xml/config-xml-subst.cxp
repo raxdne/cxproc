@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cxp:make xmlns:cxp="http://www.tenbusch.info/cxproc" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+  <cxp:description>ABC</cxp:description>
+  <cxp:subst string="AA" argv="0"/>
+  <cxp:subst string="%1%" argv="1"/>
+  <cxp:subst string="%EMPTY%" argv="3"/>
+  <cxp:subst string="%DEFAULT%" argv="44" default="OK/ÖÄÜ/33 44/" escaping="no"/>
+  <cxp:subst string="%ARGLIST%" argv="%1 %2 %3 %9 %41 %5"/>
+  <!--  -->
+  <cxp:subst string="%HOME%" env="HOME" default="c:/temp"/>
+  <!--  -->
+  <cxp:subst string="%SCRIPT-C%" script="strA = 'ABCD'; 'Value strA = ' + strA" default="'CCCC'" valid="yes"/>
+  <!--  -->
+  <cxp:subst string="FSF" to="Free Software Foundation"/>
+  <cxp:subst string="%NESTED%" to="My HOME is %HOME%"/>
+  <cxp:subst string="%UMLAUT%" to="ÄÖÜßäöü€"/>
+  <!--  -->
+  <cxp:subst string="%DD%" env="DUMMY" default="No ENV found"/>
+  <!--  -->
+  <cxp:subst string="%HOMECGI%" cgi="HOME" default="c:/cgi_temp"/>
+  <cxp:subst string="%HOME_UMLAUT%" env="HOME_DDDD" default="/home/ÄÖÜ"/>
+  <cxp:subst string="%EMPTY%" env="EMPTY" default=""/>
+  <cxp:subst string="%PWD%" dir="pwd"/>
+  <cxp:subst string="%BASEDIR%" dir="ofFile"/>
+  <!--  -->
+  <cxp:subst string="%OS%" host="os"/>
+  <!--  -->
+  <cxp:subst string="%PROGRAM_NAME%" program="name"/>
+  <!--  -->
+  <cxp:subst string="%TEXT%">
+    <cxp:plain>This is a test!</cxp:plain>
+  </cxp:subst>
+  <!--  -->
+  <cxp:subst string="%TODAY%" now="%d.%m.%Y (%j, %V) %H:%M:%S "/>
+  <!--  -->
+  <cxp:subst string="%y" now="Year"/>
+  <cxp:subst string="%m" now="NumOfMonth"/>
+  <cxp:subst string="%w" now="NumOfWeek"/>
+  <cxp:subst string="%d" now="DayOfMonth"/>
+  <cxp:subst string="%H" now="Hour"/>
+  <cxp:subst string="%M" now="Minute"/>
+  <cxp:subst string="%SEC" now="Second"/>
+  <!--  -->
+  <cxp:system mkdir="result"/>
+  <cxp:system message="*** test-xml-subst-001: all substitutions in Plain ***"/>
+  <cxp:plain name="result/test-xml-subst-001.txt">
+argv[0] is 'AA'
+argv[1] is '%1%'
+argv[2] is '%EMPTY%'
+'DEFAULT' is '%DEFAULT%'
+script-a result in '%SCRIPT-A%'
+script-b result in '%SCRIPT-B%'
+script-c result in '%SCRIPT-C%'
+home is '%HOME%' and '%HOME%'
+home of CGI is '%HOMECGI%'
+'FSF' is OK
+'%NESTED%'
+env="DUMMY" is '%DD%'
+HOME_UMLAUT is '%HOME_UMLAUT%'
+This is '%EMPTY%'
+Config value '%EEE%'
+Current working directory '%PWD%'
+Basedir of this file is '%BASEDIR%'
+Substituted text is '%TEXT%'
+
+Host '%OS%'
+
+today is %TODAY%
+
+now is %H:%M:%SEC at %m/%d/%y in week %w
+</cxp:plain>
+  <cxp:system message="*** test-xml-subst-002: all substitutions in DOM ***"/>
+  <cxp:xml name="result/test-xml-subst-002.xml">
+    <list>
+      <p>argv[0] is 'AA'</p>
+      <p>argv[1] is '%1%'</p>
+      <p>argv[2] is '%EMPTY%'</p>
+      <p>'DEFAULT' is '%DEFAULT%'</p>
+      <p>script-a result in '%SCRIPT-A%'</p>
+      <p>script-b result in '%SCRIPT-B%'</p>
+      <p>script-c result in '%SCRIPT-C%'</p>
+      <p>home is '%HOME%' and '%HOME%'</p>
+      <p>home of CGI is '%HOMECGI%'</p>
+      <p>'FSF' is OK</p>
+      <p>'%NESTED%'</p>
+      <p>env="DUMMY" is '%DD%'</p>
+      <p>HOME_UMLAUT is '%HOME_UMLAUT%'</p>
+      <p>This is '%EMPTY%'</p>
+      <p>Config value '%EEE%'</p>
+      <p>Current working directory '%PWD%'</p>
+      <p>Basedir of this file is '%BASEDIR%'</p>
+      <p>Substituted text is '%TEXT%'</p>
+      <p>Host '%OS%'</p>
+      <p>today is %TODAY%</p>
+      <p>now is %H:%M:%SEC at %m/%d/%y in week %w</p>
+    </list>
+  </cxp:xml>
+  <cxp:system message="*** test-xml-subst-003: pre and post subst ***"/>
+  <cxp:xml name="result/test-xml-subst-003.xml">
+    <!--  -->
+    <cxp:subst string="%PRE%" to="YYY"/>
+    <cxp:xml>
+      <dummy a="%PRE%" b="%HOME%" c="%POST%">
+        <p>TEST pre '%PRE%'</p>
+        <p>TEST global '%HOME%'</p>
+        <p>TEST post '%POST%'</p>
+      </dummy>
+    </cxp:xml>
+    <!--  -->
+    <cxp:subst string="%POST%" to="ZZZ"/>
+  </cxp:xml>
+</cxp:make>

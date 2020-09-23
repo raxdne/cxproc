@@ -1,0 +1,1767 @@
+#
+#
+#
+cmake_minimum_required(VERSION 3.0) # setting this is required
+
+project(cxproc_project)            # this sets the project name
+
+include (CTest)
+
+# for profiling s. https://stackoverflow.com/questions/26491948/how-to-use-gprof-with-cmake
+# cmake -DCMAKE_CXX_FLAGS=-pg -DCMAKE_EXE_LINKER_FLAGS=-pg -DCMAKE_SHARED_LINKER_FLAGS=-pg ..
+# gprof bin/cxproc | ../build/gprof2dot.py | dot -Tpng -o gprof.png
+# or see test/main.sh and https://github.com/jrfonseca/gprof2dot
+# http://gernotklingler.com/blog/gprof-valgrind-gperftools-evaluation-tools-application-level-cpu-profiling-linux/
+
+# https://cmake.org/Wiki/CMake/Testing_With_CTest#Simple_Testing
+#enable_testing()
+
+# s. https://cmake.org/Wiki/CMake_Useful_Variables
+
+# CMAKE_POLICY(SET CMP0026 OLD)
+
+# SET(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
+SET(CMAKE_VERBOSE_MAKEFILE ON)
+
+# http://www.vtk.org/Wiki/CMake:Eclipse_UNIX_Tutorial
+# http://stackoverflow.com/questions/9453851/how-to-configure-eclipse-cdt-for-cmake
+#FIND_PACKAGE(EclipseCDT4)
+
+# (shell-command "(cmake --graphviz=cxproc.dot --build x86_64-gnu-linux-debug/ && dot -T png -o cxproc.png cxproc.dot.cxproc)")
+
+FIND_PACKAGE(PkgConfig)
+
+SET(CXPROC_PREFIX ${CMAKE_BINARY_DIR} CACHE PATH "Prefix")
+INCLUDE_DIRECTORIES("${PROJECT_SOURCE_DIR}/third-party" "${PROJECT_SOURCE_DIR}/third-party/option" "${CXPROC_SRC_DIR}" "${CXPROC_SRC_DIR}/option" "${CXPROC_PREFIX}/include")
+
+# working directory for tests
+SET(CXPROC_TEST_DIR "${PROJECT_BINARY_DIR}/test/")
+SET(CXPROC_DATA_DIR "${PROJECT_BINARY_DIR}/data/")
+SET(CXPROC_TEMP_DIR "${PROJECT_BINARY_DIR}/tmp/")
+
+# https://vicrucann.github.io/tutorials/quick-cmake-doxygen/
+# check if Doxygen is installed
+find_package(Doxygen)
+if (DOXYGEN_FOUND)
+  option(CXPROC_DOC "Build documentation" OFF)
+else (DOXYGEN_FOUND)
+  message("Doxygen need to be installed to generate the doxygen documentation")
+endif (DOXYGEN_FOUND)
+
+if (CXPROC_DOC)
+    # note the option ALL which allows to build the docs together with the application
+    add_custom_target( doc_doxygen ALL
+        COMMAND ${DOXYGEN_EXECUTABLE} build/Doxygen
+        WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+        COMMENT "Generating API documentation with Doxygen"
+        VERBATIM )
+endif ()
+
+# Configuration checks
+
+INCLUDE(CheckIncludeFile)
+INCLUDE(CheckFunctionExists)
+INCLUDE(CheckTypeSize)
+
+CHECK_INCLUDE_FILE(assert.h     HAVE_ASSERT_H)
+CHECK_INCLUDE_FILE(ctype.h      HAVE_CTYPE_H)
+CHECK_INCLUDE_FILE(dirent.h     HAVE_DIRENT_H)
+CHECK_INCLUDE_FILE(errno.h      HAVE_ERRNO_H)
+CHECK_INCLUDE_FILE(inttypes.h   HAVE_INTTYPES_H)
+CHECK_INCLUDE_FILE(limits.h     HAVE_LIMITS_H)
+CHECK_INCLUDE_FILE(math.h       HAVE_MATH_H)
+CHECK_INCLUDE_FILE(stdarg.h     HAVE_stdarg_H)
+CHECK_INCLUDE_FILE(stddef.h     HAVE_stddef_H)
+CHECK_INCLUDE_FILE(stdint.h     HAVE_STDINT_H)
+CHECK_INCLUDE_FILE(stdio.h      HAVE_STDIO_H)
+CHECK_INCLUDE_FILE(stdlib.h     HAVE_STDLIB_H)
+CHECK_INCLUDE_FILE(string.h     HAVE_STRING_H)
+CHECK_INCLUDE_FILE(sys/dir.h    HAVE_SYS_DIR_H)
+CHECK_INCLUDE_FILE(sys/stat.h   HAVE_SYS_STAT_H)
+CHECK_INCLUDE_FILE(sys/types.h  HAVE_SYS_TYPES_H)
+CHECK_INCLUDE_FILE(time.h       HAVE_TIME_H)
+CHECK_INCLUDE_FILE(unistd.h     HAVE_UNISTD_H)
+IF(MSVC)
+  CHECK_INCLUDE_FILE(windows.h    HAVE_WINDOWS_H)
+ELSE(MSVC)
+ENDIF(MSVC)
+
+FIND_PATH(CXPROC_SRC_DIR
+  NAME cxproc.c
+  PATHS "src")
+
+FIND_PATH(CXPROC_SRCLIB_DIR
+  NAME cgi-util
+  PATHS "third-party")
+
+SET(FILEX_HEADERS
+  ${CXPROC_SRC_DIR}/version.h
+  ${CXPROC_SRC_DIR}/git_revision.h
+  ${CXPROC_SRC_DIR}/git_info.h
+  ${CXPROC_SRC_DIR}/basics.h
+  ${CXPROC_SRC_DIR}/dom.h
+  ${CXPROC_SRC_DIR}/res_node/res_node.h
+  ${CXPROC_SRC_DIR}/res_node/res_node_list.h
+  ${CXPROC_SRC_DIR}/res_node/res_node_io.h
+  ${CXPROC_SRC_DIR}/res_node/res_node_ops.h
+  ${CXPROC_SRC_DIR}/res_node/res_path.h
+  ${CXPROC_SRC_DIR}/res_node/res_mime.h
+  ${CXPROC_SRC_DIR}/plain_text.h
+  ${CXPROC_SRC_DIR}/option/pie/calendar_element.h
+  ${CXPROC_SRC_DIR}/utils.h
+  )
+
+SET(FILEX_SOURCES
+  ${CXPROC_SRC_DIR}/dom.c
+  ${CXPROC_SRC_DIR}/res_node/res_node.c
+  ${CXPROC_SRC_DIR}/res_node/res_node_list.c
+  ${CXPROC_SRC_DIR}/res_node/res_node_properties.c
+  ${CXPROC_SRC_DIR}/res_node/res_node_io.c
+  ${CXPROC_SRC_DIR}/res_node/res_node_ops.c
+  ${CXPROC_SRC_DIR}/res_node/res_path.c
+  ${CXPROC_SRC_DIR}/res_node/res_mime.c
+  ${CXPROC_SRC_DIR}/plain_text.c
+  ${CXPROC_SRC_DIR}/option/pie/calendar_element.c
+  ${CXPROC_SRC_DIR}/utils.c
+)
+
+SET(CXPROC_HEADERS
+  ${CXPROC_SRC_DIR}/version.h
+  ${CXPROC_SRC_DIR}/git_revision.h
+  ${CXPROC_SRC_DIR}/git_info.h
+  ${CXPROC_SRC_DIR}/basics.h
+  ${CXPROC_SRC_DIR}/cxp/cxp_dtd.h
+  ${CXPROC_SRC_DIR}/cxp/cxp_context_enc.h
+  ${CXPROC_SRC_DIR}/cxp/cxp_context.h
+  ${CXPROC_SRC_DIR}/cxp/cxp_context_cli.h
+  ${CXPROC_SRC_DIR}/cxp/cxp_context_cache.h
+  ${CXPROC_SRC_DIR}/cxp/cxp_subst.h
+  ${CXPROC_SRC_DIR}/cxp/cxp_dir.h
+  ${CXPROC_SRC_DIR}/dom.h
+  ${CXPROC_SRC_DIR}/res_node/res_node.h
+  ${CXPROC_SRC_DIR}/res_node/res_node_list.h
+  ${CXPROC_SRC_DIR}/res_node/res_node_io.h
+  ${CXPROC_SRC_DIR}/res_node/res_node_ops.h
+  ${CXPROC_SRC_DIR}/res_node/res_path.h
+  ${CXPROC_SRC_DIR}/res_node/res_mime.h
+  ${CXPROC_SRC_DIR}/plain_text.h
+  ${CXPROC_SRC_DIR}/option/pie/calendar_element.h
+  ${CXPROC_SRC_DIR}/utils.h
+  )
+
+SET(CXPROC_SOURCES
+  ${CXPROC_SRC_DIR}/cxp/cxp_context.c
+  ${CXPROC_SRC_DIR}/cxp/cxp_context_cli.c
+  ${CXPROC_SRC_DIR}/cxp/cxp_context_cache.c
+  ${CXPROC_SRC_DIR}/cxp/cxp_context_enc.c
+  ${CXPROC_SRC_DIR}/cxp/cxp_subst.c
+  ${CXPROC_SRC_DIR}/cxp/cxp.c
+  ${CXPROC_SRC_DIR}/cxp/cxp_dir.c
+  ${CXPROC_SRC_DIR}/dom.c
+  ${CXPROC_SRC_DIR}/res_node/res_node.c
+  ${CXPROC_SRC_DIR}/res_node/res_node_list.c
+  ${CXPROC_SRC_DIR}/res_node/res_node_properties.c
+  ${CXPROC_SRC_DIR}/res_node/res_node_io.c
+  ${CXPROC_SRC_DIR}/res_node/res_node_ops.c
+  ${CXPROC_SRC_DIR}/res_node/res_path.c
+  ${CXPROC_SRC_DIR}/res_node/res_mime.c
+  ${CXPROC_SRC_DIR}/plain_text.c
+  ${CXPROC_SRC_DIR}/option/pie/calendar_element.c
+  ${CXPROC_SRC_DIR}/utils.c
+)
+
+###############################################################################
+## target definitions #########################################################
+###############################################################################
+
+IF(MSVC)
+  SET(FILEX_SOURCES ${FILEX_SOURCES} ${CXPROC_SRC_DIR}/version.rc)
+  SET(CXPROC_SOURCES ${CXPROC_SOURCES} ${CXPROC_SRC_DIR}/version.rc)
+ENDIF(MSVC)
+
+################################################################################
+#
+# pthread
+#
+
+FIND_PACKAGE( Threads )
+
+IF(CMAKE_USE_PTHREADS_INIT)
+  MESSAGE(STATUS "Found optional libpthtread: ${CMAKE_THREAD_LIBS_INIT}")
+  OPTION (CXPROC_PTHREAD "Enable support for linking cxproc with libpthread." OFF)
+ELSE ()
+  OPTION (CXPROC_THREAD "Enable support native threads." OFF)
+ENDIF ()
+
+IF(CXPROC_PTHREAD)
+  SET(CXPROC_HEADERS ${CXPROC_HEADERS} ${CXPROC_SRC_DIR}/cxp/cxp_threadp.h)
+  SET(CXPROC_SOURCES ${CXPROC_SOURCES} ${CXPROC_SRC_DIR}/cxp/cxp_threadp.c)
+  add_compile_definitions(HAVE_LIBPTHREAD)
+ELSEIF (CXPROC_THREAD)
+  SET(CXPROC_HEADERS ${CXPROC_HEADERS} ${CXPROC_SRC_DIR}/cxp/cxp_threadp.h)
+  SET(CXPROC_SOURCES ${CXPROC_SOURCES} ${CXPROC_SRC_DIR}/cxp/cxp_threadp.c)
+  add_compile_definitions(WITH_THREAD)
+ENDIF (CXPROC_PTHREAD)
+
+################################################################################
+#
+# either local LibArchive or system LibArchive
+#
+
+find_path(LibArchive_INCLUDE_DIR NAMES archive.h
+  HINTS "${CXPROC_PREFIX}/include"
+  ) 
+
+IF (LibArchive_INCLUDE_DIR)
+  find_library(LibArchive_LIBRARIES NAMES libarchive archive archive_static
+    HINTS "${CXPROC_PREFIX}/lib"
+    )
+  IF (LibArchive_LIBRARIES)
+    SET(LibArchive_FOUND ON)
+  ELSE(LibArchive_LIBRARIES)
+    FIND_PACKAGE( LibArchive )
+  ENDIF (LibArchive_LIBRARIES)
+ELSE(LibArchive_INCLUDE_DIR)
+  FIND_PACKAGE( LibArchive )
+ENDIF (LibArchive_INCLUDE_DIR)
+
+IF (LibArchive_FOUND)
+  MESSAGE(STATUS "Found optional LibArchive: ${LibArchive_LIBRARIES}")
+  OPTION(CXPROC_ARCHIVE "Enable support for linking cxproc with libarchive." ON)
+ELSE (LibArchive_FOUND)
+  SET(CXPROC_ARCHIVE OFF)
+ENDIF (LibArchive_FOUND)
+
+IF (CXPROC_ARCHIVE)
+  INCLUDE_DIRECTORIES(${LibArchive_INCLUDE_DIR})
+  SET(FILEX_HEADERS ${FILEX_HEADERS} ${CXPROC_SRC_DIR}/option/archive/archive.h)
+  SET(FILEX_SOURCES ${FILEX_SOURCES} ${CXPROC_SRC_DIR}/option/archive/archive.c)
+  SET(CXPROC_HEADERS ${CXPROC_HEADERS} ${CXPROC_SRC_DIR}/option/archive/cxp_archive.h)
+  SET(CXPROC_SOURCES ${CXPROC_SOURCES} ${CXPROC_SRC_DIR}/option/archive/cxp_archive.c ${CXPROC_SRC_DIR}/option/archive/archive.c)
+  add_compile_definitions(HAVE_LIBARCHIVE)
+  IF (${LibArchive_LIBRARIES} MATCHES ".+static\\.lib$" OR ${LibArchive_LIBRARIES} MATCHES ".+\\.a$")
+    add_compile_definitions(LIBARCHIVE_STATIC)
+  ENDIF ()
+ENDIF (CXPROC_ARCHIVE)
+
+################################################################################
+#
+# SQLite3 library
+#
+
+find_path(SQLITE3_INCLUDE_DIR NAMES sqlite3.h
+  HINTS "${CXPROC_PREFIX}/include"
+  ) 
+
+IF (SQLITE3_INCLUDE_DIR)
+  IF (EXISTS "${SQLITE3_INCLUDE_DIR}/sqlite3.c")
+    SET(SQLITE3_SOURCE_FILE "${SQLITE3_INCLUDE_DIR}/sqlite3.c")
+    SET(SQLITE3_FOUND ON)
+  ELSE()
+    find_library(SQLITE3_LIBRARIES NAMES libsqlite3 sqlite3
+      HINTS "${CXPROC_PREFIX}/lib"
+      )
+    IF (SQLITE3_LIBRARIES)
+      SET(SQLITE3_FOUND ON)
+    ELSE(SQLITE3_LIBRARIES)
+      FIND_PACKAGE( SQLite3 )
+    ENDIF (SQLITE3_LIBRARIES)
+  ENDIF()
+ELSE(SQLITE3_INCLUDE_DIR)
+  FIND_PACKAGE( SQLITE3 )
+ENDIF (SQLITE3_INCLUDE_DIR)
+
+IF (SQLITE3_FOUND)
+  MESSAGE(STATUS "Found optional sqlite3: ${SQLITE3_SOURCE_FILE} ${SQLITE3_LIBRARIES}")
+  OPTION (CXPROC_SQLITE3 "Enable support for linking cxproc with sqlite3." ON)
+ELSE(SQLITE3_FOUND)
+  SET(CXPROC_SQLITE3 OFF)
+ENDIF (SQLITE3_FOUND)
+
+IF (CXPROC_SQLITE3)
+  INCLUDE_DIRECTORIES(${SQLITE3_INCLUDE_DIR})
+  SET(CXPROC_HEADERS ${CXPROC_HEADERS} ${CXPROC_SRC_DIR}/option/database/database.h ${CXPROC_SRC_DIR}/option/database/cxp_database.h)
+  SET(CXPROC_SOURCES ${CXPROC_SOURCES} ${CXPROC_SRC_DIR}/option/database/database.c ${CXPROC_SRC_DIR}/option/database/cxp_database.c)
+  SET(FILEX_HEADERS ${FILEX_HEADERS} ${CXPROC_SRC_DIR}/option/database/database.h)
+  SET(FILEX_SOURCES ${FILEX_SOURCES} ${CXPROC_SRC_DIR}/option/database/database.c)
+  add_compile_definitions(HAVE_LIBSQLITE3)
+  IF (SQLITE3_SOURCE_FILE)
+    SET(CXPROC_CXX OFF)
+    SET(CXPROC_SOURCES ${CXPROC_SOURCES} ${SQLITE3_SOURCE_FILE})
+    SET(FILEX_SOURCES ${FILEX_SOURCES} ${SQLITE3_SOURCE_FILE})
+    add_compile_definitions(SQLITE_THREADSAFE=0 SQLITE_OMIT_LOAD_EXTENSION)
+  ENDIF ()
+ENDIF (CXPROC_SQLITE3)
+
+################################################################################
+#
+# either local libid3tag or system libid3tag
+#
+# code of libid3tag is not C++ compilable and memory management should be separated
+#
+
+#TODO: OPTION(CXPROC_LIBVORBIS "Include OGG/Vorbis code" OFF)
+SET(CXPROC_LIBVORBIS OFF)
+
+find_path(LIBID3TAG_INCLUDE_DIR NAMES id3tag.h
+  HINTS "${CXPROC_PREFIX}/include"
+  ) 
+
+IF (LIBID3TAG_INCLUDE_DIR)
+  find_library(LIBID3TAG_LIBRARIES NAMES libid3tag.a id3tag libid3tag.lib
+    HINTS "${CXPROC_PREFIX}/lib"
+    )
+  IF (LIBID3TAG_LIBRARIES)
+    SET(LIBID3TAG_FOUND ON)
+  ELSE (LIBID3TAG_LIBRARIES)
+#    FIND_PACKAGE( LIBID3TAG )
+  ENDIF (LIBID3TAG_LIBRARIES)
+ENDIF (LIBID3TAG_INCLUDE_DIR)
+
+IF (LIBID3TAG_FOUND)
+  MESSAGE(STATUS "Found optional LIBID3TAG: ${LIBID3TAG_LIBRARIES}")
+  OPTION (CXPROC_LIBID3TAG "Enable support for linking cxproc with libid3tag." ON)
+ELSE (LIBID3TAG_FOUND)
+  SET(CXPROC_LIBID3TAG OFF)
+ENDIF (LIBID3TAG_FOUND)
+
+IF (CXPROC_LIBID3TAG)
+  INCLUDE_DIRECTORIES(${LIBID3TAG_INCLUDE_DIR})
+  add_compile_definitions(HAVE_LIBID3TAG)
+ENDIF (CXPROC_LIBID3TAG)
+
+IF (CXPROC_LIBID3TAG OR CXPROC_LIBVORBIS)
+  SET(CXPROC_HEADERS ${CXPROC_HEADERS} ${CXPROC_SRC_DIR}/option/audio/audio.h)
+  SET(CXPROC_SOURCES ${CXPROC_SOURCES} ${CXPROC_SRC_DIR}/option/audio/audio.c)
+  SET(FILEX_HEADERS ${FILEX_HEADERS} ${CXPROC_SRC_DIR}/option/audio/audio.h)
+  SET(FILEX_SOURCES ${FILEX_SOURCES} ${CXPROC_SRC_DIR}/option/audio/audio.c)
+ENDIF ()
+
+
+################################################################################
+#
+# JSON
+#
+OPTION(CXPROC_JSON "Include JSON code" OFF)
+
+IF (CXPROC_JSON)
+  add_compile_definitions(HAVE_JSON)
+  SET(CXPROC_HEADERS ${CXPROC_HEADERS} ${CXPROC_SRC_DIR}/option/json/json.h)
+  SET(CXPROC_SOURCES ${CXPROC_SOURCES} ${CXPROC_SRC_DIR}/option/json/json.c)
+ENDIF (CXPROC_JSON)
+
+################################################################################
+#
+# local pcre2 (impact on PIE)
+#
+FIND_PATH(LIBPCRE2_INCLUDE_DIR NAME pcre2.h
+  HINTS "${CXPROC_PREFIX}/include"
+  )
+
+IF (LIBPCRE2_INCLUDE_DIR)
+  FIND_LIBRARY(LIBPCRE2_LIBRARIES NAMES pcre2-8 pcre2-8d libpcre2-8.a
+    HINTS "${CXPROC_PREFIX}/lib"
+    )
+  IF (LIBPCRE2_LIBRARIES)
+    SET(LIBPCRE2_FOUND ON)
+  ENDIF ()
+ENDIF (LIBPCRE2_INCLUDE_DIR)
+
+IF (LIBPCRE2_FOUND)
+  MESSAGE(STATUS "Found optional libpcre2: ${LIBPCRE2_LIBRARIES}")
+  OPTION(CXPROC_PCRE2 "Enable support for linking cxproc with libpcre2." ON)
+  OPTION(CXPROC_PIE "Include PIE code" ON)
+ELSE (LIBPCRE2_FOUND)
+  SET(CXPROC_PCRE2 OFF)
+  SET(CXPROC_PIE OFF)
+ENDIF (LIBPCRE2_FOUND)
+
+IF (CXPROC_PCRE2)
+  add_compile_definitions(HAVE_PCRE2 PCRE2_CODE_UNIT_WIDTH=8)
+  IF (${LIBPCRE2_LIBRARIES} MATCHES ".+static.*\\.lib$" OR ${LIBPCRE2_LIBRARIES} MATCHES ".+\\.a$")
+    #ADD_LIBRARY(pcre2-8 STATIC IMPORTED)
+    add_compile_definitions(PCRE2_STATIC)
+  ENDIF ()
+ELSE ()
+  SET(CXPROC_PIE OFF)
+ENDIF ()
+
+################################################################################
+#
+# PIE
+#
+
+IF (CXPROC_PIE)
+  add_compile_definitions(HAVE_PIE)
+  SET(CXPROC_HEADERS ${CXPROC_HEADERS} 
+    ${CXPROC_SRC_DIR}/option/pie/pie_calendar.h
+    ${CXPROC_SRC_DIR}/option/pie/pie_element.h
+    ${CXPROC_SRC_DIR}/option/pie/pie_text_tags.h
+    ${CXPROC_SRC_DIR}/option/pie/pie_text_blocks.h
+    ${CXPROC_SRC_DIR}/option/pie/pie_text.h ${CXPROC_SRC_DIR}/option/pie/pie_dtd.h
+    ${CXPROC_SRC_DIR}/option/pie/pie_timezone.h
+    ${CXPROC_SRCLIB_DIR}/option/sunriset/sunriset.h
+    ${CXPROC_SRC_DIR}/option/ics/ics.h
+    ${CXPROC_SRC_DIR}/option/vcf/vcf.h
+    )
+
+  SET(CXPROC_SOURCES ${CXPROC_SOURCES} 
+    ${CXPROC_SRC_DIR}/option/pie/pie_calendar.c
+    ${CXPROC_SRC_DIR}/option/pie/pie_element.c
+    ${CXPROC_SRC_DIR}/option/pie/pie_text_tags.c
+    ${CXPROC_SRC_DIR}/option/pie/pie_text_blocks.c
+    ${CXPROC_SRC_DIR}/option/pie/pie_text.c
+    ${CXPROC_SRC_DIR}/option/pie/pie_timezone.c
+    ${CXPROC_SRCLIB_DIR}/option/sunriset/sunriset.c
+    ${CXPROC_SRC_DIR}/option/ics/ics.c
+    ${CXPROC_SRC_DIR}/option/vcf/vcf.c
+    )
+
+  SET(FILEX_SOURCES ${FILEX_SOURCES} 
+    ${CXPROC_SRC_DIR}/option/pie/pie_element.h
+    ${CXPROC_SRC_DIR}/option/pie/pie_text_tags.h
+    ${CXPROC_SRC_DIR}/option/pie/pie_text_blocks.h
+    ${CXPROC_SRC_DIR}/option/pie/pie_dtd.h
+    ${CXPROC_SRC_DIR}/option/pie/pie_timezone.h
+    ${CXPROC_SRC_DIR}/option/ics/ics.h
+    ${CXPROC_SRC_DIR}/option/vcf/vcf.h
+    )
+  
+  SET(FILEX_SOURCES ${FILEX_SOURCES}
+    ${CXPROC_SRC_DIR}/option/pie/pie_element.c
+    ${CXPROC_SRC_DIR}/option/pie/pie_text_tags.c
+    ${CXPROC_SRC_DIR}/option/pie/pie_text_blocks.c
+    ${CXPROC_SRC_DIR}/option/pie/pie_timezone.c
+    ${CXPROC_SRC_DIR}/option/ics/ics.c
+    ${CXPROC_SRC_DIR}/option/vcf/vcf.c
+    )
+ENDIF (CXPROC_PIE)
+
+################################################################################
+#
+# PETRINET
+#
+OPTION(CXPROC_PETRINET "Include Petrinet code" ON)
+
+IF (CXPROC_PETRINET)
+  add_compile_definitions(HAVE_PETRINET)
+  SET(CXPROC_SOURCES ${CXPROC_SOURCES} 
+  ${CXPROC_SRC_DIR}/option/petrinet/petrinet.c ${CXPROC_SRC_DIR}/option/petrinet/petrinet.h
+)
+ENDIF (CXPROC_PETRINET)
+
+################################################################################
+#
+# either local ZLIB or system ZLIB
+#
+
+find_path(ZLIB_INCLUDE_DIR NAMES zlib.h
+  HINTS "${CXPROC_PREFIX}/include"
+  ) 
+
+IF (ZLIB_INCLUDE_DIR)
+  find_library(ZLIB_LIBRARIES NAMES libz zlib zlibd zlibStatic
+    HINTS "${CXPROC_PREFIX}/lib"
+    )
+  IF (ZLIB_LIBRARIES)
+    SET(ZLIB_FOUND ON)
+  ELSE(ZLIB_LIBRARIES)
+    FIND_PACKAGE( ZLIB )
+  ENDIF (ZLIB_LIBRARIES)
+ELSE(ZLIB_INCLUDE_DIR)
+  FIND_PACKAGE( ZLIB )
+ENDIF (ZLIB_INCLUDE_DIR)
+
+IF (ZLIB_FOUND)
+  MESSAGE(STATUS "Found optional ZLIB: ${ZLIB_LIBRARIES}")
+  OPTION (CXPROC_LIBZ "Enable support for linking cxproc with libz." ON)
+ELSE(ZLIB_FOUND)
+  SET(CXPROC_LIBZ OFF)
+ENDIF (ZLIB_FOUND)
+
+IF (CXPROC_LIBZ)
+  INCLUDE_DIRECTORIES(${ZLIB_INCLUDE_DIR})
+  add_compile_definitions(HAVE_ZLIB)
+  SET(FILEX_SOURCES ${FILEX_SOURCES}
+    ${CXPROC_SRCLIB_DIR}/xmlzipio/zip.c
+    ${CXPROC_SRCLIB_DIR}/xmlzipio/unzip.c
+    ${CXPROC_SRCLIB_DIR}/xmlzipio/xmlzipio.c)
+  SET(FILEX_HEADERS ${FILEX_HEADERS}
+    ${CXPROC_SRCLIB_DIR}/xmlzipio/zip.h
+    ${CXPROC_SRCLIB_DIR}/xmlzipio/unzip.h
+    ${CXPROC_SRCLIB_DIR}/xmlzipio/xmlzipio.h)
+  SET(CXPROC_SOURCES ${CXPROC_SOURCES}
+    ${CXPROC_SRCLIB_DIR}/xmlzipio/zip.c
+    ${CXPROC_SRCLIB_DIR}/xmlzipio/unzip.c
+    ${CXPROC_SRCLIB_DIR}/xmlzipio/xmlzipio.c)
+  SET(CXPROC_HEADERS ${CXPROC_HEADERS}
+    ${CXPROC_SRCLIB_DIR}/xmlzipio/zip.h
+    ${CXPROC_SRCLIB_DIR}/xmlzipio/unzip.h
+    ${CXPROC_SRCLIB_DIR}/xmlzipio/xmlzipio.h)
+  IF (${ZLIB_LIBRARIES} MATCHES ".+static.*\\.lib$" OR ${ZLIB_LIBRARIES} MATCHES ".+\\.a$")
+    add_compile_definitions(ZLIB_STATIC)
+  ENDIF ()
+ENDIF (CXPROC_LIBZ)
+
+################################################################################
+#
+# RP
+#
+OPTION(CXPROC_RP "Include RP code" OFF)
+
+IF (CXPROC_RP)
+  add_compile_definitions(HAVE_RP)
+  SET(CXPROC_HEADERS ${CXPROC_HEADERS} ${CXPROC_SRC_DIR}/rp.h)
+  SET(CXPROC_SOURCES ${CXPROC_SOURCES} ${CXPROC_SRC_DIR}/rp.c)
+ENDIF (CXPROC_RP)
+
+
+################################################################################
+#
+# local duktape
+#
+FIND_PATH(DUKTAPE_INCLUDE_DIR NAME duktape.h
+  HINTS "${CXPROC_PREFIX}/include"
+  )
+
+IF (DUKTAPE_INCLUDE_DIR)
+  IF (EXISTS "${DUKTAPE_INCLUDE_DIR}/duktape.c")
+    SET(DUKTAPE_SOURCE_FILE "${DUKTAPE_INCLUDE_DIR}/duktape.c")
+    SET(DUKTAPE_FOUND ON)
+  ELSE()
+    FIND_LIBRARY(DUKTAPE_LIBRARIES NAMES duktape
+      HINTS "${CXPROC_PREFIX}/lib"
+      )
+    IF (DUKTAPE_LIBRARIES)
+      SET(DUKTAPE_FOUND ON)
+    ENDIF (DUKTAPE_LIBRARIES)
+  ENDIF()
+ENDIF (DUKTAPE_INCLUDE_DIR)
+
+IF (DUKTAPE_FOUND)
+  MESSAGE(STATUS "Found optional duktape: ${DUKTAPE_LIBRARIES}")
+  OPTION (CXPROC_DUKTAPE "Enable support for linking cxproc with duktape." ON)
+ELSE (DUKTAPE_FOUND)
+  SET(CXPROC_DUKTAPE OFF)
+ENDIF (DUKTAPE_FOUND)
+
+IF (CXPROC_DUKTAPE)
+  add_compile_definitions(HAVE_JS)
+  SET(CXPROC_HEADERS ${CXPROC_HEADERS} ${CXPROC_SRC_DIR}/option/script/script.h)
+  SET(CXPROC_SOURCES ${CXPROC_SOURCES} ${CXPROC_SRC_DIR}/option/script/script.c)
+  IF (DUKTAPE_SOURCE_FILE)
+    SET(CXPROC_HEADERS ${CXPROC_HEADERS} ${DUKTAPE_INCLUDE_DIR}/duktape.h)
+    SET(CXPROC_SOURCES ${CXPROC_SOURCES} ${DUKTAPE_SOURCE_FILE})
+  ENDIF (DUKTAPE_SOURCE_FILE)
+  INCLUDE_DIRECTORIES(${DUKTAPE_INCLUDE_DIR})
+ENDIF (CXPROC_DUKTAPE)
+
+################################################################################
+#
+# either local libexif or system libexif
+#
+
+find_path(LIBEXIF_INCLUDE_DIR NAMES libexif/exif.h
+  HINTS "${CXPROC_PREFIX}/include"
+  ) 
+
+IF (LIBEXIF_INCLUDE_DIR)
+  find_library(LIBEXIF_LIBRARY NAMES libexif.a libexif
+    HINTS "${CXPROC_PREFIX}/lib"
+    )
+  IF (LIBEXIF_LIBRARY)
+    SET(LIBEXIF_FOUND ON)
+  ELSE ()
+    # FIND_PACKAGE( LIBEXIF )
+    SET(LIBEXIF_LIBRARY "")
+  ENDIF ()
+ELSE (LIBEXIF_INCLUDE_DIR)
+  # FIND_PACKAGE( LIBEXIF )
+ENDIF (LIBEXIF_INCLUDE_DIR)
+
+IF (LIBEXIF_FOUND)
+  MESSAGE(STATUS "Found optional LIBEXIF: ${LIBEXIF_LIBRARY}")
+  OPTION (CXPROC_LIBEXIF "Enable support for linking cxproc with libexif." ON)
+ELSE(LIBEXIF_FOUND)
+  SET(CXPROC_LIBEXIF OFF)
+ENDIF (LIBEXIF_FOUND)
+
+IF (CXPROC_LIBEXIF)
+  INCLUDE_DIRECTORIES(${LIBEXIF_INCLUDE_DIR})
+  add_compile_definitions(HAVE_LIBEXIF)
+ENDIF (CXPROC_LIBEXIF)
+
+#OPTION(CXPROC_LIBMAGICK "Include ImageMagick code" OFF)
+SET(CXPROC_LIBMAGICK OFF)
+
+IF (CXPROC_LIBMAGICK)
+  INCLUDE_DIRECTORIES(${LIBMAGICK_INCLUDE_DIR})
+  add_compile_definitions(HAVE_LIBMAGICK)
+ENDIF (CXPROC_LIBMAGICK)
+
+IF (CXPROC_LIBMAGICK OR CXPROC_LIBEXIF)
+  SET(CXPROC_HEADERS ${CXPROC_HEADERS} ${CXPROC_SRC_DIR}/image.h)
+  SET(CXPROC_SOURCES ${CXPROC_SOURCES} ${CXPROC_SRC_DIR}/image.c)
+ENDIF ()
+
+################################################################################
+# The data is just added to the executable, because in some IDEs (QtCreator) 
+# files are invisible when they are not explicitly part of the project.
+ADD_EXECUTABLE(filex
+ ${CXPROC_SRC_DIR}/filex.c
+ ${FILEX_SOURCES} ${FILEX_HEADERS})
+
+ADD_EXECUTABLE(cxproc
+ ${CXPROC_SRC_DIR}/cxproc.c
+ ${CXPROC_SOURCES} ${CXPROC_HEADERS})
+
+ADD_EXECUTABLE(cxproc-test
+ ${CXPROC_SRC_DIR}/cxproc-test.c
+ ${CXPROC_SOURCES} ${CXPROC_HEADERS})
+
+target_compile_definitions(cxproc-test PUBLIC
+  TESTCODE
+  DATAPREFIX="${CXPROC_DATA_DIR}"
+  TESTPREFIX="${CXPROC_TEST_DIR}"
+  TEMPPREFIX="${CXPROC_TEMP_DIR}"
+  HTTPPREFIX="http://localhost:8187/")
+
+ADD_EXECUTABLE(cxproc-cgi
+ ${CXPROC_SRC_DIR}/cxproc-cgi.c
+ ${CXPROC_SRC_DIR}/cxp/cxp_context_cgi.c ${CXPROC_SRC_DIR}/cxp/cxp_context_cgi.h
+ ${CXPROC_SRCLIB_DIR}/cgi-util/cgi-util.c ${CXPROC_SRCLIB_DIR}/cgi-util/cgi-util.h
+ ${CXPROC_SOURCES} ${CXPROC_HEADERS})
+
+target_compile_definitions(cxproc-cgi
+ PUBLIC HAVE_CGI)
+
+ADD_EXECUTABLE(test-cgi
+ ${CXPROC_SRC_DIR}/test/test-cgi.c)
+
+IF (LIBMICROHTTPD_FOUND)
+  ADD_EXECUTABLE(cxproc-httpd
+    ${CXPROC_SRC_DIR}/cxproc-httpd.c
+    ${CXPROC_SOURCES} ${CXPROC_HEADERS})
+
+  target_compile_definitions(cxproc-httpd
+    PUBLIC HAVE_HTTPD)
+ENDIF ()
+
+# This copies all resource files in the build directory.
+# We need this, because we want to work with paths relative to the executable.
+#file(COPY ${data} DESTINATION resources)
+
+###############################################################################
+## dependencies ###############################################################
+###############################################################################
+
+################################################################################
+#
+# local libiconv
+#
+
+FIND_PATH(LIBICONV_INCLUDE_DIR NAME iconv.h
+  HINTS "${CXPROC_PREFIX}/include"
+  )
+
+IF (LIBICONV_INCLUDE_DIR)
+  IF (MSVC)
+    FIND_LIBRARY(LIBICONV_LIBRARY NAMES libiconv iconvStatic
+      HINTS "${CXPROC_PREFIX}/lib"
+      )
+    IF (LIBICONV_LIBRARY)
+      SET(LIBICONV_FOUND ON)
+    ELSE ()
+      # select interactively
+    ENDIF ()
+  ELSE ()
+    # no library file on Linux
+    SET(LIBICONV_FOUND ON)
+  ENDIF ()
+ENDIF (LIBICONV_INCLUDE_DIR)
+
+IF (LIBICONV_FOUND)
+  MESSAGE(STATUS "Found required libiconv: ${LIBICONV_LIBRARY}")
+ELSE (LIBICONV_FOUND)
+  MESSAGE(FATAL_ERROR "libiconv must be available")
+ENDIF (LIBICONV_FOUND)
+
+add_compile_definitions(ICONV_CODE_UNIT_WIDTH=8)
+
+################################################################################
+#
+# either local libxml2 or system libxml2
+#
+
+find_path(LIBXML2_INCLUDE_DIR NAMES libxml/xpath.h
+  HINTS "${CXPROC_PREFIX}/include/libxml2"
+  HINTS "${CXPROC_PREFIX}/include"
+  ) 
+
+IF (LIBXML2_INCLUDE_DIR)
+  find_library(LIBXML2_LIBRARIES NAMES xml2 libxml2 libxml2.a libxml2_a
+    HINTS "${CXPROC_PREFIX}/lib"
+    )
+  IF (LIBXML2_LIBRARIES)
+    SET(LIBXML2_FOUND ON)
+  ELSE ()
+    FIND_PACKAGE( LibXml2 )
+  ENDIF ()
+ELSE (LIBXML2_INCLUDE_DIR)
+  FIND_PACKAGE( LibXml2 )
+ENDIF (LIBXML2_INCLUDE_DIR)
+
+IF (LIBXML2_FOUND)
+  MESSAGE(STATUS "Found required libxml2: ${LIBXML2_LIBRARIES}")
+ELSE (LIBXML2_FOUND)
+  MESSAGE(FATAL_ERROR "libxml2 must be available")
+ENDIF (LIBXML2_FOUND)
+
+INCLUDE_DIRECTORIES(${LIBXML2_INCLUDE_DIR})
+add_compile_definitions(${LIBXML2_DEFINITIONS})
+IF (${LIBXML2_LIBRARIES} MATCHES ".+static.*\\.lib$" OR ${LIBXML2_LIBRARIES} MATCHES ".+\\.a$")
+  add_compile_definitions(LIBXML_STATIC)
+ENDIF ()
+
+################################################################################
+#
+# either local libxslt or system libxslt
+#
+
+find_path(LIBXSLT_INCLUDE_DIR NAMES libxslt/xslt.h
+  HINTS "${CXPROC_PREFIX}/include"
+  ) 
+
+IF (LIBXSLT_INCLUDE_DIR)
+  find_library(LIBXSLT_LIBRARIES NAMES xslt libxslt libxslt.a libxslt_a
+    HINTS "${CXPROC_PREFIX}/lib"
+    )
+  IF (LIBXSLT_LIBRARIES)
+    SET(LIBXSLT_FOUND ON)
+  ELSE ()
+    FIND_PACKAGE( LibXslt )
+  ENDIF ()
+ELSE (LIBXSLT_INCLUDE_DIR)
+  FIND_PACKAGE( LibXslt )
+ENDIF (LIBXSLT_INCLUDE_DIR)
+
+IF (LIBXSLT_FOUND)
+  MESSAGE(STATUS "Found required libxslt: ${LIBXSLT_LIBRARIES}")
+ELSE (LIBXSLT_FOUND)
+  MESSAGE(FATAL_ERROR "libxslt must be available")
+ENDIF (LIBXSLT_FOUND)
+
+INCLUDE_DIRECTORIES(${LIBXSLT_INCLUDE_DIR})
+add_compile_definitions(${LIBXSLT_DEFINITIONS})
+IF (${LIBXSLT_LIBRARIES} MATCHES ".+static.*\\.lib$" OR ${LIBXSLT_LIBRARIES} MATCHES ".+\\.a$")
+  add_compile_definitions(LIBXSLT_STATIC)
+ENDIF ()
+
+################################################################################
+#
+# configurable options
+#
+# Note: CMakeSetup displays these in alphabetical order, regardless of
+# the order we use here.
+
+#SET(CXPROC_BUFSIZE 4096 CACHE NUMBER "Default size for buffers.")
+#OPTION(CXPROC_BUFSIZE "Default size for buffers." "4096")
+
+add_compile_definitions(_REENTRANT DEF_MEM_LEVEL=8)
+
+IF(MSVC)
+  add_compile_definitions(_CRT_NONSTDC_NO_DEPRECATE _CRT_SECURE_NO_DEPRECATE _CRT_SECURE_NO_WARNINGS WIN32_LEAN_AND_MEAN)
+ELSE(MSVC)
+  add_compile_definitions(_DEFAULT_SOURCE)
+ENDIF(MSVC)
+
+#SET(CXPROC_STATIC OFF CACHE BOOL "Build static linked binary instead of shared ones.")
+# set static flag depending on prefix name
+IF (${CXPROC_PREFIX} MATCHES ".*-static.*")
+  SET(CXPROC_STATIC ON)
+ELSE ()
+  SET(CXPROC_STATIC OFF)
+ENDIF ()
+
+#IF (${CXPROC_PREFIX} MATCHES ".*64.*")
+#  OPTION(CXPROC_BUILD_64 "Build 64 bit CXPROC binary" ON)
+#ELSE ()
+#ENDIF ()
+
+SET(CXPROC_CXX ON CACHE BOOL "Compile as C++ code")
+
+SET(CXPROC_EXPERIMENTAL OFF CACHE BOOL "Compile experimental code")
+IF (CXPROC_EXPERIMENTAL)
+  add_compile_definitions(EXPERIMENTAL)
+  SET(CXPROC_MARKDOWN OFF CACHE BOOL "Compile MARKDOWN code")
+  MARK_AS_ADVANCED(CXPROC_MARKDOWN)
+  IF (CXPROC_MARKDOWN)
+    add_compile_definitions(WITH_MARKDOWN)
+  ENDIF (CXPROC_MARKDOWN)
+ENDIF (CXPROC_EXPERIMENTAL)
+
+
+SET(CXPROC_AJAX ON CACHE BOOL "Compile AJAX code")
+
+IF (CXPROC_AJAX)
+  add_compile_definitions(WITH_AJAX)
+ENDIF (CXPROC_AJAX)
+
+#OPTION(CXPROC_DEBUG "Include debugging code" ON)
+
+# set debug flag depending on prefix name
+IF (${CXPROC_PREFIX} MATCHES ".*-debug.*")
+  SET(CXPROC_DEBUG ON)
+ELSE ()
+  SET(CXPROC_DEBUG OFF)
+ENDIF ()
+
+IF (CXPROC_STATIC)
+  add_compile_definitions(LIBICONV_PLUG)
+ELSE(CXPROC_STATIC)
+  IF(MSVC)
+    #add_compile_definitions()
+  ELSE(MSVC)
+    #add_compile_definitions()
+  ENDIF (MSVC)
+ENDIF (CXPROC_STATIC)
+
+IF (CXPROC_DEBUG)
+ELSE(CXPROC_DEBUG)
+  OPTION(CXPROC_PROFILE "Include profiling code" OFF)
+ENDIF (CXPROC_DEBUG)
+
+IF(MSVC)
+  SET(CXPROC_OPT /MT /Gm- /MP /GS /GR- /Gd /analyze- /errorreport:prompt)
+ELSE(MSVC)
+  SET(CXPROC_OPT -Wuninitialized)
+ENDIF(MSVC)
+
+IF (CXPROC_DEBUG)
+  add_compile_definitions(DEBUG)
+  SET(CXPROC_PROFILE OFF)
+  IF(MSVC)
+    SET(CXPROC_OPT ${CXPROC_OPT} /Od /Z7 /W4)
+  ELSE(MSVC)
+    SET(CXPROC_OPT ${CXPROC_OPT} -g -O0 -Wall -Wpedantic)
+  ENDIF (MSVC)
+ELSE (CXPROC_DEBUG)
+  add_compile_definitions(NDEBUG)
+  IF(MSVC)
+    SET(CXPROC_OPT ${CXPROC_OPT} /Ox -Ot -Oy-)
+  ELSE(MSVC)
+    SET(CXPROC_OPT ${CXPROC_OPT} -O3)
+  ENDIF (MSVC)
+  IF (CXPROC_PROFILE)
+    IF(MSVC)
+    ELSE(MSVC)
+      SET(CXPROC_OPT ${CXPROC_OPT} -pg)
+    ENDIF (MSVC)
+  ENDIF (CXPROC_PROFILE)
+ENDIF (CXPROC_DEBUG)
+
+IF (CXPROC_CXX)
+  IF(MSVC)
+    SET(CXPROC_OPT /TP ${CXPROC_OPT})
+  ELSE(MSVC)
+    SET(CXPROC_OPT -x c++ -long-long -unused -fpermissive ${CXPROC_OPT})
+  ENDIF(MSVC)
+ELSE (CXPROC_CXX)
+  IF(MSVC)
+    SET(CXPROC_OPT /TC ${CXPROC_OPT})
+  ELSE(MSVC)
+    SET(CXPROC_OPT -x c -std=c11 -unused ${CXPROC_OPT})
+  ENDIF(MSVC)
+ENDIF (CXPROC_CXX)
+
+target_compile_options(filex       PUBLIC ${CXPROC_OPT})
+target_compile_options(cxproc      PUBLIC ${CXPROC_OPT})
+target_compile_options(cxproc-test PUBLIC ${CXPROC_OPT})
+target_compile_options(cxproc-cgi  PUBLIC ${CXPROC_OPT})
+IF (LIBMICROHTTPD_FOUND)
+  target_compile_options(cxproc-httpd PUBLIC ${CXPROC_OPT})
+ENDIF ()
+
+################################################################################
+#
+# local pcre2
+#
+
+IF (CXPROC_PCRE2)
+  target_link_libraries(filex ${LIBPCRE2_LIBRARIES})
+  target_link_libraries(cxproc ${LIBPCRE2_LIBRARIES})
+  target_link_libraries(cxproc-test ${LIBPCRE2_LIBRARIES})
+  target_link_libraries(cxproc-cgi ${LIBPCRE2_LIBRARIES})
+  IF (LIBMICROHTTPD_FOUND)
+    target_link_libraries(cxproc-httpd ${LIBPCRE2_LIBRARIES})
+  ENDIF ()
+ENDIF ()
+
+################################################################################
+#
+# local duktape
+#
+
+IF (CXPROC_DUKTAPE)
+  IF (DUKTAPE_SOURCE_FILE)
+  ELSE (DUKTAPE_SOURCE_FILE)
+    target_link_libraries(cxproc ${DUKTAPE_LIBRARIES})
+    target_link_libraries(cxproc-test ${DUKTAPE_LIBRARIES})
+    target_link_libraries(cxproc-cgi ${DUKTAPE_LIBRARIES})
+    IF (LIBMICROHTTPD_FOUND)
+      target_link_libraries(cxproc-httpd ${DUKTAPE_LIBRARIES})
+    ENDIF ()
+  ENDIF ()
+ENDIF (CXPROC_DUKTAPE)
+
+################################################################################
+#
+# SQLite3 library
+#
+
+IF (CXPROC_SQLITE3)
+  IF (SQLITE3_SOURCE_FILE)
+  ELSE (SQLITE3_SOURCE_FILE)
+    target_link_libraries(filex ${SQLITE3_LIBRARIES})
+    target_link_libraries(cxproc ${SQLITE3_LIBRARIES})
+    target_link_libraries(cxproc-test ${SQLITE3_LIBRARIES})
+    target_link_libraries(cxproc-cgi  ${SQLITE3_LIBRARIES})
+    IF (LIBMICROHTTPD_FOUND)
+      target_link_libraries(cxproc-httpd ${SQLITE3_LIBRARIES})
+    ENDIF ()
+  ENDIF ()
+ENDIF (CXPROC_SQLITE3)
+
+################################################################################
+#
+# either local ZLIB or system ZLIB
+#
+
+IF (CXPROC_LIBZ)
+  target_link_libraries(filex ${ZLIB_LIBRARIES})
+  target_link_libraries(cxproc ${ZLIB_LIBRARIES})
+  target_link_libraries(cxproc-test ${ZLIB_LIBRARIES})
+  target_link_libraries(cxproc-cgi  ${ZLIB_LIBRARIES})
+  IF (LIBMICROHTTPD_FOUND)
+    target_link_libraries(cxproc-httpd ${ZLIB_LIBRARIES})
+  ENDIF ()
+ENDIF (CXPROC_LIBZ)
+
+################################################################################
+#
+# either local LIBBZ2 or system LIBBZ2
+#
+
+find_path(LIBBZ2_INCLUDE_DIR NAMES bzlib.h
+  HINTS "${CXPROC_PREFIX}/include"
+  ) 
+
+IF (LIBBZ2_INCLUDE_DIR)
+  find_library(LIBBZ2_LIBRARIES NAMES libbz2 bz2 bz2d bzip2 libbz2 libbz2Static
+    HINTS "${CXPROC_PREFIX}/lib"
+    )
+  IF (LIBBZ2_LIBRARIES)
+    SET(LIBBZ2_FOUND ON)
+  ELSE(LIBBZ2_LIBRARIES)
+    FIND_PACKAGE( LIBBZ2 )
+  ENDIF (LIBBZ2_LIBRARIES)
+ELSE(LIBBZ2_INCLUDE_DIR)
+  FIND_PACKAGE( BZip2 )
+ENDIF (LIBBZ2_INCLUDE_DIR)
+
+IF (LIBBZ2_FOUND)
+  MESSAGE(STATUS "Found optional LIBBZ2: ${LIBBZ2_LIBRARIES}")
+  OPTION (CXPROC_LIBBZ2 "Enable support for linking cxproc with libbz2." ON)
+ELSE(LIBBZ2_FOUND)
+  SET(CXPROC_LIBBZ2 OFF)
+ENDIF (LIBBZ2_FOUND)
+
+IF (CXPROC_LIBBZ2)
+  INCLUDE_DIRECTORIES(${LIBBZ2_INCLUDE_DIR})
+  add_compile_definitions(HAVE_LIBBZ2)
+  IF (${LIBBZ2_LIBRARIES} MATCHES ".+static.*\\.lib$" OR ${LIBBZ2_LIBRARIES} MATCHES ".+\\.a$")
+    add_compile_definitions(LIBBZ2_STATIC)
+  ENDIF ()
+  target_link_libraries(cxproc ${LIBBZ2_LIBRARIES})
+  target_link_libraries(cxproc-test ${LIBBZ2_LIBRARIES})
+  target_link_libraries(cxproc-cgi  ${LIBBZ2_LIBRARIES})
+  IF (LIBMICROHTTPD_FOUND)
+    target_link_libraries(cxproc-httpd ${LIBBZ2_LIBRARIES})
+  ENDIF ()
+ENDIF (CXPROC_LIBBZ2)
+
+################################################################################
+#
+# either local liblzma or system liblzma
+#
+
+find_path(LIBLZMA_INCLUDE_DIR NAMES lzma.h
+  HINTS "${CXPROC_PREFIX}/include"
+  ) 
+
+IF (LIBLZMA_INCLUDE_DIR)
+  find_library(LIBLZMA_LIBRARIES NAMES liblzma lzma lzmad lzma_static
+    HINTS "${CXPROC_PREFIX}/lib"
+    )
+  IF (LIBLZMA_LIBRARIES)
+    SET(LIBLZMA_FOUND ON)
+  ELSE(LIBLZMA_LIBRARIES)
+    FIND_PACKAGE( LibLZMA )
+  ENDIF (LIBLZMA_LIBRARIES)
+ELSE(LIBLZMA_INCLUDE_DIR)
+  FIND_PACKAGE( LibLZMA )
+ENDIF (LIBLZMA_INCLUDE_DIR)
+
+IF (LIBLZMA_FOUND)
+  MESSAGE(STATUS "Found optional liblzma: ${LIBLZMA_LIBRARIES}")
+  OPTION(CXPROC_LZMA "Enable support for linking cxproc with liblzma." OFF)
+ELSE (LIBLZMA_FOUND)
+  SET(CXPROC_LZMA OFF)
+ENDIF (LIBLZMA_FOUND)
+
+IF (CXPROC_LZMA)
+  INCLUDE_DIRECTORIES(${LIBLZMA_INCLUDE_DIR})
+  add_compile_definitions(HAVE_LIBLZMA)
+  IF (${LIBLZMA_LIBRARIES} MATCHES ".+static\\.lib$" OR ${LIBLZMA_LIBRARIES} MATCHES ".+\\.a$")
+    add_compile_definitions(LIBLZMA_STATIC)
+  ENDIF ()
+  target_link_libraries(filex ${LIBLZMA_LIBRARIES})
+  target_link_libraries(cxproc ${LIBLZMA_LIBRARIES})
+  target_link_libraries(cxproc-test ${LIBLZMA_LIBRARIES})
+  target_link_libraries(cxproc-cgi  ${LIBLZMA_LIBRARIES})
+  IF (LIBMICROHTTPD_FOUND)
+    target_link_libraries(cxproc-httpd ${LIBLZMA_LIBRARIES})
+  ENDIF ()
+ENDIF (CXPROC_LZMA)
+
+
+IF (CXPROC_ARCHIVE)
+  target_link_libraries(filex ${LibArchive_LIBRARIES})
+  target_link_libraries(cxproc ${LibArchive_LIBRARIES})
+  target_link_libraries(cxproc-test ${LibArchive_LIBRARIES})
+  target_link_libraries(cxproc-cgi ${LibArchive_LIBRARIES})
+  IF (LIBMICROHTTPD_FOUND)
+    target_link_libraries(cxproc-httpd ${LibArchive_LIBRARIES})
+  ENDIF ()
+ENDIF (CXPROC_ARCHIVE)
+
+################################################################################
+#
+# either local libcurl or system libcurl
+#
+
+find_path(LIBCURL_INCLUDE_DIR NAMES curl.h
+  HINTS "${CXPROC_PREFIX}/include/curl"
+  ) 
+
+IF (LIBCURL_INCLUDE_DIR)
+  find_library(LIBCURL_LIBRARIES NAMES libcurl libcurl-d_imp
+    HINTS "${CXPROC_PREFIX}/lib"
+    )
+  IF (LIBCURL_LIBRARIES)
+    SET(LIBCURL_FOUND ON)
+  ELSE(LIBCURL_LIBRARIES)
+    FIND_PACKAGE( LIBCURL )
+  ENDIF (LIBCURL_LIBRARIES)
+ELSE(LIBCURL_INCLUDE_DIR)
+  FIND_PACKAGE( LibCURL )
+ENDIF (LIBCURL_INCLUDE_DIR)
+
+IF (LIBCURL_FOUND)
+  MESSAGE(STATUS "Found optional libcurl: ${LIBCURL_LIBRARIES}")
+  OPTION(CXPROC_CURL "Enable support for linking cxproc with libcurl." OFF)
+ELSE (LIBCURL_FOUND)
+  SET(CXPROC_CURL OFF)
+ENDIF (LIBCURL_FOUND)
+
+IF (CXPROC_CURL)
+  INCLUDE_DIRECTORIES(${LIBCURL_INCLUDE_DIR})
+  add_compile_definitions(HAVE_LIBCURL)
+  IF (${LIBCURL_LIBRARIES} MATCHES ".+static\\.lib$" OR ${LIBCURL_LIBRARIES} MATCHES ".+\\.a$")
+    add_compile_definitions(LIBCURL_STATIC)
+  ENDIF ()
+  target_link_libraries(filex ${LIBCURL_LIBRARIES})
+  target_link_libraries(cxproc ${LIBCURL_LIBRARIES})
+  target_link_libraries(cxproc-test ${LIBCURL_LIBRARIES})
+  target_link_libraries(cxproc-cgi  ${LIBCURL_LIBRARIES})
+  IF (LIBMICROHTTPD_FOUND)
+    target_link_libraries(cxproc-httpd ${LIBCURL_LIBRARIES})
+  ENDIF ()
+  IF(MSVC)
+    # no additional libraries with VC++
+  ELSE(MSVC)
+    target_link_libraries(filex ssl crypto)
+    target_link_libraries(cxproc ssl crypto)
+    target_link_libraries(cxproc-test ssl crypto)
+    target_link_libraries(cxproc-cgi  ssl crypto)
+    IF (LIBMICROHTTPD_FOUND)
+      target_link_libraries(cxproc-httpd ssl crypto)
+    ENDIF ()
+  ENDIF(MSVC)
+ENDIF (CXPROC_CURL)
+
+################################################################################
+#
+# either local LIBMICROHTTPD or system LIBMICROHTTPD
+#
+
+find_path(LIBMICROHTTPD_INCLUDE_DIR NAMES microhttpd.h
+  HINTS "${CXPROC_PREFIX}/include"
+  ) 
+
+IF (LIBMICROHTTPD_INCLUDE_DIR)
+  find_library(LIBMICROHTTPD_LIBRARIES NAMES libmicrohttpd.a microhttpd libmicrohttpd-dll_d
+    HINTS "${CXPROC_PREFIX}/lib"
+    )
+  IF (LIBMICROHTTPD_LIBRARIES)
+    SET(LIBMICROHTTPD_FOUND ON)
+  ELSE(LIBMICROHTTPD_LIBRARIES)
+    FIND_PACKAGE( LIBMICROHTTPD )
+  ENDIF (LIBMICROHTTPD_LIBRARIES)
+ELSE(LIBMICROHTTPD_INCLUDE_DIR)
+  FIND_PACKAGE( LIBMICROHTTPD )
+ENDIF (LIBMICROHTTPD_INCLUDE_DIR)
+
+IF (LIBMICROHTTPD_FOUND)
+  MESSAGE(STATUS "Found optional libmicrohttpd: ${LIBMICROHTTPD_LIBRARIES}")
+  INCLUDE_DIRECTORIES(${LIBMICROHTTPD_INCLUDE_DIR})
+  add_compile_definitions(HAVE_LIBMICROHTTPD)
+  IF (${LIBMICROHTTPD_LIBRARIES} MATCHES ".+static\\.lib$" OR ${LIBMICROHTTPD_LIBRARIES} MATCHES ".+\\.a$")
+    add_compile_definitions(LIBMICROHTTPD_STATIC)
+  ENDIF ()
+ELSE(LIBMICROHTTPD_FOUND)
+#
+ENDIF (LIBMICROHTTPD_FOUND)
+
+################################################################################
+#
+# pthread
+#
+
+IF(CXPROC_PTHREAD)
+  target_link_libraries(filex ${CMAKE_THREAD_LIBS_INIT})
+  target_link_libraries(cxproc ${CMAKE_THREAD_LIBS_INIT})
+  target_link_libraries(cxproc-test ${CMAKE_THREAD_LIBS_INIT})
+  target_link_libraries(cxproc-cgi ${CMAKE_THREAD_LIBS_INIT})
+  IF (LIBMICROHTTPD_FOUND)
+    target_link_libraries(cxproc-httpd ${CMAKE_THREAD_LIBS_INIT})
+  ENDIF ()
+ENDIF (CXPROC_PTHREAD)
+
+################################################################################
+#
+################################################################################
+#
+# either local libid3tag or system libid3tag
+#
+
+IF (CXPROC_LIBID3TAG)
+  target_link_libraries(filex ${LIBID3TAG_LIBRARIES})
+  target_link_libraries(cxproc ${LIBID3TAG_LIBRARIES})
+  target_link_libraries(cxproc-test ${LIBID3TAG_LIBRARIES})
+  target_link_libraries(cxproc-cgi  ${LIBID3TAG_LIBRARIES})
+  IF (LIBMICROHTTPD_FOUND)
+    target_link_libraries(cxproc-httpd ${LIBID3TAG_LIBRARIES})
+  ENDIF ()
+ENDIF (CXPROC_LIBID3TAG)
+
+################################################################################
+#
+# either local libexif or system libexif
+#
+
+IF (CXPROC_LIBEXIF)
+  target_link_libraries(cxproc ${LIBEXIF_LIBRARY})
+  target_link_libraries(cxproc-test ${LIBEXIF_LIBRARY})
+  target_link_libraries(cxproc-cgi  ${LIBEXIF_LIBRARY})
+  IF (LIBMICROHTTPD_FOUND)
+    target_link_libraries(cxproc-httpd ${LIBEXIF_LIBRARY})
+  ENDIF ()
+ENDIF (CXPROC_LIBEXIF)
+
+################################################################################
+#
+# add list of mandatory libraries
+#
+
+target_link_libraries(filex ${LIBICONV_LIBRARY} ${LIBXML2_LIBRARIES})
+target_link_libraries(cxproc ${LIBICONV_LIBRARY} ${LIBXML2_LIBRARIES} ${LIBXSLT_LIBRARIES})
+target_link_libraries(cxproc-test ${LIBICONV_LIBRARY} ${LIBXML2_LIBRARIES} ${LIBXSLT_LIBRARIES})
+target_link_libraries(cxproc-cgi ${LIBICONV_LIBRARY} ${LIBXML2_LIBRARIES} ${LIBXSLT_LIBRARIES})
+
+IF (LIBMICROHTTPD_FOUND)
+  target_link_libraries(cxproc-httpd ${LIBICONV_LIBRARY} ${LIBXML2_LIBRARIES} ${LIBXSLT_LIBRARIES} ${LIBMICROHTTPD_LIBRARIES})
+ENDIF ()
+
+################################################################################
+#
+# add the command to generate the source code
+
+# TODO: process git info
+IF(MSVC)
+  #ADD_CUSTOM_COMMAND (
+  #  OUTPUT ${CXPROC_SRC_DIR}/svn_revision.h ${CXPROC_SRC_DIR}/svn_info.h
+  #  COMMAND ${PROJECT_SOURCE_DIR}/build/svn_revision.bat
+  #  )
+ELSE(MSVC)
+  # ADD_CUSTOM_COMMAND (
+  #   OUTPUT ${PROJECT_SOURCE_DIR}/build/svn_info.log
+  #   COMMAND svn info ${PROJECT_SOURCE_DIR} > ${PROJECT_SOURCE_DIR}/build/svn_info.log
+  #   )
+  
+  # ADD_CUSTOM_COMMAND (
+  #   OUTPUT ${CXPROC_SRC_DIR}/svn_revision.h
+  #   COMMAND awk -f ${PROJECT_SOURCE_DIR}/build/svn_revision.awk ${PROJECT_SOURCE_DIR}/build/svn_info.log > ${CXPROC_SRC_DIR}/svn_revision.h
+  #   DEPENDS ${PROJECT_SOURCE_DIR}/build/svn_info.log
+  #   )
+  
+  # ADD_CUSTOM_COMMAND (
+  #   OUTPUT ${CXPROC_SRC_DIR}/svn_info.h
+  #   COMMAND awk -f ${PROJECT_SOURCE_DIR}/build/svn_info.awk ${PROJECT_SOURCE_DIR}/build/svn_info.log > ${CXPROC_SRC_DIR}/svn_info.h
+  #   DEPENDS ${PROJECT_SOURCE_DIR}/build/svn_info.log
+  #   )
+ENDIF(MSVC)
+ 
+################################################################################
+#
+OPTION(CXPROC_SHOW_REPORT     "Show the final configuration report" ON)
+
+################################################################################
+#
+
+IF(MSVC)
+ELSE(MSVC)
+  target_link_libraries(filex -ldl -lm)
+  target_link_libraries(cxproc -ldl -lm)
+  target_link_libraries(cxproc-test -ldl -lm)
+  target_link_libraries(cxproc-cgi -ldl -lm)
+  IF (LIBMICROHTTPD_FOUND)
+    target_link_libraries(cxproc-httpd -ldl -lm)
+  ENDIF ()
+  IF (CXPROC_LIBZ)
+    target_link_libraries(filex -lz)
+    target_link_libraries(cxproc -lz)
+    target_link_libraries(cxproc-test -lz)
+    target_link_libraries(cxproc-cgi -lz)
+    IF (LIBMICROHTTPD_FOUND)
+      target_link_libraries(cxproc-httpd -lz)
+    ENDIF ()
+  ENDIF (CXPROC_LIBZ)
+ENDIF(MSVC)
+
+set_target_properties(filex
+    PROPERTIES
+    ARCHIVE_OUTPUT_DIRECTORY "${CXPROC_PREFIX}/lib"
+    LIBRARY_OUTPUT_DIRECTORY "${CXPROC_PREFIX}/lib"
+    RUNTIME_OUTPUT_DIRECTORY "${CXPROC_PREFIX}/bin"
+    ARCHIVE_OUTPUT_DIRECTORY_DEBUG "${CXPROC_PREFIX}/lib"
+    LIBRARY_OUTPUT_DIRECTORY_DEBUG "${CXPROC_PREFIX}/lib"
+    RUNTIME_OUTPUT_DIRECTORY_DEBUG "${CXPROC_PREFIX}/bin"
+    ARCHIVE_OUTPUT_DIRECTORY_RELEASE "${CXPROC_PREFIX}/lib"
+    LIBRARY_OUTPUT_DIRECTORY_RELEASE "${CXPROC_PREFIX}/lib"
+    RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CXPROC_PREFIX}/bin"
+)
+
+set_target_properties(cxproc
+    PROPERTIES
+    ARCHIVE_OUTPUT_DIRECTORY "${CXPROC_PREFIX}/lib"
+    LIBRARY_OUTPUT_DIRECTORY "${CXPROC_PREFIX}/lib"
+    RUNTIME_OUTPUT_DIRECTORY "${CXPROC_PREFIX}/bin"
+    ARCHIVE_OUTPUT_DIRECTORY_DEBUG "${CXPROC_PREFIX}/lib"
+    LIBRARY_OUTPUT_DIRECTORY_DEBUG "${CXPROC_PREFIX}/lib"
+    RUNTIME_OUTPUT_DIRECTORY_DEBUG "${CXPROC_PREFIX}/bin"
+    ARCHIVE_OUTPUT_DIRECTORY_RELEASE "${CXPROC_PREFIX}/lib"
+    LIBRARY_OUTPUT_DIRECTORY_RELEASE "${CXPROC_PREFIX}/lib"
+    RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CXPROC_PREFIX}/bin"
+)
+
+set_target_properties(cxproc-test
+  PROPERTIES
+  ARCHIVE_OUTPUT_DIRECTORY "${CXPROC_PREFIX}/"
+  LIBRARY_OUTPUT_DIRECTORY "${CXPROC_PREFIX}/"
+  RUNTIME_OUTPUT_DIRECTORY "${CXPROC_PREFIX}/bin"
+  ARCHIVE_OUTPUT_DIRECTORY_DEBUG "${CXPROC_PREFIX}/"
+  LIBRARY_OUTPUT_DIRECTORY_DEBUG "${CXPROC_PREFIX}/"
+  RUNTIME_OUTPUT_DIRECTORY_DEBUG "${CXPROC_PREFIX}/bin"
+  ARCHIVE_OUTPUT_DIRECTORY_RELEASE "${CXPROC_PREFIX}/"
+  LIBRARY_OUTPUT_DIRECTORY_RELEASE "${CXPROC_PREFIX}/"
+  RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CXPROC_PREFIX}/bin"
+)
+
+set_target_properties(cxproc-cgi
+  PROPERTIES
+  ARCHIVE_OUTPUT_DIRECTORY "${CXPROC_PREFIX}/www/"
+  LIBRARY_OUTPUT_DIRECTORY "${CXPROC_PREFIX}/www/"
+  RUNTIME_OUTPUT_DIRECTORY "${CXPROC_PREFIX}/www/cgi-bin"
+  ARCHIVE_OUTPUT_DIRECTORY_DEBUG "${CXPROC_PREFIX}/www/"
+  LIBRARY_OUTPUT_DIRECTORY_DEBUG "${CXPROC_PREFIX}/www/"
+  RUNTIME_OUTPUT_DIRECTORY_DEBUG "${CXPROC_PREFIX}/www/cgi-bin"
+  ARCHIVE_OUTPUT_DIRECTORY_RELEASE "${CXPROC_PREFIX}/www/"
+  LIBRARY_OUTPUT_DIRECTORY_RELEASE "${CXPROC_PREFIX}/www/"
+  RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CXPROC_PREFIX}/www/cgi-bin"
+)
+
+set_target_properties(test-cgi
+  PROPERTIES
+  ARCHIVE_OUTPUT_DIRECTORY "${CXPROC_PREFIX}/www/"
+  LIBRARY_OUTPUT_DIRECTORY "${CXPROC_PREFIX}/www/"
+  RUNTIME_OUTPUT_DIRECTORY "${CXPROC_PREFIX}/www/cgi-bin"
+  ARCHIVE_OUTPUT_DIRECTORY_DEBUG "${CXPROC_PREFIX}/www/"
+  LIBRARY_OUTPUT_DIRECTORY_DEBUG "${CXPROC_PREFIX}/www/"
+  RUNTIME_OUTPUT_DIRECTORY_DEBUG "${CXPROC_PREFIX}/www/cgi-bin"
+  ARCHIVE_OUTPUT_DIRECTORY_RELEASE "${CXPROC_PREFIX}/www/"
+  LIBRARY_OUTPUT_DIRECTORY_RELEASE "${CXPROC_PREFIX}/www/"
+  RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CXPROC_PREFIX}/www/cgi-bin"
+)
+
+IF (LIBMICROHTTPD_FOUND)
+  set_target_properties(cxproc-httpd
+    PROPERTIES
+    ARCHIVE_OUTPUT_DIRECTORY "${CXPROC_PREFIX}/www/"
+    LIBRARY_OUTPUT_DIRECTORY "${CXPROC_PREFIX}/www/"
+    RUNTIME_OUTPUT_DIRECTORY "${CXPROC_PREFIX}/www/http-bin"
+    ARCHIVE_OUTPUT_DIRECTORY_DEBUG "${CXPROC_PREFIX}/www/"
+    LIBRARY_OUTPUT_DIRECTORY_DEBUG "${CXPROC_PREFIX}/www/"
+    RUNTIME_OUTPUT_DIRECTORY_DEBUG "${CXPROC_PREFIX}/www/http-bin"
+    ARCHIVE_OUTPUT_DIRECTORY_RELEASE "${CXPROC_PREFIX}/www/"
+    LIBRARY_OUTPUT_DIRECTORY_RELEASE "${CXPROC_PREFIX}/www/"
+    RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CXPROC_PREFIX}/www/http-bin"
+    )
+ENDIF ()
+
+###############################################################################
+## testing ####################################################################
+###############################################################################
+
+# external tests
+add_test(NAME basics-code
+  WORKING_DIRECTORY ${CXPROC_PREFIX}
+  COMMAND ${CXPROC_PREFIX}/bin/cxproc-test -t basics)
+
+add_test(NAME res_node-code
+  COMMAND ${CXPROC_PREFIX}/bin/cxproc-test -t res_node)
+
+add_test(NAME cxp-code
+  WORKING_DIRECTORY ${CXPROC_PREFIX}
+  COMMAND ${CXPROC_PREFIX}/bin/cxproc-test -t cxp)
+
+add_test(NAME dom-code
+  WORKING_DIRECTORY ${CXPROC_PREFIX}
+  COMMAND ${CXPROC_PREFIX}/bin/cxproc-test -t dom)
+
+add_test(NAME plain-code
+  WORKING_DIRECTORY ${CXPROC_PREFIX}
+  COMMAND ${CXPROC_PREFIX}/bin/cxproc-test -t plain)
+
+IF(CXPROC_PTHREAD)
+  add_test(NAME thread-code
+    WORKING_DIRECTORY ${CXPROC_PREFIX}
+    COMMAND ${CXPROC_PREFIX}/bin/cxproc-test -t thread)
+
+  add_test(NAME thread-cxp
+    WORKING_DIRECTORY ${CXPROC_TEST_DIR}/thread
+    COMMAND ${CXPROC_PREFIX}/bin/cxproc config.cxp)
+
+ENDIF (CXPROC_PTHREAD)
+
+add_test(NAME parser-code
+  WORKING_DIRECTORY ${CXPROC_PREFIX}
+  COMMAND ${CXPROC_PREFIX}/bin/cxproc-test -t parser)
+
+add_test(NAME cgi-empty
+  WORKING_DIRECTORY ${CXPROC_PREFIX}
+  COMMAND ${CXPROC_PREFIX}/www/cgi-bin/cxproc-cgi)
+
+set_property(TEST cgi-empty
+  APPEND PROPERTY ENVIRONMENT CXP_LOGFILE=${CXPROC_TEMP_DIR}/cxproc-empty.log;QUERY_STRING=
+)
+
+add_test(NAME cgi-mini
+  WORKING_DIRECTORY ${CXPROC_PREFIX}
+  COMMAND ${CXPROC_PREFIX}/www/cgi-bin/cxproc-cgi)
+
+set_property(TEST cgi-mini
+  APPEND PROPERTY ENVIRONMENT CXP_LOGFILE=${CXPROC_TEMP_DIR}/cxproc-mini.log;QUERY_STRING=cxp=info
+)
+
+add_test(NAME cgi-maxi
+  WORKING_DIRECTORY ${CXPROC_PREFIX}
+  COMMAND ${CXPROC_PREFIX}/www/cgi-bin/cxproc-cgi)
+
+set_property(TEST cgi-maxi
+  APPEND PROPERTY ENVIRONMENT CXP_LOGFILE=${CXPROC_TEMP_DIR}/cxproc-maxi.log;QUERY_STRING=path=Test/Archive&cxp=PieUiDir
+)
+
+add_test(NAME cgi-archive
+  WORKING_DIRECTORY ${CXPROC_PREFIX}
+  COMMAND ${CXPROC_PREFIX}/www/cgi-bin/cxproc-cgi)
+
+set_property(TEST cgi-archive
+  APPEND PROPERTY ENVIRONMENT CXP_LOGFILE=${CXPROC_TEMP_DIR}/cxproc-archive.log;QUERY_STRING=path=Test/Archive/TestArchive.zip/Test/SubTest/SubTest/Length_1024.txt
+)
+
+add_test(NAME cgi-sql
+  WORKING_DIRECTORY ${CXPROC_PREFIX}
+  COMMAND ${CXPROC_PREFIX}/www/cgi-bin/cxproc-cgi)
+
+set_property(TEST cgi-sql
+  APPEND PROPERTY ENVIRONMENT CXP_LOGFILE=${CXPROC_TEMP_DIR}/cxproc-sql.log;QUERY_STRING=path=Test/Databases/TestContent.db3&cxp=PiejQSqlite
+)
+
+set_property(TEST cgi-empty cgi-mini cgi-archive cgi-sql cgi-maxi
+  APPEND PROPERTY ENVIRONMENT DOCUMENT_ROOT=${CXPROC_PREFIX}/www/html/;REQUEST_METHOD=GET;CXP_LOG=3;CXP_PATH=${CXPROC_PREFIX}/www/html/pie//;CXP_ROOT=${CXPROC_PREFIX}/www/html/Documents
+)
+  
+add_test(NAME cli-help
+  WORKING_DIRECTORY ${CXPROC_PREFIX}
+  COMMAND ${CXPROC_PREFIX}/bin/cxproc -?)
+
+add_test(NAME cli-description
+  WORKING_DIRECTORY ${CXPROC_PREFIX}
+  COMMAND ${CXPROC_PREFIX}/bin/cxproc -? config-article.cxp)
+
+add_test(NAME cli-env
+  WORKING_DIRECTORY ${CXPROC_PREFIX}
+  COMMAND ${CXPROC_PREFIX}/bin/cxproc -e)
+
+add_test(NAME cli-conf-plain
+  WORKING_DIRECTORY ${CXPROC_PREFIX}
+  COMMAND ${CXPROC_PREFIX}/bin/cxproc -t abc.txt pie2html.xsl)
+
+add_test(NAME cli-search
+  WORKING_DIRECTORY ${CXPROC_PREFIX}/www/html/
+  COMMAND ${CXPROC_PREFIX}/bin/cxproc -s "pie2.*xsl")
+
+add_test(NAME cli-conf-file
+  WORKING_DIRECTORY ${CXPROC_PREFIX}
+  COMMAND ${CXPROC_PREFIX}/bin/cxproc -t command/test_commandline.sh)
+
+add_test(NAME cli-conf-dir
+  WORKING_DIRECTORY ${CXPROC_PREFIX}
+  COMMAND ${CXPROC_PREFIX}/bin/cxproc -t command//)
+
+add_test(NAME cli-dir-xsl
+  WORKING_DIRECTORY ${CXPROC_TEST_DIR}
+  COMMAND ${CXPROC_PREFIX}/bin/cxproc command// dir2mm.xsl)
+
+set_property(TEST cli-search cli-dir-xsl
+  APPEND PROPERTY ENVIRONMENT CXP_PATH=${CXPROC_PREFIX}/www/html/pie//
+)
+  
+add_test(NAME dir-code
+  WORKING_DIRECTORY ${CXPROC_PREFIX}
+  COMMAND ${CXPROC_PREFIX}/bin/cxproc-test -t dir)
+
+add_test(NAME dir-cxp
+  WORKING_DIRECTORY ${CXPROC_TEST_DIR}/dir
+  COMMAND ${CXPROC_PREFIX}/bin/cxproc config.cxp)
+
+add_test(NAME each-cxp
+  WORKING_DIRECTORY ${CXPROC_TEST_DIR}/each
+  COMMAND ${CXPROC_PREFIX}/bin/cxproc config.cxp)
+
+add_test(NAME eval-cxp
+  WORKING_DIRECTORY ${CXPROC_TEST_DIR}/eval
+  COMMAND ${CXPROC_PREFIX}/bin/cxproc config.cxp)
+
+add_test(NAME plain-cxp
+  WORKING_DIRECTORY ${CXPROC_TEST_DIR}/plain
+  COMMAND ${CXPROC_PREFIX}/bin/cxproc config.cxp)
+
+add_test(NAME system-cxp
+  WORKING_DIRECTORY ${CXPROC_TEST_DIR}/system
+  COMMAND ${CXPROC_PREFIX}/bin/cxproc config.cxp)
+
+add_test(NAME worst-cxp
+  WORKING_DIRECTORY ${CXPROC_TEST_DIR}/worst
+  COMMAND ${CXPROC_PREFIX}/bin/cxproc config.cxp)
+
+add_test(NAME xhtml-cxp
+  WORKING_DIRECTORY ${CXPROC_TEST_DIR}/xhtml
+  COMMAND ${CXPROC_PREFIX}/bin/cxproc config.cxp)
+
+add_test(NAME xml-cxp
+  WORKING_DIRECTORY ${CXPROC_TEST_DIR}/xml
+  COMMAND ${CXPROC_PREFIX}/bin/cxproc config.cxp)
+
+add_test(NAME xsl-cxp
+  WORKING_DIRECTORY ${CXPROC_TEST_DIR}/xsl
+  COMMAND ${CXPROC_PREFIX}/bin/cxproc config.cxp)
+
+set_property(TEST cli-help cli-description cli-env cli-conf-plain cli-search cli-conf-file cli-conf-dir cli-dir-xsl dir-code dir-cxp each-cxp eval-cxp plain-cxp system-cxp worst-cxp xhtml-cxp xml-cxp xsl-cxp
+  APPEND PROPERTY ENVIRONMENT CXP_PATH=${CXPROC_PREFIX}/www/html/pie//
+)
+
+IF (CXPROC_PETRINET)
+  add_test(NAME petrinet-code
+    WORKING_DIRECTORY ${CXPROC_PREFIX}
+    COMMAND ${CXPROC_PREFIX}/bin/cxproc-test -t petrinet)
+
+  add_test(NAME petrinet-cxp
+    WORKING_DIRECTORY ${CXPROC_TEST_DIR}/petrinet
+    COMMAND ${CXPROC_PREFIX}/bin/cxproc config.cxp)
+
+  set_tests_properties(petrinet-cxp PROPERTIES
+    ENVIRONMENT "CXP_PATH=${PROJECT_SOURCE_DIR}//")
+ENDIF (CXPROC_PETRINET)
+
+IF (CXPROC_PIE)
+  add_test(NAME pie-code
+    WORKING_DIRECTORY ${CXPROC_PREFIX}
+    COMMAND ${CXPROC_PREFIX}/bin/cxproc-test -t pie)
+
+  add_test(NAME pie-cxp-import-circular
+    WORKING_DIRECTORY ${CXPROC_TEST_DIR}/pie/circular
+    COMMAND ${CXPROC_PREFIX}/bin/cxproc config-circular.cxp)
+
+  add_test(NAME pie-cxp-import-csv
+    WORKING_DIRECTORY ${CXPROC_TEST_DIR}/pie/csv
+    COMMAND ${CXPROC_PREFIX}/bin/cxproc config-pie-import-csv.cxp)
+
+  add_test(NAME pie-cxp-import-cxp
+    WORKING_DIRECTORY ${CXPROC_TEST_DIR}/pie/cxp
+    COMMAND ${CXPROC_PREFIX}/bin/cxproc config-pie-import-cxp.cxp)
+
+  add_test(NAME pie-cxp-import-line
+    WORKING_DIRECTORY ${CXPROC_TEST_DIR}/pie/line
+    COMMAND ${CXPROC_PREFIX}/bin/cxproc config-pie-import-line.cxp)
+
+  add_test(NAME pie-cxp-import-log
+    WORKING_DIRECTORY ${CXPROC_TEST_DIR}/pie/log
+    COMMAND ${CXPROC_PREFIX}/bin/cxproc config-pie-import-log.cxp)
+
+  add_test(NAME pie-cxp-import-plain
+    WORKING_DIRECTORY ${CXPROC_TEST_DIR}/pie/plain
+    COMMAND ${CXPROC_PREFIX}/bin/cxproc config-pie-import-plain.cxp)
+
+  add_test(NAME pie-cxp-import-script
+    WORKING_DIRECTORY ${CXPROC_TEST_DIR}/pie/script
+    COMMAND ${CXPROC_PREFIX}/bin/cxproc config-pie-import-script.cxp)
+
+  add_test(NAME pie-cxp-import-xml
+    WORKING_DIRECTORY ${CXPROC_TEST_DIR}/pie/xml
+    COMMAND ${CXPROC_PREFIX}/bin/cxproc config-pie-import-xml.cxp)
+
+  add_test(NAME calendar
+    WORKING_DIRECTORY ${CXPROC_TEST_DIR}/calendar
+    COMMAND ${CXPROC_PREFIX}/bin/cxproc config.cxp)
+
+  add_test(NAME cli-conf-year
+    WORKING_DIRECTORY ${CXPROC_PREFIX}
+    COMMAND ${CXPROC_PREFIX}/bin/cxproc -t 2012)
+
+  add_test(NAME cli-year
+    WORKING_DIRECTORY ${CXPROC_PREFIX}
+    COMMAND ${CXPROC_PREFIX}/bin/cxproc 2012)
+
+  add_test(NAME cli-cxp-article
+    WORKING_DIRECTORY ${CXPROC_PREFIX}
+    COMMAND ${CXPROC_PREFIX}/bin/cxproc config-article.cxp www/html/Documents/Demo/Documents/Article.txt ${CXPROC_PREFIX}/tmp)
+
+  add_test(NAME cli-cxp-presentation
+    WORKING_DIRECTORY ${CXPROC_PREFIX}
+    COMMAND ${CXPROC_PREFIX}/bin/cxproc config-presentation.cxp www/html/Documents/Demo/Documents/Article.txt ${CXPROC_PREFIX}/tmp)
+
+  add_test(NAME cli-cxp-named
+    WORKING_DIRECTORY ${CXPROC_PREFIX}
+    COMMAND ${CXPROC_PREFIX}/bin/cxproc cxp=config-article file=www/html/Documents/Demo/Documents/Article.txt ${CXPROC_PREFIX}/tmp/named)
+
+  set_property(TEST pie-code pie-cxp-import-cxp calendar cli-conf-year cli-year cli-cxp-article cli-cxp-presentation cli-cxp-named
+    APPEND PROPERTY ENVIRONMENT CXP_PATH=${PROJECT_SOURCE_DIR}//
+    )
+  
+ENDIF (CXPROC_PIE)
+
+IF (CXPROC_ARCHIVE)
+add_test(NAME archive-code
+  WORKING_DIRECTORY ${CXPROC_PREFIX}
+  COMMAND ${CXPROC_PREFIX}/bin/cxproc-test -t archive)
+
+add_test(NAME archive-cxp
+  WORKING_DIRECTORY ${CXPROC_TEST_DIR}/archive
+  COMMAND ${CXPROC_PREFIX}/bin/cxproc config.cxp)
+
+set_tests_properties(archive-code archive-cxp PROPERTIES
+  ENVIRONMENT "CXP_PATH=${PROJECT_SOURCE_DIR}//"
+  )
+ENDIF (CXPROC_ARCHIVE)
+
+IF (CXPROC_LIBMAGICK OR CXPROC_LIBEXIF)
+  add_test(NAME image-cxp
+    WORKING_DIRECTORY ${CXPROC_TEST_DIR}/image
+    COMMAND ${CXPROC_PREFIX}/bin/cxproc config.cxp)
+ENDIF ()
+
+IF (CXPROC_DUKTAPE)
+  add_test(NAME js-cxp
+    WORKING_DIRECTORY ${CXPROC_TEST_DIR}/js
+    COMMAND ${CXPROC_PREFIX}/bin/cxproc config.cxp)
+ENDIF ()
+
+IF (CXPROC_JSON)
+  add_test(NAME json-cxp
+    WORKING_DIRECTORY ${CXPROC_TEST_DIR}/json
+    COMMAND ${CXPROC_PREFIX}/bin/cxproc config.cxp)
+ENDIF ()
+
+IF (CXPROC_RP)
+  add_test(NAME rp-cxp
+    WORKING_DIRECTORY ${CXPROC_TEST_DIR}/rp
+    COMMAND ${CXPROC_PREFIX}/bin/cxproc config.cxp)
+ENDIF ()
+
+IF (CXPROC_SQLITE3)
+  add_test(NAME sql-code  
+    COMMAND ${CXPROC_PREFIX}/bin/cxproc-test -t sql)
+
+  add_test(NAME sql-cxp
+    WORKING_DIRECTORY ${CXPROC_TEST_DIR}/sql
+    COMMAND ${CXPROC_PREFIX}/bin/cxproc config.cxp)
+
+  set_tests_properties(sql-code sql-cxp
+    PROPERTIES ENVIRONMENT "CXP_PATH=${PROJECT_SOURCE_DIR}//"
+  )
+ENDIF ()
+
+IF(MSVC)
+  # no memcheck available yet
+ELSE(MSVC)
+  # http://stackoverflow.com/questions/40325957/how-do-i-add-valgrind-tests-to-my-cmake-test-target
+  add_custom_target(test_memcheck
+    COMMAND ${CMAKE_CTEST_COMMAND} --force-new-ctest-process --test-action memcheck
+    COMMAND cat "${CXPROC_PREFIX}/Testing/Temporary/MemoryChecker.*.log")
+ENDIF(MSVC)
+
+# set envionment variables for testing
+set_tests_properties(basics-code res_node-code cxp-code dom-code plain-code parser-code cli-help cli-description cli-env cli-conf-plain cli-search cli-conf-file cli-conf-dir cli-dir-xsl dir-code dir-cxp each-cxp eval-cxp plain-cxp system-cxp worst-cxp xhtml-cxp xml-cxp xsl-cxp PROPERTIES
+  ENVIRONMENT "CXP_PATH=${PROJECT_SOURCE_DIR}//"
+  )
+
+add_test(NAME filex-empty
+  WORKING_DIRECTORY ${CXPROC_PREFIX}
+  COMMAND ${CXPROC_PREFIX}/bin/filex)
+
+add_test(NAME filex-dir
+  WORKING_DIRECTORY ${CXPROC_PREFIX}
+  COMMAND ${CXPROC_PREFIX}/bin/filex ${CXPROC_TEST_DIR})
+
+add_test(NAME filex-dir-recursive
+  WORKING_DIRECTORY ${CXPROC_PREFIX}
+  COMMAND ${CXPROC_PREFIX}/bin/filex ${CXPROC_TEST_DIR}// ${CXPROC_DATA_DIR}//)
+
+add_test(NAME filex-archive
+  WORKING_DIRECTORY ${CXPROC_PREFIX}
+  COMMAND ${CXPROC_PREFIX}/bin/filex ${CXPROC_DATA_DIR}/Documents/TestContent.docx)
+
+IF (CXPROC_ARCHIVE)
+  add_test(NAME filex-archive-intern
+    WORKING_DIRECTORY ${CXPROC_PREFIX}
+    COMMAND ${CXPROC_PREFIX}/bin/filex ${CXPROC_DATA_DIR}/Documents/TestContent.docx/word/document.xml)
+
+  add_test(NAME filex-archive-intern-intern
+    WORKING_DIRECTORY ${CXPROC_PREFIX}
+    COMMAND ${CXPROC_PREFIX}/bin/filex ${CXPROC_DATA_DIR}/Archive/TestArchive.zip/sub/TestContent.docx/word/document.xml)
+ENDIF(CXPROC_ARCHIVE)
+
+IF (CXPROC_CURL)
+  add_test(NAME filex-url-http
+    WORKING_DIRECTORY ${CXPROC_PREFIX}
+    COMMAND ${CXPROC_PREFIX}/bin/filex http://127.0.0.1/)
+
+  IF (CXPROC_SQLITE3)
+    add_test(NAME filex-url-http-sql
+      WORKING_DIRECTORY ${CXPROC_PREFIX}
+      COMMAND ${CXPROC_PREFIX}/bin/filex http://127.0.0.1/TestContent.db3)
+  ENDIF()
+ENDIF()
+
+IF (CXPROC_SQLITE3)
+  add_test(NAME filex-sql
+    WORKING_DIRECTORY ${CXPROC_PREFIX}
+    COMMAND ${CXPROC_PREFIX}/bin/filex ${CXPROC_DATA_DIR}/Databases/TestContent.db3)
+ENDIF()
+
+#filex-empty filex-dir filex-dir-recursive filex-archive filex-archive-intern filex-archive-intern-intern filex-url-http filex-sql filex-url-http-sql 
+
+# ctest -N | perl -ne 'if (/^ +Test/) {chomp(); $_ =~ s/^[^\:]+\: +/ /; print;}'
+
+###############################################################################
+## cleaning ####################################################################
+###############################################################################
+
+###############################################################################
+## packaging ##################################################################
+###############################################################################
+
+# http://stackoverflow.com/questions/7050997/zip-files-using-cmake
+#add_custom_target(create_zip COMMAND
+#    ${CMAKE_COMMAND} -E tar "cfv" "${CMAKE_CURRENT_SOURCE_DIR}/archive.zip" --format=zip
+#       "${CXPROC_PREFIX}/bin"
+#       "${CMAKE_CURRENT_SOURCE_DIR}/doc")
+	   
+
+###############################################################################
+## reporting ##################################################################
+###############################################################################
+
+IF(CXPROC_SHOW_REPORT)
+  STRING(TOUPPER "${CMAKE_BUILD_TYPE}" buildtype)
+  IF (CMAKE_C_FLAGS)
+    SET(cfsp " ")
+  ENDIF (CMAKE_C_FLAGS)
+  MESSAGE(STATUS "")
+  MESSAGE(STATUS "")
+  MESSAGE(STATUS "CXPROC configuration summary:")
+  MESSAGE(STATUS "")
+  MESSAGE(STATUS "  Install prefix .................... : ${CMAKE_INSTALL_PREFIX}")
+  MESSAGE(STATUS "  C compiler ........................ : ${CMAKE_C_COMPILER}")
+  MESSAGE(STATUS "  C compiler flags .................. : ${CMAKE_C_FLAGS}${cfsp}${CMAKE_C_FLAGS_${buildtype}}")
+  MESSAGE(STATUS "")
+  MESSAGE(STATUS "  Test directory .................... : ${CXPROC_TEST_DIR}")
+  MESSAGE(STATUS "")
+
+#  MESSAGE(STATUS "  Build 64 bit CXPROC library ....... : ${CXPROC_BUILD_64}")
+#  MESSAGE(STATUS "  Build static binary ............... : ${CXPROC_STATIC}")
+#  MESSAGE(STATUS "  Buffer size for cxproc ............ : ${CXPROC_BUFSIZE}")
+#  MESSAGE(STATUS "  Build tests ....................... : ${CXPROC_BUILD_TESTS}")
+  MESSAGE(STATUS "  Compile cxproc with debug ......... : ${CXPROC_DEBUG}")
+#  MESSAGE(STATUS "  Compile cxproc with test code ..... : ${CXPROC_TESTCODE}")
+  MESSAGE(STATUS "  Compile cxproc experimental code .. : ${CXPROC_EXPERIMENTAL}")
+  MESSAGE(STATUS "  Compile cxproc MARKDOWN code ...... : ${CXPROC_MARKDOWN}")
+  MESSAGE(STATUS "  Compile cxproc AJAX code .......... : ${CXPROC_AJAX}")
+  MESSAGE(STATUS "  Compile cxproc with profile ....... : ${CXPROC_PROFILE}")
+  MESSAGE(STATUS "  Build documentation........ ....... : ${CXPROC_DOC}")
+IF(CXPROC_PTHREAD)
+  MESSAGE(STATUS "  Link cxproc with pthread .......... : ${CXPROC_PTHREAD}")
+ELSEIF (CXPROC_THREAD)
+  MESSAGE(STATUS "  Compile cxproc with native threads  : ${CXPROC_THREAD}")
+ENDIF (CXPROC_PTHREAD)
+
+  MESSAGE(STATUS "  Compile cxproc with PIE ........... : ${CXPROC_PIE}")
+#  MESSAGE(STATUS "  Compile cxproc with DIR_INDEX ..... : ${CXPROC_DIR_INDEX}")
+  MESSAGE(STATUS "  Compile cxproc with JSON  ......... : ${CXPROC_JSON}")
+  MESSAGE(STATUS "")
+  MESSAGE(STATUS "  Compile cxproc with JavaScript .... : ${CXPROC_DUKTAPE}")
+  MESSAGE(STATUS "  Link cxproc with libpcre2 ......... : ${CXPROC_PCRE2}")
+  MESSAGE(STATUS "  Link cxproc with libsqlite ........ : ${CXPROC_SQLITE3}")
+  MESSAGE(STATUS "  Link cxproc with ImageMagick ...... : ${CXPROC_LIBMAGICK}")
+  MESSAGE(STATUS "  Link cxproc with libexif .......... : ${CXPROC_LIBEXIF}")
+  MESSAGE(STATUS "  Link cxproc with libvorbis ........ : ${CXPROC_LIBVORBIS}")
+  MESSAGE(STATUS "  Link cxproc with libid3tag ........ : ${CXPROC_LIBID3TAG}")
+  MESSAGE(STATUS "  Link cxproc with libarchive ....... : ${CXPROC_ARCHIVE}")
+  MESSAGE(STATUS "  Link cxproc with libz ............. : ${CXPROC_LIBZ}")
+  MESSAGE(STATUS "  Link cxproc with liblzma .......... : ${CXPROC_LZMA}")
+  MESSAGE(STATUS "  Link cxproc with libbz2 ........... : ${CXPROC_LIBBZ2}")
+  MESSAGE(STATUS "  Link cxproc with libcurl .......... : ${CXPROC_CURL}")
+  MESSAGE(STATUS "")
+  IF (LIBMICROHTTPD_FOUND)
+    MESSAGE(STATUS "  Build cxproc-httpd (libmicrohttpd). : ${LIBMICROHTTPD_FOUND}")
+  ENDIF ()
+
+  IF(MINGW AND NOT CXPROC_STATIC)
+    MESSAGE(STATUS "  Non-standard dll names (prefix) . : ${NON_STANDARD_LIB_PREFIX}")
+    MESSAGE(STATUS "  Non-standard dll names (suffix) . : ${NON_STANDARD_LIB_SUFFIX}")
+  ENDIF (MINGW AND NOT CXPROC_STATIC)
+  MESSAGE(STATUS "")
+ENDIF (CXPROC_SHOW_REPORT)
+

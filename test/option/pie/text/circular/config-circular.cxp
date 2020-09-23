@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cxp:make xmlns:cxp="http://www.tenbusch.info/cxproc">
+  <cxp:system mkdir="result"/>
+  <cxp:system message="**** test-pie-import-circular-001: import circular pie XML"/>
+  <cxp:xml name="result/test-pie-import-circular-001.pie">
+    <cxp:pie>
+      <import name="test-pie-circular-a.pie"/>
+    </cxp:pie>
+  </cxp:xml>
+  <cxp:system message="**** test-pie-import-circular-002: import circular pie Plain"/>
+  <cxp:xml name="result/test-pie-import-circular-002.pie">
+    <cxp:pie>
+      <import name="test-pie-circular-a.txt"/>
+    </cxp:pie>
+  </cxp:xml>
+</cxp:make>
