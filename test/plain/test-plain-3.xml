@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!DOCTYPE pie PUBLIC "-//A. Tenbusch//DTD PIE Draft//EN" "http://pie.tenbusch.info">
+<pie>
+  <section>
+    <h>Header</h>
+    <p>paragraph</p>
+  </section>
+</pie>

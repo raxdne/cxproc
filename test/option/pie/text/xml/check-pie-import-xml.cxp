@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cxp:make xmlns:cxp="http://www.tenbusch.info/cxproc" dir="pwd" log="2">
+  <cxp:subst string="%SOURCEDIR%" argv="2" default="result"/>
+  <cxp:subst string="%BASENAME%" dir="%SOURCEDIR%"/>
+  <cxp:subst string="%TAG%" now="%Y%m%d"/>
+  <cxp:system mkdir="result"/>
+  <cxp:system message="Checking results in '%SOURCEDIR%'"/>
+  <!--  -->
+  <cxp:plain name="%SOURCEDIR%/check.csv">
+    <xml>
+      <dir name="%SOURCEDIR%" depth="1" verbosity="2"/>
+    </xml>
+    <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.0">
+	  <!-- <xsl:import href="../../../Test.xsl"/> -->
+      <xsl:output method="text"/>
+      <xsl:variable name="newline">
+        <xsl:text>
+</xsl:text>
+      </xsl:variable>
+      <xsl:variable name="str_sep">
+        <xsl:text>;</xsl:text>
+      </xsl:variable>
+      <xsl:template match="/pie/dir">
+        <xsl:call-template name="test_a_file">
+          <xsl:with-param name="str_name_file" select="'test-pie-import-xml-000.pie'"/>
+          <xsl:with-param name="int_min" select="500"/>
+          <xsl:with-param name="int_elements" select="6"/>
+          <xsl:with-param name="str_tip" select="'empty'"/>
+        </xsl:call-template>
+        <xsl:call-template name="test_a_file">
+          <xsl:with-param name="str_name_file" select="'test-pie-import-xml-001.pie'"/>
+          <xsl:with-param name="int_min" select="500"/>
+          <xsl:with-param name="int_elements" select="21"/>
+          <xsl:with-param name="str_tip" select="'simple'"/>
+        </xsl:call-template>
+        <xsl:call-template name="test_a_file">
+          <xsl:with-param name="str_name_file" select="'test-pie-import-xml-002.pie'"/>
+          <xsl:with-param name="int_min" select="500"/>
+          <xsl:with-param name="int_elements" select="2"/>
+          <xsl:with-param name="str_tip" select="'empty'"/>
+        </xsl:call-template>
+        <xsl:call-template name="test_a_file">
+          <xsl:with-param name="str_name_file" select="'test-pie-import-xml-003.pie'"/>
+          <xsl:with-param name="int_min" select="500"/>
+          <xsl:with-param name="int_elements" select="2"/>
+          <xsl:with-param name="str_tip" select="'empty'"/>
+        </xsl:call-template>
+        <xsl:call-template name="test_a_file">
+          <xsl:with-param name="str_name_file" select="'test-pie-import-xml-005.pie'"/>
+          <xsl:with-param name="int_min" select="500"/>
+          <xsl:with-param name="int_elements" select="2"/>
+          <xsl:with-param name="str_tip" select="'empty'"/>
+        </xsl:call-template>
+        <xsl:call-template name="test_a_file">
+          <xsl:with-param name="str_name_file" select="'test-pie-import-xml-004.pie'"/>
+          <xsl:with-param name="int_min" select="500"/>
+          <xsl:with-param name="int_elements" select="2"/>
+          <xsl:with-param name="str_tip" select="'empty'"/>
+        </xsl:call-template>
+        <xsl:call-template name="test_a_file">
+          <xsl:with-param name="str_name_file" select="'test-pie-import-xml-006.pie'"/>
+          <xsl:with-param name="int_min" select="500"/>
+          <xsl:with-param name="int_elements" select="2"/>
+          <xsl:with-param name="str_tip" select="'empty'"/>
+        </xsl:call-template>
+        <xsl:call-template name="test_a_file">
+          <xsl:with-param name="str_name_file" select="'test-pie-import-xml-007.pie'"/>
+          <xsl:with-param name="int_min" select="35"/>
+          <xsl:with-param name="int_elements" select="1"/>
+          <xsl:with-param name="str_tip" select="'xpath'"/>
+        </xsl:call-template>
+      </xsl:template>
+      <xsl:template name="test_a_file">
+        <xsl:param name="str_name_file" select="''"/>
+        <xsl:param name="flag_exists" select="true()"/>
+        <xsl:param name="int_min" select="-1"/>
+        <xsl:param name="int_max" select="-1"/>
+        <xsl:param name="int_elements" select="-1"/>
+        <xsl:param name="str_tip" select="''"/>
+        <xsl:choose>
+          <xsl:when test="string-length($str_name_file) &lt; 1">
+            <xsl:value-of select="concat($str_name_file,$str_sep,$str_sep,'ERROR',$str_sep,'NAME',$str_sep,$str_tip,$newline)"/>
+          </xsl:when>
+          <xsl:when test="count(file[@name = $str_name_file]) &lt; 1 and $flag_exists">
+            <xsl:value-of select="concat($str_name_file,$str_sep,$str_sep,'ERROR',$str_sep,'EXISTS',$str_sep,$str_tip,$newline)"/>
+          </xsl:when>
+          <xsl:when test="file[@name=$str_name_file and $int_elements &gt; -1 and not(document(concat('%SOURCEDIR%','/',@name)))]">
+            <xsl:value-of select="concat($str_name_file,$str_sep,$str_sep,'ERROR',$str_sep,'PARSE',$str_sep,$str_tip,$newline)"/>
+          </xsl:when>
+          <xsl:when test="file[@name=$str_name_file and $int_elements &gt; -1 and not(count(document(concat('%SOURCEDIR%','/',@name))/descendant::*) = $int_elements)]">
+            <xsl:value-of select="concat($str_name_file,$str_sep,count(document(concat('%SOURCEDIR%','/',file[@name=$str_name_file]/@name))/descendant::*),$str_sep,$int_elements,$str_sep,'ERROR',$str_sep,'NODES',$str_sep,$str_tip,$newline)"/>
+          </xsl:when>
+          <xsl:when test="file[@name=$str_name_file and ($int_min &gt; -1 and @size &lt; $int_min) or ($int_max &gt; -1 and @size &gt; $int_max)]">
+            <xsl:value-of select="concat($str_name_file,$str_sep,file[@name=$str_name_file]/@size,$str_sep,$int_min,$str_sep,'ERROR',$str_sep,'SIZE',$str_sep,$str_tip,$newline)"/>
+          </xsl:when>
+          <xsl:otherwise>
+            <xsl:value-of select="concat($str_name_file,$str_sep,$str_sep,'OK',$str_sep,$str_tip,$newline)"/>
+          </xsl:otherwise>
+        </xsl:choose>
+      </xsl:template>
+    </xsl:stylesheet>
+  </cxp:plain>
+</cxp:make>

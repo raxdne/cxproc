@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<pie class="article">
+  <section>
+    <h>Logbook</h>
+    <p>
+      <link date="20080105">KV.MNYX.,CMNIDOJF&#xD6;mf</link>
+    </p>
+    <pre>
+      http://www.test.de/
+    </pre>
+    <p>
+      <link date="20080122">,MDF.,SMFLKSJIROUEWOKWJ&#xC4;</link>
+    </p>
+    <p valid="no">
+      <link date="20080124">!!! INVALID !!!</link>
+    </p>
+  </section>
+</pie>

@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<pie>
+  <author>A. Tester</author>
+  <section>
+    <h>Block Test</h>
+    <section>
+      <h>Section</h>
+      <section>
+        <h>Sub 1.1</h>
+        <p>ABC</p>
+        <section>
+          <h>Sub 1.1.1</h>
+          <p>ABC</p>
+          <section>
+            <h>Sub 1.1.1.1</h>
+            <p>ABC</p>
+            <section>
+              <h>Sub 1.1.1.1.1</h>
+              <p>ABC</p>
+              <section>
+                <h>Sub 1.1.1.1.1.1</h>
+                <p>ABC</p>
+              </section>
+            </section>
+          </section>
+        </section>
+      </section>
+    </section>
+    <section>
+      <h>Full Test Import "plain"</h>
+      <import type="par">
+* Sub 1
+
+ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC
+ ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC 
+
+** SubSub 1.1
+
+tttt
+
+pre http://www.xyz.org/abc.png post
+
+|http://www.xyz.org/abc.png|ABC|
+
+%%% SubSub 1.1.1
+
+tttt | vvvv
+
++ AAA
+
+-- AAAA
+
+-- AAAA
+
++ BBB
+
+-- BBBB
+
++ CCC
+
+-- CCCC
+
+uuuu
+
+** SubSub 1.2
+
+tttt
+
+Fig. http://www.xyz.org/abc.png ABC
+
+* Sub 2
+</import>
+    </section>
+    <section>
+      <h>Full Test Import "line"</h>
+      <import type="line"> 
+* Sub 1
+tttt
+** SubSub 1.1
+tttt
+*** SubSub 1.1.1
+tttt
+** SubSub 1.2
+tttt
+* Sub 2
+</import>
+    </section>
+    <section>
+      <h>Full Test Import "csv"</h>
+      <import type="csv">
+sep=,
+* HHHH
+AAA,AAAA
+BBB
+CCC,CCCC
+DDD      
+</import>
+    </section>
+    <section>
+      <h>Full Test Import "pre"</h>
+      <import type="pre">
+AAA
+BBB
+CCC
+DDD      
+</import>
+    </section>
+    <section>
+      <h>Full Test Import "cxp"</h>
+      <import type="cxp">
+        <cxp>
+          <xml>
+            <info/>
+          </xml>
+        </cxp>
+      </import>
+    </section>
+    <section>
+      <h>Full Test Import "attribute"</h>
+      <import string="* Sub 1"/>
+    </section>
+    <section>
+      <h>Full Test Import "script"</h>
+      <import type="script">
+2 * 2 * 2      
+</import>
+      <p>pre <import script="11 * 3"/> post</p>
+    </section>
+    <section>
+      <h>Full Test Table</h>
+    </section>
+  </section>
+</pie>

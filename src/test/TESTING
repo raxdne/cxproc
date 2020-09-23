@@ -1,0 +1,16 @@
+
+* cxproc test suite
+
++ compiler warnings
+
++ compiled with CPP macro >>-DTESTCODE<< a code test runs
+
++ a test suite consisting of configs and data is located in >>test/<<
+
++ code check with >>splint<<
+
++ memory check with >>valgrind<<
+
++ performance check with >>gprof<< and >>time<<
+
++ link page for CGI mode in >>test/cgi/<<

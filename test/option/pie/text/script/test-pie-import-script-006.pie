@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<pie>
+  <section>
+    <h>Script embedding</h>
+    <import type="script">
+var strResult = '* ABC';
+
+for (i=0; i&lt;100; i++) {
+  strResult += '\n\n+ KLM ' + i;
+}
+    </import>
+  </section>
+</pie>

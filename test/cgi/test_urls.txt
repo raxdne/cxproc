@@ -1,0 +1,128 @@
+
+* Cxproc URL test page
+
+- Document access via
+
+-- CXP
+
+-- XSL
+
+-- XPath
+
+- File access
+
+- Script access
+
+-- JS
+
+-- Tcl
+
+** Processing of Plain text files
+
+*** PIE format (Emacs outline mode)
+
++ http://localhost:8181/cxproc/exe?file=Links.txt&type=text-plain
+
++ http://localhost:8181/cxproc/exe?file=Links.txt
+
++ http://localhost:8181/cxproc/exe?file=Links.txt&xsl=pie2html
+
++ http://localhost:8181/cxproc/exe?file=Links.txt&xpath=/pie/section/h
+
++ http://localhost:8181/cxproc/exe?file=Links.txt&cxp=PieUiDefault
+
++ http://localhost:8181/cxproc/exe?file=Links.txt&js=LinkExtract
+
+*** CSV
+
++ http://localhost:8181/cxproc/exe?file=Links.csv
+
+** Processing of HTML text files
+
++ http://localhost:8181/cxproc/exe?file=Links.htm
+
++ http://localhost:8181/cxproc/exe?file=Links.htm&xpath=/html/body/h1
+
++ http://localhost:8181/cxproc/exe?file=Links.htm&xsl=html2pie
+
++ http://localhost:8181/cxproc/exe?file=Links.htm&cxp=html2pie
+
+** Processing of XML text files
+
+*** PIE
+
++ http://localhost:8181/cxproc/exe?file=Links.pie
+
++ http://localhost:8181/cxproc/exe?file=Links.pie&xsl=pie2html
+
++ http://localhost:8181/cxproc/exe?file=Links.pie&xpath=/pie/section/h
+
++ http://localhost:8181/cxproc/exe?file=Links.pie&cxp=PieUiDefault
+
++ http://localhost:8181/cxproc/exe?file=Links.pie&js=LinkExtract
+
+*** CXP
+
++ http://localhost:8181/cxproc/exe?cxp=PieUiPowered
+
+*** FreeMind
+
+*** Generic
+
+*** ZIP/XML content
+
++ ODT 
+
+-- http://localhost:8181/cxproc/exe?file=ODT/AB-Darstellung-von-Wasserstoff.odt&cxp=PieUiOdt
+
+-- http://localhost:8181/cxproc/exe?file=ODT/AB-Darstellung-von-Wasserstoff.odt&xsl=odt2html
+
++ MMAP
+
+-- http://localhost:8181/cxproc/exe?file=20100331-cadlink-catia.mmap&cxp=PieUiDefault
+
+*** XSL
+
++ Standalone stylesheet applied to a dummy root element http://localhost:8181/cxproc/exe?xsl=Hello
+
+** Dir indexing mode
+
+http://localhost:8181/cxproc/exe?dir=Archiv
+
+http://localhost:8181/cxproc/exe?dir=Archiv&cxp=PieUiDir
+
+http://localhost:8181/cxproc/exe?dir=Audio&cxp=PlayTrack&t=1
+
+** UNC paths
+
+Drive c:
+
+Drive and Dir c:\temp
+
+C:\WINDOWS
+
+But not this: <-
+
+UNC mapping \\abc\def\ghi\
+
+kajdlkaj:\ ksjdalkd
+
+\\abcd.def.de\jfkjsdhf\iwueroiw12
+
+\\abcd.def.de\jfkjsdhf\iw%43uer%44oiw12
+
+\\abcd.def.de\jfkjsdhf\AA%20BB%20CC
+
+\\abcd.def.de\jfkjösÖdhf\AA
+
+
+** Processing of JavaScript
+
++ http://localhost:8181/cxproc/exe?js=Demo
+
+** Processing of Tcl script code
+
++ http://localhost:8181/cxproc/exe?tcl=Demo
+
+
+

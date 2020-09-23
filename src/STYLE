@@ -1,0 +1,44 @@
+
+Emacs: (c-set-style "gnu")
+
+Hungarian Notation (types only)
+
+Types
+
+ nd - xmlNode
+ ns - xmlNs
+doc - xmlDoc
+xsl - xsltStylesheet
+  f - flag
+ uc - UTF-8 Character
+ fh - filehandle
+
+ pn - petrinet_t
+
+Usage
+
+T - temporary
+c - count
+
+Examples
+
+ cuc - count of xmlChar
+ puc - pointer to xmlChar
+ muc - map of xmlChar
+
+ pnd - xmlNodePtr
+ pns - xmlNsPtr
+pdoc - xmlDocPtr
+pxsl - xsltStylesheetPtr
+ ppn - petrinet_t *
+ pce - pieCalendarElementPtr
+ prn - resNodePtr
+ pcc - cxpContextPtr
+pmpc - pointer to a map of pointers to chars
+
+(grep (concat "grep -Hn -e "
+        ;"'xmlDocPtr[ \\t][ \\t]*[^p]'"
+        ;"'xmlNodePtr[ \\t][ \\t]*[^p]'"
+	"'xmlChar[ \\t][ \\t]*\\*[^p\\*]'"
+        ;"'xmlChar[ \\t][ \\t]*[^um\\*]'"
+	" *.c *.h"))

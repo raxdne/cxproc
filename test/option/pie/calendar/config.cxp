@@ -1,0 +1,307 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cxp:make xmlns:cxp="http://www.tenbusch.info/cxproc">
+  <cxp:system mkdir="result"/>
+  <cxp:system message="test-calendar-001-001: one calendar for specified single minimum year (depends on system)"/>
+  <cxp:xml name="result/test-calendar-001-001.xml">
+    <cxp:calendar year="1969">
+      <cxp:col id="a"/>
+    </cxp:calendar>
+  </cxp:xml>
+  <cxp:system message="test-calendar-001-002: one calendar for specified single year"/>
+  <cxp:xml name="result/test-calendar-001-002.xml">
+    <cxp:calendar year="1999">
+      <cxp:col id="b"/>
+    </cxp:calendar>
+  </cxp:xml>
+  <cxp:system message="test-calendar-001-003: one calendar for specified single maximum year"/>
+  <cxp:xml name="result/test-calendar-001-003.xml">
+    <cxp:calendar year="2069">
+      <cxp:col id="c"/>
+    </cxp:calendar>
+  </cxp:xml>
+  <cxp:system message="test-calendar-001-004: one calendar for specified single year including sunrise/sunset"/>
+  <cxp:xml name="result/test-calendar-001-004.xml">
+    <cxp:calendar year="2014" coordinate="5225+01234/" timezone="CET">
+      <cxp:col id="d"/>
+    </cxp:calendar>
+  </cxp:xml>
+  <cxp:system message="test-calendar-002-001: one calendar for a sequence of years"/>
+  <cxp:xml name="result/test-calendar-002-001.xml">
+    <cxp:calendar year="1989..1991"/>
+  </cxp:xml>
+  <cxp:system message="test-calendar-002-002: separate calendars for a number of years"/>
+  <cxp:each name="%J%">
+    <cxp:from>1999 2001 2003</cxp:from>
+    <cxp:xml name="result/test-calendar-%J%.xml">
+      <cxp:calendar year="%J%">
+        <cxp:col id="a"/>
+      </cxp:calendar>
+    </cxp:xml>
+  </cxp:each>
+  <cxp:system message="test-calendar-003-001: one calendar for current year with three columns 2006.. and redundancy"/>
+  <cxp:xml name="result/test-calendar-003-001.xml">
+    <cxp:calendar subst="yes">
+      <cxp:col id="all">
+        <cxp:xml name="result/test-calendar-003-001.pie">
+          <cxp:pie>
+            <import type="log">
+; 00000001 First of month
+;00000015 Middle of month
+00000001-1 Last of month
+
+00000101 First of year
+00000101+124 125th day of year
+00000101-1 Last of year
+
+; every monday
+0000*w99mon KW %V/%Y
+0000*w99mon,tue,wed,thu,fri work day %N
+; weekend is @FREE
+;0000*w99sat,sun +
+
+; every day
+00000000 %a %d.%m. (%j)
+;00000000 %Y-%m-%d (%j)
+
+0000*w99 %V/%Y
+000000 %Y %m
+; every whole year
+0000 %Y
+            </import>
+          </cxp:pie>
+        </cxp:xml>
+      </cxp:col>
+      <cxp:col id="embedded">
+        <cxp:xml>
+          <pie>
+            <section>
+              <h>Test Easter 2004</h>
+              <p><date>2004@e</date> Easter sunday</p>
+              <p><date>2004@e-52</date> Sunday before Easter</p>
+              <p><date>2004@e+28</date> 4th Sunday after Easter</p>
+            </section>
+            <section>
+              <h>Test Eternity</h>
+              <p><date>00000000</date> All days</p>
+              <p><date>00000500</date> All days of every may</p>
+              <p><date>00000005</date> All 5th day of all month</p>
+              <p><date>00000606</date> All 6th day of every June</p>
+              <p><date>00000606+4</date> All 10th day of every June</p>
+              <p><date>0000*w07thu</date> Thursday of 7th week</p>
+              <p><date>0000*w07xxx</date> All days of 7th week</p>
+              <p><date>0000*w99fri</date> All fridays</p>
+            </section>
+            <section>
+              <h>Test 2004</h>
+              <p><date>20040100</date> All days of january 2004</p>
+              <p><date>20040007</date> All 7th of months in 2004</p>
+              <p><date>20040000</date> All days of 2004</p>
+              <p><date>20040606+4</date> 10th of June 2004</p>
+              <p><date>2004*w03wed</date> Wendsday of 3th week in 2004</p>
+              <p><date>2004*w04wed#w05tue</date> Wendsday of 3th week in 2004</p>
+              <p><date>2004*w08wed:21.4</date> Wendsday of 3th week in 2004</p>
+              <p><date>2004*w06xxx</date> All days of 4th week in 2004</p>
+              <p><date>2004*w05</date> 5th week in 2004</p>
+              <p><date>2004*w99tue</date> All tuesdays of 2004</p>
+              <p><date>2004-02-07</date> February 7th of 2004</p>
+              <p><date>8.2.2004</date> February 8th of 2004</p>
+              <p><date>20040107,10,13,20040207</date> January 7th of 2004</p>
+              <p><date>2004*w07thu,fri,sat,2004*w08thu</date> Thursday of 7th week</p>
+              <p><date>20040209,2004*w09thu</date> January 7th of 2004</p>
+              <p><date>20040307:21</date> A day sequence in march 2004</p>
+              <p><date>20040102#7</date> A day range in january 2004</p>
+            </section>
+            <section>
+              <h>Test PIE</h>
+              <task date="2004*w3thu">
+                <h>Test task</h>
+              </task>
+            </section>
+            <section>
+              <h>Test PIE time</h>
+              <p><date>20040311</date> 17.00 Test tea time</p>
+            </section>
+          </pie>
+        </cxp:xml>
+      </cxp:col>
+    </cxp:calendar>
+  </cxp:xml>
+  <cxp:system message="test-calendar-003-002: calendar from Freemind map"/>
+  <cxp:xml name="result/test-calendar-003-002.xml">
+    <cxp:calendar>
+      <cxp:col id="embedded">
+        <cxp:xml name="mindmap.mm"/>
+      </cxp:col>
+    </cxp:calendar>
+  </cxp:xml>
+  <cxp:system message="test-calendar-003-003: calendar from directory"/>
+  <cxp:xml name="result/test-calendar-003-003.xml">
+    <cxp:calendar>
+      <cxp:col id="embedded">
+        <cxp:xml>
+          <cxp:dir name=".." verbosity="2"/>
+        </cxp:xml>
+      </cxp:col>
+    </cxp:calendar>
+  </cxp:xml>
+  <cxp:system message="test-calendar-004: date in 3 following years"/>
+  <cxp:xml name="result/test-calendar-004.xml">
+    <cxp:calendar year="2004">
+      <cxp:col id="a">
+        <pie>
+          <p date="20020301,20030301,20040301">This is a multi-year date</p>
+        </pie>
+      </cxp:col>
+    </cxp:calendar>
+  </cxp:xml>
+  <cxp:system message="test-calendar-005: xslt processing of calendar-3"/>
+  <cxp:xhtml name="result/test-calendar-005.html">
+    <cxp:xml name="result/test-calendar-003-001.xml"/>
+    <cxp:xsl name="CalTable4.xsl"/>
+  </cxp:xhtml>
+  <cxp:system message="test-calendar-006: one calendar for an early year"/>
+  <cxp:xml name="result/test-calendar-006.xml">
+    <cxp:calendar year="content">
+      <cxp:col id="a">
+        <pie>
+          <p><date>19740126</date>This is very early</p>
+        </pie>
+      </cxp:col>
+    </cxp:calendar>
+  </cxp:xml>
+  <cxp:system message="test-calendar-007: one calendar containing file listing"/>
+  <cxp:xml name="result/test-calendar-007.xml" valid="no">
+    <cxp:calendar>
+      <cxp:col id="all">
+        <cxp:xml>
+          <cxp:dir name=".." maxdepth="2" verbosity="3"/>
+        </cxp:xml>
+      </cxp:col>
+    </cxp:calendar>
+  </cxp:xml>
+  <cxp:system message="test-calendar-008: calendar of types "/>
+  <cxp:xml name="result/test-calendar-008-default-2014.xml">
+    <cxp:calendar year="2014" />
+  </cxp:xml>
+  <cxp:xml name="result/test-calendar-008-month-2014.xml">
+    <cxp:calendar year="2014" type="month" />
+  </cxp:xml>
+  <cxp:xml name="result/test-calendar-008-week-2014.xml">
+    <cxp:calendar year="2014" type="week" />
+  </cxp:xml>
+  <cxp:xml name="result/test-calendar-008-wday-2014.xml">
+    <cxp:calendar year="2014" type="wday" />
+  </cxp:xml>
+  <cxp:xml name="result/test-calendar-008-mday-2014.xml">
+    <cxp:calendar year="2014" type="mday" />
+  </cxp:xml>
+  <cxp:xml name="result/test-calendar-008-year-2014.xml">
+    <cxp:calendar year="2014" type="year" />
+  </cxp:xml>
+  <cxp:system message="test-calendar-009: calendar of types "/>
+  <cxp:xml name="result/test-calendar-009-week.xml">
+    <cxp:calendar type="week">
+      <cxp:col id="embedded">
+        <cxp:xml>
+          <pie>
+            <section>
+              <h>Test 2004</h>
+                <p><date>20040100</date> All days of january 2004</p>
+                <p><date>20040007</date> All 7th of months in 2004</p>
+                <p><date>20040000</date> All days of 2004</p>
+                <p><date>20040606+4</date> 10th of June 2004</p>
+                <p><date>2004*w03wed</date> Wendsday of 3th week in 2004</p>
+                <p><date>2004*w04wed#w05tue</date> Wendsday of 3th week in 2004</p>
+                <p><date>2004*w08wed:21.4</date> Wendsday of 3th week in 2004</p>
+                <p><date>2004*w06xxx</date> All days of 4th week in 2004</p>
+                <p><date>2004*w05</date> 5th week in 2004</p>
+                <p><date>2004*w99tue</date> All tuesdays of 2004</p>
+                <p><date>2004-02-07</date> February 7th of 2004</p>
+                <p><date>8.2.2004</date> February 8th of 2004</p>
+                <p><date>20040107,10,13,20040207</date> January 7th of 2004</p>
+                <p><date>2004*w07thu,fri,sat,2004*w08thu</date> Thursday of 7th week</p>
+                <p><date>20040209,2004*w09thu</date> January 7th of 2004</p>
+                <p><date>20040307:21</date> A day sequence in march 2004</p>
+                <p><date>20040102#7</date> A day range in january 2004</p>
+            </section>
+          </pie>
+        </cxp:xml>
+      </cxp:col>
+    </cxp:calendar>
+  </cxp:xml>
+  <cxp:xml name="result/test-calendar-009-month.xml">
+    <cxp:calendar type="month">
+      <cxp:col id="embedded">
+        <cxp:xml>
+          <pie>
+            <section>
+              <h>Test 2004</h>
+                <p><date>20040100</date> All days of january 2004</p>
+                <p><date>20040007</date> All 7th of months in 2004</p>
+                <p><date>20040000</date> All days of 2004</p>
+                <p><date>20040606+4</date> 10th of June 2004</p>
+                <p><date>2004*w03wed</date> Wendsday of 3th week in 2004</p>
+                <p><date>2004*w04wed#w05tue</date> Wendsday of 3th week in 2004</p>
+                <p><date>2004*w08wed:21.4</date> Wendsday of 3th week in 2004</p>
+                <p><date>2004*w06xxx</date> All days of 4th week in 2004</p>
+                <p><date>2004*w05</date> 5th week in 2004</p>
+                <p><date>2004*w99tue</date> All tuesdays of 2004</p>
+                <p><date>2004-02-07</date> February 7th of 2004</p>
+                <p><date>8.2.2004</date> February 8th of 2004</p>
+                <p><date>20040107,10,13,20040207</date> January 7th of 2004</p>
+                <p><date>2004*w07thu,fri,sat,2004*w08thu</date> Thursday of 7th week</p>
+                <p><date>20040209,2004*w09thu</date> January 7th of 2004</p>
+                <p><date>20040307:21</date> A day sequence in march 2004</p>
+                <p><date>20040102#7</date> A day range in january 2004</p>
+            </section>
+          </pie>
+        </cxp:xml>
+      </cxp:col>
+    </cxp:calendar>
+  </cxp:xml>
+  <cxp:xml name="result/test-calendar-009-year.xml">
+    <cxp:calendar type="year">
+      <cxp:col id="embedded">
+        <cxp:xml>
+          <pie>
+            <section>
+              <h>Test 2004</h>
+                <p><date>20040100</date> All days of january 2004</p>
+                <p><date>20040007</date> All 7th of months in 2004</p>
+                <p><date>20040000</date> All days of 2004</p>
+                <p><date>20040606+4</date> 10th of June 2004</p>
+                <p><date>2004*w03wed</date> Wendsday of 3th week in 2004</p>
+                <p><date>2004*w04wed#w05tue</date> Wendsday of 3th week in 2004</p>
+                <p><date>2004*w08wed:21.4</date> Wendsday of 3th week in 2004</p>
+                <p><date>2004*w06xxx</date> All days of 4th week in 2004</p>
+                <p><date>2004*w05</date> 5th week in 2004</p>
+                <p><date>2004*w99tue</date> All tuesdays of 2004</p>
+                <p><date>2004-02-07</date> February 7th of 2004</p>
+                <p><date>8.2.2004</date> February 8th of 2004</p>
+                <p><date>20040107,10,13,20040207</date> January 7th of 2004</p>
+                <p><date>2004*w07thu,fri,sat,2004*w08thu</date> Thursday of 7th week</p>
+                <p><date>20040209,2004*w09thu</date> January 7th of 2004</p>
+                <p><date>20040307:21</date> A day sequence in march 2004</p>
+                <p><date>20040102#7</date> A day range in january 2004</p>
+            </section>
+          </pie>
+        </cxp:xml>
+      </cxp:col>
+    </cxp:calendar>
+  </cxp:xml>
+  <cxp:system message="TEST calendar-10: calendar of types "/>
+  <cxp:xml name="result/test-calendar-010-week.xml">
+    <cxp:calendar type="hour">
+      <cxp:col id="embedded">
+        <cxp:xml>
+          <pie>
+            <section>
+              <h>Test 2004</h>
+              <p><date>20040209,2004*w09thu</date> 17.00 TEST</p>
+            </section>
+          </pie>
+        </cxp:xml>
+      </cxp:col>
+    </cxp:calendar>
+  </cxp:xml>
+</cxp:make>

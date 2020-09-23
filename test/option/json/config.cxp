@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<cxp:make xmlns:cxp="http://www.tenbusch.info/cxproc">
+  <cxp:system mkdir="../../tmp"/>
+  <cxp:system message="TEST 1: parse simple JSON file"/>
+  <cxp:xml name="../../tmp/test-json-1.xml">
+    <cxp:json name="test-js-1.json"/>
+  </cxp:xml>
+  <cxp:system message="TEST 2: parse simple JSON text"/>
+  <cxp:xml name="../../tmp/test-json-2.xml">
+    <cxp:json name="test-js-2.json"/>
+  </cxp:xml>
+  <cxp:system message="TEST 3: parse simple JSON text"/>
+  <cxp:xml name="../../tmp/test-json-3.xml">
+    <cxp:json name="test-js-3.json"/>
+  </cxp:xml>
+  <cxp:system message="TEST 7: parse simple JSON text"/>
+  <cxp:xml name="../../tmp/test-json-7.xml">
+    <cxp:json>{"A":11,"o":true,"C":[22,23,24],"ÄÜ":"abc &gt; def", "OO" : {"g" : 1, "b" : false}, "XY": null}</cxp:json>
+  </cxp:xml>
+</cxp:make>

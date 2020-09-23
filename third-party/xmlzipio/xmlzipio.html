@@ -1,0 +1,214 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1-strict.dtd">
+<html>
+  <head>
+    <title>xmlzipio</title>
+    <style type="text/css">
+        .programlisting {
+            background: #eeeeff;
+            border: solid 1px #aaaaff;
+            padding: 0.5em;
+        }
+        .variablelist {
+            padding: 4px;
+            margin-left: 3em;
+        }
+    </style>
+  </head>
+
+  <body>
+    <h1><img src="schraubstock.jpg" alt="ZIP"/>xmlzipio</h1>
+    <h2>A zip file handler for 
+      <a href="http://www.xmlsoft.org/">libxml2</a></h2>
+    <p>
+      xmlzipio adds support for reading and writing files inside
+      ziparchives to libxml2.      
+    </p>
+    <p>
+      It is based on the minizip and miniunzip examples provided with
+      <a href="http://www.gzip.org/zlib/">zlib</a>.
+    </p>
+
+    <hr/>
+    <h3>Files (and their license)</h3>
+    <div class="programlisting">
+      <tt>xmlzipio.h</tt><br/>
+      <tt>xmlzipio.c</tt>
+    </div>
+    <p>
+      The interface for xmlzipio and it's implementation.
+      xmlzipio.c/.h are published under the terms of 
+      <a href="http://www.opensource.org/licenses/mit-license.html">
+        the MIT License</a>.
+    </p>
+    <div class="programlisting">
+      <tt>zip.h</tt><br/>
+      <tt>zip.c</tt><br/>
+      <tt>unzip.h</tt><br/>
+      <tt>unzip.c</tt>
+    </div>
+    <p>
+      Files taken from minizip and miniunzip to deal with the zip archives.
+      zip.c/.h and unzip.c/.h are published under the terms of
+      <a href="http://www.gzip.org/zlib/zlib_license.html">
+        zlib/libpng license</a>.
+    </p>
+    <div class="programlisting">
+      <tt>Makefile.am</tt><br/>
+    </div>
+    <p>
+      Example Makefile shows how to integrate xmlzipio into your
+      project using libtool and automake.
+    </p>
+    <div class="programlisting">
+      <tt>README</tt><br/>
+      <tt>LICENSE</tt><br/>
+      <tt>schraubstock.jpg</tt><br/>
+      <tt>xmlzipio.html</tt><br/>
+    </div>
+    <p>
+      And a small doku.
+    </p>
+
+    <p>    
+    </p>
+
+    <hr/>
+    <h3>Usage</h3>
+    <p>
+      Download the <a href="xmlzipio.tar.gz">files</a>
+      and add them to your project.
+      <i>(If you use
+      automake you can just use the Makefile.am to create a
+      libxmlzipio.la)</i>
+    </p>
+    <p>
+      Include <tt>xmlzipio.h</tt>. Than call
+      <tt>xmlZipRegisterInputCallback()</tt> and
+      <tt>xmlZipRegisterOutputCallback()</tt>.
+      Now you can call for example <tt>xmlParseFile(XMLFileName)</tt>
+      to parse an xml file. The filename must be of the form
+      <tt><i>zip:</i>zipname<i>!</i>filename</tt>
+      (i.e. <tt>zip:web.zip!/xml/index.xml</tt>). Note that
+      <i>filename</i> must be an absolute path, that means it must
+      begin with "/".
+    </p>
+    <p>
+      This syntax is inspired by that discribed at
+      <a
+	href="http://jakarta.apache.org/commons/sandbox/vfs/filesystems.html#Zip%20and%20Jar">http://jakarta.apache.org/commons/sandbox/vfs/filesystems.html#Zip%20and%20Jar</a>.
+      The idea is, that you can use zip with any uri supported by
+      libxml. By now, only local paths and file uris are supported
+      (see <a href="#limits">Limitations</a>).
+    </p>
+    <div class="programlisting">
+      <b>Example:</b><br/>
+      <tt>
+	xmlDocPtr doc;<br/>
+	<br/>
+	xmlKeepBlanksDefault(0);<br/>
+	xmlRegisterDefaultInputCallbacks();<br/>
+	xmlRegisterDefaultOutputCallbacks();<br/>
+	xmlZipRegisterInputCallback();<br/>
+	xmlZipRegisterOutputCallback(); // it's importend to xmlzipio
+	after the default handlers, so xmlzipio is asked first.<br/>
+	<br/>
+	doc = xmlParseFile("test.zip#zip:text.xml");<br/>
+	...<br/>
+	xmlSaveFormatFileEnc ("test.zip#zip:text.xml", doc, "UTF-8", 0);<br/>
+	<br/>
+	xmlFreeDoc(doc);<br/>
+	xmlCleanupParser();
+      </tt>
+    </div>
+    
+    <hr/>
+    <h3><a name="limits">Limitations</a></h3>
+    <p>
+      Currently only local paths and file uris are supported
+    </p>
+    <div class="programlisting">
+      <b>local paths:</b>
+      <tt>zip:../dir/somefile.zip!/file.xml</tt><br/>
+      <b>and file uris:</b>
+      <tt>zip:file:///home/user/dir/somefile.zip!/file.xml</tt>
+    </div>
+    <p>
+      The next step would be to use xmlIO again to access the
+      archive. This would give us the posibility to read files from
+      the web or use nested zip archives
+    </p>
+    <div class="programlisting">
+      <tt>zip:http://domain.org/somefile.zip!/file.xml</tt><br/>
+      <tt>zip:zip:file:///home/user/dir/somefile.zip!/files.zip!/content.xml</tt>
+    </div>
+
+    <hr/>
+    <h3>Interface</h3>
+
+    <div class="programlisting">
+      <tt>int    xmlCompressionLevel (int c)</tt>
+    </div>
+    <p>
+      Change the CopressionLevel for the zip archive.
+    </p>
+    <div class="variablelist">
+      <table border="0">
+	  <tr>
+	    <td>
+	      <i>c:</i>
+	    </td>
+	    <td>
+	      the new compression level (0..9). 0 for deflated.
+	    </td>
+	  </tr>
+	  <tr>
+	    <td>
+	      <i>Returns:</i>
+	    </td>
+	    <td>
+	      the old compression level.
+	    </td>
+	  </tr>
+      </table>
+    </div>
+
+    <div class="programlisting">
+      <tt>int    xmlZipRegisterInputCallback ()</tt>
+    </div>
+    <p>
+      Register the Callbacks to add read zip archives.
+    </p>
+
+    <div class="programlisting">
+      <tt>int    xmlZipRegisterOutputCallback ()</tt>
+    </div>
+    <p>
+      Register the Callbacks to add write zip archives.    
+    </p>
+    <hr/>
+
+    <h3>Download</h3>
+    <div class="programlisting">
+      <tt><a href="xmlzipio.tar.gz">xmlzipio.tar.gz</a></tt>
+    </div>
+    <p>
+      incorporated changes in the naming scheme (Thu Oct 30)
+    </p>
+    <div class="programlisting">
+      <tt><a href="xmlzipio.tar.gz">xmlzipio-0.1.tar.gz</a></tt>
+    </div>
+    <p>
+      initial release (Wed Oct 29)
+    </p>
+    <hr/>
+    <p>
+      <!-- Created: Mon Oct  6 20:11:05 CEST 2003 -->
+      <!-- hhmts start -->
+Last modified: Thu Oct 30 17:39:39 CET 2003
+<!-- hhmts end -->
+    </p>
+  </body>
+</html>

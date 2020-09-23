@@ -1,0 +1,195 @@
+<?xml version="1.0"?>
+<cxp:make xmlns:cxp="http://www.tenbusch.info/cxproc">
+  <cxp:system mkdir="result"/>
+  <cxp:system message="*** Test 1b: process an embedded HTML DOM ***"/>
+  <cxp:xhtml name="result/test-xhtml-001.html">
+    <cxp:xhtml>
+      <html>
+        <head>
+          <title>TEST SIMPLE</title>
+        </head>
+        <body>
+          <p>This is a simple HTML test!</p>
+        </body>
+      </html>
+    </cxp:xhtml>
+  </cxp:xhtml>
+  <cxp:system message="*** Test 0e: create pure HTML file without cxp elements ***"/>
+  <cxp:xhtml name="result/test-xhtml-002.html">
+    <html>
+      <cxp:xhtml>
+        <head>
+          <title>TEST pure HTML</title>
+        </head>
+      </cxp:xhtml>
+      <body>
+        <cxp:xhtml>
+          <html>
+            <body>
+              <p>TEST 1 HTML</p>
+              <cxp:xhtml>
+                <p>TEST 2 HTML</p>
+              </cxp:xhtml>
+            </body>
+          </html>
+        </cxp:xhtml>
+        <p>TEST 3 HTML</p>
+        <cxp:xhtml>
+          <html>
+            <body>
+              <p>TEST 4 HTML</p>
+            </body>
+          </html>
+        </cxp:xhtml>
+        <p>TEST 5 HTML</p>
+        <cxp:xhtml valid="no">
+          <p>TEST INVALID HTML</p>
+        </cxp:xhtml>
+        <p>TEST 6 HTML</p>
+        <cxp:xhtml valid="yes">
+          <p>TEST 7 HTML</p>
+        </cxp:xhtml>
+      </body>
+    </html>
+  </cxp:xhtml>
+  <cxp:system message="*** Test 1a: parsing of an existing HTML file and save into a new XML file ***"/>
+  <cxp:xml name="result/test-xhtml-003.xml">
+    <cxp:xml name="result/test-xhtml-002.html"/>
+  </cxp:xml>
+  <cxp:system message="*** Test 1c: parsing of an existing XHTML file and save into a new XHTML file ***"/>
+  <cxp:xhtml name="result/test-xhtml-004.html">
+    <cxp:xhtml name="result/test-xhtml-002.html"/>
+  </cxp:xhtml>
+  <cxp:system message="*** Test 2: parsing of an existing XHTML file, transforming by XSL and save into a new XHTML file ***"/>
+  <cxp:xhtml name="result/test-xhtml-005.html">
+    <cxp:xhtml name="test.html"/>
+    <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.0">
+      <xsl:output method="html"/>
+      <xsl:template match="@*|node()">
+        <xsl:choose>
+          <xsl:when test="name()='head'"/>
+          <xsl:otherwise>
+            <xsl:copy>
+              <xsl:apply-templates select="@*|node()"/>
+            </xsl:copy>
+          </xsl:otherwise>
+        </xsl:choose>
+      </xsl:template>
+    </xsl:stylesheet>
+  </cxp:xhtml>
+  <cxp:system message="*** Test 3a: embedded HTML with nested cxp:xhtml ***"/>
+  <cxp:xhtml name="result/test-xhtml-006.html">
+    <html>
+      <cxp:xhtml>
+        <cxp:xsl name="CgiPieUi.xsl">
+          <cxp:variable name="str_path" select="''"/>
+          <cxp:variable name="flag_header" select="true()"/>
+        </cxp:xsl>
+      </cxp:xhtml>
+      <body>
+        <div id="ui">
+          <cxp:xhtml>
+            <div id="content">
+              <h1>TEST</h1>
+            </div>
+          </cxp:xhtml>
+        </div>
+      </body>
+    </html>
+  </cxp:xhtml>
+  <cxp:system message="*** Test 3b: embedded HTML with nested cxp:xhtml ***"/>
+  <cxp:xhtml name="result/test-xhtml-007.html">
+    <html>
+      <cxp:xhtml>
+        <cxp:xsl name="CgiPieUi.xsl">
+          <cxp:variable name="str_path" select="''"/>
+          <cxp:variable name="flag_header" select="true()"/>
+        </cxp:xsl>
+      </cxp:xhtml>
+      <body>
+        <div id="ui">
+          <cxp:xhtml>
+            <cxp:xml>
+              <cxp:file verbosity="3" name="TTTT"/>
+            </cxp:xml>
+            <cxp:xsl name="CgiPieUi.xsl"/>
+          </cxp:xhtml>
+          <div id="content">
+            <h1>TEST</h1>
+          </div>
+        </div>
+      </body>
+    </html>
+  </cxp:xhtml>
+  <cxp:system message="*** Test 3c: embedded HTML with nested invalid cxp:xhtml ***"/>
+  <cxp:xhtml name="result/test-xhtml-008.html">
+    <html>
+      <cxp:xhtml>
+        <cxp:xsl name="CgiPieUi.xsl">
+          <cxp:variable name="str_path" select="''"/>
+          <cxp:variable name="flag_header" select="true()"/>
+        </cxp:xsl>
+      </cxp:xhtml>
+      <body>
+        <div id="ui">
+          <cxp:xhtml valid="no">
+            <cxp:xml>
+              <cxp:file verbosity="3" name="TTTT"/>
+            </cxp:xml>
+            <cxp:xsl name="CgiPieUi.xsl"/>
+          </cxp:xhtml>
+          <div id="content">
+            <h1>TEST</h1>
+          </div>
+        </div>
+      </body>
+    </html>
+  </cxp:xhtml>
+  <cxp:system message="*** Test 4: Config evaluation with xhtml ***"/>
+  <cxp:xml name="CgiPieUiPowered.cxp" search="yes" eval="yes"/>
+  <cxp:system message="*** Test 0a: Set a cache DOM ***"/>
+  <cxp:xhtml name="result/test-xhtml-010.html" cache="yes">
+    <cxp:xhtml>
+      <html>
+        <head>
+          <title>TEST CACHE</title>
+        </head>
+        <body>
+          <p>TEST CACHE</p>
+        </body>
+      </html>
+    </cxp:xhtml>
+  </cxp:xhtml>
+  <cxp:system message="*** Test 0b: caching of an existing HTML file with cache name ***"/>
+  <cxp:xhtml name="result/test-xhtml-010.html" cacheas="TEST-0b"/>
+  <cxp:xhtml name="result/test-xhtml-010-001.html">
+    <cxp:xhtml name="TEST-0b"/>
+  </cxp:xhtml>
+  <cxp:xhtml cacheas="TEST-0b">
+    <cxp:xhtml name="test.html"/>
+  </cxp:xhtml>
+  <cxp:xhtml name="result/test-xhtml-010-002.html">
+    <cxp:xhtml name="TEST-0b"/>
+  </cxp:xhtml>
+  <cxp:system message="*** test-xhtml-011: more complex transforming of directory listing ***"/>
+  <cxp:xhtml name="result/test-xhtml-011.html">
+    <html>
+      <cxp:xhtml>
+        <cxp:xsl name="CgiPieUi.xsl">
+          <cxp:variable name="str_path" select="'TEST'"/>
+          <cxp:variable name="flag_header" select="true()"/>
+        </cxp:xsl>
+      </cxp:xhtml>
+      <body>
+        <cxp:xhtml>
+          <cxp:xml>
+            <cxp:dir depth="1" verbosity="3" urlencode="yes">
+              <cxp:dir name=".."/>
+            </cxp:dir>
+          </cxp:xml>
+          <cxp:xsl name="CgiPieUiDir.xsl"/>
+        </cxp:xhtml>
+      </body>
+    </html>
+  </cxp:xhtml>
+</cxp:make>

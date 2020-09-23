@@ -1,0 +1,784 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- s. http://www.oracle.com/technetwork/articles/srivastava-namespaces-092580.html -->
+<rng:grammar xmlns:a="http://relaxng.org/ns/compatibility/annotations/1.0" xmlns:rng="http://relaxng.org/ns/structure/1.0" xmlns:cxp="http://www.tenbusch.info/cxproc" xmlns:pie="http://www.tenbusch.info/pie" ns="http://www.tenbusch.info/cxproc" datatypeLibrary="http://www.w3.org/2001/XMLSchema-datatypes">
+  <rng:start>
+    <rng:ref name="make"/>
+  </rng:start>
+  <rng:define name="flagType">
+    <rng:choice>
+      <rng:value>yes</rng:value>
+      <rng:value>no</rng:value>
+    </rng:choice>
+  </rng:define>
+  <rng:define name="attrCommon"> <!--  -->
+    <rng:optional>
+      <rng:attribute name="valid">
+	<rng:ref name="flagType"/>
+      </rng:attribute>
+    </rng:optional>
+  </rng:define>
+  <rng:define name="attrName">	<!-- all name related attributes -->
+    <rng:optional>
+      <rng:attribute name="name">
+	<rng:data type="string"/>
+      </rng:attribute>
+    </rng:optional>
+    <rng:optional>
+      <rng:attribute name="context">
+        <rng:data type="string"/>
+      </rng:attribute>
+    </rng:optional>
+    <rng:optional>
+      <rng:attribute name="cache">
+        <rng:data type="string"/>
+      </rng:attribute>
+    </rng:optional>
+    <rng:optional>
+      <rng:attribute name="cacheas">
+        <rng:data type="string"/>
+      </rng:attribute>
+    </rng:optional>
+    <rng:optional>
+      <rng:attribute name="search">
+	<rng:ref name="flagType"/>
+      </rng:attribute>
+    </rng:optional>
+  </rng:define>
+  <rng:define name="anyElement">
+    <!-- s. http://relaxng.org/tutorial-20011203.html#IDAFLZR -->
+    <rng:element>
+      <rng:anyName/>
+      <rng:zeroOrMore>
+	<rng:choice>
+	  <rng:attribute>
+	    <rng:anyName/>
+	  </rng:attribute>
+	  <rng:text/>
+	  <rng:ref name="anyElement"/>
+	</rng:choice>
+      </rng:zeroOrMore>
+    </rng:element>
+  </rng:define>
+  <rng:define name="pie">
+    <rng:element name="pie">
+      <rng:ref name="attrCommon"/>
+      <rng:optional>
+        <rng:attribute name="date">
+          <rng:ref name="flagType"/>
+        </rng:attribute>
+      </rng:optional>
+      <rng:optional>
+        <rng:attribute name="figure">
+          <rng:ref name="flagType"/>
+        </rng:attribute>
+      </rng:optional>
+      <rng:optional>
+        <rng:attribute name="hidden">
+          <rng:ref name="flagType"/>
+        </rng:attribute>
+      </rng:optional>
+      <rng:optional>
+        <rng:attribute name="import">
+          <rng:ref name="flagType"/>
+        </rng:attribute>
+      </rng:optional>
+      <rng:optional>
+        <rng:attribute name="offset">
+          <rng:ref name="flagType"/>
+        </rng:attribute>
+      </rng:optional>
+      <rng:optional>
+        <rng:attribute name="tags">
+          <rng:ref name="flagType"/>
+        </rng:attribute>
+      </rng:optional>
+      <rng:optional>
+        <rng:attribute name="url">
+          <rng:ref name="flagType"/>
+        </rng:attribute>
+      </rng:optional>
+      <rng:optional>
+        <rng:attribute name="xpath">
+          <rng:ref name="flagType"/>
+        </rng:attribute>
+      </rng:optional>
+      <rng:zeroOrMore>
+	<rng:ref name="anyElement"/>
+      </rng:zeroOrMore>
+    </rng:element>
+  </rng:define>
+  <rng:define name="file">
+    <rng:element name="file">
+      <rng:ref name="attrCommon"/>
+      <rng:ref name="attrName"/>
+      <rng:optional>
+        <rng:attribute name="encoding">
+          <rng:data type="string"/>
+        </rng:attribute>
+      </rng:optional>
+      <rng:optional>
+        <rng:attribute name="verbosity">
+          <rng:data type="unsignedByte"/>
+        </rng:attribute>
+      </rng:optional>
+    </rng:element>
+  </rng:define>
+  <rng:define name="calendar">
+    <rng:element name="calendar">
+      <rng:zeroOrMore>
+        <rng:choice>
+          <rng:oneOrMore>
+            <rng:element name="col">
+              <rng:zeroOrMore>
+                <rng:choice>
+                  <rng:ref name="pie"/>
+                  <rng:ref name="xml"/>
+                </rng:choice>
+              </rng:zeroOrMore>
+              <rng:attribute name="id">
+                <rng:data type="string"/>
+              </rng:attribute>
+            </rng:element>
+          </rng:oneOrMore>
+        </rng:choice>
+      </rng:zeroOrMore>
+      <rng:optional>
+        <rng:attribute name="year">
+          <rng:data type="string"/>
+        </rng:attribute>
+      </rng:optional>
+      <rng:optional>
+        <rng:attribute name="coordinate">
+          <rng:data type="string"/>
+        </rng:attribute>
+      </rng:optional>
+      <rng:optional>
+        <rng:attribute name="timezone">
+          <rng:data type="string"/>
+        </rng:attribute>
+      </rng:optional>
+      <rng:optional>
+        <rng:attribute name="subst">
+          <rng:data type="string"/>
+        </rng:attribute>
+      </rng:optional>
+      <rng:optional>
+        <rng:attribute name="type">
+          <rng:data type="string"/>
+        </rng:attribute>
+      </rng:optional>
+    </rng:element>
+  </rng:define>
+  <rng:define name="xml">
+    <rng:element name="xml">
+      <rng:ref name="attrCommon"/>
+      <rng:ref name="attrName"/>
+      <rng:optional>
+        <rng:attribute name="encoding">
+          <rng:data type="string"/>
+        </rng:attribute>
+      </rng:optional>
+      <rng:optional>
+        <rng:attribute name="schema">
+          <rng:data type="string"/>
+        </rng:attribute>
+      </rng:optional>
+      <rng:optional>
+        <rng:attribute name="eval">
+          <rng:data type="string"/>
+        </rng:attribute>
+      </rng:optional>
+      <rng:zeroOrMore>
+        <rng:choice>
+          <rng:ref name="anyElement"/>
+          <rng:ref name="calendar"/>
+          <rng:ref name="db"/>
+          <rng:ref name="dir"/>
+          <rng:ref name="file"/>
+          <rng:ref name="image"/>
+          <rng:ref name="include"/>
+          <rng:ref name="json"/>
+          <rng:ref name="pathnet"/>
+          <rng:ref name="pathtable"/>
+          <rng:ref name="pie"/>
+          <rng:ref name="plain"/>
+          <rng:ref name="query"/>
+          <rng:ref name="script"/>
+          <rng:ref name="subst"/>
+          <rng:ref name="xhtml"/>
+          <rng:ref name="xml"/>
+          <rng:ref name="xsl"/>
+          <rng:ref name="stylesheet"/>
+          <rng:ref name="zip"/>
+        </rng:choice>
+      </rng:zeroOrMore>
+    </rng:element>
+  </rng:define>
+  <rng:define name="include">
+    <rng:element name="include">
+      <rng:ref name="attrCommon"/>
+      <rng:ref name="attrName"/>
+      <rng:optional>
+        <rng:attribute name="encoding">
+          <rng:data type="string"/>
+        </rng:attribute>
+      </rng:optional>
+    </rng:element>
+  </rng:define>
+  <rng:define name="html">
+    <rng:element name="html">
+      <rng:oneOrMore>
+        <rng:element>
+          <rng:anyName/>
+          <rng:text/>
+        </rng:element>
+      </rng:oneOrMore>
+    </rng:element>
+  </rng:define>
+  <rng:define name="xhtml">
+    <rng:element name="xhtml">
+      <rng:ref name="attrCommon"/>
+      <rng:ref name="attrName"/>
+      <rng:zeroOrMore>
+        <rng:choice>
+          <rng:ref name="html"/>
+          <rng:ref name="xhtml"/>
+          <rng:ref name="xml"/>
+          <rng:ref name="xsl"/>
+          <rng:ref name="stylesheet"/>
+          <rng:element>
+            <rng:anyName/>
+            <rng:text/>
+          </rng:element>
+        </rng:choice>
+      </rng:zeroOrMore>
+    </rng:element>
+  </rng:define>
+  <rng:define name="plain">
+    <rng:element name="plain">
+      <rng:ref name="attrCommon"/>
+      <rng:ref name="attrName"/>
+      <rng:optional>
+        <rng:attribute name="mode">
+	  <rng:choice>
+	    <rng:value>append</rng:value>
+	  </rng:choice>
+        </rng:attribute>
+      </rng:optional>
+      <rng:optional>
+        <rng:attribute name="encoding">
+          <rng:data type="string"/>
+        </rng:attribute>
+      </rng:optional>
+      <rng:zeroOrMore>
+        <rng:choice>
+          <rng:ref name="db"/>
+          <rng:ref name="query"/>
+          <rng:ref name="script"/>
+          <rng:ref name="image"/>
+          <rng:ref name="plain"/>
+          <rng:ref name="xml"/>
+          <rng:ref name="xsl"/>
+          <rng:ref name="stylesheet"/>
+          <rng:text/>
+        </rng:choice>
+      </rng:zeroOrMore>
+    </rng:element>
+  </rng:define>
+  <rng:define name="json">
+    <rng:element name="json">
+      <rng:ref name="attrCommon"/>
+      <rng:ref name="attrName"/>
+      <rng:optional>
+        <rng:attribute name="encoding">
+          <rng:data type="string"/>
+        </rng:attribute>
+      </rng:optional>
+    </rng:element>
+  </rng:define>
+  <rng:define name="xsl">
+    <rng:element name="xsl">
+      <rng:ref name="attrCommon"/>
+      <rng:ref name="attrName"/>
+      <rng:optional>
+        <rng:attribute name="xpath">
+          <rng:data type="string"/>
+        </rng:attribute>
+      </rng:optional>
+      <rng:optional>
+        <rng:choice>
+          <rng:zeroOrMore>
+            <rng:element name="variable">
+              <rng:attribute name="name">
+                <rng:data type="string"/>
+              </rng:attribute>
+              <rng:attribute name="select">
+                <rng:data type="string"/>
+              </rng:attribute>
+            </rng:element>
+          </rng:zeroOrMore>
+          <rng:ref name="xml"/>
+          <rng:ref name="xsl"/>
+          <rng:ref name="stylesheet"/>
+          <rng:element>
+            <rng:anyName/>
+            <rng:text/>
+          </rng:element>
+        </rng:choice>
+      </rng:optional>
+    </rng:element>
+  </rng:define>
+  <rng:define name="stylesheet">
+    <rng:element name="stylesheet" ns="http://www.w3.org/1999/XSL/Transform">
+      <rng:zeroOrMore>
+	<rng:attribute>
+	  <rng:anyName/>
+	</rng:attribute>
+      </rng:zeroOrMore>
+      <rng:zeroOrMore>
+	<rng:ref name="anyElement"/>
+      </rng:zeroOrMore>
+    </rng:element>
+  </rng:define>
+  <rng:define name="copy">
+    <rng:element name="copy">
+      <rng:ref name="attrCommon"/>
+      <rng:attribute name="from">
+        <rng:data type="string"/>
+      </rng:attribute>
+      <rng:attribute name="to">
+        <rng:data type="string"/>
+      </rng:attribute>
+      <rng:optional>
+        <rng:attribute name="search">
+	  <rng:ref name="flagType"/>
+        </rng:attribute>
+      </rng:optional>
+    </rng:element>
+  </rng:define>
+  <rng:define name="query">
+    <rng:element name="query">
+      <rng:ref name="attrCommon"/>
+      <rng:element name="query">
+        <rng:data type="string"/>
+      </rng:element>
+      <rng:optional>
+        <rng:attribute name="declaration">
+          <rng:data type="string"/>
+        </rng:attribute>
+      </rng:optional>
+    </rng:element>
+  </rng:define>
+  <rng:define name="db">
+    <rng:element name="db">
+      <rng:ref name="attrCommon"/>
+      <rng:optional>
+        <rng:attribute name="append">
+          <rng:data type="string"/>
+        </rng:attribute>
+      </rng:optional>
+      <rng:optional>
+        <rng:attribute name="dump">
+          <rng:data type="string"/>
+        </rng:attribute>
+      </rng:optional>
+      <rng:optional>
+        <rng:attribute name="name">
+          <rng:data type="string"/>
+        </rng:attribute>
+      </rng:optional>
+      <rng:optional>
+        <rng:attribute name="write">
+          <rng:data type="string"/>
+        </rng:attribute>
+      </rng:optional>
+      <rng:zeroOrMore>
+        <rng:choice>
+          <rng:ref name="dir"/>
+          <rng:ref name="query"/>
+          <rng:ref name="plain"/>
+        </rng:choice>
+      </rng:zeroOrMore>
+    </rng:element>
+  </rng:define>
+  <rng:define name="dir">
+    <rng:element name="dir">
+      <rng:ref name="attrCommon"/>
+      <rng:optional>
+        <rng:attribute name="depth">
+          <rng:data type="unsignedByte"/>
+        </rng:attribute>
+      </rng:optional>
+      <rng:optional>
+        <rng:attribute name="grep">
+          <rng:data type="string"/>
+        </rng:attribute>
+      </rng:optional>
+      <rng:optional>
+        <rng:attribute name="imatch">
+          <rng:data type="string"/>
+        </rng:attribute>
+      </rng:optional>
+      <rng:optional>
+        <rng:attribute name="match">
+          <rng:data type="string"/>
+        </rng:attribute>
+      </rng:optional>
+      <rng:optional>
+        <rng:attribute name="maxdepth">
+          <rng:data type="unsignedByte"/>
+        </rng:attribute>
+      </rng:optional>
+      <rng:optional>
+        <rng:attribute name="name">
+          <rng:data type="string"/>
+        </rng:attribute>
+      </rng:optional>
+      <rng:optional>
+        <rng:attribute name="verbosity">
+          <rng:data type="unsignedByte"/>
+        </rng:attribute>
+      </rng:optional>
+      <rng:zeroOrMore>
+        <rng:choice>
+          <rng:ref name="dir"/>
+          <rng:ref name="file"/>
+        </rng:choice>
+      </rng:zeroOrMore>
+    </rng:element>
+  </rng:define>
+  <rng:define name="subst">
+    <rng:element name="subst">
+      <rng:ref name="attrCommon"/>
+      <rng:attribute name="string">
+        <rng:data type="string"/>
+      </rng:attribute>
+      <rng:optional>
+        <rng:attribute name="filename">
+          <rng:data type="string"/>
+        </rng:attribute>
+      </rng:optional>
+      <rng:optional>
+        <rng:attribute name="dir">
+          <rng:data type="string"/>
+        </rng:attribute>
+      </rng:optional>
+      <rng:optional>
+        <rng:attribute name="to">
+          <rng:data type="string"/>
+        </rng:attribute>
+      </rng:optional>
+      <rng:optional>
+        <rng:attribute name="script">
+          <rng:data type="string"/>
+        </rng:attribute>
+      </rng:optional>
+      <rng:optional>
+        <rng:attribute name="file">
+          <rng:data type="string"/>
+        </rng:attribute>
+      </rng:optional>
+      <rng:optional>
+        <rng:attribute name="default">
+          <rng:data type="string"/>
+        </rng:attribute>
+      </rng:optional>
+      <rng:optional>
+        <rng:attribute name="argv">
+          <rng:data type="string"/>
+        </rng:attribute>
+      </rng:optional>
+      <rng:optional>
+        <rng:attribute name="escaping">
+          <rng:data type="string"/>
+        </rng:attribute>
+      </rng:optional>
+      <rng:optional>
+        <rng:attribute name="env">
+          <rng:data type="string"/>
+        </rng:attribute>
+      </rng:optional>
+      <rng:optional>
+        <rng:attribute name="cgi">
+          <rng:data type="string"/>
+        </rng:attribute>
+      </rng:optional>
+      <rng:optional>
+        <rng:attribute name="host">
+          <rng:data type="string"/>
+        </rng:attribute>
+      </rng:optional>
+      <rng:optional>
+        <rng:attribute name="program">
+          <rng:data type="string"/>
+        </rng:attribute>
+      </rng:optional>
+      <rng:optional>
+        <rng:attribute name="now">
+          <rng:data type="string"/>
+        </rng:attribute>
+      </rng:optional>
+      <rng:zeroOrMore>
+        <rng:choice>
+          <rng:ref name="plain"/>
+        </rng:choice>
+      </rng:zeroOrMore>
+    </rng:element>
+  </rng:define>
+  <rng:define name="make">
+    <rng:element name="make" ns="http://www.tenbusch.info/cxproc">
+      <rng:optional>
+        <rng:attribute name="log">
+          <rng:data type="integer"/>
+        </rng:attribute>
+      </rng:optional>
+      <rng:optional>
+        <rng:attribute name="context">
+          <rng:data type="string"/>
+        </rng:attribute>
+      </rng:optional>
+      <rng:optional>
+        <rng:attribute name="thread">
+          <rng:ref name="flagType"/>
+        </rng:attribute>
+      </rng:optional>
+      <rng:optional>
+	<rng:element name="description">
+	  <rng:data type="string"/>
+	</rng:element>
+      </rng:optional>
+      <rng:zeroOrMore>
+        <rng:ref name="subst"/>
+      </rng:zeroOrMore>
+      <rng:interleave>
+	<rng:zeroOrMore>
+          <rng:choice>
+            <rng:ref name="copy"/>
+            <rng:ref name="db"/>
+            <rng:ref name="dir"/>
+            <rng:ref name="each"/>
+            <rng:ref name="file"/>
+            <rng:ref name="image"/>
+            <rng:ref name="include"/>
+            <rng:ref name="make"/>
+            <rng:ref name="pathnet"/>
+            <rng:ref name="pathtable"/>
+            <rng:ref name="plain"/>
+            <rng:ref name="script"/>
+            <rng:ref name="subst"/>
+            <rng:ref name="system"/>
+            <rng:ref name="xhtml"/>
+            <rng:ref name="xml"/>
+            <rng:ref name="xsl"/>
+            <rng:ref name="stylesheet"/>
+            <rng:ref name="zip"/>
+          </rng:choice>
+	</rng:zeroOrMore>
+      </rng:interleave>
+    </rng:element>
+  </rng:define>
+  <rng:define name="each">
+    <rng:element name="each">
+      <rng:attribute name="name">
+        <rng:data type="string"/>
+      </rng:attribute>
+      <rng:element name="from">
+	<rng:zeroOrMore>
+          <rng:choice>
+            <rng:ref name="plain"/>
+            <rng:ref name="script"/>
+            <rng:ref name="subst"/>
+            <rng:ref name="xsl"/>
+            <rng:ref name="stylesheet"/>
+            <rng:text/>
+          </rng:choice>
+	</rng:zeroOrMore>
+      </rng:element>
+      <rng:zeroOrMore>
+        <rng:choice>
+          <rng:ref name="copy"/>
+          <rng:ref name="db"/>
+          <rng:ref name="dir"/>
+          <rng:ref name="each"/>
+          <rng:ref name="file"/>
+          <rng:ref name="image"/>
+          <rng:ref name="include"/>
+          <rng:ref name="make"/>
+          <rng:ref name="pathnet"/>
+          <rng:ref name="pathtable"/>
+          <rng:ref name="plain"/>
+          <rng:ref name="script"/>
+          <rng:ref name="subst"/>
+          <rng:ref name="system"/>
+          <rng:ref name="xhtml"/>
+          <rng:ref name="xml"/>
+          <rng:ref name="xsl"/>
+          <rng:ref name="stylesheet"/>
+          <rng:ref name="zip"/>
+        </rng:choice>
+      </rng:zeroOrMore>
+    </rng:element>
+  </rng:define>
+  <rng:define name="system">
+    <rng:element name="system">
+      <rng:optional>
+        <rng:attribute name="call">
+          <rng:data type="string"/>
+        </rng:attribute>
+      </rng:optional>
+      <rng:optional>
+        <rng:attribute name="chdir">
+          <rng:data type="string"/>
+        </rng:attribute>
+      </rng:optional>
+      <rng:optional>
+        <rng:attribute name="dialog">
+          <rng:data type="string"/>
+        </rng:attribute>
+      </rng:optional>
+      <rng:optional>
+        <rng:attribute name="exec">
+          <rng:data type="string"/>
+        </rng:attribute>
+      </rng:optional>
+      <rng:optional>
+        <rng:attribute name="message">
+          <rng:data type="string"/>
+        </rng:attribute>
+      </rng:optional>
+      <rng:optional>
+        <rng:attribute name="mkdir">
+          <rng:data type="string"/>
+        </rng:attribute>
+      </rng:optional>
+      <rng:optional>
+        <rng:attribute name="rmdir">
+          <rng:data type="string"/>
+        </rng:attribute>
+      </rng:optional>
+    </rng:element>
+  </rng:define>
+  <rng:define name="image">
+    <rng:element name="image">
+      <rng:zeroOrMore>
+        <rng:choice>
+          <rng:element name="image">
+            <rng:attribute name="src">
+              <rng:data type="string"/>
+            </rng:attribute>
+          </rng:element>
+          <rng:ref name="plain"/>
+        </rng:choice>
+      </rng:zeroOrMore>
+      <rng:optional>
+        <rng:attribute name="frame">
+          <rng:data type="string"/>
+        </rng:attribute>
+      </rng:optional>
+      <rng:optional>
+        <rng:attribute name="src">
+          <rng:data type="string"/>
+        </rng:attribute>
+      </rng:optional>
+      <rng:optional>
+        <rng:attribute name="to">
+          <rng:data type="string"/>
+        </rng:attribute>
+      </rng:optional>
+    </rng:element>
+  </rng:define>
+  <rng:define name="script">
+    <rng:element name="script">
+      <rng:ref name="attrCommon"/>
+      <rng:ref name="attrName"/>
+      <rng:zeroOrMore>
+        <rng:choice>
+          <rng:element name="variable">
+            <rng:optional>
+              <rng:choice>
+                <rng:ref name="xml"/>
+                <rng:ref name="plain"/>
+              </rng:choice>
+            </rng:optional>
+            <rng:attribute name="name">
+              <rng:data type="string"/>
+            </rng:attribute>
+            <rng:optional>
+              <rng:attribute name="select">
+                <rng:data type="string"/>
+              </rng:attribute>
+            </rng:optional>
+          </rng:element>
+	  <rng:text/>
+        </rng:choice>
+      </rng:zeroOrMore>
+    </rng:element>
+  </rng:define>
+  <rng:define name="zip">
+    <rng:element name="zip">
+      <rng:optional>
+        <rng:attribute name="level">
+          <rng:data type="unsignedByte"/>
+        </rng:attribute>
+      </rng:optional>
+      <rng:zeroOrMore>
+        <rng:choice>
+          <rng:ref name="script"/>
+          <rng:ref name="plain"/>
+          <rng:ref name="xml"/>
+          <rng:ref name="dir"/>
+          <rng:element name="file">
+	    <rng:ref name="attrName"/>
+            <rng:optional>
+              <rng:attribute name="map">
+                <rng:data type="string"/>
+              </rng:attribute>
+            </rng:optional>
+          </rng:element>
+        </rng:choice>
+      </rng:zeroOrMore>
+    </rng:element>
+  </rng:define>
+  <rng:define name="pathnet">
+    <rng:element name="pathnet">
+      <rng:zeroOrMore>
+        <rng:choice>
+          <rng:ref name="xml"/>
+        </rng:choice>
+      </rng:zeroOrMore>
+      <rng:attribute name="start">
+        <rng:data type="string"/>
+      </rng:attribute>
+      <rng:attribute name="target">
+        <rng:data type="string"/>
+      </rng:attribute>
+      <rng:attribute name="lmax">
+        <rng:data type="unsignedByte"/>
+      </rng:attribute>
+      <rng:attribute name="lmin">
+        <rng:data type="unsignedByte"/>
+      </rng:attribute>
+    </rng:element>
+  </rng:define>
+  <rng:define name="pathtable">
+    <rng:element name="pathtable">
+      <rng:zeroOrMore>
+        <rng:choice>
+          <rng:ref name="xml"/>
+        </rng:choice>
+      </rng:zeroOrMore>
+      <rng:attribute name="start">
+        <rng:data type="string"/>
+      </rng:attribute>
+      <rng:attribute name="target">
+        <rng:data type="string"/>
+      </rng:attribute>
+      <rng:attribute name="lmax">
+        <rng:data type="unsignedByte"/>
+      </rng:attribute>
+      <rng:attribute name="lmin">
+        <rng:data type="unsignedByte"/>
+      </rng:attribute>
+    </rng:element>
+  </rng:define>
+</rng:grammar>

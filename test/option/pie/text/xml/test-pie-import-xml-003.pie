@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<pie version="0.1">
+  <subst string="Baustelle" to="Elletsuab"/>
+  <subst string="Target" now="%Y-%m-%d"/>
+  <subst string="%content%" file="test-pie-import-xml-003-001.txt"/>
+  <section>
+    <h>Text formatting</h>
+      <p>PAR with old <b>bold</b> and <i>italic</i> and <u>underlined</u> markup</p>
+      <p>This is a <span style="font-family:Courier;font-size:20pt">Target</span></p>
+      <p>This is a <span style="color:#FF0000">Target</span></p>
+      <p>This is a <span class="pieTab">Target</span></p>
+  </section>
+  <section>
+    <h>Dies ist <subst now="%Y-%m-%d"/> noch eine Baustelle!</h>
+    <target date="20070126" prio="1">
+      <h>This is a Target</h>
+    </target>
+    <p>This is a <subst env="HOME"/></p>
+  </section>
+  <section>
+    <h>Subst from file</h>
+	<p>%content%</p>
+  </section>
+</pie>

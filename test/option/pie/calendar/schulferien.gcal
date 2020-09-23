@@ -1,0 +1,31 @@
+
+20060224#0303 ++ Fasnet-Ferien
+20060413#21 ++ Osterferien
+20060526#0609 ++ Pfingstferien
+20060720#24 Seehasenfest http://www.seehasenfest.info
+20060723 Umzug Seehasenfest
+20060724 ++ Seehasenmontag
+20060803#0916 ++ Sommerferien
+
+;20061004 ++ Variabler Ferientag
+20061030#1103 ++ Herbstferien
+20061225#31 ++ Weihnachtsferien
+
+* 2007
+20070101#5 ++ Weihnachtsferien
+20070216#23 ++ bewegl. Ferientag (Fasnet)
+
+** Ostern
+20070402#13 ++ Osterferien
+20070430,518 ++ bewegl. Ferientag
+20070528#0608 ++ Pfingstferien
+20070712#17 ++ Seehasenfest http://www.seehasenfest.info
+20070714 ++ Umzug Seehasenfest
+20070716 ++ Seehasenmontag
+20070728#0916 ++ Sommerferien
+
+* AZB 2006
+20060224,0526 ++ Beweglicher Ferientag
+20060228:5 ++ Beweglicher Ferientag
+
+0000*w99mon,tue,wed,thu,fri work day %N

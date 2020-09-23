@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!DOCTYPE pie PUBLIC "-//A. Tenbusch//DTD PIE Draft//EN" "http://www.tenbusch.info/cxproc/pie.dtd">
+<pie>
+  <section>
+    <h>Test</h>
+    <vcard>
+      <name>Abc</name>
+      <firstname>Def</firstname>
+      <birthday>20050311</birthday>
+    </vcard>
+  </section>
+</pie>

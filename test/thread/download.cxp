@@ -1,0 +1,34 @@
+<?xml version="1.0"?>
+<cxp:make xmlns:cxp="http://www.tenbusch.info/cxproc" log="3" thread="yes">
+  <!--  -->
+  <cxp:make>
+    <cxp:make>
+      <cxp:system message="Download 3"/>
+      <cxp:xml cacheas="t-3.xml">
+        <cxp:xml name="http://localhost:8186/graph_tex_datei.xml"/>
+      </cxp:xml>
+    </cxp:make>
+    <!--  -->
+    <cxp:make>
+      <cxp:system message="Download 4"/>
+      <cxp:xml cacheas="t-4.xml">
+        <cxp:xml name="http://localhost:8186/graph_acrobat_reader.xml"/>
+      </cxp:xml>
+    </cxp:make>
+    <!--  -->
+    <cxp:make>
+      <cxp:system message="Download 5"/>
+      <cxp:xml cacheas="t-5.xml">
+        <cxp:xml name="http://localhost:8186/graph_computer.xml"/>
+      </cxp:xml>
+    </cxp:make>
+  </cxp:make>
+  <!--  -->
+  <cxp:xml name="../../tmp/test-threads-download-cached.xml">
+    <dummy>
+      <cxp:xml cache="t-3.xml"/>
+      <cxp:xml cache="t-4.xml"/>
+      <cxp:xml cache="t-5.xml"/>
+    </dummy>
+  </cxp:xml>
+</cxp:make>

@@ -1,0 +1,546 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rng:grammar xmlns:a="http://relaxng.org/ns/compatibility/annotations/1.0" xmlns:rng="http://relaxng.org/ns/structure/1.0" ns="" datatypeLibrary="http://www.w3.org/2001/XMLSchema-datatypes">
+  <rng:start>
+    <rng:element name="pie">
+      <rng:zeroOrMore>
+	<rng:attribute>
+	  <rng:anyName/>
+	</rng:attribute>
+      </rng:zeroOrMore>
+      <rng:optional>
+	<rng:element name="copyright">
+	  <rng:text/>
+	</rng:element>
+      </rng:optional>
+      <rng:optional>
+	<rng:element name="abstract">
+	  <rng:text/>
+	</rng:element>
+      </rng:optional>
+      <rng:optional>
+	<rng:element name="author">
+	  <rng:text/>
+	</rng:element>
+      </rng:optional>
+      <rng:optional>
+	<rng:element name="version">
+	  <rng:text/>
+	</rng:element>
+      </rng:optional>
+      <rng:ref name="struct-choice"/>
+      <rng:optional>
+        <rng:ref name="meta"/>
+      </rng:optional>
+      <rng:optional>
+        <rng:ref name="error"/>
+      </rng:optional>
+    </rng:element>
+  </rng:start>
+  <rng:define name="flag-choice">
+    <rng:choice>
+      <rng:value>yes</rng:value>
+      <rng:value>no</rng:value>
+    </rng:choice>
+  </rng:define>
+  <rng:define name="valid-attr">
+    <rng:optional>
+      <rng:attribute name="valid">
+        <rng:ref name="flag-choice"/>
+      </rng:attribute>
+    </rng:optional>
+  </rng:define>
+  <rng:define name="enum-attr">
+    <rng:optional>
+      <rng:attribute name="enum">
+        <rng:ref name="flag-choice"/>
+      </rng:attribute>
+    </rng:optional>
+  </rng:define>
+  <rng:define name="time-attrs">
+    <rng:optional>
+      <rng:attribute name="origin"/>
+    </rng:optional>
+    <rng:optional>
+      <rng:attribute name="done"/>
+    </rng:optional>
+    <rng:optional>
+      <rng:attribute name="date"/>
+    </rng:optional>
+  </rng:define>
+  <rng:define name="prio-attrs">
+    <rng:optional>
+      <rng:attribute name="impact">
+        <rng:choice>
+          <rng:value>1</rng:value>
+          <rng:value>2</rng:value>
+        </rng:choice>
+      </rng:attribute>
+    </rng:optional>
+    <rng:optional>
+      <rng:attribute name="prio">
+        <rng:choice>
+          <rng:value>1</rng:value>
+          <rng:value>2</rng:value>
+        </rng:choice>
+      </rng:attribute>
+    </rng:optional>
+    <rng:optional>
+      <rng:attribute name="effort">
+	<rng:data type="double"/>
+      </rng:attribute>
+    </rng:optional>
+    <rng:optional>
+      <rng:attribute name="pidref"/>
+    </rng:optional>
+  </rng:define>
+  <rng:define name="view-attrs">
+    <rng:optional>
+      <rng:attribute name="hidden">
+        <rng:choice>
+          <rng:value>1</rng:value>
+          <rng:value>2</rng:value>
+        </rng:choice>
+      </rng:attribute>
+    </rng:optional>
+    <rng:optional>
+      <rng:attribute name="color"/>
+    </rng:optional>
+  </rng:define>
+  <rng:define name="anyElement">
+    <!-- s. http://relaxng.org/tutorial-20011203.html#IDAFLZR -->
+    <rng:element>
+      <rng:anyName/>
+      <rng:zeroOrMore>
+	<rng:choice>
+	  <rng:attribute>
+	    <rng:anyName/>
+	  </rng:attribute>
+	  <rng:text/>
+	  <rng:ref name="anyElement"/>
+	</rng:choice>
+      </rng:zeroOrMore>
+    </rng:element>
+  </rng:define>
+  <rng:define name="struct-choice">
+    <rng:interleave>
+      <rng:zeroOrMore>
+        <rng:choice>
+          <rng:ref name="body"/>
+          <rng:ref name="contact"/>
+          <rng:ref name="fig"/>
+          <rng:ref name="img"/>
+          <rng:ref name="import"/>
+          <rng:ref name="list"/>
+          <rng:ref name="p"/>
+          <rng:ref name="pre"/>
+          <rng:ref name="section"/>
+          <rng:ref name="subst"/>
+          <rng:ref name="table"/>
+          <rng:ref name="tag"/>
+          <rng:ref name="target"/>
+          <rng:ref name="task"/>
+        </rng:choice>
+      </rng:zeroOrMore>
+    </rng:interleave>
+  </rng:define>
+  <rng:define name="meta">
+    <rng:element name="meta">
+      <rng:zeroOrMore>
+	<rng:attribute>
+	  <rng:anyName/>
+	</rng:attribute>
+      </rng:zeroOrMore>
+      <rng:ref name="anyElement"/>
+    </rng:element>
+  </rng:define>
+  <rng:define name="error">
+    <rng:element name="error">
+      <rng:text/>
+    </rng:element>
+  </rng:define>
+  <rng:define name="tag">
+    <rng:element name="tag">
+      <rng:text/>
+    </rng:element>
+  </rng:define>
+  <rng:define name="subst">
+    <rng:element name="subst">
+      <rng:optional>
+	<rng:attribute name="string">
+          <rng:data type="string"/>
+	</rng:attribute>
+      </rng:optional>
+      <rng:optional>
+        <rng:attribute name="filename">
+          <rng:data type="string"/>
+        </rng:attribute>
+      </rng:optional>
+      <rng:optional>
+        <rng:attribute name="dir">
+          <rng:data type="string"/>
+        </rng:attribute>
+      </rng:optional>
+      <rng:optional>
+        <rng:attribute name="to">
+          <rng:data type="string"/>
+        </rng:attribute>
+      </rng:optional>
+      <rng:optional>
+        <rng:attribute name="script">
+          <rng:data type="string"/>
+        </rng:attribute>
+      </rng:optional>
+      <rng:optional>
+        <rng:attribute name="file">
+          <rng:data type="string"/>
+        </rng:attribute>
+      </rng:optional>
+      <rng:optional>
+        <rng:attribute name="default">
+          <rng:data type="string"/>
+        </rng:attribute>
+      </rng:optional>
+      <rng:optional>
+        <rng:attribute name="argv">
+          <rng:data type="string"/>
+        </rng:attribute>
+      </rng:optional>
+      <rng:optional>
+        <rng:attribute name="escaping">
+          <rng:data type="string"/>
+        </rng:attribute>
+      </rng:optional>
+      <rng:optional>
+        <rng:attribute name="env">
+          <rng:data type="string"/>
+        </rng:attribute>
+      </rng:optional>
+      <rng:optional>
+        <rng:attribute name="cgi">
+          <rng:data type="string"/>
+        </rng:attribute>
+      </rng:optional>
+      <rng:optional>
+        <rng:attribute name="now">
+          <rng:data type="string"/>
+        </rng:attribute>
+      </rng:optional>
+    </rng:element>
+  </rng:define>
+  <rng:define name="p-choice">
+    <rng:interleave>
+      <rng:zeroOrMore>
+        <rng:choice>
+          <rng:text/>
+          <rng:ref name="subst"/>
+          <rng:ref name="span"/>
+          <rng:ref name="link"/>
+          <rng:ref name="b"/>
+          <rng:ref name="u"/>
+          <rng:ref name="i"/>
+        </rng:choice>
+      </rng:zeroOrMore>
+    </rng:interleave>
+  </rng:define>
+  <rng:define name="body">
+    <rng:element name="body">	<!-- embedded HTML body element, dont validate -->
+      <rng:ref name="anyElement"/>
+    </rng:element>
+  </rng:define>
+  <rng:define name="link">
+    <rng:element name="link">
+      <rng:zeroOrMore>
+        <rng:choice>
+	  <rng:attribute name="href">
+            <rng:text/>
+	  </rng:attribute>
+	  <rng:attribute name="date">
+            <rng:text/>
+	  </rng:attribute>
+	  <rng:attribute name="target">
+            <rng:text/>
+	  </rng:attribute>
+        </rng:choice>
+      </rng:zeroOrMore>
+      <rng:text/>
+    </rng:element>
+  </rng:define>
+  <rng:define name="b">
+    <rng:element name="b">
+      <rng:text/>
+    </rng:element>
+  </rng:define>
+  <rng:define name="u">
+    <rng:element name="u">
+      <rng:text/>
+    </rng:element>
+  </rng:define>
+  <rng:define name="i">
+    <rng:element name="i">
+      <rng:text/>
+    </rng:element>
+  </rng:define>
+  <rng:define name="p">
+    <rng:element name="p">
+      <rng:ref name="valid-attr"/>
+      <rng:ref name="view-attrs"/>
+      <rng:ref name="p-choice"/>
+    </rng:element>
+  </rng:define>
+  <rng:define name="h">
+    <rng:element name="h">
+      <rng:ref name="view-attrs"/>
+      <rng:ref name="p-choice"/>
+    </rng:element>
+  </rng:define>
+  <rng:define name="list">
+    <rng:element name="list">
+      <rng:ref name="valid-attr"/>
+      <rng:ref name="enum-attr"/>
+      <rng:optional>
+	<rng:interleave>
+	  <rng:zeroOrMore>
+            <rng:choice>
+              <rng:ref name="list"/>
+              <rng:ref name="p"/>
+            </rng:choice>
+	  </rng:zeroOrMore>
+	</rng:interleave>
+      </rng:optional>
+    </rng:element>
+  </rng:define>
+  <rng:define name="import">
+    <rng:element name="import">
+      <rng:ref name="valid-attr"/>
+      <rng:choice>
+	<!-- TODO: add processing args -->
+        <rng:attribute name="name"/>
+	<rng:text/>
+      </rng:choice>
+    </rng:element>
+  </rng:define>
+  <rng:define name="span">
+    <rng:element name="span">
+      <rng:zeroOrMore>
+	<rng:attribute>
+	  <rng:anyName/>
+	</rng:attribute>
+      </rng:zeroOrMore>
+      <rng:text/>
+    </rng:element>
+  </rng:define>
+  <rng:define name="pre">
+    <rng:element name="pre">
+      <rng:ref name="valid-attr"/>
+      <rng:text/>
+    </rng:element>
+  </rng:define>
+  <rng:define name="td">
+    <rng:element name="td">
+      <rng:ref name="p-choice"/>
+    </rng:element>
+  </rng:define>
+  <rng:define name="th">
+    <rng:element name="th">
+      <rng:ref name="p-choice"/>
+    </rng:element>
+  </rng:define>
+  <rng:define name="tr">
+    <rng:ref name="valid-attr"/>
+    <rng:element name="tr">
+      <rng:interleave>
+	<rng:zeroOrMore>
+          <rng:choice>
+            <rng:ref name="th"/>
+            <rng:ref name="td"/>
+          </rng:choice>
+	</rng:zeroOrMore>
+      </rng:interleave>
+    </rng:element>
+  </rng:define>
+  <rng:define name="tbody">
+    <rng:element name="tbody">
+      <rng:zeroOrMore>
+        <rng:ref name="tr"/>
+      </rng:zeroOrMore>
+    </rng:element>
+  </rng:define>
+  <rng:define name="thead">
+    <rng:element name="thead">
+      <rng:zeroOrMore>
+        <rng:ref name="tr"/>
+      </rng:zeroOrMore>
+    </rng:element>
+  </rng:define>
+  <rng:define name="table">
+    <rng:element name="table">
+      <!-- TODO: <rng:ref name="valid-attr"/> -->
+      <rng:optional>
+        <rng:ref name="thead"/>
+      </rng:optional>
+      <rng:choice>
+        <rng:ref name="tbody"/>
+        <rng:zeroOrMore>
+          <rng:ref name="tr"/>
+        </rng:zeroOrMore>
+      </rng:choice>
+    </rng:element>
+  </rng:define>
+  <rng:define name="img">
+    <rng:element name="img">
+      <rng:ref name="valid-attr"/>
+      <rng:optional>
+	<rng:attribute name="src"/>
+      </rng:optional>
+      <rng:optional>
+	<rng:attribute name="width"/>
+      </rng:optional>
+    </rng:element>
+  </rng:define>
+  <rng:define name="fig">
+    <rng:element name="fig">
+      <rng:ref name="valid-attr"/>
+      <rng:ref name="view-attrs"/>
+      <rng:ref name="img"/>
+      <rng:ref name="h"/>
+    </rng:element>
+  </rng:define>
+  <rng:define name="task">
+    <rng:element name="task">
+      <rng:ref name="valid-attr"/>
+      <rng:ref name="time-attrs"/>
+      <rng:ref name="prio-attrs"/>
+      <rng:ref name="view-attrs"/>
+      <rng:ref name="h"/>
+      <rng:optional>
+	<rng:interleave>
+	  <rng:zeroOrMore>
+            <rng:choice>
+              <rng:ref name="contact"/>
+              <rng:ref name="img"/>
+              <rng:ref name="import"/>
+              <rng:ref name="list"/>
+              <rng:ref name="p"/>
+              <rng:ref name="pre"/>
+              <rng:ref name="tag"/>
+            </rng:choice>
+	  </rng:zeroOrMore>
+	</rng:interleave>
+      </rng:optional>
+    </rng:element>
+  </rng:define>
+  <rng:define name="target">
+    <rng:element name="target">
+      <rng:ref name="valid-attr"/>
+      <rng:ref name="time-attrs"/>
+      <rng:ref name="prio-attrs"/>
+      <rng:ref name="view-attrs"/>
+      <rng:ref name="h"/>
+      <rng:optional>
+	<rng:interleave>
+	  <rng:zeroOrMore>
+            <rng:choice>
+              <rng:ref name="tag"/>
+              <rng:ref name="list"/>
+              <rng:ref name="p"/>
+            </rng:choice>
+	  </rng:zeroOrMore>
+	</rng:interleave>
+      </rng:optional>
+    </rng:element>
+  </rng:define>
+  <rng:define name="contact">
+    <rng:element name="contact">
+      <rng:ref name="valid-attr"/>
+      <rng:optional>
+        <rng:attribute name="idref"/>
+      </rng:optional>
+      <rng:interleave>
+	<rng:zeroOrMore>
+          <rng:choice>
+            <rng:ref name="img"/>
+            <rng:ref name="import"/>
+            <rng:ref name="list"/>
+            <rng:ref name="p"/>
+            <rng:ref name="pre"/>
+            <rng:ref name="tag"/>
+          </rng:choice>
+	</rng:zeroOrMore>
+      </rng:interleave>
+    </rng:element>
+  </rng:define>
+  <rng:define name="section">
+    <rng:element name="section">
+      <rng:ref name="valid-attr"/>
+      <rng:ref name="time-attrs"/>
+      <rng:ref name="prio-attrs"/>
+      <rng:ref name="view-attrs"/>
+      <rng:optional>
+        <rng:attribute name="type"/>
+      </rng:optional>
+      <rng:optional>
+        <rng:attribute name="account"/>
+      </rng:optional>
+      <rng:optional>
+        <rng:attribute name="assignee"/>
+      </rng:optional>
+      <rng:optional>
+        <rng:attribute name="pid"/>
+      </rng:optional>
+      <rng:optional>
+        <rng:attribute name="begin"/>
+      </rng:optional>
+      <rng:optional>
+        <rng:attribute name="end"/>
+      </rng:optional>
+      <rng:optional>
+        <rng:attribute name="state">
+          <rng:choice>
+            <rng:value>0</rng:value>
+            <rng:value>1</rng:value>
+            <rng:value>2</rng:value>
+            <rng:value>x</rng:value>
+          </rng:choice>
+        </rng:attribute>
+      </rng:optional>
+      <rng:optional>
+        <rng:attribute name="class">
+          <rng:choice>
+            <rng:value>gantt-low</rng:value>
+            <rng:value>gantt-high</rng:value>
+          </rng:choice>
+        </rng:attribute>
+      </rng:optional>
+      <rng:optional>
+	<rng:ref name="h"/>
+      </rng:optional>
+      <rng:ref name="struct-choice"/>
+    </rng:element>
+  </rng:define>
+  <!--
+      <rng:define name="phone"
+      </rng:define>
+      <rng:define name="mail"
+      </rng:define>
+      <rng:define name="work"
+      </rng:define>
+      <rng:define name="private"
+      </rng:define>
+      <rng:define name="mobile"
+      </rng:define>
+      <rng:define name="url"
+      </rng:define>
+      <rng:define name="vcard"
+      </rng:define>
+      <rng:define name="name"
+      </rng:define>
+      <rng:define name="title"
+      </rng:define>
+      <rng:define name="birthday"
+      </rng:define>
+      <rng:define name="br"
+      </rng:define>
+      <rng:define name="firstname"
+      </rng:define>
+  -->
+</rng:grammar>

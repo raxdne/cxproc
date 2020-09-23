@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cxp:make xmlns:cxp="http://www.tenbusch.info/cxproc">
+  <cxp:system mkdir="result"/>
+  <cxp:system message="TEST 1: directory parsing with verbosity=1..5"/>
+  <cxp:xml name="result/test-dir-verbosity-default.xml">
+    <cxp:dir>
+      <cxp:dir name="../pie"/>
+    </cxp:dir>
+  </cxp:xml>
+  <cxp:xml name="result/test-dir-verbosity-0.xml">
+    <cxp:dir verbosity="0">
+      <cxp:dir name="../pie"/>
+    </cxp:dir>
+  </cxp:xml>
+  <cxp:xml name="result/test-dir-verbosity-1.xml">
+    <cxp:dir verbosity="1">
+      <cxp:dir name="../pie"/>
+    </cxp:dir>
+  </cxp:xml>
+  <cxp:xml name="result/test-dir-verbosity-2.xml">
+    <cxp:dir verbosity="2">
+      <cxp:dir name="../pie"/>
+    </cxp:dir>
+  </cxp:xml>
+  <cxp:xml name="result/test-dir-verbosity-3.xml">
+    <cxp:dir verbosity="3">
+      <cxp:dir name="../pie"/>
+    </cxp:dir>
+  </cxp:xml>
+  <cxp:xml name="result/test-dir-verbosity-4.xml">
+    <cxp:dir verbosity="4">
+      <cxp:dir name="../pie"/>
+    </cxp:dir>
+  </cxp:xml>
+  <cxp:xml name="result/test-dir-verbosity-max.xml">
+    <cxp:dir verbosity="5">
+      <cxp:dir name="../pie"/>
+    </cxp:dir>
+  </cxp:xml>
+  <cxp:system message="TEST 2: directory parsing with case insensitive filename matching"/>
+  <cxp:xml name="result/test-dir-match.xml">
+    <cxp:dir imatch="\.(cxp|txt)$">
+      <cxp:dir name="../pie"/>
+      <cxp:dir name="../../src"/>
+      <cxp:dir name="../petrinet"/>
+    </cxp:dir>
+  </cxp:xml>
+  <cxp:system message="TEST 3: directory parsing with case sensitive grep and plain text output"/>
+  <cxp:plain name="result/test-dir-grep.txt" valid="no">
+    <cxp:xml name="result/test-dir-grep.xml">
+      <cxp:dir grep="*Process*Node">
+        <cxp:dir name="../pie"/>
+        <cxp:dir name="../../src"/>
+        <cxp:dir name="../petrinet"/>
+      </cxp:dir>
+    </cxp:xml>
+    <cxp:xsl name="PlainGrepResult.xsl"/>
+  </cxp:plain>
+  <cxp:system message="TEST 4: directory parsing with grep and match"/>
+  <cxp:xml name="result/test-dir-match-grep.xml" valid="no">
+    <cxp:dir match="\.(cxp|txt|c)$" grep="\b[a-z]+Test\b">
+      <cxp:dir name="../pie"/>
+      <cxp:dir name="../../src/test"/>
+      <cxp:dir name="../petrinet"/>
+    </cxp:dir>
+  </cxp:xml>
+  <cxp:system message="TEST 5: directory parsing with error handling"/>
+  <cxp:xml name="result/test-dir-error.xml">
+    <cxp:dir name="/root" depth="2"/>
+  </cxp:xml>
+  <cxp:system message="TEST 6: existing directory parsing with XSLT"/>
+  <cxp:plain name="result/test-dir-6.bat">
+    <cxp:xml name="result/test-dir-verbosity-4.xml"/>
+    <cxp:xsl name="ShellMakeDir.xsl"/>
+  </cxp:plain>
+  <cxp:system message="TEST 7: iteration through filenames"/>
+  <cxp:each name="%F%">
+    <cxp:from>
+      <cxp:plain>
+        <cxp:xml>
+          <cxp:dir name="."/>
+        </cxp:xml>
+        <cxp:xsl name="ListFiles.xsl"/>
+      </cxp:plain>
+    </cxp:from>
+    <cxp:copy from="%F%" to="result/"/>
+  </cxp:each>
+  <cxp:system message="TEST 8: Umlaute"/>
+  <cxp:system mkdir="result/test-dir/t-ÄÖÜ"/>
+  <cxp:copy from="debug.gdb" to="result/test-dir/t-ÄÖÜ/u-äüö.gdb"/>
+  <cxp:xml name="result/test-dir-ÄÖÜ-dir.xml">
+    <cxp:dir>
+      <cxp:dir name="result/test-dir" depth="9"/>
+    </cxp:dir>
+  </cxp:xml>
+  <cxp:system message="TEST 9: "/>
+  <cxp:xml name="result/test-dir-ÄÖÜ-file.xml">
+    <cxp:file name="result/test-dir-ÄÖÜ-dir.xml" verbosity="7"/>
+  </cxp:xml>
+</cxp:make>

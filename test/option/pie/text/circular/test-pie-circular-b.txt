@@ -1,0 +1,8 @@
+
+* B
+
+#import("test-pie-circular-a.txt")
+
+#import("test-pie-circular-b.txt")
+
+#import("test-pie-circular-c.txt")

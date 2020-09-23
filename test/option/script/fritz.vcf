@@ -1,0 +1,15 @@
+BEGIN:VCARD
+VERSION:2.1
+N:;Fritz;Eierschale
+FN:Fritz Eierschale
+EMAIL;PREF;INTERNET:fritz.eierschale@example.org
+EMAIL;INTERNET:eierschale@example.org
+ORG;ENCODING=QUOTED-PRINTABLE:H=FChnerkacke GmbH
+TITLE;ENCODING=QUOTED-PRINTABLE:Gesch=E4ftsleiter
+ADR;HOME;ENCODING=QUOTED-PRINTABLE:;;Eierschalensollbruchsteg 12;Irgen=
+ dwodadrau=DFen;;1010101
+LABEL;HOME;ENCODING=QUOTED-PRINTABLE:Eierschalensollbruchsteg 12=0D=0A=
+ Irgendwodadrau=DFen=0D=0A1010101
+X-GENDER:Male
+REV:20010816T131855Z
+END:VCARD

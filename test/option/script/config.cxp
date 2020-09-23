@@ -1,0 +1,152 @@
+<?xml version="1.0"?>
+<cxp:make xmlns:cxp="http://www.tenbusch.info/cxproc">
+  <cxp:system mkdir="result"/>
+  <cxp:system message="**** test-js-001: Run embedded Js code"/>
+  <cxp:plain name="result/test-js-001.txt">
+    <cxp:plain script="'Now is ' + Date();"/>
+  </cxp:plain>
+  <cxp:system message="**** test-js-002: script generated DOM ***"/>
+  <cxp:xml name="result/test-js-002.xml">
+    <cxp:script>
+      var objNow = Date();
+      var strResult = '&lt;pie&gt;';
+
+      for (i=0; i &lt; 10; i++) {
+      strResult += '&lt;p&gt;' + 'TEST ' + i + '&lt;/p&gt;' + '\n';
+      }
+      strResult += '&lt;p&gt;' + objNow + '&lt;/p&gt;' + '\n';
+      strResult += '&lt;/pie&gt;' + '\n';
+
+      strResult;
+    </cxp:script>
+  </cxp:xml>
+  <cxp:system message="**** test-js-003: search and Run Js code from file"/>
+  <cxp:plain name="result/test-js-003.txt">
+    <cxp:script name="test-js-2.js" search="yes"/>
+  </cxp:plain>
+  <cxp:system message="**** test-js-004: Run Js code from file with variables"/>
+  <cxp:plain name="result/test-js-004.txt">
+    <cxp:script name="test-js-3.js">
+      <cxp:variable name="strAA"/>
+      <cxp:variable name="strL" select="12"/>
+      <cxp:variable name="strQ" select="'AWERT'"/>
+    </cxp:script>
+  </cxp:plain>
+  <cxp:system message="**** test-js-004: Run Js code from file wit variables"/>
+  <cxp:plain name="result/test-js-005.txt">
+    <cxp:script name="test-js-4.js"/>
+  </cxp:plain>
+  <cxp:each name="%Q%">
+    <!-- xslt -->
+    <cxp:from>
+      <cxp:plain>
+        <cxp:script>
+"ABC"
+		</cxp:script>
+      </cxp:plain>
+    </cxp:from>
+    <cxp:system message="Step '%Q%'"/>
+  </cxp:each>
+  <cxp:plain name="result/test-js-006.txt">
+    <cxp:script>
+"ABCDEFGH"
+	</cxp:script>
+  </cxp:plain>
+  <cxp:plain name="result/test-js-007.txt">
+    <cxp:script name="test-js-9.js"/>
+  </cxp:plain>
+  <cxp:plain name="result/test-js-008.txt">
+    <cxp:script name="test-js-10.js"/>
+  </cxp:plain>
+  <cxp:system message="Run Classes test code: Array"/>
+  <cxp:plain name="result/test-js-009.txt">
+    <cxp:script>
+var arrT = ['A','B','C'];
+var arrB = arrT.concat('D');
+arrB.length;
+</cxp:script>
+  </cxp:plain>
+  <cxp:system message="Run Classes test code: Boolean"/>
+  <cxp:plain name="result/test-js-010.txt">
+    <cxp:script>
+var fT = new Boolean(true);
+
+fT.toString();
+</cxp:script>
+  </cxp:plain>
+  <!--
+<cxp:system message="Run Classes test code: Call"/>
+  <cxp:plain name="result/test-js-011.txt">
+    <cxp:script>
+</cxp:script>
+  </cxp:plain>
+<cxp:system message="Run Classes test code: Exception"/>
+  <cxp:plain name="result/test-js-012.txt">
+    <cxp:script>
+</cxp:script>
+  </cxp:plain>
+-->
+  <cxp:system message="Run Classes test code: Math"/>
+  <cxp:plain name="result/test-js-013.txt">
+    <cxp:script>
+var dT = Math.E; dT
+</cxp:script>
+  </cxp:plain>
+  <cxp:system message="Run Classes test code: Number"/>
+  <cxp:plain name="result/test-js-014.txt">
+    <cxp:script>
+var n = new Number(11);
+
+n.toString(16);
+</cxp:script>
+  </cxp:plain>
+  <cxp:system message="Run Classes test code: RegExp"/>
+  <cxp:plain name="result/test-js-015.txt">
+    <cxp:script>
+var re = /bcd/i;
+
+re.test('ABCDE');
+</cxp:script>
+  </cxp:plain>
+  <cxp:system message="Run Classes test code: String"/>
+  <cxp:plain name="result/test-js-016.txt">
+    <cxp:script>
+var strT = 'ABC';
+
+strT.concat('DEF');
+</cxp:script>
+  </cxp:plain>
+  <cxp:system message="Run Classes test code: XML"/>
+  <cxp:plain name="result/test-js-018.txt" valid="no">
+    <cxp:script>
+var dom = XML();
+var element1 = &lt;foo/&gt;;
+var element2 = &lt;bar/&gt;;
+
+element1.appendChild(element2);
+
+element1.toXMLString();
+</cxp:script>
+  </cxp:plain>
+  <cxp:system message="Run Classes test code: File"/>
+  <cxp:plain name="result/test-js-019.txt" valid="no">
+    <cxp:script>
+var F = new File();
+
+F.BaseName('/tmp/a.txt');
+</cxp:script>
+  </cxp:plain>
+  <cxp:system message="Run Classes test code: Iterator"/>
+  <cxp:plain name="result/test-js-020.txt" valid="no">
+    <cxp:script>
+</cxp:script>
+  </cxp:plain>
+  <cxp:system message="Run Classes test code: Date"/>
+  <cxp:xml name="result/test-js-021.xml">
+    <cxp:script>today = new Date();'&lt;foo&gt;' + today.toLocaleString() + '&lt;/foo&gt;'</cxp:script>
+  </cxp:xml>
+  <cxp:system message="Run Classes test code: Div"/>
+  <cxp:plain name="result/test-js-022.txt">
+    <cxp:script>encodeURI('http://www.abc.de/&#xE4;&#xF6;po &#xFC;p&#xDF;');</cxp:script>
+  </cxp:plain>
+</cxp:make>

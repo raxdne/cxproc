@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cxp:make xmlns:cxp="http://www.tenbusch.info/cxproc" log="3">
+  <cxp:system message="Read STL information as PIE XML"/>
+  <cxp:xml name="../../tmp/test-stl.xml">
+    <cxp:xml>
+      <cxp:file name="../../lib/librp/admesh/block.stl"/>
+    </cxp:xml>
+  </cxp:xml>
+</cxp:make>

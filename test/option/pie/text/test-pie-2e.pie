@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<pie version="0.1">
+  <section>
+    <h>Test header</h>
+    <p>Test</p>
+    <import name="test-pie-2d.pie"/>
+  </section>
+</pie>

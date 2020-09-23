@@ -1,0 +1,62 @@
+<?xml version="1.0"?>
+<cxp:make xmlns:cxp="http://www.tenbusch.info/cxproc" log="3">
+	<cxp:system mkdir="result"/>
+	<cxp:system message="*** test-xml-000: empty DOM ***"/>
+	<cxp:xml name="result/test-xml-000.xml"/>
+	<cxp:xml name="result/test-xml-000-000.xml">
+		<cxp:xml name="not-here.xml"/>
+	</cxp:xml>
+	<cxp:system message="*** test-xml-001-001: parsing of an existing XML file and save into a new XML file ***"/>
+	<cxp:xml name="result/test-xml-001-001.xml" encoding="US-ASCII">
+		<cxp:xml name="baustelle.pie"/>
+	</cxp:xml>
+	<cxp:system message="*** test-xml-001-002: parsing of an existing XML file and save into a new Plain file ***"/>
+	<cxp:plain name="result/test-xml-001-002.xml">
+		<cxp:xml name="baustelle.pie"/>
+	</cxp:plain>
+	<cxp:system message="*** test-xml-001-003: parsing of an existing Plain file as XML and save into a new XML file ***"/>
+	<cxp:xml name="result/test-xml-001-003.xml">
+		<cxp:plain name="baustelle.pie"/>
+	</cxp:xml>
+	<cxp:system message="*** test-xml-002-001: assemble a DOM from other XML files (generic XML import) ***"/>
+	<cxp:xml name="result/test-xml-002-001.xml">
+		<dummy>
+			<cxp:xml name="dummy-a.xml"/>
+			<cxp:xml name="not-here.xml"/>
+			<cxp:xml name="dummy-b.xml"/>
+			<cxp:xml name="not-here.xml"/>
+			<cxp:xml name="dummy-c.xml"/>
+		</dummy>
+	</cxp:xml>
+	<cxp:system message="*** test-xml-002-002: assemble a DOM from other XML files (generic XML import) ***"/>
+	<cxp:xml name="result/test-xml-002-002.xml">
+		<dummy>
+			<cxp:include name="dummy-a.xml"/>
+			<cxp:include name="not-here.xml"/>
+			<cxp:include name="dummy-b.xml"/>
+			<cxp:include name="not-here.xml"/>
+			<cxp:include name="dummy-c.xml"/>
+		</dummy>
+	</cxp:xml>
+	<cxp:system message="*** test-xml-003: new contexts ***"/>
+	<cxp:xml name="result/test-xml-003.xml">
+		<cxp:xml context="../..">
+			<cxp:xml context="test">
+				<cxp:xml context="xml">
+					<cxp:xml name="baustelle.pie"/>
+				</cxp:xml>
+			</cxp:xml>
+		</cxp:xml>
+	</cxp:xml>
+	<cxp:system message="*** test-xml-004: mix of nodes ***"/>
+	<cxp:xml name="result/test-xml-004.xml">
+		<ppp:abc xmlns:ppp="http://www.tenbusch.info/ppp">
+			<ppp:def>AAA</ppp:def>
+			<cxp:include name="dummy-a.xml"/>
+			<ppp:hij/>
+			<cxp:xml>
+				<cxp:info/>
+			</cxp:xml>
+		</ppp:abc>
+	</cxp:xml>
+</cxp:make>

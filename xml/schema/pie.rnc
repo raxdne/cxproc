@@ -1,0 +1,166 @@
+default namespace = ""
+namespace a = "http://relaxng.org/ns/compatibility/annotations/1.0"
+namespace rng = "http://relaxng.org/ns/structure/1.0"
+
+start =
+  element pie {
+    element copyright { text }?,
+    element abstract { text }?,
+    element author { text }?,
+    element version { text }?,
+    struct-choice,
+    meta?,
+    error?
+  }
+flag-choice = "yes" | "no"
+valid-attr = attribute valid { flag-choice }?
+enum-attr = attribute enum { flag-choice }?
+time-attrs =
+  attribute origin { text }?,
+  attribute done { text }?,
+  attribute date { text }?
+prio-attrs =
+  attribute impact { "1" | "2" }?,
+  attribute prio { "1" | "2" }?,
+  attribute effort { xsd:double }?,
+  attribute pidref { text }?
+view-attrs =
+  attribute hidden { "1" | "2" }?,
+  attribute color { text }?
+struct-choice =
+  (contact
+   | fig
+   | img
+   | import
+   | \list
+   | p
+   | pre
+   | section
+   | subst
+   | table
+   | tag
+   | target
+   | task)*
+meta =
+  element meta {
+    (error
+     | element tags { tag* })*
+  }
+error = element error { text }
+tag = element tag { text }
+subst =
+  element subst {
+    attribute string { text },
+    attribute to { text }
+  }
+p-choice = (text | link | b | u | i)*
+link =
+  element link {
+    attribute href { text },
+    attribute target { text }?,
+    text
+  }
+b = element b { text }
+u = element u { text }
+i = element i { text }
+p = element p { valid-attr, view-attrs, p-choice }
+h = element h { view-attrs, p-choice }
+\list =
+  element list {
+    valid-attr,
+    enum-attr,
+    ((\list | p)*)?
+  }
+import =
+  element import {
+    valid-attr,
+    (# TODO: add processing args
+     attribute name { text }
+     | text)
+  }
+pre = element pre { valid-attr, text }
+td = element td { p-choice }
+th = element th { p-choice }
+tr =
+  valid-attr,
+  element tr { (th | td)* }
+tbody = element tbody { tr* }
+thead = element thead { tr* }
+table =
+  element table {
+    # TODO: <rng:ref name="valid-attr"/>
+    thead?,
+    (tbody | tr*)
+  }
+img =
+  element img {
+    valid-attr,
+    attribute src { text }?,
+    attribute width { text }?
+  }
+fig = element fig { valid-attr, view-attrs, img, h }
+task =
+  element task {
+    valid-attr,
+    time-attrs,
+    prio-attrs,
+    view-attrs,
+    h,
+    ((contact | img | import | \list | p | pre | tag)*)?
+  }
+target =
+  element target {
+    valid-attr,
+    time-attrs,
+    prio-attrs,
+    view-attrs,
+    h,
+    ((tag | \list | p)*)?
+  }
+contact =
+  element contact {
+    valid-attr,
+    attribute idref { text }?,
+    ((img | import | \list | p | pre | tag)*)
+  }
+section =
+  element section {
+    valid-attr,
+    time-attrs,
+    prio-attrs,
+    view-attrs,
+    attribute type { text }?,
+    attribute account { text }?,
+    attribute assignee { text }?,
+    attribute pid { text }?,
+    attribute begin { text }?,
+    attribute end { text }?,
+    attribute state { "0" | "1" | "2" | "x" }?,
+    attribute class { "gantt-low" | "gantt-high" }?,
+    h?,
+    struct-choice
+  }
+# <rng:define name="phone"
+# </rng:define>
+# <rng:define name="mail"
+# </rng:define>
+# <rng:define name="work"
+# </rng:define>
+# <rng:define name="private"
+# </rng:define>
+# <rng:define name="mobile"
+# </rng:define>
+# <rng:define name="url"
+# </rng:define>
+# <rng:define name="vcard"
+# </rng:define>
+# <rng:define name="name"
+# </rng:define>
+# <rng:define name="title"
+# </rng:define>
+# <rng:define name="birthday"
+# </rng:define>
+# <rng:define name="br"
+# </rng:define>
+# <rng:define name="firstname"
+# </rng:define>
