@@ -344,7 +344,7 @@ RecognizeHashtags(xmlNodePtr pndArg, pcre2_code* preArg)
 
     /*!\todo check string to avoid regular expression injection */
 
-    pucT = xmlStrdup(RE_HASHTAG);
+    pucT = xmlStrdup(BAD_CAST RE_HASHTAG);
     pucT = xmlStrcat(pucT, BAD_CAST"|");
     pucT = xmlStrcat(pucT, pucREHashTag);
 
