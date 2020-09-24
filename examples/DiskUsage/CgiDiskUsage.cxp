@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cxp:make xmlns:cxp="http://www.tenbusch.info/cxproc" log="1" dir="pwd">
+  <cxp:subst string="%DIR%" argv="2" cgi="path" default="."/>
+  <cxp:subst string="%DEPTH%" argv="3" cgi="depth" default="5"/>
+  <cxp:subst string="%TAG%" now="Directory '%DIR%' at %Y-%m-%dT%H:%M:%S"/>
+  <cxp:plain name="-">
+    <cxp:plain>
+%TAG%
+
+</cxp:plain>
+    <cxp:plain>
+      <cxp:xml>
+	<cxp:dir verbosity="2" index="skip">
+          <cxp:dir name="%DIR%"/>
+	</cxp:dir>
+      </cxp:xml>
+      <cxp:xsl name="DiskUsage.xsl">
+	<cxp:variable name="flag_global" select="false()"/>
+	<cxp:variable name="depth" select="%DEPTH%"/>
+      </cxp:xsl>
+    </cxp:plain>
+  </cxp:plain>
+</cxp:make>

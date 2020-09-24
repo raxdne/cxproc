@@ -1,0 +1,33 @@
+
+** runmodes
+
+*** Command line
+
+s. man page of cxproc command or 
+
+#import("help.txt",pre,root)
+
+*** CGI
+
+s. substitutions
+
+URL like
+
+#begin_of_pre
+http://localhost:8181/cxproc/exe?file=doc/modules.txt&type=text-plain&cxp=PieUiDefault
+#end_of_pre
+
+appends all CGI variables of this call to the cxp:xsl
+#begin_of_pre
+ appendcgi="yes"
+#end_of_pre
+
+**** AJAX
+
+special in CGI
+
+encoded URL
+
+#begin_of_pre
+#end_of_pre
+

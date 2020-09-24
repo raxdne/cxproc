@@ -1,0 +1,198 @@
+** Download/Installation/Package
+
+Downloads are in file://../../../download
+
+The source code in is marked up for Doxygen (s. left menu frame).
+
+DTD files are file://../../../cxp.dtd and file://../../../pie.dtd 
+
+*** Linux
+
+Binary package for Ubuntu GNU/Linux is available (s. above).
+
+From source code archive you can use automake/autoconf the valid
+method on Linux:
+
+#begin_of_pre
+tar xzf cxproc.tar.gz
+cd cxproc
+./configure
+make install
+#end_of_pre
+
+The >>libpcre<< package and header files are needed for compilation.
+
+;sh build/prepare.sh
+
+;Some improvements in >>configure --with-package<< on options to
+exclude some stuff are required yet.
+
+The files for Debian package building are included (default
+configuration without MySQL, Audio and Image features).
+
+;Some handy procs and key bindings for development with GNU Emacs are
+in file://../../../build/config.el (>>Evaluate Buffer<<).
+
+*** MS Windows XP
+
+The MS Windows native binaries and contrib stuff are in a cxproc-*-win32.zip
+
++ unzip in a own directory
+
++ in Explorer connect extension .cxp with >>...\cxproc\bin\cxproc.exe<< (full path)
+
++ double click at any cxp file to perform the included XML
+  transformations (s. examples in contrib directory)
+
+The project files for Microsoft Visual C++ are included.
+
+Use of mingw/msys for compiling ist not supported yet because problems
+with creation of >>libxslt.dll<<.
+
+;http://www.c-plusplus.de/forum/viewtopic-var-t-is-143003.html
+
+;http://www.zlatkovic.com/libxml.en.html#binaries
+
+#begin_of_skip
+
+*** Eclipse
+
+Is a nice IDE, especially for refactoring and debugging. There is no
+supported configuration. Use the following hints for an on-the-fly
+integration. Make sure that CDT is installed (s. http://www.eclipse.org/cdt/)
+
+Some configuration tips
+http://www.cs.laurentian.ca/badams/c1047/eclipse-tutorials/configuration-tutorial.html
+
+my recommended Settings at "Window -- Preferences -- General -- Editors -- Text Editors"
+
+- "Displayed Tab width" to 8
+
+- line numbers
+
+Method A (recommended)
+
++ "make veryclean" and "touch Makefile" to create an empty Makefile
+
++ create a new "File -- New -- Standard Make C Project"
+
+-- Project Name "cxproc"
+
+-- Location is the directory
+
+-- "Finish" with defaults
+
++ now run "./configure" to create a valid Makefile
+
++ not all source files are displayed in Project Browser, First Build the project
+
+Method B
+
++ "make dist" to create a distributable package
+
++ create a new project "Standard C Make" from "Archive File"
+
++ Build the project
+
+#end_of_skip
+
+#begin_of_skip
+** Current bugs and limitations
+
+;- restricted to UTF-8 or Isolatin-1 encoding
+
+- some German conventions like quotes
+
+;- s. file://../../../tmp/src_html/pages.html
+
+- s. >>Source Code browser<<
+
+** History 
+
+s. in file://../../../history
+#end_of_skip
+
+** Contributions and Applications
+
+s. content of file://../../../contrib
+
++ there are configurations and stylsheets for a >>Personal Information
+Environment<< (PIE) with
+
+-- Todo
+
+-- Calendar
+
+-- Project planning and tracking
+
+-- writing an article 
+
+-- ...
+
+-- These simple pages are generated using the named features.
+
+;-- own experience with multi project work, family calendar, ...
+
++ PKG2
+s. file://../../pkg2/tmp/ and http://pkg2.tenbusch.info/
+
+** Corresponding software
+
+For Software development were used
+
+- GNU Compiler Collection http://www.gnu.org/software/gcc/
+
+- GNU Project Debugger http://www.gnu.org/software/gdb/
+
+- GNU Emacs http://www.gnu.org/software/emacs/
+
+- Valgrind http://valgrind.org/
+
+- >>Microsoft Visual C++ 2005 Express<< and >>Microsoft Visual C++ 2008 Express<< http://www.microsoft.com/germany/msdn/vstudio/products/express/visualc/default.mspx
+
+- lintian http://lintian.debian.org/
+
+- splint http://www.splint.org/
+
+- libxml2 http://xmlsoft.org/
+
+- libxslt http://xmlsoft.org/XSLT/
+
+- PTHREADS-WIN32 from http://sources.redhat.com/pthreads-win32/
+
+- PCRE http://www.pcre.org/
+
+- MySQL http://mysql.com/
+
+- ImageMagick http://www.imagemagick.org/
+
+- Apache HTTP Server http://httpd.apache.org/
+
+- Mozilla Firefox with Add-ons >>Webdeveloper<<, >>Firebug<< and >>HttpFox<<
+ http://www.mozilla.org/
+
+- libid3tag http://www.underbit.com/products/mad/
+
+- vorbis-tools http://www.vorbis.com/
+
+- Very useful tool in >>DLL hell MS Windows<< is http://www.dependencywalker.com/
+
+- >>Calendar Algorithms and the Church Year<< http://www.punctum.com/interest/caltime/index.de.html
+
+Some applications good for collaboration
+
+- GNU Emacs
+
+- Freemind http://freemind.sourceforge.net/wiki/index.php/Main_Page
+
+;- Ganttproject http://www.ganttproject.org/
+
+- GNU calendar http://www.gnu.org/software/gcal/gcal.html
+
+- Mozilla Firefox with extension >>Document Map<<
+
+Some useful tutorials 
+
+- http://www.selfhtml.org/
+
+- https://computing.llnl.gov/tutorials/pthreads/

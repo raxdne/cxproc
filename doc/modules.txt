@@ -1,0 +1,525 @@
+
+** Modules
+
+*** xhtml
+
+#begin_of_pre
+#end_of_pre
+
+*** xml
+
+Encode output according attribute
+
+#begin_of_pre
+<cxp:xml name="-" encoding="US-ASCII">
+  ...
+</cxp:xml>
+#end_of_pre
+
+include XML files before substitution
+
+#begin_of_pre
+<cxp:xml name="-">
+  <cxp:include name="test.cxp"/>
+</cxp:xml>
+#end_of_pre
+
+#begin_of_pre
+#end_of_pre
+
+cache
+
+to insert attributes flocator and fxpath to all elements of a read xml file
+#begin_of_pre
+locator="yes"
+#end_of_pre
+
+*** Plain
+
+#begin_of_pre
+  <cxp:plain name="abc.txt" encoding="iso-8859-1">
+TEST ENCODING: ABC ÖÄÜß DEF
+  </cxp:plain>
+#end_of_pre
+
+*** xsl
+
+inserts cxp:variables to the global XSL DOM as new xsl:variable (quick
+and dirty)
+#begin_of_pre
+ <cxp:xsl insertvars="yes"/>
+#end_of_pre
+default is no, because of advantage of XSL internal declaration
+
+*** Directory
+
+parser for filesystem directories
+
+#begin_of_pre
+<cxp:xml>
+  <cxp:dir verbosity="3" depth="1">
+    <cxp:dir name="test"/>
+  </cxp:dir>
+</cxp:xml>
+#end_of_pre
+
+reading meta information
+
+different level of verbosity and depth
+
+index
+
+*** PIE
+
+s. file://../contrib/pie/README.txt
+
+pie element with simple file import
+
+#begin_of_pre
+<cxp:xml name="../../tmp/test-pie-1.pie">
+  <cxp:pie>
+    <import name="test-pie-1.txt"/>
+  </cxp:pie>
+</cxp:xml>
+#end_of_pre
+
+import with attributes and transformation into HTML
+
+attributes
+
+- validation
+
+- date
+
+- offset
+
+- url
+
+- figure
+
+- italics
+
+- xpath
+
+- tags
+
+- hidden
+
+#begin_of_pre
+<cxp:xhtml name="../../tmp/test-pie-6.html">
+  <cxp:xml name="../../tmp/test-pie-6.pie">
+    <cxp:pie url="yes" figure="yes" date="yes" xpath="yes">
+      <import name="test-pie-6.txt"/>
+    </cxp:pie>
+  </cxp:xml>
+  <cxp:xsl name="Validate.xsl"/>
+  <cxp:xsl name="pie2html.xsl"/>
+</cxp:xhtml>
+#end_of_pre
+
+more complex import with nested configuration
+
+#begin_of_pre
+<cxp:xhtml name="../../tmp/test-pie-9.html">
+  <cxp:xml name="../../tmp/test-pie-9.pie">
+    <cxp:pie url="yes" figure="no" date="yes" xpath="yes">
+      <import name="../../tmp/test-pie-8.pie">
+        <xsl xpath="/pie/section[1]/section[2]"/>
+      </import>
+      <import type="cxp">
+        <xml>
+          <xml name="none.mm"/>
+          <xsl name="mm2pie.xsl"/>
+        </xml>
+      </import>
+    </cxp:pie>
+    <cxp:xsl name="Validate.xsl"/>
+  </cxp:xml>
+  <cxp:xsl name="pie2html.xsl"/>
+</cxp:xhtml>
+#end_of_pre
+
+
+#begin_of_pre
+<cxp:xml name="../../tmp/test-pie-10.pie">
+  <cxp:pie url="no" figure="no" date="no">
+    <import name="test-pie-10.txt" type="line"/>
+    <import name="../calendar/feiertage.gcal" type="line"/>
+  </cxp:pie>
+</cxp:xml>
+#end_of_pre
+
+different types of plain files
+
+#begin_of_pre
+<cxp:xml name="../../tmp/test-pie-11.pie">
+  <cxp:pie url="no" figure="no" date="no" tags="yes">
+    <import name="test-pie-11.txt" type="csv"/>
+    <!-- default separator -->
+    <import name="test-pie-11b.txt" type="csv" sep=" *:: *"/>
+    <import name="../calendar/feiertage.gcal" type="line"/>
+    <import name="test-csv-1.csv" type="csv"/>
+  </cxp:pie>
+</cxp:xml>
+#end_of_pre
+
+concatenation of plain files
+
+#begin_of_pre
+  <cxp:xml name="../../tmp/test-pie-12.pie">
+    <cxp:pie url="no" figure="no" date="no">
+      <import name="test-pie-12a.txt"/>
+      <import name="test-pie-12b.txt"/>
+    </cxp:pie>
+  </cxp:xml>
+#end_of_pre
+
+Mix of files and strings
+
+#begin_of_pre
+  <cxp:xml name="../../tmp/test-pie-13.pie">
+    <cxp:pie>
+      <cxp:plain>
+		* FGHI
+	    </cxp:plain>
+      <cxp:plain>
+		** JKLMÖÄÜßHH
+	    </cxp:plain>
+      <cxp:plain name="test-pie-1.txt"/>
+      <cxp:plain>
+		ABCDE
+	    </cxp:plain>
+      <cxp:plain name="test-pie-12b.txt"/>
+    </cxp:pie>
+  </cxp:xml>
+#end_of_pre
+
+
+#begin_of_pre
+  <cxp:xml name="../../tmp/test-pie-13b.pie">
+    <cxp:pie url="yes" figure="no" date="no">
+      <import name="test-pie-13.txt" format="log"/>
+    </cxp:pie>
+  </cxp:xml>
+#end_of_pre
+
+Logfile imports per line and per paragraph
+
+#begin_of_pre
+  <cxp:xml name="../../tmp/test-pie-14.pie">
+    <cxp:pie url="yes" date="yes" figure="no">
+      <import name="test-14a.cal" format="log" type="line"/>
+      <import name="test-14b.cal" format="log"/>
+    </cxp:pie>
+  </cxp:xml>
+#end_of_pre
+
+Logfile import per paragraph and DOM
+
+#begin_of_pre
+  <cxp:xml name="../../tmp/test-pie-14b.pie">
+    <cxp:pie url="yes" figure="no" date="yes">
+      <import name="test-pie-13.txt" format="log"/>
+      <import name="test-pie-14.pie"/>
+    </cxp:pie>
+  </cxp:xml>
+#end_of_pre
+
+Stylesheet shortcut as XPath
+
+#begin_of_pre
+  <cxp:xml name="../../tmp/test-pie-15.pie">
+    <cxp:xml name="../../tmp/test-pie-6.pie"/>
+    <cxp:xsl xpath="/pie/section[1]/section[1]"/>
+  </cxp:xml>
+#end_of_pre
+
+
+#begin_of_pre
+  <cxp:xhtml name="../../tmp/test-pie-16.html">
+    <cxp:xml>
+      <cxp:pie tags="no">
+        <import name="test-pie-16.pie"/>
+      </cxp:pie>
+    </cxp:xml>
+    <cxp:xsl name="pie2html.xsl">
+      <cxp:variable name="flag_tags" select="false()"/>
+    </cxp:xsl>
+  </cxp:xhtml>
+#end_of_pre
+
+
+#begin_of_pre
+  <cxp:xml name="../../tmp/test-pie-17.pie">
+    <cxp:pie tags="no" import="yes">
+      <import name="test-pie-17.pie"/>
+    </cxp:pie>
+  </cxp:xml>
+#end_of_pre
+
+
+#begin_of_pre
+  <cxp:xml name="../../tmp/test-pie-18.pie">
+    <cxp:pie url="yes" figure="no" date="yes" import="yes">
+      <import name="test-pie-9.txt"/>
+    </cxp:pie>
+  </cxp:xml>
+#end_of_pre
+
+import from plain text node
+
+#begin_of_pre
+  <cxp:xml name="../../tmp/test-pie-19.pie">
+    <cxp:pie url="yes" figure="no" date="yes" import="yes">
+      <import>
+
+* ABC
+
+** DDD
+
+*** EEE
+
+fksjhfksh ökäöläröwer
+
+
+      </import>
+    </cxp:pie>
+  </cxp:xml>
+#end_of_pre
+
+import from logformatted text node
+
+#begin_of_pre
+  <cxp:xml name="../../tmp/test-pie-19b.pie">
+    <cxp:pie url="yes" figure="no" date="yes" import="yes">
+      <import type="log">
+20101103 AAA
+20101105 BBB
+20101107 CCC
+20101109 DEF
+      </import>
+    </cxp:pie>
+  </cxp:xml>
+#end_of_pre
+
+
+#begin_of_pre
+  <cxp:xml name="../../tmp/test-pie-21.pie">
+    <cxp:pie url="yes" figure="no" date="yes" import="yes">
+      <section>
+        <h>Empty files</h>
+        <import name="test-pie-21.txt"/>
+        <import name="test-pie-21b.txt"/>
+      </section>
+    </cxp:pie>
+  </cxp:xml>
+  <cxp:xml name="../../tmp/test-pie-22.pie">
+    <cxp:pie url="yes" figure="no" date="yes" import="yes">
+      <import name="test-pie-22.txt"/>
+    </cxp:pie>
+  </cxp:xml>
+#end_of_pre
+
+
+#begin_of_pre
+  <cxp:xml name="../../tmp/test-pie-23a.pie">
+    <cxp:pie url="no" figure="no" date="no">
+      <import name="test-pie-10.txt" type="line" match="sec"/>
+    </cxp:pie>
+  </cxp:xml>
+  <cxp:xml name="../../tmp/test-pie-23b.pie">
+    <cxp:pie url="no" figure="no" date="no">
+      <import name="test-pie-10.txt" type="line" xmatch="sec"/>
+    </cxp:pie>
+  </cxp:xml>
+#end_of_pre
+
+Import via time value, environment, command line arguments or CGI
+
+#begin_of_pre
+  <cxp:xml name="../../tmp/test-pie-23a.pie">
+    <cxp:pie url="no" figure="no" date="no">
+      <import env="SERVER_SOFTWARE" default="'Unknown'"/>
+      <import now="** %Y-%m-%d"/>
+      <import cgi="id" default="'ABC'"/>
+    </cxp:pie>
+  </cxp:xml>
+#end_of_pre
+
+validate
+
+*** Calendar
+
+control via environment
+
+#begin_of_pre
+CXP_DATE=20141224
+# according to ISO 6709
+CXP_COORDINATE=5225+01234/
+CXP_TZ=CET
+TZ=CET
+#end_of_pre
+
+offset
+
+#begin_of_pre
+#end_of_pre
+
+columns
+
+type
+
+*** Petrinet
+
+**** Pathnet
+
+#begin_of_pre
+#end_of_pre
+
+**** Pathtable
+
+#begin_of_pre
+#end_of_pre
+
+*** System
+
+#begin_of_pre
+<?xml version="1.0" encoding="UTF-8"?>
+<cxp:make xmlns:cxp="http://www.tenbusch.info/cxproc">
+  <cxp:system message="Call a shell command"/>
+  <cxp:system call="echo &quot;* Test &quot; &gt; ../../tmp/test-system-1.txt"/>
+  <cxp:system message="Call a shell command with different encoding"/>
+  <cxp:system call="echo &quot;* Test ÄÖÜ &quot; &gt; ../../tmp/test-system-öü.txt"/>
+  <cxp:system message="Call copy command without target"/>
+  <cxp:copy from="rwz.xxx"/>
+  <cxp:system message="Call copy command without from"/>
+  <cxp:copy to="/tmp/"/>
+  <cxp:system message="Call copy command with non-existing source file"/>
+  <cxp:copy from="rwz.xxx" to="/tmp"/>
+  <cxp:system message="Call copy command with non-existing target directory"/>
+  <cxp:copy from="debug.gdb" to="/tmp-2/"/>
+  <cxp:system message="Call copy command target directory only"/>
+  <cxp:copy from="debug.gdb" to="/tmp"/>
+  <cxp:system message="Call copy command source path and target directory only"/>
+  <cxp:copy from="../test.mak" to="/tmp"/>
+  <cxp:system message="Call copy command new filename in target directory"/>
+  <cxp:copy from="debug.gdb" to="/tmp/xyz.gdb"/>
+  <cxp:system message="Call copy command into an new created directory"/>
+  <cxp:system mkdir="/tmp/abc/def/hij/klm"/>
+  <cxp:copy from="debug.gdb" to="/tmp/abc/def/hij/klm/xyz.gdb"/>
+  <cxp:system message="Call copy command with search option"/>
+  <cxp:copy from="pie.css" to="../..//tmp" search="yes"/>
+  <cxp:system message="Create a new directory"/>
+  <cxp:system mkdir="../../tmp/AAAääB/mmxnv"/>
+  <cxp:system message="Test finished"/>
+</cxp:make>
+#end_of_pre
+
+*** SQL (optional)
+
+multiple queries with plain result
+
+#begin_of_pre
+<cxp:plain name="../../tmp/test-db-4.txt">
+  <cxp:db name="../../tmp/test-db-1.db3"/>
+  <cxp:query>SELECT * FROM test;</cxp:query>
+  <cxp:query>SELECT * FROM test;</cxp:query>
+</cxp:plain>
+#end_of_pre
+
+single query with XML result only
+
+#begin_of_pre
+<cxp:xml name="../../tmp/test-db-6.xml">
+  <cxp:db name="../../tmp/test-db-6.db3"/>
+  <cxp:query>SELECT name,size FROM directory;</cxp:query>
+</cxp:xml>
+#end_of_pre
+
+insert from plain text
+
+#begin_of_pre
+  <cxp:db name="../../tmp/test.db3" append="no" write="yes">
+    <cxp:plain>
+CREATE TABLE IF NOT EXISTS test(number int, dummy text);
+INSERT INTO test(number,dummy) VALUES (1,"TEST");
+INSERT INTO test(number,dummy) VALUES (2,"TEST");
+</cxp:plain>
+  </cxp:db>
+#end_of_pre
+
+insert from XML text
+
+#begin_of_pre
+  <cxp:db name="../../tmp/test.db3" write="yes">
+    <test>
+      <entry>
+        <id>ABC</id>
+        <name>DB test only</name>
+        <count type="int">12345</count>
+      </entry>
+      <entry>
+        <id>DEF</id>
+        <name>DBB test only</name>
+        <count>999</count>
+      </entry>
+      <entry>
+        <id>HIJ</id>
+        <name>DBBB test only</name>
+        <count>999111</count>
+      </entry>
+    </test>
+  </cxp:db>
+#end_of_pre
+
+input from directory parser
+
+#begin_of_pre
+<db name="t-4.db3">
+  <dir verbosity="2" index="skip" hidden="no">
+    <dir depth="100" name="/usr"/>
+  </dir>
+</db>
+#end_of_pre
+
+*** Image (optional)
+
+#begin_of_pre
+#end_of_pre
+
+*** Rapid Prototyping
+
+#begin_of_pre
+#end_of_pre
+
+*** Script (optional)
+
+*** ZIP
+
+archive and compress files
+
+#begin_of_pre
+  <cxp:zip name="abc.zip" context="../../test">
+    <cxp:xml>
+      <cxp:dir>
+        <cxp:dir name="pie" depth="2"/>
+      </cxp:dir>
+    </cxp:xml>
+  </cxp:zip>
+#end_of_pre
+
+set base directory for in ZIP paths (not current directory only, use the context attribute)
+
+archive and compress files, map content to new filenames ()
+
+#begin_of_pre
+  <cxp:zip name="def.zip" level="3" context="../../test">
+    <file name="plain/config-single.cxp"/>
+    <file name="plain/config.cxp" map="mapped/t-1c-1.cxp"/>
+    <file name="plain/test-content-utf16be.txt" map="mapped/t-1c-3.cxp"/>
+  </cxp:zip>
+#end_of_pre
+
+filter files to archive with complex rules using XSLT
+
+archive files in an alternative structure without copying them

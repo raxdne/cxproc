@@ -1,0 +1,130 @@
+
+** Scripting ECMAScript
+
+;JavaScript mit XML als Verzeichnisbaum http://directory.google.com/Top/Computers/Programming/Languages/JavaScript/Scripts/Site_Navigation/
+http://www.zzee.com/ahl.inf/Javascript-directory-tree.html
+http://www.jsh.de/treeview/index.htm#href=treeview.htm
+http://www.cs.ucla.edu/~heng/JSCookTree/demo.html
+
+>>nodejs.org<< Server sided JavaScript >>http://nodejs.org/<< (VP8)
+
+>>Duktape<< http://www.duktape.org/
+
+*** use cases
+
+- XML creation (from plain text)
+
+- plain XML modifications before parsing
+
+- regexp tasks in XML/XSL
+
+- preprocessor-like embedding in XML/XHTML, JS, CSS
+
+- JSON generator and tests
+
+- automatic tests
+
+;binding/mapping of DOM from ECMAScript <-> libxml2 - to avoid large buffer handling
+
+*** Interpreter
+
+command line
+
+#begin_of_pre
+cxproc test.js
+
+cxproc test.js abc.xsl
+#end_of_pre
+
+- Arg.GetValue()  .GetCount()  .GetList()
+
+- Cgi.GetValue()
+
+- Env.GetValue()
+
+*** Embedded
+
+**** Script in plain text
+
+#begin_of_pre
+* Test Script
+
+Execute my script
+
+#begin_of_script
+var strResult = '';
+
+for (i=0; i < 10; i++) {
+  strResult += ' ' + i + '\n';
+}
+
+strResult;
+#end_of_script
+
+#end_of_pre
+
+
+**** Script element
+
+script by file
+
+#begin_of_pre
+<cxp:xml>
+  <cxp:script name="buildDOM.js" search="yes"/>
+</cxp:xml>
+#end_of_pre
+
+script by text node (like an anonymous function?)
+
+#begin_of_pre
+<cxp:script>
+function abc (strArg) {
+  return 'AAA' + strArg + 'CCC';
+}
+
+abc('YYY');
+</cxp:script>
+#end_of_pre
+
+script by text node with internal cxp node
+
+#begin_of_pre
+<cxp:script>
+var strXML = <cxp:xml name="template.xml"/>;
+
+strXML.replace(...);
+</cxp:script>
+#end_of_pre
+
+
+**** Script attribute
+
+in cxp files
+
+#begin_of_pre
+<cxp:subst from="%STRING%" script="'AAA' + 'BBB';"/>
+
+<cxp:plain script="'AAA' + 'BBB';"/>
+#end_of_pre
+
+in XSL files too confusing ??
+
+**** replace C code by internal script code (Bytecode?)
+
+*** Extensions
+
+load "autoexec.js" by default
+
+- additional Classes
+
+- utility functions
+
+**** Classes
+
+s. "todo.mm"
+
+*** Problems
+
+- multithreading One Context per Thread?
+
+- error handling

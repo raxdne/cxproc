@@ -1,0 +1,101 @@
+.ig
+Copyright (C) 2006,2007,2008 by Alexander Tenbusch
+
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2, or (at your option)
+any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software Foundation,
+Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.  
+..
+.TH CXPROC 1 "31 December 2007" "cxproc Version 0.5"
+.SH NAME
+cxproc \- Configurable Xml PROCessor
+.SH SYNOPSIS
+.nr a \n(.j
+.ad l
+.nr i \n(.i
+.in +\w'\fBcxproc 'u
+.ti \niu
+.\" .
+.B cxproc
+.de OP
+.ie \\n(.$-1 .RI "[\ \fB\\$1\fP" "\\$2" "\ ]"
+.el .RB "[\ " "\\$1" "\ ]"
+..
+.RI "[pie2html.xsl .\|.\|.\ ] < test.txt"
+.PP
+.\" .
+.B cxproc
+.de OP
+.ie \\n(.$-1 .RI "[\ \fB\\$1\fP" "\\$2" "\ ]"
+.el .RB "[\ " "\\$1" "\ ]"
+..
+.RI "/tmp/abc .\|.\|."
+.PP
+.\" .
+.B cxproc
+.de OP
+.ie \\n(.$-1 .RI "[\ \fB\\$1\fP" "\\$2" "\ ]"
+.el .RB "[\ " "\\$1" "\ ]"
+..
+.RI "2007 [.\|.\|.\ ]"
+.PP
+.\" .
+.B cxproc
+.de OP
+.ie \\n(.$-1 .RI "[\ \fB\\$1\fP" "\\$2" "\ ]"
+.el .RB "[\ " "\\$1" "\ ]"
+..
+.RI "config.cxp"
+.PP
+.\" .
+.RI "any other argument shows a short help message"
+.PP
+.\" .
+.ad \na
+.SH DESCRIPTION
+The
+.B cxproc
+program has different operating modes. When calling
+.B cxproc
+command without any argument it reads the stdin as plain text file and prints a XML formatted output to stdout.
+.PP
+.\" .
+If the arguments are directory paths the program prints a XML listing of the directory.
+.PP
+.\" .
+When the first argument is an integer larger than 1900 you will get a calendar in XML.
+.PP
+.\" .
+For more complex transformations write make-like instructions into a 
+.B cxp
+file.
+.PP
+.\" .
+The elements of these XML format you will find in the distributed DTDs and samples.
+.PP
+.\" .
+.SH ENVIRONMENT
+.TP
+.SM
+.B CXP_PATH
+A semicolon separated list of directories in which to search for the given 
+.B xsl
+files.
+.SH NOTES
+Additional informatations are at 
+.B http://www.tenbusch.info/cxproc
+.
+.\" .SH "SEE ALSO"
+.\" .
+.\" Local Variables:
+.\" mode: cxproc
+.\" End:

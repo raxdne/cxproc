@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!DOCTYPE cxp:make SYSTEM "file:///H:/opt/cxproc/xml/cxp.dtd">
+<cxp:make xmlns:cxp="http://www.tenbusch.info/cxproc" log="0">
+  <cxp:description>This configuration writes Script text for a Directory Tree Mirror</cxp:description>
+  <!--  -->
+  <cxp:subst string="%DIR%" argv="2" dir="pwd"/>
+  <!--  -->
+  <cxp:subst string="%DIRTARGET%" argv="3" default="mkdir c:\temp\test\"/>
+  <!--  -->
+  <cxp:system message="List Directory '%DIR%' ..."/>
+
+  <cxp:plain name="-">
+    <cxp:xml>
+      <cxp:dir verbosity="0">
+        <cxp:dir name="%DIR%"/>
+      </cxp:dir>
+    </cxp:xml>
+    <cxp:xsl name="ListDirectories.xsl">
+      <cxp:variable name="str_cmd" select="'%DIRTARGET%'"/>
+      <cxp:variable name="separator" select="'\'"/>
+    </cxp:xsl>
+  </cxp:plain>
+  <!--  -->
+</cxp:make>
