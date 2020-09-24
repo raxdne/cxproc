@@ -1,0 +1,225 @@
+
+** Control structures
+
+*** cxp:make
+
+using attributes
+
+#begin_of_pre
+<?xml version="1.0" encoding="UTF-8"?>
+<cxp:make xmlns:cxp="http://www.tenbusch.info/cxproc" context="C:\temp">
+<!-- code -->
+</cxp:make>
+#end_of_pre
+
+>>context="C:\temp"<< changes the filesystem context to the named
+directory. All following intructions and paths are related to this
+context.
+
+#begin_of_pre
+<?xml version="1.0" encoding="UTF-8"?>
+<cxp:make xmlns:cxp="http://www.tenbusch.info/cxproc" log="2" dir="pwd">
+<!-- code -->
+</cxp:make>
+#end_of_pre
+
+>>dir="pwd"<< sets the directory context of this make block to the
+current working directory. Default is the basedir of the cxp file
+itself.
+
+>>readonly="yes"<< sets cxproc 
+
+>>thread="yes"<< sets cxproc, all make childs as threads
+
+*** cxp:subst
+
+There is a rather simple substitution feature. A static string in all nodes and attributes will be replaced
+by the resulting text or XML DOM.
+
+It is possible to set a default attribute with the fallback value.
+
+There are some different encodings (base64, rfc1738).
+
+**** plain text
+
+This is the simplest substition
+
+#begin_of_pre
+  <cxp:subst string="FSF" to="Free Software Foundation"/>
+#end_of_pre
+
+The next substition use the result of a cxp:plain element
+
+#begin_of_pre
+  <cxp:subst string="%TEXT%">
+    <cxp:plain>This is a test!</cxp:plain>
+  </cxp:subst>
+#end_of_pre
+
+#begin_of_pre
+  <cxp:subst string="%TEXT%">
+    <cxp:plain name="abc.txt"/>
+  </cxp:subst>
+#end_of_pre
+
+**** argv
+
+Using the following syntax its possible to access the numbered command line arguments
+
+#begin_of_pre
+  <cxp:subst string="AA" argv="1"/>
+  <cxp:subst string="%2%" argv="2"/>
+  <cxp:subst string="%UMLAUT%" argv="3"/>
+  <cxp:subst string="%DEFAULT%" argv="44" default="OK/ÖÄÜ/33 44/" escaping="yes"/>
+#end_of_pre
+
+**** env
+
+Its possible to read the value of environment variables
+
+#begin_of_pre
+  <cxp:subst string="%HOME%" env="HOME" default="c:/temp"/>
+#end_of_pre
+
+**** cgi
+
+Using the following syntax its possible to access the named arguments of CGI or command line
+
+#begin_of_pre
+  <cxp:subst string="%CGITEST%" cgi="test" default="TEST"/>
+#end_of_pre
+
+The command line syntax is
+
+#begin_of_pre
+cxproc test=ABC
+#end_of_pre
+
+The URL syntax is
+
+#begin_of_pre
+/cxproc/exe?test=ABC
+#end_of_pre
+
+**** dir
+
+There are different ways to handle directory paths.
+
+existing filename substitutes to parent directory
+
+#begin_of_pre
+  <cxp:subst string="%SOURCEDIR%" dir="c:/temp/test/abc.txt"/>
+#end_of_pre
+
+directory name substitutes to parent directory
+
+#begin_of_pre
+  <cxp:subst string="%SOURCEDIR%" dir="c:/temp/test"/>
+#end_of_pre
+
+symbolic values
+
+#begin_of_pre
+  <cxp:subst string="%PWD%" dir="pwd"/>
+  <cxp:subst string="%BASEDIR%" dir="ofFile"/>
+#end_of_pre
+
+Dialog for interactive selection of file or folder:
+
+#begin_of_pre
+  <cxp:subst string="%FILE%" filename="dialog"/>
+  <cxp:subst string="%FOLDER%" dir="dialog"/>
+#end_of_pre
+
+**** filename
+
+**** MIME type
+
+**** now (system time)
+
+#begin_of_pre
+  <cxp:subst string="%y" now="Year"/>
+  <cxp:subst string="%m" now="NumOfMonth"/>
+  <cxp:subst string="%w" now="NumOfWeek"/>
+  <cxp:subst string="%d" now="DayOfMonth"/>
+  <cxp:subst string="%H" now="Hour"/>
+  <cxp:subst string="%M" now="Minute"/>
+  <cxp:subst string="%S" now="Second"/>
+  <cxp:system message="now is %H:%M:%S at %m/%d/%y in week %w"/>
+#end_of_pre
+
+With a single format string
+
+#begin_of_pre
+  <cxp:subst string="%TAG%" now="now is %H:%M:%S at %m/%d/%Y in week %w"/>
+#end_of_pre
+
+**** script
+
+**** combined values
+
+#begin_of_pre
+<?xml version="1.0"?>
+<cxp:make xmlns:cxp="http://www.tenbusch.info/cxproc">
+  <!--  -->
+  <cxp:subst string="%NESTED%" to="My HOME is %HOME%"/>
+  <!--  -->
+  <cxp:subst string="%HOMECGI%" cgi="HOME" default="c:/cgi_temp"/>
+  <cxp:subst string="%EMPTY%" env="EMPTY"/>
+  <!--  -->
+</cxp:make>
+#end_of_pre
+
+**** processing order
+
+
+*** cxp:include
+
+Its possible to include the XML DOM of existing XML sources.
+
+#begin_of_pre
+  <cxp:include name="abc.cxp"/>
+#end_of_pre
+
+parse the value of CGI parameter >>content<< as XML and replace this node by the resulting DOM
+
+#begin_of_pre
+  <cxp:include cgi="content"/>
+#end_of_pre
+
+same effect with attributes >>argv<< and >>env<<
+
+*** Evaluation
+
+#begin_of_pre
+#end_of_pre
+
+*** Validation
+
+elements xml, xhtml, xsl, plain and each can be deactivated by flag attribute >>valid<<
+
+#begin_of_pre
+<cxp:xml name="test.xml" valid="no">
+...
+</cxp:xml>
+#end_of_pre
+
+the automatic validation of cxp:* elements can be deactivated by flag attribute >>validate<<
+
+#begin_of_pre
+<cxp:xml name="test.xml" validate="no">
+...
+</cxp:xml>
+#end_of_pre
+
+
+*** Dump
+
+elements make, xml, xhtml, xsl and each can be dumped by flag attribute >>dump<< into log
+
+#begin_of_pre
+<cxp:xml name="test.xml" dump="yes">
+...
+</cxp:xml>
+#end_of_pre
+

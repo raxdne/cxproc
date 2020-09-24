@@ -1,0 +1,159 @@
+
+; 
+
+
+* cxproc nodes
+
+** classes
+
+*** control nodes
+(Flow control)
+
+- cxp:make
+
+- cxp:thread
+
+- cxp:foreach
+
+*** store nodes
+(save as named file or cache)
+
+- cxp:plain
+
+- cxp:xml
+
+- cxp:xhtml
+
+*** generate nodes
+(parser to DOM)
+
+- cxp:dir
+
+- cxp:file
+
+- cxp:pie
+
+- cxp:image
+
+- cxp:calendar
+
+- cxp:sql
+
+- cxp:plain
+
+- cxp:xml
+
+- cxp:xhtml
+
+*** content nodes
+(to copy)
+
+- cxp:plain
+
+- cxp:xml
+
+- cxp:xhtml
+
+*** transform nodes
+(Stylesheet and petrinet transformations)
+
+- cxp:xsl
+
+- cxp:subst
+
+- cxp:xml/@xpath
+
+- cxp:dir/@match
+
+- cxp:dir/@grep
+
+- cxp:pathnet
+
+- cxp:pathtable
+
+*** system nodes
+
+- cxp:copy
+
+*** info nodes
+
+- cxp:description
+
+- cxp:system/@message
+
+- cxp:info
+
+** configurations
+
+*** control nodes
+
+*** generate nodes
+
+*** transform nodes
+
+*** content nodes
+
+*** store nodes
+
+*** A
+
+- control node
+
+-- control node
+
+--- store node
+
+---- generate node
+
+---- transform node
+
+--- store node
+
+---- content node
+
+-- control node
+
+--- store node
+
+---- generate node
+
+---- generate node
+
+----- store node
+
+------ generate node
+
+------ generate node
+
+------ transform node
+
+---- transform node
+
+---- transform node
+
+-- control node
+
+--- store node
+
+---- generate node
+
+---- generate node
+
+---- transform node
+
+--- store node
+
+---- transform node
+
+----- content node
+
+----- content node
+
+*** B
+
+*** C
+
+*** D
+
+*** E
+
