@@ -1,13 +1,13 @@
 #!/bin/sh
 #
-# (p) 2016 A. Tenbusch
+# (p) 2016,2020 A. Tenbusch
 #
 
 DEBUG=1
 
-# Required tools: Subversion, CMake, 7-ZIP
+# Required tools: git, CMake, 7-ZIP
 
-PREFIX=$(uname -i)
+PREFIX=../$(uname -i)
 
 PREFIX=$PREFIX"-"$(uname -o | tr '[:upper:]' '[:lower:]' | tr '[:punct:]' '-')
 
@@ -40,19 +40,19 @@ test -d $DIR_WWW || mkdir -p $DIR_WWW
 
 #test -f build/jquery-urls.txt && wget -c --directory-prefix=$DIR_WWW --force-directories -i build/jquery-urls.txt
 
-test -d $DIR_WWW/pie || svn co http://arrakis.fritz.box:8187/www/html/trunk $DIR_WWW/pie
+#test -d $DIR_WWW/pie || svn co http://arrakis.fritz.box:8187/www/html/trunk $DIR_WWW/pie
 
-test -d $DIR_WWW/Documents || svn co http://arrakis.fritz.box:8187/cxproc/trunk/contrib/pie/www $DIR_WWW/Documents
+#test -d $DIR_WWW/Documents || svn co http://arrakis.fritz.box:8187/cxproc/trunk/contrib/pie/www $DIR_WWW/Documents
 
-test -d $DIR_TEST || svn co http://arrakis.fritz.box:8187/cxproc/trunk/test $DIR_TEST
+#test -d $DIR_TEST || svn co http://arrakis.fritz.box:8187/cxproc/trunk/test $DIR_TEST
 
-test -d $DIR_DATA || svn co http://arrakis.fritz.box:8187/cxproc/trunk/contrib/pie/www/Test $DIR_DATA
+#test -d $DIR_DATA || svn co http://arrakis.fritz.box:8187/cxproc/trunk/contrib/pie/www/Test $DIR_DATA
 
-test -d src || ln -s ../trunk/src
+#test -d src || ln -s ../trunk/src
 
 if [ ! -d $PREFIX/etc ] ; then
     mkdir -p $PREFIX/etc/apache2/sites-available
-    svn export http://arrakis.fritz.box:8187/cxproc/trunk/contrib/pie/browser-jquery/cxproc-jquery.conf $PREFIX/etc/apache2/sites-available/
+    #svn export http://arrakis.fritz.box:8187/cxproc/trunk/contrib/pie/browser-jquery/cxproc-jquery.conf $PREFIX/etc/apache2/sites-available/
 fi
 
 #cmake-gui build/cmake &

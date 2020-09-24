@@ -81,7 +81,7 @@
 ; (setenv "CXP_DATE" "200109")
 
 (setq prefix
-      (concat (file-name-directory (buffer-file-name)) "..")
+      (concat (file-name-directory (buffer-file-name)) "../..")
       )
 ; (pwd) (cd prefix)
 
@@ -287,7 +287,7 @@
 			  (interactive)
 			  (if (buffer-file-name)
 			      (save-buffer))
-			  (compile (concat "make -j 4 -C " prefix "/x86_64-gnu-linux-debug"
+			  (compile (concat "make -j 4 -C " prefix "/x86_64-gnu-linux"
 					   " cxproc" ;all filex cxproc-cgi cxproc-test 
 			  		   ))
 					;(compile "make test")
