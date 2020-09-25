@@ -59,8 +59,6 @@
 #include <pie/pie_calendar.h>
 #endif
 
-#include "git_info.h"
-
 
 int
 main(int argc, char *argv[], char *envp[])

@@ -90,8 +90,6 @@
 #include <archive/cxp_archive.h>
 #endif
 
-#include "git_info.h"
-
 /* additional/specific testcode for used libs */
 
 #ifdef HAVE_LIBCURL
