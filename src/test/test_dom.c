@@ -39,7 +39,7 @@ domTest(void)
     i++;
     printf("TEST %i in '%s:%i': domSetNsXsl() = ", i, __FILE__, __LINE__);
 
-    pdocTest = xmlParseFile(TESTPREFIX "pie/test-pie-14.pie");
+    pdocTest = xmlParseFile(TESTPREFIX "option/pie/text/test-pie-14.pie");
     pndTest = xmlDocGetRootElement(pdocTest);
 
     if (pnsXsl != NULL) {
@@ -102,7 +102,7 @@ domTest(void)
     i++;
     printf("TEST %i in '%s:%i': domNodeIsDocRoot() = ",i,__FILE__,__LINE__);
 
-    pdocTest = xmlParseFile(TESTPREFIX "pie/test-pie-14.pie");
+    pdocTest = xmlParseFile(TESTPREFIX "option/pie/text/test-pie-14.pie");
     pndTest = xmlDocGetRootElement(pdocTest);
     if (pdocTest != NULL && pndTest != NULL && domNodeIsDocRoot(pndTest) == TRUE && domNodeIsDocRoot(NULL) == FALSE) {
       n_ok++;
@@ -187,7 +187,7 @@ domTest(void)
     i++;
     printf("TEST %i in '%s:%i': domNodeIsDocRoot() = ",i,__FILE__,__LINE__);
 
-    pdocTest = xmlParseFile(TESTPREFIX "pie/test-pie-14.pie");
+    pdocTest = xmlParseFile(TESTPREFIX "option/pie/text/test-pie-14.pie");
     pndTest = xmlDocGetRootElement(pdocTest);
     if (pdocTest != NULL && pndTest != NULL && pndTest->children != NULL
 	&& domNodeIsDescendant(pndTest,pndTest->children) == TRUE
@@ -245,7 +245,7 @@ domTest(void)
     i++;
     printf("TEST %i in '%s:%i': domUnlinkNodeList(pndRelease) = ",i,__FILE__,__LINE__);
 
-    pdocTest = xmlParseFile(TESTPREFIX "pie/test-pie-14.pie");
+    pdocTest = xmlParseFile(TESTPREFIX "option/pie/text/test-pie-14.pie");
     pndRoot = xmlDocGetRootElement(pdocTest);
     pndRelease = pndRoot->children->children->next;
 
@@ -273,7 +273,7 @@ domTest(void)
     i++;
     printf("TEST %i in '%s:%i': domUnlinkNodeList(pndRelease) = ",i,__FILE__,__LINE__);
 
-    pdocTest = xmlParseFile(TESTPREFIX "pie/test-pie-14.pie");
+    pdocTest = xmlParseFile(TESTPREFIX "option/pie/text/test-pie-14.pie");
     pndRoot = xmlDocGetRootElement(pdocTest);
     pndRelease = pndRoot->children->children->next;
 
@@ -300,7 +300,7 @@ domTest(void)
     i++;
     printf("TEST %i in '%s:%i': domIsNodeInTree() = ",i,__FILE__,__LINE__);
 
-    pdocTestA = xmlParseFile(TESTPREFIX "pie/test-pie-14.pie");
+    pdocTestA = xmlParseFile(TESTPREFIX "option/pie/text/test-pie-14.pie");
     pndRootA = xmlDocGetRootElement(pdocTestA);
 
     if (domIsNodeInTree(NULL,NULL) == FALSE
@@ -316,7 +316,7 @@ domTest(void)
       xmlDocPtr pdocTestB;
       xmlNodePtr pndRootB;
 
-      pdocTestB = xmlParseFile(TESTPREFIX "pie/test-pie-5.pie");
+      pdocTestB = xmlParseFile(TESTPREFIX "option/pie/text/test-pie-5.pie");
       pndRootB = xmlDocGetRootElement(pdocTestB);
 
       if (domIsNodeInTree(pndRootA,pndRootB) == FALSE) {
@@ -341,7 +341,7 @@ domTest(void)
     i++;
     printf("TEST %i in '%s:%i': domIsTreeOverlapping() = ", i, __FILE__, __LINE__);
 
-    pdocTestA = xmlParseFile(TESTPREFIX "pie/test-pie-14.pie");
+    pdocTestA = xmlParseFile(TESTPREFIX "option/pie/text/test-pie-14.pie");
     pndRootA = xmlDocGetRootElement(pdocTestA);
 
     if (domIsTreeOverlapping(NULL, NULL) == FALSE
@@ -357,7 +357,7 @@ domTest(void)
       xmlDocPtr pdocTestB;
       xmlNodePtr pndRootB;
 
-      pdocTestB = xmlParseFile(TESTPREFIX "pie/test-pie-5.pie");
+      pdocTestB = xmlParseFile(TESTPREFIX "option/pie/text/test-pie-5.pie");
       pndRootB = xmlDocGetRootElement(pdocTestB);
 
       if (domIsTreeOverlapping(pndRootA, pndRootB) == FALSE) {
@@ -410,7 +410,7 @@ domTest(void)
     i++;
     printf("TEST %i in '%s:%i': domGetFollowingNode() = ", i, __FILE__, __LINE__);
 
-    pdocTest = xmlParseFile(TESTPREFIX "pie/test-pie-14.pie");
+    pdocTest = xmlParseFile(TESTPREFIX "option/pie/text/test-pie-14.pie");
     pndRoot = xmlDocGetRootElement(pdocTest);
     pndT = pndRoot->children;
     domUnlinkNodeList(pndT);
@@ -435,7 +435,7 @@ domTest(void)
     i++;
     printf("TEST %i in '%s:%i': domReplaceNodeList() = ", i, __FILE__, __LINE__);
 
-    pdocTest = xmlParseFile(TESTPREFIX "pie/test-pie-14.pie");
+    pdocTest = xmlParseFile(TESTPREFIX "option/pie/text/test-pie-14.pie");
     pndRoot = xmlDocGetRootElement(pdocTest);
     pndOld = pndRoot->children->children->next;
 
@@ -470,7 +470,7 @@ domTest(void)
     i++;
     printf("TEST %i in '%s:%i': domGetFollowingNode() = ", i, __FILE__, __LINE__);
 
-    pdocTest = xmlParseFile(TESTPREFIX "pie/test-pie-14.pie");
+    pdocTest = xmlParseFile(TESTPREFIX "option/pie/text/test-pie-14.pie");
     pndRoot = xmlDocGetRootElement(pdocTest);
 
     if (domGetFollowingNode(NULL, NAME_PIE_HEADER) == NULL && domGetFollowingNode(pndRoot, NULL) == NULL
@@ -492,7 +492,7 @@ domTest(void)
     i++;
     printf("TEST %i in '%s:%i': domAddFileXpath() = ",i,__FILE__,__LINE__);
 
-    pdocT = xmlParseFile(TESTPREFIX "pie/test-pie-14.pie");
+    pdocT = xmlParseFile(TESTPREFIX "option/pie/text/test-pie-14.pie");
     pndRoot = xmlDocGetRootElement(pdocT);
     domAddFileXpath(pndRoot,BAD_CAST"xpath",NULL);
     if (domGetAttributePtr(pndRoot->children,BAD_CAST"xpath")) {
@@ -513,7 +513,7 @@ domTest(void)
     i++;
     printf("TEST %i in '%s:%i': domAddFileLocator() and domAddFileXpath() = ",i,__FILE__,__LINE__);
 
-    pdocTest = xmlParseFile(TESTPREFIX "pie/test-pie-14.pie");
+    pdocTest = xmlParseFile(TESTPREFIX "option/pie/text/test-pie-14.pie");
     pndRoot = xmlDocGetRootElement(pdocTest);
 
     domAddFileLocator(pndRoot,BAD_CAST pdocTest->URL);
@@ -738,7 +738,7 @@ domTest(void)
     i++;
     printf("TEST %i in '%s:%i': XPath nodeset ", i, __FILE__, __LINE__);
 
-    if ((pdocResult = xmlReadFile((const char *)TESTPREFIX "pie/test-pie-14.pie", NULL, 0)) == NULL) {
+    if ((pdocResult = xmlReadFile((const char *)TESTPREFIX "option/pie/text/test-pie-14.pie", NULL, 0)) == NULL) {
       printf("Error 1 xmlReadFile()\n");
     }
     else if ((result = domGetXPathNodeset(NULL, NULL)) != NULL) {
@@ -790,7 +790,7 @@ domTest(void)
     i++;
     printf("TEST %i in '%s:%i': XPath nodeset ", i, __FILE__, __LINE__);
 
-    if ((pdocResult = pieParseFile(BAD_CAST TESTPREFIX "pie/test-pie-14.pie",NULL)) == NULL
+    if ((pdocResult = pieParseFile(BAD_CAST TESTPREFIX "option/pie/text/test-pie-14.pie",NULL)) == NULL
       || (pndRoot = xmlDocGetRootElement(pdocResult)) == NULL) {
       printf("Error 1 pieParseFile()\n");
     }

@@ -132,7 +132,7 @@ pieTextTagsTest(void)
     if (ProcessTags(NULL, NULL)) {
       printf("Error 1 ProcessTags()\n");
     }
-    else if ((pdocPie = xmlReadFile(TESTPREFIX "pie/test-pie-14.pie", NULL, 0)) == NULL) {
+    else if ((pdocPie = xmlReadFile(TESTPREFIX "option/pie/text/test-pie-14.pie", NULL, 0)) == NULL) {
     }
     else if ((pndPie = xmlDocGetRootElement(pdocPie)) == NULL) {
     }

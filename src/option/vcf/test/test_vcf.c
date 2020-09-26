@@ -44,7 +44,7 @@ vcfTest(void)
     xmlDocSetRootElement(pdocResult,pndFile);
     pdocResult->encoding = xmlStrdup(BAD_CAST "UTF-8"); /* according to conversion in ParseImportNodePlainContent() */
 
-    prnInput = resNodeDirNew(BAD_CAST TESTPREFIX "pie/20121108181826.vcf");
+    prnInput = resNodeDirNew(BAD_CAST TESTPREFIX "option/pie/text/20121108181826.vcf");
     pucContent = plainGetContextTextEat(prnInput,1024);
     if (pucContent) {
       if (vcfParse(pndFile,pndFile,(char *)pucContent,LANG_DEFAULT)) {

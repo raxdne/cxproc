@@ -395,11 +395,15 @@ resNodeListFindPath(resNodePtr prnArg, xmlChar *pucArgPath)
 #endif
 
     if (resPathIsAbsolute(pucArgPath)) {
-      pucT = resPathDiffPtr(resNodeGetNameNormalized(prnArg), pucArgPath);
+      xmlChar* pucTT;
+
+      pucTT = resPathCollapse(pucArgPath, FS_PATH_FULL);
+      pucT = resPathDiffPtr(resNodeGetNameNormalized(prnArg), pucTT);
       if (STR_IS_NOT_EMPTY(pucT)) {
 	while (issep(*pucT)) pucT++;
 	prnResult = resNodeListFindPath(prnArg, pucT);
       }
+      xmlFree(pucTT);
     }
     else if (resNodeIsHidden(prnArg)) {
       /* ignore this node and its childs */

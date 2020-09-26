@@ -270,7 +270,7 @@ resNodeTest(void)
     i++;
     printf("TEST %i in '%s:%i': new filesystem context for existing directory = ", i, __FILE__, __LINE__);
 
-    if ((prnT = resNodeDirNew(BAD_CAST "file:/" TESTPREFIX "pie/")) == NULL) {
+    if ((prnT = resNodeDirNew(BAD_CAST "file:/" TESTPREFIX "option/pie/")) == NULL) {
       printf("Error resNodeDirNew(): %s\n", resNodeGetErrorMsg(prnT));
     }
     else if (resNodeGetType(prnT) != rn_type_dir) {
@@ -424,7 +424,7 @@ resNodeTest(void)
 
     i++;
     printf("TEST %i in '%s:%i': new filesystem context set to an existing file context with quotes = ",i,__FILE__,__LINE__);
-    prnT = resNodeRootNew(NULL,BAD_CAST "\"" TESTPREFIX "archive/test-zip-7.zip\"");
+    prnT = resNodeRootNew(NULL,BAD_CAST "\"" TESTPREFIX "plain/Length_1024.txt\"");
     if (prnT != NULL && resNodeReadStatus(prnT) == TRUE) {
       n_ok++;
       printf("OK\n");
@@ -443,10 +443,10 @@ resNodeTest(void)
 
     i++;
     printf("TEST %i in '%s:%i': URI of an existing file context = ",i,__FILE__,__LINE__);
-    prnT = resNodeDirNew(BAD_CAST TESTPREFIX "debug.gdb");
+    prnT = resNodeDirNew(BAD_CAST TESTPREFIX "config-test.cxp");
     if (prnT) {
       pucT = resNodeGetURI(prnT);
-      pucTT = resPathCollapse(BAD_CAST"file://///" TESTPREFIX "debug.gdb", FS_PATH_FULL);
+      pucTT = resPathCollapse(BAD_CAST"file://///" TESTPREFIX "config-test.cxp", FS_PATH_FULL);
       if (pucT != NULL && resPathIsEquivalent(pucT,pucTT)) {
         n_ok++;
         printf("OK\n");
@@ -556,18 +556,18 @@ resNodeTest(void)
     i++;
     printf("TEST %i in '%s:%i': new filesystem context  = ", i, __FILE__, __LINE__);
 
-    pucTest = resPathNormalize(BAD_CAST DATAPREFIX "Documents/TestContent.xml");
+    pucTest = resPathNormalize(BAD_CAST TESTPREFIX "plain/test-plain-3.xml");
 
-    if ((prnT = resNodeDirNew(BAD_CAST DATAPREFIX)) == NULL) {
+    if ((prnT = resNodeDirNew(BAD_CAST TESTPREFIX)) == NULL) {
       printf("Error resNodeDirNew()\n");
     }
-    else if ((prnDir = resNodeAddChildNew(prnT, BAD_CAST"Documents/")) == NULL) {
+    else if ((prnDir = resNodeAddChildNew(prnT, BAD_CAST"plain/")) == NULL) {
       printf("Error resNodeAddChildNew()\n");
     }
     else if (resNodeGetType(prnDir) != rn_type_dir) {
       printf("Error resNodeGetType()\n");
     }
-    else if ((prnFile = resNodeAddChildNew(prnDir, BAD_CAST"TestContent.xml")) == NULL) {
+    else if ((prnFile = resNodeAddChildNew(prnDir, BAD_CAST"test-plain-3.xml")) == NULL) {
       printf("Error resNodeAddChildNew()\n");
     }
     else if (resNodeGetType(prnFile) != rn_type_file) {
@@ -591,8 +591,8 @@ resNodeTest(void)
   if (RUNTEST) {
     resNodePtr prnT = NULL;
     resNodePtr prnChild = NULL;
-    xmlChar *pucT = xmlStrdup(BAD_CAST TESTPREFIX "archive/test-zip-7.zip/sub/plain.txt");
-    xmlChar *pucTT = resPathNormalize(BAD_CAST TESTPREFIX "archive/test-zip-7.zip");
+    xmlChar *pucT = xmlStrdup(BAD_CAST TESTPREFIX "option/archive/test-zip-7.zip/sub/plain.txt");
+    xmlChar *pucTT = resPathNormalize(BAD_CAST TESTPREFIX "option/archive/test-zip-7.zip");
 
     i++;
     printf("TEST %i in '%s:%i': set internal path = ", i, __FILE__, __LINE__);
@@ -952,21 +952,29 @@ resNodeTest(void)
 
   if (RUNTEST) {
     resNodePtr prnT = NULL;
+    xmlChar* pucT;
 
     i++;
     printf("TEST %i in '%s:%i': resNodeSetToParent() = ",i,__FILE__,__LINE__);
 
-    if ((prnT = resNodeDirNew(BAD_CAST TEMPPREFIX "/AAA/BBB")) != NULL
-	&& resNodeSetToParent(prnT) == TRUE
-	&& resNodeSetToParent(prnT) == TRUE
-	&& resPathIsEquivalent(resNodeGetNameNormalized(prnT), BAD_CAST TEMPPREFIX)) {
+    if ((pucT = resPathCollapse(BAD_CAST TEMPPREFIX, FS_PATH_FULL)) == NULL) {
+      printf("Error\n");
+    }
+    else if ((prnT = resNodeDirNew(BAD_CAST TEMPPREFIX "/AAA/BBB")) == NULL) {
+      printf("Error\n");
+    }
+    else if (resNodeSetToParent(prnT) == FALSE || resNodeSetToParent(prnT) == FALSE) {
+      printf("Error\n");
+    }
+    else if (resPathIsEquivalent(resNodeGetNameNormalized(prnT), pucT)) {
+      printf("Error\n");
+    }
+    else {
       n_ok++;
       printf("OK\n");
     }
-    else {
-      printf("Error\n");
-    }
     resNodeFree(prnT);
+    xmlFree(pucT);
   }
 
 
@@ -1177,7 +1185,7 @@ resNodeTest(void)
     i++;
     printf("TEST %i in '%s:%i': parsing of an existing filesystem directory = ", i, __FILE__, __LINE__);
 
-    if ((prnT = resNodeDirNew(BAD_CAST TESTPREFIX)) == NULL) {
+    if ((prnT = resNodeDirNew(BAD_CAST TESTPREFIX "each")) == NULL) {
       printf("Error resNodeDirNew()\n");
     }
     else if (resNodeReadStatus(prnT) == FALSE) {
@@ -1186,7 +1194,7 @@ resNodeTest(void)
     else if (resNodeDirAppendEntries(prnT,NULL) == FALSE) {
       printf("Error resNodeDirAppendEntries()\n");
     }
-    else if ((j = resNodeGetChildCount(prnT, rn_type_file)) != 3) {
+    else if ((j = resNodeGetChildCount(prnT, rn_type_file)) != 4) {
       /* without resNodeReadStatus() for all childs, they are files by default */
       printf("Error resNodeDirAppendEntries() = %i\n", j);
     }
@@ -1221,7 +1229,7 @@ resNodeTest(void)
     if (re_match == NULL) {
       printf("Error pcre2_compile()\n");
     }
-    else if ((prnT = resNodeDirNew(BAD_CAST DATAPREFIX)) == NULL) {
+    else if ((prnT = resNodeDirNew(BAD_CAST TESTPREFIX)) == NULL) {
       printf("Error resNodeDirNew()\n");
     }
     else if (resNodeReadStatus(prnT) == FALSE) {
@@ -1366,7 +1374,7 @@ resNodeTest(void)
     i++;
     printf("TEST %i in '%s:%i': resNodeToDOM() = ",i,__FILE__,__LINE__);
 
-    if ((prnT = resNodeDirNew(BAD_CAST DATAPREFIX "Documents/TestContent.xml")) == NULL) {
+    if ((prnT = resNodeDirNew(BAD_CAST TESTPREFIX "plain/test-plain-3.xml")) == NULL) {
       printf("Error domGetFirstChild()\n");
     }
     else if (resNodeReadStatus(prnT) == FALSE) {
@@ -1397,7 +1405,7 @@ resNodeTest(void)
   }
 
   
-  if (RUNTEST) {
+  if (SKIPTEST) {
     xmlNodePtr pndTest = NULL;
     resNodePtr prnT = NULL;
     xmlChar *pucT;

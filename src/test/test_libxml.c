@@ -44,7 +44,7 @@ xmlTest(void)
       options |= XML_PARSE_NONET;
 #endif
 
-      if ((pdocResult = xmlReadFile((const char *) TESTPREFIX "pie/test-pie-5.pie", NULL, options)) == NULL) {
+      if ((pdocResult = xmlReadFile((const char *) TESTPREFIX "xml/baustelle.pie", NULL, options)) == NULL) {
 	printf("ERROR xmlReadFile()\n");
       }
       else {

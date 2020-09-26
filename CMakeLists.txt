@@ -96,8 +96,8 @@ FIND_PATH(CXPROC_SRCLIB_DIR
 
 SET(FILEX_HEADERS
   ${CXPROC_SRC_DIR}/version.h
-  ${CXPROC_SRC_DIR}/git_revision.h
-  ${CXPROC_SRC_DIR}/git_info.h
+#  ${CXPROC_SRC_DIR}/git_revision.h
+#  ${CXPROC_SRC_DIR}/git_info.h
   ${CXPROC_SRC_DIR}/basics.h
   ${CXPROC_SRC_DIR}/dom.h
   ${CXPROC_SRC_DIR}/res_node/res_node.h
@@ -127,8 +127,8 @@ SET(FILEX_SOURCES
 
 SET(CXPROC_HEADERS
   ${CXPROC_SRC_DIR}/version.h
-  ${CXPROC_SRC_DIR}/git_revision.h
-  ${CXPROC_SRC_DIR}/git_info.h
+#  ${CXPROC_SRC_DIR}/git_revision.h
+#  ${CXPROC_SRC_DIR}/git_info.h
   ${CXPROC_SRC_DIR}/basics.h
   ${CXPROC_SRC_DIR}/cxp/cxp_dtd.h
   ${CXPROC_SRC_DIR}/cxp/cxp_context_enc.h

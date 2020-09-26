@@ -232,6 +232,29 @@ resNodeTestString(void)
   }
 
   if (RUNTEST) {
+    i++;
+    printf("TEST %i in '%s:%i': simple path shortcuts = ",i,__FILE__,__LINE__);
+
+    if (resPathIsEquivalent(BAD_CAST"abc",BAD_CAST"abc") == FALSE) {
+      printf("Error resPathIsEquivalent()\n");
+    }
+    else if (resPathIsEquivalent(BAD_CAST"abc/",BAD_CAST"abc") == FALSE) {
+      printf("Error resPathIsEquivalent()\n");
+    }
+    else if (resPathIsEquivalent(BAD_CAST"abc",BAD_CAST"abc/") == FALSE) {
+      printf("Error resPathIsEquivalent()\n");
+    }
+    else if (resPathIsEquivalent(BAD_CAST"abc\\.",BAD_CAST"abc") == FALSE) {
+      printf("Error resPathIsEquivalent()\n");
+    }
+    else {
+      n_ok++;
+      printf("OK\n");
+    }
+  }
+
+
+  if (RUNTEST) {
     xmlChar *pucT;
 
     i++;
@@ -435,7 +458,7 @@ resNodeTestString(void)
     i++;
     printf("TEST %i in '%s:%i': detect current working dir = ",i,__FILE__,__LINE__);
     pucTest = resPathGetCwd();
-    pucT = resPathCollapse(BAD_CAST TEMPPREFIX "/..", FS_PATH_FULL);
+    pucT = resPathCollapse(BAD_CAST TESTPREFIX "/../build", FS_PATH_FULL);
     if (xmlStrstr(pucT,pucTest) == pucT)   {
       n_ok++;
       printf("OK\n");
@@ -544,7 +567,7 @@ resNodeTestString(void)
     i++;
     printf("TEST %i in '%s:%i': normalizing of a relative filename = ",i,__FILE__,__LINE__);
     pucTest = resPathCollapse(BAD_CAST TEMPPREFIX "/../..//abc\\Def/Hij", FS_PATH_FULL);
-    if (resPathGetDepth(pucTest) == 7) {
+    if (resPathGetDepth(pucTest) == 5) {
       n_ok++;
       printf("OK\n");
     }
@@ -564,7 +587,8 @@ resNodeTestString(void)
 
     pucT = xmlStrdup(BAD_CAST"\"/tmp/../..//..\\abc/Def\"");
     pucTest = resPathCollapse(pucT, FS_PATH_FULL);
-    if (xmlStrlen(pucTest) == 21 || resPathGetDepth(pucTest) == 6 || resPathIsEquivalent(pucTest,BAD_CAST"\\tmp\\..\\..\\..\\abc\\Def")) {
+    if (xmlStrlen(pucTest) == 21 && resPathGetDepth(pucTest) == 6
+      && resPathIsEquivalent(pucTest,BAD_CAST"\\tmp\\..\\..\\..\\abc\\Def")) {
       n_ok++;
       printf("OK\n");
     }
@@ -654,7 +678,7 @@ resNodeTestString(void)
     i++;
     printf("TEST %i in '%s:%i': normalizing of a mixed relative filename = ",i,__FILE__,__LINE__);
     pucTest = resPathCollapse(BAD_CAST TESTPREFIX "..//..///contrib/pie//REadme.txt", FS_PATH_FULL);
-    if (resPathGetDepth(pucTest) == 7) {
+    if (resPathGetDepth(pucTest) == 5) {
       n_ok++;
       printf("OK\n");
     }
@@ -670,7 +694,7 @@ resNodeTestString(void)
     i++;
     printf("TEST %i in '%s:%i': normalizing of a mixed relative filename = ",i,__FILE__,__LINE__);
     pucTest = resPathCollapse(BAD_CAST TESTPREFIX "abc/def/..//../..///contrib/pie//REadme.txt", FS_PATH_FULL);
-    if (resPathGetDepth(pucTest) == 8) {
+    if (resPathGetDepth(pucTest) == 6) {
       n_ok++;
       printf("OK\n");
     }
