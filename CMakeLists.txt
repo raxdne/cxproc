@@ -35,7 +35,7 @@ SET(CXPROC_PREFIX "${PROJECT_BINARY_DIR}/.." CACHE PATH "Prefix")
 INCLUDE_DIRECTORIES("${PROJECT_SOURCE_DIR}/third-party" "${PROJECT_SOURCE_DIR}/third-party/option" "${CXPROC_SRC_DIR}" "${CXPROC_SRC_DIR}/option" "${CXPROC_PREFIX}/include")
 
 # working directory for tests
-SET(CXPROC_TEST_DIR "${CXPROC_PREFIX}/test/")
+SET(CXPROC_TEST_DIR "${PROJECT_SOURCE_DIR}/test/")
 SET(CXPROC_DATA_DIR "${CXPROC_PREFIX}/data/")
 SET(CXPROC_TEMP_DIR "${CXPROC_PREFIX}/tmp/")
 
@@ -1498,7 +1498,7 @@ IF (CXPROC_PETRINET)
     COMMAND ${CXPROC_PREFIX}/bin/cxproc-test -t petrinet)
 
   add_test(NAME petrinet-cxp
-    WORKING_DIRECTORY ${CXPROC_TEST_DIR}/petrinet
+    WORKING_DIRECTORY ${CXPROC_TEST_DIR}/option/petrinet
     COMMAND ${CXPROC_PREFIX}/bin/cxproc config.cxp)
 
   set_tests_properties(petrinet-cxp PROPERTIES
@@ -1511,39 +1511,39 @@ IF (CXPROC_PIE)
     COMMAND ${CXPROC_PREFIX}/bin/cxproc-test -t pie)
 
   add_test(NAME pie-cxp-import-circular
-    WORKING_DIRECTORY ${CXPROC_TEST_DIR}/pie/circular
+    WORKING_DIRECTORY ${CXPROC_TEST_DIR}/option/pie/text/circular
     COMMAND ${CXPROC_PREFIX}/bin/cxproc config-circular.cxp)
 
   add_test(NAME pie-cxp-import-csv
-    WORKING_DIRECTORY ${CXPROC_TEST_DIR}/pie/csv
+    WORKING_DIRECTORY ${CXPROC_TEST_DIR}/option/pie/text/csv
     COMMAND ${CXPROC_PREFIX}/bin/cxproc config-pie-import-csv.cxp)
 
   add_test(NAME pie-cxp-import-cxp
-    WORKING_DIRECTORY ${CXPROC_TEST_DIR}/pie/cxp
+    WORKING_DIRECTORY ${CXPROC_TEST_DIR}/option/pie/text/cxp
     COMMAND ${CXPROC_PREFIX}/bin/cxproc config-pie-import-cxp.cxp)
 
   add_test(NAME pie-cxp-import-line
-    WORKING_DIRECTORY ${CXPROC_TEST_DIR}/pie/line
+    WORKING_DIRECTORY ${CXPROC_TEST_DIR}/option/pie/text/line
     COMMAND ${CXPROC_PREFIX}/bin/cxproc config-pie-import-line.cxp)
 
   add_test(NAME pie-cxp-import-log
-    WORKING_DIRECTORY ${CXPROC_TEST_DIR}/pie/log
+    WORKING_DIRECTORY ${CXPROC_TEST_DIR}/option/pie/text/log
     COMMAND ${CXPROC_PREFIX}/bin/cxproc config-pie-import-log.cxp)
 
   add_test(NAME pie-cxp-import-plain
-    WORKING_DIRECTORY ${CXPROC_TEST_DIR}/pie/plain
+    WORKING_DIRECTORY ${CXPROC_TEST_DIR}/option/pie/text/plain
     COMMAND ${CXPROC_PREFIX}/bin/cxproc config-pie-import-plain.cxp)
 
   add_test(NAME pie-cxp-import-script
-    WORKING_DIRECTORY ${CXPROC_TEST_DIR}/pie/script
+    WORKING_DIRECTORY ${CXPROC_TEST_DIR}/option/pie/text/script
     COMMAND ${CXPROC_PREFIX}/bin/cxproc config-pie-import-script.cxp)
 
   add_test(NAME pie-cxp-import-xml
-    WORKING_DIRECTORY ${CXPROC_TEST_DIR}/pie/xml
+    WORKING_DIRECTORY ${CXPROC_TEST_DIR}/option/pie/text/xml
     COMMAND ${CXPROC_PREFIX}/bin/cxproc config-pie-import-xml.cxp)
 
   add_test(NAME calendar
-    WORKING_DIRECTORY ${CXPROC_TEST_DIR}/calendar
+    WORKING_DIRECTORY ${CXPROC_TEST_DIR}/option/pie/calendar
     COMMAND ${CXPROC_PREFIX}/bin/cxproc config.cxp)
 
   add_test(NAME cli-conf-year
@@ -1578,7 +1578,7 @@ add_test(NAME archive-code
   COMMAND ${CXPROC_PREFIX}/bin/cxproc-test -t archive)
 
 add_test(NAME archive-cxp
-  WORKING_DIRECTORY ${CXPROC_TEST_DIR}/archive
+  WORKING_DIRECTORY ${CXPROC_TEST_DIR}/option/archive
   COMMAND ${CXPROC_PREFIX}/bin/cxproc config.cxp)
 
 set_tests_properties(archive-code archive-cxp PROPERTIES
@@ -1588,25 +1588,25 @@ ENDIF (CXPROC_ARCHIVE)
 
 IF (CXPROC_LIBMAGICK OR CXPROC_LIBEXIF)
   add_test(NAME image-cxp
-    WORKING_DIRECTORY ${CXPROC_TEST_DIR}/image
+    WORKING_DIRECTORY ${CXPROC_TEST_DIR}/option/image
     COMMAND ${CXPROC_PREFIX}/bin/cxproc config.cxp)
 ENDIF ()
 
 IF (CXPROC_DUKTAPE)
-  add_test(NAME js-cxp
-    WORKING_DIRECTORY ${CXPROC_TEST_DIR}/js
+  add_test(NAME script-cxp
+    WORKING_DIRECTORY ${CXPROC_TEST_DIR}/option/script
     COMMAND ${CXPROC_PREFIX}/bin/cxproc config.cxp)
 ENDIF ()
 
 IF (CXPROC_JSON)
   add_test(NAME json-cxp
-    WORKING_DIRECTORY ${CXPROC_TEST_DIR}/json
+    WORKING_DIRECTORY ${CXPROC_TEST_DIR}/option/json
     COMMAND ${CXPROC_PREFIX}/bin/cxproc config.cxp)
 ENDIF ()
 
 IF (CXPROC_RP)
   add_test(NAME rp-cxp
-    WORKING_DIRECTORY ${CXPROC_TEST_DIR}/rp
+    WORKING_DIRECTORY ${CXPROC_TEST_DIR}/option/rp
     COMMAND ${CXPROC_PREFIX}/bin/cxproc config.cxp)
 ENDIF ()
 
@@ -1615,7 +1615,7 @@ IF (CXPROC_SQLITE3)
     COMMAND ${CXPROC_PREFIX}/bin/cxproc-test -t sql)
 
   add_test(NAME sql-cxp
-    WORKING_DIRECTORY ${CXPROC_TEST_DIR}/sql
+    WORKING_DIRECTORY ${CXPROC_TEST_DIR}/option/sql
     COMMAND ${CXPROC_PREFIX}/bin/cxproc config.cxp)
 
   set_tests_properties(sql-code sql-cxp
