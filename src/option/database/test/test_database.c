@@ -85,7 +85,7 @@ dbTest(void)
 
     i++;
     printf("TEST %i in '%s:%i': dump an existing db to a DOM ",i,__FILE__,__LINE__);
-    prnDb = resNodeDirNew(BAD_CAST TESTPREFIX "sql/test.db3");
+    prnDb = resNodeDirNew(BAD_CAST TESTPREFIX "option/sql/test.db3");
     if (prnDb) {
       resNodeOpen(prnDb,"rd");
       pdocResult = dbDumpContextToDoc(prnDb,(DB_PROC_DECL|DB_PROC_ENTRIES));
@@ -107,7 +107,7 @@ dbTest(void)
 
     i++;
     printf("TEST %i in '%s:%i': try to insert into a readonly database ",i,__FILE__,__LINE__);
-    prnDb = resNodeDirNew(BAD_CAST TESTPREFIX "sql/test.db3");
+    prnDb = resNodeDirNew(BAD_CAST TESTPREFIX "option/sql/test.db3");
     if (prnDb) {
       resNodeOpen(prnDb,"rd");
       if (dbInsert(prnDb,BAD_CAST"insert into meta (timestamp,key,value) values (0,'ERROR','TEST')") == FALSE) {

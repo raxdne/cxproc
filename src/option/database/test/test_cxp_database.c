@@ -44,7 +44,7 @@ dbCxpTest(cxpContextPtr pccArg)
     xmlSetProp(pndTestDb, BAD_CAST"append", BAD_CAST"no");
     
     pndTestDir = xmlNewChild(pndTestDb,NULL, NAME_DIR, NULL);
-    xmlSetProp(pndTestDir, BAD_CAST"name", BAD_CAST DATAPREFIX);
+    xmlSetProp(pndTestDir, BAD_CAST"name", BAD_CAST TESTPREFIX);
     xmlSetProp(pndTestDir, BAD_CAST"verbosity", BAD_CAST"1");
 
     if (dbProcessDbNode(pndTestDb,pccArg) == FALSE) {

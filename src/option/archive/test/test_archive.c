@@ -609,7 +609,7 @@ arcTest(cxpContextPtr pccArg)
     i++;
     printf("TEST %i in '%s:%i': read entry content of existing ODT = ", i, __FILE__, __LINE__);
 
-    if ((prnT = resNodeDirNew(BAD_CAST TESTPREFIX "pie/test-pie-20.odt/content.xml")) == NULL) {
+    if ((prnT = resNodeDirNew(BAD_CAST TESTPREFIX "option/pie/text/test-pie-20.odt/content.xml")) == NULL) {
       printf("Error resNodeDirNew()\n");
     }
     else if (resNodeIsArchive(prnT) == FALSE) {

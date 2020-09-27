@@ -843,7 +843,7 @@ pieTextBlocksTest(void)
     if ((pndPie = xmlNewNode(NULL, NAME_PIE_PIE)) == NULL) {
       printf("Error xmlNewNode()\n");
     }
-    else if ((prnT = resNodeDirNew(BAD_CAST TESTPREFIX "pie/test-pie-loop-step-0.txt")) == NULL) {
+    else if ((prnT = resNodeDirNew(BAD_CAST TESTPREFIX "option/pie/text/test-pie-loop-step-0.txt")) == NULL) {
       printf("Error resNodeDirNew()\n");
     }
     else if (ParsePlainBuffer(pndPie, BAD_CAST resNodeGetContent(prnT,-1), RMODE_PAR) == NULL) {

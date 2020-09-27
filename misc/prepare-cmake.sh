@@ -5,11 +5,9 @@
 
 DEBUG=1
 
-# Required tools: git, CMake
+PREFIX=../$(uname -i)
 
-PREFIX=$(uname -i)
-
-PREFIX=../$PREFIX"-"$(uname -o | tr '[:upper:]' '[:lower:]' | tr '[:punct:]' '-')
+PREFIX=$PREFIX"-"$(uname -o | tr '[:upper:]' '[:lower:]' | tr '[:punct:]' '-')
 
 if [ $DEBUG = 1 ] ; then
   PREFIX=$PREFIX-debug
@@ -27,17 +25,13 @@ export DIR_INC="$PREFIX/include"
 test -d $DIR_INC || mkdir -p $DIR_INC
 export DIR_DOC="$PREFIX/doc"
 test -d $DIR_DOC || mkdir -p $DIR_DOC
-export DIR_TEST="$PREFIX/test"
-test -d $DIR_TEST || cp -r test $DIR_TEST
-#export DIR_DATA="$PREFIX/data"
-#test -d $DIR_DATA || cp -r www/Test $DIR_DATA
+export DIR_TMP="$PREFIX/tmp"
+test -d $DIR_TMP || mkdir -p $DIR_TMP
 export DIR_CGI="$PREFIX/www/cgi-bin"
 test -d $DIR_CGI || mkdir -p $DIR_CGI
 export DIR_LOG="$PREFIX/www/log"
 test -d $DIR_LOG || mkdir -p $DIR_LOG
+export DIR_CONF="$PREFIX/www/conf"
+test -d $DIR_CONF || mkdir -p $DIR_CONF
 export DIR_WWW="$PREFIX/www/html"
 test -d $DIR_WWW || mkdir -p $DIR_WWW
-
-#cmake-gui build/cmake &
-
-#(cd $PREFIX && cmake ..)

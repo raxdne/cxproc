@@ -91,12 +91,14 @@ resNodeTestOperations(void)
     else if (resNodeTestDirStr(BAD_CAST TEMPPREFIX "test-res_node_ops/ooo/kkk") == FALSE) {
       printf("Error 1 resNodeTestDirStr()\n");
     }
+#ifdef EXPERIMENTAL
     else if (resNodeUnlinkRecursivelyStr(BAD_CAST TEMPPREFIX "test-res_node_ops") == FALSE) {
       printf("Error 3 resNodeUnlinkStr()\n");
     }
     else if (resNodeTestDirStr(BAD_CAST TEMPPREFIX "test-res_node_ops") == TRUE) {
       printf("Error 2 resNodeTestDirStr()\n");
     }
+#endif
     else {
       n_ok++;
       printf("OK\n");
@@ -113,7 +115,7 @@ resNodeTestOperations(void)
 
     resNodeUnlinkStr(BAD_CAST TEMPPREFIX "test.ics");
     
-    if ((prnFrom = resNodeDirNew(BAD_CAST TESTPREFIX "pie/2446.ics")) == NULL) {
+    if ((prnFrom = resNodeDirNew(BAD_CAST TESTPREFIX "option/pie/text/2446.ics")) == NULL) {
       printf("Error 1 resNodeDirNew()\n");
     }
     else if ((prnTo = resNodeDirNew(BAD_CAST TEMPPREFIX "test.ics")) == NULL) {
@@ -128,7 +130,7 @@ resNodeTestOperations(void)
     else if (resNodeTransfer(prnFrom, NULL, FALSE) == TRUE) {
       printf("Error 3 resNodeTransferStr()\n");
     }
-    else if (resNodeTestFileStr(BAD_CAST TESTPREFIX "pie/2446.ics") == FALSE) {
+    else if (resNodeTestFileStr(BAD_CAST TESTPREFIX "option/pie/text/2446.ics") == FALSE) {
       printf("Error 1 resNodeTestFileStr()\n");
     }
     else if (resNodeTestFileStr(BAD_CAST TEMPPREFIX "test.ics") == TRUE) {
@@ -140,7 +142,7 @@ resNodeTestOperations(void)
     else if (resNodeTransfer(prnFrom, prnTo, FALSE) == FALSE) {
       printf("Error 4 resNodeTransfer()\n");
     }
-    else if (resNodeTestFileStr(BAD_CAST TESTPREFIX "pie/2446.ics") == FALSE) {
+    else if (resNodeTestFileStr(BAD_CAST TESTPREFIX "option/pie/text/2446.ics") == FALSE) {
       printf("Error 3 resNodeTestFileStr()\n");
     }
     else if (resNodeTestFileStr(BAD_CAST TEMPPREFIX "test.ics") == FALSE) {
@@ -222,12 +224,14 @@ resNodeTestOperations(void)
     else if (resNodeTestDirStr(BAD_CAST TEMPPREFIX) == FALSE) {
       printf("Error 1 resNodeTestDirStr()\n");
     }
+#ifdef EXPERIMENTAL
     else if (resNodeUnlinkRecursivelyStr(BAD_CAST TEMPPREFIX "sub") == FALSE) {
       printf("Error 3 resNodeUnlinkStr()\n");
     }
     else if (resNodeTestDirStr(BAD_CAST TEMPPREFIX "sub") == TRUE) {
       printf("Error 2 resNodeTestDirStr()\n");
     }
+#endif
     else {
       n_ok++;
       printf("OK\n");
@@ -268,10 +272,10 @@ resNodeTestOperations(void)
     i++;
     printf("TEST %i in '%s:%i': copying of an existing plain text file to existing directory = ", i, __FILE__, __LINE__);
 
-    if (resNodeTransferStr(BAD_CAST TESTPREFIX "pie/2446.ics", BAD_CAST TEMPPREFIX, FALSE) == FALSE) {
+    if (resNodeTransferStr(BAD_CAST TESTPREFIX "option/pie/text/2446.ics", BAD_CAST TEMPPREFIX, FALSE) == FALSE) {
       printf("Error resNodeTransferStr()\n");
     }
-    else if (resNodeTestFileStr(BAD_CAST TESTPREFIX "pie/2446.ics") == FALSE) {
+    else if (resNodeTestFileStr(BAD_CAST TESTPREFIX "option/pie/text/2446.ics") == FALSE) {
       printf("Error 1 resNodeTestFileStr()\n");
     }
     else if (resNodeTestFileStr(BAD_CAST TEMPPREFIX "2446.ics") == FALSE) {
@@ -294,10 +298,10 @@ resNodeTestOperations(void)
     i++;
     printf("TEST %i in '%s:%i': copying of an existing plain text file to a file in a non-existing directory = ", i, __FILE__, __LINE__);
 
-    if (resNodeTransferStr(BAD_CAST TESTPREFIX "pie/2446.ics", BAD_CAST TEMPPREFIX "test-res_node_ops/t2.txt", FALSE) == FALSE) {
+    if (resNodeTransferStr(BAD_CAST TESTPREFIX "option/pie/text/2446.ics", BAD_CAST TEMPPREFIX "test-res_node_ops/t2.txt", FALSE) == FALSE) {
       printf("Error 1 resNodeTransferStr()\n");
     }
-    else if (resNodeTestFileStr(BAD_CAST TESTPREFIX "pie/2446.ics") == FALSE) {
+    else if (resNodeTestFileStr(BAD_CAST TESTPREFIX "option/pie/text/2446.ics") == FALSE) {
       printf("Error 1 resNodeTestFileStr()\n");
     }
     else if (resNodeTestFileStr(BAD_CAST TEMPPREFIX "test-res_node_ops/t2.txt") == FALSE) {
@@ -338,16 +342,16 @@ resNodeTestOperations(void)
     i++;
     printf("TEST %i in '%s:%i': copying of an existing plain text file from archive = ", i, __FILE__, __LINE__);
 
-    if (resNodeTransferStr(BAD_CAST DATAPREFIX "Archive/TestArchive.zip/Test/SubTest/SubTest/Length_1024.txt", BAD_CAST TEMPPREFIX, FALSE) == FALSE) {
+    if (resNodeTransferStr(BAD_CAST TESTPREFIX "option\\archive\\test-zip-7.zip\\sub\\a.txt", BAD_CAST TEMPPREFIX, FALSE) == FALSE) {
       printf("Error resNodeTransferStr()\n");
     }
-    else if (resNodeTestFileStr(BAD_CAST TEMPPREFIX "Length_1024.txt") == FALSE) {
+    else if (resNodeTestFileStr(BAD_CAST TEMPPREFIX "a.txt") == FALSE) {
       printf("Error 1 resNodeTestFileStr()\n");
     }
-    else if (resNodeUnlinkStr(BAD_CAST TEMPPREFIX "Length_1024.txt") == FALSE) {
+    else if (resNodeUnlinkStr(BAD_CAST TEMPPREFIX "a.txt") == FALSE) {
       printf("Error resNodeUnlinkStr()\n");
     }
-    else if (resNodeTestFileStr(BAD_CAST DATAPREFIX "Archive/TestArchive.zip") == FALSE) {
+    else if (resNodeTestFileStr(BAD_CAST TESTPREFIX "option\\archive\\test-zip-7.zip") == FALSE) {
       printf("Error 2 resNodeTestFileStr()\n");
     }
     else {
@@ -362,7 +366,7 @@ resNodeTestOperations(void)
     i++;
     printf("TEST %i in '%s:%i': avoid moving of an existing plain text file stderr oder stdout = ",i,__FILE__,__LINE__);
 
-    if (resNodeTransferStr(BAD_CAST TESTPREFIX "pie/2446.ics",BAD_CAST TEMPPREFIX "test-res_node_ops/source/t.txt", FALSE) == FALSE) {
+    if (resNodeTransferStr(BAD_CAST TESTPREFIX "option/pie/text/2446.ics",BAD_CAST TEMPPREFIX "test-res_node_ops/source/t.txt", FALSE) == FALSE) {
       printf("Error resNodeTransferStr()\n");
     }
     else if (resNodeTestFileStr(BAD_CAST TEMPPREFIX "test-res_node_ops/source/t.txt") == FALSE) {
@@ -391,10 +395,10 @@ resNodeTestOperations(void)
     i++;
     printf("TEST %i in '%s:%i': avoid moving of an existing plain text file into same directory = ",i,__FILE__,__LINE__);
 
-    if (resNodeTransferStr(BAD_CAST TESTPREFIX "pie/2446.ics",BAD_CAST TEMPPREFIX "test-res_node_ops/source/t.txt", FALSE) == FALSE) {
+    if (resNodeTransferStr(BAD_CAST TESTPREFIX "option/pie/text/2446.ics",BAD_CAST TEMPPREFIX "test-res_node_ops/source/t.txt", FALSE) == FALSE) {
       printf("Error 1 resNodeTransferStr()\n");
     }
-    else if (resNodeTransferStr(BAD_CAST TESTPREFIX "pie/2446.ics",BAD_CAST TEMPPREFIX "test-res_node_ops/source/u.txt", FALSE) == FALSE) {
+    else if (resNodeTransferStr(BAD_CAST TESTPREFIX "option/pie/text/2446.ics",BAD_CAST TEMPPREFIX "test-res_node_ops/source/u.txt", FALSE) == FALSE) {
       printf("Error 2 resNodeTransferStr()\n");
     }
     else if (resNodeTestFileStr(BAD_CAST TEMPPREFIX "test-res_node_ops/source/t.txt") == FALSE) {
@@ -443,8 +447,8 @@ resNodeTestOperations(void)
     i++;
     printf("TEST %i in '%s:%i': moving of an existing plain text file to an other volume = ", i, __FILE__, __LINE__);
     if (
-      resNodeTransferStr(BAD_CAST TESTPREFIX "pie/2446.ics", BAD_CAST TEMPPREFIX "test-res_node_ops/source/t.txt", FALSE) == TRUE
-      && resNodeTestFileStr(BAD_CAST TESTPREFIX "pie/2446.ics") == TRUE
+      resNodeTransferStr(BAD_CAST TESTPREFIX "option/pie/text/2446.ics", BAD_CAST TEMPPREFIX "test-res_node_ops/source/t.txt", FALSE) == TRUE
+      && resNodeTestFileStr(BAD_CAST TESTPREFIX "option/pie/text/2446.ics") == TRUE
       && resNodeTestFileStr(BAD_CAST TEMPPREFIX "test-res_node_ops/source/t.txt") == TRUE
 #ifdef _MSC_VER
       && resNodeTransferStr(BAD_CAST TEMPPREFIX "test-res_node_ops/source/t.txt", BAD_CAST"F:/tmp/test-res_node_ops/target/u.txt", TRUE) == TRUE

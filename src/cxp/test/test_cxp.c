@@ -346,7 +346,7 @@ cxpTest(cxpContextPtr pccArg)
     i++;
     printf("TEST %i in '%s:%i': cxpResNodeResolveNew() = non-existing context by node attribute", i, __FILE__, __LINE__);
 
-    if ((prnT = resNodeDirNew(BAD_CAST TESTPREFIX "pie/config.cxp")) == NULL) {
+    if ((prnT = resNodeDirNew(BAD_CAST TESTPREFIX "option/pie/text/config.cxp")) == NULL) {
     }
     else if ((pdocT = resNodeReadDoc(prnT)) == NULL || (pndRoot = xmlDocGetRootElement(pdocT)) == NULL) {
     }
@@ -356,7 +356,7 @@ cxpTest(cxpContextPtr pccArg)
     else if ((prnTT = cxpResNodeResolveNew(pccTest, pndT, NULL, CXP_O_READ)) == NULL) {
       printf("Error 3\n");
     }
-    else if (resPathIsEquivalent(resNodeGetNameNormalized(prnTT),BAD_CAST TESTPREFIX "pie/xml/config-pie-import-xml.cxp") == FALSE) {
+    else if (resPathIsEquivalent(resNodeGetNameNormalized(prnTT),BAD_CAST TESTPREFIX "option/pie/text/xml/config-pie-import-xml.cxp") == FALSE) {
       printf("Error 4\n");
     }
     else if (resNodeIsReadable(prnTT) == FALSE) {
@@ -1108,7 +1108,7 @@ cxpTest(cxpContextPtr pccArg)
     else if (cxpCtxtSearchSet(pccT, prnT) == FALSE) {
       printf("Error cxpCtxtSearchSet()\n");
     }
-    else if ((pdocXml = xmlReadFile(TESTPREFIX "pie/test-pie-19.mm", NULL, 0)) == NULL) {
+    else if ((pdocXml = xmlReadFile(TESTPREFIX "option/pie/text/test-pie-19.mm", NULL, 0)) == NULL) {
       printf("Error xmlReadFile()\n");
     }
     else if (cxpProcessTransformations(pdocXml, pndXml, NULL, &pucT, pccT) == FALSE || xmlStrlen(pucT) != 74) {

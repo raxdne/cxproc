@@ -35,9 +35,9 @@ SET(CXPROC_PREFIX "${PROJECT_BINARY_DIR}/.." CACHE PATH "Prefix")
 INCLUDE_DIRECTORIES("${PROJECT_SOURCE_DIR}/third-party" "${PROJECT_SOURCE_DIR}/third-party/option" "${CXPROC_SRC_DIR}" "${CXPROC_SRC_DIR}/option" "${CXPROC_PREFIX}/include")
 
 # working directory for tests
-SET(CXPROC_TEST_DIR "${CXPROC_PREFIX}/test/")
-SET(CXPROC_DATA_DIR "${CXPROC_PREFIX}/data/")
-SET(CXPROC_TEMP_DIR "${CXPROC_PREFIX}/tmp/")
+SET(CXPROC_TEST_DIR "${PROJECT_SOURCE_DIR}/test/")
+SET(CXPROC_DATA_DIR "${PROJECT_SOURCE_DIR}/data/")
+SET(CXPROC_TEMP_DIR "${PROJECT_SOURCE_DIR}/tmp/")
 
 # https://vicrucann.github.io/tutorials/quick-cmake-doxygen/
 # check if Doxygen is installed
@@ -96,8 +96,8 @@ FIND_PATH(CXPROC_SRCLIB_DIR
 
 SET(FILEX_HEADERS
   ${CXPROC_SRC_DIR}/version.h
-  ${CXPROC_SRC_DIR}/git_revision.h
-  ${CXPROC_SRC_DIR}/git_info.h
+#  ${CXPROC_SRC_DIR}/git_revision.h
+#  ${CXPROC_SRC_DIR}/git_info.h
   ${CXPROC_SRC_DIR}/basics.h
   ${CXPROC_SRC_DIR}/dom.h
   ${CXPROC_SRC_DIR}/res_node/res_node.h
@@ -127,8 +127,8 @@ SET(FILEX_SOURCES
 
 SET(CXPROC_HEADERS
   ${CXPROC_SRC_DIR}/version.h
-  ${CXPROC_SRC_DIR}/git_revision.h
-  ${CXPROC_SRC_DIR}/git_info.h
+#  ${CXPROC_SRC_DIR}/git_revision.h
+#  ${CXPROC_SRC_DIR}/git_info.h
   ${CXPROC_SRC_DIR}/basics.h
   ${CXPROC_SRC_DIR}/cxp/cxp_dtd.h
   ${CXPROC_SRC_DIR}/cxp/cxp_context_enc.h
@@ -621,6 +621,7 @@ ADD_EXECUTABLE(cxproc-test
 
 target_compile_definitions(cxproc-test PUBLIC
   TESTCODE
+  BUILDPREFIX="${PROJECT_BINARY_DIR}"
   DATAPREFIX="${CXPROC_DATA_DIR}"
   TESTPREFIX="${CXPROC_TEST_DIR}"
   TEMPPREFIX="${CXPROC_TEMP_DIR}"
@@ -1339,6 +1340,7 @@ add_test(NAME basics-code
   COMMAND ${CXPROC_PREFIX}/bin/cxproc-test -t basics)
 
 add_test(NAME res_node-code
+  WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
   COMMAND ${CXPROC_PREFIX}/bin/cxproc-test -t res_node)
 
 add_test(NAME cxp-code
@@ -1418,36 +1420,24 @@ add_test(NAME cli-help
 
 add_test(NAME cli-description
   WORKING_DIRECTORY ${CXPROC_PREFIX}
-  COMMAND ${CXPROC_PREFIX}/bin/cxproc -? config-article.cxp)
+  COMMAND ${CXPROC_PREFIX}/bin/cxproc -? myclean.cxp)
 
 add_test(NAME cli-env
   WORKING_DIRECTORY ${CXPROC_PREFIX}
   COMMAND ${CXPROC_PREFIX}/bin/cxproc -e)
 
 add_test(NAME cli-conf-plain
-  WORKING_DIRECTORY ${CXPROC_PREFIX}
+  WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
   COMMAND ${CXPROC_PREFIX}/bin/cxproc -t abc.txt pie2html.xsl)
 
 add_test(NAME cli-search
-  WORKING_DIRECTORY ${CXPROC_PREFIX}/www/html/
-  COMMAND ${CXPROC_PREFIX}/bin/cxproc -s "pie2.*xsl")
-
-add_test(NAME cli-conf-file
   WORKING_DIRECTORY ${CXPROC_PREFIX}
-  COMMAND ${CXPROC_PREFIX}/bin/cxproc -t command/test_commandline.sh)
+  COMMAND ${CXPROC_PREFIX}/bin/cxproc -s "Validate.xsl")
 
 add_test(NAME cli-conf-dir
-  WORKING_DIRECTORY ${CXPROC_PREFIX}
-  COMMAND ${CXPROC_PREFIX}/bin/cxproc -t command//)
+  WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+  COMMAND ${CXPROC_PREFIX}/bin/cxproc -t doc//)
 
-add_test(NAME cli-dir-xsl
-  WORKING_DIRECTORY ${CXPROC_TEST_DIR}
-  COMMAND ${CXPROC_PREFIX}/bin/cxproc command// dir2mm.xsl)
-
-set_property(TEST cli-search cli-dir-xsl
-  APPEND PROPERTY ENVIRONMENT CXP_PATH=${CXPROC_PREFIX}/www/html/pie//
-)
-  
 add_test(NAME dir-code
   WORKING_DIRECTORY ${CXPROC_PREFIX}
   COMMAND ${CXPROC_PREFIX}/bin/cxproc-test -t dir)
@@ -1488,8 +1478,8 @@ add_test(NAME xsl-cxp
   WORKING_DIRECTORY ${CXPROC_TEST_DIR}/xsl
   COMMAND ${CXPROC_PREFIX}/bin/cxproc config.cxp)
 
-set_property(TEST cli-help cli-description cli-env cli-conf-plain cli-search cli-conf-file cli-conf-dir cli-dir-xsl dir-code dir-cxp each-cxp eval-cxp plain-cxp system-cxp worst-cxp xhtml-cxp xml-cxp xsl-cxp
-  APPEND PROPERTY ENVIRONMENT CXP_PATH=${CXPROC_PREFIX}/www/html/pie//
+set_property(TEST cli-help cli-description cli-env cli-conf-plain cli-search cli-conf-dir dir-code dir-cxp each-cxp eval-cxp plain-cxp system-cxp worst-cxp xhtml-cxp xml-cxp xsl-cxp
+  APPEND PROPERTY ENVIRONMENT CXP_PATH=${PROJECT_SOURCE_DIR}//
 )
 
 IF (CXPROC_PETRINET)
@@ -1498,7 +1488,7 @@ IF (CXPROC_PETRINET)
     COMMAND ${CXPROC_PREFIX}/bin/cxproc-test -t petrinet)
 
   add_test(NAME petrinet-cxp
-    WORKING_DIRECTORY ${CXPROC_TEST_DIR}/petrinet
+    WORKING_DIRECTORY ${CXPROC_TEST_DIR}/option/petrinet
     COMMAND ${CXPROC_PREFIX}/bin/cxproc config.cxp)
 
   set_tests_properties(petrinet-cxp PROPERTIES
@@ -1511,39 +1501,39 @@ IF (CXPROC_PIE)
     COMMAND ${CXPROC_PREFIX}/bin/cxproc-test -t pie)
 
   add_test(NAME pie-cxp-import-circular
-    WORKING_DIRECTORY ${CXPROC_TEST_DIR}/pie/circular
+    WORKING_DIRECTORY ${CXPROC_TEST_DIR}/option/pie/text/circular
     COMMAND ${CXPROC_PREFIX}/bin/cxproc config-circular.cxp)
 
   add_test(NAME pie-cxp-import-csv
-    WORKING_DIRECTORY ${CXPROC_TEST_DIR}/pie/csv
+    WORKING_DIRECTORY ${CXPROC_TEST_DIR}/option/pie/text/csv
     COMMAND ${CXPROC_PREFIX}/bin/cxproc config-pie-import-csv.cxp)
 
   add_test(NAME pie-cxp-import-cxp
-    WORKING_DIRECTORY ${CXPROC_TEST_DIR}/pie/cxp
+    WORKING_DIRECTORY ${CXPROC_TEST_DIR}/option/pie/text/cxp
     COMMAND ${CXPROC_PREFIX}/bin/cxproc config-pie-import-cxp.cxp)
 
   add_test(NAME pie-cxp-import-line
-    WORKING_DIRECTORY ${CXPROC_TEST_DIR}/pie/line
+    WORKING_DIRECTORY ${CXPROC_TEST_DIR}/option/pie/text/line
     COMMAND ${CXPROC_PREFIX}/bin/cxproc config-pie-import-line.cxp)
 
   add_test(NAME pie-cxp-import-log
-    WORKING_DIRECTORY ${CXPROC_TEST_DIR}/pie/log
+    WORKING_DIRECTORY ${CXPROC_TEST_DIR}/option/pie/text/log
     COMMAND ${CXPROC_PREFIX}/bin/cxproc config-pie-import-log.cxp)
 
   add_test(NAME pie-cxp-import-plain
-    WORKING_DIRECTORY ${CXPROC_TEST_DIR}/pie/plain
+    WORKING_DIRECTORY ${CXPROC_TEST_DIR}/option/pie/text/plain
     COMMAND ${CXPROC_PREFIX}/bin/cxproc config-pie-import-plain.cxp)
 
   add_test(NAME pie-cxp-import-script
-    WORKING_DIRECTORY ${CXPROC_TEST_DIR}/pie/script
+    WORKING_DIRECTORY ${CXPROC_TEST_DIR}/option/pie/text/script
     COMMAND ${CXPROC_PREFIX}/bin/cxproc config-pie-import-script.cxp)
 
   add_test(NAME pie-cxp-import-xml
-    WORKING_DIRECTORY ${CXPROC_TEST_DIR}/pie/xml
+    WORKING_DIRECTORY ${CXPROC_TEST_DIR}/option/pie/text/xml
     COMMAND ${CXPROC_PREFIX}/bin/cxproc config-pie-import-xml.cxp)
 
   add_test(NAME calendar
-    WORKING_DIRECTORY ${CXPROC_TEST_DIR}/calendar
+    WORKING_DIRECTORY ${CXPROC_TEST_DIR}/option/pie/calendar
     COMMAND ${CXPROC_PREFIX}/bin/cxproc config.cxp)
 
   add_test(NAME cli-conf-year
@@ -1554,19 +1544,7 @@ IF (CXPROC_PIE)
     WORKING_DIRECTORY ${CXPROC_PREFIX}
     COMMAND ${CXPROC_PREFIX}/bin/cxproc 2012)
 
-  add_test(NAME cli-cxp-article
-    WORKING_DIRECTORY ${CXPROC_PREFIX}
-    COMMAND ${CXPROC_PREFIX}/bin/cxproc config-article.cxp www/html/Documents/Demo/Documents/Article.txt ${CXPROC_PREFIX}/tmp)
-
-  add_test(NAME cli-cxp-presentation
-    WORKING_DIRECTORY ${CXPROC_PREFIX}
-    COMMAND ${CXPROC_PREFIX}/bin/cxproc config-presentation.cxp www/html/Documents/Demo/Documents/Article.txt ${CXPROC_PREFIX}/tmp)
-
-  add_test(NAME cli-cxp-named
-    WORKING_DIRECTORY ${CXPROC_PREFIX}
-    COMMAND ${CXPROC_PREFIX}/bin/cxproc cxp=config-article file=www/html/Documents/Demo/Documents/Article.txt ${CXPROC_PREFIX}/tmp/named)
-
-  set_property(TEST pie-code pie-cxp-import-cxp calendar cli-conf-year cli-year cli-cxp-article cli-cxp-presentation cli-cxp-named
+  set_property(TEST pie-code pie-cxp-import-cxp calendar cli-conf-year cli-year
     APPEND PROPERTY ENVIRONMENT CXP_PATH=${PROJECT_SOURCE_DIR}//
     )
   
@@ -1578,7 +1556,7 @@ add_test(NAME archive-code
   COMMAND ${CXPROC_PREFIX}/bin/cxproc-test -t archive)
 
 add_test(NAME archive-cxp
-  WORKING_DIRECTORY ${CXPROC_TEST_DIR}/archive
+  WORKING_DIRECTORY ${CXPROC_TEST_DIR}/option/archive
   COMMAND ${CXPROC_PREFIX}/bin/cxproc config.cxp)
 
 set_tests_properties(archive-code archive-cxp PROPERTIES
@@ -1588,25 +1566,25 @@ ENDIF (CXPROC_ARCHIVE)
 
 IF (CXPROC_LIBMAGICK OR CXPROC_LIBEXIF)
   add_test(NAME image-cxp
-    WORKING_DIRECTORY ${CXPROC_TEST_DIR}/image
+    WORKING_DIRECTORY ${CXPROC_TEST_DIR}/option/image
     COMMAND ${CXPROC_PREFIX}/bin/cxproc config.cxp)
 ENDIF ()
 
 IF (CXPROC_DUKTAPE)
-  add_test(NAME js-cxp
-    WORKING_DIRECTORY ${CXPROC_TEST_DIR}/js
+  add_test(NAME script-cxp
+    WORKING_DIRECTORY ${CXPROC_TEST_DIR}/option/script
     COMMAND ${CXPROC_PREFIX}/bin/cxproc config.cxp)
 ENDIF ()
 
 IF (CXPROC_JSON)
   add_test(NAME json-cxp
-    WORKING_DIRECTORY ${CXPROC_TEST_DIR}/json
+    WORKING_DIRECTORY ${CXPROC_TEST_DIR}/option/json
     COMMAND ${CXPROC_PREFIX}/bin/cxproc config.cxp)
 ENDIF ()
 
 IF (CXPROC_RP)
   add_test(NAME rp-cxp
-    WORKING_DIRECTORY ${CXPROC_TEST_DIR}/rp
+    WORKING_DIRECTORY ${CXPROC_TEST_DIR}/option/rp
     COMMAND ${CXPROC_PREFIX}/bin/cxproc config.cxp)
 ENDIF ()
 
@@ -1615,7 +1593,7 @@ IF (CXPROC_SQLITE3)
     COMMAND ${CXPROC_PREFIX}/bin/cxproc-test -t sql)
 
   add_test(NAME sql-cxp
-    WORKING_DIRECTORY ${CXPROC_TEST_DIR}/sql
+    WORKING_DIRECTORY ${CXPROC_TEST_DIR}/option/sql
     COMMAND ${CXPROC_PREFIX}/bin/cxproc config.cxp)
 
   set_tests_properties(sql-code sql-cxp
@@ -1633,9 +1611,9 @@ ELSE(MSVC)
 ENDIF(MSVC)
 
 # set envionment variables for testing
-set_tests_properties(basics-code res_node-code cxp-code dom-code plain-code parser-code cli-help cli-description cli-env cli-conf-plain cli-search cli-conf-file cli-conf-dir cli-dir-xsl dir-code dir-cxp each-cxp eval-cxp plain-cxp system-cxp worst-cxp xhtml-cxp xml-cxp xsl-cxp PROPERTIES
-  ENVIRONMENT "CXP_PATH=${PROJECT_SOURCE_DIR}//"
-  )
+#set_tests_properties(basics-code res_node-code cxp-code dom-code plain-code parser-code cli-help cli-description cli-env cli-conf-plain cli-search cli-conf-file cli-conf-dir cli-dir-xsl dir-code dir-cxp each-cxp eval-cxp plain-cxp system-cxp worst-cxp xhtml-cxp xml-cxp xsl-cxp PROPERTIES
+#  ENVIRONMENT "CXP_PATH=${PROJECT_SOURCE_DIR}//"
+#  )
 
 add_test(NAME filex-empty
   WORKING_DIRECTORY ${CXPROC_PREFIX}
@@ -1647,20 +1625,20 @@ add_test(NAME filex-dir
 
 add_test(NAME filex-dir-recursive
   WORKING_DIRECTORY ${CXPROC_PREFIX}
-  COMMAND ${CXPROC_PREFIX}/bin/filex ${CXPROC_TEST_DIR}// ${CXPROC_DATA_DIR}//)
+  COMMAND ${CXPROC_PREFIX}/bin/filex ${CXPROC_TEST_DIR}// ${CXPROC_TEMP_DIR}//)
 
 add_test(NAME filex-archive
   WORKING_DIRECTORY ${CXPROC_PREFIX}
-  COMMAND ${CXPROC_PREFIX}/bin/filex ${CXPROC_DATA_DIR}/Documents/TestContent.docx)
+  COMMAND ${CXPROC_PREFIX}/bin/filex ${CXPROC_TEST_DIR}/xml/test-xml-zip.odt)
 
 IF (CXPROC_ARCHIVE)
   add_test(NAME filex-archive-intern
     WORKING_DIRECTORY ${CXPROC_PREFIX}
-    COMMAND ${CXPROC_PREFIX}/bin/filex ${CXPROC_DATA_DIR}/Documents/TestContent.docx/word/document.xml)
+    COMMAND ${CXPROC_PREFIX}/bin/filex ${CXPROC_TEST_DIR}/xml/test-xml-zip.odt/content.xml)
 
   add_test(NAME filex-archive-intern-intern
     WORKING_DIRECTORY ${CXPROC_PREFIX}
-    COMMAND ${CXPROC_PREFIX}/bin/filex ${CXPROC_DATA_DIR}/Archive/TestArchive.zip/sub/TestContent.docx/word/document.xml)
+    COMMAND ${CXPROC_PREFIX}/bin/filex ${CXPROC_TEST_DIR}/option/archive/test-zip-odt.zip/test-xml-zip.odt/content.xml)
 ENDIF(CXPROC_ARCHIVE)
 
 IF (CXPROC_CURL)
@@ -1678,7 +1656,7 @@ ENDIF()
 IF (CXPROC_SQLITE3)
   add_test(NAME filex-sql
     WORKING_DIRECTORY ${CXPROC_PREFIX}
-    COMMAND ${CXPROC_PREFIX}/bin/filex ${CXPROC_DATA_DIR}/Databases/TestContent.db3)
+    COMMAND ${CXPROC_PREFIX}/bin/filex ${CXPROC_TEST_DIR}/option/sql/test.db3)
 ENDIF()
 
 #filex-empty filex-dir filex-dir-recursive filex-archive filex-archive-intern filex-archive-intern-intern filex-url-http filex-sql filex-url-http-sql 
@@ -1693,12 +1671,26 @@ ENDIF()
 ## packaging ##################################################################
 ###############################################################################
 
-# http://stackoverflow.com/questions/7050997/zip-files-using-cmake
-#add_custom_target(create_zip COMMAND
-#    ${CMAKE_COMMAND} -E tar "cfv" "${CMAKE_CURRENT_SOURCE_DIR}/archive.zip" --format=zip
-#       "${CXPROC_PREFIX}/bin"
-#       "${CMAKE_CURRENT_SOURCE_DIR}/doc")
-	   
+# TODO: configure package
+
+set(CPACK_PACKAGE_VENDOR "Vendor name")
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Some summary")
+set(CPACK_PACKAGE_VERSION_MAJOR ${PROJECT_VERSION_MAJOR})
+set(CPACK_PACKAGE_VERSION_MINOR ${PROJECT_VERSION_MINOR})
+set(CPACK_PACKAGE_VERSION_PATCH ${PROJECT_VERSION_PATCH})
+set(CPACK_RESOURCE_FILE_LICENSE "${PROJECT_SOURCE_DIR}/LICENSE")
+set(CPACK_RESOURCE_FILE_README  "${PROJECT_SOURCE_DIR}/README.md")
+
+set(CPACK_SOURCE_GENERATOR "TGZ;ZIP")
+
+set(CPACK_SOURCE_IGNORE_FILES
+    /.git
+    /dist
+    /.*build.*
+    /\\\\.DS_Store
+)
+
+include(CPack)
 
 ###############################################################################
 ## reporting ##################################################################

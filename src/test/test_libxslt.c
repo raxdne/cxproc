@@ -47,7 +47,7 @@ xslTest(void)
       options |= XML_PARSE_NONET;
 #endif
 
-      if ((pdocXml = xmlReadFile((const char *) TESTPREFIX "pie/test-pie-5.pie", NULL, options)) == NULL) {
+      if ((pdocXml = xmlReadFile((const char *) TESTPREFIX  "xml/baustelle.pie", NULL, options)) == NULL) {
 	printf("ERROR 'Cant read XML file'\n");
       }
       else if ((pdocXsl = xmlReadFile((const char *) TESTPREFIX "xsl/TestValidate.xsl", NULL, options)) == NULL) {

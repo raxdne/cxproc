@@ -93,22 +93,19 @@ resNodeTestList(void)
     i++;
     printf("TEST %i in '%s:%i': find a file in res node tree  = ", i, __FILE__, __LINE__);
 
-    if ((prnT = resNodeDirNew(BAD_CAST DATAPREFIX)) == NULL) {
+    if ((prnT = resNodeDirNew(BAD_CAST TESTPREFIX)) == NULL) {
       printf("Error resNodeDirNew()\n");
     }
-    else if ((prnFile = resNodeListFindPath(prnT, BAD_CAST"TestContent.ogg")) == NULL) {
+    else if ((prnFile = resNodeListFindPath(prnT, BAD_CAST"config-test.cxp")) == NULL) {
       printf("Error resNodeListFindPath()\n");
     }
-    else if ((prnFile = resNodeListFindPath(prnT, BAD_CAST"Documents/TestContent.xml")) == NULL) {
+    else if ((prnFile = resNodeListFindPath(prnT, BAD_CAST"pn-1.pie")) == NULL) {
       printf("Error resNodeListFindPath()\n");
     }
-    else if ((prnFile = resNodeListFindPath(prnT, BAD_CAST"Documents/")) == NULL) {
+    else if ((prnFile = resNodeListFindPath(prnT, BAD_CAST"rp/")) == NULL) {
       printf("Error resNodeListFindPath()\n");
     }
     else if ((prnFile = resNodeListFindPath(prnT, BAD_CAST"non/existing.file")) != NULL) {
-      printf("Error resNodeListFindPath()\n");
-    }
-    else if ((prnFile = resNodeListFindPath(prnT, BAD_CAST"TestArchive.zip")) == NULL) {
       printf("Error resNodeListFindPath()\n");
     }
 #ifdef HAVE_ARCHIVE
@@ -318,7 +315,7 @@ resNodeTestList(void)
     }
     else if (resNodeSetRecursion(prnT,TRUE) == FALSE
 	     || resNodeUpdate(prnT, RN_INFO_MAX, NULL, NULL) == FALSE
-	     || resNodeGetError(prnT) != rn_error_none) {
+	     || resNodeGetError(prnT) != rn_error_stat) {
       printf("Error resNodeUpdate() '%s' ...\n", resNodeGetErrorMsg(prnT));
     }
     else {
@@ -378,7 +375,7 @@ resNodeTestList(void)
     if (resNodeListParse(NULL, 999, NULL) == TRUE) {
       printf("Error resNodeListParse() ...\n");
     }
-    else if ((prnT = resNodeDirNew(BAD_CAST TESTPREFIX "archive\\config.cxp")) == NULL) {
+    else if ((prnT = resNodeDirNew(BAD_CAST TESTPREFIX "each\\config.cxp")) == NULL) {
       printf("Error resNodeDirNew()\n");
     }
     else if (resNodeListParse(prnT, -3, NULL) == TRUE) {
@@ -414,7 +411,7 @@ resNodeTestList(void)
     else if (resNodeListParse(prnT, 999, NULL) == FALSE) {
       printf("Error resNodeListParse() ...\n");
     }
-    else if ((j = resNodeGetChildCount(prnT, rn_type_dir)) != 21) {
+    else if ((j = resNodeGetChildCount(prnT, rn_type_dir)) != 12) {
       printf("Error resNodeDirAppendEntries() = %i\n", j);
     }
     else if ((prnFound = resNodeListFindPath(prnT, BAD_CAST"dir/")) == NULL) {
@@ -441,7 +438,7 @@ resNodeTestList(void)
     i++;
     printf("TEST %i in '%s:%i': parse filesystem context of a symbolic link = ", i, __FILE__, __LINE__);
 
-    if ((prnT = resNodeDirNew(BAD_CAST DATAPREFIX "CAD Link.lnk")) == NULL) {
+    if ((prnT = resNodeDirNew(BAD_CAST TESTPREFIX "CAD Link.lnk")) == NULL) {
       printf("Error resNodeDirNew()\n");
     }
     else if (resNodeListParse(prnT, 9, NULL) == FALSE) {
@@ -573,7 +570,7 @@ resNodeTestList(void)
     i++;
     printf("TEST %i in '%s:%i': resNodeTo*() recursive directory = ", i, __FILE__, __LINE__);
 
-    if ((prnT = resNodeDirNew(BAD_CAST DATAPREFIX)) == NULL) {
+    if ((prnT = resNodeDirNew(BAD_CAST TESTPREFIX)) == NULL) {
       printf("Error resNodeDirNew()\n");
     }
     else if (resNodeListParse(prnT, 9, NULL) == FALSE) {
@@ -582,7 +579,7 @@ resNodeTestList(void)
     else if (resNodeUpdate(prnT, RN_INFO_MAX, NULL, NULL) == FALSE) {
       printf("Error resNodeReadStatus()\n");
     }
-    else if ((pndT = resNodeToDOM(prnT, RN_INFO_MAX)) == NULL || (j = domNumberOfChild(pndT, NULL)) != 27) {
+    else if ((pndT = resNodeToDOM(prnT, RN_INFO_MAX)) == NULL || (j = domNumberOfChild(pndT, NULL)) != 13) {
       printf("Error resNodeToDOM(): %i\n", j);
     }
     else if ((pucPlain = resNodeToPlain(prnT, RN_INFO_MAX)) == NULL) {

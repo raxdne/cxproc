@@ -56,7 +56,7 @@ resNodeTestInOut(void)
     i++;
     printf("TEST %i in '%s:%i': open and close a non existing file context = ", i, __FILE__, __LINE__);
 
-    if ((prnT = resNodeDirNew(BAD_CAST TESTPREFIX "tmp/dummy.txt")) == NULL) {
+    if ((prnT = resNodeDirNew(BAD_CAST TEMPPREFIX "dummy.txt")) == NULL) {
       printf("Error resNodeDirNew()\n");
     }
     else if (resNodeOpen(prnT, "rb") == TRUE) {
@@ -68,13 +68,13 @@ resNodeTestInOut(void)
     else if (resNodeClose(prnT) == TRUE) {
       printf("Error resNodeClose()\n");
     }
-    else if (resNodeOpen(prnT, "w+") == TRUE) {
+    else if (resNodeOpen(prnT, "w+") == FALSE) {
       printf("Error resNodeOpen()\n");
     }
-    else if (resNodeIsOpen(prnT) == TRUE) {
+    else if (resNodeIsOpen(prnT) == FALSE) {
       printf("Error resNodeIsOpen()\n");
     }
-    else if (resNodeClose(prnT) == TRUE) {
+    else if (resNodeClose(prnT) == FALSE) {
       printf("Error resNodeClose()\n");
     }
     else {
@@ -116,7 +116,7 @@ resNodeTestInOut(void)
     i++;
     printf("TEST %i in '%s:%i': open and close an existing local SQLite file context = ",i,__FILE__,__LINE__);
 
-    if ((prnT = resNodeDirNew(BAD_CAST TESTPREFIX "sql/test.db3")) == NULL) {
+    if ((prnT = resNodeDirNew(BAD_CAST TESTPREFIX "option/sql/test.db3")) == NULL) {
       printf("Error resNodeDirNew()\n");
     }
     else if (resNodeOpen(prnT, "r") == FALSE) {
@@ -144,7 +144,7 @@ resNodeTestInOut(void)
     i++;
     printf("TEST %i in '%s:%i': open and close an existing ZIP file context = ",i,__FILE__,__LINE__);
 
-    if ((prnT = resNodeDirNew(BAD_CAST TESTPREFIX "archive/test-zip-7.zip")) == NULL) {
+    if ((prnT = resNodeDirNew(BAD_CAST TESTPREFIX "option/archive/test-zip-7.zip")) == NULL) {
       printf("Error resNodeDirNew()\n");
     }
     else if (resNodeIsArchive(prnT) == FALSE) {
@@ -256,7 +256,7 @@ resNodeTestInOut(void)
 
     void *pContent;
     long int liLengthLarge = 512 * SIZE_MEGA;
-    xmlChar *pucNameFile = BAD_CAST"tmp/512MB.dat";
+    xmlChar *pucNameFile = BAD_CAST TEMPPREFIX "512MB.dat";
 
     i++;
     printf("TEST %i in '%s:%i': write huge content of a resource node = ",i,__FILE__,__LINE__);
@@ -290,7 +290,7 @@ resNodeTestInOut(void)
   
   if (RUNTEST) {
     resNodePtr prnT = NULL;
-    xmlChar *pucNameFile = BAD_CAST DATAPREFIX "Databases/TestContent.db3";
+    xmlChar *pucNameFile = BAD_CAST TESTPREFIX "option/sql/test.db3";
 
     i++;
     printf("TEST %i in '%s:%i': read content of a database resource node = ", i, __FILE__, __LINE__);
@@ -304,7 +304,7 @@ resNodeTestInOut(void)
     else if (resNodeGetContent(prnT, 1024) == NULL) {
       printf("Error resNodeGetContent()\n");
     }
-    else if (resNodeGetSize(prnT) != 27648) {
+    else if (resNodeGetSize(prnT) != 8192) {
       printf("Error resNodeGetSize()\n");
     }
     else {
@@ -546,7 +546,7 @@ resNodeTestInOut(void)
     i++;
     printf("TEST %i in '%s:%i': resNodeReadDoc() = ",i,__FILE__,__LINE__);
 
-    prnT = resNodeDirNew(BAD_CAST TESTPREFIX "pie/config.cxp");
+    prnT = resNodeDirNew(BAD_CAST TESTPREFIX "option/pie/text/config.cxp");
     if (resNodeReadDoc(NULL) == NULL
 	&& (pdocT = resNodeReadDoc(prnT)) != NULL) {
       n_ok++;

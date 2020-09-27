@@ -514,6 +514,8 @@ cxpProcessXmlNodeEmbedded(xmlNodePtr pndArg, cxpContextPtr pccArg)
 
 
 /*! \return resource node for a locator according to pccArg and pndArg
+* 
+* \bug handle attribute "context"!
 */
 resNodePtr
 cxpAttributeLocatorResNodeNew(cxpContextPtr pccArg, xmlNodePtr pndArg, xmlChar *pucArg)

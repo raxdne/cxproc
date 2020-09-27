@@ -39,7 +39,7 @@ plainTextTest(void)
     i++;
     printf("TEST %i in '%s:%i': reads content of file context = ", i, __FILE__, __LINE__);
 
-    if ((prnT = resNodeDirNew(BAD_CAST TESTPREFIX "pie/test-pie-3.txt")) == NULL) {
+    if ((prnT = resNodeDirNew(BAD_CAST TESTPREFIX "option/pie/text/test-pie-3.txt")) == NULL) {
       printf("Error resNodeDirNew()\n");
     }
     else if ((pucContent = plainGetContextTextEat(prnT, -1)) == NULL) {
