@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <cxp:make xmlns:cxp="http://www.tenbusch.info/cxproc" log="3">
-  <cxp:system mkdir="../../tmp"/>
+  <cxp:system mkdir="result"/>
   <cxp:system message="*** test-xml-cache-001: Set a cache DOM ***"/>
   <cxp:xml name="result/test-xml-cache-001.xml" cache="yes">
     <cxp:xml>

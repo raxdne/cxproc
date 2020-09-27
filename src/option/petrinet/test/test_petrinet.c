@@ -91,7 +91,7 @@ petrinetTest(cxpContextPtr pccArg)
     i++;
     printf("TEST %i in '%s:%i': use a conformant XML = ",i,__FILE__,__LINE__);
 
-    if ((pdocTest = xmlReadFile(TESTPREFIX "petrinet/pn-1.pie",NULL,0)) == NULL) {
+    if ((pdocTest = xmlReadFile(TESTPREFIX "option/petrinet/pn-1.pie",NULL,0)) == NULL) {
       printf("Error: xmlReadFile()\n");
     }
     else if ((ppnT = pnetNew(pdocTest,pccArg)) == NULL) {
@@ -131,7 +131,7 @@ petrinetTest(cxpContextPtr pccArg)
     i++;
     printf("TEST %i in '%s:%i': path search = ",i,__FILE__,__LINE__);
 
-    if ((pdocTest = xmlReadFile(TESTPREFIX "petrinet/pn-1.pie",NULL,0)) == NULL) {
+    if ((pdocTest = xmlReadFile(TESTPREFIX "option/petrinet/pn-1.pie",NULL,0)) == NULL) {
       printf("Error: xmlReadFile()\n");
     }
     else if ((ppnT = pnetNew(pdocTest,pccArg)) == NULL) {
@@ -197,7 +197,7 @@ petrinetTest(cxpContextPtr pccArg)
     i++;
     printf("TEST %i in '%s:%i': use a conformant XML = ",i,__FILE__,__LINE__);
 
-    pdocTest = xmlReadFile(TESTPREFIX "petrinet/pn-1.pie",NULL,0);
+    pdocTest = xmlReadFile(TESTPREFIX "option/petrinet/pn-1.pie",NULL,0);
     if ((ppnT = pnetNew(pdocTest,pccArg))) {
       xmlDocPtr pdocPath = NULL;
 
@@ -231,7 +231,7 @@ petrinetTest(cxpContextPtr pccArg)
     i++;
     printf("TEST %i in '%s:%i': pnetProcessPathtable() = ",i,__FILE__,__LINE__);
 
-    pdocTest = xmlReadFile(TESTPREFIX "petrinet/pn-1.pie",NULL,0);
+    pdocTest = xmlReadFile(TESTPREFIX "option/petrinet/pn-1.pie",NULL,0);
     if ((ppnT = pnetNew(pdocTest,pccArg))) {
       xmlDocPtr pdocPath = NULL;
 

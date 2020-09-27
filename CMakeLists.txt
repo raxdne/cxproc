@@ -36,8 +36,8 @@ INCLUDE_DIRECTORIES("${PROJECT_SOURCE_DIR}/third-party" "${PROJECT_SOURCE_DIR}/t
 
 # working directory for tests
 SET(CXPROC_TEST_DIR "${PROJECT_SOURCE_DIR}/test/")
-SET(CXPROC_DATA_DIR "${CXPROC_PREFIX}/data/")
-SET(CXPROC_TEMP_DIR "${CXPROC_PREFIX}/tmp/")
+SET(CXPROC_DATA_DIR "${PROJECT_SOURCE_DIR}/data/")
+SET(CXPROC_TEMP_DIR "${PROJECT_SOURCE_DIR}/tmp/")
 
 # https://vicrucann.github.io/tutorials/quick-cmake-doxygen/
 # check if Doxygen is installed

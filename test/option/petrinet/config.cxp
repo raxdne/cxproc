@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <cxp:make xmlns:cxp="http://www.tenbusch.info/cxproc">
-  <cxp:system mkdir="../../tmp"/>
+  <cxp:system mkdir="result"/>
   <cxp:system message="TEST test-petrinet-1a: one petrinet"/>
-  <cxp:xml name="../../tmp/test-petrinet-1.xml">
+  <cxp:xml name="result/test-petrinet-1.xml">
     <cxp:xml>
       <pie import="yes">
         <import name="pn-1.pie"/>
@@ -10,23 +10,23 @@
     </cxp:xml>
   </cxp:xml>
   <cxp:system message="TEST test-petrinet-1: one petrinet"/>
-  <cxp:xml name="../../tmp/test-petrinet-1.xsl">
+  <cxp:xml name="result/test-petrinet-1.xsl">
     <cxp:pathtable start="papiervorlage" target="arbeitsblatt" lmax="5" lmin="4">
-      <cxp:xml name="../../tmp/test-petrinet-1.xml"/>
+      <cxp:xml name="result/test-petrinet-1.xml"/>
     </cxp:pathtable>
   </cxp:xml>
   <cxp:system message="TEST test-petrinet-1b: one petrinet"/>
-  <cxp:xml name="../../tmp/test-petrinet-1b.xml">
-    <cxp:xml name="../../tmp/test-petrinet-1.xml"/>
-    <cxp:xsl name="../../tmp/test-petrinet-1.xsl"/>
+  <cxp:xml name="result/test-petrinet-1b.xml">
+    <cxp:xml name="result/test-petrinet-1.xml"/>
+    <cxp:xsl name="result/test-petrinet-1.xsl"/>
   </cxp:xml>
   <cxp:system message="TEST test-petrinet-2: one petrinet"/>
-  <cxp:xml name="../../tmp/test-petrinet-2.xml">
-    <cxp:xml name="../../tmp/test-petrinet-1.xml"/>
+  <cxp:xml name="result/test-petrinet-2.xml">
+    <cxp:xml name="result/test-petrinet-1.xml"/>
     <cxp:xsl>
-      <cxp:xml name="../../tmp/test-petrinet-2.xsl">
+      <cxp:xml name="result/test-petrinet-2.xsl">
         <cxp:pathnet start="papiervorlage" target="arbeitsblatt" lmax="5" lmin="1">
-          <cxp:xml name="../../tmp/test-petrinet-1.xml"/>
+          <cxp:xml name="result/test-petrinet-1.xml"/>
         </cxp:pathnet>
       </cxp:xml>
     </cxp:xsl>

@@ -24,7 +24,7 @@
     </cxp:make>
   </cxp:make>
   <!--  -->
-  <cxp:xml name="../../tmp/test-threads-download-cached.xml">
+  <cxp:xml name="result/test-threads-download-cached.xml">
     <dummy>
       <cxp:xml cache="t-3.xml"/>
       <cxp:xml cache="t-4.xml"/>
