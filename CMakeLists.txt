@@ -1671,12 +1671,26 @@ ENDIF()
 ## packaging ##################################################################
 ###############################################################################
 
-# http://stackoverflow.com/questions/7050997/zip-files-using-cmake
-#add_custom_target(create_zip COMMAND
-#    ${CMAKE_COMMAND} -E tar "cfv" "${CMAKE_CURRENT_SOURCE_DIR}/archive.zip" --format=zip
-#       "${CXPROC_PREFIX}/bin"
-#       "${CMAKE_CURRENT_SOURCE_DIR}/doc")
-	   
+# TODO: configure package
+
+set(CPACK_PACKAGE_VENDOR "Vendor name")
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Some summary")
+set(CPACK_PACKAGE_VERSION_MAJOR ${PROJECT_VERSION_MAJOR})
+set(CPACK_PACKAGE_VERSION_MINOR ${PROJECT_VERSION_MINOR})
+set(CPACK_PACKAGE_VERSION_PATCH ${PROJECT_VERSION_PATCH})
+set(CPACK_RESOURCE_FILE_LICENSE "${PROJECT_SOURCE_DIR}/LICENSE")
+set(CPACK_RESOURCE_FILE_README  "${PROJECT_SOURCE_DIR}/README.md")
+
+set(CPACK_SOURCE_GENERATOR "TGZ;ZIP")
+
+set(CPACK_SOURCE_IGNORE_FILES
+    /.git
+    /dist
+    /.*build.*
+    /\\\\.DS_Store
+)
+
+include(CPack)
 
 ###############################################################################
 ## reporting ##################################################################
