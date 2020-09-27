@@ -621,6 +621,7 @@ ADD_EXECUTABLE(cxproc-test
 
 target_compile_definitions(cxproc-test PUBLIC
   TESTCODE
+  BUILDPREFIX="${PROJECT_BINARY_DIR}"
   DATAPREFIX="${CXPROC_DATA_DIR}"
   TESTPREFIX="${CXPROC_TEST_DIR}"
   TEMPPREFIX="${CXPROC_TEMP_DIR}"
@@ -1339,6 +1340,7 @@ add_test(NAME basics-code
   COMMAND ${CXPROC_PREFIX}/bin/cxproc-test -t basics)
 
 add_test(NAME res_node-code
+  WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
   COMMAND ${CXPROC_PREFIX}/bin/cxproc-test -t res_node)
 
 add_test(NAME cxp-code
@@ -1418,36 +1420,24 @@ add_test(NAME cli-help
 
 add_test(NAME cli-description
   WORKING_DIRECTORY ${CXPROC_PREFIX}
-  COMMAND ${CXPROC_PREFIX}/bin/cxproc -? config-article.cxp)
+  COMMAND ${CXPROC_PREFIX}/bin/cxproc -? myclean.cxp)
 
 add_test(NAME cli-env
   WORKING_DIRECTORY ${CXPROC_PREFIX}
   COMMAND ${CXPROC_PREFIX}/bin/cxproc -e)
 
 add_test(NAME cli-conf-plain
-  WORKING_DIRECTORY ${CXPROC_PREFIX}
+  WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
   COMMAND ${CXPROC_PREFIX}/bin/cxproc -t abc.txt pie2html.xsl)
 
 add_test(NAME cli-search
-  WORKING_DIRECTORY ${CXPROC_PREFIX}/www/html/
-  COMMAND ${CXPROC_PREFIX}/bin/cxproc -s "pie2.*xsl")
-
-add_test(NAME cli-conf-file
   WORKING_DIRECTORY ${CXPROC_PREFIX}
-  COMMAND ${CXPROC_PREFIX}/bin/cxproc -t command/test_commandline.sh)
+  COMMAND ${CXPROC_PREFIX}/bin/cxproc -s "Validate.xsl")
 
 add_test(NAME cli-conf-dir
-  WORKING_DIRECTORY ${CXPROC_PREFIX}
-  COMMAND ${CXPROC_PREFIX}/bin/cxproc -t command//)
+  WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+  COMMAND ${CXPROC_PREFIX}/bin/cxproc -t doc//)
 
-add_test(NAME cli-dir-xsl
-  WORKING_DIRECTORY ${CXPROC_TEST_DIR}
-  COMMAND ${CXPROC_PREFIX}/bin/cxproc command// dir2mm.xsl)
-
-set_property(TEST cli-search cli-dir-xsl
-  APPEND PROPERTY ENVIRONMENT CXP_PATH=${CXPROC_PREFIX}/www/html/pie//
-)
-  
 add_test(NAME dir-code
   WORKING_DIRECTORY ${CXPROC_PREFIX}
   COMMAND ${CXPROC_PREFIX}/bin/cxproc-test -t dir)
@@ -1488,8 +1478,8 @@ add_test(NAME xsl-cxp
   WORKING_DIRECTORY ${CXPROC_TEST_DIR}/xsl
   COMMAND ${CXPROC_PREFIX}/bin/cxproc config.cxp)
 
-set_property(TEST cli-help cli-description cli-env cli-conf-plain cli-search cli-conf-file cli-conf-dir cli-dir-xsl dir-code dir-cxp each-cxp eval-cxp plain-cxp system-cxp worst-cxp xhtml-cxp xml-cxp xsl-cxp
-  APPEND PROPERTY ENVIRONMENT CXP_PATH=${CXPROC_PREFIX}/www/html/pie//
+set_property(TEST cli-help cli-description cli-env cli-conf-plain cli-search cli-conf-dir dir-code dir-cxp each-cxp eval-cxp plain-cxp system-cxp worst-cxp xhtml-cxp xml-cxp xsl-cxp
+  APPEND PROPERTY ENVIRONMENT CXP_PATH=${PROJECT_SOURCE_DIR}//
 )
 
 IF (CXPROC_PETRINET)
@@ -1633,9 +1623,9 @@ ELSE(MSVC)
 ENDIF(MSVC)
 
 # set envionment variables for testing
-set_tests_properties(basics-code res_node-code cxp-code dom-code plain-code parser-code cli-help cli-description cli-env cli-conf-plain cli-search cli-conf-file cli-conf-dir cli-dir-xsl dir-code dir-cxp each-cxp eval-cxp plain-cxp system-cxp worst-cxp xhtml-cxp xml-cxp xsl-cxp PROPERTIES
-  ENVIRONMENT "CXP_PATH=${PROJECT_SOURCE_DIR}//"
-  )
+#set_tests_properties(basics-code res_node-code cxp-code dom-code plain-code parser-code cli-help cli-description cli-env cli-conf-plain cli-search cli-conf-file cli-conf-dir cli-dir-xsl dir-code dir-cxp each-cxp eval-cxp plain-cxp system-cxp worst-cxp xhtml-cxp xml-cxp xsl-cxp PROPERTIES
+#  ENVIRONMENT "CXP_PATH=${PROJECT_SOURCE_DIR}//"
+#  )
 
 add_test(NAME filex-empty
   WORKING_DIRECTORY ${CXPROC_PREFIX}

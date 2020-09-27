@@ -452,26 +452,6 @@ resNodeTestString(void)
 
 
   if (RUNTEST) {
-    xmlChar *pucTest;
-    xmlChar *pucT;
-
-    i++;
-    printf("TEST %i in '%s:%i': detect current working dir = ",i,__FILE__,__LINE__);
-    pucTest = resPathGetCwd();
-    pucT = resPathCollapse(BAD_CAST TESTPREFIX "/../build", FS_PATH_FULL);
-    if (xmlStrstr(pucT,pucTest) == pucT)   {
-      n_ok++;
-      printf("OK\n");
-    }
-    else {
-      printf("Error resPathGetCwd()\n");
-    }
-    if (pucT) xmlFree(pucT);
-    if (pucTest) xmlFree(pucTest);
-  }
-
-
-  if (RUNTEST) {
     i++;
     printf("TEST %i in '%s:%i': resPathIsEquivalent() = ", i, __FILE__, __LINE__);
     
@@ -505,6 +485,23 @@ resNodeTestString(void)
     }
     else {
       printf("Error resPathCollapse()\n");
+    }
+    if (pucTest) xmlFree(pucTest);
+  }
+
+
+  if (RUNTEST) {
+    xmlChar* pucTest;
+
+    i++;
+    printf("TEST %i in '%s:%i': detect current working dir = ", i, __FILE__, __LINE__);
+    pucTest = resPathGetCwd();
+    if (resPathIsEquivalent(pucTest, BAD_CAST BUILDPREFIX)) {
+      n_ok++;
+      printf("OK\n");
+    }
+    else {
+      printf("Error resPathGetCwd()\n");
     }
     if (pucTest) xmlFree(pucTest);
   }
@@ -567,7 +564,7 @@ resNodeTestString(void)
     i++;
     printf("TEST %i in '%s:%i': normalizing of a relative filename = ",i,__FILE__,__LINE__);
     pucTest = resPathCollapse(BAD_CAST TEMPPREFIX "/../..//abc\\Def/Hij", FS_PATH_FULL);
-    if (resPathGetDepth(pucTest) == 5) {
+    if (resPathGetDepth(pucTest) == 6) {
       n_ok++;
       printf("OK\n");
     }
@@ -678,7 +675,7 @@ resNodeTestString(void)
     i++;
     printf("TEST %i in '%s:%i': normalizing of a mixed relative filename = ",i,__FILE__,__LINE__);
     pucTest = resPathCollapse(BAD_CAST TESTPREFIX "..//..///contrib/pie//REadme.txt", FS_PATH_FULL);
-    if (resPathGetDepth(pucTest) == 5) {
+    if (resPathGetDepth(pucTest) == 6) {
       n_ok++;
       printf("OK\n");
     }
@@ -694,7 +691,7 @@ resNodeTestString(void)
     i++;
     printf("TEST %i in '%s:%i': normalizing of a mixed relative filename = ",i,__FILE__,__LINE__);
     pucTest = resPathCollapse(BAD_CAST TESTPREFIX "abc/def/..//../..///contrib/pie//REadme.txt", FS_PATH_FULL);
-    if (resPathGetDepth(pucTest) == 6) {
+    if (resPathGetDepth(pucTest) == 7) {
       n_ok++;
       printf("OK\n");
     }

@@ -966,7 +966,7 @@ resNodeTest(void)
     else if (resNodeSetToParent(prnT) == FALSE || resNodeSetToParent(prnT) == FALSE) {
       printf("Error\n");
     }
-    else if (resPathIsEquivalent(resNodeGetNameNormalized(prnT), pucT)) {
+    else if (resPathIsEquivalent(resNodeGetNameNormalized(prnT), pucT) == FALSE) {
       printf("Error\n");
     }
     else {

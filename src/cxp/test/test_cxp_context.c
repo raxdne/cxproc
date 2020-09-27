@@ -273,14 +273,11 @@ cxpCtxtTest(cxpContextPtr pccArg)
     xmlSetProp(pndXml,BAD_CAST "context",BAD_CAST TESTPREFIX);
     xmlDocSetRootElement(pdocTest,pndXml);
 
-    prnT = resNodeConcatNew(BAD_CAST TESTPREFIX,BAD_CAST "../test/xsl/a.xml");
+    prnT = resNodeConcatNew(BAD_CAST TESTPREFIX,BAD_CAST "xsl/test-xsl-4.xml");
     domChangeURL(pdocTest,prnT);
-    resNodeFree(prnT);
-
-    prnT = resNodeConcatNew(BAD_CAST TESTPREFIX,BAD_CAST "../test");
 
     pccT = cxpCtxtFromAttr(pccArg,pndXml);
-    if (resPathIsEquivalent(resNodeGetNameNormalized(cxpCtxtLocationGet(pccT)),resNodeGetNameNormalized(prnT))) {
+    if (resPathIsEquivalent(resNodeGetNameNormalized(cxpCtxtLocationGet(pccT)), BAD_CAST TESTPREFIX)) {
       n_ok++;
       printf("OK\n");
     }

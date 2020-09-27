@@ -54,3 +54,5 @@ robocopy /S %CXPBASE%..\examples %PREFIX%\examples
 pushd %PREFIX%
 "C:\UserData\Programme\7-ZipPortable\App\7-Zip\7z.exe" a -r ..\cxproc-v1.3-pre_%ARCH%.zip bin xml doc examples www -x!*.pdb -x!*.ilk -x!cxproc-test.exe
 popd
+
+REM TODO: CPack s. https://cmake.org/cmake/help/latest/module/CPack.html

@@ -56,7 +56,7 @@ resNodeTestInOut(void)
     i++;
     printf("TEST %i in '%s:%i': open and close a non existing file context = ", i, __FILE__, __LINE__);
 
-    if ((prnT = resNodeDirNew(BAD_CAST TESTPREFIX "tmp/dummy.txt")) == NULL) {
+    if ((prnT = resNodeDirNew(BAD_CAST TEMPPREFIX "dummy.txt")) == NULL) {
       printf("Error resNodeDirNew()\n");
     }
     else if (resNodeOpen(prnT, "rb") == TRUE) {
@@ -68,13 +68,13 @@ resNodeTestInOut(void)
     else if (resNodeClose(prnT) == TRUE) {
       printf("Error resNodeClose()\n");
     }
-    else if (resNodeOpen(prnT, "w+") == TRUE) {
+    else if (resNodeOpen(prnT, "w+") == FALSE) {
       printf("Error resNodeOpen()\n");
     }
-    else if (resNodeIsOpen(prnT) == TRUE) {
+    else if (resNodeIsOpen(prnT) == FALSE) {
       printf("Error resNodeIsOpen()\n");
     }
-    else if (resNodeClose(prnT) == TRUE) {
+    else if (resNodeClose(prnT) == FALSE) {
       printf("Error resNodeClose()\n");
     }
     else {
