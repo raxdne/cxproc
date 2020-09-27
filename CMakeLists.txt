@@ -1198,7 +1198,7 @@ ENDIF ()
 #
 # add the command to generate the source code
 
-# TODO: process git info
+# TODO: process "git log -n 1" or "git branch --contains"
 IF(MSVC)
   #ADD_CUSTOM_COMMAND (
   #  OUTPUT ${CXPROC_SRC_DIR}/svn_revision.h ${CXPROC_SRC_DIR}/svn_info.h
