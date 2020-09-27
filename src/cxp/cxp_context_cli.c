@@ -167,11 +167,11 @@ cxpCtxtCliPrintHelp(cxpContextPtr pccArg)
   pucExecutable = resPathGetBasename(cxpCtxtCliGetValue(pccArg, 0));
   assert(pucExecutable);
 
-  cxpCtxtLogPrint(pccArg, 1,"\n%s - " CXP_VER_FILE_DESCRIPTION_STR " " CXP_VER_FILE_VERSION_STR "\n\n", pucExecutable);
+  cxpCtxtLogPrint(pccArg, 1,"\n%s - " CXP_VER_FILE_DESCRIPTION_STR " " CXP_VER_FILE_VERSION_STR "\n", pucExecutable);
 
-  cxpCtxtLogPrint(pccArg, 1,"Copyright " CXP_VER_COPYRIGHT_STR "\n\n");
+  cxpCtxtLogPrint(pccArg, 1,"Copyright " CXP_VER_COPYRIGHT_STR "\n");
 
-  cxpCtxtLogPrint(pccArg, 1,GPL_LICENSE_STR "\n\n");
+  cxpCtxtLogPrint(pccArg, 1,GPL_LICENSE_STR "\n");
 
   cxpCtxtLogPrint(pccArg, 1,"Usage:\n");
 

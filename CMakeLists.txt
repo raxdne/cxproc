@@ -31,13 +31,13 @@ SET(CMAKE_VERBOSE_MAKEFILE ON)
 
 FIND_PACKAGE(PkgConfig)
 
-SET(CXPROC_PREFIX ${CMAKE_BINARY_DIR} CACHE PATH "Prefix")
+SET(CXPROC_PREFIX "${PROJECT_BINARY_DIR}/.." CACHE PATH "Prefix")
 INCLUDE_DIRECTORIES("${PROJECT_SOURCE_DIR}/third-party" "${PROJECT_SOURCE_DIR}/third-party/option" "${CXPROC_SRC_DIR}" "${CXPROC_SRC_DIR}/option" "${CXPROC_PREFIX}/include")
 
 # working directory for tests
-SET(CXPROC_TEST_DIR "${PROJECT_BINARY_DIR}/test/")
-SET(CXPROC_DATA_DIR "${PROJECT_BINARY_DIR}/data/")
-SET(CXPROC_TEMP_DIR "${PROJECT_BINARY_DIR}/tmp/")
+SET(CXPROC_TEST_DIR "${CXPROC_PREFIX}/test/")
+SET(CXPROC_DATA_DIR "${CXPROC_PREFIX}/data/")
+SET(CXPROC_TEMP_DIR "${CXPROC_PREFIX}/tmp/")
 
 # https://vicrucann.github.io/tutorials/quick-cmake-doxygen/
 # check if Doxygen is installed
@@ -1197,7 +1197,7 @@ ENDIF ()
 #
 # add the command to generate the source code
 
-# TODO: process git info
+# TODO: process "git log -n 1" or "git branch --contains"
 IF(MSVC)
   #ADD_CUSTOM_COMMAND (
   #  OUTPUT ${CXPROC_SRC_DIR}/svn_revision.h ${CXPROC_SRC_DIR}/svn_info.h

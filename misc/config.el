@@ -46,7 +46,6 @@
 (setq nxml-sexp-element-flag t)
 
 (require 'move-text)
-;(load "~/cxproc-build/trunk/contrib/pie/elisp/move-text.el")
 (move-text-default-bindings)
 
 ; https://www.emacswiki.org/emacs/NxmlMode#toc11
@@ -81,7 +80,7 @@
 ; (setenv "CXP_DATE" "200109")
 
 (setq prefix
-      (concat (file-name-directory (buffer-file-name)) "../..")
+      (concat (file-name-directory (buffer-file-name)) "..")
       )
 ; (pwd) (cd prefix)
 
@@ -287,11 +286,11 @@
 			  (interactive)
 			  (if (buffer-file-name)
 			      (save-buffer))
-			  (compile (concat "make -j 4 -C " prefix "/x86_64-gnu-linux"
-					   " cxproc" ;all filex cxproc-cgi cxproc-test 
+			  (compile (concat "make -j 4 -C " prefix "/../x86_64-gnu-linux-debug/build/"
+					   " all" ;cxproc filex cxproc-cgi cxproc-test 
 			  		   ))
 					;(compile "make test")
-					;(shell-command (concat prefix "/x86_64-gnu-linux-debug/bin/filex"))
+					;(shell-command (concat prefix "/../x86_64-gnu-linux-debug/bin/filex"))
 			  )
 		)
 
@@ -300,7 +299,7 @@
 			  (interactive)
 			  (if (buffer-file-name)
 			      (save-buffer))
-			  (compile (concat "make -C " prefix "/x86_64-gnu-linux-debug"
+			  (compile (concat "make -C " prefix "/../x86_64-gnu-linux-debug"
 					   " clean"
 			  		   ))
 			  ;(compile "make test")
@@ -354,7 +353,7 @@
 			(grep
 			 (concat grep-command
 				 " \"" name "\" "
-				 "*.* ../*.* test/*.*"
+				 " -r " prefix
 				 ))
 			;(other-window 1)
 			;(search-forward-regexp pattern-line)
@@ -440,9 +439,6 @@
       )
     )
   )
-;; (developer-find-file-marked)
-;; ~/arbeit/src/myhome/cutbuf.sh
-; 
 
 
 (defun developer-kill-buffers ()

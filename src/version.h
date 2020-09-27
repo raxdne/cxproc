@@ -7,7 +7,22 @@
 #define STRINGIZE2(s) #s
 #define STRINGIZE(s) STRINGIZE2(s)
 
-#include "git_revision.h"
+#define CXP_VERSION_MAJOR    "1"
+
+#define CXP_VERSION_MINOR    "3"
+
+#define CXP_VERSION_STR      "v" CXP_VERSION_MAJOR "." CXP_VERSION_MINOR
+
+#define CXP_VERSION_REVISION 0000
+
+#define CXP_REVISION_STR     "pre"
+
+#define CXP_VERSION_BUILD    0000
+
+#define CXP_VERSION_BUILD_STR "0000"
+
+#define CXP_VERSION_URL      "https://github.com/raxdne/cxproc"
+
 
 #define CXP_VER_FILE_DESCRIPTION_STR    "A Configurable Xml PROCessor."
 #define CXP_VER_FILE_VERSION            CXP_VERSION_MAJOR, CXP_VERSION_MINOR, CXP_VERSION_REVISION, CXP_VERSION_BUILD
@@ -20,7 +35,7 @@
 #define CXP_VER_INTERNAL_NAME_STR       CXP_VER_ORIGINAL_FILENAME_STR
 #define CXP_VER_COPYRIGHT_STR           "(C) 2006..2020 by Alexander Tenbusch"
 
-#define CXP_VER_URL			"http://www.tenbusch.info/cxproc"
+#define CXP_VER_URL			CXP_VERSION_URL
 
 #ifdef _MSC_VER
 #ifdef _DEBUG
