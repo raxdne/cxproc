@@ -40,7 +40,7 @@ dirTest(cxpContextPtr pccArg)
     printf("TEST %i in '%s:%i': dirProcessDirNode() = ", i, __FILE__, __LINE__);
 
     pndTestFile = xmlNewNode(NULL, NAME_FILE);
-    xmlSetProp(pndTestFile, BAD_CAST"name", BAD_CAST DATAPREFIX "Documents/TestContent.xml");
+    xmlSetProp(pndTestFile, BAD_CAST"name", BAD_CAST TESTPREFIX "xml/baustelle.pie");
 
     if ((pdocTest = dirProcessDirNode(pndTestFile, NULL, pccArg)) == NULL) {
       printf("Error dirProcessDirNode()\n");
@@ -72,7 +72,7 @@ dirTest(cxpContextPtr pccArg)
     printf("TEST %i in '%s:%i': parse a file and count number of childs = ",i,__FILE__,__LINE__);
 
     pndTestFile = xmlNewNode(NULL,NAME_FILE);
-    xmlSetProp(pndTestFile, BAD_CAST"name", BAD_CAST DATAPREFIX "Documents/TestContent.odt");
+    xmlSetProp(pndTestFile, BAD_CAST"name", BAD_CAST TESTPREFIX "xml/test-xml-zip.odt");
     xmlSetProp(pndTestFile, BAD_CAST"verbosity", BAD_CAST"5");
 
     if ((pdocTest = dirProcessDirNode(pndTestFile, NULL, pccArg)) == NULL) {
@@ -87,9 +87,11 @@ dirTest(cxpContextPtr pccArg)
     else if ((k = domNumberOfChild(pndRoot, NAME_DIR)) != 0) {
       printf("Error domNumberOfChild() DIR: %i\n", k);
     }
+#ifdef HAVE_LIBARCHIVE
     else if ((pndT = domGetFirstChild(pndRoot, NAME_FILE)) == NULL || (pndT = domGetFirstChild(pndT, NAME_ARCHIVE)) == NULL) {
       printf("Error domGetFirstChild()\n");
     }
+#endif
     else {
       printf("OK\n");
       n_ok++;
@@ -110,7 +112,7 @@ dirTest(cxpContextPtr pccArg)
     printf("TEST %i in '%s:%i': parse a directory and count number of childs = ",i,__FILE__,__LINE__);
 
     pndTestDir = xmlNewNode(NULL,NAME_DIR);
-    xmlSetProp(pndTestDir,BAD_CAST"name",BAD_CAST DATAPREFIX);
+    xmlSetProp(pndTestDir,BAD_CAST"name",BAD_CAST TESTPREFIX);
     //xmlSetProp(pndTestDir, BAD_CAST"verbosity", BAD_CAST"2");
     xmlSetProp(pndTestDir, BAD_CAST"depth", BAD_CAST"2");
 
@@ -123,10 +125,10 @@ dirTest(cxpContextPtr pccArg)
     else if ((pndT = domGetFirstChild(pndT, NAME_DIR)) == NULL) {
       printf("Error domGetFirstChild()\n");
     }
-    else if ((k = domNumberOfChild(pndT, NAME_FILE)) != 16) {
+    else if ((k = domNumberOfChild(pndT, NAME_FILE)) != 1) {
       printf("Error domNumberOfChild(): %i\n", k);
     }
-    else if ((k = domNumberOfChild(pndT, NAME_DIR)) != 11) {
+    else if ((k = domNumberOfChild(pndT, NAME_DIR)) != 12) {
       printf("Error domNumberOfChild(): %i\n", k);
     }
     else {
@@ -155,7 +157,7 @@ dirTest(cxpContextPtr pccArg)
 
     pndPie = xmlNewNode(NULL, NAME_PIE);
 
-    if ((prnTTT = resNodeDirNew(BAD_CAST DATAPREFIX)) == NULL) {
+    if ((prnTTT = resNodeDirNew(BAD_CAST TESTPREFIX)) == NULL) {
       printf("Error resNodeNew()\n");
     }
     else if ((pccT = cxpCtxtDup(pccArg)) == NULL || cxpCtxtRootSet(pccT, prnTTT) == FALSE) {
@@ -167,7 +169,7 @@ dirTest(cxpContextPtr pccArg)
     else if ((pndT = xmlNewChild(pndDir, NULL, NAME_DIR, NULL)) == NULL) {
       printf("Error xmlNewChild()\n");
     }
-    else if ((prnT = resNodeDirNew(BAD_CAST DATAPREFIX)) == NULL) {
+    else if ((prnT = resNodeDirNew(BAD_CAST TESTPREFIX)) == NULL) {
       printf("Error resNodeDirNew()\n");
     }
     else if (xmlSetProp(pndT, BAD_CAST"prefix", resNodeGetNameNormalized(prnT)) == FALSE) {
@@ -176,7 +178,7 @@ dirTest(cxpContextPtr pccArg)
     else if ((pndTT = xmlNewChild(pndDir, NULL, NAME_DIR, NULL)) == NULL) {
       printf("Error xmlNewChild()\n");
     }
-    else if ((prnTT = resNodeDirNew(BAD_CAST DATAPREFIX "Test/")) == NULL) {
+    else if ((prnTT = resNodeDirNew(BAD_CAST TESTPREFIX "xml/")) == NULL) {
       printf("Error resNodeDirNew()\n");
     }
     else if (xmlSetProp(pndTT, BAD_CAST"prefix", resNodeGetNameNormalized(prnTT)) == FALSE) {

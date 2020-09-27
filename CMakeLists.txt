@@ -1544,19 +1544,7 @@ IF (CXPROC_PIE)
     WORKING_DIRECTORY ${CXPROC_PREFIX}
     COMMAND ${CXPROC_PREFIX}/bin/cxproc 2012)
 
-  add_test(NAME cli-cxp-article
-    WORKING_DIRECTORY ${CXPROC_PREFIX}
-    COMMAND ${CXPROC_PREFIX}/bin/cxproc config-article.cxp www/html/Documents/Demo/Documents/Article.txt ${CXPROC_PREFIX}/tmp)
-
-  add_test(NAME cli-cxp-presentation
-    WORKING_DIRECTORY ${CXPROC_PREFIX}
-    COMMAND ${CXPROC_PREFIX}/bin/cxproc config-presentation.cxp www/html/Documents/Demo/Documents/Article.txt ${CXPROC_PREFIX}/tmp)
-
-  add_test(NAME cli-cxp-named
-    WORKING_DIRECTORY ${CXPROC_PREFIX}
-    COMMAND ${CXPROC_PREFIX}/bin/cxproc cxp=config-article file=www/html/Documents/Demo/Documents/Article.txt ${CXPROC_PREFIX}/tmp/named)
-
-  set_property(TEST pie-code pie-cxp-import-cxp calendar cli-conf-year cli-year cli-cxp-article cli-cxp-presentation cli-cxp-named
+  set_property(TEST pie-code pie-cxp-import-cxp calendar cli-conf-year cli-year
     APPEND PROPERTY ENVIRONMENT CXP_PATH=${PROJECT_SOURCE_DIR}//
     )
   
@@ -1637,20 +1625,20 @@ add_test(NAME filex-dir
 
 add_test(NAME filex-dir-recursive
   WORKING_DIRECTORY ${CXPROC_PREFIX}
-  COMMAND ${CXPROC_PREFIX}/bin/filex ${CXPROC_TEST_DIR}// ${CXPROC_DATA_DIR}//)
+  COMMAND ${CXPROC_PREFIX}/bin/filex ${CXPROC_TEST_DIR}// ${CXPROC_TEMP_DIR}//)
 
 add_test(NAME filex-archive
   WORKING_DIRECTORY ${CXPROC_PREFIX}
-  COMMAND ${CXPROC_PREFIX}/bin/filex ${CXPROC_DATA_DIR}/Documents/TestContent.docx)
+  COMMAND ${CXPROC_PREFIX}/bin/filex ${CXPROC_TEST_DIR}/xml/test-xml-zip.odt)
 
 IF (CXPROC_ARCHIVE)
   add_test(NAME filex-archive-intern
     WORKING_DIRECTORY ${CXPROC_PREFIX}
-    COMMAND ${CXPROC_PREFIX}/bin/filex ${CXPROC_DATA_DIR}/Documents/TestContent.docx/word/document.xml)
+    COMMAND ${CXPROC_PREFIX}/bin/filex ${CXPROC_TEST_DIR}/xml/test-xml-zip.odt/content.xml)
 
   add_test(NAME filex-archive-intern-intern
     WORKING_DIRECTORY ${CXPROC_PREFIX}
-    COMMAND ${CXPROC_PREFIX}/bin/filex ${CXPROC_DATA_DIR}/Archive/TestArchive.zip/sub/TestContent.docx/word/document.xml)
+    COMMAND ${CXPROC_PREFIX}/bin/filex ${CXPROC_TEST_DIR}/option/archive/test-zip-odt.zip/test-xml-zip.odt/content.xml)
 ENDIF(CXPROC_ARCHIVE)
 
 IF (CXPROC_CURL)
@@ -1668,7 +1656,7 @@ ENDIF()
 IF (CXPROC_SQLITE3)
   add_test(NAME filex-sql
     WORKING_DIRECTORY ${CXPROC_PREFIX}
-    COMMAND ${CXPROC_PREFIX}/bin/filex ${CXPROC_DATA_DIR}/Databases/TestContent.db3)
+    COMMAND ${CXPROC_PREFIX}/bin/filex ${CXPROC_TEST_DIR}/option/sql/test.db3)
 ENDIF()
 
 #filex-empty filex-dir filex-dir-recursive filex-archive filex-archive-intern filex-archive-intern-intern filex-url-http filex-sql filex-url-http-sql 

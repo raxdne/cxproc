@@ -411,7 +411,7 @@ resNodeTestList(void)
     else if (resNodeListParse(prnT, 999, NULL) == FALSE) {
       printf("Error resNodeListParse() ...\n");
     }
-    else if ((j = resNodeGetChildCount(prnT, rn_type_dir)) != 13) {
+    else if ((j = resNodeGetChildCount(prnT, rn_type_dir)) != 12) {
       printf("Error resNodeDirAppendEntries() = %i\n", j);
     }
     else if ((prnFound = resNodeListFindPath(prnT, BAD_CAST"dir/")) == NULL) {
@@ -579,7 +579,7 @@ resNodeTestList(void)
     else if (resNodeUpdate(prnT, RN_INFO_MAX, NULL, NULL) == FALSE) {
       printf("Error resNodeReadStatus()\n");
     }
-    else if ((pndT = resNodeToDOM(prnT, RN_INFO_MAX)) == NULL || (j = domNumberOfChild(pndT, NULL)) != 14) {
+    else if ((pndT = resNodeToDOM(prnT, RN_INFO_MAX)) == NULL || (j = domNumberOfChild(pndT, NULL)) != 13) {
       printf("Error resNodeToDOM(): %i\n", j);
     }
     else if ((pucPlain = resNodeToPlain(prnT, RN_INFO_MAX)) == NULL) {
