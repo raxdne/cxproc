@@ -3,7 +3,7 @@
 #
 cmake_minimum_required(VERSION 3.0) # setting this is required
 
-project(cxproc_project)            # this sets the project name
+project(cxproc)            # this sets the project name
 
 include (CTest)
 
@@ -38,6 +38,10 @@ INCLUDE_DIRECTORIES("${PROJECT_SOURCE_DIR}/third-party" "${PROJECT_SOURCE_DIR}/t
 SET(CXPROC_TEST_DIR "${PROJECT_SOURCE_DIR}/test/")
 SET(CXPROC_DATA_DIR "${PROJECT_SOURCE_DIR}/data/")
 SET(CXPROC_TEMP_DIR "${PROJECT_SOURCE_DIR}/tmp/")
+
+set(PROJECT_VERSION_MAJOR "1")
+set(PROJECT_VERSION_MINOR "3")
+set(PROJECT_VERSION_PATCH "-pre")
 
 # https://vicrucann.github.io/tutorials/quick-cmake-doxygen/
 # check if Doxygen is installed
