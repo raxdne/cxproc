@@ -78,31 +78,33 @@ bootstrap-vcpkg.bat
 
 REM imagemagick libgif libexif libjpeg libpng libtiff
 
-robocopy /S installed\x86-windows\debug\bin C:\UserData\Develop\cxproc-build\trunk\x86-windows-debug-dynamic\bin *.*
-robocopy /S installed\x86-windows\debug\bin C:\UserData\Develop\cxproc-build\trunk\x86-windows-debug-dynamic\www\cgi-bin *.*
-robocopy /S installed\x86-windows\debug\lib C:\UserData\Develop\cxproc-build\trunk\x86-windows-debug-dynamic\lib *.*
-robocopy /S installed\x86-windows\include C:\UserData\Develop\cxproc-build\trunk\x86-windows-debug-dynamic\include *.*
+SET INSTALLED=installed\x86-windows\debug
+SET CXP_TARGET=C:\UserData\Develop\x86-windows-debug-dynamic
 
-robocopy /S installed\x86-windows\bin C:\UserData\Develop\cxproc-build\trunk\x86-windows-dynamic\bin *.*
-robocopy /S installed\x86-windows\bin C:\UserData\Develop\cxproc-build\trunk\x86-windows-dynamic\www\cgi-bin *.*
-robocopy /S installed\x86-windows\lib C:\UserData\Develop\cxproc-build\trunk\x86-windows-dynamic\lib *.*
-robocopy /S installed\x86-windows\include C:\UserData\Develop\cxproc-build\trunk\x86-windows-dynamic\include *.*
+REM SET INSTALLED=installed\x86-windows
+REM SET CXP_TARGET=C:\UserData\Develop\x86-windows-dynamic
+
+robocopy /S %INSTALLED%\bin %CXP_TARGET%\bin *.*
+robocopy /S %INSTALLED%\bin %CXP_TARGET%\www\cgi-bin *.*
+robocopy /S %INSTALLED%\lib %CXP_TARGET%\lib *.*
+
+robocopy /S installed\x86-windows\include %CXP_TARGET%\include *.*
 ```
 
 ### Microsoft Visual Studio Runtime
 
 Debug Runtime (Redistribution **is not** permitted)
 ```
-robocopy "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Redist\MSVC\14.26.28720\debug_nonredist\x86\Microsoft.VC142.DebugCRT" "C:\UserData\Develop\cxproc-build\trunk\x86-windows-debug-dynamic\bin" vcruntime140d.dll
-robocopy "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Redist\MSVC\14.26.28720\debug_nonredist\x86\Microsoft.VC142.DebugCRT" "C:\UserData\Develop\cxproc-build\trunk\x86-windows-debug-dynamic\www\cgi-bin" vcruntime140d.dll
-robocopy "C:\Windows\SysWOW64" "C:\UserData\Develop\cxproc-build\trunk\x86-windows-debug-dynamic\bin" ucrtbased.dll
-robocopy "C:\Windows\SysWOW64" "C:\UserData\Develop\cxproc-build\trunk\x86-windows-debug-dynamic\www\cgi-bin" ucrtbased.dll
+robocopy "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Redist\MSVC\14.26.28720\debug_nonredist\x86\Microsoft.VC142.DebugCRT" "%CXP_TARGET%\bin" vcruntime140d.dll
+robocopy "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Redist\MSVC\14.26.28720\debug_nonredist\x86\Microsoft.VC142.DebugCRT" "%CXP_TARGET%\www\cgi-bin" vcruntime140d.dll
+robocopy "C:\Windows\SysWOW64" "%CXP_TARGET%\bin" ucrtbased.dll
+robocopy "C:\Windows\SysWOW64" "%CXP_TARGET%\www\cgi-bin" ucrtbased.dll
 ```
 
 Release Runtime (s. ``C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Redist\MSVC\v142``)
 ```
 robocopy "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Redist\MSVC\14.26.28720\onecore\x86\Microsoft.VC142.CRT" "C:\UserData\Develop\cxproc-build\trunk\x86-windows-dynamic\bin" vcruntime140.dll
-robocopy "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Redist\MSVC\14.26.28720\onecore\x86\Microsoft.VC142.CRT" "C:\UserData\Develop\cxproc-build\trunk\x86-windows-debug-dynamic\www\cgi-bin" vcruntime140.dll
+robocopy "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Redist\MSVC\14.26.28720\onecore\x86\Microsoft.VC142.CRT" "%CXP_TARGET%\www\cgi-bin" vcruntime140.dll
 ```
 
 ## Windows Subsystem for Linux [WSL](https://docs.microsoft.com/en-us/windows/wsl/install-win10)
