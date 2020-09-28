@@ -4,14 +4,14 @@
     http://www.zachburlingame.com/2011/03/integrating-the-subversion-revision-into-the-version-automatically-with-native-cc/
 */
 
-#define STRINGIZE2(s) #s
-#define STRINGIZE(s) STRINGIZE2(s)
+#define STR_INDIR(x) #x
+#define STR(x) STR_INDIR(x)
 
-#define CXP_VERSION_MAJOR    "1"
+#define CXP_VERSION_MAJOR    1
 
-#define CXP_VERSION_MINOR    "3"
+#define CXP_VERSION_MINOR    3
 
-#define CXP_VERSION_STR      "v" CXP_VERSION_MAJOR "." CXP_VERSION_MINOR
+#define CXP_VERSION_STR      "v" STR(CXP_VERSION_MAJOR) "." STR(CXP_VERSION_MINOR)
 
 #define CXP_VERSION_REVISION 0000
 
