@@ -34,7 +34,7 @@ SET DIR_INC="%PREFIX%\include"
 md %DIR_INC%
 SET DIR_DOC="%PREFIX%\doc"
 md %DIR_DOC%
-REM SET DIR_TEST="%PREFIX%\test"
+SET DIR_TEST="%PREFIX%\test"
 REM robocopy /S %CXPBASE%..\test %DIR_TEST% *.*
 SET DIR_CGI="%PREFIX%\www\cgi-bin"
 md %DIR_CGI%
@@ -52,7 +52,7 @@ robocopy /S %CXPBASE%..\xml %PREFIX%\xml
 robocopy /S %CXPBASE%..\examples %PREFIX%\examples
 
 pushd %PREFIX%
-"C:\UserData\Programme\7-ZipPortable\App\7-Zip\7z.exe" a -r ..\cxproc-v1.3-pre_%ARCH%.zip bin xml doc examples www -x!*.pdb -x!*.ilk -x!cxproc-test.exe
+"C:\UserData\Programme\7-ZipPortable\App\7-Zip\7z.exe" a -r ..\cxproc-v1.3-pre_%ARCH%.zip bin xml doc examples www -x!*.pdb -x!*.ilk -x!*.pl -x!cxproc-test.exe
 popd
 
 REM TODO: CPack s. https://cmake.org/cmake/help/latest/module/CPack.html
