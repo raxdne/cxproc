@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cxp:make xmlns:cxp="http://www.tenbusch.info/cxproc">
+  <cxp:subst string="%CGIPATH%" to="data.csv"/>
+  <cxp:subst string="%CONTENT%" cgi="strContent" encoding="rfc1738"/>
+  <cxp:subst string="%TAGTIME%" now="%Y%m%d_%H%M%S"/>
+  <!-- save content into plain text file -->
+  <cxp:plain name="%CGIPATH%" mode="append" response="OK">
+    <cxp:plain name="-" />
+  </cxp:plain>
+</cxp:make>
