@@ -27,11 +27,12 @@ export DIR_DOC="$PREFIX/doc"
 test -d $DIR_DOC || mkdir -p $DIR_DOC
 export DIR_TMP="$PREFIX/tmp"
 test -d $DIR_TMP || mkdir -p $DIR_TMP
+
 export DIR_CGI="$PREFIX/www/cgi-bin"
 test -d $DIR_CGI || mkdir -p $DIR_CGI
 export DIR_LOG="$PREFIX/www/log"
 test -d $DIR_LOG || mkdir -p $DIR_LOG
-export DIR_CONF="$PREFIX/www/conf"
-test -d $DIR_CONF || mkdir -p $DIR_CONF
+#export DIR_CONF="$PREFIX/www/conf"
+#test -d $DIR_CONF || mkdir -p $DIR_CONF
 export DIR_WWW="$PREFIX/www/html"
-test -d $DIR_WWW || mkdir -p $DIR_WWW
+test -d $DIR_WWW/test || mkdir -p $DIR_WWW/test
