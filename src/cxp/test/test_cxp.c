@@ -120,6 +120,34 @@ cxpTest(cxpContextPtr pccArg)
 
   if (RUNTEST) {
     resNodePtr prnT = NULL;
+    resNodePtr prnTT = NULL;
+
+    i++;
+    printf("TEST %i in '%s:%i': cxpResNodeResolveNew() = 'stdin' shortcut string", i, __FILE__, __LINE__);
+
+    if ((prnT = cxpResNodeResolveNew(pccTest, NULL, BAD_CAST "-", CXP_O_READ)) == NULL) {
+      printf("Error 1\n");
+    }
+    else if (resNodeIsReadable(prnT) == FALSE) {
+      printf("Error 2\n");
+    }
+    else if ((prnTT = cxpResNodeResolveNew(pccTest, NULL, BAD_CAST "-", CXP_O_WRITE)) == NULL) {
+      printf("Error 3\n");
+    }
+    else if (resNodeIsReadable(prnTT) == TRUE) {
+      printf("Error 4\n");
+    }
+    else {
+      n_ok++;
+      printf("OK\n");
+    }
+    resNodeFree(prnTT);
+    resNodeFree(prnT);
+  }
+
+
+  if (RUNTEST) {
+    resNodePtr prnT = NULL;
 
     i++;
     printf("TEST %i in '%s:%i': cxpResNodeResolveNew() = non-existing context by shortcut string", i, __FILE__, __LINE__);

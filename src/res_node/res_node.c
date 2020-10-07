@@ -3824,6 +3824,25 @@ resNodeSetRecursion(resNodePtr prnArg, BOOL_T fArgFlag)
 } /* end of resNodeSetRecursion() */
 
 
+/*! Sets and returns the fRead flag of this resource node.
+
+  \param prnArg a pointer to a resource node
+  \return value of fRecursive or FALSE in case of errors
+*/
+BOOL_T
+resNodeSetWrite(resNodePtr prnArg, BOOL_T fArgFlag)
+{
+  BOOL_T fResult = FALSE;
+
+  if (prnArg) {
+    prnArg->fWrite = fArgFlag;
+    prnArg->fRead  = ! prnArg->fWrite;
+    fResult = prnArg->fWrite;
+  }
+  return fResult;
+} /* end of resNodeSetWrite() */
+
+
 /*! Sets and returns the path of this resource node.in URI notation
 
   \param prnArg a pointer to a resource node

@@ -658,6 +658,10 @@ cxpResNodeResolveNew(cxpContextPtr pccArg, xmlNodePtr pndArg, xmlChar *pucArg, i
     }
     else if (resPathIsStd(pucShortcut)) {
       prnResult = resNodeDirNew(pucShortcut);
+      if ((iArgOptions & CXP_O_READ)) {
+	resNodeSetType(prnResult,rn_type_stdin);
+	resNodeSetWrite(prnResult,FALSE);
+      }
     }
     else if (resPathIsInMemory(pucShortcut)) {
       prnResult = resNodeInMemoryNew();

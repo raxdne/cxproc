@@ -568,6 +568,9 @@ resNodeIncrRecursiveSize(resNodePtr prnArg, long long iArg);
 extern BOOL_T
 resNodeSetRecursion(resNodePtr prnArg, BOOL_T fArgFlag);
 
+extern BOOL_T
+resNodeSetWrite(resNodePtr prnArg, BOOL_T fArgFlag);
+
 extern unsigned long
 _resNodeGetFileCrc(resNodePtr prnArg);
 
