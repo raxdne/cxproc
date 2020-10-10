@@ -34,13 +34,13 @@ pieElementTest(void)
   if (RUNTEST) {
     xmlChar *pucT;
     char *pchContent;
-    index_t iLength;
+    index_t iLength = -1;
     resNodePtr prnT = NULL;
     
     i++;
     printf("TEST %i in '%s:%i': reads first line of plain text file = ",i,__FILE__,__LINE__);
 
-    prnT = resNodeConcatNew(BAD_CAST TESTPREFIX, BAD_CAST "pie/test-pie-6.txt");
+    prnT = resNodeConcatNew(BAD_CAST TESTPREFIX, BAD_CAST "option/pie/text/test-pie-6.txt");
     if (prnT) {
       pchContent = (char*) plainGetContextTextEat(prnT,16);
       pucT = DuplicateNextLine(pchContent,&iLength);
@@ -821,7 +821,7 @@ pieElementTest(void)
     i++;
     printf("TEST %i in '%s:%i': reads plain text file line by line = ", i, __FILE__, __LINE__);
 
-    prnT = resNodeConcatNew(BAD_CAST TESTPREFIX, BAD_CAST "pie/test-pie-10.txt");
+    prnT = resNodeConcatNew(BAD_CAST TESTPREFIX, BAD_CAST "option/pie/text/test-pie-10.txt");
     if (prnT) {
       pucContent = plainGetContextTextEat(prnT, 16);
       if (pucContent) {

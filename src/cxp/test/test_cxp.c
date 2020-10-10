@@ -321,7 +321,7 @@ cxpTest(cxpContextPtr pccArg)
     printf("TEST %i in '%s:%i': cxpResNodeResolveNew() = existing archive context by node attribute", i, __FILE__, __LINE__);
 
     if ((pndRoot = xmlNewNode(NULL, NAME_PLAIN)) == NULL
-      || (xmlSetProp(pndRoot, BAD_CAST"name", BAD_CAST "archive\\test-zip-7.zip/sub/plain.txt")) == NULL) {
+      || (xmlSetProp(pndRoot, BAD_CAST"name", BAD_CAST TESTPREFIX "option\\archive\\test-zip-7.zip/sub/plain.txt")) == NULL) {
       printf("Error 3\n");
     }
     else if ((prnT = cxpResNodeResolveNew(pccTest, pndRoot, NULL, CXP_O_READ)) == NULL) {
@@ -428,7 +428,7 @@ cxpTest(cxpContextPtr pccArg)
     printf("TEST %i in '%s:%i': cxpResNodeResolveNew() = existing context using node",i,__FILE__,__LINE__);
 
     if ((pndRoot = xmlNewNode(NULL, NAME_PLAIN)) == NULL
-      || (xmlSetProp(pndRoot, BAD_CAST"name", BAD_CAST "each/simple.txt")) == NULL) {
+      || (xmlSetProp(pndRoot, BAD_CAST"name", BAD_CAST TESTPREFIX "each/simple.txt")) == NULL) {
       printf("Error 3\n");
     }
     else if ((prnT = cxpResNodeResolveNew(pccTest, pndRoot, NULL, CXP_O_READ)) == NULL) {
@@ -455,7 +455,7 @@ cxpTest(cxpContextPtr pccArg)
     printf("TEST %i in '%s:%i': cxpResNodeResolveNew() = existing context using node", i, __FILE__, __LINE__);
 
     if ((pndRoot = xmlNewNode(NULL, NAME_PLAIN)) == NULL
-      || (xmlSetProp(pndRoot, BAD_CAST"context", BAD_CAST DATAPREFIX)) == NULL) {
+      || (xmlSetProp(pndRoot, BAD_CAST"context", BAD_CAST TESTPREFIX)) == NULL) {
       printf("Error 3\n");
     }
     else if ((pndT = xmlNewChild(pndRoot,NULL, NAME_XML, NULL)) == NULL
@@ -463,7 +463,7 @@ cxpTest(cxpContextPtr pccArg)
       printf("Error 3\n");
     }
     else if ((pndT = xmlNewChild(pndT, NULL, NAME_FILE, NULL)) == NULL
-      || (xmlSetProp(pndT, BAD_CAST"name", BAD_CAST "Documents\\TestContent.docx")) == NULL) {
+      || (xmlSetProp(pndT, BAD_CAST"name", BAD_CAST "plain\\test-unicode16-bom.txt")) == NULL) {
       printf("Error 3\n");
     }
     else if ((prnT = cxpResNodeResolveNew(pccArg, pndT, NULL, CXP_O_READ)) == NULL) {
@@ -491,7 +491,7 @@ cxpTest(cxpContextPtr pccArg)
     printf("TEST %i in '%s:%i': cxpResNodeResolveNew() = existing context using node", i, __FILE__, __LINE__);
 
     if ((pndRoot = xmlNewNode(NULL, NAME_PLAIN)) == NULL
-      || (xmlSetProp(pndRoot, BAD_CAST"context", BAD_CAST "././test/pie")) == NULL) {
+      || (xmlSetProp(pndRoot, BAD_CAST"context", BAD_CAST TESTPREFIX "././xml")) == NULL) {
       printf("Error 3\n");
     }
     else if ((pndT = xmlNewChild(pndRoot, NULL, NAME_PLAIN, NULL)) == NULL
@@ -499,7 +499,7 @@ cxpTest(cxpContextPtr pccArg)
       printf("Error 3\n");
     }
     else if ((pndT = xmlNewChild(pndT, NULL, NAME_PLAIN, NULL)) == NULL
-      || (xmlSetProp(pndT, BAD_CAST"name", BAD_CAST "plain/test-pie-import-plain-007.txt")) == NULL) {
+      || (xmlSetProp(pndT, BAD_CAST"name", BAD_CAST "sub1\\sub11\\dummy-a.xml")) == NULL) {
       printf("Error 3\n");
     }
     else if ((prnT = cxpResNodeResolveNew(pccArg, pndT, NULL, CXP_O_WRITE)) == NULL) {
@@ -1069,20 +1069,15 @@ cxpTest(cxpContextPtr pccArg)
     pndChild = xmlNewChild(pndPlain, NULL, NAME_XML, NULL);
     xmlSetProp(pndChild, BAD_CAST"name", BAD_CAST "xml/baustelle.pie");
     pndChild = xmlNewChild(pndPlain, NULL, NAME_XSL, NULL);
-    xmlSetProp(pndChild,BAD_CAST"name",BAD_CAST"pie2txt.xsl");
+    xmlSetProp(pndChild,BAD_CAST"name",BAD_CAST"Validate.xsl");
     xmlSetProp(pndChild, BAD_CAST"search", BAD_CAST"yes");
     pndChild = xmlNewChild(pndPlain, NULL, NAME_SUBST, NULL);
     xmlSetProp(pndChild, BAD_CAST"string", BAD_CAST "Baustelle");
     xmlSetProp(pndChild, BAD_CAST"to", BAD_CAST "98765");
-    /* to be ignored 
-    */
-    pndChild = xmlNewChild(pndPlain, NULL, NAME_XSL, NULL);
-    xmlSetProp(pndChild, BAD_CAST"name", BAD_CAST"pie2html.xsl");
-    xmlSetProp(pndChild, BAD_CAST"search", BAD_CAST"yes");
 
     //cxpCtxtLogPrintNode(pccArg, 1, "XML instruction", pndPlain);
 
-    if ((prnT = resNodeStrNew(BAD_CAST TESTPREFIX "../..//")) == NULL) {
+    if ((prnT = resNodeStrNew(BAD_CAST TESTPREFIX "..//")) == NULL) {
       printf("Error resNodeStrNew()\n");
     }
     else if (cxpCtxtSearchSet(pccT, prnT) == FALSE) {
@@ -1104,54 +1099,6 @@ cxpTest(cxpContextPtr pccArg)
     xmlFree(pucT);
     xmlFreeDoc(pdocXml);
     xmlFreeNode(pndPlain);
-  }
-
-
-  if (RUNTEST) {
-    xmlChar *pucT = NULL;
-    xmlDocPtr pdocXml = NULL;
-    xmlNodePtr pndXml = NULL;
-    xmlNodePtr pndChild;
-    cxpContextPtr pccT;
-    resNodePtr prnT = NULL;
-
-    i++;
-    printf("TEST %i in '%s:%i': cxpProcessTransformations() = ",i,__FILE__,__LINE__);
-
-    pccT = cxpCtxtDup(pccArg);
-
-    pndXml = xmlNewNode(NULL,NAME_XML);
-    pndChild = xmlNewChild(pndXml,NULL,NAME_XSL,NULL);
-    xmlSetProp(pndChild,BAD_CAST"name",BAD_CAST "xsl/Validate.xsl");
-    xmlSetProp(pndChild, BAD_CAST"search", BAD_CAST"yes");
-    pndChild = xmlNewChild(pndXml, NULL, NAME_XSL, NULL);
-    xmlSetProp(pndChild,BAD_CAST"name",BAD_CAST"freemind/mm2txt.xsl");
-    xmlSetProp(pndChild, BAD_CAST"search", BAD_CAST"yes");
-
-    //cxpCtxtLogPrintNode(pccArg, 1, "XML result", pndXml);
-
-    if ((prnT = resNodeStrNew(BAD_CAST TESTPREFIX "../..//")) == NULL) {
-      printf("Error resNodeStrNew()\n");
-    }
-    else if (cxpCtxtSearchSet(pccT, prnT) == FALSE) {
-      printf("Error cxpCtxtSearchSet()\n");
-    }
-    else if ((pdocXml = xmlReadFile(TESTPREFIX "option/pie/text/test-pie-19.mm", NULL, 0)) == NULL) {
-      printf("Error xmlReadFile()\n");
-    }
-    else if (cxpProcessTransformations(pdocXml, pndXml, NULL, &pucT, pccT) == FALSE || xmlStrlen(pucT) != 74) {
-      printf("Error cxpProcessTransformations()\n");
-    }
-    else {
-      n_ok++;
-      printf("OK\n");
-    }
-    //puts((const char *)pucT);
-    resNodeFree(prnT);
-    cxpCtxtFree(pccT);
-    xmlFree(pucT);
-    xmlFreeDoc(pdocXml);
-    xmlFreeNode(pndXml);
   }
 
 

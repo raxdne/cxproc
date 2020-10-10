@@ -74,7 +74,7 @@ cxpSubstTest(cxpContextPtr pccArg)
 
     pndTest = xmlNewNode(NULL,NAME_XML);
     pndInclude = xmlNewChild(pndTest,NULL,NAME_INCLUDE,NULL);
-    xmlSetProp(pndInclude,BAD_CAST "name",BAD_CAST DATAPREFIX "Documents/TestContentDate.pie");
+    xmlSetProp(pndInclude,BAD_CAST "name",BAD_CAST TESTPREFIX "option/pie/calendar/test-date.pie");
     
     if (cxpSubstIncludeNodes(NULL,pccArg)) {
       printf("Error 1 cxpSubstIncludeNodes()\n");

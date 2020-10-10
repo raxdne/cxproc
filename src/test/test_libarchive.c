@@ -63,7 +63,7 @@ zipTest(cxpContextPtr pccArg)
 
     pndT = xmlNewNode(NULL,NAME_XML);
     pndZip = xmlNewChild(pndT,NULL,NAME_ZIP,NULL);
-    xmlSetProp(pndZip,BAD_CAST"name",BAD_CAST TESTPREFIX "archive/test-zip-7.zip");
+    xmlSetProp(pndZip,BAD_CAST"name",BAD_CAST TESTPREFIX "option/archive/test-zip-7.zip");
 
     pdocT = zipProcessZipNode(pndZip,pccT); 
     if (pdocT != NULL) {

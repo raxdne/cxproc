@@ -215,7 +215,7 @@ cxpCtxtTest(cxpContextPtr pccArg)
     i++;
     printf("TEST %i in '%s:%i': archive path = ",i,__FILE__,__LINE__);
     fsSetRoot(NULL);
-    prnT = resNodeDirNew(BAD_CAST TESTPREFIX "archive/test-zip-7.zip/sub/nonexistant.png");
+    prnT = resNodeDirNew(BAD_CAST TESTPREFIX "option/archive/test-zip-7.zip/sub/nonexistant.png");
     if (resNodeIsArchive(prnT)
 	&& (prnChild = resNodeGetChild(prnT))
 	&& resNodeGetMimeType(prnChild) == MIME_IMAGE_PNG) {

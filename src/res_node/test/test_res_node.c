@@ -130,7 +130,7 @@ resNodeTest(void)
 
 
   if (RUNTEST) {
-    xmlChar *pucT = BAD_CAST DATAPREFIX "Base.Ext";
+    xmlChar *pucT = BAD_CAST TESTPREFIX "Base.Ext";
     resNodePtr prnT = NULL;
 
     i++;
@@ -385,7 +385,7 @@ resNodeTest(void)
     if (resNodeSplitStrNew(NULL) != NULL) {
       printf("Error 1 resNodeSplitStrNew()\n");
     }
-    else if ((prnT = resNodeSplitStrNew(BAD_CAST DATAPREFIX "Documents/TestContent.xml")) == NULL || resNodeGetCountDescendants(prnT) < 5) {
+    else if ((prnT = resNodeSplitStrNew(BAD_CAST TESTPREFIX "option\\pie\\text\\test-pie-date.pie")) == NULL || resNodeGetCountDescendants(prnT) < 5) {
       printf("Error 2 resNodeSplitStrNew()\n");
     }
     else {
@@ -1347,13 +1347,13 @@ resNodeTest(void)
     i++;
     printf("TEST %i in '%s:%i': create an local index file = ",i,__FILE__,__LINE__);
 
-    if ((prnT = resNodeIndexNew(BAD_CAST DATAPREFIX "//")) == NULL) {
+    if ((prnT = resNodeIndexNew(BAD_CAST TESTPREFIX "//")) == NULL) {
       printf("Error resNodeIndexNew()\n");
     }
     else if (resNodeIndexSave(prnT) == FALSE) {
       printf("Error resNodeIsMemory()\n");
     }
-    else if ((pucPath = resNodeIndexFind(prnT,BAD_CAST"TestContent.docx")) == NULL) {
+    else if ((pucPath = resNodeIndexFind(prnT,BAD_CAST "text\\test-pie-date.pie")) == NULL) {
       printf("Error resNodeIsMemory()\n");
     }
     else {
@@ -1413,7 +1413,7 @@ resNodeTest(void)
     i++;
     printf("TEST %i in '%s:%i': resNodeReadStatus() = ",i,__FILE__,__LINE__);
 
-    if ((prnT = resNodeDirNew(BAD_CAST DATAPREFIX "CAD/TestContent.drw.11")) == NULL) {
+    if ((prnT = resNodeDirNew(BAD_CAST TESTPREFIX "dir\\test-cad-creo.drw.11")) == NULL) {
       printf("Error resNodeDirNew()\n");
     }
     else if (resNodeReadStatus(prnT) == FALSE) {

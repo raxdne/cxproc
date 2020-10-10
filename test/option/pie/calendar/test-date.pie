@@ -1,0 +1,20 @@
+<pie>
+  <section>
+    <h>Test dates</h>
+    <section>
+      <h>AA</h>
+      <task date="20160327,29,0402,07">
+        <h>AAA</h>
+      </task>
+    </section>
+    <section>
+      <h>BB</h>
+      <section done="20160329">
+        <h>BBB</h>
+        <task>
+          <h>CCC</h>
+        </task>
+      </section>
+    </section>
+  </section>
+</pie>

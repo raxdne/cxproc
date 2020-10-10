@@ -98,7 +98,7 @@ pieTextTest(cxpContextPtr pccArg)
 
     pndPie = xmlNewNode(NULL, NAME_PIE_PIE);
     pndT = xmlNewChild(pndPie, NULL, NAME_PIE_IMPORT, NULL);
-    xmlSetProp(pndT, BAD_CAST "name", BAD_CAST TESTPREFIX "pie\\circular\\test-pie-circular-a.pie");
+    xmlSetProp(pndT, BAD_CAST "name", BAD_CAST TESTPREFIX "option/pie/text/circular/test-pie-circular-a.pie");
 
     if ((pdocT = pieProcessPieNode(pndPie, pccArg)) == NULL) {
       printf("Error 1 pieProcessPieNode()\n");

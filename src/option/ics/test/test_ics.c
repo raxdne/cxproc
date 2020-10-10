@@ -42,7 +42,7 @@ icsTest(void)
     xmlDocSetRootElement(pdocResult,pndFile);
     pdocResult->encoding = xmlStrdup(BAD_CAST "UTF-8"); /* according to conversion in ParseImportNodePlainContent() */
 
-    prnIcs = resNodeConcatNew(BAD_CAST TESTPREFIX, BAD_CAST "pie/2446.ics");
+    prnIcs = resNodeConcatNew(BAD_CAST TESTPREFIX, BAD_CAST "option/pie/text/2446.ics");
     if (prnIcs) {
       if (icsParse(pndFile,prnIcs)) {
 	n_ok++;

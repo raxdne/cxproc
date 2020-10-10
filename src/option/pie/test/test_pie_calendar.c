@@ -78,7 +78,7 @@ pieCalendarTest(cxpContextPtr pccArg)
     pndChild = xmlNewChild(pndCol, NULL, NAME_XML, NULL);
     pndPie = xmlNewChild(pndChild, NULL, NAME_PIE, NULL);
     pndPieImport = xmlNewChild(pndPie, NULL, NAME_PIE_IMPORT, NULL);
-    xmlSetProp(pndPieImport, BAD_CAST "name", BAD_CAST DATAPREFIX "Calendars/TestContent.pie");
+    xmlSetProp(pndPieImport, BAD_CAST "name", BAD_CAST TESTPREFIX "option\\pie\\text\\test-pie-date.pie");
 
     //domPutNodeString(stderr, BAD_CAST "pndMakeCalendar", pndMakeCalendar);
 
@@ -116,7 +116,7 @@ pieCalendarTest(cxpContextPtr pccArg)
     i++;
     printf("TEST %i in '%s:%i': calAddAttributeDayDiff() = ", i, __FILE__, __LINE__);
 
-    if ((pdocTest = xmlParseFile(DATAPREFIX "Documents/TestContent.pie")) == NULL) {
+    if ((pdocTest = xmlParseFile(TESTPREFIX "option\\pie\\text\\test-pie-date.pie")) == NULL) {
       printf("Error xmlParseFile()\n");
     }
     else if (calAddAttributeDayDiff(pdocTest) != pdocTest) {
@@ -137,7 +137,7 @@ pieCalendarTest(cxpContextPtr pccArg)
     i++;
     printf("TEST %i in '%s:%i': calAddAttributeDayDiff() = ", i, __FILE__, __LINE__);
 
-    if ((pdocTest = pieParseFile(BAD_CAST DATAPREFIX "Documents/TestContent.txt",pccArg)) == NULL) {
+    if ((pdocTest = pieParseFile(BAD_CAST TESTPREFIX "option\\pie\\text\\test-pie-date.pie",pccArg)) == NULL) {
       printf("Error pieParseFile()\n");
     }
     else if (calAddAttributeDayDiff(pdocTest) != pdocTest) {
@@ -174,7 +174,7 @@ pieCalendarTest(cxpContextPtr pccArg)
       printf("Error xmlNewChild()\n");
     }
     else if ((pndT = xmlNewChild(pndDir, NULL, NAME_DIR, NULL)) == NULL
-      || xmlSetProp(pndT, BAD_CAST"name", BAD_CAST DATAPREFIX) == FALSE) {
+      || xmlSetProp(pndT, BAD_CAST"name", BAD_CAST TESTPREFIX) == FALSE) {
       printf("Error xmlNewChild()\n");
     }
     else if ((pdocDir = dirProcessDirNode(pndDir, NULL, pccT)) == NULL) {

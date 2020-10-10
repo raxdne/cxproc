@@ -57,7 +57,7 @@ arcTest(cxpContextPtr pccArg)
     i++;
     printf("TEST %i in '%s:%i': test opening of non-existing archive = ", i, __FILE__, __LINE__);
 
-    if ((a = archive_read_new()) != NULL && archive_read_open_filename(a, TESTPREFIX "archive/test-arc-fail.tar", 2) != ARCHIVE_OK) {
+    if ((a = archive_read_new()) != NULL && archive_read_open_filename(a, TESTPREFIX "option/archive/test-arc-fail.tar", 2) != ARCHIVE_OK) {
       printf("OK\n");
       n_ok++;
     }
@@ -70,7 +70,7 @@ arcTest(cxpContextPtr pccArg)
   if (RUNTEST) {
     arcPtr a;
     arcEntryPtr ae;
-    char *pcNameFile = strdup(TESTPREFIX "archive\\test-arc.txt.gz");
+    char *pcNameFile = strdup(TESTPREFIX "option/archive\\test-arc.txt.gz");
     int cchReadInput;		/*! counter for collected string length */
     char mcContent[BUFFER_LENGTH];
 
@@ -114,7 +114,7 @@ arcTest(cxpContextPtr pccArg)
 
   if (RUNTEST) {
     arcPtr a;
-    char *pcNameFile = TESTPREFIX "archive/test-zip-7.zip";
+    char *pcNameFile = TESTPREFIX "option/archive/test-zip-7.zip";
     BOOL_T fTest = TRUE;
 
     i++;
@@ -133,7 +133,7 @@ arcTest(cxpContextPtr pccArg)
       fTest = FALSE;
     }
     else {
-      const char *n[] ={ "sub/", "sub/b.txt", "sub/weiter.png", "sub/a.txt", "sub/plain.txt", NULL }; // , "sub/Umlaut ���.txt"
+      const char *n[] ={ "sub/", "sub/a.txt", "sub/b.txt", "sub/plain.txt", "sub/weiter.png", "TestContent.odt", NULL }; // , "sub/Umlaut ���.txt"
       arcEntryPtr ae;
       char *pcT;
       xmlChar *pucT = NULL;
@@ -185,7 +185,7 @@ arcTest(cxpContextPtr pccArg)
 
   if (SKIPTEST) {
     arcPtr a;
-    char *pcNameFile = DATAPREFIX "Documents/TestContent.mmap";
+    char *pcNameFile = TESTPREFIX "option/archive/TestContent.mmap";
     BOOL_T fTest = TRUE;
 
     i++;
@@ -255,7 +255,7 @@ arcTest(cxpContextPtr pccArg)
 
   if (RUNTEST) {
     arcPtr a;
-    char *pcNameFile = TESTPREFIX "archive/test-arc-1.tar";
+    char *pcNameFile = TESTPREFIX "option/archive/test-arc-1.tar";
     BOOL_T fTest = TRUE;
 
     i++;
@@ -265,20 +265,10 @@ arcTest(cxpContextPtr pccArg)
       && archive_read_support_format_gnutar(a) == ARCHIVE_OK
       && archive_read_open_filename(a, pcNameFile, 2) == ARCHIVE_OK) {
       const char *n[] ={
-	"calendar/",
-	"calendar/addresses.pie",
-	"calendar/config.cxp",
-	"calendar/ddr.gcal",
-	"calendar/feiertage.gcal",
-	"calendar/legend.gcal",
-	"calendar/moon.gcal",
-	"calendar/schulferien.gcal",
-	"calendar/test-2.cal",
-	"calendar/training.acal",
-	"cxproc.nsi",
-	"Doxygen",
-	"gprof2dot.py",
-	"Makefile.am",
+	"2446.ics",
+	"test-pie-11.txt",
+	"test-pie-19.mm",
+	"test-pie-20.odt",
 	NULL };
 
       arcEntryPtr ae;
@@ -340,7 +330,7 @@ arcTest(cxpContextPtr pccArg)
     i++;
     printf("TEST %i in '%s:%i': test opening of existing ZIP archive = ", i, __FILE__, __LINE__);
 
-    prnT = resNodeDirNew(BAD_CAST TESTPREFIX "archive/test-zip-7.zip");
+    prnT = resNodeDirNew(BAD_CAST TESTPREFIX "option/archive/test-zip-7.zip");
     if (prnT) {
       if (resNodeOpen(prnT, "ra") == TRUE) {
 
@@ -372,7 +362,7 @@ arcTest(cxpContextPtr pccArg)
     i++;
     printf("TEST %i in '%s:%i': uncompress archive context = ", i, __FILE__, __LINE__);
 
-    if ((prnT = resNodeDirNew(BAD_CAST DATAPREFIX "Documents\\TestContent.docx")) == NULL) {
+    if ((prnT = resNodeDirNew(BAD_CAST TESTPREFIX "option\\pie\\text\\test-pie-20.docx")) == NULL) {
       printf("Error resNodeDirNew()\n");
     }
     else if (arcAppendEntries(prnT, NULL, TRUE) == FALSE) {
@@ -408,7 +398,7 @@ arcTest(cxpContextPtr pccArg)
     i++;
     printf("TEST %i in '%s:%i': uncompress archive context = ", i, __FILE__, __LINE__);
 
-    if ((prnT = resNodeDirNew(BAD_CAST DATAPREFIX "Archive\\TestArchive.tar.gz")) == NULL) {
+    if ((prnT = resNodeDirNew(BAD_CAST TESTPREFIX "option\\archive\\test-arc-1.tar.gz")) == NULL) {
       printf("Error resNodeDirNew()\n");
     }
     else if (arcAppendEntries(prnT, NULL, TRUE) == FALSE) {
@@ -445,7 +435,7 @@ arcTest(cxpContextPtr pccArg)
     i++;
     printf("TEST %i in '%s:%i': parse archive context = ", i, __FILE__, __LINE__);
 
-    if ((prnT = resNodeDirNew(BAD_CAST TESTPREFIX "archive/test-zip-7.zip")) == NULL) {
+    if ((prnT = resNodeDirNew(BAD_CAST TESTPREFIX "option/archive/test-zip-7.zip")) == NULL) {
       printf("Error resNodeDirNew()\n");
     }
     else if (resNodeListParse(prnT, 999, NULL) == FALSE) {
@@ -483,7 +473,7 @@ arcTest(cxpContextPtr pccArg)
     printf("TEST %i in '%s:%i': extract binary content from ZIP archive = ", i, __FILE__, __LINE__);
     /* https://github.com/libarchive/libarchive/wiki/WishList#Seek_in_archives */
     
-    if ((prnT = resNodeDirNew(BAD_CAST TESTPREFIX "archive/test-zip-7.zip/sub/weiter.png")) == NULL) {
+    if ((prnT = resNodeDirNew(BAD_CAST TESTPREFIX "option/archive/test-zip-7.zip/sub/weiter.png")) == NULL) {
       printf("Error resNodeDirNew()\n");
     }
     else if (resNodeIsArchive(prnT) == FALSE) {
@@ -510,7 +500,7 @@ arcTest(cxpContextPtr pccArg)
     else if (resNodeUpdate(prnT, RN_INFO_MAX, NULL, NULL) == FALSE) {
       printf("Error 2 resNodeUpdate()\n");
     }
-    else if (resNodeGetContentPtr(prnT) != NULL || resNodeGetSize(prnT) != 1253) {
+    else if (resNodeGetContentPtr(prnT) != NULL || resNodeGetSize(prnT) != 14576) {
       printf("Error 3 resNodeUpdate()\n");
     }
     else if (resNodeGetContentPtr(resNodeGetChild(prnT)) != NULL || resNodeGetSize(resNodeGetChild(prnT)) != 0) {
@@ -535,7 +525,7 @@ arcTest(cxpContextPtr pccArg)
     i++;
     printf("TEST %i in '%s:%i': extract plain text content from ZIP archive = ", i, __FILE__, __LINE__);
 
-    if ((prnT = resNodeDirNew(BAD_CAST TESTPREFIX "archive/test-zip-7.zip/sub/plain.txt")) == NULL) {
+    if ((prnT = resNodeDirNew(BAD_CAST TESTPREFIX "option/archive/test-zip-7.zip/sub/plain.txt")) == NULL) {
       printf("Error resNodeDirNew()\n");
     }
     else if (resNodeIsArchive(prnT) == FALSE) {
@@ -544,7 +534,7 @@ arcTest(cxpContextPtr pccArg)
     else if (resNodeUpdate(prnT, RN_INFO_MAX, NULL, NULL) == FALSE) {
       printf("Error 1 resNodeUpdate()\n");
     }
-    else if (resNodeGetContentPtr(prnT) != NULL || resNodeGetSize(prnT) != 1253) {
+    else if (resNodeGetContentPtr(prnT) != NULL || resNodeGetSize(prnT) != 14576) {
       printf("Error 2 resNodeUpdate()\n");
     }
     else if (resNodeGetContentPtr(resNodeGetChild(prnT)) != NULL || resNodeGetSize(resNodeGetChild(prnT)) != 0) {
@@ -576,7 +566,7 @@ arcTest(cxpContextPtr pccArg)
     i++;
     printf("TEST %i in '%s:%i': process nonexisting entry of existing ZIP archive = ", i, __FILE__, __LINE__);
 
-    if ((prnT = resNodeDirNew(BAD_CAST TESTPREFIX "archive/test-zip-7.zip/sub/nonexisting.txt")) == NULL) {
+    if ((prnT = resNodeDirNew(BAD_CAST TESTPREFIX "option/archive/test-zip-7.zip/sub/nonexisting.txt")) == NULL) {
       printf("Error resNodeDirNew()\n");
     }
     else if (resNodeIsArchive(prnT) == FALSE) {
@@ -585,7 +575,7 @@ arcTest(cxpContextPtr pccArg)
     else if (resNodeUpdate(prnT, RN_INFO_MAX, NULL, NULL) == FALSE) {
       printf("Error 1 resNodeUpdate()\n");
     }
-    else if (resNodeGetContentPtr(prnT) != NULL || resNodeGetSize(prnT) != 1253) {
+    else if (resNodeGetContentPtr(prnT) != NULL || resNodeGetSize(prnT) != 14576) {
       printf("Error 2 resNodeUpdate()\n");
     }
     else if (resNodeGetContentPtr(resNodeGetChild(prnT)) != NULL || resNodeGetSize(resNodeGetChild(prnT)) != 0) {

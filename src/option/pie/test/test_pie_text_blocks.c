@@ -656,8 +656,8 @@ pieTextBlocksTest(void)
     i++;
     printf("TEST %i in '%s:%i': circular import in file DOM = ", i, __FILE__, __LINE__);
 
-    prnT = resNodeDirNew(BAD_CAST TESTPREFIX "pie\\test-pie-22.pie");
-    prnTT = resNodeDirNew(BAD_CAST TESTPREFIX "../test/./pie\\test-pie-22.pie");
+    prnT = resNodeDirNew(BAD_CAST TESTPREFIX "option/pie/text/test-pie-22.pie");
+    prnTT = resNodeDirNew(BAD_CAST TESTPREFIX "../test/.\\option/pie\\text\\test-pie-22.pie");
     prnTTT = resNodeDirNew(BAD_CAST "c:/temp/B.txt");
 
     if ((pdocTest = xmlReadFile(resNodeGetNameNormalizedNative(prnT), NULL, 0)) == NULL) {

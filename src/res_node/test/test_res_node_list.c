@@ -42,7 +42,7 @@ resNodeTestList(void)
     i++;
     printf("TEST %i in '%s:%i': new filesystem context  = ", i, __FILE__, __LINE__);
 
-    if ((prnT = resNodeDirNew(BAD_CAST DATAPREFIX)) == NULL) {
+    if ((prnT = resNodeDirNew(BAD_CAST TESTPREFIX)) == NULL) {
       printf("Error resNodeDirNew()\n");
     }
     else if ((prnDir = resNodeAddChildNew(prnT, BAD_CAST"Documents/")) == NULL || resNodeGetType(prnDir) != rn_type_dir) {
@@ -292,6 +292,7 @@ resNodeTestList(void)
   }
 
 
+#ifdef HAVE_ARCHIVE
   if (RUNTEST) {
     size_t j;
     resNodePtr prnT = NULL;
@@ -299,13 +300,13 @@ resNodeTestList(void)
     i++;
     printf("TEST %i in '%s:%i': build non-existing nested archive contexts = ", i, __FILE__, __LINE__);
 
-    if ((prnT = resNodeDirNew(BAD_CAST DATAPREFIX "Archive/")) == NULL) {
+    if ((prnT = resNodeDirNew(BAD_CAST TESTPREFIX "option/")) == NULL) {
       printf("Error resNodeDirNew()\n");
     }
-    else if (resNodeAddChildNew(prnT, BAD_CAST"Backup.zip/Documents/TestContent.docx/word/document.xml") == NULL) {
+    else if (resNodeAddChildNew(prnT, BAD_CAST"archive/test-zip-7.zip/sub/plain.txt") == NULL) {
       printf("Error resNodeAddChildNew() ...\n");
     }
-    else if (resNodeAddChildNew(prnT, BAD_CAST"Backup.zip/Documents/TestContent.odt/content.xml") == NULL) {
+    else if (resNodeAddChildNew(prnT, BAD_CAST"archive/test-zip-7.zip/TestContent.odt/content.xml") == NULL) {
       printf("Error resNodeAddChildNew() ...\n");
     }
     else if ((j = resNodeGetChildCount(prnT, rn_type_archive)) != 1
@@ -328,7 +329,6 @@ resNodeTestList(void)
   }
 
 
-#ifdef HAVE_ARCHIVE
   if (RUNTEST) {
     size_t j;
     resNodePtr prnT = NULL;
@@ -340,7 +340,7 @@ resNodeTestList(void)
     if ((prnT = resNodeDirNew(BAD_CAST TESTPREFIX)) == NULL) {
       printf("Error resNodeDirNew()\n");
     }
-    else if (resNodeAddChildNew(prnT, BAD_CAST "archive\\test-arc.txt.gz") == NULL) {
+    else if (resNodeAddChildNew(prnT, BAD_CAST "option\\archive\\test-arc.txt.gz") == NULL) {
       printf("Error resNodeAddChildNew() ...\n");
     }
     else if (resNodeSetRecursion(prnT, TRUE) == FALSE || resNodeUpdate(prnT, RN_INFO_MAX, NULL, NULL) == FALSE
@@ -477,7 +477,7 @@ resNodeTestList(void)
     i++;
     printf("TEST %i in '%s:%i': find iterator = ", i, __FILE__, __LINE__);
 
-    if ((prnT = resNodeDirNew(BAD_CAST DATAPREFIX "Documents")) == NULL) {
+    if ((prnT = resNodeDirNew(BAD_CAST TESTPREFIX "xml")) == NULL) {
       printf("Error resNodeDirNew()\n");
     }
     else if ((prnFound = resNodeListFindPathNext(prnFound, NULL)) != NULL) {
@@ -616,7 +616,7 @@ resNodeTestList(void)
     i++;
     printf("TEST %i in '%s:%i': resNodeTo*() archive file = ", i, __FILE__, __LINE__);
 
-    if ((prnT = resNodeDirNew(BAD_CAST TESTPREFIX "archive/test-zip-7.zip")) == NULL) {
+    if ((prnT = resNodeDirNew(BAD_CAST TESTPREFIX "option/archive/test-zip-7.zip")) == NULL) {
       printf("Error resNodeDirNew()\n");
     }
     else if (resNodeUpdate(prnT, RN_INFO_MAX,NULL,NULL) == FALSE) {
@@ -643,7 +643,7 @@ resNodeTestList(void)
   if (RUNTEST) {
     resNodePtr prnT = NULL;
 
-    prnT = resNodeDirNew(BAD_CAST DATAPREFIX "Documents/");
+    prnT = resNodeDirNew(BAD_CAST TESTPREFIX "xml/");
     if (prnT) {
       /*  */
 
