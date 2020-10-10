@@ -1393,7 +1393,7 @@ add_test(NAME cgi-maxi
   COMMAND ${CXPROC_PREFIX}/www/cgi-bin/cxproc-cgi)
 
 set_property(TEST cgi-maxi
-  APPEND PROPERTY ENVIRONMENT CXP_LOGFILE=${CXPROC_TEMP_DIR}/cxproc-maxi.log;QUERY_STRING=path=Test/Archive&cxp=PieUiDir
+  APPEND PROPERTY ENVIRONMENT CXP_LOGFILE=${CXPROC_TEMP_DIR}/cxproc-maxi.log;QUERY_STRING=path=&cxp=PieUiDir
 )
 
 add_test(NAME cgi-archive
@@ -1413,7 +1413,7 @@ set_property(TEST cgi-sql
 )
 
 set_property(TEST cgi-empty cgi-mini cgi-archive cgi-sql cgi-maxi
-  APPEND PROPERTY ENVIRONMENT DOCUMENT_ROOT=${CXPROC_PREFIX}/www/html/;REQUEST_METHOD=GET;CXP_LOG=3;CXP_PATH=${CXPROC_PREFIX}/www/html/pie//;CXP_ROOT=${CXPROC_PREFIX}/www/html/Documents
+  APPEND PROPERTY ENVIRONMENT DOCUMENT_ROOT=${CXPROC_PREFIX}/www/html/;REQUEST_METHOD=GET;CXP_LOG=3;CXP_PATH=${CXPROC_PREFIX}/www/html/pie//;CXP_ROOT=${CXPROC_PREFIX}/www/html/test/
 )
   
 add_test(NAME cli-help
