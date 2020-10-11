@@ -1833,6 +1833,9 @@ pieElementToDOM(pieTextElementPtr ppeT)
     }
     else if (pieElementGetMode(ppeT) == RMODE_TABLE) {
       pndResult = xmlNewNode(NULL, (pieElementIsHeader(ppeT) ? NAME_PIE_HEADER : NAME_PIE_PAR));
+      if (ppeT->iWeight > 1) {
+	xmlSetProp(pndResult, BAD_CAST"impact", BAD_CAST((ppeT->iWeight > 2) ? "1" : "2"));
+      }
       xmlAddChild(pndResult, xmlNewText(pucC));
     }
     else {
@@ -1935,6 +1938,9 @@ pieElementToDOM(pieTextElementPtr ppeT)
 	  xmlNodePtr pndH = NULL;
 
 	  pndH = xmlNewNode(NULL, NAME_PIE_HEADER);
+	  if (ppeT->iWeight > 1) {
+	    xmlSetProp(pndResult, BAD_CAST"impact", BAD_CAST((ppeT->iWeight > 2) ? "1" : "2"));
+	  }
 	  xmlAddChild(pndH, xmlNewText(pucC));
 	  xmlAddChild(pndResult, pndH);
 	  if (ppeT->iDepthHidden > 0) {

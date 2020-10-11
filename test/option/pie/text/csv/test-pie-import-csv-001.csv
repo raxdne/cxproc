@@ -1,5 +1,5 @@
 sep=;
 * Header Number;Header String
-123;ABC
-456;DEF;
+123;ABC ++
+456;DEF+++
 789;HIJ
