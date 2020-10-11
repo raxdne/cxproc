@@ -53,7 +53,7 @@ static pcre2_code* re_tag = NULL;
 #define RE_HASHTAG "[#@][A-Za-z0-9_" UTF8_UMLAUT "]+"
 
 /* default extension of the hashtag regexp if no PI can be found */
-#define RE_HASHTAG_EXT "[A-Z]{3,}|[A-Z]{1,4}[a-z" UTF8_UMLAUT "]{5,}|[0-9A-Za-z" UTF8_UMLAUT "]{8,}"
+#define __RE_HASHTAG_EXT "[A-Z]{3,}|[A-Z]{1,4}[a-z" UTF8_UMLAUT "]{5,}|[0-9A-Za-z" UTF8_UMLAUT "]{8,}"
 
 
 static xmlNodePtr
@@ -75,13 +75,16 @@ static xmlNodePtr
 AppendListTag(xmlNodePtr pndTags, xmlChar* pucArg);
 
 static BOOL_T
-CleanListTag(xmlNodePtr pndArg);
+CleanListTag(xmlNodePtr pndArg, BOOL_T fArgMerge);
 
 static xmlNodePtr
 RecognizeGlobalTags(xmlNodePtr pndTags, xmlNodePtr pndArg);
 
 static BOOL_T
 RecognizeNodeTags(xmlNodePtr pndTags, xmlNodePtr pndArg, pcre2_code* preArg);
+
+static xmlChar*
+GetBlockTagRegExpPtr(xmlNodePtr pndArg);
 
 
 /*! exit procedure for this module
@@ -320,7 +323,6 @@ RecognizeHashtags(xmlNodePtr pndArg, pcre2_code* preArg)
   BOOL_T fResult = TRUE;
   xmlChar* pucREHashTag = NULL;
   xmlNodePtr pndChild;
-  xmlNodePtr pndChildPI;
   int errornumber = 0;
   size_t erroroffset;
 
@@ -330,14 +332,7 @@ RecognizeHashtags(xmlNodePtr pndArg, pcre2_code* preArg)
   else if (IS_NODE_PIE_ETAG(pndArg) || IS_NODE_PIE_HTAG(pndArg) || IS_NODE_PIE_TTAG(pndArg)) {
     /* skip existing tag elements */
   }
-  else if (IS_NODE_PIE_BLOCK(pndArg)
-	   &&
-	   (((pndChildPI = pndArg->children) != NULL && pndChildPI->type == XML_PI_NODE) || ((pndChildPI = pndArg->last) != NULL && pndChildPI->type == XML_PI_NODE))
-	   &&
-	   xmlStrEqual(pndChildPI->name,BAD_CAST"tag-regexp")
-	   &&
-	   ((pucREHashTag = domNodeGetContentPtr(pndChildPI)) != NULL && xmlStrlen(pucREHashTag) > 0)
-	   ) {
+  else if ((pucREHashTag = GetBlockTagRegExpPtr(pndArg)) != NULL) {
     /* there is a local regexp string for tags */
     xmlChar* pucT = NULL;
     pcre2_code* preBlock = NULL;
@@ -372,13 +367,9 @@ RecognizeHashtags(xmlNodePtr pndArg, pcre2_code* preArg)
   }
   else if (preArg == NULL) {
     /* build default regexp */
-    PrintFormatLog(2, "Initialize default hashtag regexp '%s'", RE_HASHTAG "|" RE_HASHTAG_EXT);
+    PrintFormatLog(2, "Initialize default hashtag regexp '%s'", RE_HASHTAG);
     preArg = pcre2_compile(
-#ifdef EXPERIMENTAL
-			     (PCRE2_SPTR8)RE_HASHTAG "|" RE_HASHTAG_EXT, /* the pattern */
-#else
 			     (PCRE2_SPTR8)RE_HASHTAG, /* the pattern */
-#endif			     
 			     PCRE2_ZERO_TERMINATED, /* indicates pattern is zero-terminated */
 			     PCRE2_UTF,        /* default options */
 			     &errornumber,          /* for error number */
@@ -448,6 +439,31 @@ RecognizeHashtags(xmlNodePtr pndArg, pcre2_code* preArg)
   }
   return fResult;
 } /* End of RecognizeHashtags() */
+
+
+/*! \return a pointer to the non-empty value of processing instruction node "tag-regexp"
+*/
+xmlChar*
+GetBlockTagRegExpPtr(xmlNodePtr pndArg)
+{
+  xmlChar* pucResult = NULL;
+  xmlNodePtr pndChildPI = NULL;
+
+  if (IS_NODE_PIE_BLOCK(pndArg)
+    &&
+    (((pndChildPI = pndArg->children) != NULL && pndChildPI->type == XML_PI_NODE)
+      || ((pndChildPI = pndArg->last) != NULL && pndChildPI->type == XML_PI_NODE))
+    &&
+    xmlStrEqual(pndChildPI->name, BAD_CAST"tag-regexp")
+    &&
+    ((pucResult = domNodeGetContentPtr(pndChildPI)) != NULL && xmlStrlen(pucResult) > 0)) {
+  }
+  else {
+    pucResult = NULL;
+  }
+
+  return pucResult;
+} /* End of GetBlockTagRegExpPtr() */
 
 
 /*! inherit the impact attribute and htag nodes from an ancestor node
@@ -551,7 +567,7 @@ _TagMatch(xmlChar* pucArgA, xmlChar* pucArgB)
 \return pointer to first node of list
 */
 BOOL_T
-CleanListTag(xmlNodePtr pndArg)
+CleanListTag(xmlNodePtr pndArg, BOOL_T fArgMerge)
 {
   BOOL_T fResult = FALSE;
 
@@ -577,11 +593,7 @@ CleanListTag(xmlNodePtr pndArg)
 
 	  if (pndI != pndTag
 	      && pndI->children != NULL && pndI->children->type == XML_TEXT_NODE && (pucI = pndI->children->content) != NULL
-	      && ((pucI[0] != (xmlChar)'@' && pucI[0] != (xmlChar)'#') || xmlStrEqual(pucI, pucTag))
-	      && StringBeginsWith((char*)pucI, (char*)pucTag)
-	      // && TagMatch(pucI,pucTag) > 4
-	    ) {
-
+	      && (fArgMerge && (pucI[0] != (xmlChar)'@' && pucI[0] != (xmlChar)'#' && StringBeginsWith((char*)pucI, (char*)pucTag)) || xmlStrEqual(pucI, pucTag))) {
 	    /*!
 	      merge similar node pndI to pndTag
 	    */
@@ -869,7 +881,11 @@ ProcessTags(xmlDocPtr pdocPie, xmlChar* pucAttrTags)
 #endif
 
     RecognizeGlobalTags(pndTags, pndRoot);
-    CleanListTag(pndTags);
+#if 0
+    CleanListTag(pndTags, (GetBlockTagRegExpPtr(pndRoot) == NULL));
+#else
+    CleanListTag(pndTags, FALSE);
+#endif
     pndResult = pndTags;
   }
 
@@ -892,7 +908,7 @@ RecognizeGlobalTags(xmlNodePtr pndTags, xmlNodePtr pndArg)
     xmlNodePtr pndChild;
 
     for (pndChild = pndArg->children; pndChild; pndChild=pndChild->next) {
-      if ((IS_NODE_PIE_TTAG(pndChild) || IS_NODE_PIE_ETAG(pndChild))
+      if ((IS_NODE_PIE_TTAG(pndChild) || IS_NODE_PIE_ETAG(pndChild) || IS_NODE_PIE_HTAG(pndChild))
 	&& xmlNodeIsText(pndChild->children) && STR_IS_NOT_EMPTY(pndChild->children->content)) {
 	xmlNodePtr pndT;
 
