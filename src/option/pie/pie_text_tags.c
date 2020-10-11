@@ -53,7 +53,7 @@ static pcre2_code* re_tag = NULL;
 #define RE_HASHTAG "[#@][A-Za-z0-9_" UTF8_UMLAUT "]+"
 
 /* default extension of the hashtag regexp if no PI can be found */
-#define RE_HASHTAG_EXT "[A-Z]{3,}|[A-Z]{1,4}[a-z" UTF8_UMLAUT "]{5,}|[0-9A-Za-z" UTF8_UMLAUT "]{8,}"
+#define __RE_HASHTAG_EXT "[A-Z]{3,}|[A-Z]{1,4}[a-z" UTF8_UMLAUT "]{5,}|[0-9A-Za-z" UTF8_UMLAUT "]{8,}"
 
 
 static xmlNodePtr
@@ -367,13 +367,9 @@ RecognizeHashtags(xmlNodePtr pndArg, pcre2_code* preArg)
   }
   else if (preArg == NULL) {
     /* build default regexp */
-    PrintFormatLog(2, "Initialize default hashtag regexp '%s'", RE_HASHTAG "|" RE_HASHTAG_EXT);
+    PrintFormatLog(2, "Initialize default hashtag regexp '%s'", RE_HASHTAG);
     preArg = pcre2_compile(
-#ifdef EXPERIMENTAL
-			     (PCRE2_SPTR8)RE_HASHTAG "|" RE_HASHTAG_EXT, /* the pattern */
-#else
 			     (PCRE2_SPTR8)RE_HASHTAG, /* the pattern */
-#endif			     
 			     PCRE2_ZERO_TERMINATED, /* indicates pattern is zero-terminated */
 			     PCRE2_UTF,        /* default options */
 			     &errornumber,          /* for error number */
