@@ -2174,26 +2174,25 @@ cxpProcessTransformations(const xmlDocPtr pdocArgXml, const xmlNodePtr pndArgPar
 	  }
 	}
 	else if (IS_NODE_XPATH(pndChild)) {
+	  xmlChar* pucXpath;
 
 	  if (pucResult) {
 	    break;
 	  }
-	  else if (pdocResult) {
-	    xmlChar *pucXpath;
-
-	    if ((pucXpath = domGetAttributePtr(pndChild, BAD_CAST"select")) != NULL) {
-	      /*!\todo check XPath syntax of pucXpath */
-	      pdocT = domGetXPathDoc(pdocResult, pucXpath);
-	      if (pdocT) {
-		xmlFreeDoc(pdocResult);
-		pdocResult = pdocT;
-	      }
-	      else {
-		cxpCtxtLogPrint(pccArg, 1, "XPath error 'XML'");
-	      }
-	    }
-	    else {
-	    }
+	  else if (pdocResult == NULL) {
+	    break;
+	  }
+	  else if ((pucXpath = domGetAttributePtr(pndChild, BAD_CAST"select")) == NULL) {
+	  }
+	  else if (xmlStrEqual(pucXpath, BAD_CAST"/*")) {
+	  }
+	  /*!\todo check XPath syntax of pucXpath */
+	  else if ((pdocT = domGetXPathDoc(pdocResult, pucXpath)) == NULL) {
+	    cxpCtxtLogPrint(pccArg, 1, "XPath error 'XML'");
+	  }
+	  else {
+	    xmlFreeDoc(pdocResult);
+	    pdocResult = pdocT;
 	  }
 	}
 	else if (IS_NODE_XSL(pndChild)) {

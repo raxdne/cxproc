@@ -204,7 +204,7 @@ pieTextTagsTest(void)
     i++;
     printf("TEST %i in '%s:%i': CleanListTag() = ", i, __FILE__, __LINE__);
 
-    if (CleanListTag(NULL)) {
+    if (CleanListTag(NULL,FALSE)) {
       printf("Error 1 CleanListTag()\n");
     }
     else if ((pndPie = xmlNewNode(NULL, NAME_PIE_TAGLIST)) == NULL) {
@@ -213,7 +213,7 @@ pieTextTagsTest(void)
     else if ((pndT = xmlNewChild(pndPie, NULL, NAME_PIE_TTAG, BAD_CAST"")) == NULL) {
       printf("Error 2 xmlNewChild()\n");
     }
-    else if (CleanListTag(pndPie) == FALSE) {
+    else if (CleanListTag(pndPie,FALSE) == FALSE) {
       printf("Error 2 CleanListTag()\n");
     }
     else if ((pndT = xmlNewChild(pndPie, NULL, NAME_PIE_TTAG, BAD_CAST"Abc")) == NULL) {
@@ -228,13 +228,13 @@ pieTextTagsTest(void)
     else if ((pndT = xmlNewChild(pndPie, NULL, NAME_PIE_TTAG, BAD_CAST"ABCDEF")) == NULL) {
       printf("Error 6 xmlNewChild()\n");
     }
-    else if (CleanListTag(pndPie) == FALSE) {
+    else if (CleanListTag(pndPie,FALSE) == FALSE) {
       printf("Error 3 CleanListTag()\n");
     }
     else if (domNumberOfChild(pndPie, NAME_PIE_TTAG) != 2) {
       printf("Error 4 CleanListTag()\n");
     }
-    else if (CleanListTag(pndPie) == FALSE) {
+    else if (CleanListTag(pndPie,FALSE) == FALSE) {
       printf("Error 5 CleanListTag()\n");
     }
     else if (domNumberOfChild(pndPie, NAME_PIE_TTAG) != 2) {
