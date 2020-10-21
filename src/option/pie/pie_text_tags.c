@@ -84,7 +84,7 @@ static BOOL_T
 RecognizeNodeTags(xmlNodePtr pndTags, xmlNodePtr pndArg, pcre2_code* preArg);
 
 static xmlChar*
-GetBlockTagRegExpPtr(xmlNodePtr pndArg);
+GetBlockTagRegExpStr(xmlNodePtr pndArg);
 
 
 /*! exit procedure for this module
@@ -332,7 +332,7 @@ RecognizeHashtags(xmlNodePtr pndArg, pcre2_code* preArg)
   else if (IS_NODE_PIE_ETAG(pndArg) || IS_NODE_PIE_HTAG(pndArg) || IS_NODE_PIE_TTAG(pndArg)) {
     /* skip existing tag elements */
   }
-  else if ((pucREHashTag = GetBlockTagRegExpPtr(pndArg)) != NULL) {
+  else if ((pucREHashTag = GetBlockTagRegExpStr(pndArg)) != NULL) {
     /* there is a local regexp string for tags */
     xmlChar* pucT = NULL;
     pcre2_code* preBlock = NULL;
@@ -363,6 +363,7 @@ RecognizeHashtags(xmlNodePtr pndArg, pcre2_code* preArg)
       PrintFormatLog(1, "hashtag regexp '%s' error: '%i'", pucT, errornumber);
       fResult = FALSE;
     }
+    xmlFree(pucREHashTag);
     xmlFree(pucT);
   }
   else if (preArg == NULL) {
@@ -444,26 +445,29 @@ RecognizeHashtags(xmlNodePtr pndArg, pcre2_code* preArg)
 /*! \return a pointer to the non-empty value of processing instruction node "tag-regexp"
 */
 xmlChar*
-GetBlockTagRegExpPtr(xmlNodePtr pndArg)
+GetBlockTagRegExpStr(xmlNodePtr pndArg)
 {
   xmlChar* pucResult = NULL;
-  xmlNodePtr pndChildPI = NULL;
 
-  if (IS_NODE_PIE_BLOCK(pndArg)
-    &&
-    (((pndChildPI = pndArg->children) != NULL && pndChildPI->type == XML_PI_NODE)
-      || ((pndChildPI = pndArg->last) != NULL && pndChildPI->type == XML_PI_NODE))
-    &&
-    xmlStrEqual(pndChildPI->name, BAD_CAST"tag-regexp")
-    &&
-    ((pucResult = domNodeGetContentPtr(pndChildPI)) != NULL && xmlStrlen(pucResult) > 0)) {
+  if (IS_NODE_PIE_BLOCK(pndArg)) {
+    xmlNodePtr pndI;
+    xmlChar* pucT = NULL;
+    
+    for (pndI = pndArg->children; pndI != NULL; pndI = pndI->next) {
+      if (pndI->type == XML_PI_NODE && xmlStrEqual(pndI->name, BAD_CAST"tag-regexp") && (pucT = domNodeGetContentPtr(pndI)) != NULL) {
+	if (pucResult) {
+	  /*!\todo check regexp */
+	  pucResult = xmlStrcat(pucResult,BAD_CAST"|");
+	  pucResult = xmlStrcat(pucResult,pucT);
+	}
+	else {
+	  pucResult = xmlStrdup(pucT);
+	}
+      }
+    }
   }
-  else {
-    pucResult = NULL;
-  }
-
   return pucResult;
-} /* End of GetBlockTagRegExpPtr() */
+} /* End of GetBlockTagRegExpStr() */
 
 
 /*! inherit the impact attribute and htag nodes from an ancestor node
@@ -882,7 +886,7 @@ ProcessTags(xmlDocPtr pdocPie, xmlChar* pucAttrTags)
 
     RecognizeGlobalTags(pndTags, pndRoot);
 #if 0
-    CleanListTag(pndTags, (GetBlockTagRegExpPtr(pndRoot) == NULL));
+    CleanListTag(pndTags, (GetBlockTagRegExpStr(pndRoot) == NULL));
 #else
     CleanListTag(pndTags, FALSE);
 #endif
