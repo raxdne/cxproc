@@ -2430,7 +2430,18 @@ resNodeContentToDOM(xmlNodePtr pndArg, resNodePtr prnArg)
 	}
 
 	if (pndPie) {
+	  xmlNodePtr pndMeta;
+	  xmlNodePtr pndTags;
+
+	  if ((pndMeta = domGetFirstChild(pndPie, NAME_META)) == NULL) {
+	    pndMeta = xmlNewChild(pndPie, NULL, NAME_PIE_META, NULL);
+	  }
+	  pndTags = xmlNewChild(pndMeta, NULL, NAME_PIE_TAGLIST, NULL);
+
 	  RecognizeHashtags(pndPie,NULL);
+	  RecognizeGlobalTags(pndTags, pndPie);
+	  CleanListTag(pndTags, FALSE);
+	  //domPutNodeString(stderr, BAD_CAST "resNodeToDOM(): ", pndPie);
 	  RecognizeUrls(pndPie);
 	  RecognizeScripts(pndPie);
 	  RecognizeTasks(pndPie);

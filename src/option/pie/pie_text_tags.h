@@ -28,6 +28,12 @@ InheritHashtags(xmlDocPtr pdocArg);
 extern xmlNodePtr
 ProcessTags(xmlDocPtr pdocPie, xmlChar *pucAttrTags);
 
+extern BOOL_T
+CleanListTag(xmlNodePtr pndArg, BOOL_T fArgMerge);
+
+extern xmlNodePtr
+RecognizeGlobalTags(xmlNodePtr pndTags, xmlNodePtr pndArg);
+
 extern void
 pieTextTagsCleanup(void);
 

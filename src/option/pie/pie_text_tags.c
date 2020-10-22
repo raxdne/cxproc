@@ -75,12 +75,6 @@ static xmlNodePtr
 AppendListTag(xmlNodePtr pndTags, xmlChar* pucArg);
 
 static BOOL_T
-CleanListTag(xmlNodePtr pndArg, BOOL_T fArgMerge);
-
-static xmlNodePtr
-RecognizeGlobalTags(xmlNodePtr pndTags, xmlNodePtr pndArg);
-
-static BOOL_T
 RecognizeNodeTags(xmlNodePtr pndTags, xmlNodePtr pndArg, pcre2_code* preArg);
 
 static xmlChar*
@@ -449,7 +443,7 @@ GetBlockTagRegExpStr(xmlNodePtr pndArg)
 {
   xmlChar* pucResult = NULL;
 
-  if (IS_NODE_PIE_BLOCK(pndArg)) {
+  if (IS_NODE_PIE_PIE(pndArg) || IS_NODE_PIE_BLOCK(pndArg)) {
     xmlNodePtr pndI;
     xmlChar* pucT = NULL;
     
