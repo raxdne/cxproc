@@ -6,5 +6,5 @@
 			<th>ABC</th>
 		</tr>
 	</table>
-	<?tag-regexp ABC?>
+	<?tag-regexp AB?>
 </pie>

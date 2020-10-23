@@ -257,7 +257,7 @@ SplitStringToHashTagNodes(const xmlChar* pucArg, pcre2_code* preArg)
 	&& ((pucArg[ovector[0]+1] == (xmlChar)'x' && ishexdigit(pucArg[ovector[0]+2])) || isdigit(pucArg[ovector[0]+1]))) {
 	/* XML numeric character reference '&#x1F3A;' or '&#1234;' */
       }
-      else if (ovector[1] - ovector[0] > 2) {
+      else if (ovector[1] - ovector[0] > 0) {
 	/*
 	the regexp match, assemble node list with a common dummy
 	element node

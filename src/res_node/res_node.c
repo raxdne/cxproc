@@ -2441,7 +2441,7 @@ resNodeContentToDOM(xmlNodePtr pndArg, resNodePtr prnArg)
 	  RecognizeHashtags(pndPie,NULL);
 	  RecognizeGlobalTags(pndTags, pndPie);
 	  CleanListTag(pndTags, FALSE);
-	  //domPutNodeString(stderr, BAD_CAST "resNodeToDOM(): ", pndPie);
+	  //domPutNodeString(stderr, BAD_CAST "resNodeContentToDOM(): ", pndPie);
 	  RecognizeUrls(pndPie);
 	  RecognizeScripts(pndPie);
 	  RecognizeTasks(pndPie);
