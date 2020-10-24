@@ -307,7 +307,7 @@ main(int argc, char** argv, char** envp)
 	  iErrorCode += pieTimezoneTest();
 	  iErrorCode += ceTest();
 	  iErrorCode += pieCalendarTest(pccT);
-	  //iErrorCode += icsTest();
+	  iErrorCode += icsTest();
 	  //iErrorCode += vcfTest();
 
 	  cxpCtxtIncrExitCode(pccTest,cxpCtxtGetExitCode(pccT));

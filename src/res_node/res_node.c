@@ -33,6 +33,7 @@
 
 #ifdef HAVE_PIE
 #include <pie/pie_text_blocks.h>
+#include <ics/ics.h>
 #endif
 
 #include "dom.h"
@@ -2453,7 +2454,7 @@ resNodeContentToDOM(xmlNodePtr pndArg, resNodePtr prnArg)
       break;
 
     case MIME_TEXT_CALENDAR:
-      //icsParse(pndArg, prnArg);
+      icsParse(pndArg, prnArg);
       break;
 #else
     case MIME_TEXT_PLAIN:

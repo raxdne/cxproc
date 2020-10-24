@@ -753,6 +753,7 @@ cxpSubstGetPtr(cxpSubstPtr pcxpSubstArg)
     || (pucResult = pcxpSubstArg->pucCgi) != NULL
     || (pucResult = pcxpSubstArg->pucDir) != NULL
     || (pucResult = pcxpSubstArg->pucFile) != NULL
+    || (pucResult = pcxpSubstArg->pucExt) != NULL
     || (pucResult = pcxpSubstArg->pucType) != NULL
     || (pucResult = pcxpSubstArg->pucFilename) != NULL
     || (pucResult = pcxpSubstArg->pucEnv) != NULL
@@ -864,6 +865,10 @@ cxpSubstPrint(cxpSubstPtr pcxpSubstArg, cxpContextPtr pccArg)
 
     if (pcxpSubstArg->pucFile) {
       cxpCtxtLogPrint(pccArg,1,"\tpucFile     = '%s'",pcxpSubstArg->pucFile);
+    }
+
+    if (pcxpSubstArg->pucExt) {
+      cxpCtxtLogPrint(pccArg, 1, "\tpucExt     = '%s'", pcxpSubstArg->pucExt);
     }
 
     if (pcxpSubstArg->pucFilename) {
