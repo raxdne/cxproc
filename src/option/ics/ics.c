@@ -397,7 +397,7 @@ icsParse(xmlNodePtr pndArg, resNodePtr prnArg)
 {
   BOOL_T fResult = FALSE;
 
-  if (pndArg != NULL && resNodeIsFile(prnArg)) {
+  if (pndArg != NULL && (resNodeIsFile(prnArg) || resNodeIsURL(prnArg))) {
     xmlChar *pucContent;
 
     PrintFormatLog(3, "Read ics file '%s'", resNodeGetNameNormalized(prnArg));

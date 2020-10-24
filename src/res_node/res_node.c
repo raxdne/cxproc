@@ -3381,9 +3381,10 @@ resNodeReadStatus(resNodePtr prnArg)
 	  if (resNodeIsMemory(prnArg)) {
 	    /* content was fetched already */
 	    prnArg->liSize = prnArg->liSizeContent;
+	    prnArg->fRead = TRUE;
+	    prnArg->fExist = TRUE;
 	  }
-
-	  if (resNodeIsOpen(prnArg) || resNodeOpen(prnArg,"r")) {
+	  else if (resNodeIsOpen(prnArg) || resNodeOpen(prnArg,"r")) {
 #ifdef HAVE_LIBCURL
 	    CURLcode res;
 

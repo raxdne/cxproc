@@ -627,6 +627,7 @@ cxpCtxtCliParse(cxpContextPtr pccArg)
 	    xmlSetProp(pndXml, BAD_CAST "name", BAD_CAST"-");
 	    pndT = xmlNewChild(pndXml, NULL, NAME_FILE, NULL);
 	    xmlSetProp(pndT, BAD_CAST "name", resNodeGetNameNormalized(prnContent));
+	    xmlSetProp(pndT, BAD_CAST "verbosity", pucLevelDirVerbosity);
 	    cxpCtxtCliAddXsl(pndXml, pccArg);
 	  }
 	  else if (iMimeType == MIME_APPLICATION_CXP_XML) {

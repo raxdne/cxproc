@@ -110,7 +110,7 @@ dirMapInfoVerbosity(xmlNodePtr pndArgFile, cxpContextPtr pccArg)
     iResult = RN_INFO_MAX;
   }
   else if (xmlStrEqual(pucAttrVerbosity, BAD_CAST "4")) {
-    iResult =  RN_INFO_META | RN_INFO_STRUCT | RN_INFO_XML | RN_INFO_PIE | RN_INFO_INDEX;
+    iResult =  RN_INFO_META | RN_INFO_STRUCT | RN_INFO_XML | RN_INFO_PIE | RN_INFO_CONTENT;
   }
   else if (xmlStrEqual(pucAttrVerbosity, BAD_CAST "3")) {
     iResult =  RN_INFO_META | RN_INFO_STRUCT | RN_INFO_XML | RN_INFO_INDEX;

@@ -798,12 +798,12 @@ cxpResNodeResolveNew(cxpContextPtr pccArg, xmlNodePtr pndArg, xmlChar *pucArg, i
       resNodeFree(prnResult);
       prnResult = NULL;
     }
-    else if (((iArgOptions & CXP_O_DIR) && ! resNodeIsDir(prnResult))) { /* check type */
+    else if (((iArgOptions & CXP_O_DIR) && resNodeIsDir(prnResult) == FALSE)) { /* check type */
       cxpCtxtLogPrint(pccArg, 1, "Ressource '%s' is not of type directory (%i)", resNodeGetNameNormalized(prnResult),resNodeGetType(prnResult));
       resNodeFree(prnResult);
       prnResult = NULL;
     }
-    else if (((iArgOptions & CXP_O_FILE) && ! resNodeIsFile(prnResult))) { /* check type */
+    else if (((iArgOptions & CXP_O_FILE) && resNodeIsFile(prnResult) == FALSE && resNodeIsURL(prnResult) == FALSE)) { /* check type */
       cxpCtxtLogPrint(pccArg, 1, "Ressource '%s' is not of type file (%i)", resNodeGetNameNormalized(prnResult),resNodeGetType(prnResult));
       resNodeFree(prnResult);
       prnResult = NULL;
