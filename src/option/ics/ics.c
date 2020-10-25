@@ -40,6 +40,7 @@
 #include "plain_text.h"
 #include <ics/ics.h>
 
+static BOOL_T fExtensions = TRUE; /*! flag to include 'X-' elements in DOM */
 
 static BOOL_T
 RemoveLineBreaks(char *pchArg, int iArgLength);
@@ -81,6 +82,9 @@ RemoveLineBreaks(char *pchArg, int iArgLength)
       }
       else if (pchB[0]=='\n' && (pchB[1]=='\t' || pchB[1]==' ')) {
 	pchB++;
+      }
+      else if (pchB[0]=='\\' && pchB[1]==',') {
+	/* ignore this backslash */
       }
       else {
 	*pchA = *pchB;
@@ -197,7 +201,7 @@ addLine(xmlNodePtr pndArg, char *pchArg)
     pucB = xmlStrndup(BAD_CAST(pchSep + 1),(pchArg + l - pchSep - 1));
 
     pucT = BAD_CAST xmlStrchr(pucA,(xmlChar)';');
-    if (pucA[0]=='X' && pucA[1]=='-') {
+    if (pucA[0]=='X' && pucA[1]=='-' && fExtensions == FALSE) {
       /* ignore this */
       return FALSE;
     }
@@ -219,7 +223,7 @@ addLine(xmlNodePtr pndArg, char *pchArg)
 	  pchSep = pchT;
 	}
 	else if (*pchT == ';' || *pchT == ':' || *pchT == '\0') {
-	  if (pchParameterBegin[0]=='X' && pchParameterBegin[1]=='-') {
+	  if (pchParameterBegin[0]=='X' && pchParameterBegin[1]=='-' && fExtensions == FALSE) {
 	    /* ignore this */
 	  }
 	  else if (pchSep - pchParameterBegin > 0) {
@@ -270,7 +274,7 @@ addLine(xmlNodePtr pndArg, char *pchArg)
 	  pchSep = pchT;
 	}
 	else if (*pchT == ';' || *pchT == ':' || *pchT == '\0') {
-	  if (pchParameterBegin[0]=='X' && pchParameterBegin[1]=='-') {
+	  if (pchParameterBegin[0]=='X' && pchParameterBegin[1]=='-' && fExtensions == FALSE) {
 	    /* ignore this */
 	  }
 	  else if (pchSep - pchParameterBegin > 0) {
@@ -371,7 +375,7 @@ getNextBlock(xmlNodePtr pndArg, char *pchArg, int iArgLength)
 	      ciDepth--;
 	    }
 	    else if (ciDepth==0) {
-	      if (pchLineNext[0]=='X' && pchLineNext[1]=='-') {
+	      if (pchLineNext[0]=='X' && pchLineNext[1]=='-' && fExtensions == FALSE) {
 		/* ignore */
 	      }
 	      else {
