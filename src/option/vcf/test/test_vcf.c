@@ -30,7 +30,20 @@ vcfTest(void)
   i=0;
 
   if (RUNTEST) {
+    
+    i++;
+    printf("TEST %i in '%s:%i': empty vcfParse() = ",i,__FILE__,__LINE__);
 
+    if (vcfParse(NULL,NULL,NULL,0) == TRUE) {
+      printf("Error vcfParse()\n");
+    }
+    else {
+      n_ok++;
+      printf("OK\n");
+    }
+  }
+
+  if (RUNTEST) {
     xmlDocPtr pdocResult = NULL;
     xmlNodePtr pndFile;
     xmlChar *pucContent;
@@ -44,23 +57,22 @@ vcfTest(void)
     xmlDocSetRootElement(pdocResult,pndFile);
     pdocResult->encoding = xmlStrdup(BAD_CAST "UTF-8"); /* according to conversion in ParseImportNodePlainContent() */
 
-    prnInput = resNodeDirNew(BAD_CAST TESTPREFIX "option/pie/text/20121108181826.vcf");
-    pucContent = plainGetContextTextEat(prnInput,1024);
-    if (pucContent) {
-      if (vcfParse(pndFile,pndFile,(char *)pucContent,LANG_DEFAULT)) {
-          n_ok++;
-          //xmlSaveFormatFileEnc("-", pdocResult, "UTF-8", 1);
-          printf("OK\n");
-      }
-      else {
-          printf("Error vcfParse()\n");
-      }
-      xmlFree(pucContent);
+    if ((prnInput = resNodeDirNew(BAD_CAST TESTPREFIX "option/vcf/20121108181826.vcf")) == NULL) {
+      printf("Error resNodeDirNew()\n");
+    }
+    else if ((pucContent = plainGetContextTextEat(prnInput,1024)) == NULL) {
+      printf("Error plainGetContextTextEat()\n");
+    }
+    else if (vcfParse(pndFile,pndFile,(char *)pucContent,LANG_DEFAULT) == NULL) {
+      printf("Error vcfParse()\n");
     }
     else {
-        printf("Error plainGetContextTextEat()\n");
+      n_ok++;
+      printf("OK\n");
     }
-
+    
+    //xmlSaveFormatFileEnc("-", pdocResult, "UTF-8", 1);
+    xmlFree(pucContent);
     resNodeFree(prnInput);
     xmlFreeDoc(pdocResult);
   }

@@ -29,7 +29,20 @@ icsTest(void)
   i=0;
 
   if (RUNTEST) {
+    
+    i++;
+    printf("TEST %i in '%s:%i': empty icsParse() = ",i,__FILE__,__LINE__);
 
+    if (icsParse(NULL,NULL) == TRUE) {
+      printf("Error icsParse()\n");
+    }
+    else {
+      n_ok++;
+      printf("OK\n");
+    }
+  }
+
+  if (RUNTEST) {
     xmlDocPtr pdocResult = NULL;
     xmlNodePtr pndFile;
     resNodePtr prnIcs = NULL;
@@ -42,20 +55,20 @@ icsTest(void)
     xmlDocSetRootElement(pdocResult,pndFile);
     pdocResult->encoding = xmlStrdup(BAD_CAST "UTF-8"); /* according to conversion in ParseImportNodePlainContent() */
 
-    prnIcs = resNodeConcatNew(BAD_CAST TESTPREFIX, BAD_CAST "option/pie/text/2446.ics");
-    if (prnIcs) {
-      if (icsParse(pndFile,prnIcs)) {
-	n_ok++;
-	xmlSaveFormatFileEnc(TEMPPREFIX "2446.pie", pdocResult, "UTF-8", 1);
-	printf("OK\n");
-      }
-      else {
-	printf("Error icsParse()\n");
-      }
-
-      xmlFreeDoc(pdocResult);
-      resNodeFree(prnIcs);
+    if ((prnIcs = resNodeConcatNew(BAD_CAST TESTPREFIX, BAD_CAST "option/ics/2446.ics")) == NULL) {
+      printf("Error icsParse()\n");
     }
+    else if (icsParse(pndFile,prnIcs) == FALSE) {
+      printf("Error icsParse()\n");
+    }
+    else {
+      n_ok++;
+      printf("OK\n");
+    }
+
+    xmlSaveFormatFileEnc(TEMPPREFIX "2446.pie", pdocResult, "UTF-8", 1);
+    xmlFreeDoc(pdocResult);
+    resNodeFree(prnIcs);
   }
 
   printf("Result in '%s': %i/%i OK\n\n",__FILE__,n_ok,i);

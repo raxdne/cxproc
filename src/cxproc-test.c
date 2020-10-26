@@ -216,8 +216,6 @@ main(int argc, char** argv, char** envp)
 
       if (pcTest == NULL || xmlStrEqual(BAD_CAST pcTest, BAD_CAST "cxp")) {
 	cxpContextPtr pccT = NULL;
-	xmlNodePtr pndXml;
-	xmlNodePtr pndMake;
 
 	pccT = cxpCtxtDup(pccTest);
 	if (pccT) {
@@ -247,11 +245,8 @@ main(int argc, char** argv, char** envp)
 #ifdef HAVE_LIBSQLITE3
       if (pcTest == NULL || xmlStrEqual(BAD_CAST pcTest, BAD_CAST "sql")) {
 	cxpContextPtr pccT = NULL;
-	xmlNodePtr pndXml;
-	xmlNodePtr pndMake;
 
 	pccT = cxpCtxtDup(pccTest);
-
 	if (pccT) {
 	  iErrorCode += dbTest();
 	  iErrorCode += dbCxpTest(pccT);
@@ -264,8 +259,6 @@ main(int argc, char** argv, char** envp)
 
       if (pcTest == NULL || xmlStrEqual(BAD_CAST pcTest, BAD_CAST "dir")) {
 	cxpContextPtr pccT = NULL;
-	xmlNodePtr pndXml;
-	xmlNodePtr pndMake;
 
 	pccT = cxpCtxtDup(pccTest);
 	if (pccT) {
@@ -279,8 +272,6 @@ main(int argc, char** argv, char** envp)
 #ifdef HAVE_PETRINET
       if (pcTest == NULL || xmlStrEqual(BAD_CAST pcTest, BAD_CAST "petrinet")) {
 	cxpContextPtr pccT = NULL;
-	xmlNodePtr pndXml;
-	xmlNodePtr pndMake;
 
 	pccT = cxpCtxtDup(pccTest);
 	if (pccT) {
@@ -295,8 +286,6 @@ main(int argc, char** argv, char** envp)
 #ifdef HAVE_PIE
       if (pcTest == NULL || xmlStrEqual(BAD_CAST pcTest, BAD_CAST "pie")) {
 	cxpContextPtr pccT = NULL;
-	xmlNodePtr pndXml;
-	xmlNodePtr pndMake;
 
 	pccT = cxpCtxtDup(pccTest);
 	if (pccT) {
@@ -307,8 +296,30 @@ main(int argc, char** argv, char** envp)
 	  iErrorCode += pieTimezoneTest();
 	  iErrorCode += ceTest();
 	  iErrorCode += pieCalendarTest(pccT);
+
+	  cxpCtxtIncrExitCode(pccTest,cxpCtxtGetExitCode(pccT));
+	  cxpCtxtFree(pccT);
+	}
+      }
+
+      if (pcTest == NULL || xmlStrEqual(BAD_CAST pcTest, BAD_CAST "ics")) {
+	cxpContextPtr pccT = NULL;
+
+	pccT = cxpCtxtDup(pccTest);
+	if (pccT) {
 	  iErrorCode += icsTest();
-	  //iErrorCode += vcfTest();
+
+	  cxpCtxtIncrExitCode(pccTest,cxpCtxtGetExitCode(pccT));
+	  cxpCtxtFree(pccT);
+	}
+      }
+
+      if (pcTest == NULL || xmlStrEqual(BAD_CAST pcTest, BAD_CAST "vcf")) {
+	cxpContextPtr pccT = NULL;
+
+	pccT = cxpCtxtDup(pccTest);
+	if (pccT) {
+	  iErrorCode += vcfTest();
 
 	  cxpCtxtIncrExitCode(pccTest,cxpCtxtGetExitCode(pccT));
 	  cxpCtxtFree(pccT);

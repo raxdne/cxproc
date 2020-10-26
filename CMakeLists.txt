@@ -1550,6 +1550,14 @@ IF (CXPROC_PIE)
     APPEND PROPERTY ENVIRONMENT CXP_PATH=${PROJECT_SOURCE_DIR}//
     )
   
+  add_test(NAME ics-code
+    WORKING_DIRECTORY ${CXPROC_PREFIX}
+    COMMAND ${CXPROC_PREFIX}/bin/cxproc-test -t ics)
+
+  add_test(NAME vcf-code
+    WORKING_DIRECTORY ${CXPROC_PREFIX}
+    COMMAND ${CXPROC_PREFIX}/bin/cxproc-test -t vcf)
+
 ENDIF (CXPROC_PIE)
 
 IF (CXPROC_ARCHIVE)
