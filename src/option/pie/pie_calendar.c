@@ -1309,13 +1309,7 @@ ProcessCalendarColumns(pieCalendarPtr pCalendarArg, cxpContextPtr pccArg)
 	  if (pdocInput) {
 	    xmlNodePtr pndRoot = xmlDocGetRootElement(pdocInput);
 	    if (pndRoot) {
-	      xmlNodePtr pndMetaXml;
-
-	      pndMetaXml = domGetFirstChild(pndRoot, NAME_META);
-	      if (pndMetaXml) {
-		xmlUnlinkNode(pndMetaXml);
-		xmlFreeNode(pndMetaXml);
-	      }
+	      domFreeNodeByName(pndRoot, NAME_META);
 	      PrintFormatLog(2, "Insert XML DOM into calendar");
 	      /*!\todo avoid copy of DOM, replace instead */
 #if 0

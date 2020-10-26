@@ -39,6 +39,12 @@ REM robocopy /S %CXPBASE%..\test %DIR_TEST% *.*
 SET DIR_CGI="%PREFIX%\www\cgi-bin"
 md %DIR_CGI%
 robocopy %DIR_BIN% %DIR_CGI% *.dll
+
+IF "%DEBUG%" == "1" (
+  robocopy c:\windows\system32 %DIR_BIN% VCRUNTIME140D.DLL
+  robocopy c:\windows\system32 %DIR_CGI% VCRUNTIME140D.DLL
+)
+
 SET DIR_LOG="%PREFIX%\www\log"
 md %DIR_LOG%
 SET DIR_WWW="%PREFIX%\www\html"

@@ -533,15 +533,18 @@ cxpAttributeLocatorResNodeNew(cxpContextPtr pccArg, xmlNodePtr pndArg, xmlChar *
       }
       else if (resPathIsAbsolute(pucAttrValue)) {
 	prnT = resNodeDirNew(pucAttrValue);
+	cxpCtxtLogPrint(pccArg, 3, "Get Context '%s' from attribute 'dir' absolute", resNodeGetNameNormalized(prnT));
       }
       else {
 	prnT = resNodeConcatNew(cxpCtxtLocationGetStr(pccArg), pucAttrValue);
+	cxpCtxtLogPrint(pccArg, 3, "Get Context '%s' from attribute 'dir' relative", resNodeGetNameNormalized(prnT));
       }
     }
     
 #ifdef HAVE_PIE
     if (prnT == NULL && (pucAttrValue = pieGetAncestorContextStr(pndArg)) != NULL) {
       prnT = resNodeDirNew(pucAttrValue);
+      cxpCtxtLogPrint(pccArg, 3, "Get Context '%s' from parent context", resNodeGetNameNormalized(prnT));
       xmlFree(pucAttrValue);
       pucAttrValue = NULL;
     }
@@ -1985,6 +1988,15 @@ cxpCtxtSearchSet(cxpContextPtr pccArg, resNodePtr prnArg)
     }
     else {
       pccArg->prnSearch = NULL;
+    }
+
+    if (resPathIsDescendant(resNodeGetNameNormalized(cxpCtxtRootGet(pccArg)), resNodeGetNameNormalized(cxpCtxtSearchGet(pccArg)))) {
+      cxpCtxtLogPrint(pccArg, 1, "WARNING: Value '%s' is a descendant directory of search path '%s'",
+	resNodeGetNameNormalized(cxpCtxtRootGet(pccArg)), resNodeGetNameNormalized(cxpCtxtSearchGet(pccArg)));
+    }
+    else if (resPathIsDescendant(resNodeGetNameNormalized(cxpCtxtSearchGet(pccArg)), resNodeGetNameNormalized(cxpCtxtRootGet(pccArg)))) {
+      cxpCtxtLogPrint(pccArg, 1, "WARNING: Value '%s' is a descendant directory of root path '%s'",
+	resNodeGetNameNormalized(cxpCtxtSearchGet(pccArg)), resNodeGetNameNormalized(cxpCtxtRootGet(pccArg)));
     }
 
 #if 0

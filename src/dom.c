@@ -791,6 +791,32 @@ domAddFileXpath(xmlNodePtr pndArg, xmlChar *pucArgName, xmlChar *pucArgPrefix)
 /* End of domAddFileXpath() */
 
 
+/*! Delete all descendant element nodes named pucArgName.
+
+\param pndArg pointer to node
+\param pucArgName pointer to name string for nodes to delete
+ */
+void
+domFreeNodeByName(xmlNodePtr pndArg, xmlChar *pucArgName)
+{
+  if (IS_ENODE(pndArg)) {
+    xmlNodePtr pndChild;
+    xmlNodePtr pndChildNext = NULL;
+
+    for (pndChild = pndArg->children; pndChild != NULL; pndChild = pndChildNext) {
+      pndChildNext = pndChild->next;
+      if (xmlStrEqual(pndChild->name, pucArgName)) {
+	xmlUnlinkNode(pndChild);
+	xmlFreeNode(pndChild);
+      }
+      else {
+	domFreeNodeByName(pndChild, pucArgName);
+      }
+    }
+  }
+} /* End of domFreeNodeByName() */
+
+
 /*! \return a new Doc with a copy of pndArg
 */
 xmlDocPtr

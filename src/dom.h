@@ -31,6 +31,9 @@
 #define IS_NODE_XSL_VARIABLE(NODE) (IS_NODE__XSL(NODE,"variable"))
 
 
+extern void
+domFreeNodeByName(xmlNodePtr pndArg, xmlChar* pucArgName);
+
 extern xmlDocPtr
 domDocFromNodeNew(xmlNodePtr pndArg);
 
