@@ -47,6 +47,9 @@
 #ifdef HAVE_LIBID3TAG
 #include <audio/audio.h>
 #endif
+#if defined(HAVE_LIBEXIF)
+#include <image/image_exif.h>
+#endif
 
 static resNodePtr
 resNodeNew(void);
@@ -2604,11 +2607,11 @@ resNodeContentToDOM(xmlNodePtr pndArg, resNodePtr prnArg)
     case MIME_IMAGE_PNG:
     case MIME_IMAGE_TIFF:
 #ifdef HAVE_LIBEXIF
-	/* get image information details via libexif */
-	imgParseFileExif(pndArg, prnArg);
-	/* get image information details via ImageMagick */
+      /* get image information details via libexif */
+      imgParseFileExif(pndArg, prnArg);
+      /* get image information details via ImageMagick */
 #elif defined HAVE_LIBMAGICK	
-	//imgParseFile(pndArg, prnArg);
+      //imgParseFile(pndArg, prnArg);
 #endif
       break;
 

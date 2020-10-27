@@ -594,6 +594,18 @@ IF (CXPROC_LIBEXIF)
   add_compile_definitions(HAVE_LIBEXIF)
 ENDIF (CXPROC_LIBEXIF)
 
+IF (CXPROC_LIBEXIF)
+  SET(FILEX_HEADERS ${FILEX_HEADERS} ${CXPROC_SRC_DIR}/option/image/image_exif.h)
+  SET(FILEX_SOURCES ${FILEX_SOURCES} ${CXPROC_SRC_DIR}/option/image/image_exif.c)
+  SET(CXPROC_HEADERS ${CXPROC_HEADERS} ${CXPROC_SRC_DIR}/option/image/image_exif.h)
+  SET(CXPROC_SOURCES ${CXPROC_SOURCES} ${CXPROC_SRC_DIR}/option/image/image_exif.c)
+ENDIF ()
+
+################################################################################
+#
+# libmagick
+#
+
 #OPTION(CXPROC_LIBMAGICK "Include ImageMagick code" OFF)
 SET(CXPROC_LIBMAGICK OFF)
 
@@ -602,9 +614,9 @@ IF (CXPROC_LIBMAGICK)
   add_compile_definitions(HAVE_LIBMAGICK)
 ENDIF (CXPROC_LIBMAGICK)
 
-IF (CXPROC_LIBMAGICK OR CXPROC_LIBEXIF)
-  SET(CXPROC_HEADERS ${CXPROC_HEADERS} ${CXPROC_SRC_DIR}/image.h)
-  SET(CXPROC_SOURCES ${CXPROC_SOURCES} ${CXPROC_SRC_DIR}/image.c)
+IF (CXPROC_LIBMAGICK)
+  SET(CXPROC_HEADERS ${CXPROC_HEADERS} ${CXPROC_SRC_DIR}/option/image/image.h)
+  SET(CXPROC_SOURCES ${CXPROC_SOURCES} ${CXPROC_SRC_DIR}/option/image/image.c)
 ENDIF ()
 
 ################################################################################
@@ -1174,6 +1186,7 @@ ENDIF (CXPROC_LIBID3TAG)
 #
 
 IF (CXPROC_LIBEXIF)
+  target_link_libraries(filex ${LIBEXIF_LIBRARY})
   target_link_libraries(cxproc ${LIBEXIF_LIBRARY})
   target_link_libraries(cxproc-test ${LIBEXIF_LIBRARY})
   target_link_libraries(cxproc-cgi  ${LIBEXIF_LIBRARY})
@@ -1574,7 +1587,7 @@ set_tests_properties(archive-code archive-cxp PROPERTIES
   )
 ENDIF (CXPROC_ARCHIVE)
 
-IF (CXPROC_LIBMAGICK OR CXPROC_LIBEXIF)
+IF (CXPROC_LIBEXIF)
   add_test(NAME image-cxp
     WORKING_DIRECTORY ${CXPROC_TEST_DIR}/option/image
     COMMAND ${CXPROC_PREFIX}/bin/cxproc config.cxp)

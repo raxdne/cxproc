@@ -89,6 +89,12 @@
 #ifdef HAVE_LIBARCHIVE
 #include <archive/cxp_archive.h>
 #endif
+#ifdef HAVE_LIBEXIF
+#include <image/image_exif.h>
+#endif
+#ifdef HAVE_LIBMAGICK
+#include <image/image.h>
+#endif
 
 /* additional/specific testcode for used libs */
 
@@ -331,7 +337,10 @@ main(int argc, char** argv, char** envp)
 #ifdef HAVE_LIBID3TAG
 	iErrorCode += audioTest();
 #endif
-#if defined(HAVE_LIBEXIF) || defined(HAVE_LIBMAGICK)
+#ifdef HAVE_LIBEXIF
+	iErrorCode += imageExifTest();
+#endif
+#ifdef HAVE_LIBMAGICK
 	iErrorCode += imageTest(pccTest);
 #endif
 #ifdef HAVE_RP
@@ -343,6 +352,9 @@ main(int argc, char** argv, char** envp)
 #ifdef HAVE_JS
 	iErrorCode += scriptTest(pccTest);
 #endif
+
+	cxpCtxtIncrExitCode(pccTest,cxpCtxtGetExitCode(pccTest));
+	cxpCtxtFree(pccTest);
       }
     }
 

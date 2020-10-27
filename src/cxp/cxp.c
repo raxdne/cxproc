@@ -79,6 +79,12 @@
 #include <database/cxp_database.h>
 #endif
 
+#ifdef HAVE_LIBEXIF
+#include <image/image_exif.h>
+#endif
+#ifdef HAVE_LIBMAGICK
+#include <image/image.h>
+#endif
 #ifdef HAVE_JSON
 #include <json/json.h>
 #endif
@@ -1678,7 +1684,9 @@ cxpProcessMakeNode(xmlNodePtr pndArg,cxpContextPtr pccArg)
 	  arcProcessZipNode(pndChild, pccHere);
 	}
 #endif
-#if defined(HAVE_LIBEXIF) || defined(HAVE_LIBMAGICK)
+#ifdef HAVE_LIBEXIF
+#endif
+#ifdef HAVE_LIBMAGICK
 	else if (IS_NODE_IMAGE(pndChild)) {
 	  imgMain(pndChild,pccHere);
 	}
@@ -1720,7 +1728,7 @@ cxpProcessMakeNode(xmlNodePtr pndArg,cxpContextPtr pccArg)
 	xmlFreeDoc(pdocResultT);
       }
     }
-#if defined(HAVE_LIBEXIF) || defined(HAVE_LIBMAGICK)
+#ifdef HAVE_LIBMAGICK
     else if (IS_NODE_IMAGE(pndArg)) {
       imgMain(pndArg,pccHere);
     }
