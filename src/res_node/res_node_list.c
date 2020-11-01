@@ -58,7 +58,7 @@ resNodeListParse(resNodePtr prnArg, int iArgDepth, const pcre2_code *re_match)
 {
   BOOL_T fResult = FALSE;
 
-  if (iArgDepth > 0) { /* recursion depth reached? */
+  if (iArgDepth > -1) { /* recursion depth reached? */
     resNodePtr prnEntry;
 
     if (resNodeReadStatus(prnArg) == FALSE) {
@@ -66,8 +66,7 @@ resNodeListParse(resNodePtr prnArg, int iArgDepth, const pcre2_code *re_match)
     }
     else if (resNodeIsDir(prnArg)) {
       /*  */
-#if 1
-      if (resNodeDirAppendEntries(prnArg, re_match)) {
+      if (iArgDepth > 0 && resNodeDirAppendEntries(prnArg, re_match)) {
 	for (prnEntry = resNodeGetChild(prnArg); prnEntry; prnEntry = resNodeGetNext(prnEntry)) {
 	  if (resNodeReadStatus(prnEntry)) {
 	    if (iArgDepth > 1 && (resNodeIsDir(prnEntry) || resNodeIsArchive(prnEntry))) {
@@ -76,102 +75,8 @@ resNodeListParse(resNodePtr prnArg, int iArgDepth, const pcre2_code *re_match)
 	    }
 	  }
 	}
-	fResult = TRUE;
       }
-#else
-      int iErr;
-
-      /*!\todo read and write accelerating index files in local directories (xml, JSON or sqlite?) */
-
-      for (iErr = 0; iErr == 0; ) {
-	prnEntry = resNodeAddChildNew(prnT, BAD_CAST"entry");
-	if (prnEntry) {
-	  iErr = resNodeFindNext(prnT, prnEntry);
-	  if (iErr == 0 && resNodeReadStatus(prnEntry)) {
-	    if (resNodeIsDir(prnEntry)) {
-	      if (resNodeListParse(prnEntry, iArgDepth - 1, fArgNext, re_match)) { /* recursion */
-		fResult &= resNodeAddChild(prnArg, prnEntry);
-	      }
-	      else {
-		resNodeSetError(prnArg,error_directory, "Undefined directory error at '%s': %i", resNodeGetNameNormalized(prnEntry), iErr);
-		resNodeFree(prnEntry);
-		//fResult = FALSE;
-	      }
-	    }
-	    else if (resNodeIsFileInArchive(prnEntry)) {
-	      if (resNodeListParse(prnEntry, iArgDepth - 1, fArgNext, re_match)) { /* recursion */
-		fResult &= resNodeAddChild(prnArg, prnEntry);
-	      }
-	      else {
-		resNodeSetError(prnArg,error_directory, "Undefined directory error at '%s': %i", resNodeGetNameNormalized(prnEntry), iErr);
-		resNodeFree(prnEntry);
-		//fResult = FALSE;
-	      }
-	    }
-	    else if (resNodeIsLink(prnEntry)) {
-	      if (resNodeListParse(prnEntry, iArgDepth - 1, fArgNext, re_match)) { /* recursion */
-		fResult &= resNodeAddChild(prnArg, prnEntry);
-	      }
-	      else {
-		resNodeSetError(prnArg,error_directory, "Undefined directory error at '%s': %i", resNodeGetNameNormalized(prnEntry), iErr);
-		resNodeFree(prnEntry);
-		//fResult = FALSE;
-	      }
-	    }
-#ifdef HAVE_PIE
-	    else if (resNodeGetMimeType(prnEntry) == MIME_APPLICATION_PIE_XML_INDEX) {
-	      /* ignore index files */
-	      resNodeFree(prnEntry);
-	    }
-#endif
-	    else if (resNodeIsFile(prnEntry)) {
-#ifdef HAVE_PCRE2
-	      int rc = -1;
-
-	      /* file matching */
-	      if (re_match) {
-		pcre2_match_data *match_data;
-		char *pcNameBase = (char *)resNodeGetNameBase(prnEntry);
-
-		match_data = pcre2_match_data_create_from_pattern(re_match, NULL);
-		rc = pcre2_match(
-		  re_match,        /* result of pcre2_compile() */
-		  (PCRE2_SPTR8)pcNameBase,  /* the subject string */
-		  strlen((const char*)pcNameBase),             /* the length of the subject string */
-		  0,              /* start at offset 0 in the subject */
-		  0,              /* default options */
-		  match_data,        /* vector of integers for substring information */
-		  NULL);            /* number of elements (NOT size in bytes) */
-
-		pcre2_match_data_free(match_data);   /* Release memory used for the match */
-
-		if (rc < 0) {
-		  //PrintFormatLog(4, "%s ignore '%s'", NAME_FILE, pcNameBase);
-		  resNodeFree(prnEntry);
-		  continue;
-		}
-	      }
-#endif
-	      fResult &= resNodeAddChild(prnT, prnEntry);
-	    }
-	    else {
-	      resNodeSetError(prnArg,error_directory, "Undefined directory error at '%s': %i", resNodeGetNameNormalized(prnEntry), iErr);
-	      resNodeFree(prnEntry);
-	      //fResult = FALSE;
-	    }
-	  }
-	  else if (iErr == ENOENT) { /* end of directory reached */
-	    resNodeFree(prnEntry);
-	  }
-	  else {
-	    resNodeSetError(prnArg,error_directory, "Undefined directory error at '%s': %i", resNodeGetNameNormalized(prnEntry), iErr);
-	    resNodeFree(prnEntry);
-	    fResult = FALSE;
-	  }
-	}
-      }
-      resNodeClose(prnT);
-#endif
+      fResult = TRUE;
     }
 #ifdef HAVE_LIBARCHIVE
     else if (resNodeIsArchive(prnArg)) {

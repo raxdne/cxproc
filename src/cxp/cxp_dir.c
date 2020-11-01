@@ -173,14 +173,14 @@ dirProcessDirNode(xmlNodePtr pndArgDir, resNodePtr prnArgContext, cxpContextPtr 
 
   iVerbosity = dirMapInfoVerbosity(pndArgDir, pccArg);
 
-  /*!\todo set depth attribute per single dir element, instead of global */
+  /* get default depth from attribute */
   if ((pucAttrDepth = domGetAttributePtr(pndArgDir,BAD_CAST "depth"))!=NULL
-      && ((iDepth = atoi((char *)pucAttrDepth)) > 0)) {
+      && ((iDepth = atoi((char *)pucAttrDepth)) > -1)) {
   }
   else {
-    iDepth = 9999;
+    iDepth = 999;
   }
-  cxpCtxtLogPrint(pccArg,2,"Set DIR depth to '%i'", iDepth);
+  cxpCtxtLogPrint(pccArg,2,"Set default DIR depth to '%i'", iDepth);
   
 #ifdef HAVE_PCRE2
   if (((pucAttrGrep = domGetAttributePtr(pndArgDir, BAD_CAST "igrep")) != NULL
@@ -279,6 +279,7 @@ dirProcessDirNode(xmlNodePtr pndArgDir, resNodePtr prnArgContext, cxpContextPtr 
 
   for (pndEntry = ((pndArgDir->children) ? pndArgDir->children : pndArgDir); pndEntry; pndEntry = pndEntry->next) {
     int iVerbosityChild = iVerbosity;
+    int iDepthChild;
     resNodePtr prnT;
     xmlNodePtr pndT;
 
@@ -286,6 +287,15 @@ dirProcessDirNode(xmlNodePtr pndArgDir, resNodePtr prnArgContext, cxpContextPtr 
       iVerbosityChild = dirMapInfoVerbosity(pndArgDir, pccArg);
     }
 
+    /*! get depth attribute per single dir element, instead of global */
+    if ((pucAttrDepth = domGetAttributePtr(pndEntry,BAD_CAST "depth"))!=NULL
+	&& ((iDepthChild = atoi((char *)pucAttrDepth)) > -1)) {
+    }
+    else {
+      iDepthChild = iDepth;
+    }
+    cxpCtxtLogPrint(pccArg,2,"Set DIR depth to '%i'", iDepthChild);
+  
     prnT = NULL;
     
     if (IS_VALID_NODE(pndEntry) == FALSE) {
@@ -298,7 +308,7 @@ dirProcessDirNode(xmlNodePtr pndArgDir, resNodePtr prnArgContext, cxpContextPtr 
     else if (prnT == NULL) {
       /* ignore nodes other than "cxp:dir" or "cxp:file" */
     }
-    else if (resNodeListParse(prnT, iDepth, re_match) == FALSE) { /*! read Resource Node as list of childs */
+    else if (resNodeListParse(prnT, iDepthChild, re_match) == FALSE) { /*! read Resource Node as list of childs */
       xmlNewChild(pndPie, NULL, BAD_CAST"error", BAD_CAST"parse");
     }
     else if (resNodeUpdate(prnT, iVerbosityChild, NULL, NULL) == FALSE) { /*! read Resource Node as list of childs */

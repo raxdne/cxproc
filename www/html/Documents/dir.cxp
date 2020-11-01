@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cxp:make xmlns:cxp="http://www.tenbusch.info/cxproc">
+  <cxp:description>
+    generic directory XML ("/dir.cxp?path=sub&amp;depth=4&amp;verbosity=5")
+  </cxp:description>
+  <cxp:subst string="%CGIPATH%" cgi="path" default="."/>
+  <cxp:subst string="%CGIDEPTH%" cgi="depth" default="1"/>
+  <cxp:subst string="%CGIVERBOSITY%" cgi="verbosity" default="4"/>
+  <cxp:xml name="-">
+    <cxp:dir depth="%CGIDEPTH%" verbosity="%CGIVERBOSITY%" urlencode="no">
+      <cxp:dir name="%CGIPATH%"/>
+    </cxp:dir>
+  </cxp:xml>
+</cxp:make>

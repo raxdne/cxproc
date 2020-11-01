@@ -5,8 +5,7 @@
 
 Configuration tools
 
-    sudo apt install autoconf automake autotools-dev debconf debconf-i18n debianutils lintian debhelper 
-	sudo apt install g++ cpp gcc gdb make strace diffutils patch pkg-config gawk xsltproc cmake cmake-qt-gui
+    sudo apt install debconf debconf-i18n debianutils lintian debhelper g++ cpp gcc gdb make strace diffutils patch pkg-config gawk xsltproc cmake cmake-qt-gui
 
 additional core libraries
 
@@ -30,7 +29,7 @@ s. <http://rpmfind.net/linux/rpm2html/search.php>
 
 Configuration tools
 
-    sudo dnf install autoconf automake cpp gcc gcc-c++ gdb make strace patch pkg-config gawk cmake cmake-gui
+    sudo dnf install cpp gcc gcc-c++ gdb make strace patch pkg-config gawk cmake cmake-gui
 
 additional core libraries
 
@@ -51,12 +50,15 @@ Development environment
 ## Git
 
     git clone https://github.com/raxdne/cxproc.git
-	cd cxproc
-    sh misc/prepare-cmake.sh
 
 ## CMake
 
 command line
+
+build directory is defined by ``misc/prepare-cmake.sh``
+
+	cd cxproc
+    sh misc/prepare-cmake.sh
 
 GUI
 
