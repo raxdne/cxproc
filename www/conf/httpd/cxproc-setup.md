@@ -1,6 +1,8 @@
 
 # How to setup cxproc with Apache HTTPD
 
+To be used in a trusted Web environment only!
+
 ## Ubuntu
 
 ### ufw

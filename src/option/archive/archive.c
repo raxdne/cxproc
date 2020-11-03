@@ -19,6 +19,31 @@
 
 */
 
+/*!\todo compress
+    existing files
+        XML structure
+        Plain text list (like SQL result)
+
+    empty directories
+
+    DOM node content
+
+    file comments
+
+    to stdout
+
+    in memory
+
+    update of content?
+    
+    with or without path mapping
+        zip
+        tar
+        iso
+
+    <cxp:copy from"test/a.png" to="abc.zip!test-b/b.png"/>
+*/
+
 
 /*
 */

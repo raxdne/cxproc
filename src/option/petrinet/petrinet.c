@@ -18,6 +18,46 @@
   Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 */
 
+/*!\todo refactoring
+
+petrinet
+    pnet
+	Free
+	GetEdgeIndexFromId
+	GetEdgePtrFromId
+	GetEdgePtrFromPtr
+	GetKnotDistance
+	GetStateIndexForId
+	GetStatePtrForId
+	GetTransitionIndexForId
+	GetTransitionPtrForId
+	InitEdges
+	InitKnots
+	IsEdge
+	IsMemberState
+	IsMemberTransition
+	New
+	NewEdges
+	NewKnots
+	NewStates
+	NewTransitions
+	ParsePathXml
+	ParsePathXmlSource
+	petrinetPathnet_out_flag
+	ProcessNode
+	ProcessPathnet
+	ProcessPathtable
+	ProcessPathtableSource
+	SearchBranchBackward
+	SearchPathForward
+	SetMarker
+	SetPathLength
+	SetPathMarker
+	SetStart
+	SetTarget
+	SetValidOut
+*/
+
 #include <libxml/parser.h>
 #include <libxml/tree.h>
 

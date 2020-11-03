@@ -1982,6 +1982,7 @@ cxpCtxtSearchSet(cxpContextPtr pccArg, resNodePtr prnArg)
       xmlFree(pucExecutablePath);
     }
 #endif
+    /*!\todo improve speed by using index files 'NAME_FILE_INDEX' */
 
     /*! release old search list first */
     resNodeListFree(pccArg->prnSearch);

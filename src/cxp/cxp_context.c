@@ -19,6 +19,10 @@
 
 */
 
+/*!\todo write errormessages (+ logmessages?) into the result DOM (like meta element)
+    multiple result DOMs possible (only in CGI mode not)
+    also plain and xhtml results
+*/
 
 /* 
  */
@@ -807,6 +811,7 @@ cxpCtxtRootSet(cxpContextPtr pccArg, resNodePtr prnArg)
       cxpCtxtLogPrint(pccArg,1,"Value '%s' is a descendant directory of '%s'",resNodeGetNameNormalized(prnRoot),resNodeGetNameNormalized(prnDocumentRoot));
     }
     /*!\bug handle additional cases */
+    /*!\todo handle single file CXP_ROOT */
     resNodeFree(prnDocumentRoot);
 #else
     if (STR_IS_EMPTY(pucRoot)) {

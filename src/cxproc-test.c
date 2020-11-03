@@ -357,6 +357,7 @@ main(int argc, char** argv, char** envp)
 	cxpCtxtFree(pccTest);
       }
     }
+    /*!\todo generate a more verbose error summary */
 
     iExit = cxpCtxtGetExitCode(pccTest);
     cxpCtxtLogPrint(pccTest,1,"Test error code = %i\n", iErrorCode + iExit);

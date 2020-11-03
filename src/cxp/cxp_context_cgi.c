@@ -19,6 +19,37 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 */
 
+/*
+draft-thomson-hybi-http-timeout-01 <https://tools.ietf.org/id/draft-thomson-hybi-http-timeout-01.html#rfc.section.2.1>
+    Keep-Alive: timeout=600
+    Connection: Keep-Alive
+
+proper-use-of-keepalive-in-apache-htaccess <https://stackoverflow.com/questions/12095533/proper-use-of-keepalive-in-apache-htaccess>
+    Apache:
+    KeepAliveTimeout 1
+
+RFC3875 CGI 1.1 <http://tools.ietf.org/html/rfc3875#page-10>
+    "AUTH_TYPE"
+    "CONTENT_LENGTH"
+    "CONTENT_TYPE"
+    "GATEWAY_INTERFACE"
+    "PATH_INFO"
+    "PATH_TRANSLATED"
+    "QUERY_STRING"
+    "REMOTE_ADDR"
+    "REMOTE_HOST"
+    "REMOTE_IDENT"
+    "REMOTE_USER"
+    "REQUEST_METHOD"
+    "SCRIPT_NAME"
+    "SERVER_NAME"
+    "SERVER_PORT"
+    "SERVER_PROTOCOL"
+    "SERVER_SOFTWARE"
+    scheme
+    protocol-var-name
+    extension-var-name
+*/
 
 /*
 */

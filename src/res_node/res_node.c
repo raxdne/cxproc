@@ -19,6 +19,10 @@
 
 */
 
+/*!\todo deny direct access to 'resNodePtr' from extern /prn[a-z]+->[a-z]+/ */
+
+/*!\todo improve speed by using index files 'NAME_FILE_INDEX' */
+
 #ifdef HAVE_LIBCURL
 #include <curl/curl.h>
 #endif

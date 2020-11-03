@@ -59,6 +59,11 @@
 #include <pie/pie_calendar.h>
 #endif
 
+/*!\todo named args */
+
+/*!\todo use of GNU getopts.h 'cxproc test.cxp --name=abc --type=4' */
+
+/*!\todo command line argument "-" means read configuration XML from stdin ? */
 
 int
 main(int argc, char *argv[], char *envp[])

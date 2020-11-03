@@ -34,7 +34,7 @@ vcfTest(void)
     i++;
     printf("TEST %i in '%s:%i': empty vcfParse() = ",i,__FILE__,__LINE__);
 
-    if (vcfParse(NULL,NULL,NULL,0) == TRUE) {
+    if (vcfParse(NULL,NULL,NULL, LANG_FR) != NULL) {
       printf("Error vcfParse()\n");
     }
     else {
@@ -46,7 +46,7 @@ vcfTest(void)
   if (RUNTEST) {
     xmlDocPtr pdocResult = NULL;
     xmlNodePtr pndFile;
-    xmlChar *pucContent;
+    xmlChar *pucContent = NULL;
     resNodePtr prnInput = NULL; /*! context for import of new document (avoid side effect) */
 
     i++;
