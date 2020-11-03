@@ -3,29 +3,23 @@
 
 TODO: remove "#ifdef EXPERIMENTAL"
 
-code analysis
-    VC
-    Callgrind/Kcachegrind
-    Valgrind/memcheck (s. ctest)
-
-TODO: CMake packaging
-
 ## Features
 
-    configuration files for default values
-    Module "xmlsqlio" (similar to "xmlzipio")
-        transparent SQL to XML access
-        xmlRead("sql:///tmp/abc.db3:SELECT * FROM table;")
-    image
-        ImageMagick
-            exifmover.cxp
-                Test
-                Windows + Linux
-            use „VisualMagick configuration tool“ for VC++ Project setup on Windows
-            Magic Scripting Language <http://www.linux-nantes.org/~fmonnier/ocaml/ml-conjure/documentation.html>
-                Conjure <http://support.cs.nott.ac.uk/help/docs/image/ImageMagick/www/conjure.html>
-        additional image processing instructions as elements
-        embed comments into image files
+configuration files for default values
+
+Module "xmlsqlio" (similar to "xmlzipio")
+
+- transparent SQL to XML access
+- xmlRead("sql:///tmp/abc.db3:SELECT * FROM table;")
+
+image
+
+- ImageMagick
+ - use „VisualMagick configuration tool“ for VC++ Project setup on Windows
+ - Magic Scripting Language <http://www.linux-nantes.org/~fmonnier/ocaml/ml-conjure/documentation.html>
+ - Conjure <http://support.cs.nott.ac.uk/help/docs/image/ImageMagick/www/conjure.html>
+- additional image processing instructions as elements
+- embed comments into image files
 
     <cxp:image to="result.png">
       <cxp:image name="source.jpg" cache="yes"/>
@@ -36,25 +30,21 @@ TODO: CMake packaging
       <cxp:scale="300"/>
     </cxp:image>
 
-HTML to UTF-8 Plain text Renderer
-    cxp:plain
-        cxp:html
-            cxp:xml
-            cxp:xsl
-    like "w3m -dump"
+HTML to UTF-8 Plain text Renderer ``<cxp:plain><cxp:html name="abc.html"/></cxp:plain>`` like "w3m -dump"
 
 gallery
-    add a "move/copy Picture to" option
-    sorting of large picture collections
-    button "move to trash"
-    thumbnails?
-    to fix
+
+- add a "move/copy Picture to" option
+- sorting of large picture collections
+- button "move to trash"
+- thumbnails?
+- to fix
 
 audioserver
-    encoding of XML special chars in path names
-    playlist formats
-        PC xspf, else m3u
-    playlist from Archive file
+
+- encoding of XML special chars in path names
+- playlist formats xspf, m3u
+- playlist from Archive file
 
 shell environment
 
@@ -73,33 +63,31 @@ s. Gtkdialog, GTK2-window for log messages and confirmations (á la ‚dialog‘
 
 ## STL/librp
 
-    integrate admesh <http://www.varlog.com/admesh-htm>
-    info as XML
-    output XML based formats
-        X3D <http://xml.coverpages.org/vrml-X3D.html>
-    processing by cxp
-    slicing
-    mit libadmesh und librp
-        Slicen als SVG, als Bauzeit-Diagramm
-        Projektion auf Ebene als SVG
-        Meta-Info (Bounding-Box, Facets, ...)
-        Facetten in XML-Schreibweise zum Konvertieren in andere Formate (VRML, GnuPlot, PovRay)
+- integrate admesh <http://www.varlog.com/admesh-htm>
+- info as XML
+- output XML based formats (X3D <http://xml.coverpages.org/vrml-X3D.html> )
+- processing by cxp
+- slicing
+- mit libadmesh und librp
+  - Slicen als SVG, als Bauzeit-Diagramm
+  - Projektion auf Ebene als SVG
+  - Meta-Info (Bounding-Box, Facets, ...)
+  - Facetten in XML-Schreibweise zum Konvertieren in andere Formate (VRML, GnuPlot, PovRay)
 
 ## Backends
 
-    Filesystem
-    ZIP file
-    URL
-        http
-            Web server
-            Application server
-        ftp
-    VCS
-        Subversion
-        Git
-    Document DB
-        MongoDB <http://en.wikipedia.org/wiki/MongoDB>
-	MySQL/MariaDB
+- Filesystem
+- ZIP file
+- URL
+  - http
+  - Web server
+  - Application server
+- VCS
+  - Subversion
+  - Git
+- Document DB
+  - MongoDB <http://en.wikipedia.org/wiki/MongoDB>
+  -	MySQL/MariaDB
 
 ## CGI
 
@@ -111,22 +99,19 @@ TODO: check security ++
 
 ## Security
 
-    Limitations or Sandbox
-        use Unicode functions to avoid MAX_PATH on Windows
-        <cxp:make readonly="no|yes|write|unlink|create"> "rcwd"
-        <cxp:make network="no">
-        prevent system() in cgi_mode (or readonly_mode)
-    <https://www.tu-braunschweig.de/Medien-DB/sec/pubs/2016-ccs.pdf>
-    Docker
+- Limitations or Sandbox
+  - use Unicode functions to avoid MAX_PATH on Windows
+  - <cxp:make readonly="no|yes|write|unlink|create"> "rcwd"
+  - <cxp:make network="no">
+  - prevent system() in cgi_mode (or readonly_mode)
+- <https://www.tu-braunschweig.de/Medien-DB/sec/pubs/2016-ccs.pdf>
+- Docker
 
 ## building
 
 TODO: statically linked binaries for 
-
 - ARMv7
-
 - x64_linux
-
 - x64_windows
 
 TODO: detail information in binaries
@@ -143,22 +128,6 @@ VC++
     target_link_options(cxproc-cgi     PUBLIC /MANIFEST /ManifestFile:${CXPROC_SRC_DIR}/cxproc.manifest)
 
     ADD_CUSTOM_COMMAND( 	TARGET cxproc-cgi 	POST_BUILD 	COMMAND "mt.exe" -manifest \"${CXPROC_SRC_DIR}/cxproc.manifest\" -inputresource:\"$<TARGET_FILE:cxproc-cgi>\"\;\#1 -outputresource:\"$<TARGET_FILE:cxproc-cgi>\"\;\#1 	COMMENT "Adding display aware manifest..."  ) 
-
-    32 Bit
-        dynamic linking
-            DLL updates
-                debug version of DLL
-                Multithreading /MT
-            delayed linking
-                pcre3.dll
-                zlib1.dll
-                libsqlite3.dll
-                libxslt.dll
-        static linking
-    64 Bit
-        dynamic linking
-        static linking
-GCC
 
     Debian
         32 Bit
@@ -184,18 +153,13 @@ TODO: test LLVM
 
 TODO: Package Information for pkg-config in cxproc.pc.in (s. xml2-config)
 
-## Quality
+## Code quality
 
-    compiler
-        Warnings
-            C
-            C++
-    splint
-    memcheck
-    command line
-    gcov
-        test coverage by gcov <https://gcc.gnu.org/onlinedocs/gcc/Gcov.html>
-    VC++ code analysis
+- compiler warnings C, C++
+- splint
+- memcheck
+- VC++ code analysis
+- Valgrind/memcheck (s. ctest)
 
 ## Profiling
 
@@ -207,40 +171,44 @@ TODO: Update of RELAX NG schemas (translation by [trang](http://www.thaiopensour
 
 ## Testing
 
-    Test with text files from Gutenberg Project <https://www.gutenberg.org/>
+- gcov
+  - test coverage by gcov <https://gcc.gnu.org/onlinedocs/gcc/Gcov.html>
+- Test with text files from Gutenberg Project <https://www.gutenberg.org/>
         <https://www.gutenberg.org/files/3176/3176-0.txt>
 
 ## Deployment
 
-    Packages
-        deb
-        rpm
-        tar.gz
-        zip
-        exe
-            7zip
-            NSI
+- Packages
+  - deb
+  - rpm
+  - tar.gz
+  - zip
+  - exe
+    - 7zip
+    - NSI
 
-    Hosting
-        Github
-        tenbusch.info <http://www.tenbusch.info/cxproc/>
+- Hosting
+  - Github
+  - Web server
+
+TODO: CMake packaging
 
 ## Scripting
 
-    Javascript
-        node.js + V8
-            REST based server
-        Frontend
-    Tcl
-        as package (no embedded Tcl interpreter)
-        Tcl bindings "Tcxproc"
-    use cases
-        XML creation (from plain text)
-        plain XML modifications before parsing
-        regexp tasks in XML/XSL
-        preprocessor-like embedding in XML/XHTML, JS, CSS
-        JSON generator and tests
-        automatic tests
+- Javascript
+  - node.js + V8
+    - REST based server
+  - Frontend
+- Tcl
+  - as package (no embedded Tcl interpreter)
+  - Tcl bindings "Tcxproc"
+- use cases
+  - XML creation (from plain text)
+  - plain XML modifications before parsing
+  - regexp tasks in XML/XSL
+  - preprocessor-like embedding in XML/XHTML, JS, CSS
+  - JSON generator and tests
+  - automatic tests
 
 ### Ducktape
 
@@ -275,28 +243,25 @@ TODO: Update of RELAX NG schemas (translation by [trang](http://www.thaiopensour
         Interpret script source
         iterations
         print Env.getValue('TMP');
-Env.setValue('TMP','c:\tmp');
+        Env.setValue('TMP','c:\tmp');
 
-        Transform XML source
-            var strCgiPath = Cgi.getValue('path');
-if (strCgiPath == undef) {
-  //
-} else {
-  var cxpT = new Cxproc();
+Transform XML source
+    var strCgiPath = Cgi.getValue('path');
 
-  cxpT.parseXML(strCgiPath);
-  cxpT.transform("def.xsl").variable("str_test","AAAA");
+    if (strCgiPath == undef) {
+      //
+    } else {
+      var cxpT = new Cxproc();
 
-  print cxpT.serialize();
-}
+      cxpT.parseXML(strCgiPath);
+      cxpT.transform("def.xsl").variable("str_test","AAAA");
 
-        output of plain text file
-            var objInput = File.new("test.txt").search("yes");
-print objInput.getContent();
+      print cxpT.serialize();
+    }
 
-    Test
-        test created file content of single tests
-        string based processing
+output of plain text file
+    var objInput = File.new("test.txt").search("yes");
+    print objInput.getContent();
 
 ## Web server
 
