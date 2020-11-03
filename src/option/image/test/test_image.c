@@ -34,6 +34,8 @@ imageTest(cxpContextPtr pccArg)
   printf("Skip TEST in '%s'\n\n",__FILE__);
 #endif
 
+  printf("Result in '%s': %i/%i OK\n\n",__FILE__,n_ok,i);
+
   return (i - n_ok);
 }
 /* end of imageTest() */

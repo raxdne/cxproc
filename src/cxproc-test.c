@@ -334,27 +334,30 @@ main(int argc, char** argv, char** envp)
 #endif
 
       if (pcTest == NULL || xmlStrEqual(BAD_CAST pcTest, BAD_CAST "parser")) {
+
 #ifdef HAVE_LIBID3TAG
 	iErrorCode += audioTest();
 #endif
+
 #ifdef HAVE_LIBEXIF
 	iErrorCode += imageExifTest();
 #endif
+
 #ifdef HAVE_LIBMAGICK
 	iErrorCode += imageTest(pccTest);
 #endif
+
 #ifdef HAVE_RP
 	iErrorCode += rpTest(pccTest);
 #endif
+
 #ifdef HAVE_JSON
 	iErrorCode += jsonTest(pccTest);
 #endif
+
 #ifdef HAVE_JS
 	iErrorCode += scriptTest(pccTest);
 #endif
-
-	cxpCtxtIncrExitCode(pccTest,cxpCtxtGetExitCode(pccTest));
-	cxpCtxtFree(pccTest);
       }
     }
     /*!\todo generate a more verbose error summary */

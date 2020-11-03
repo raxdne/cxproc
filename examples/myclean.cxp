@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<cxp:make xmlns:cxp="http://www.tenbusch.info/cxproc" log="2">
+<cxp:make xmlns:cxp="http://www.tenbusch.info/cxproc" log="2" dir="pwd">
   <cxp:description>
 
  Move temporary files into a trash directory with 
@@ -11,13 +11,12 @@
   <cxp:subst string="%SOURCE%" argv="2" dir="dialog" default="."/>
   <cxp:system message="Search for temporary files in '%SOURCE%' ..."/>
   <cxp:xml eval="yes">
-    <!--  name="-" -->
     <cxp:xml>
-      <cxp:dir imatch="(\.bak|\~)$" verbosity="2" hidden="no" index="skip" depth="9">
+      <cxp:dir verbosity="1" depth="9" hidden="no" imatch="(\.bak|\~)$">
         <cxp:dir name="%SOURCE%"/>
       </cxp:dir>
     </cxp:xml>
-    <xsl:stylesheet  xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.0">
+    <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.0">
       <xsl:output method="xml"/>
       <xsl:template match="/|pie">
         <cxp:make log="3">
