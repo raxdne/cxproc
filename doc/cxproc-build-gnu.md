@@ -23,7 +23,7 @@ Development environment
 
     sudo apt install apache2 apache2-utils doxygen graphviz valgrind kcachegrind splint cflow mc screen w3m wget ssh rsync meld git emacs samba samba-common smbclient cifs-utils
 
-## Fedora
+## Fedora (package names are not up-to-date)
 
 s. <http://rpmfind.net/linux/rpm2html/search.php>
 
@@ -55,7 +55,7 @@ Development environment
 
 command line
 
-build directory is defined by ``misc/prepare-cmake.sh``
+build directory is defined by `misc/prepare-cmake.sh`
 
 	cd cxproc
     sh misc/prepare-cmake.sh
@@ -78,4 +78,4 @@ package
 
 ## Doxygen
 
-    doxygen misc/Doxygen
+    doxygen misc/Doxyfile

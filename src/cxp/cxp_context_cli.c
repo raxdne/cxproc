@@ -293,7 +293,7 @@ cxpCtxtCliParse(cxpContextPtr pccArg)
       /* OK */
     }
     else {
-      pucLevelDirVerbosity = xmlStrdup(BAD_CAST "2");
+      pucLevelDirVerbosity = xmlStrdup(BAD_CAST "4");
     }
 
     /*! build internal DOM

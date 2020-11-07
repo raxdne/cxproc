@@ -3,6 +3,10 @@
 
 TODO: remove "#ifdef EXPERIMENTAL"
 
+## Documentation
+
+build presentation from `doc/*.*` using <impress.js>
+
 ## Features
 
 shell environment
@@ -59,7 +63,6 @@ s. Gtkdialog, GTK2-window for log messages and confirmations (á la ‚dialog‘
 TODO: check security ++
 
 - access control in CGI mode
-
 - HTTP Status message if access denied
 
 ## Security
@@ -187,7 +190,7 @@ Reverse Proxy
         <https://httpd.apache.org/docs/2.4/howto/reverse_proxy.html>
     IIS
         <https://www.iis.net/learn/extensions/configuring-application-request-routing-arr/creating-a-forward-proxy-using-application-request-routing>
-        stackoverflow.com > Questions > 4739669 > How-to-set-proxy-settings-for-iis-processes <http://stackoverflow.com/questions/4739669/how-to-set-proxy-settings-for-iis-processes>
+        <http://stackoverflow.com/questions/4739669/how-to-set-proxy-settings-for-iis-processes>
         <https://blogs.msdn.microsoft.com/friis/2016/08/25/setup-iis-with-url-rewrite-as-a-reverse-proxy-for-real-world-apps/>
         <https://www.iis.net/learn/extensions/url-rewrite-module/reverse-proxy-rule-template>
         <https://www.iis.net/learn/extensions/url-rewrite-module/modifying-http-response-headers>

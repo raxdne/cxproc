@@ -4,15 +4,13 @@
 
 ** AUTHOR and HOMEPAGE
 
-Alexander Tenbusch http://www.tenbusch.info/cxproc/
-
-Abb. mailto-image.png
+Copyright (C) 2006,2007,2008,2013,2020 by Alexander Tenbusch https://github.com/raxdne/cxproc
 
 ** DESCRIPTION
 
 Cxproc is a configurable processor for XML-XSL fans. Its a
 portable frontend for the GNOME libraries libxml2 and libxslt under
-GNU GENERAL PUBLIC LICENSE Version 2 (s. file COPYING in source code).
+GNU GENERAL PUBLIC LICENSE Version 3 (s. file LICENSE in source code).
 
 ;It helps to develop more simple stylesheets
 
@@ -96,4 +94,6 @@ typical tasks
 
 #import("modules.txt")
 
-#import("install.txt")
+#import("cxproc-build-gnu.md")
+
+#import("cxproc-build-vs.md")
