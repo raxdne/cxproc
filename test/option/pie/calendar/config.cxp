@@ -154,11 +154,11 @@
       </cxp:col>
     </cxp:calendar>
   </cxp:xml>
-  <cxp:system message="test-calendar-005: xslt processing of calendar-3"/>
-  <cxp:xhtml name="result/test-calendar-005.html">
+  <cxp:system message="test-calendar-005: xpath of calendar-3"/>
+  <cxp:xml name="result/test-calendar-005.xml">
     <cxp:xml name="result/test-calendar-003-001.xml"/>
-    <cxp:xsl name="CalTable4.xsl"/>
-  </cxp:xhtml>
+    <cxp:xpath select="/calendar/year[1]/month[@nr='03']/day[@om='02']/col[1]"/>
+  </cxp:xml>
   <cxp:system message="test-calendar-006: one calendar for an early year"/>
   <cxp:xml name="result/test-calendar-006.xml">
     <cxp:calendar year="content">

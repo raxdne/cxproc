@@ -18,6 +18,59 @@
   Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 */
 
+/*!\todo new classes
+        Cxproc
+            Cxproc.new();
+            Cxproc.parseXML("abc.xml");
+            Cxproc.transform("def.xsl").variable("str_test","AAAA");
+            var strXML = Cxproc.serialize();
+            Cxproc.run()
+            map method calls to an internal cxp:make
+        File
+            var objInput = File.new("test.txt").search("yes");
+            print objInput.getContent();
+        Locator
+            getNameNormalized()
+            getNameNative()
+            Mime
+        Env
+            print Env.getValue('TMP');
+            Env.setValue('TMP','c:\tmp');
+        Cgi
+            print Cgi.getValue('path');
+        Date
+        XML
+        Plain
+        Xhtml
+        Pathtable
+        Database
+        Image
+
+example
+    Interpret script source
+    iterations
+    print Env.getValue('TMP');
+    Env.setValue('TMP','c:\tmp');
+
+Transform XML source
+    var strCgiPath = Cgi.getValue('path');
+
+    if (strCgiPath == undef) {
+      //
+    } else {
+      var cxpT = new Cxproc();
+
+      cxpT.parseXML(strCgiPath);
+      cxpT.transform("def.xsl").variable("str_test","AAAA");
+
+      print cxpT.serialize();
+    }
+
+output of plain text file
+    var objInput = File.new("test.txt").search("yes");
+    print objInput.getContent();
+
+ */
 
 #include <libxml/parser.h>
 #include <libxml/uri.h>

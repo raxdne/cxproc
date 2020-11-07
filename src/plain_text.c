@@ -19,6 +19,9 @@
 
 */
 
+/*!\todo Encryption of Plain text files '<cxp:plain name="test.asc" encrypt="yes">' */
+
+
 /* 
  */
 #include <libxml/tree.h>

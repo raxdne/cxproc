@@ -19,6 +19,51 @@
 
 */
 
+/*!\todo Markdown test <https://spec.commonmark.org/0.29/>
+
+    1 Introduction
+        1.1 What is Markdown?
+        1.2 Why is a spec needed?
+        1.3 About this document
+    2 Preliminaries
+        2.1 Characters and lines
+        2.2 Tabs
+        2.3 Insecure characters
+    3 Blocks and inlines
+        3.1 Precedence
+        3.2 Container blocks and leaf blocks
+    4 Leaf blocks
+        4.1 Thematic breaks
+        4.2 ATX headings
+        4.3 Setext headings
+        4.4 Indented code blocks
+        4.5 Fenced code blocks
+        4.6 HTML blocks
+        4.7 Link reference definitions
+        4.8 Paragraphs
+        4.9 Blank lines
+    5 Container blocks
+        5.1 Block quotes
+        5.2 List items
+        5.3 Lists
+    6 Inlines
+        6.1 Backslash escapes
+        6.2 Entity and numeric character references
+        6.3 Code spans
+        6.4 Emphasis and strong emphasis
+        6.5 Links
+        6.6 Images
+        6.7 Autolinks
+        6.8 Raw HTML
+        6.9 Hard line breaks
+        6.10 Soft line breaks
+        6.11 Textual content
+    Appendix: A parsing strategy
+        Overview
+        Phase 1: block structure
+        Phase 2: inline structure
+
+ */
 
 /*! 
 */
