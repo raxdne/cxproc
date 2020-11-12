@@ -791,6 +791,37 @@ domAddFileXpath(xmlNodePtr pndArg, xmlChar *pucArgName, xmlChar *pucArgPrefix)
 /* End of domAddFileXpath() */
 
 
+/*! \return a string containing XPath of pndArg
+  \param pndArg pointer to start node
+ */
+xmlChar *
+domNodeGetXpathStr(xmlNodePtr pndArg)
+{
+  xmlChar *pucResult = NULL;
+
+  if (IS_ENODE(pndArg)) {
+    xmlNodePtr pndAnchestor;
+
+    for (pndAnchestor = pndArg; pndAnchestor != NULL; pndAnchestor = pndAnchestor->parent) {
+      int i;
+      xmlChar mpucT[BUFFER_LENGTH];
+      xmlNodePtr pndT;
+
+      for (pndT = pndAnchestor, i=1; pndT != NULL; pndT = pndT->prev) {
+	if (IS_ENODE(pndT)) {
+	  i++;
+	}
+      }
+
+      xmlStrPrintf(mpucT,BUFFER_LENGTH, "/*[%i]%s",i,((pucResult) ? pucResult : BAD_CAST""));
+      xmlFree(pucResult);
+      pucResult = xmlStrdup(mpucT);
+    }
+  }
+  return pucResult;
+} /* End of domNodeGetXpathStr() */
+
+
 /*! Delete all descendant element nodes named pucArgName.
 
 \param pndArg pointer to node
@@ -1531,6 +1562,144 @@ domAddNodeToError(xmlDocPtr pdocArg, xmlNodePtr pndArg)
   return xmlAddChild(pndError,pndArg);
 }
 /* End of domAddNodeToError() */
+
+
+/*! greps for a regexp in all descendant element nodes.
+
+\param pndArg pointer to node to add attribute
+ */
+BOOL_T
+domGrepRegExpInTree(xmlNodePtr pndResultArg, xmlNodePtr pndArg, const pcre2_code *re_grep)
+{
+  BOOL_T fResult = FALSE;
+  
+  if (pndResultArg == NULL || pndArg == NULL || re_grep == NULL) {
+  }
+  else if (IS_ENODE(pndArg)) {
+    int rc;
+    xmlChar *pucText;
+    xmlNodePtr pndChild;
+    xmlNodePtr pndMatch = NULL;
+    xmlNodePtr pndT;
+    xmlAttrPtr pndAttr;
+    pcre2_match_data *match_data;
+
+    /*!
+      search in all node attributes
+    */
+    for (pndAttr = pndArg->properties; pndAttr != NULL; pndAttr = pndAttr->next) {
+    
+	pucText = pndAttr->children->content;
+	match_data = pcre2_match_data_create_from_pattern(re_grep, NULL);
+	rc = pcre2_match(
+			 re_grep,        /* result of pcre2_compile() */
+			 (PCRE2_SPTR8)pucText,  /* the subject string */
+			 xmlStrlen(pucText),   /* the length of the subject string */
+			 0,              /* start at offset 0 in the subject */
+			 0,              /* default options */
+			 match_data,        /* vector of integers for substring information */
+			 NULL);            /* number of elements (NOT size in bytes) */
+
+	if (rc > -1) {
+	  pndMatch = xmlNewChild(pndResultArg,NULL,NAME_MATCH,NULL);
+	  domSetPropEat(pndMatch, BAD_CAST"xpath", domNodeGetXpathStr(pndArg));
+	  pndT = xmlNewChild(pndMatch,NULL,pndArg->name,NULL);
+	  //pndT = xmlNewChild(pndT,NULL,pndAttr->name,pucText);
+	  xmlSetProp(pndT, pndAttr->name, pucText);
+	  fResult = TRUE;
+	}
+    
+	pcre2_match_data_free(match_data);   /* Release memory used for the match */
+    }
+
+    /*!
+      search in all node childs
+    */
+    for (pndChild = pndArg->children; pndChild != NULL; pndChild = pndChild->next) {
+
+      if (IS_ENODE(pndChild)) {
+	fResult |= domGrepRegExpInTree(pndResultArg,pndChild,re_grep);
+      }
+      else if (IS_TEXT(pndChild)) {
+	pucText = pndChild->content;
+    
+	match_data = pcre2_match_data_create_from_pattern(re_grep, NULL);
+	rc = pcre2_match(
+			 re_grep,        /* result of pcre2_compile() */
+			 (PCRE2_SPTR8)pucText,  /* the subject string */
+			 xmlStrlen(pucText),   /* the length of the subject string */
+			 0,              /* start at offset 0 in the subject */
+			 0,              /* default options */
+			 match_data,        /* vector of integers for substring information */
+			 NULL);            /* number of elements (NOT size in bytes) */
+
+	if (rc > -1) {
+	  xmlChar *pucT;
+	  
+	  pndMatch = xmlNewChild(pndResultArg,NULL,NAME_MATCH,NULL);
+	  domSetPropEat(pndMatch, BAD_CAST"xpath", domNodeGetXpathStr(pndChild->parent));
+	  xmlNewChild(pndMatch,NULL,pndChild->parent->name,pucText);
+	  /*!\todo split text() into resulting substrings */
+	  /*!\todo xmlSetProp(pndMatch, BAD_CAST"n", BAD_CAST"3"); */
+	  fResult = TRUE;
+	}
+    
+	pcre2_match_data_free(match_data);   /* Release memory used for the match */
+      }
+    }
+
+  }
+  return fResult;
+} /* End of domGrepRegExpInTree() */
+
+
+/*! 
+\param pndArg pointer to a node to start grep
+\param pucArgGrep pointer to a regexp string
+
+\return a pointer to a grep node with all matching text nodes as childs
+ */
+xmlNodePtr
+domNodeGrepNew(xmlNodePtr pndArg, xmlChar *pucArgGrep)
+{
+  xmlNodePtr pndResult = NULL;
+
+  if (pndArg != NULL && STR_IS_NOT_EMPTY(pucArgGrep)) {
+    pcre2_code *re_grep = NULL;
+    size_t erroroffset = 0;
+    int errornumber = 0;
+    int opt_match_pcre = PCRE2_UTF | PCRE2_CASELESS;
+
+    re_grep = pcre2_compile(
+			    (PCRE2_SPTR8)pucArgGrep, /* the pattern */
+			    PCRE2_ZERO_TERMINATED, /* indicates pattern is zero-terminated */
+			    opt_match_pcre,         /* default options */
+			    &errornumber,          /* for error number */
+			    &erroroffset,          /* for error offset */
+			    NULL);                 /* use default compile context */
+
+    if (re_grep != NULL) {
+    
+      pndResult = xmlNewNode(NULL,NAME_GREP);
+      if (pndResult != NULL) {
+	xmlNodePtr pndBlock = NULL;
+	
+	xmlSetProp(pndResult, BAD_CAST ((opt_match_pcre & PCRE2_CASELESS) ? "imatch" : "match"), pucArgGrep);
+	if (domGrepRegExpInTree(pndResult,pndArg,re_grep)) {
+	}
+	else {
+	  xmlFreeNode(pndResult);
+	  pndResult = NULL;
+	}
+      }
+      pcre2_code_free(re_grep);
+    }
+    else {
+      printf("Error 1\n");
+    }
+  }
+  return pndResult;
+} /* End of domNodeGrepNew() */
 
 
 /*! change the URL of DOM pdocArg to URI of pccArg

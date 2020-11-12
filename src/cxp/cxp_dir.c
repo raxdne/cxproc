@@ -60,6 +60,9 @@ addUrlEncoding(xmlNodePtr pndArg);
 static BOOL_T
 SetTopPrefix(xmlNodePtr pndArg, resNodePtr prnArg, cxpContextPtr pccArg);
 
+static xmlNodePtr
+GrepDirNew(xmlNodePtr pndArg, const pcre2_code *re_grep, cxpContextPtr pccArg);
+
 
 /*!
 */
@@ -103,7 +106,12 @@ dirMapInfoVerbosity(xmlNodePtr pndArgFile, cxpContextPtr pccArg)
 
   /* map integer attribute to info level */
   pucAttrVerbosity = domGetAttributePtr(pndArgFile, BAD_CAST "verbosity");
-  if (STR_IS_EMPTY(pucAttrVerbosity)) {
+
+  if (domGetAttributePtr(pndArgFile, BAD_CAST "igrep") != NULL
+      || domGetAttributePtr(pndArgFile, BAD_CAST "grep") != NULL) {
+    iResult |= RN_INFO_CONTENT;
+  }
+  else if (STR_IS_EMPTY(pucAttrVerbosity)) {
     /* keep default */
   }
   else if (xmlStrEqual(pucAttrVerbosity, BAD_CAST "5")) {
@@ -126,6 +134,44 @@ dirMapInfoVerbosity(xmlNodePtr pndArgFile, cxpContextPtr pccArg)
 
   return iResult;
 } /* end of dirMapInfoVerbosity() */
+
+
+/*! transform a dir tree containing content DOMs into an according tree containing grep results
+
+\param pndArg node pointer to all parser options
+
+ */
+xmlNodePtr
+GrepDirNew(xmlNodePtr pndArg, const pcre2_code *re_grep, cxpContextPtr pccArg)
+{
+  xmlNodePtr pndResult = pndArg;
+
+  if (IS_NODE_DIR(pndArg)) {
+    xmlNodePtr pndI;
+
+    for(pndI=pndArg->children; pndI; pndI=pndI->next) {
+      GrepDirNew(pndI,re_grep,pccArg);
+    }
+  }
+  else if (IS_NODE_FILE(pndArg)) {
+    xmlNodePtr pndContent;
+    xmlNodePtr pndGrep;
+
+    pndContent = pndArg->children;
+    xmlUnlinkNode(pndContent);
+
+    pndGrep = xmlNewNode(NULL,NAME_GREP);
+    if (pndGrep != NULL && domGrepRegExpInTree(pndGrep,pndContent,re_grep)) {
+      xmlAddChild(pndArg,pndGrep);
+    }
+    xmlFreeNode(pndContent);
+  }
+  else {
+    /* ignore */
+  }
+
+  return pndResult;
+} /* end of GrepDirNew() */
 
 
 /*! process the "dir" and "file" childs of pndArgDir
@@ -315,16 +361,18 @@ dirProcessDirNode(xmlNodePtr pndArgDir, resNodePtr prnArgContext, cxpContextPtr 
       xmlNewChild(pndPie, NULL, BAD_CAST"error", BAD_CAST"parse");
     }
     else if ((pndT = resNodeListToDOM(prnT, iVerbosityChild)) != NULL) {
+      if (re_grep) {
+	GrepDirNew(pndT,re_grep,pccArg); /*! replace content DOM of pndT by grep result DOM */
+      }
       SetTopPrefix(pndT, prnT, pccArg);
       xmlAddChild(pndPie, pndT);
     }
     else {
       xmlNewChild(pndPie, NULL, BAD_CAST"error", BAD_CAST"access");
-    }
+    }    
     resNodeFree(prnT);
   }
   
-
   if (domGetAttributeFlag(pndArgDir,BAD_CAST "urlencode",fLocator)) {
     /* add RFC1738 escaped attributes */
     addUrlEncoding(pndPie);

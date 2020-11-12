@@ -816,6 +816,46 @@ domTest(void)
   }
 #endif
 
+  
+#ifdef HAVE_PCRE2
+  if (RUNTEST) {
+    xmlDocPtr pdocTest;
+    xmlNodePtr pndRoot;
+    xmlNodePtr pndT;
+
+    i++;
+    printf("TEST %i in '%s:%i': domNodeGrepNew() = ", i, __FILE__, __LINE__);
+
+    pdocTest = xmlParseFile(TESTPREFIX "option/pie/text/test-pie-14.pie");
+    pndRoot = xmlDocGetRootElement(pdocTest);
+
+    if ((pndT = domNodeGrepNew(NULL,NULL)) != NULL) {
+      printf("Error 2\n");
+    }
+    else if ((pndT = domNodeGrepNew(pndRoot,NULL)) != NULL) {
+      printf("Error 3\n");
+    }
+    else if ((pndT = domNodeGrepNew(pndRoot,BAD_CAST"[E8]")) == NULL) {
+      printf("Error 4\n");
+    }
+    else if (IS_NODE_GREP(pndT) == FALSE
+	     || IS_NODE(pndT->children,"match") == FALSE
+	     || IS_NODE(pndT->children->children,"pie") == FALSE
+	     || pndT->children->children->children != NULL) {
+      printf("Error 5\n");
+    }
+    else {
+      n_ok++;
+      printf("OK\n");
+    }
+
+    domPutNodeString(stderr,BAD_CAST"domNodeGrepNew()",pndT);
+    xmlFreeNode(pndT);
+    xmlFreeDoc(pdocTest);
+  }
+#endif
+
+
   printf("Result in '%s': %i/%i OK\n\n", __FILE__, n_ok, i);
 
   return (i - n_ok);
