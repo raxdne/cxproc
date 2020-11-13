@@ -57,11 +57,10 @@
     <cxp:xsl name="PlainGrepResult.xsl"/>
   </cxp:plain>
   <cxp:system message="TEST 4: directory parsing with grep and match"/>
-  <cxp:xml name="result/test-dir-match-grep.xml" valid="no">
-    <cxp:dir match="\.(cxp|txt|c)$" grep="\b[a-z]+Test\b">
-      <cxp:dir name="../pie"/>
-      <cxp:dir name="../../src/test"/>
-      <cxp:dir name="../petrinet"/>
+  <cxp:xml name="result/test-dir-match-grep.xml">
+    <cxp:dir grep="mark">
+      <cxp:dir name="../option/pie/text"/>
+      <cxp:dir name="../option/petrinet"/>
     </cxp:dir>
   </cxp:xml>
   <cxp:system message="TEST 5: directory parsing with error handling"/>

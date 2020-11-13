@@ -471,7 +471,6 @@ cxpCtxtCliParse(cxpContextPtr pccArg)
 	  if (STR_IS_NOT_EMPTY(pucPattern)) {
 	    xmlSetProp(pndXml, BAD_CAST "verbosity", pucLevelDirVerbosity);
 	    xmlSetProp(pndXml, BAD_CAST "imatch", pucPattern);
-	    xmlSetProp(pndXml, BAD_CAST "index", BAD_CAST"skip");
 
 	    if (j < iArgCount) {
 	      /* there are names of directories to search */

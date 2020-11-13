@@ -61,6 +61,9 @@ domAddFileLocator(xmlNodePtr pndArg, xmlChar *pucArg);
 extern void
 domAddFileXpath(xmlNodePtr pndArg, xmlChar *pucArgName, xmlChar *pucArgPrefix);
 
+extern xmlChar *
+domNodeGetXpathStr(xmlNodePtr pndArg);
+
 extern int
 domPutNodeString(FILE *out, xmlChar *pucArgMessage, xmlNodePtr pndArg);
 
@@ -171,6 +174,12 @@ domDocIsHtml(xmlDocPtr pdocArg);
 
 extern BOOL_T
 isEmptyTextNode(xmlNodePtr pndArg);
+
+extern xmlNodePtr
+domNodeGrepNew(xmlNodePtr pndArg, xmlChar *pucArgGrep);
+
+extern BOOL_T
+domGrepRegExpInTree(xmlNodePtr pndResultArg, xmlNodePtr pndArg, const pcre2_code *re_grep);
 
 extern void
 domCleanup(void);

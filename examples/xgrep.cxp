@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cxp:make xmlns:cxp="http://www.tenbusch.info/cxproc" log="2" dir="pwd">
+  <cxp:description>
+
+grep regexp in selected directory
+
+</cxp:description>
+  <cxp:subst string="%NEEDLE%" argv="2"/>
+  <cxp:subst string="%HAYSTACK%" argv="3" dir="dialog" default="."/>
+  <cxp:system message="Search for '%NEEDLE%' files in '%HAYSTACK%' ..."/>
+  <cxp:xml name="-">
+    <cxp:xml>
+      <cxp:dir igrep="%NEEDLE%" depth="9" imatch="\.(txt|mm)$">
+        <cxp:dir name="%HAYSTACK%"/>
+      </cxp:dir>
+    </cxp:xml>
+  </cxp:xml>
+</cxp:make>
