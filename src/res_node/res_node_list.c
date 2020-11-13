@@ -287,7 +287,7 @@ resNodeListFind(resNodePtr prnArg, xmlChar *pucArgPath, xmlChar *pucPattern)
 \return a pointer to an according 'resNode' or NULL else
 */
 resNodePtr
-resNodeListFindPath(resNodePtr prnArg, xmlChar *pucArgPath)
+resNodeListFindPath(resNodePtr prnArg, xmlChar *pucArgPath, int iArgOptions)
 {
   resNodePtr prnResult = NULL;
 
@@ -306,7 +306,7 @@ resNodeListFindPath(resNodePtr prnArg, xmlChar *pucArgPath)
       pucT = resPathDiffPtr(resNodeGetNameNormalized(prnArg), pucTT);
       if (STR_IS_NOT_EMPTY(pucT)) {
 	while (issep(*pucT)) pucT++;
-	prnResult = resNodeListFindPath(prnArg, pucT);
+	prnResult = resNodeListFindPath(prnArg, pucT, iArgOptions);
       }
       xmlFree(pucTT);
     }
@@ -314,33 +314,41 @@ resNodeListFindPath(resNodePtr prnArg, xmlChar *pucArgPath)
       /* ignore this node and its childs */
     }
     else if (resPathIsMatchingEnd(resNodeGetNameNormalized(prnArg), pucArgPath)) { /* match or not? */
-      prnResult = prnArg;
+      if (((iArgOptions & RN_FIND_DIR)
+	&& (resNodeGetType(prnArg) == rn_type_dir
+	  || ((iArgOptions & RN_FIND_IN_ARCHIVE) && (resNodeGetType(prnArg) == rn_type_dir_in_archive))))
+	|| 
+	((iArgOptions & RN_FIND_FILE)
+	  && (resNodeGetType(prnArg) == rn_type_file
+	  || resNodeGetType(prnArg) == rn_type_archive)
+	  || ((iArgOptions & RN_FIND_IN_ARCHIVE) && (resNodeGetType(prnArg) == rn_type_file_in_archive)))) {
+	prnResult = prnArg;
+      }
     }
     else if (prnResult == NULL && resNodeGetChild(prnArg) != NULL) { /* there are childs already */
       for (prnI = resNodeGetChild(prnArg); prnI != NULL && prnResult == NULL; prnI = resNodeGetNext(prnI)) {
-	prnResult = resNodeListFindPath(prnI, pucArgPath);
+	prnResult = resNodeListFindPath(prnI, pucArgPath, iArgOptions);
       }
     }
-    else if (prnResult == NULL && resNodeGetType(prnArg) == rn_type_dir) {
+    else if (prnResult == NULL && (iArgOptions & RN_FIND_IN_SUBDIR) && resNodeGetType(prnArg) == rn_type_dir) {
       if (resNodeDirAppendEntries(prnArg, NULL)) { /* there are no childs, append list of sub-directories and files */
 	for (prnI = resNodeGetChild(prnArg); prnI != NULL && prnResult == NULL; prnI = resNodeGetNext(prnI)) {
-	  prnResult = resNodeListFindPath(prnI, pucArgPath);
+	  prnResult = resNodeListFindPath(prnI, pucArgPath, iArgOptions);
 	}
       }
     }
 #ifdef HAVE_LIBARCHIVE
-    else if (prnResult == NULL && resNodeIsArchive(prnArg)) {
+    else if (prnResult == NULL && (iArgOptions & RN_FIND_IN_ARCHIVE) && resNodeIsArchive(prnArg)) {
       if (arcAppendEntries(prnArg, NULL, FALSE)) { /* there are no childs, append list of archive entries */
 	for (prnI = resNodeGetChild(prnArg); prnI != NULL && prnResult == NULL; prnI = resNodeGetNext(prnI)) {
-	  prnResult = resNodeListFindPath(prnI, pucArgPath);
+	  prnResult = resNodeListFindPath(prnI, pucArgPath, iArgOptions);
 	}
       }
     }
 #endif
   }
   return prnResult;
-}
-/* end of resNodeListFindPath() */
+} /* end of resNodeListFindPath() */
 
 
 /*! finds the next node according to pucArgPath, list directories and archives on-demand only!
@@ -350,7 +358,7 @@ resNodeListFindPath(resNodePtr prnArg, xmlChar *pucArgPath)
 \return a pointer to an according 'resNode' or NULL else
 */
 resNodePtr
-resNodeListFindPathNext(resNodePtr prnArg, xmlChar *pucArgPath)
+resNodeListFindPathNext(resNodePtr prnArg, xmlChar *pucArgPath, int iArgOptions)
 {
   resNodePtr prnResult = NULL;
 
@@ -363,22 +371,21 @@ resNodeListFindPathNext(resNodePtr prnArg, xmlChar *pucArgPath)
     resNodePtr prnI;
     
     if (prnResult == NULL && resNodeGetChild(prnArg) != NULL) { /* there are childs already */
-      prnResult = resNodeListFindPath(resNodeGetChild(prnArg), pucArgPath);
+      prnResult = resNodeListFindPath(resNodeGetChild(prnArg), pucArgPath, iArgOptions);
     }
 
     if (prnResult == NULL && resNodeGetNext(prnArg) != NULL) { /* there are nexts already */
-      prnResult = resNodeListFindPath(resNodeGetNext(prnArg), pucArgPath);
+      prnResult = resNodeListFindPath(resNodeGetNext(prnArg), pucArgPath, iArgOptions);
     }      
 
     for (prnA = resNodeGetParent(prnArg); prnA != NULL && prnResult == NULL; prnA = resNodeGetParent(prnA)) {
       for (prnI = resNodeGetNext(prnA); prnI != NULL && prnResult == NULL; prnI = resNodeGetNext(prnI)) {
-	prnResult = resNodeListFindPath(prnI, pucArgPath);
+	prnResult = resNodeListFindPath(prnI, pucArgPath, iArgOptions);
       }
     }      
   }
   return prnResult;
-}
-/* end of resNodeListFindPathNext() */
+} /* end of resNodeListFindPathNext() */
 
 #if 0
 

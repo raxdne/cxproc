@@ -362,13 +362,13 @@ arcTest(cxpContextPtr pccArg)
     i++;
     printf("TEST %i in '%s:%i': uncompress archive context = ", i, __FILE__, __LINE__);
 
-    if ((prnT = resNodeDirNew(BAD_CAST TESTPREFIX "option\\pie\\text\\test-pie-20.docx")) == NULL) {
+    if ((prnT = resNodeDirNew(BAD_CAST TESTPREFIX "option\\archive\\test-arc-1.tar")) == NULL) {
       printf("Error resNodeDirNew()\n");
     }
     else if (arcAppendEntries(prnT, NULL, TRUE) == FALSE) {
       printf("Error 1 arcAppendEntries() ...\n");
     }
-    else if (resNodeGetChildCount(prnT, rn_type_file_in_archive) != 1 || resNodeGetChildCount(prnT, rn_type_dir_in_archive) != 4) {
+    else if (resNodeGetChildCount(prnT, rn_type_file_in_archive) != 4 || resNodeGetChildCount(prnT, rn_type_dir_in_archive) != 0) {
       printf("Error 2 arcAppendEntries() ...\n");
     }
     else if (resNodeGetContentPtr(resNodeGetChild(prnT)) == NULL) {
@@ -378,7 +378,7 @@ arcTest(cxpContextPtr pccArg)
       printf("Error 1 resNodeToDOM() ...\n");
     }
     else if (IS_NODE_FILE(pndT) == FALSE || pndT->children == NULL
-	     || domNumberOfChild(pndT->children, NAME_FILE) != 1 || domNumberOfChild(pndT->children, NAME_DIR) != 4) {
+	     || domNumberOfChild(pndT->children, NAME_FILE) != 4 || domNumberOfChild(pndT->children, NAME_DIR) != 0) {
       printf("Error 2 resNodeToDOM() ...\n");
     }
     else {
@@ -444,10 +444,10 @@ arcTest(cxpContextPtr pccArg)
     else if (resNodeListParse(prnT, 999, NULL) == FALSE) {
       printf("Error 2 x resNodeListParse() ...\n");
     }
-    else if ((prnFound = resNodeListFindPath(prnT, BAD_CAST"sub/")) == NULL) {
+    else if ((prnFound = resNodeListFindPath(prnT, BAD_CAST"sub/", (RN_FIND_DIR | RN_FIND_IN_SUBDIR | RN_FIND_IN_ARCHIVE))) == NULL) {
       printf("Error resNodeListFind() ...\n");
     }
-    else if ((prnFound = resNodeListFindPath(prnT, BAD_CAST "sub/plain.txt")) == NULL) {
+    else if ((prnFound = resNodeListFindPath(prnT, BAD_CAST "sub/plain.txt", (RN_FIND_FILE | RN_FIND_IN_SUBDIR | RN_FIND_IN_ARCHIVE))) == NULL) {
       printf("Error resNodeListFind() ...\n");
     }
     else if ((j = resNodeGetChildCount(prnT, rn_type_dir_in_archive)) != 1) {

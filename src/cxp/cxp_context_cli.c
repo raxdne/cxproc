@@ -916,7 +916,7 @@ cxpCtxtCliAddXsl(xmlNodePtr pndArgParent, cxpContextPtr pccArg)
 	else {
 	  resNodePtr prnXslFound;
 
-	  prnXslFound = resNodeListFindPath(cxpCtxtSearchGet(pccArg), pucArgvN);
+	  prnXslFound = resNodeListFindPath(cxpCtxtSearchGet(pccArg), pucArgvN, (RN_FIND_FILE | RN_FIND_IN_SUBDIR));
 	  if (resNodeReadStatus(prnXslFound)) {
 	    xmlSetProp(pndXsl, BAD_CAST "name", resNodeGetNameNormalized(prnXslFound));
 	  }

@@ -18,6 +18,20 @@
   Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 */
 
+/*! bits for finding of resource nodes in resNodeListFindPath()
+ */
+#define RN_FIND_MIN        (0)
+
+#define RN_FIND_FILE       (1)
+
+#define RN_FIND_DIR        (2)
+
+#define RN_FIND_IN_SUBDIR  (4)
+
+#define RN_FIND_IN_ARCHIVE (8)
+
+#define RN_FIND_ALL        (RN_FIND_FILE | RN_FIND_DIR | RN_FIND_IN_SUBDIR | RN_FIND_IN_ARCHIVE)
+
 extern BOOL_T
 resNodeListParse(resNodePtr prnArg, int iArgDepth, const pcre2_code *re_match);
 
@@ -37,7 +51,7 @@ extern resNodePtr
 resNodeListFind(resNodePtr prnArg, xmlChar *pucArgPath, xmlChar *pucPattern);
 
 extern resNodePtr
-resNodeListFindPath(resNodePtr prnArg, xmlChar *pucArgPath);
+resNodeListFindPath(resNodePtr prnArg, xmlChar *pucArgPath, int iArgOptions);
 
 extern resNodePtr
 resNodeListFindPathNext(resNodePtr prnArg, xmlChar *pucArgPath);

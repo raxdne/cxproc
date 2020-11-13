@@ -172,7 +172,7 @@ scriptChangeParam(xmlChar **ppucScript, xmlNodePtr pndArg, cxpContextPtr pccArg)
 	rc = pcre2_match(
 	  re_type,        /* result of pcre2_compile() */
 	  (PCRE2_SPTR8)ppchParam[i + 1],  /* the subject string */
-	  xmlStrlen(ppchParam[i + 1]),             /* the length of the subject string */
+	  strlen(ppchParam[i + 1]),             /* the length of the subject string */
 	  0,              /* start at offset 0 in the subject */
 	  0,              /* default options */
 	  match_data_type,        /* vector of integers for substring information */
