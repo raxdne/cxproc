@@ -801,22 +801,30 @@ domNodeGetXpathStr(xmlNodePtr pndArg)
 
   if (IS_ENODE(pndArg)) {
     xmlNodePtr pndAnchestor;
+    xmlChar mpucT[BUFFER_LENGTH];
 
     for (pndAnchestor = pndArg; pndAnchestor != NULL; pndAnchestor = pndAnchestor->parent) {
       int i;
-      xmlChar mpucT[BUFFER_LENGTH];
       xmlNodePtr pndT;
 
-      for (pndT = pndAnchestor, i=1; pndT != NULL; pndT = pndT->prev) {
+      for (pndT = pndAnchestor, i=0; pndT != NULL; pndT = pndT->prev) {
 	if (IS_ENODE(pndT)) {
 	  i++;
 	}
       }
 
-      xmlStrPrintf(mpucT,BUFFER_LENGTH, "/*[%i]%s",i,((pucResult) ? pucResult : BAD_CAST""));
-      xmlFree(pucResult);
+      if (pucResult) {
+	xmlStrPrintf(mpucT,BUFFER_LENGTH, "/*[%i]%s",i,pucResult);
+	xmlFree(pucResult);
+      }
+      else {
+	xmlStrPrintf(mpucT,BUFFER_LENGTH, "/*[%i]",i);
+      }
       pucResult = xmlStrdup(mpucT);
     }
+    xmlStrPrintf(mpucT,BUFFER_LENGTH, "/*%s",pucResult);
+    xmlFree(pucResult);
+    pucResult = xmlStrdup(mpucT);
   }
   return pucResult;
 } /* End of domNodeGetXpathStr() */

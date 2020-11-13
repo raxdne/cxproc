@@ -161,10 +161,26 @@ GrepDirNew(xmlNodePtr pndArg, const pcre2_code *re_grep, cxpContextPtr pccArg)
     xmlUnlinkNode(pndContent);
 
     pndGrep = xmlNewNode(NULL,NAME_GREP);
-    if (pndGrep != NULL && domGrepRegExpInTree(pndGrep,pndContent,re_grep)) {
-      xmlAddChild(pndArg,pndGrep);
+    if (pndGrep) {
+#if 1
+      if (domGrepRegExpInTree(pndGrep,pndContent,re_grep)) {
+	xmlAddChild(pndArg,pndGrep);
+      }
+      else {
+	xmlFreeNode(pndGrep);
+      }
+      xmlFreeNode(pndContent);
+#else
+      if (domGrepRegExpInTree(pndGrep,pndContent,re_grep)) {
+	xmlAddChild(pndArg,pndContent);
+	xmlAddChild(pndArg,pndGrep);
+      }
+      else {
+	xmlFreeNode(pndContent);
+	xmlFreeNode(pndGrep);
+      }
+#endif
     }
-    xmlFreeNode(pndContent);
   }
   else {
     /* ignore */

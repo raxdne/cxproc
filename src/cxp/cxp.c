@@ -1990,6 +1990,7 @@ cxpCtxtSearchSet(cxpContextPtr pccArg, resNodePtr prnArg)
     /*! check search path context */
     if (STR_IS_NOT_EMPTY(pucPathValue)) {
       pccArg->prnSearch = resNodeStrNew(pucPathValue);
+      resNodeSetRecursion(pccArg->prnSearch,resPathIsDirRecursive(pucPathValue));
       xmlFree(pucPathValue);
     }
     else if (prnArg) {
@@ -1998,7 +1999,6 @@ cxpCtxtSearchSet(cxpContextPtr pccArg, resNodePtr prnArg)
     else {
       pccArg->prnSearch = NULL;
     }
-
     if (resPathIsDescendant(resNodeGetNameNormalized(cxpCtxtRootGet(pccArg)), resNodeGetNameNormalized(cxpCtxtSearchGet(pccArg)))) {
       cxpCtxtLogPrint(pccArg, 1, "WARNING: Value '%s' is a descendant directory of search path '%s'",
 	resNodeGetNameNormalized(cxpCtxtRootGet(pccArg)), resNodeGetNameNormalized(cxpCtxtSearchGet(pccArg)));
