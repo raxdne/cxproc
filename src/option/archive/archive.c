@@ -326,7 +326,7 @@ arcAppendEntries(resNodePtr prnArgArchive, const pcre2_code* re_match, BOOL_T fA
 	    prnChild = resNodeGetChild(prnArgArchive);
 	  }
 	  else if (resNodeGetChild(prnArgArchive) != NULL) { /* */
-	    prnChild = resNodeListFindPath(resNodeGetChild(prnArgArchive), pucNameEncoded);
+	    prnChild = resNodeListFindPath(resNodeGetChild(prnArgArchive), pucNameEncoded, RN_FIND_ALL);
 	  }
 	  else if (resNodeGetMimeType(prnArgArchive) == MIME_APPLICATION_GZIP && resNodeGetNameObject(prnArgArchive) != NULL) {
 	    xmlFree(pucNameEncoded);

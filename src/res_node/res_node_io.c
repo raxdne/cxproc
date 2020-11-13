@@ -178,7 +178,7 @@ resNodeOpen(resNodePtr prnArg, const char *pchArgMode)
 
       /* check if anchestor archive is parsed already */
       if ((prnArchive = resNodeGetAncestorArchive(prnArg))) {
-	fResult = (resNodeListFindPath(prnArchive,resNodeGetNameBase(prnArg)) != NULL);
+	fResult = (resNodeListFindPath(prnArchive,resNodeGetNameBase(prnArg), RN_FIND_ALL) != NULL);
 	if (fResult) {
 	  if (prnArg->eMode == mode_write || prnArg->eMode == mode_append) {
 	    prnArg->fRead = TRUE;

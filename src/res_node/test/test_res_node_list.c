@@ -63,7 +63,7 @@ resNodeTestList(void)
     else if (prnFile != resNodeGetNext(resNodeGetChild(prnDir))) {
       printf("Error resNodeAddChildNew()\n");
     }
-    else if (prnFile != resNodeListFindPath(prnDir, BAD_CAST"Documents/TestContent.xml")) {
+    else if (prnFile != resNodeListFindPath(prnDir, BAD_CAST"Documents/TestContent.xml", (RN_FIND_FILE | RN_FIND_IN_SUBDIR))) {
       printf("Error resNodeListFindPath()\n");
     }
     else if ((prnDirSub = resNodeAddChildNew(prnT, BAD_CAST"Documents/SubDummy/")) == NULL || resNodeGetType(prnDirSub) != rn_type_dir) {
@@ -96,16 +96,16 @@ resNodeTestList(void)
     if ((prnT = resNodeDirNew(BAD_CAST TESTPREFIX)) == NULL) {
       printf("Error resNodeDirNew()\n");
     }
-    else if ((prnFile = resNodeListFindPath(prnT, BAD_CAST"config-test.cxp")) == NULL) {
+    else if ((prnFile = resNodeListFindPath(prnT, BAD_CAST"config-test.cxp", (RN_FIND_FILE | RN_FIND_IN_SUBDIR))) == NULL) {
       printf("Error resNodeListFindPath()\n");
     }
-    else if ((prnFile = resNodeListFindPath(prnT, BAD_CAST"pn-1.pie")) == NULL) {
+    else if ((prnFile = resNodeListFindPath(prnT, BAD_CAST"pn-1.pie", (RN_FIND_FILE | RN_FIND_IN_SUBDIR))) == NULL) {
       printf("Error resNodeListFindPath()\n");
     }
-    else if ((prnFile = resNodeListFindPath(prnT, BAD_CAST"rp/")) == NULL) {
+    else if ((prnFile = resNodeListFindPath(prnT, BAD_CAST"rp/", (RN_FIND_DIR | RN_FIND_IN_SUBDIR))) == NULL) {
       printf("Error resNodeListFindPath()\n");
     }
-    else if ((prnFile = resNodeListFindPath(prnT, BAD_CAST"non/existing.file")) != NULL) {
+    else if ((prnFile = resNodeListFindPath(prnT, BAD_CAST"non/existing.file", (RN_FIND_FILE | RN_FIND_IN_SUBDIR))) != NULL) {
       printf("Error resNodeListFindPath()\n");
     }
 #ifdef HAVE_ARCHIVE
@@ -197,25 +197,25 @@ resNodeTestList(void)
     else if (resNodeListFindChild(prnT, BAD_CAST"Notes.txt") != resNodeGetNext(resNodeGetChild(prnT))) {
       printf("Error resNodeListFindChild() ...\n");
     }
-    else if ((prnFound = resNodeListFindPath(prnT, BAD_CAST"Work.docx")) == NULL) {
+    else if ((prnFound = resNodeListFindPath(prnT, BAD_CAST"Work.docx", (RN_FIND_FILE | RN_FIND_IN_SUBDIR | RN_FIND_IN_ARCHIVE))) == NULL) {
       printf("Error 1 resNodeListFindPath() ...\n");
     }
-    else if (resNodeListFindPath(prnT, BAD_CAST"Audio/") == NULL) {
+    else if (resNodeListFindPath(prnT, BAD_CAST"Audio/", (RN_FIND_DIR | RN_FIND_IN_SUBDIR | RN_FIND_IN_ARCHIVE)) == NULL) {
       printf("Error 2 resNodeListFindPath() ...\n");
     }
-    else if (resNodeListFindPath(prnT, BAD_CAST"Dummy/ABC.txt") != prnNeedleFile) {
+    else if (resNodeListFindPath(prnT, BAD_CAST"Dummy/ABC.txt", (RN_FIND_FILE | RN_FIND_IN_SUBDIR | RN_FIND_IN_ARCHIVE)) != prnNeedleFile) {
       printf("Error 3 resNodeListFindPath() ...\n");
     }
-    else if (resNodeListFindPath(prnT, BAD_CAST"key.dat") != prnNeedleInArchive) {
+    else if (resNodeListFindPath(prnT, BAD_CAST"key.dat", (RN_FIND_FILE | RN_FIND_IN_SUBDIR | RN_FIND_IN_ARCHIVE)) != prnNeedleInArchive) {
       printf("Error 4 resNodeListFindPath() ...\n");
     }
-    else if (resNodeListFindPath(prnT, BAD_CAST"Podcasts/Blah Blah") != prnNeedleDir) {
+    else if (resNodeListFindPath(prnT, BAD_CAST"Podcasts/Blah Blah", (RN_FIND_DIR | RN_FIND_IN_SUBDIR | RN_FIND_IN_ARCHIVE)) != prnNeedleDir) {
       printf("Error 5 resNodeListFindPath() ...\n");
     }
-    else if ((prnFound = resNodeListFindPath(prnT, BAD_CAST"Dummy/")) == NULL) {
+    else if ((prnFound = resNodeListFindPath(prnT, BAD_CAST"Dummy/", (RN_FIND_DIR | RN_FIND_IN_SUBDIR))) == NULL) {
       printf("Error 6 resNodeListFindPath() ...\n");
     }
-    else if ((prnFound = resNodeListFindPath(prnT, BAD_CAST"Dummy/Dummy/Dummy/")) == NULL) {
+    else if ((prnFound = resNodeListFindPath(prnT, BAD_CAST"Dummy/Dummy/Dummy/", RN_FIND_ALL)) == NULL) {
       printf("Error 7 resNodeListFindPath() ...\n");
     }
     else {
@@ -414,10 +414,10 @@ resNodeTestList(void)
     else if ((j = resNodeGetChildCount(prnT, rn_type_dir)) != 12) {
       printf("Error resNodeDirAppendEntries() = %i\n", j);
     }
-    else if ((prnFound = resNodeListFindPath(prnT, BAD_CAST"dir/")) == NULL) {
+    else if ((prnFound = resNodeListFindPath(prnT, BAD_CAST"dir/", (RN_FIND_DIR | RN_FIND_IN_SUBDIR))) == NULL) {
       printf("Error resNodeListFindPath() ...\n");
     }
-    else if ((prnFound = resNodeListFindPath(prnT, BAD_CAST TESTPREFIX "dir/config.cxp")) == NULL) {
+    else if ((prnFound = resNodeListFindPath(prnT, BAD_CAST TESTPREFIX "dir/config.cxp", (RN_FIND_FILE | RN_FIND_IN_SUBDIR))) == NULL) {
       printf("Error resNodeListFindPath() ...\n");
     }
     else {
@@ -542,7 +542,7 @@ resNodeTestList(void)
     else if (resNodeListParse(prnT, 999, re_match) == FALSE) {
       printf("Error resNodeListParse() ...\n");
     }
-    else if ((prnFound = resNodeListFindPath(prnT, BAD_CAST"dir/config.cxp")) == NULL) {
+    else if ((prnFound = resNodeListFindPath(prnT, BAD_CAST"dir/config.cxp", (RN_FIND_FILE | RN_FIND_IN_SUBDIR))) == NULL) {
       printf("Error resNodeListFindPath() ...\n");
     }
     else if (resPathIsEquivalent(resNodeGetNameBase(prnFound), BAD_CAST"config.cxp") == FALSE) {

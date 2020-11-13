@@ -742,7 +742,7 @@ cxpResNodeResolveNew(cxpContextPtr pccArg, xmlNodePtr pndArg, xmlChar *pucArg, i
 
       if (resNodeIsReadable(prnResult) == FALSE && (iArgOptions & CXP_O_SEARCH) > CXP_O_READ) {
 	resNodeFree(prnResult);
-	if ((prnResult = resNodeListFindPath(cxpCtxtSearchGet(pccArg), pucShortcut)) != NULL) {
+	if ((prnResult = resNodeListFindPath(cxpCtxtSearchGet(pccArg), pucShortcut, (RN_FIND_FILE | RN_FIND_IN_SUBDIR))) != NULL) {
 	  prnResult = resNodeDup(prnResult, RN_DUP_THIS); /* found in search DOM */
 	}
       }
