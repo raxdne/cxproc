@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cxp:make xmlns:cxp="http://www.tenbusch.info/cxproc" log="2" dir="pwd">
+  <cxp:description>
+
+zip selected directory
+
+</cxp:description>
+  <cxp:subst string="%FILEARCHIVE%" argv="2"/>
+  <cxp:subst string="%DIRSRC%" argv="3" default="."/> <!-- dir="dialog" -->
+  <cxp:system message="Pack to '%FILEARCHIVE%' files in '%DIRSRC%' ..."/>
+  <cxp:zip name="%FILEARCHIVE%">
+    <cxp:xml>
+      <cxp:dir depth="3" verbosity="2"> <!--  imatch="\.(txt|mm)$" -->
+        <cxp:dir name="%DIRSRC%"/>
+      </cxp:dir>
+    </cxp:xml>
+  </cxp:zip>
+</cxp:make>

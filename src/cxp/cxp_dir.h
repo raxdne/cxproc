@@ -41,6 +41,9 @@ typedef enum {
 extern xmlDocPtr
 dirProcessDirNode(xmlNodePtr pndMakeDir, resNodePtr prnArgContext, cxpContextPtr pccArg);
 
+extern resNodePtr
+dirNodeToResNodeList(xmlNodePtr pndArg);
+
 extern int
 dirMapInfoVerbosity(xmlNodePtr pndArgFile, cxpContextPtr pccArg);
 

@@ -787,6 +787,33 @@ resNodeGetAncestorArchive(resNodePtr prnArg)
 } /* end of resNodeGetAncestorArchive() */
 
 
+/*! \return pointer to a string containing ancestor basenames of prnArg
+*/
+xmlChar *
+resNodeGetAncestorPathStr(resNodePtr prnArg)
+{
+  xmlChar* pucResult = NULL;
+
+  if (prnArg) {
+    resNodePtr prnT;
+
+    for (prnT = prnArg; prnT != NULL; prnT = resNodeGetParent(prnT)) {
+      xmlChar* pucT = NULL;
+
+      if (pucResult) {
+	pucT = xmlStrdup(resNodeGetNameBase(prnT));
+	pucT = xmlStrcat(pucT,BAD_CAST"/");
+	pucResult = xmlStrcat(pucT, pucResult);
+      }
+      else {
+	pucResult = xmlStrdup(resNodeGetNameBase(prnT));
+      }
+    }
+  }
+  return pucResult;
+} /* end of resNodeGetAncestorPathStr() */
+
+
 /*! Resource Node List Get list length
 
 \return number of next resource nodes in list
@@ -1164,8 +1191,12 @@ resNodeDirNew(xmlChar *pucArgPath)
 	eType = rn_type_dir;
       }
     }
-    resNodeSetRecursion(prnResult,fRecursion);
+
     resNodeSetType(prnResult,eType);
+    if (resNodeIsDir(prnResult)) { /*  */
+      resNodeSetRecursion(prnResult, fRecursion);
+      resPathCutTrailingChars(prnResult->pucNameNormalized);
+    }
     xmlFree(pucPath);
   }
   return prnResult;
@@ -1178,45 +1209,62 @@ resNodeDirNew(xmlChar *pucArgPath)
 \return TRUE as splitting result
 */
 resNodePtr
-resNodeSplitStrNew(xmlChar *pucArgPath)
+resNodeSplitStrNew(xmlChar* pucArgPath)
 {
   resNodePtr prnResult = NULL;
 
   if (STR_IS_NOT_EMPTY(pucArgPath)) { /* a trailing separator indicates a directory */
 
-    prnResult = resNodeDirNew(pucArgPath);
+    prnResult = resNodeNew();
     if (prnResult) {
-      xmlChar *pucSep;
-      xmlChar *pucStart;
+      xmlChar* pucSep;
+      xmlChar* pucStart;
       resNodePtr prnT;
-      xmlChar *pucT;
-      xmlChar *pucTT;
+      xmlChar* pucT;
+      xmlChar* pucTT;
 
-      pucTT = pucStart = xmlStrdup(resNodeGetNameNormalized(prnResult));
+      pucTT = pucStart = xmlStrdup(pucArgPath);
 
-      if (resPathIsDosDrive(pucTT)) {
-	/* skip leading drive char */
-	pucTT += 2;
+      if (resPathIsAbsolute(pucArgPath)) {
+	if (resPathIsDosDrive(pucTT)) {
+	  /* skip leading drive char */
+	  pucTT += 2;
+	}
+
+	while (STR_IS_NOT_EMPTY(pucTT) && issep(*pucTT)) { /* ignore leading slash */
+	  pucTT++;
+	}
+
+	pucT = xmlStrndup(pucStart, pucTT - pucStart); /* root */
+	resNodeReset(prnResult, pucT);
+	resNodeSetType(prnResult, rn_type_root);
+	xmlFree(pucT);
       }
+      else if ((pucTT = resPathGetNextSeparator(pucStart))) {
 
-      while (STR_IS_NOT_EMPTY(pucTT) && issep(*pucTT)) { /* ignore leading slash */
-	pucTT++;
+	pucT = xmlStrndup(pucStart, pucTT - pucStart);
+	resNodeSetNameBase(prnResult, pucT);
+	xmlFree(pucT);
+
+	while (STR_IS_NOT_EMPTY(pucTT) && issep(*pucTT)) { /* ignore slash */
+	  pucTT++;
+	  resNodeSetType(prnResult, rn_type_dir);
+	}
       }
-
-      pucT = xmlStrndup(pucStart, pucTT - pucStart); /* root */
-      resNodeReset(prnResult, pucT);
-      resNodeSetType(prnResult, rn_type_root);
-      xmlFree(pucT);
+      else {
+	resNodeSetNameBase(prnResult, pucStart);
+	resNodeSetType(prnResult, rn_type_file); /* default */
+      }
 
       for (prnT = prnResult, pucSep = pucTT; (pucSep = resPathGetNextSeparator(pucSep)) != NULL; pucTT = pucSep) {
 	while (issep(*pucSep) || isquot(*pucSep)) {
 	  pucSep++;
 	}
 
-	pucT = xmlStrndup(pucTT, pucSep - pucTT);
-	if ((prnT = resNodeAddChildNew(prnT, pucT)) != NULL) {
+	if ((pucT = xmlStrndup(pucTT, pucSep - pucTT))) {
+	  prnT = resNodeAddChildNew(prnT, pucT);
+	  xmlFree(pucT);
 	}
-	xmlFree(pucT);
 
 	if (isend(*pucSep)) {
 	  pucSep = NULL; /* empty */
@@ -1234,11 +1282,73 @@ resNodeSplitStrNew(xmlChar *pucArgPath)
 } /* end of resNodeSplitStrNew() */
 
 
+/*! inserts a new resource node for pucArgPath into the tree of prnArg
+
+\param prnArg a pointer to an existing resource node 
+\return pointer to a freshly allocated 'resNode'
+*/
+resNodePtr
+resNodeInsert(resNodePtr prnArgTree, resNodePtr prnArg)
+{
+  resNodePtr prnResult = NULL;
+  resNodePtr prnT;
+  //resNodePtr prnTT;
+  xmlChar* pucT = NULL;
+  xmlChar* pucTT = NULL;
+
+  //assert(prnArgTree);
+  //assert(prnArg);
+  //assert(prnArg->children != NULL );
+
+  if ((pucTT = resNodeGetNameBase(prnArg)) != NULL) {
+    for (prnT = prnArgTree; prnT; prnT = prnT->next) {
+      if (resPathIsEquivalent(pucTT, resNodeGetNameBase(prnT))) {
+	resNodeListUnlink(prnArg);
+	prnResult = resNodeInsert(prnT->children, prnArg->children);
+      }
+      else if (prnT->next == NULL) {
+	/* no matching child node found */
+	resNodeAddSibling(prnT, prnArg);
+	prnResult = prnArg;
+	break;
+      }
+    }
+  }
+
+  return prnResult;
+} /* end of resNodeInsert() */
+
+
+/*! inserts a new resource node for pucArgPath into the tree of prnArg
+
+\param prnArg a pointer to an existing resource node
+\return pointer to a freshly allocated 'resNode'
+*/
+resNodePtr
+resNodeInsertStrNew(resNodePtr prnArg, xmlChar* pucArgPath)
+{
+  resNodePtr prnResult = NULL;
+
+  if (STR_IS_NOT_EMPTY(pucArgPath)) { /* a trailing separator indicates a directory */
+    resNodePtr prnT;
+
+    prnT = resNodeSplitStrNew(pucArgPath);
+    if (prnT) {
+      prnResult = resNodeInsert(prnArg,prnT);
+      if (prnResult != prnT) {
+//	resNodeFree(prnT);
+      }
+    }
+  }
+  return prnResult;
+} /* end of resNodeInsertStrNew() */
+
+
 /*! Creates a new resource node according to concatenated 'pucArgPathA' and 'pucArgPathB'
 
 \param pucArgPathA pointer to first filesystem path
 \param pucArgPathB pointer to second filesystem path
-\return a freshly allocated 'resNode'
+\return pointer to a freshly allocated 'resNode'
 */
 resNodePtr
 resNodeConcatNew(xmlChar *pucArgPathA, xmlChar *pucArgPathB)
@@ -1514,6 +1624,38 @@ resNodeSetNameBase(resNodePtr prnArg, xmlChar *pucArgPath)
   }
   return fResult;
 } /* end of resNodeSetNameBase() */
+
+
+/*! Sets pucNameBase of an existing resource node to pucArgPath and keep prnArg->pucNameBaseDir etc.
+
+\param prnArg a pointer to a resource node
+\param pucArgPath pointer to a new native basename
+\return TRUE if existing resource node is set to new value (without encoding errors)
+*/
+BOOL_T
+resNodeSetNameBaseDir(resNodePtr prnArg, xmlChar* pucArgPath)
+{
+  BOOL_T fResult = FALSE;
+
+  if (prnArg) {
+#if 1
+    xmlFree(prnArg->pucNameNormalized);
+    prnArg->pucNameNormalized = NULL;
+    xmlFree(prnArg->pucNameBaseDir);
+    prnArg->pucNameBaseDir = NULL;
+    assert(prnArg->pucNameBase);
+    prnArg->pucNameBaseDir = xmlStrdup(pucArgPath);
+#else
+    xmlChar* pucPathNew;
+
+    pucPathNew = resPathConcat(pucArgPath,resNodeGetNameBase(prnArg));
+    resNodeReset(prnArg, pucPathNew);
+    xmlFree(pucPathNew);
+#endif
+    fResult = TRUE;
+  }
+  return fResult;
+} /* end of resNodeSetNameBaseDir() */
 
 
 /*! Sets pucNameAncestor of an existing resource node to pucArgPath and keep prnArg->pucNameAncestorDir etc.
@@ -1845,7 +1987,7 @@ resNodeIsDir(resNodePtr prnArg)
 	resNodeReadStatus(prnArg);
       }
     }
-    fResult = (resNodeGetType(prnArg) == rn_type_dir || resNodeGetType(prnArg) == rn_type_dir_in_archive);
+    fResult = (resNodeGetType(prnArg) == rn_type_dir || resNodeGetType(prnArg) == rn_type_dir_in_archive); //  || resNodeGetChild(prnArg) != NULL
   }
   return fResult;
 } /* end of resNodeIsDir() */
@@ -2863,7 +3005,7 @@ resNodeToPlain(resNodePtr prnArg, int iArgOptions)
 {
   xmlChar *pucResult = NULL;
 
-  if (resNodeReadStatus(prnArg) && ! resNodeIsHidden(prnArg)) {
+//  if (resNodeReadStatus(prnArg) && ! resNodeIsHidden(prnArg)) {
     pucResult = BAD_CAST xmlMalloc((BUFFER_LENGTH + 1) * sizeof(xmlChar));
     if (pucResult) {
 
@@ -2927,7 +3069,7 @@ resNodeToPlain(resNodePtr prnArg, int iArgOptions)
 	}
       }
     }
-  }
+//  }
 
   /*!\todo set kind of error */
     

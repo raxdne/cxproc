@@ -641,11 +641,17 @@ cxpCtxtLocationDup(cxpContextPtr pccArg)
   resNodePtr prnResult = NULL;
 
   if (pccArg) {
-    prnResult = resNodeDup(pccArg->prnLocation, RN_DUP_THIS);
+    cxpContextPtr pccT;
+
+    for (pccT=pccArg; pccT != NULL; pccT = pccT->parent) {
+      if (pccT->prnLocation) {
+	prnResult = resNodeDup(pccT->prnLocation, RN_DUP_THIS);
+	break;
+      }
+    }
   }
   return prnResult;
-}
-/* end of cxpCtxtLocationDup() */
+} /* end of cxpCtxtLocationDup() */
 
 
 /*! Frees pccArg.
