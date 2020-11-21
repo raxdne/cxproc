@@ -107,6 +107,32 @@ resNodeTestOperations(void)
 
 
   if (RUNTEST) {
+    xmlChar* pucT;
+    resNodePtr prnT = NULL;
+
+    i++;
+    printf("TEST %i in '%s:%i': resNodeSplitLineBufferNew() = ", i, __FILE__, __LINE__);
+
+    if ((prnT = resNodeSplitLineBufferNew(BAD_CAST "option\\pie\\text\\\noption/pie/abc/\n\ntmp/a/b/c/\n \ntmp/a/e/f/g/\r")) == NULL) {
+      printf("Error 2 resNodeSplitStrNew()\n");
+    }
+    else if (resNodeSetNameBaseDir(prnT, BAD_CAST TEMPPREFIX) == FALSE) {
+      printf("Error 1 resNodeMakeDirectory()\n");
+    }
+    else if (resNodeMakeDirectory(prnT, iMode) == FALSE) {
+      printf("Error 1 resNodeMakeDirectory()\n");
+    }
+    else {
+      n_ok++;
+      printf("OK\n");
+    }
+
+    pucT = resNodeListToPlain(prnT,RN_INFO_MIN); fputs((const char *)pucT,stderr); xmlFree(pucT);
+    resNodeFree(prnT);
+  }
+
+
+  if (RUNTEST) {
     resNodePtr prnFrom = NULL;
     resNodePtr prnTo = NULL;
 

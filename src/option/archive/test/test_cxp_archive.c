@@ -37,23 +37,23 @@ cxpArcTest(cxpContextPtr pccArg)
     i++;
     printf("TEST %i in '%s:%i': compress res node into archive = ", i, __FILE__, __LINE__);
 
-    if (arcResNodeAdd(NULL, NULL, NULL, pccArg) == TRUE) {
-      printf("Error arcResNodeAdd()\n");
+    if (arcAddResNode(NULL, NULL, NULL, pccArg) == TRUE) {
+      printf("Error arcAddResNode()\n");
     }
     else if ((prnArchive = resNodeDirNew(BAD_CAST TEMPPREFIX "aaa.zip")) == NULL) {
       printf("Error resNodeDirNew()\n");
     }
-    else if (arcResNodeAdd(prnArchive, NULL, NULL, pccArg) == TRUE) {
-      printf("Error arcResNodeAdd()\n");
+    else if (arcAddResNode(prnArchive, NULL, NULL, pccArg) == TRUE) {
+      printf("Error arcAddResNode()\n");
     }
     else if (resNodeOpen(prnArchive, "wa") == FALSE) {
       printf("error of resNodeOpen()\n");
     }
-    else if (arcResNodeAdd(prnArchive, NULL, BAD_CAST"html/sub/123.html", pccArg) == FALSE) {
-      printf("Error arcResNodeAdd()\n");
+    else if (arcAddResNode(prnArchive, NULL, BAD_CAST"html/sub/123.html", pccArg) == FALSE) {
+      printf("Error arcAddResNode()\n");
     }
-    else if (arcResNodeAdd(prnArchive, NULL, BAD_CAST"html/sub-2/456.html", pccArg) == FALSE) {
-      printf("Error arcResNodeAdd()\n");
+    else if (arcAddResNode(prnArchive, NULL, BAD_CAST"html/sub-2/456.html", pccArg) == FALSE) {
+      printf("Error arcAddResNode()\n");
     }
     else if (resNodeClose(prnArchive) == FALSE) {
       printf("error of resNodeClose()\n");
@@ -99,8 +99,8 @@ cxpArcTest(cxpContextPtr pccArg)
     else if (resNodeOpen(prnArchive, "wa") == FALSE) {
       printf("error of resNodeOpen()\n");
     }
-    else if (arcResNodeAdd(prnArchive, prnT, NULL, pccArg) == FALSE) {
-      printf("Error arcResNodeAdd()\n");
+    else if (arcAddResNode(prnArchive, prnT, NULL, pccArg) == FALSE) {
+      printf("Error arcAddResNode()\n");
     }
     else if ((prnTT = resNodeDirNew(BAD_CAST"test/")) == NULL) {
       printf("Error resNodeDirNew()\n");
@@ -117,8 +117,8 @@ cxpArcTest(cxpContextPtr pccArg)
     else if (resNodeAddChildNew(prnTTT, BAD_CAST"c.html") == NULL) {
       printf("Error resNodeAddChildNew()\n");
     }
-    else if (arcResNodeAdd(prnArchive, prnTT, NULL, pccArg) == FALSE) {
-      printf("Error arcResNodeAdd()\n");
+    else if (arcAddResNode(prnArchive, prnTT, NULL, pccArg) == FALSE) {
+      printf("Error arcAddResNode()\n");
     }
     else if ((prnTTT = resNodeAddChildNew(prnTT, BAD_CAST"DUMMY")) == NULL) {
       printf("Error resNodeAddChildNew()\n");
@@ -126,8 +126,8 @@ cxpArcTest(cxpContextPtr pccArg)
     else if (resNodeSetNameAlias(prnTTT, BAD_CAST"y.html") == NULL) {
       printf("Error resNodeSetNameAlias()\n");
     }
-    else if (arcResNodeAdd(prnArchive, prnTTT, NULL, pccArg) == FALSE) {
-      printf("Error arcResNodeAdd()\n");
+    else if (arcAddResNode(prnArchive, prnTTT, NULL, pccArg) == FALSE) {
+      printf("Error arcAddResNode()\n");
     }
     else if (resNodeClose(prnArchive) == FALSE) {
       printf("error of resNodeClose()\n");
@@ -157,8 +157,8 @@ cxpArcTest(cxpContextPtr pccArg)
     else if (resNodeOpen(prnArchive, "wa") == FALSE) {
       printf("error of resNodeOpen()\n");
     }
-    else if (arcNodeTextListAdd(prnArchive, pucList, pccArg) == FALSE) {
-      printf("Error arcNodeTextListAdd()\n");
+    else if (arcAddTextList(prnArchive, pucList, pccArg) == FALSE) {
+      printf("Error arcAddTextList()\n");
     }
     else if (resNodeClose(prnArchive) == FALSE) {
       printf("error of resNodeClose()\n");
@@ -192,8 +192,8 @@ cxpArcTest(cxpContextPtr pccArg)
     else if (resNodeOpen(prnArchive, "wa") == FALSE) {
       printf("error of resNodeOpen()\n");
     }
-    else if (arcNodeTreeAdd(prnArchive, pndTestDir, pccArg) == FALSE) {
-      printf("Error arcNodeTreeAdd()\n");
+    else if (arcAddNodeList(prnArchive, pndTestDir, pccArg) == FALSE) {
+      printf("Error arcAddNodeList()\n");
     }
     else if (resNodeClose(prnArchive) == FALSE) {
       printf("error of resNodeClose()\n");

@@ -67,9 +67,6 @@ resNodeSetNameBaseNative(resNodePtr prnArg, char *pcArgPath);
 static BOOL_T
 resNodeResetNameBase(resNodePtr prnArg);
 
-static BOOL_T
-resNodeContentToDOM(xmlNodePtr pndArg, resNodePtr prnArg);
-
 /* **********************************************************************************************
 
    filesystem resource node functions
@@ -1203,6 +1200,79 @@ resNodeDirNew(xmlChar *pucArgPath)
 } /* end of resNodeDirNew() */
 
 
+/*! split the multi-line buffer pucArg into single resource nodes
+
+\param pucArg a pointer to buffer
+\return new ancestor resource node
+*/
+resNodePtr
+resNodeSplitLineBufferNew(xmlChar* pucArg)
+{
+  resNodePtr prnResult = NULL;
+
+  if (STR_IS_NOT_EMPTY(pucArg)) {
+    int i;
+    int j;
+    int l;
+
+    for (i=0, j=0, l=0; ; ) {
+
+      if (isend(pucArg[i]) || pucArg[i] == '\n' || pucArg[i] == '\r') {
+	int k;
+	xmlChar* pucPath;
+
+	if (i == j) {
+	  if (isend(pucArg[i])) {
+	    break;
+	  }
+
+	  while (pucArg[i] == '\n' || pucArg[i] == '\r') {
+	    i++; /* skip multiple line breaks */
+	  }
+	  j = i;
+	  continue;
+	}
+
+	/* check if the string is of blank chars only */
+	for (pucPath=NULL, k=j; k < i; k++) {
+	  if (isspace(pucArg[k])) {
+	  }
+	  else {
+	    pucPath = xmlStrndup(&(pucArg[j]), i - j);
+	    break;
+	  }
+	}
+
+	if (STR_IS_NOT_EMPTY(pucPath)) {
+	  if (l > 0) {
+	    assert(prnResult);
+	    resNodeInsertStrNew(prnResult, pucPath);
+	  }
+	  else {
+	    prnResult = resNodeSplitStrNew(pucPath);
+	  }
+	  l++;
+	}
+	xmlFree(pucPath);
+
+	if (isend(pucArg[i])) {
+	  break;
+	}
+
+	while (pucArg[i] == '\n' || pucArg[i] == '\r') {
+	  i++; /* skip multiple line breaks */
+	}
+	j = i;
+      }
+      else {
+	i++;
+      }
+    }
+  }
+  return prnResult;
+} /* end of resNodeSplitLineBufferNew() */
+
+
 /*! split a prnArg into its single ancestor resource nodes
 
 \param prnArg a pointer to a resource node without a child node
@@ -1639,12 +1709,15 @@ resNodeSetNameBaseDir(resNodePtr prnArg, xmlChar* pucArgPath)
 
   if (prnArg) {
 #if 1
-    xmlFree(prnArg->pucNameNormalized);
-    prnArg->pucNameNormalized = NULL;
-    xmlFree(prnArg->pucNameBaseDir);
-    prnArg->pucNameBaseDir = NULL;
-    assert(prnArg->pucNameBase);
-    prnArg->pucNameBaseDir = xmlStrdup(pucArgPath);
+    if (resNodeIsDir(prnArg) || resNodeIsFile(prnArg)) {
+      xmlFree(prnArg->pucNameNormalized);
+      prnArg->pucNameNormalized = NULL;
+      xmlFree(prnArg->pucNameBaseDir);
+      prnArg->pucNameBaseDir = NULL;
+      assert(prnArg->pucNameBase);
+      prnArg->pucNameBaseDir = xmlStrdup(pucArgPath);
+    }
+    resNodeSetNameBaseDir(resNodeGetNext(prnArg), pucArgPath);
 #else
     xmlChar* pucPathNew;
 
@@ -2707,7 +2780,13 @@ resNodeContentToDOM(xmlNodePtr pndArg, resNodePtr prnArg)
 	resNodePtr prnEntry;
 	
 	PrintFormatLog(2, "Use archive content of file '%s'", resNodeGetNameNormalized(prnArg));
-	pndArchive = xmlNewChild(pndArg, NULL, NAME_ARCHIVE, NULL);
+	if (IS_NODE_ARCHIVE(pndArg)) {
+	  pndArchive = pndArg;
+	}
+	else {
+	  pndArchive = xmlNewChild(pndArg, NULL, NAME_ARCHIVE, NULL);
+	}
+
 	for (prnEntry = resNodeGetChild(prnArg); prnEntry; prnEntry = resNodeGetNext(prnEntry)) {
 	  xmlNodePtr pndEntry;
 

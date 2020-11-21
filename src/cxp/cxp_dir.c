@@ -553,6 +553,7 @@ dirNodeToResNodeList(xmlNodePtr pndArg)
     prnResult = prnNew;
   }
   else if (IS_NODE_FILE(pndArg) && STR_IS_NOT_EMPTY(pucName)) {
+    /*!\bug handle URL etc */
     prnNew = resNodeSplitStrNew(pucName);
     resNodeSetType(prnNew, rn_type_file);
     if (resPathIsRelative(pucAttrMap)) {

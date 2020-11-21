@@ -488,6 +488,29 @@ resNodeTest(void)
 
 
   if (RUNTEST) {
+    xmlChar* pucT;
+    resNodePtr prnT = NULL;
+
+    i++;
+    printf("TEST %i in '%s:%i': resNodeSplitLineBufferNew() = ", i, __FILE__, __LINE__);
+
+    if ((prnT = resNodeSplitLineBufferNew(NULL)) != NULL) {
+      printf("Error 2 resNodeSplitStrNew()\n");
+    }
+    else if ((prnT = resNodeSplitLineBufferNew(BAD_CAST "option\\pie\\text\\test.pie\noption/pie/abc.xml\n\ntmp\\def.txt\n \n\r")) == NULL) {
+      printf("Error 1 resNodeInsert()\n");
+    }
+    else {
+      n_ok++;
+      printf("OK\n");
+    }
+
+    //pucT = resNodeListToPlain(prnT,RN_INFO_MIN); fputs((const char *)pucT,stderr); xmlFree(pucT);
+    resNodeFree(prnT);
+  }
+
+
+  if (RUNTEST) {
     resNodePtr prnT = NULL;
     xmlChar mucT[BUFFER_LENGTH];
 

@@ -338,6 +338,9 @@ extern resNodePtr
 resNodeSplitStrNew(xmlChar *pucArgPath);
 
 extern resNodePtr
+resNodeSplitLineBufferNew(xmlChar* pucArg);
+
+extern resNodePtr
 resNodeInsert(resNodePtr prnArgTree, resNodePtr prnArg);
 
 extern resNodePtr
@@ -613,6 +616,8 @@ resNodeSetProp(resNodePtr prnArg, xmlChar *pucArgKey, xmlChar *pucArgValue);
 extern xmlChar *
 resNodeGetProp(resNodePtr prnArg, xmlChar *pucArgKey);
 
+extern BOOL_T
+resNodeContentToDOM(xmlNodePtr pndArg, resNodePtr prnArg);
 
 #ifdef TESTCODE
 extern int

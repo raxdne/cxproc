@@ -321,7 +321,10 @@ OpenArchive(resNodePtr prnArg)
 	&& archive_write_set_format_zip((arcPtr)prnArg->handleIO) == ARCHIVE_OK)
 	||
 	(resNodeGetMimeType(prnArg) == MIME_APPLICATION_X_TAR
-	&& archive_write_set_format_gnutar((arcPtr)prnArg->handleIO) == ARCHIVE_OK)) {
+	&& archive_write_set_format_gnutar((arcPtr)prnArg->handleIO) == ARCHIVE_OK)
+	||
+	(resNodeGetMimeType(prnArg) == MIME_APPLICATION_X_ISO9660_IMAGE
+	&& archive_write_set_format_iso9660((arcPtr)prnArg->handleIO) == ARCHIVE_OK)) {
 
 	if (archive_write_add_filter_none((arcPtr)prnArg->handleIO) == ARCHIVE_OK
 	  && archive_write_open_filename((arcPtr)prnArg->handleIO, resNodeGetNameNormalizedNative(prnArg)) == ARCHIVE_OK) {
