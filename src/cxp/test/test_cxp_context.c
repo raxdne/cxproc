@@ -290,6 +290,60 @@ cxpCtxtTest(cxpContextPtr pccArg)
 
 
   if (RUNTEST) {
+    xmlChar* pucTT = NULL;
+    xmlDocPtr pdocTest;
+    xmlNodePtr pndMake;
+    xmlNodePtr pndPie;
+    xmlNodePtr pndT;
+    xmlNodePtr pndXml;
+    resNodePtr prnT = NULL;
+    cxpContextPtr pccT = NULL;
+    cxpContextPtr pccTT = NULL;
+
+    i++;
+    printf("TEST %i in '%s:%i': cxpCtxtFromAttr() = ", i, __FILE__, __LINE__);
+
+    pdocTest = xmlNewDoc(BAD_CAST "1.0");
+    pdocTest->encoding = xmlStrdup(BAD_CAST "UTF-8");
+    pndMake = xmlNewDocNode(pdocTest, NULL, NAME_MAKE, NULL);
+    xmlDocSetRootElement(pdocTest, pndMake);
+    xmlSetProp(pndMake, BAD_CAST "dir", BAD_CAST "pwd");
+    pndT = xmlNewChild(pndMake,NULL, NAME_XML,NULL);
+    pndXml = xmlNewChild(pndT, NULL, NAME_XML, NULL);
+    xmlSetProp(pndXml, BAD_CAST "context", BAD_CAST "../..");
+    xmlSetProp(pndXml, BAD_CAST "log", BAD_CAST "3");
+    pndT = xmlNewChild(pndMake, NULL, NAME_PLAIN, NULL);
+
+    if ((pccT = cxpCtxtFromAttr(pccArg, pndMake)) == NULL) {
+      printf("Error\n");
+    }
+    else if (resPathIsEquivalent(resNodeGetNameNormalized(cxpCtxtLocationGet(pccT)), BAD_CAST BUILDPREFIX) == FALSE) {
+      printf("Error\n");
+    }
+    else if ((pccTT = cxpCtxtFromAttr(pccT, pndXml)) == NULL) {
+      printf("Error\n");
+    }
+    else if ((pucTT = resPathCollapse(BAD_CAST BUILDPREFIX "../..", FS_PATH_FULL)) == NULL) {
+      printf("Error\n");
+    }
+    else if (resPathIsEquivalent(resNodeGetNameNormalized(cxpCtxtLocationGet(pccTT)), pucTT) == FALSE) {
+      printf("Error\n");
+    }
+    else if (cxpCtxtFromAttr(pccT, pndT) != pccT) {
+      printf("Error\n");
+    }
+    else {
+      n_ok++;
+      printf("OK\n");
+    }
+
+    //domPutDocString(stderr,BAD_CAST"",pdocTest);
+    xmlFree(pucTT);
+    xmlFreeDoc(pdocTest);
+  }
+
+
+  if (RUNTEST) {
     xmlNodePtr pndXml;
     cxpContextPtr pccT;
 

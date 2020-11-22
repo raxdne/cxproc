@@ -10,7 +10,7 @@ zip selected directory
   <cxp:system message="Pack to '%FILEARCHIVE%' files in '%DIRSRC%' ..."/>
   <cxp:zip name="%FILEARCHIVE%">
     <cxp:xml>
-      <cxp:dir depth="3" verbosity="2"> <!--  imatch="\.(txt|mm)$" -->
+      <cxp:dir verbosity="1"> <!--  imatch="\.(txt|mm)$" -->
         <cxp:dir name="%DIRSRC%"/>
       </cxp:dir>
     </cxp:xml>

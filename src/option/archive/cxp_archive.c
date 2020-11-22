@@ -66,9 +66,18 @@ arcProcessZipNode(xmlNodePtr pndArgZip, cxpContextPtr pccArg)
 
     prnZip = cxpResNodeResolveNew(pccArg, pndArgZip, NULL, CXP_O_NONE);
     if (prnZip) {
+      xmlChar* pucT;
       cxpContextPtr pccHere;
 
-      pccHere = cxpCtxtFromAttr(pccArg, pndArgZip);
+      resNodeSetMimeType(prnZip,MIME_APPLICATION_ZIP);
+#if 0
+      if ((pucT = domGetAttributePtr(pndArgZip, BAD_CAST"context"))) {
+	pccHere = cxpCtxtFromAttr(pccArg, pndArgZip);
+      }
+      else {
+      }
+#endif
+	pccHere = pccArg;
 
       if (pndArgZip->children == NULL) { /* zip element has no childs, parse content only */
 	if (resNodeIsReadable(prnZip) && resNodeUpdate(prnZip, RN_INFO_CONTENT, NULL, NULL)) { /*! read Resource Node as list of childs */
@@ -139,6 +148,7 @@ arcProcessZipNode(xmlNodePtr pndArgZip, cxpContextPtr pccArg)
 	  }
 	}
 	resNodeClose(prnZip);
+	/*!\todo define resulting pdocResult */
       }
       resNodeFree(prnZip);
 
@@ -196,7 +206,7 @@ arcAddResNode(resNodePtr prnArgZip, resNodePtr prnArgAdd, xmlChar* pucArg, cxpCo
     else {
 
 #ifdef DEBUG
-      PrintFormatLog(1, "Compress '%s' as '%s' to '%s'",
+      PrintFormatLog(3, "Compress '%s' as '%s' to '%s'",
 	resNodeGetNameNormalizedNative(prnArgAdd),
 	pucT,
 	resNodeGetNameNormalizedNative(prnArgZip));
@@ -280,7 +290,8 @@ arcAddTextList(resNodePtr prnArgZip, xmlChar *pucArg, cxpContextPtr pccArg)
     resNodePtr prnTree = NULL;
 
     if ((prnTree = resNodeSplitLineBufferNew(pucArg))) {
-      if (resNodeSetNameBaseDir(prnTree, cxpCtxtLocationGetStr(pccArg))) {
+      if (resNodeGetNameBaseDir(prnTree) == NULL) {
+	resNodeSetNameBaseDir(prnTree, cxpCtxtLocationGetStr(pccArg));
       }
       fResult = arcAddResNode(prnArgZip, prnTree, NULL, pccArg);
       resNodeFree(prnTree);
@@ -301,7 +312,8 @@ arcAddNodeList(resNodePtr prnArgZip, xmlNodePtr pndArg, cxpContextPtr pccArg)
     resNodePtr prnTree;
 
     if ((prnTree = dirNodeToResNodeList(pndArg))) {
-      if (resNodeSetNameBaseDir(prnTree, cxpCtxtLocationGetStr(pccArg))) {
+      if (resNodeGetNameBaseDir(prnTree) == NULL) {
+	resNodeSetNameBaseDir(prnTree, cxpCtxtLocationGetStr(pccArg));
       }
       fResult = arcAddResNode(prnArgZip, prnTree, NULL, pccArg);
       resNodeFree(prnTree);

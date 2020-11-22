@@ -749,7 +749,7 @@ cxpTest(cxpContextPtr pccArg)
     else if (cxpCtxtSearchSet(pccT, prnT) == FALSE) {
       printf("Error cxpCtxtSearchSet()\n");
     }
-    else if ((prnTT = resNodeListFindPath(cxpCtxtSearchGet(pccT), BAD_CAST"config.cxp", RN_FIND_FILE)) == NULL) {
+    else if ((prnTT = resNodeListFindPath(cxpCtxtSearchGet(pccT), BAD_CAST"config.cxp", (RN_FIND_FILE | RN_FIND_IN_SUBDIR))) == NULL) {
       printf("Error resNodeListFindPath()\n");
     }
     else if (resNodeIsFile(prnTT) == FALSE) {
@@ -793,7 +793,7 @@ cxpTest(cxpContextPtr pccArg)
     else if ((pccTT = cxpCtxtNew()) == NULL || cxpCtxtAddChild(pccTop, pccTT) == FALSE) {
       printf("Error cxpCtxtAddChild()\n");
     }
-    else if ((prnTT = resNodeListFindPath(cxpCtxtSearchGet(pccTT), BAD_CAST"config.cxp", RN_FIND_FILE)) == NULL) {
+    else if ((prnTT = resNodeListFindPath(cxpCtxtSearchGet(pccTT), BAD_CAST"config.cxp", (RN_FIND_FILE | RN_FIND_IN_SUBDIR))) == NULL) {
       printf("Error resNodeListFindPath()\n");
     }
     else if (resNodeIsFile(prnTT) == FALSE) {
