@@ -1297,13 +1297,29 @@ resNodeReadDoc(resNodePtr prnArg)
   }
 #endif
 #ifdef HAVE_ZLIB
-  else if (resNodeGetMimeType(prnArg) == MIME_APPLICATION_MMAP_XML) {
+  else if (resNodeGetMimeType(prnArg) == MIME_APPLICATION_MMAP_XML
+#ifndef HAVE_LIBARCHIVE
+    || resNodeGetMimeType(prnArg) == MIME_APPLICATION_VND_OPENXMLFORMATS_OFFICEDOCUMENT_WORDPROCESSINGML_DOCUMENT
+    || resNodeGetMimeType(prnArg) == MIME_APPLICATION_VND_OASIS_OPENDOCUMENT_TEXT
+#endif
+  ) {
     char* pcT;
     xmlChar* pucPath = NULL;
 
     pucPath = xmlStrdup(BAD_CAST "zip:");
     pucPath = xmlStrcat(pucPath, resNodeGetNameNormalized(prnArg));
-    pucPath = xmlStrcat(pucPath, BAD_CAST "!/Document.xml");
+
+    if (resNodeGetMimeType(prnArg) == MIME_APPLICATION_MMAP_XML) {
+      pucPath = xmlStrcat(pucPath, BAD_CAST "!/Document.xml");
+    }
+#ifndef HAVE_LIBARCHIVE
+    else if (resNodeGetMimeType(prnArg) == MIME_APPLICATION_VND_OPENXMLFORMATS_OFFICEDOCUMENT_WORDPROCESSINGML_DOCUMENT) {
+      pucPath = xmlStrcat(pucPath, BAD_CAST "!/word/document.xml");
+    }
+    else if (resNodeGetMimeType(prnArg) == MIME_APPLICATION_VND_OASIS_OPENDOCUMENT_TEXT) {
+      pucPath = xmlStrcat(pucPath, BAD_CAST "!/content.xml");
+    }
+#endif
 
     pcT = resPathDecode(pucPath); /* handle non-ASCII paths */
     options = XML_PARSE_RECOVER | XML_PARSE_NOENT | XML_PARSE_NOERROR | XML_PARSE_NOWARNING | XML_PARSE_NSCLEAN | XML_PARSE_NODICT;
@@ -1313,8 +1329,7 @@ resNodeReadDoc(resNodePtr prnArg)
     xmlFree(pucPath);
   }
 #endif
-#ifdef HAVE_LIBARCHIVE
-#else
+#ifndef HAVE_LIBARCHIVE
   else if (resNodeIsFileInArchive(prnArg)) {
     PrintFormatLog(1, "Cant uncompress file '%s'", resNodeGetNameNormalized(prnArg));
   }

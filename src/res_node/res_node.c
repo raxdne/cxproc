@@ -2707,8 +2707,12 @@ resNodeContentToDOM(xmlNodePtr pndArg, resNodePtr prnArg)
     case MIME_APPLICATION_XMMAP_XML:
 #ifdef HAVE_ZLIB
     case MIME_APPLICATION_MMAP_XML:
+#ifndef HAVE_LIBARCHIVE
+    case MIME_APPLICATION_VND_OPENXMLFORMATS_OFFICEDOCUMENT_WORDPROCESSINGML_DOCUMENT:
+    case MIME_APPLICATION_VND_OASIS_OPENDOCUMENT_TEXT:
 #endif
-    case MIME_APPLICATION_XSPF_XML:
+#endif
+   case MIME_APPLICATION_XSPF_XML:
     case MIME_TEXT_HTML:
     case MIME_TEXT_XML:
     case MIME_TEXT_XSL:
@@ -3423,8 +3427,8 @@ resNodeSetOwner(resNodePtr prnArg)
       GlobalFree(AcctName);
     }
     /*!\bug Freeing of pSidOwner cause to crash */
-    LocalFree(pSidOwner);
-    LocalFree(pSecurityDescriptor);
+    //LocalFree(pSidOwner);
+    //LocalFree(pSecurityDescriptor);
 #elif defined(_WIN32)
     /*!\todo owner detection on MinGW */
 #else
