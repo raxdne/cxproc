@@ -657,7 +657,7 @@ resNodeListToDOM(resNodePtr prnArg, int iArgOptions)
 } /* end of resNodeListToDOM() */
 
 
-/*! Resource Node List To SQL  
+/*! Resource Node List To SQL
 
 \param prnArg -- resNode tree to build as SQL INSERT statements
 \return pointer to buffer with SQL INSERTs
@@ -784,21 +784,30 @@ resNodeListToPlain(resNodePtr prnArg, int iArgOptions)
   if (prnArg) {
     resNodePtr prnT;
 
-    pucResult = xmlStrdup(BAD_CAST"");
     for (prnT = prnArg; prnT; prnT = resNodeGetNext(prnT)) {
-      xmlChar *pucT = NULL;
+      xmlChar* pucT = NULL;
       resNodePtr prnChild;
 
-      pucT = resNodeToPlain(prnT,iArgOptions);
-      if (STR_IS_NOT_EMPTY(pucT)) {
-	pucResult = xmlStrcat(pucResult,pucT);
-      }
-      xmlFree(pucT);
-
       if ((prnChild = resNodeGetChild(prnT))) {
-	pucT = resNodeListToPlain(prnChild,iArgOptions);
-	pucResult = xmlStrcat(pucResult,pucT);
-	xmlFree(pucT);
+	if ((pucT = resNodeListToPlain(prnChild, iArgOptions))) {
+	  if (pucResult) {
+	    pucResult = xmlStrcat(pucResult, pucT);
+	    xmlFree(pucT);
+	  }
+	  else {
+	    pucResult = pucT;
+	  }
+	}
+      }
+
+      if ((pucT = resNodeToPlain(prnT, iArgOptions))) {
+	if (pucResult) {
+	  pucResult = xmlStrcat(pucResult, pucT);
+	  xmlFree(pucT);
+	}
+	else {
+	  pucResult = pucT;
+	}
       }
     }
   }

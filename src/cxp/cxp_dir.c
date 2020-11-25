@@ -514,6 +514,71 @@ SetTopPrefix(xmlNodePtr pndArg, resNodePtr prnArg, cxpContextPtr pccArg)
 } /* end of SetTopPrefix() */
 
 
+/*! Resource Node List from DOM
+
+\param prnArg -- resNode tree to build as DOM
+\param iArgOptions
+\return DOM tree representing prnArg
+*/
+resNodePtr
+dirNodeToResNodeList(xmlNodePtr pndArg)
+{
+  resNodePtr prnResult = NULL;
+  xmlChar* pucName;
+  resNodePtr prnNew;
+  xmlNodePtr pndI;
+  xmlChar* pucAttrMap;
+
+  pucAttrMap = domGetAttributePtr(pndArg, BAD_CAST "map"); /* alternative name */
+  pucName = domGetAttributePtr(pndArg, BAD_CAST"name");
+
+  if (IS_NODE_DIR(pndArg) && STR_IS_NOT_EMPTY(pucName)) {
+    xmlChar* pucPrefix;
+
+    prnNew = resNodeSplitStrNew(pucName);
+    resNodeSetType(prnNew, rn_type_dir);
+    if (resPathIsRelative(pucAttrMap)) {
+      resNodeSetNameAlias(prnNew, pucAttrMap);
+    }
+    for (pndI=pndArg->children; pndI; pndI=pndI->next) {
+      resNodeAddChild(prnNew, dirNodeToResNodeList(pndI));
+    }
+
+    if ((pucPrefix = domGetAttributePtr(pndArg, BAD_CAST"prefix"))) {
+      //prnResult = resNodeSplitStrNew(pucPrefix);
+      //resNodeAddChild(resNodeGetLastDescendant(prnResult), prnNew);
+      if (resNodeSetNameBaseDir(prnNew, pucPrefix)) {
+      }
+    }
+    prnResult = prnNew;
+  }
+  else if (IS_NODE_FILE(pndArg) && STR_IS_NOT_EMPTY(pucName)) {
+    /*!\bug handle URL etc */
+    prnNew = resNodeSplitStrNew(pucName);
+    resNodeSetType(prnNew, rn_type_file);
+    if (resPathIsRelative(pucAttrMap)) {
+      resNodeSetNameAlias(prnNew, pucAttrMap);
+    }
+    prnResult = prnNew;
+  }
+#if 0
+  else if (IS_ENODE(pndArg)) {
+    for (pndI=pndArg->children; pndI; pndI=pndI->next) {
+      if ((prnNew = dirNodeToResNodeList(pndI))) {
+	if (prnResult) {
+	  resNodeAddSibling(prnResult,prnNew);
+	}
+	else {
+	  prnResult = prnNew;
+	}
+      }
+    }
+  }
+#endif
+  return prnResult;
+} /* end of dirNodeToResNodeList() */
+
+
 #ifdef TESTCODE
 #include "test/test_cxp_dir.c"
 #endif

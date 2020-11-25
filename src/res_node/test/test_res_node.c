@@ -398,6 +398,119 @@ resNodeTest(void)
 
 
   if (RUNTEST) {
+    xmlChar* pucT;
+    resNodePtr prnPath = NULL;
+    resNodePtr prnT = NULL;
+    resNodePtr prnTT = NULL;
+    resNodePtr prnTTT = NULL;
+
+    i++;
+    printf("TEST %i in '%s:%i': resNodeInsert() = ", i, __FILE__, __LINE__);
+
+    if ((prnPath = resNodeSplitStrNew(BAD_CAST "option\\pie\\text\\test.pie")) == NULL) {
+      printf("Error 2 resNodeSplitStrNew()\n");
+    }
+    else if ((prnT = resNodeDirNew(BAD_CAST"option/")) == NULL) {
+      printf("Error resNodeDirNew()\n");
+    }
+    else if (resNodeAddChildNew(prnT, BAD_CAST"a.txt") == NULL) {
+      printf("Error resNodeAddChildNew()\n");
+    }
+    else if ((prnTT = resNodeAddChildNew(prnT, BAD_CAST"pie/")) == NULL) {
+      printf("Error resNodeAddChildNew()\n");
+    }
+    else if ((prnTTT = resNodeAddChildNew(prnTT, BAD_CAST"text/")) == NULL) {
+      printf("Error resNodeAddChildNew()\n");
+    }
+    else if (resNodeAddChildNew(prnTTT, BAD_CAST"c.html") == NULL) {
+      printf("Error resNodeAddChildNew()\n");
+    }
+#if 0
+    else if (resNodeAddChildNew(prnTTT, BAD_CAST"test.pie") == NULL) {
+      printf("Error resNodeAddChildNew()\n");
+    }
+    else if (resNodeInsert(NULL,NULL) != NULL) {
+      printf("Error 1 resNodeInsert()\n");
+    }
+    else if (resNodeInsert(prnPath,NULL) != NULL) {
+      printf("Error 1 resNodeInsert()\n");
+    }
+#endif
+    else if (resNodeInsert(prnT, prnPath) != NULL) {
+      printf("Error 1 resNodeInsert()\n");
+    }
+    else {
+      n_ok++;
+      printf("OK\n");
+    }
+
+    //pucT = resNodeListToPlain(prnT,RN_INFO_MIN); fputs((const char *)pucT,stderr); xmlFree(pucT);
+    resNodeFree(prnPath);
+    resNodeFree(prnT);
+  }
+
+
+  if (RUNTEST) {
+    xmlChar* pucT;
+    resNodePtr prnT = NULL;
+    resNodePtr prnTT = NULL;
+    resNodePtr prnTTT = NULL;
+
+    i++;
+    printf("TEST %i in '%s:%i': resNodeInsert() = ", i, __FILE__, __LINE__);
+
+    if ((prnT = resNodeSplitStrNew(BAD_CAST "option\\pie\\text\\test.pie")) == NULL) {
+      printf("Error 2 resNodeSplitStrNew()\n");
+    }
+    else if (resNodeInsertStrNew(prnT, BAD_CAST "option\\pie\\text\\test.pie") != NULL) {
+      printf("Error 1 resNodeInsert()\n");
+    }
+    else if (resNodeInsertStrNew(prnT, BAD_CAST "option\\pie\\test.pie") == NULL) {
+      printf("Error 1 resNodeInsert()\n");
+    }
+    else if (resNodeInsertStrNew(prnT, BAD_CAST "option\\test.pie") == NULL) {
+      printf("Error 1 resNodeInsert()\n");
+    }
+    else if (resNodeInsertStrNew(prnT, BAD_CAST "test.pie") == NULL) {
+      printf("Error 1 resNodeInsert()\n");
+    }
+    else if (resNodeInsertStrNew(prnT, NULL) != NULL) {
+      printf("Error 1 resNodeInsert()\n");
+    }
+    else {
+      n_ok++;
+      printf("OK\n");
+    }
+
+    //pucT = resNodeListToPlain(prnT,RN_INFO_MIN); fputs((const char *)pucT,stderr); xmlFree(pucT);
+    resNodeFree(prnT);
+  }
+
+
+  if (RUNTEST) {
+    xmlChar* pucT;
+    resNodePtr prnT = NULL;
+
+    i++;
+    printf("TEST %i in '%s:%i': resNodeSplitLineBufferNew() = ", i, __FILE__, __LINE__);
+
+    if ((prnT = resNodeSplitLineBufferNew(NULL)) != NULL) {
+      printf("Error 2 resNodeSplitStrNew()\n");
+    }
+    else if ((prnT = resNodeSplitLineBufferNew(BAD_CAST "option\\pie\\text\\test.pie\noption/pie/abc.xml\n\ntmp\\def.txt\n \n\r")) == NULL) {
+      printf("Error 1 resNodeInsert()\n");
+    }
+    else {
+      n_ok++;
+      printf("OK\n");
+    }
+
+    //pucT = resNodeListToPlain(prnT,RN_INFO_MIN); fputs((const char *)pucT,stderr); xmlFree(pucT);
+    resNodeFree(prnT);
+  }
+
+
+  if (RUNTEST) {
     resNodePtr prnT = NULL;
     xmlChar mucT[BUFFER_LENGTH];
 

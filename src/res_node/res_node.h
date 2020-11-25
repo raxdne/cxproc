@@ -338,6 +338,15 @@ extern resNodePtr
 resNodeSplitStrNew(xmlChar *pucArgPath);
 
 extern resNodePtr
+resNodeSplitLineBufferNew(xmlChar* pucArg);
+
+extern resNodePtr
+resNodeInsert(resNodePtr prnArgTree, resNodePtr prnArg);
+
+extern resNodePtr
+resNodeInsertStrNew(resNodePtr prnArg, xmlChar* pucArgPath);
+
+extern resNodePtr
 resNodeConcatNew(xmlChar *pucArgPath, xmlChar *pucArgPathB);
 
 extern resNodePtr
@@ -376,6 +385,9 @@ resNodeGetRoot(resNodePtr prnArg);
 extern resNodePtr
 resNodeGetAncestorArchive(resNodePtr prnArg);
 
+extern xmlChar*
+resNodeGetAncestorPathStr(resNodePtr prnArg);
+
 extern resNodePtr
 resNodeGetLastDescendant(resNodePtr prnArgList);
 
@@ -402,6 +414,9 @@ resNodeSetNameAlias(resNodePtr prnArg, xmlChar *pucArg);
 
 extern BOOL_T
 resNodeSetNameBase(resNodePtr prnArg, xmlChar *pucArgPath);
+
+extern BOOL_T
+resNodeSetNameBaseDir(resNodePtr prnArg, xmlChar *pucArgPath);
 
 extern BOOL_T
 _resNodeSetNameAncestor(resNodePtr prnArg, xmlChar *pucArgPath);
@@ -601,6 +616,8 @@ resNodeSetProp(resNodePtr prnArg, xmlChar *pucArgKey, xmlChar *pucArgValue);
 extern xmlChar *
 resNodeGetProp(resNodePtr prnArg, xmlChar *pucArgKey);
 
+extern BOOL_T
+resNodeContentToDOM(xmlNodePtr pndArg, resNodePtr prnArg);
 
 #ifdef TESTCODE
 extern int

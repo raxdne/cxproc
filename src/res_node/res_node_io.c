@@ -261,6 +261,8 @@ resNodeOpen(resNodePtr prnArg, const char *pchArgMode)
 
 /*! opens context prnArg
 
+\todo handle in-memory achives for stdout/stdin s. archive_write_open_memory()
+
 \return TRUE if successful
 */
 BOOL_T
@@ -280,7 +282,7 @@ OpenArchive(resNodePtr prnArg)
 	    prnArg->fExist = TRUE;
 	    prnArg->eAccess = rn_access_archive;
 	    fResult = TRUE;
-	    PrintFormatLog(4, "archive_read_open_filename('%s') OK", resNodeGetNameNormalized(prnArg));
+	    PrintFormatLog(4, "archive_read_open_memory('%s') OK", resNodeGetNameNormalized(prnArg));
 	  }
 	  else {
 	    CloseArchive(prnArg);
@@ -319,16 +321,45 @@ OpenArchive(resNodePtr prnArg)
       //archive_write_set_options((arcPtr)prnArg->handleIO, "compression=store");
       if ((resNodeGetMimeType(prnArg) == MIME_APPLICATION_ZIP
 	&& archive_write_set_format_zip((arcPtr)prnArg->handleIO) == ARCHIVE_OK)
+#if 0
 	||
 	(resNodeGetMimeType(prnArg) == MIME_APPLICATION_X_TAR
-	&& archive_write_set_format_gnutar((arcPtr)prnArg->handleIO) == ARCHIVE_OK)) {
+	&& archive_write_set_format_gnutar((arcPtr)prnArg->handleIO) == ARCHIVE_OK)
+	||
+	(resNodeGetMimeType(prnArg) == MIME_APPLICATION_X_ISO9660_IMAGE
+	&& archive_write_set_format_iso9660((arcPtr)prnArg->handleIO) == ARCHIVE_OK)
+#endif
+	) {
 
-	if (archive_write_add_filter_none((arcPtr)prnArg->handleIO) == ARCHIVE_OK
-	  && archive_write_open_filename((arcPtr)prnArg->handleIO, resNodeGetNameNormalizedNative(prnArg)) == ARCHIVE_OK) {
-	  prnArg->fExist = TRUE;
-	  prnArg->eAccess = rn_access_archive;
-	  fResult = TRUE;
-	  PrintFormatLog(4, "archive_write_open_filename('%s') OK", resNodeGetNameNormalized(prnArg));
+	if (archive_write_add_filter_none((arcPtr)prnArg->handleIO) == ARCHIVE_OK) {
+#if 0
+	  if (resNodeIsStd(prnArg)) {
+	    const size_t iSize = 1024 * 1024 * 1024;
+
+	    if ((prnArg->pContent = xmlMalloc(iSize))) {
+	      if (archive_write_open_memory((arcPtr)prnArg->handleIO, prnArg->pContent, iSize, &prnArg->liSizeContent) == ARCHIVE_OK) {
+		prnArg->fExist = TRUE;
+		prnArg->eAccess = rn_access_archive;
+		fResult = TRUE;
+		PrintFormatLog(4, "archive_write_open_memory('%s') OK", resNodeGetNameNormalized(prnArg));
+	      }
+	    }
+	    else {
+	      CloseArchive(prnArg);
+	      resNodeSetError(prnArg, rn_error_archive, "xmlMalloc() failed");
+	    }
+	  }
+#endif
+	  if (archive_write_open_filename((arcPtr)prnArg->handleIO, resNodeGetNameNormalizedNative(prnArg)) == ARCHIVE_OK) {
+	    prnArg->fExist = TRUE;
+	    prnArg->eAccess = rn_access_archive;
+	    fResult = TRUE;
+	    PrintFormatLog(4, "archive_write_open_filename('%s') OK", resNodeGetNameNormalized(prnArg));
+	  }
+	  else {
+	    CloseArchive(prnArg);
+	    resNodeSetError(prnArg, rn_error_archive, "archive_write_new('%s') failed", resNodeGetNameNormalized(prnArg));
+	  }
 	}
 	else {
 	  CloseArchive(prnArg);
@@ -1266,13 +1297,29 @@ resNodeReadDoc(resNodePtr prnArg)
   }
 #endif
 #ifdef HAVE_ZLIB
-  else if (resNodeGetMimeType(prnArg) == MIME_APPLICATION_MMAP_XML) {
+  else if (resNodeGetMimeType(prnArg) == MIME_APPLICATION_MMAP_XML
+#ifndef HAVE_LIBARCHIVE
+    || resNodeGetMimeType(prnArg) == MIME_APPLICATION_VND_OPENXMLFORMATS_OFFICEDOCUMENT_WORDPROCESSINGML_DOCUMENT
+    || resNodeGetMimeType(prnArg) == MIME_APPLICATION_VND_OASIS_OPENDOCUMENT_TEXT
+#endif
+  ) {
     char* pcT;
     xmlChar* pucPath = NULL;
 
     pucPath = xmlStrdup(BAD_CAST "zip:");
     pucPath = xmlStrcat(pucPath, resNodeGetNameNormalized(prnArg));
-    pucPath = xmlStrcat(pucPath, BAD_CAST "!/Document.xml");
+
+    if (resNodeGetMimeType(prnArg) == MIME_APPLICATION_MMAP_XML) {
+      pucPath = xmlStrcat(pucPath, BAD_CAST "!/Document.xml");
+    }
+#ifndef HAVE_LIBARCHIVE
+    else if (resNodeGetMimeType(prnArg) == MIME_APPLICATION_VND_OPENXMLFORMATS_OFFICEDOCUMENT_WORDPROCESSINGML_DOCUMENT) {
+      pucPath = xmlStrcat(pucPath, BAD_CAST "!/word/document.xml");
+    }
+    else if (resNodeGetMimeType(prnArg) == MIME_APPLICATION_VND_OASIS_OPENDOCUMENT_TEXT) {
+      pucPath = xmlStrcat(pucPath, BAD_CAST "!/content.xml");
+    }
+#endif
 
     pcT = resPathDecode(pucPath); /* handle non-ASCII paths */
     options = XML_PARSE_RECOVER | XML_PARSE_NOENT | XML_PARSE_NOERROR | XML_PARSE_NOWARNING | XML_PARSE_NSCLEAN | XML_PARSE_NODICT;
@@ -1282,8 +1329,7 @@ resNodeReadDoc(resNodePtr prnArg)
     xmlFree(pucPath);
   }
 #endif
-#ifdef HAVE_LIBARCHIVE
-#else
+#ifndef HAVE_LIBARCHIVE
   else if (resNodeIsFileInArchive(prnArg)) {
     PrintFormatLog(1, "Cant uncompress file '%s'", resNodeGetNameNormalized(prnArg));
   }

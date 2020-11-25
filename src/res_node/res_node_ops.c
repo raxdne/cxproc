@@ -279,58 +279,58 @@ resNodeMakeDirectory(resNodePtr prnArg, int mode)
   BOOL_T fResult = FALSE;
 
   if (prnArg) {
-    resNodePtr prnDirTest;
+    resNodeReadStatus(prnArg);
 
-    for (prnDirTest = prnArg; prnDirTest; prnDirTest = resNodeGetChild(prnDirTest)) {
-      resNodeReadStatus(prnDirTest);
+    if (resNodeGetType(prnArg) == rn_type_root) {
+      /* ignoring root node */
+      fResult = TRUE;
+    }
+    else if (resNodeIsExist(prnArg)) {
+      /* OK */
+      fResult = TRUE;
+    }
+    else {
+      int iResult;
 
-      if (resNodeGetType(prnDirTest) == rn_type_root) {
-	/* ignoring root node */
-	fResult = TRUE;
-      }
-      else if (resNodeIsExist(prnDirTest)) {
-	/* OK */
-	fResult = TRUE;
-      }
-      else {
-	int iResult;
-
-	PrintFormatLog(3, "MKDIR '%s'", resNodeGetNameNormalized(prnDirTest));
+      PrintFormatLog(1, "MKDIR '%s'", resNodeGetNameNormalized(prnArg));
 #ifdef _MSC_VER
-	iResult = CreateDirectory(resNodeGetNameNormalizedNative(prnDirTest), NULL);
-	if (iResult == 0) {
-	  DWORD dwErrorCode = GetLastError();
-	  if (dwErrorCode == ERROR_ALREADY_EXISTS) {
-	    resNodeSetError(prnDirTest, rn_error_mkdir, "Directory exists already");
-	  }
-	  else if (dwErrorCode == ERROR_PATH_NOT_FOUND) {
-	    resNodePtr prnT;
+      iResult = CreateDirectory(resNodeGetNameNormalizedNative(prnArg), NULL);
+      if (iResult == 0) {
+	DWORD dwErrorCode = GetLastError();
+	if (dwErrorCode == ERROR_ALREADY_EXISTS) {
+	  resNodeSetError(prnArg, rn_error_mkdir, "Directory exists already");
+	}
+	else if (dwErrorCode == ERROR_PATH_NOT_FOUND) {
+	  resNodePtr prnT;
 
-	    prnT = resNodeDirNew(resNodeGetNameBaseDir(prnDirTest));
-	    if (resNodeMakeDirectory(prnT, mode)) {
-	      fResult = resNodeMakeDirectory(prnDirTest, mode);
-	    }
-	    resNodeFree(prnT);
+	  prnT = resNodeDirNew(resNodeGetNameBaseDir(prnArg));
+	  if (resNodeMakeDirectory(prnT, mode)) {
+	    fResult = resNodeMakeDirectory(prnArg, mode);
 	  }
-	  else {
-	    resNodeSetError(prnDirTest, rn_error_mkdir, "Cant create directory");
-	  }
-	  break;
+	  resNodeFree(prnT);
 	}
-#else
-	iResult = mkdir(resNodeGetNameNormalizedNative(prnDirTest),mode);
-	if (iResult) {
-	  resNodeSetError(prnDirTest,rn_error_mkdir,"Cant create directory '%s'", resNodeGetNameNormalized(prnDirTest));
-	  fResult = FALSE;
-	  break;
-	}
-#endif
 	else {
-	  resNodeResetError(prnDirTest);
-	  fResult = resNodeReadStatus(prnDirTest);
+	  resNodeSetError(prnArg, rn_error_mkdir, "Cant create directory");
 	}
+	//break;
+      }
+#else
+      iResult = mkdir(resNodeGetNameNormalizedNative(prnArg), mode);
+      if (iResult) {
+	resNodeSetError(prnArg, rn_error_mkdir, "Cant create directory '%s'", resNodeGetNameNormalized(prnArg));
+	fResult = FALSE;
+	break;
+      }
+#endif
+      else {
+	resNodeResetError(prnArg);
+	fResult = resNodeReadStatus(prnArg);
       }
     }
+
+    fResult = resNodeMakeDirectory(resNodeGetChild(prnArg), mode);
+    fResult = resNodeMakeDirectory(resNodeGetNext(prnArg), mode);
+    fResult = TRUE;
   }
   return fResult;
 } /* end of resNodeMakeDirectory() */

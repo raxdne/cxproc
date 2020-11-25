@@ -214,6 +214,98 @@ dirTest(cxpContextPtr pccArg)
   }
 
   
+  if (RUNTEST) {
+    xmlChar* pucT;
+    xmlNodePtr pndT;
+    xmlNodePtr pndTT;
+    xmlNodePtr pndPie;
+    xmlNodePtr pndDir;
+    resNodePtr prnT = NULL;
+
+    i++;
+    printf("TEST %i in '%s:%i': SetTopPrefix() = ", i, __FILE__, __LINE__);
+
+    pndPie = xmlNewNode(NULL, NAME_PIE);
+
+    if ((pndDir = xmlNewChild(pndPie, NULL, NAME_DIR, NULL)) == NULL) {
+      printf("Error xmlNewChild()\n");
+    }
+    else if ((pndT = xmlNewChild(pndDir, NULL, NAME_DIR, NULL)) == NULL
+      || xmlSetProp(pndT,BAD_CAST"name", BAD_CAST"test") == NULL) {
+      printf("Error xmlNewChild()\n");
+    }
+    else if ((pndTT = xmlNewChild(pndDir, NULL, NAME_FILE, NULL)) == NULL
+      || xmlSetProp(pndTT,BAD_CAST"name", BAD_CAST"xyz.xml") == NULL
+      || xmlSetProp(pndTT, BAD_CAST"map", BAD_CAST"sub/uvw.xml") == NULL) {
+      printf("Error xmlNewChild()\n");
+    }
+    else if ((pndTT = xmlNewChild(pndT, NULL, NAME_FILE, NULL)) == NULL
+      || xmlSetProp(pndTT, BAD_CAST"name", BAD_CAST"xyz.xml") == NULL) {
+      printf("Error xmlNewChild()\n");
+    }
+    else if ((pndTT = xmlNewChild(pndT, NULL, NAME_FILE, NULL)) == NULL
+      || xmlSetProp(pndTT, BAD_CAST"name", BAD_CAST"abc.xml") == NULL
+      || xmlSetProp(pndTT, BAD_CAST"map", BAD_CAST"sub/abc.xml") == NULL) {
+      printf("Error xmlNewChild()\n");
+    }
+    else if ((prnT = dirNodeToResNodeList(pndPie)) == NULL) {
+      printf("Error resNodeDirNew()\n");
+    }
+    else {
+      n_ok++;
+      printf("OK\n");
+    }
+    //domPutNodeString(stderr, BAD_CAST "SetTopPrefix(): ", pndPie);
+    //pucT = resNodeListToPlain(prnT,RN_INFO_MIN); fputs((const char *)pucT,stderr); xmlFree(pucT);
+    resNodeFree(prnT);
+    xmlFreeNode(pndDir);
+  }
+
+
+  if (RUNTEST) {
+    xmlChar* pucT;
+    xmlDocPtr pdocTest;
+    xmlNodePtr pndTestDir;
+    xmlNodePtr pndT = NULL;
+    resNodePtr prnT = NULL;
+
+    i++;
+    printf("TEST %i in '%s:%i': parse a directory and count number of childs = ", i, __FILE__, __LINE__);
+
+    pndTestDir = xmlNewNode(NULL, NAME_DIR);
+    xmlSetProp(pndTestDir, BAD_CAST"name", BAD_CAST TESTPREFIX);
+    xmlSetProp(pndTestDir, BAD_CAST"depth", BAD_CAST"2");
+
+    if ((pdocTest = dirProcessDirNode(pndTestDir, NULL, pccArg)) == NULL) {
+      printf("Error dirProcessDirNode()\n");
+    }
+    else if ((pndT = xmlDocGetRootElement(pdocTest)) == NULL) {
+      printf("Error xmlDocGetRootElement()\n");
+    }
+    else if ((pndT = domGetFirstChild(pndT,NAME_DIR)) == NULL) {
+      printf("Error xmlDocGetRootElement()\n");
+    }
+    else if ((prnT = dirNodeToResNodeList(pndT)) == NULL) {
+      printf("Error resNodeDirNew()\n");
+    }
+    else if ((pndT = resNodeToDOM(prnT,RN_FIND_MIN)) == NULL) {
+      printf("Error xmlDocGetRootElement()\n");
+    }
+    else {
+      n_ok++;
+      printf("OK\n");
+    }
+
+    //domPutDocString(stderr, BAD_CAST ": ", pdocTest);
+    domPutNodeString(stderr, BAD_CAST "SetTopPrefix(): ", pndT);
+    pucT = resNodeListToPlain(prnT,RN_INFO_MIN); fputs((const char *)pucT,stderr); xmlFree(pucT);
+    resNodeFree(prnT);
+    xmlFreeNode(pndT);
+    xmlFreeDoc(pdocTest);
+    xmlFreeNode(pndTestDir);
+  }
+
+
   printf("TEST in '%s': %i/%i OK\n\n",__FILE__,n_ok,i);
 
   return (i - n_ok);

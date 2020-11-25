@@ -22,7 +22,7 @@
 /*!
 */
 int
-arcTest(cxpContextPtr pccArg)
+arcTest(void)
 {
   int i;
   int n_ok;
@@ -30,7 +30,7 @@ arcTest(cxpContextPtr pccArg)
   n_ok=0;
   i=0;
 
-#ifdef HAVE_LIBARCHIVE
+
   if (RUNTEST) {
     arcPtr a;
     int r;
@@ -621,9 +621,6 @@ arcTest(cxpContextPtr pccArg)
     resNodeFree(prnT);
   }
 
-#else
-  printf("Skip Archive TEST in '%s'\n\n",__FILE__);
-#endif
 
   printf("TEST in '%s': %i/%i OK\n\n", __FILE__, n_ok, i);
 

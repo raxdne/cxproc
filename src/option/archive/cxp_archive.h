@@ -22,7 +22,7 @@
 
 #ifdef TESTCODE
 extern int
-arcTest(cxpContextPtr pccArg);
+cxpArcTest(cxpContextPtr pccArg);
 #endif
 
 extern xmlDocPtr

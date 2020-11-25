@@ -244,7 +244,8 @@ main(int argc, char** argv, char** envp)
 
 #ifdef HAVE_LIBARCHIVE
       if (pcTest == NULL || xmlStrEqual(BAD_CAST pcTest, BAD_CAST "archive")) {
-	iErrorCode += arcTest(pccTest);
+	iErrorCode += arcTest();
+	iErrorCode += cxpArcTest(pccTest);
       }
 #endif
 

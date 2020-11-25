@@ -42,3 +42,8 @@ typedef struct archive_entry *arcEntryPtr;
 extern BOOL_T
 arcMapReadFormat(resNodePtr prnArg);
 
+#ifdef TESTCODE
+extern int
+arcTest(void);
+#endif
+

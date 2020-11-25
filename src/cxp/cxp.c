@@ -534,8 +534,9 @@ cxpAttributeLocatorResNodeNew(cxpContextPtr pccArg, xmlNodePtr pndArg, xmlChar *
 
     if (IS_NODE_MAKE(pndArg)) {
       pucAttrValue = domGetAttributePtr(pndArg, BAD_CAST "dir");
-      if (STR_IS_EMPTY(pucAttrValue)) {
+      if (STR_IS_EMPTY(pucAttrValue) || xmlStrEqual(pucAttrValue,BAD_CAST"pwd")) {
 	/* keep location of pccArg */
+	prnT = cxpCtxtLocationDup(pccArg);
       }
       else if (resPathIsAbsolute(pucAttrValue)) {
 	prnT = resNodeDirNew(pucAttrValue);
@@ -600,14 +601,18 @@ cxpResNodeResolveNew(cxpContextPtr pccArg, xmlNodePtr pndArg, xmlChar *pucArg, i
       pucAttrName = domGetAttributePtr(pndArg, BAD_CAST "name");
       if (pucAttrName == NULL) { /* no attribute 'name' */
       }
-      else if (STR_IS_EMPTY(pucAttrName) || xmlStrEqual(pucAttrName,BAD_CAST".")) { /* valid but empty attribute 'name' */
+      else if (STR_IS_EMPTY(pucAttrName) || xmlStrEqual(pucAttrName, BAD_CAST".")) { /* valid but empty attribute 'name' */
 #ifdef HAVE_CGI
 	pucAttrName = resNodeGetNameNormalized(cxpCtxtRootGet(pccArg));
 #else
 	/*\todo TBD */
 #endif	
       }
-      else { /* valid attribute 'name' */
+      else if (iArgOptions == CXP_O_NONE) {
+	/* no special focus */
+      }
+      else {
+	/* valid attribute 'name' */
 	if (cxpIsStorageNode(pndArg)) { /* => target node, must be writable */
 	  iArgOptions = CXP_O_WRITE;
 	  assert((iArgOptions & CXP_O_SEARCH) == 0); /* searching is not allowed */
@@ -621,7 +626,7 @@ cxpResNodeResolveNew(cxpContextPtr pccArg, xmlNodePtr pndArg, xmlChar *pucArg, i
 	  }
 	}
       }
-      
+
       if (pndArg->doc != NULL && STR_IS_NOT_EMPTY(pndArg->doc->URL)) {
 	/* derive path prefix from DOM */
 	pucDocUrlDir = resPathGetBasedir(BAD_CAST pndArg->doc->URL);
@@ -696,6 +701,9 @@ cxpResNodeResolveNew(cxpContextPtr pccArg, xmlNodePtr pndArg, xmlChar *pucArg, i
     }
     else if (resPathIsAbsolute(pucShortcut)) {
       prnResult = resNodeDirNew(pucShortcut);
+      if (IS_NODE_DIR(pndArg)) {
+	resNodeSetType(prnResult, rn_type_dir);
+      }
     }
     else if ((iArgOptions & CXP_O_READ)) { /* find a readable ressource */
 
@@ -785,15 +793,18 @@ cxpResNodeResolveNew(cxpContextPtr pccArg, xmlNodePtr pndArg, xmlChar *pucArg, i
       }
 #endif
     }
-    else { 
-      assert((iArgOptions & CXP_O_NONE));
+    else {
 #ifdef HAVE_CGI
-      prnResult = resNodeDup(cxpCtxtRootGet(pccArg), RN_DUP_THIS);
+    prnResult = resNodeDup(cxpCtxtRootGet(pccArg), RN_DUP_THIS);
 #else
-      if (pucLocation) { /* derive path prefix from pccArg */
-	prnResult = resNodeConcatNew(pucLocation, pucShortcut);
-      }
+    if (pucLocation) { /* derive path prefix from pccArg */
+      prnResult = resNodeConcatNew(pucLocation, pucShortcut);
+    }
 #endif
+    }
+
+    if (IS_NODE_DIR(pndArg)) {
+      resNodeSetType(prnResult, rn_type_dir);
     }
 
     // resNodeGetMimeType(prnResult)
