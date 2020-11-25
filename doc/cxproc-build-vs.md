@@ -18,32 +18,9 @@ s. `vcpkg\README.md` and `vcpkg\ports`
 __English__ Build Environment required (s. above)
 
     git clone https://github.com/microsoft/vcpkg.git
-    "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build\vcvars64.bat"
+    
+    .\cxproc\misc\prepare-cmake.bat
 	
-    bootstrap-vcpkg.bat
-    .\vcpkg integrate install
-    .\vcpkg install curl
-    .\vcpkg install pcre2
-    .\vcpkg install libarchive
-    .\vcpkg install libxslt
-    .\vcpkg install libxslt
-    .\vcpkg install sqlite3
-    .\vcpkg install duktape
-    
-    REM imagemagick libgif libexif libjpeg libpng libtiff
-    
-    SET INSTALLED=installed\x86-windows\debug
-    SET CXP_TARGET=C:\UserData\Develop\x86-windows-debug-dynamic
-    
-    REM SET INSTALLED=installed\x86-windows
-    REM SET CXP_TARGET=C:\UserData\Develop\x86-windows-dynamic
-    
-    robocopy /S %INSTALLED%\bin %CXP_TARGET%\bin *.*
-    robocopy /S %INSTALLED%\bin %CXP_TARGET%\www\cgi-bin *.*
-    robocopy /S %INSTALLED%\lib %CXP_TARGET%\lib *.*
-    
-    robocopy /S installed\x86-windows\include %CXP_TARGET%\include *.*
-
 ### Microsoft Visual Studio Runtime
 
 Debug Runtime (Redistribution **is not** permitted)
