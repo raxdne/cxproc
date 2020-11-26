@@ -3427,8 +3427,8 @@ resNodeSetOwner(resNodePtr prnArg)
       GlobalFree(AcctName);
     }
     /*!\bug Freeing of pSidOwner cause to crash */
-    //LocalFree(pSidOwner);
-    //LocalFree(pSecurityDescriptor);
+    LocalFree(pSidOwner);
+    LocalFree(pSecurityDescriptor);
 #elif defined(_WIN32)
     /*!\todo owner detection on MinGW */
 #else
@@ -3493,7 +3493,11 @@ resNodeUpdate(resNodePtr prnArg, int iArgOptions, const pcre2_code *re_match, co
 
       if (iArgOptions & RN_INFO_META
 	&& (resNodeIsFile(prnArg) || resNodeIsDir(prnArg) || resNodeIsFileInArchive(prnArg) || resNodeIsDirInArchive(prnArg))) {
+#ifdef _MSC_VER
+	/*!\todo implement a stable file owner detection for win64 */
+#else
 	resNodeSetOwner(prnArg);
+#endif
 	/*\todo use resNodeSetProp() */
       }
 

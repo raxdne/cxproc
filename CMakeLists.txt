@@ -195,6 +195,7 @@ IF(CMAKE_USE_PTHREADS_INIT)
 ELSE ()
   OPTION (CXPROC_THREAD "Enable support native threads." OFF)
 ENDIF ()
+MARK_AS_ADVANCED(CXPROC_THREAD)
 
 IF(CXPROC_PTHREAD)
   SET(CXPROC_HEADERS ${CXPROC_HEADERS} ${CXPROC_SRC_DIR}/cxp/cxp_threadp.h)
@@ -340,6 +341,7 @@ ENDIF ()
 # JSON
 #
 OPTION(CXPROC_JSON "Include JSON code" OFF)
+MARK_AS_ADVANCED(CXPROC_JSON)
 
 IF (CXPROC_JSON)
   add_compile_definitions(HAVE_JSON)
@@ -370,7 +372,6 @@ IF (LIBPCRE2_FOUND)
   OPTION(CXPROC_PIE "Include PIE code" ON)
 ELSE (LIBPCRE2_FOUND)
   SET(CXPROC_PCRE2 OFF)
-  SET(CXPROC_PIE OFF)
 ENDIF (LIBPCRE2_FOUND)
 
 IF (CXPROC_PCRE2)
@@ -380,7 +381,6 @@ IF (CXPROC_PCRE2)
     add_compile_definitions(PCRE2_STATIC)
   ENDIF ()
 ELSE ()
-  SET(CXPROC_PIE OFF)
 ENDIF ()
 
 ################################################################################
@@ -432,7 +432,13 @@ IF (CXPROC_PIE)
     ${CXPROC_SRC_DIR}/option/ics/ics.c
     ${CXPROC_SRC_DIR}/option/vcf/vcf.c
     )
+
+  OPTION(CXPROC_MARKDOWN "Compile MARKDOWN code" ON)
 ENDIF (CXPROC_PIE)
+
+IF (CXPROC_MARKDOWN)
+  add_compile_definitions(WITH_MARKDOWN)
+ENDIF (CXPROC_MARKDOWN)
 
 ################################################################################
 #
@@ -502,7 +508,7 @@ ENDIF (CXPROC_LIBZ)
 #
 # RP
 #
-OPTION(CXPROC_RP "Include RP code" OFF)
+#OPTION(CXPROC_RP "Include RP code" OFF)
 
 IF (CXPROC_RP)
   add_compile_definitions(HAVE_RP)
@@ -806,15 +812,10 @@ ENDIF ()
 SET(CXPROC_CXX ON CACHE BOOL "Compile as C++ code")
 
 SET(CXPROC_EXPERIMENTAL OFF CACHE BOOL "Compile experimental code")
+MARK_AS_ADVANCED(CXPROC_EXPERIMENTAL)
 IF (CXPROC_EXPERIMENTAL)
   add_compile_definitions(EXPERIMENTAL)
 ENDIF (CXPROC_EXPERIMENTAL)
-
-SET(CXPROC_MARKDOWN ON CACHE BOOL "Compile MARKDOWN code")
-#MARK_AS_ADVANCED(CXPROC_MARKDOWN)
-IF (CXPROC_MARKDOWN)
-  add_compile_definitions(WITH_MARKDOWN)
-ENDIF (CXPROC_MARKDOWN)
 
 SET(CXPROC_AJAX ON CACHE BOOL "Compile AJAX code")
 
@@ -834,6 +835,7 @@ ENDIF ()
 IF (CXPROC_DEBUG)
 ELSE(CXPROC_DEBUG)
   OPTION(CXPROC_PROFILE "Include profiling code" OFF)
+  MARK_AS_ADVANCED(CXPROC_PROFILE)
 ENDIF (CXPROC_DEBUG)
 
 IF(MSVC)
@@ -1020,6 +1022,7 @@ ENDIF (LIBLZMA_INCLUDE_DIR)
 IF (LIBLZMA_FOUND)
   MESSAGE(STATUS "Found optional liblzma: ${LIBLZMA_LIBRARIES}")
   OPTION(CXPROC_LZMA "Enable support for linking cxproc with liblzma." ON)
+  MARK_AS_ADVANCED(CXPROC_LZMA)
 ENDIF (LIBLZMA_FOUND)
 
 IF (CXPROC_LZMA)

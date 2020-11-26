@@ -556,7 +556,7 @@ cxpCtxtCgiParse(cxpContextPtr pccArg)
     }
   }
   else {
-#ifdef DEBUG
+#if 1
     pndXml = xmlNewChild(pndMake, NULL, NAME_XML, NULL);
     xmlSetProp(pndXml, BAD_CAST "name", BAD_CAST "-");
     xmlNewChild(pndXml, NULL, BAD_CAST "info", NULL);
