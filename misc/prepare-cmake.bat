@@ -18,9 +18,9 @@ SET ARCH=%VSCMD_ARG_TGT_ARCH%-windows-static
 
 pushd C:\UserData\Develop\vcpkg
 REM bootstrap-vcpkg.bat -win64 -disableMetrics
-.\vcpkg --triplet %ARCH% integrate install
+.\vcpkg integrate install
 
-REM FOR %P IN (zlib pcre2 libxml2 libxslt libexif sqlite3 duktape) DO .\vcpkg --triplet %ARCH% --x-install-root=%CXPBASE%..\.. install %P
+.\vcpkg --triplet %ARCH% --x-install-root=%CXPBASE%..\.. install zlib liblzma pcre2 libxml2 libxslt libexif sqlite3 duktape
 
 REM curl libarchive imagemagick libgif libjpeg libpng libtiff
 popd
@@ -37,7 +37,7 @@ SET DIR_CGI="%PREFIX%\www\cgi-bin"
 md %DIR_CGI%
 robocopy %DIR_BIN% %DIR_CGI% *.dll
 
-robocopy c:\windows\system32 %CXPBASE%..\..\%ARCH%\debug\bin VCRUNTIME140D.DLL
+REM robocopy c:\windows\system32 %CXPBASE%..\..\%ARCH%\debug\bin VCRUNTIME140D.DLL
 REM robocopy c:\windows\system32 %DIR_CGI% VCRUNTIME140D.DLL
 
 SET DIR_LOG="%PREFIX%\www\log"
@@ -57,7 +57,7 @@ REM "C:\UserData\Programme\7-ZipPortable\App\7-Zip\7z.exe" a -r ..\cxproc-v1.3-p
 popd
 
 pushd %CXPBASE%..
-"C:\UserData\Programme\cmake\bin\cmake.exe" -B %DIR_BUILD% -G "Visual Studio 16 2019" -A %VSCMD_ARG_TGT_ARCH% -DCMAKE_TOOLCHAIN_FILE=C:\UserData\Develop\vcpkg\scripts\buildsystems\vcpkg.cmake -D CXPROC_DOC:BOOL=OFF -D CXPROC_PIE:BOOL=ON -D CXPROC_EXPERIMENTAL:BOOL=OFF -D CXPROC_DEBUG:BOOL=OFF -D CXPROC_CXX:BOOL=OFF
+REM "C:\UserData\Programme\cmake\bin\cmake.exe" -B %DIR_BUILD% -G "Visual Studio 16 2019" -A %VSCMD_ARG_TGT_ARCH% -DCMAKE_TOOLCHAIN_FILE=C:\UserData\Develop\vcpkg\scripts\buildsystems\vcpkg.cmake -D CXPROC_DOC:BOOL=OFF -D CXPROC_PIE:BOOL=ON -D CXPROC_EXPERIMENTAL:BOOL=OFF -D CXPROC_DEBUG:BOOL=OFF -D CXPROC_CXX:BOOL=OFF
 popd
 
 REM TODO: CPack s. https://cmake.org/cmake/help/latest/module/CPack.html

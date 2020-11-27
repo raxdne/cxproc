@@ -476,8 +476,10 @@ ELSE(ZLIB_INCLUDE_DIR)
 ENDIF (ZLIB_INCLUDE_DIR)
 
 IF (ZLIB_FOUND)
-  MESSAGE(STATUS "Found optional ZLIB: ${ZLIB_LIBRARIES}")
-  OPTION (CXPROC_LIBZ "Enable support for linking cxproc with libz." ON)
+  MESSAGE(STATUS "Found zlib: ${ZLIB_LIBRARIES}")
+  SET(CXPROC_LIBZ ON)
+ELSE (ZLIB_FOUND)
+  MESSAGE(FATAL_ERROR "zlib must be available (libxml2)")
 ENDIF (ZLIB_FOUND)
 
 IF (CXPROC_LIBZ)
@@ -503,6 +505,35 @@ IF (CXPROC_LIBZ)
     add_compile_definitions(ZLIB_STATIC)
   ENDIF ()
 ENDIF (CXPROC_LIBZ)
+
+################################################################################
+#
+# either local liblzma or system liblzma
+#
+
+find_path(LIBLZMA_INCLUDE_DIR NAMES lzma.h
+  HINTS "${CXPROC_PREFIX}/include"
+  ) 
+
+IF (LIBLZMA_INCLUDE_DIR)
+  find_library(LIBLZMA_LIBRARIES NAMES liblzma lzma lzmad lzma_static
+    HINTS "${CXPROC_PREFIX}/lib"
+    )
+  IF (LIBLZMA_LIBRARIES)
+    SET(LIBLZMA_FOUND ON)
+  ELSE(LIBLZMA_LIBRARIES)
+    FIND_PACKAGE( LibLZMA )
+  ENDIF (LIBLZMA_LIBRARIES)
+ELSE(LIBLZMA_INCLUDE_DIR)
+  FIND_PACKAGE( LibLZMA )
+ENDIF (LIBLZMA_INCLUDE_DIR)
+
+IF (LIBLZMA_FOUND)
+  MESSAGE(STATUS "Found liblzma: ${LIBLZMA_LIBRARIES}")
+  SET(CXPROC_LZMA ON)
+ELSE (LIBLZMA_FOUND)
+  MESSAGE(FATAL_ERROR "liblzma must be available (libxml2)")
+ENDIF (LIBLZMA_FOUND)
 
 ################################################################################
 #
@@ -1002,29 +1033,6 @@ ENDIF (CXPROC_LIBBZ2)
 # either local liblzma or system liblzma
 #
 
-find_path(LIBLZMA_INCLUDE_DIR NAMES lzma.h
-  HINTS "${CXPROC_PREFIX}/include"
-  ) 
-
-IF (LIBLZMA_INCLUDE_DIR)
-  find_library(LIBLZMA_LIBRARIES NAMES liblzma lzma lzmad lzma_static
-    HINTS "${CXPROC_PREFIX}/lib"
-    )
-  IF (LIBLZMA_LIBRARIES)
-    SET(LIBLZMA_FOUND ON)
-  ELSE(LIBLZMA_LIBRARIES)
-    FIND_PACKAGE( LibLZMA )
-  ENDIF (LIBLZMA_LIBRARIES)
-ELSE(LIBLZMA_INCLUDE_DIR)
-  FIND_PACKAGE( LibLZMA )
-ENDIF (LIBLZMA_INCLUDE_DIR)
-
-IF (LIBLZMA_FOUND)
-  MESSAGE(STATUS "Found optional liblzma: ${LIBLZMA_LIBRARIES}")
-  OPTION(CXPROC_LZMA "Enable support for linking cxproc with liblzma." ON)
-  MARK_AS_ADVANCED(CXPROC_LZMA)
-ENDIF (LIBLZMA_FOUND)
-
 IF (CXPROC_LZMA)
   INCLUDE_DIRECTORIES(${LIBLZMA_INCLUDE_DIR})
   add_compile_definitions(HAVE_LIBLZMA)
@@ -1039,8 +1047,6 @@ IF (CXPROC_LZMA)
     target_link_libraries(cxproc-httpd ${LIBLZMA_LIBRARIES})
   ENDIF ()
 ENDIF (CXPROC_LZMA)
-
-
 IF (CXPROC_ARCHIVE)
   target_link_libraries(filex ${LibArchive_LIBRARIES})
   target_link_libraries(cxproc ${LibArchive_LIBRARIES})
@@ -1746,7 +1752,11 @@ IF(CXPROC_SHOW_REPORT)
   MESSAGE(STATUS "  Compile cxproc MARKDOWN code ...... : ${CXPROC_MARKDOWN}")
   MESSAGE(STATUS "  Compile cxproc AJAX code .......... : ${CXPROC_AJAX}")
   MESSAGE(STATUS "  Compile cxproc with profile ....... : ${CXPROC_PROFILE}")
+  
+if (CXPROC_DOC)
   MESSAGE(STATUS "  Build documentation........ ....... : ${CXPROC_DOC}")
+ENDIF (CXPROC_DOC)
+  
 IF(CXPROC_PTHREAD)
   MESSAGE(STATUS "  Link cxproc with pthread .......... : ${CXPROC_PTHREAD}")
 ELSEIF (CXPROC_THREAD)
