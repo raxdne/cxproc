@@ -284,6 +284,7 @@ resNodeListFind(resNodePtr prnArg, xmlChar *pucArgPath, xmlChar *pucPattern)
 
 \param prnArg start context
 \param pucArgPath pointer to a locator
+\param iArgOptions bits for options 
 \return a pointer to an according 'resNode' or NULL else
 */
 resNodePtr
@@ -314,14 +315,13 @@ resNodeListFindPath(resNodePtr prnArg, xmlChar *pucArgPath, int iArgOptions)
       /* ignore this node and its childs */
     }
     else if (resPathIsMatchingEnd(resNodeGetNameNormalized(prnArg), pucArgPath)) { /* match or not? */
-      if (((iArgOptions & RN_FIND_DIR)
-	&& (resNodeGetType(prnArg) == rn_type_dir
-	  || ((iArgOptions & RN_FIND_IN_ARCHIVE) && (resNodeGetType(prnArg) == rn_type_dir_in_archive))))
-	|| 
-	((iArgOptions & RN_FIND_FILE)
-	  && (resNodeGetType(prnArg) == rn_type_file
-	  || resNodeGetType(prnArg) == rn_type_archive)
-	  || ((iArgOptions & RN_FIND_IN_ARCHIVE) && (resNodeGetType(prnArg) == rn_type_file_in_archive)))) {
+      if (((iArgOptions & RN_FIND_DIR) && resNodeGetType(prnArg) == rn_type_dir)
+          ||
+          ((iArgOptions & RN_FIND_IN_ARCHIVE) && resNodeGetType(prnArg) == rn_type_dir_in_archive)
+	  ||
+	  ((iArgOptions & RN_FIND_FILE) && (resNodeGetType(prnArg) == rn_type_file || resNodeGetType(prnArg) == rn_type_archive))
+	  ||
+	  ((iArgOptions & RN_FIND_IN_ARCHIVE) && resNodeGetType(prnArg) == rn_type_file_in_archive)) {
 	prnResult = prnArg;
       }
     }
@@ -355,6 +355,7 @@ resNodeListFindPath(resNodePtr prnArg, xmlChar *pucArgPath, int iArgOptions)
 
 \param prnArg start context
 \param pucArgPath pointer to a locator
+\param iArgOptions bits for options 
 \return a pointer to an according 'resNode' or NULL else
 */
 resNodePtr
@@ -635,7 +636,7 @@ _resNodeIndexFind(resNodePtr prnArg, xmlChar *pucArgNeedle)
 /*! Resource Node List To DOM
 
 \param prnArg -- resNode tree to build as DOM
-\param iArgOptions
+\param iArgOptions bits for options 
 \return DOM tree representing prnArg
 */
 xmlNodePtr
@@ -660,6 +661,7 @@ resNodeListToDOM(resNodePtr prnArg, int iArgOptions)
 /*! Resource Node List To SQL
 
 \param prnArg -- resNode tree to build as SQL INSERT statements
+\param iArgOptions bits for options 
 \return pointer to buffer with SQL INSERTs
 */
 xmlChar *
@@ -692,6 +694,7 @@ resNodeListToSQL(resNodePtr prnArg, int iArgOptions)
 /*! Resource Node List To JSON  
 
 \param prnArg -- resNode tree to build as JSON string
+\param iArgOptions bits for options 
 \return pointer to buffer with JSON
 */
 xmlChar *
@@ -727,6 +730,7 @@ resNodeListToJSON(resNodePtr prnArg, int iArgOptions)
 /*! Resource Node List To Xml  
 
 \param prnArg -- resNode tree to build as XML string
+\param iArgOptions bits for options 
 \return pointer to buffer with XML
 */
 xmlChar *
@@ -774,6 +778,7 @@ resNodeListToXml(resNodePtr prnArg, int iArgOptions)
 /*! Resource Node List To Plain
 
 \param prnArg -- resNode tree to build as plain string
+\param iArgOptions bits for options 
 \return pointer to buffer with plain output
 */
 xmlChar *

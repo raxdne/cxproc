@@ -60,27 +60,29 @@ resNodeTestInOut(void)
       printf("Error resNodeDirNew()\n");
     }
     else if (resNodeOpen(prnT, "rb") == TRUE) {
-      printf("Error resNodeOpen()\n");
+      printf("Error 1\n");
     }
     else if (resNodeIsOpen(prnT) == TRUE) {
-      printf("Error resNodeIsOpen()\n");
+      printf("Error 2\n");
     }
     else if (resNodeClose(prnT) == TRUE) {
-      printf("Error resNodeClose()\n");
+      printf("Error 3\n");
     }
     else if (resNodeOpen(prnT, "w+") == FALSE) {
-      printf("Error resNodeOpen()\n");
+      printf("Error 4\n");
     }
     else if (resNodeIsOpen(prnT) == FALSE) {
-      printf("Error resNodeIsOpen()\n");
+      printf("Error 5\n");
     }
     else if (resNodeClose(prnT) == FALSE) {
-      printf("Error resNodeClose()\n");
+      printf("Error 6\n");
     }
     else {
       n_ok++;
       printf("OK\n");
     }
+    
+    resNodeUnlink(prnT,FALSE);
     resNodeFree(prnT);
   }
 

@@ -189,7 +189,8 @@ main(int argc, char** argv, char** envp)
     cxpCtxtCacheEnable(pccTest, FALSE);
 
     resNodeUnlinkRecursivelyStr(BAD_CAST TEMPPREFIX);
-    if (resNodeMakeDirectoryStr(BAD_CAST TEMPPREFIX, MODE_DIR_CREATE)) {
+    if (resNodeMakeDirectoryStr(BAD_CAST TEMPPREFIX, MODE_DIR_CREATE)
+        && resNodeTestDirStr(BAD_CAST TEMPPREFIX)) {
 
       if (pcTest == NULL || xmlStrEqual(BAD_CAST pcTest, BAD_CAST "basics")) {
 #ifdef HAVE_LIBCURL
@@ -360,8 +361,11 @@ main(int argc, char** argv, char** envp)
 	iErrorCode += scriptTest(pccTest);
 #endif
       }
+      /*!\todo generate a more verbose error summary */
     }
-    /*!\todo generate a more verbose error summary */
+    else {
+      cxpCtxtLogPrint(pccTest, 1, "Can't create temporary directory");
+    }
 
     iExit = cxpCtxtGetExitCode(pccTest);
     cxpCtxtLogPrint(pccTest,1,"Test error code = %i\n", iErrorCode + iExit);

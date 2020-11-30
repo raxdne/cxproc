@@ -31,16 +31,24 @@ SET(CMAKE_VERBOSE_MAKEFILE ON)
 
 FIND_PACKAGE(PkgConfig)
 
+FIND_PATH(CXPROC_SRC_DIR
+  NAME cxproc.c
+  PATHS "src")
+
+FIND_PATH(CXPROC_SRCLIB_DIR
+  NAME cgi-util
+  PATHS "third-party")
+
 SET(CXPROC_PREFIX "${PROJECT_BINARY_DIR}/.." CACHE PATH "Prefix")
 INCLUDE_DIRECTORIES("${PROJECT_SOURCE_DIR}/third-party" "${PROJECT_SOURCE_DIR}/third-party/option" "${CXPROC_SRC_DIR}" "${CXPROC_SRC_DIR}/option" "${CXPROC_PREFIX}/include")
 
 # working directory for tests
 SET(CXPROC_TEST_DIR "${PROJECT_SOURCE_DIR}/test")
-SET(CXPROC_TEMP_DIR "${PROJECT_SOURCE_DIR}/tmp")
+SET(CXPROC_TEMP_DIR "${CXPROC_PREFIX}/tmp")
 
 set(PROJECT_VERSION_MAJOR "1")
 set(PROJECT_VERSION_MINOR "3")
-set(PROJECT_VERSION_PATCH "-pre")
+set(PROJECT_VERSION_PATCH "-rc1")
 
 # https://vicrucann.github.io/tutorials/quick-cmake-doxygen/
 # check if Doxygen is installed
@@ -88,14 +96,6 @@ IF(MSVC)
   CHECK_INCLUDE_FILE(windows.h    HAVE_WINDOWS_H)
 ELSE(MSVC)
 ENDIF(MSVC)
-
-FIND_PATH(CXPROC_SRC_DIR
-  NAME cxproc.c
-  PATHS "src")
-
-FIND_PATH(CXPROC_SRCLIB_DIR
-  NAME cgi-util
-  PATHS "third-party")
 
 SET(FILEX_HEADERS
   ${CXPROC_SRC_DIR}/version.h
@@ -187,15 +187,15 @@ ENDIF(MSVC)
 # pthread
 #
 
-FIND_PACKAGE( Threads )
+#FIND_PACKAGE( Threads )
 
-IF(CMAKE_USE_PTHREADS_INIT)
-  MESSAGE(STATUS "Found optional libpthtread: ${CMAKE_THREAD_LIBS_INIT}")
-  OPTION (CXPROC_PTHREAD "Enable support for linking cxproc with libpthread." OFF)
-ELSE ()
-  OPTION (CXPROC_THREAD "Enable support native threads." OFF)
-ENDIF ()
-MARK_AS_ADVANCED(CXPROC_THREAD)
+#IF(CMAKE_USE_PTHREADS_INIT)
+#  MESSAGE(STATUS "Found optional libpthtread: ${CMAKE_THREAD_LIBS_INIT}")
+#  OPTION (CXPROC_PTHREAD "Enable support for linking cxproc with libpthread." OFF)
+#ELSE ()
+#  OPTION (CXPROC_THREAD "Enable support native threads." OFF)
+#ENDIF ()
+#MARK_AS_ADVANCED(CXPROC_THREAD)
 
 IF(CXPROC_PTHREAD)
   SET(CXPROC_HEADERS ${CXPROC_HEADERS} ${CXPROC_SRC_DIR}/cxp/cxp_threadp.h)
@@ -286,7 +286,7 @@ IF (CXPROC_SQLITE3)
   SET(FILEX_SOURCES ${FILEX_SOURCES} ${CXPROC_SRC_DIR}/option/database/database.c)
   add_compile_definitions(HAVE_LIBSQLITE3)
   IF (SQLITE3_SOURCE_FILE)
-    SET(CXPROC_CXX OFF)
+    #SET(CXPROC_CXX OFF)
     SET(CXPROC_SOURCES ${CXPROC_SOURCES} ${SQLITE3_SOURCE_FILE})
     SET(FILEX_SOURCES ${FILEX_SOURCES} ${SQLITE3_SOURCE_FILE})
     add_compile_definitions(SQLITE_THREADSAFE=0 SQLITE_OMIT_LOAD_EXTENSION)
@@ -661,7 +661,7 @@ ADD_EXECUTABLE(cxproc-test
 
 target_compile_definitions(cxproc-test PUBLIC
   TESTCODE
-  BUILDPREFIX="${PROJECT_BINARY_DIR}/"
+  BUILDPREFIX="${CXPROC_PREFIX}/"
   TESTPREFIX="${CXPROC_TEST_DIR}/"
   TEMPPREFIX="${CXPROC_TEMP_DIR}/"
   HTTPPREFIX="http://localhost:8189/")
@@ -678,14 +678,14 @@ target_compile_definitions(cxproc-cgi
 ADD_EXECUTABLE(test-cgi
  ${CXPROC_SRC_DIR}/test/test-cgi.c)
 
-IF (LIBMICROHTTPD_FOUND)
-  ADD_EXECUTABLE(cxproc-httpd
-    ${CXPROC_SRC_DIR}/cxproc-httpd.c
-    ${CXPROC_SOURCES} ${CXPROC_HEADERS})
-
-  target_compile_definitions(cxproc-httpd
-    PUBLIC HAVE_HTTPD)
-ENDIF ()
+#IF (LIBMICROHTTPD_FOUND)
+#  ADD_EXECUTABLE(cxproc-httpd
+#    ${CXPROC_SRC_DIR}/cxproc-httpd.c
+#    ${CXPROC_SOURCES} ${CXPROC_HEADERS})
+#
+#  target_compile_definitions(cxproc-httpd
+#    PUBLIC HAVE_HTTPD)
+#ENDIF ()
 
 # This copies all resource files in the build directory.
 # We need this, because we want to work with paths relative to the executable.
@@ -769,9 +769,9 @@ IF (${LIBXML2_LIBRARIES} MATCHES ".+static.*\\.lib$" OR ${LIBXML2_LIBRARIES} MAT
     target_link_libraries(cxproc ws2_32.lib)
     target_link_libraries(cxproc-test ws2_32.lib)
     target_link_libraries(cxproc-cgi ws2_32.lib)
-    IF (LIBMICROHTTPD_FOUND)
-      target_link_libraries(cxproc-httpd ws2_32.lib)
-    ENDIF ()
+#    IF (LIBMICROHTTPD_FOUND)
+#      target_link_libraries(cxproc-httpd ws2_32.lib)
+#    ENDIF ()
   ENDIF (MSVC)
 ENDIF ()
 
@@ -835,12 +835,7 @@ ELSE ()
   SET(CXPROC_STATIC OFF)
 ENDIF ()
 
-#IF (${CXPROC_PREFIX} MATCHES ".*64.*")
-#  OPTION(CXPROC_BUILD_64 "Build 64 bit CXPROC binary" ON)
-#ELSE ()
-#ENDIF ()
-
-SET(CXPROC_CXX ON CACHE BOOL "Compile as C++ code")
+OPTION (CXPROC_CXX "Compile as C++ code" OFF)
 
 SET(CXPROC_EXPERIMENTAL OFF CACHE BOOL "Compile experimental code")
 MARK_AS_ADVANCED(CXPROC_EXPERIMENTAL)
@@ -916,9 +911,9 @@ target_compile_options(filex       PUBLIC ${CXPROC_OPT})
 target_compile_options(cxproc      PUBLIC ${CXPROC_OPT})
 target_compile_options(cxproc-test PUBLIC ${CXPROC_OPT})
 target_compile_options(cxproc-cgi  PUBLIC ${CXPROC_OPT})
-IF (LIBMICROHTTPD_FOUND)
-  target_compile_options(cxproc-httpd PUBLIC ${CXPROC_OPT})
-ENDIF ()
+#IF (LIBMICROHTTPD_FOUND)
+#  target_compile_options(cxproc-httpd PUBLIC ${CXPROC_OPT})
+#ENDIF ()
 
 ################################################################################
 #
@@ -930,9 +925,9 @@ IF (CXPROC_PCRE2)
   target_link_libraries(cxproc ${LIBPCRE2_LIBRARIES})
   target_link_libraries(cxproc-test ${LIBPCRE2_LIBRARIES})
   target_link_libraries(cxproc-cgi ${LIBPCRE2_LIBRARIES})
-  IF (LIBMICROHTTPD_FOUND)
-    target_link_libraries(cxproc-httpd ${LIBPCRE2_LIBRARIES})
-  ENDIF ()
+  #IF (LIBMICROHTTPD_FOUND)
+  #  target_link_libraries(cxproc-httpd ${LIBPCRE2_LIBRARIES})
+  #ENDIF ()
 ENDIF ()
 
 ################################################################################
@@ -946,9 +941,9 @@ IF (CXPROC_DUKTAPE)
     target_link_libraries(cxproc ${DUKTAPE_LIBRARIES})
     target_link_libraries(cxproc-test ${DUKTAPE_LIBRARIES})
     target_link_libraries(cxproc-cgi ${DUKTAPE_LIBRARIES})
-    IF (LIBMICROHTTPD_FOUND)
-      target_link_libraries(cxproc-httpd ${DUKTAPE_LIBRARIES})
-    ENDIF ()
+    #IF (LIBMICROHTTPD_FOUND)
+    #  target_link_libraries(cxproc-httpd ${DUKTAPE_LIBRARIES})
+    #ENDIF ()
   ENDIF ()
 ENDIF (CXPROC_DUKTAPE)
 
@@ -964,9 +959,9 @@ IF (CXPROC_SQLITE3)
     target_link_libraries(cxproc ${SQLITE3_LIBRARIES})
     target_link_libraries(cxproc-test ${SQLITE3_LIBRARIES})
     target_link_libraries(cxproc-cgi  ${SQLITE3_LIBRARIES})
-    IF (LIBMICROHTTPD_FOUND)
-      target_link_libraries(cxproc-httpd ${SQLITE3_LIBRARIES})
-    ENDIF ()
+    #IF (LIBMICROHTTPD_FOUND)
+    #  target_link_libraries(cxproc-httpd ${SQLITE3_LIBRARIES})
+    #ENDIF ()
   ENDIF ()
 ENDIF (CXPROC_SQLITE3)
 
@@ -980,9 +975,9 @@ IF (CXPROC_LIBZ)
   target_link_libraries(cxproc ${ZLIB_LIBRARIES})
   target_link_libraries(cxproc-test ${ZLIB_LIBRARIES})
   target_link_libraries(cxproc-cgi  ${ZLIB_LIBRARIES})
-  IF (LIBMICROHTTPD_FOUND)
-    target_link_libraries(cxproc-httpd ${ZLIB_LIBRARIES})
-  ENDIF ()
+  #IF (LIBMICROHTTPD_FOUND)
+  #  target_link_libraries(cxproc-httpd ${ZLIB_LIBRARIES})
+  #ENDIF ()
 ENDIF (CXPROC_LIBZ)
 
 ################################################################################
@@ -1023,9 +1018,9 @@ IF (CXPROC_LIBBZ2)
   target_link_libraries(cxproc ${LIBBZ2_LIBRARIES})
   target_link_libraries(cxproc-test ${LIBBZ2_LIBRARIES})
   target_link_libraries(cxproc-cgi  ${LIBBZ2_LIBRARIES})
-  IF (LIBMICROHTTPD_FOUND)
-    target_link_libraries(cxproc-httpd ${LIBBZ2_LIBRARIES})
-  ENDIF ()
+  #IF (LIBMICROHTTPD_FOUND)
+  #  target_link_libraries(cxproc-httpd ${LIBBZ2_LIBRARIES})
+  #ENDIF ()
 ENDIF (CXPROC_LIBBZ2)
 
 ################################################################################
@@ -1043,18 +1038,18 @@ IF (CXPROC_LZMA)
   target_link_libraries(cxproc ${LIBLZMA_LIBRARIES})
   target_link_libraries(cxproc-test ${LIBLZMA_LIBRARIES})
   target_link_libraries(cxproc-cgi  ${LIBLZMA_LIBRARIES})
-  IF (LIBMICROHTTPD_FOUND)
-    target_link_libraries(cxproc-httpd ${LIBLZMA_LIBRARIES})
-  ENDIF ()
+  #IF (LIBMICROHTTPD_FOUND)
+  #  target_link_libraries(cxproc-httpd ${LIBLZMA_LIBRARIES})
+  #ENDIF ()
 ENDIF (CXPROC_LZMA)
 IF (CXPROC_ARCHIVE)
   target_link_libraries(filex ${LibArchive_LIBRARIES})
   target_link_libraries(cxproc ${LibArchive_LIBRARIES})
   target_link_libraries(cxproc-test ${LibArchive_LIBRARIES})
   target_link_libraries(cxproc-cgi ${LibArchive_LIBRARIES})
-  IF (LIBMICROHTTPD_FOUND)
-    target_link_libraries(cxproc-httpd ${LibArchive_LIBRARIES})
-  ENDIF ()
+  #IF (LIBMICROHTTPD_FOUND)
+  #  target_link_libraries(cxproc-httpd ${LibArchive_LIBRARIES})
+  #ENDIF ()
 ENDIF (CXPROC_ARCHIVE)
 
 ################################################################################
@@ -1075,8 +1070,6 @@ IF (LIBCURL_INCLUDE_DIR)
   ELSE(LIBCURL_LIBRARIES)
     FIND_PACKAGE( LIBCURL )
   ENDIF (LIBCURL_LIBRARIES)
-ELSE(LIBCURL_INCLUDE_DIR)
-  FIND_PACKAGE( LibCURL )
 ENDIF (LIBCURL_INCLUDE_DIR)
 
 IF (LIBCURL_FOUND)
@@ -1096,9 +1089,9 @@ IF (CXPROC_CURL)
   target_link_libraries(cxproc ${LIBCURL_LIBRARIES})
   target_link_libraries(cxproc-test ${LIBCURL_LIBRARIES})
   target_link_libraries(cxproc-cgi  ${LIBCURL_LIBRARIES})
-  IF (LIBMICROHTTPD_FOUND)
-    target_link_libraries(cxproc-httpd ${LIBCURL_LIBRARIES})
-  ENDIF ()
+  #IF (LIBMICROHTTPD_FOUND)
+  #  target_link_libraries(cxproc-httpd ${LIBCURL_LIBRARIES})
+  #ENDIF ()
   IF(MSVC)
     # no additional libraries with VC++
   ELSE(MSVC)
@@ -1106,9 +1099,9 @@ IF (CXPROC_CURL)
     target_link_libraries(cxproc ssl crypto)
     target_link_libraries(cxproc-test ssl crypto)
     target_link_libraries(cxproc-cgi  ssl crypto)
-    IF (LIBMICROHTTPD_FOUND)
-      target_link_libraries(cxproc-httpd ssl crypto)
-    ENDIF ()
+    #IF (LIBMICROHTTPD_FOUND)
+    #  target_link_libraries(cxproc-httpd ssl crypto)
+    #ENDIF ()
   ENDIF(MSVC)
 ENDIF (CXPROC_CURL)
 
@@ -1117,33 +1110,33 @@ ENDIF (CXPROC_CURL)
 # either local LIBMICROHTTPD or system LIBMICROHTTPD
 #
 
-find_path(LIBMICROHTTPD_INCLUDE_DIR NAMES microhttpd.h
-  HINTS "${CXPROC_PREFIX}/include"
-  ) 
+#find_path(LIBMICROHTTPD_INCLUDE_DIR NAMES microhttpd.h
+#  HINTS "${CXPROC_PREFIX}/include"
+#  ) 
 
-IF (LIBMICROHTTPD_INCLUDE_DIR)
-  find_library(LIBMICROHTTPD_LIBRARIES NAMES libmicrohttpd.a microhttpd libmicrohttpd-dll_d
-    HINTS "${CXPROC_PREFIX}/lib"
-    )
-  IF (LIBMICROHTTPD_LIBRARIES)
-    SET(LIBMICROHTTPD_FOUND ON)
-  ELSE(LIBMICROHTTPD_LIBRARIES)
-    FIND_PACKAGE( LIBMICROHTTPD )
-  ENDIF (LIBMICROHTTPD_LIBRARIES)
-ELSE(LIBMICROHTTPD_INCLUDE_DIR)
-  FIND_PACKAGE( LIBMICROHTTPD )
-ENDIF (LIBMICROHTTPD_INCLUDE_DIR)
+#IF (LIBMICROHTTPD_INCLUDE_DIR)
+#  find_library(LIBMICROHTTPD_LIBRARIES NAMES libmicrohttpd.a microhttpd libmicrohttpd-dll_d
+#    HINTS "${CXPROC_PREFIX}/lib"
+#    )
+#  IF (LIBMICROHTTPD_LIBRARIES)
+#    SET(LIBMICROHTTPD_FOUND ON)
+#  ELSE(LIBMICROHTTPD_LIBRARIES)
+#    FIND_PACKAGE( LIBMICROHTTPD )
+#  ENDIF (LIBMICROHTTPD_LIBRARIES)
+#ELSE(LIBMICROHTTPD_INCLUDE_DIR)
+#  FIND_PACKAGE( LIBMICROHTTPD )
+#ENDIF (LIBMICROHTTPD_INCLUDE_DIR)
 
-IF (LIBMICROHTTPD_FOUND)
-  MESSAGE(STATUS "Found optional libmicrohttpd: ${LIBMICROHTTPD_LIBRARIES}")
-  INCLUDE_DIRECTORIES(${LIBMICROHTTPD_INCLUDE_DIR})
-  add_compile_definitions(HAVE_LIBMICROHTTPD)
-  IF (${LIBMICROHTTPD_LIBRARIES} MATCHES ".+static\\.lib$" OR ${LIBMICROHTTPD_LIBRARIES} MATCHES ".+\\.a$")
-    add_compile_definitions(LIBMICROHTTPD_STATIC)
-  ENDIF ()
-ELSE(LIBMICROHTTPD_FOUND)
-#
-ENDIF (LIBMICROHTTPD_FOUND)
+#IF (LIBMICROHTTPD_FOUND)
+#  MESSAGE(STATUS "Found optional libmicrohttpd: ${LIBMICROHTTPD_LIBRARIES}")
+#  INCLUDE_DIRECTORIES(${LIBMICROHTTPD_INCLUDE_DIR})
+#  add_compile_definitions(HAVE_LIBMICROHTTPD)
+#  IF (${LIBMICROHTTPD_LIBRARIES} MATCHES ".+static\\.lib$" OR ${LIBMICROHTTPD_LIBRARIES} MATCHES ".+\\.a$")
+#    add_compile_definitions(LIBMICROHTTPD_STATIC)
+#  ENDIF ()
+#ELSE(LIBMICROHTTPD_FOUND)
+
+#ENDIF (LIBMICROHTTPD_FOUND)
 
 ################################################################################
 #
@@ -1155,9 +1148,9 @@ IF(CXPROC_PTHREAD)
   target_link_libraries(cxproc ${CMAKE_THREAD_LIBS_INIT})
   target_link_libraries(cxproc-test ${CMAKE_THREAD_LIBS_INIT})
   target_link_libraries(cxproc-cgi ${CMAKE_THREAD_LIBS_INIT})
-  IF (LIBMICROHTTPD_FOUND)
-    target_link_libraries(cxproc-httpd ${CMAKE_THREAD_LIBS_INIT})
-  ENDIF ()
+  #IF (LIBMICROHTTPD_FOUND)
+  #  target_link_libraries(cxproc-httpd ${CMAKE_THREAD_LIBS_INIT})
+  #ENDIF ()
 ENDIF (CXPROC_PTHREAD)
 
 ################################################################################
@@ -1172,9 +1165,9 @@ IF (CXPROC_LIBID3TAG)
   target_link_libraries(cxproc ${LIBID3TAG_LIBRARIES})
   target_link_libraries(cxproc-test ${LIBID3TAG_LIBRARIES})
   target_link_libraries(cxproc-cgi  ${LIBID3TAG_LIBRARIES})
-  IF (LIBMICROHTTPD_FOUND)
-    target_link_libraries(cxproc-httpd ${LIBID3TAG_LIBRARIES})
-  ENDIF ()
+  #IF (LIBMICROHTTPD_FOUND)
+  #  target_link_libraries(cxproc-httpd ${LIBID3TAG_LIBRARIES})
+  #ENDIF ()
 ENDIF (CXPROC_LIBID3TAG)
 
 ################################################################################
@@ -1187,9 +1180,9 @@ IF (CXPROC_LIBEXIF)
   target_link_libraries(cxproc ${LIBEXIF_LIBRARY})
   target_link_libraries(cxproc-test ${LIBEXIF_LIBRARY})
   target_link_libraries(cxproc-cgi  ${LIBEXIF_LIBRARY})
-  IF (LIBMICROHTTPD_FOUND)
-    target_link_libraries(cxproc-httpd ${LIBEXIF_LIBRARY})
-  ENDIF ()
+  #IF (LIBMICROHTTPD_FOUND)
+  #  target_link_libraries(cxproc-httpd ${LIBEXIF_LIBRARY})
+  #ENDIF ()
 ENDIF (CXPROC_LIBEXIF)
 
 ################################################################################
@@ -1202,9 +1195,9 @@ target_link_libraries(cxproc ${LIBICONV_LIBRARY} ${LIBCHARSET_LIBRARY} ${LIBXML2
 target_link_libraries(cxproc-test ${LIBICONV_LIBRARY} ${LIBCHARSET_LIBRARY} ${LIBXML2_LIBRARIES} ${LIBXSLT_LIBRARIES})
 target_link_libraries(cxproc-cgi ${LIBICONV_LIBRARY} ${LIBCHARSET_LIBRARY} ${LIBXML2_LIBRARIES} ${LIBXSLT_LIBRARIES})
 
-IF (LIBMICROHTTPD_FOUND)
-  target_link_libraries(cxproc-httpd ${LIBICONV_LIBRARY} ${LIBCHARSET_LIBRARY} ${LIBXML2_LIBRARIES} ${LIBXSLT_LIBRARIES} ${LIBMICROHTTPD_LIBRARIES})
-ENDIF ()
+#IF (LIBMICROHTTPD_FOUND)
+#  target_link_libraries(cxproc-httpd ${LIBICONV_LIBRARY} ${LIBCHARSET_LIBRARY} ${LIBXML2_LIBRARIES} ${LIBXSLT_LIBRARIES} ${LIBMICROHTTPD_LIBRARIES})
+#ENDIF ()
 
 ################################################################################
 #
@@ -1237,7 +1230,7 @@ ENDIF(MSVC)
  
 ################################################################################
 #
-OPTION(CXPROC_SHOW_REPORT     "Show the final configuration report" ON)
+#OPTION(CXPROC_SHOW_REPORT     "Show the final configuration report" ON)
 
 ################################################################################
 #
@@ -1248,17 +1241,17 @@ ELSE(MSVC)
   target_link_libraries(cxproc -ldl -lm)
   target_link_libraries(cxproc-test -ldl -lm)
   target_link_libraries(cxproc-cgi -ldl -lm)
-  IF (LIBMICROHTTPD_FOUND)
-    target_link_libraries(cxproc-httpd -ldl -lm)
-  ENDIF ()
+  #IF (LIBMICROHTTPD_FOUND)
+  #  target_link_libraries(cxproc-httpd -ldl -lm)
+  #ENDIF ()
   IF (CXPROC_LIBZ)
     target_link_libraries(filex -lz)
     target_link_libraries(cxproc -lz)
     target_link_libraries(cxproc-test -lz)
     target_link_libraries(cxproc-cgi -lz)
-    IF (LIBMICROHTTPD_FOUND)
-      target_link_libraries(cxproc-httpd -lz)
-    ENDIF ()
+    #IF (LIBMICROHTTPD_FOUND)
+    #  target_link_libraries(cxproc-httpd -lz)
+    #ENDIF ()
   ENDIF (CXPROC_LIBZ)
 ENDIF(MSVC)
 
@@ -1327,20 +1320,20 @@ set_target_properties(test-cgi
   RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CXPROC_PREFIX}/www/cgi-bin"
 )
 
-IF (LIBMICROHTTPD_FOUND)
-  set_target_properties(cxproc-httpd
-    PROPERTIES
-    ARCHIVE_OUTPUT_DIRECTORY "${CXPROC_PREFIX}/www/"
-    LIBRARY_OUTPUT_DIRECTORY "${CXPROC_PREFIX}/www/"
-    RUNTIME_OUTPUT_DIRECTORY "${CXPROC_PREFIX}/www/http-bin"
-    ARCHIVE_OUTPUT_DIRECTORY_DEBUG "${CXPROC_PREFIX}/www/"
-    LIBRARY_OUTPUT_DIRECTORY_DEBUG "${CXPROC_PREFIX}/www/"
-    RUNTIME_OUTPUT_DIRECTORY_DEBUG "${CXPROC_PREFIX}/www/http-bin"
-    ARCHIVE_OUTPUT_DIRECTORY_RELEASE "${CXPROC_PREFIX}/www/"
-    LIBRARY_OUTPUT_DIRECTORY_RELEASE "${CXPROC_PREFIX}/www/"
-    RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CXPROC_PREFIX}/www/http-bin"
-    )
-ENDIF ()
+#IF (LIBMICROHTTPD_FOUND)
+#  set_target_properties(cxproc-httpd
+#    PROPERTIES
+#    ARCHIVE_OUTPUT_DIRECTORY "${CXPROC_PREFIX}/www/"
+#    LIBRARY_OUTPUT_DIRECTORY "${CXPROC_PREFIX}/www/"
+#    RUNTIME_OUTPUT_DIRECTORY "${CXPROC_PREFIX}/www/http-bin"
+#    ARCHIVE_OUTPUT_DIRECTORY_DEBUG "${CXPROC_PREFIX}/www/"
+#    LIBRARY_OUTPUT_DIRECTORY_DEBUG "${CXPROC_PREFIX}/www/"
+#    RUNTIME_OUTPUT_DIRECTORY_DEBUG "${CXPROC_PREFIX}/www/http-bin"
+#    ARCHIVE_OUTPUT_DIRECTORY_RELEASE "${CXPROC_PREFIX}/www/"
+#    LIBRARY_OUTPUT_DIRECTORY_RELEASE "${CXPROC_PREFIX}/www/"
+#    RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CXPROC_PREFIX}/www/http-bin"
+#    )
+#ENDIF ()
 
 ###############################################################################
 ## testing ####################################################################
@@ -1352,7 +1345,7 @@ add_test(NAME basics-code
   COMMAND ${CXPROC_PREFIX}/bin/cxproc-test -t basics)
 
 add_test(NAME res_node-code
-  WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
+  WORKING_DIRECTORY ${CXPROC_PREFIX}
   COMMAND ${CXPROC_PREFIX}/bin/cxproc-test -t res_node)
 
 add_test(NAME cxp-code
@@ -1387,7 +1380,7 @@ add_test(NAME cgi-empty
   COMMAND ${CXPROC_PREFIX}/www/cgi-bin/cxproc-cgi)
 
 set_property(TEST cgi-empty
-  APPEND PROPERTY ENVIRONMENT CXP_LOGFILE=${CXPROC_TEMP_DIR}/cxproc-empty.log;QUERY_STRING=
+  APPEND PROPERTY ENVIRONMENT CXP_LOGFILE=cxproc-empty.log;QUERY_STRING=
 )
 
 add_test(NAME cgi-mini
@@ -1395,7 +1388,7 @@ add_test(NAME cgi-mini
   COMMAND ${CXPROC_PREFIX}/www/cgi-bin/cxproc-cgi)
 
 set_property(TEST cgi-mini
-  APPEND PROPERTY ENVIRONMENT CXP_LOGFILE=${CXPROC_TEMP_DIR}/cxproc-mini.log;QUERY_STRING=cxp=info
+  APPEND PROPERTY ENVIRONMENT CXP_LOGFILE=cxproc-mini.log;QUERY_STRING=cxp=info
 )
 
 add_test(NAME cgi-maxi
@@ -1403,7 +1396,7 @@ add_test(NAME cgi-maxi
   COMMAND ${CXPROC_PREFIX}/www/cgi-bin/cxproc-cgi)
 
 set_property(TEST cgi-maxi
-  APPEND PROPERTY ENVIRONMENT CXP_LOGFILE=${CXPROC_TEMP_DIR}/cxproc-maxi.log;QUERY_STRING=path=&cxp=PieUiDir
+  APPEND PROPERTY ENVIRONMENT CXP_LOGFILE=cxproc-maxi.log;QUERY_STRING=path=&cxp=PieUiDir
 )
 
 add_test(NAME cgi-archive
@@ -1411,7 +1404,7 @@ add_test(NAME cgi-archive
   COMMAND ${CXPROC_PREFIX}/www/cgi-bin/cxproc-cgi)
 
 set_property(TEST cgi-archive
-  APPEND PROPERTY ENVIRONMENT CXP_LOGFILE=${CXPROC_TEMP_DIR}/cxproc-archive.log;QUERY_STRING=path=Test/Archive/TestArchive.zip/Test/SubTest/SubTest/Length_1024.txt
+  APPEND PROPERTY ENVIRONMENT CXP_LOGFILE=cxproc-archive.log;QUERY_STRING=path=Test/Archive/TestArchive.zip/Test/SubTest/SubTest/Length_1024.txt
 )
 
 add_test(NAME cgi-sql
@@ -1419,7 +1412,7 @@ add_test(NAME cgi-sql
   COMMAND ${CXPROC_PREFIX}/www/cgi-bin/cxproc-cgi)
 
 set_property(TEST cgi-sql
-  APPEND PROPERTY ENVIRONMENT CXP_LOGFILE=${CXPROC_TEMP_DIR}/cxproc-sql.log;QUERY_STRING=path=Test/Databases/TestContent.db3&cxp=PiejQSqlite
+  APPEND PROPERTY ENVIRONMENT CXP_LOGFILE=cxproc-sql.log;QUERY_STRING=path=Test/Databases/TestContent.db3&cxp=PiejQSqlite
 )
 
 set_property(TEST cgi-empty cgi-mini cgi-archive cgi-sql cgi-maxi
@@ -1726,7 +1719,7 @@ include(CPack)
 ## reporting ##################################################################
 ###############################################################################
 
-IF(CXPROC_SHOW_REPORT)
+#IF(CXPROC_SHOW_REPORT)
   STRING(TOUPPER "${CMAKE_BUILD_TYPE}" buildtype)
   IF (CMAKE_C_FLAGS)
     SET(cfsp " ")
@@ -1818,14 +1811,14 @@ ENDIF (CXPROC_PTHREAD)
 
   MESSAGE(STATUS "")
   
-  IF (LIBMICROHTTPD_FOUND)
-    MESSAGE(STATUS "  Build cxproc-httpd (libmicrohttpd). : ${LIBMICROHTTPD_FOUND}")
-  ENDIF ()
+  #IF (LIBMICROHTTPD_FOUND)
+  #  MESSAGE(STATUS "  Build cxproc-httpd (libmicrohttpd). : ${LIBMICROHTTPD_FOUND}")
+  #ENDIF ()
 
   IF(MINGW AND NOT CXPROC_STATIC)
     MESSAGE(STATUS "  Non-standard dll names (prefix) . : ${NON_STANDARD_LIB_PREFIX}")
     MESSAGE(STATUS "  Non-standard dll names (suffix) . : ${NON_STANDARD_LIB_SUFFIX}")
   ENDIF (MINGW AND NOT CXPROC_STATIC)
   MESSAGE(STATUS "")
-ENDIF (CXPROC_SHOW_REPORT)
+#ENDIF (CXPROC_SHOW_REPORT)
 

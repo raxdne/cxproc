@@ -291,6 +291,7 @@ cxpCtxtTest(cxpContextPtr pccArg)
 
   if (RUNTEST) {
     xmlChar* pucTT = NULL;
+    xmlChar* pucTTT = NULL;
     xmlDocPtr pdocTest;
     xmlNodePtr pndMake;
     xmlNodePtr pndPie;
@@ -315,22 +316,25 @@ cxpCtxtTest(cxpContextPtr pccArg)
     pndT = xmlNewChild(pndMake, NULL, NAME_PLAIN, NULL);
 
     if ((pccT = cxpCtxtFromAttr(pccArg, pndMake)) == NULL) {
-      printf("Error\n");
+      printf("Error 1\n");
     }
-    else if (resPathIsEquivalent(resNodeGetNameNormalized(cxpCtxtLocationGet(pccT)), BAD_CAST BUILDPREFIX) == FALSE) {
-      printf("Error\n");
+    else if ((pucTTT = resPathCollapse(BAD_CAST BUILDPREFIX, FS_PATH_FULL)) == NULL) {
+      printf("Error 4\n");
+    }
+    else if (resPathIsEquivalent(resNodeGetNameNormalized(cxpCtxtLocationGet(pccT)), pucTTT) == FALSE) {
+      printf("Error 2\n");
     }
     else if ((pccTT = cxpCtxtFromAttr(pccT, pndXml)) == NULL) {
-      printf("Error\n");
+      printf("Error 3\n");
     }
     else if ((pucTT = resPathCollapse(BAD_CAST BUILDPREFIX "../..", FS_PATH_FULL)) == NULL) {
-      printf("Error\n");
+      printf("Error 4\n");
     }
     else if (resPathIsEquivalent(resNodeGetNameNormalized(cxpCtxtLocationGet(pccTT)), pucTT) == FALSE) {
-      printf("Error\n");
+      printf("Error 5\n");
     }
     else if (cxpCtxtFromAttr(pccT, pndT) != pccT) {
-      printf("Error\n");
+      printf("Error 6\n");
     }
     else {
       n_ok++;
@@ -338,6 +342,7 @@ cxpCtxtTest(cxpContextPtr pccArg)
     }
 
     //domPutDocString(stderr,BAD_CAST"",pdocTest);
+    xmlFree(pucTTT);
     xmlFree(pucTT);
     xmlFreeDoc(pdocTest);
   }

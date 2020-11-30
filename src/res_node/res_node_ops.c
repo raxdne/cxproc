@@ -292,7 +292,7 @@ resNodeMakeDirectory(resNodePtr prnArg, int mode)
     else {
       int iResult;
 
-      PrintFormatLog(1, "MKDIR '%s'", resNodeGetNameNormalized(prnArg));
+      PrintFormatLog(3, "MKDIR '%s'", resNodeGetNameNormalized(prnArg));
 #ifdef _MSC_VER
       iResult = CreateDirectory(resNodeGetNameNormalizedNative(prnArg), NULL);
       if (iResult == 0) {
@@ -312,14 +312,17 @@ resNodeMakeDirectory(resNodePtr prnArg, int mode)
 	else {
 	  resNodeSetError(prnArg, rn_error_mkdir, "Cant create directory");
 	}
-	//break;
       }
 #else
       iResult = mkdir(resNodeGetNameNormalizedNative(prnArg), mode);
-      if (iResult) {
-	resNodeSetError(prnArg, rn_error_mkdir, "Cant create directory '%s'", resNodeGetNameNormalized(prnArg));
-	fResult = FALSE;
-	break;
+      if (iResult != 0) {
+	resNodePtr prnT;
+
+	prnT = resNodeDirNew(resNodeGetNameBaseDir(prnArg));
+	if (resNodeMakeDirectory(prnT, mode)) {
+	  fResult = resNodeMakeDirectory(prnArg, mode);
+	}
+	resNodeFree(prnT);
       }
 #endif
       else {
@@ -369,7 +372,6 @@ resNodeUnlinkRecursivelyStr(xmlChar *pucArgPath)
 {
   BOOL_T fResult = FALSE;
 
-#ifdef EXPERIMENTAL
   if (STR_IS_NOT_EMPTY(pucArgPath)) {
     resNodePtr prnUnlink;
 
@@ -379,9 +381,6 @@ resNodeUnlinkRecursivelyStr(xmlChar *pucArgPath)
     fResult = resNodeUnlink(prnUnlink,TRUE);
     resNodeFree(prnUnlink);
   }
-#else
-  PrintFormatLog(1,"Recursive directory delete is an experimental feature yet ('%s')", pucArgPath);
-#endif
   
   return fResult;
 } /* end of resNodeUnlinkRecursivelyStr() */

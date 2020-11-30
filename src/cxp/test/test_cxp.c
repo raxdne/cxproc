@@ -875,24 +875,25 @@ cxpTest(cxpContextPtr pccArg)
     pndChild = xmlNewText(BAD_CAST"Dummy text node");
     xmlAddChild(pndPlain,pndChild);
     pndChild = xmlNewChild(pndPlain,NULL,NAME_PLAIN,BAD_CAST"Dummy plain node");
-    pndChild = xmlNewChild(pndPlain,NULL,NAME_SCRIPT,BAD_CAST"'AAA' + 'BBB' + 'CCC'");
+    //pndChild = xmlNewChild(pndPlain,NULL,NAME_SCRIPT,BAD_CAST"'AAA' + 'BBB' + 'CCC'");
     
     //    pndChild = xmlNewChild(pndPlain, NULL, NAME_XSL, NULL);
     //    xmlSetProp(pndChild,BAD_CAST"name",BAD_CAST TESTPREFIX "xsl/TestValidate.xsl");
     
-    cxpCtxtLogPrintNode(pccArg, 1, "PLAIN instruction", pndPlain);
+    //cxpCtxtLogPrintNode(pccArg, 1, "PLAIN instruction", pndPlain);
 
     if ((pucT = cxpProcessPlainNode(pndPlain,pccArg)) == NULL) {
       printf("Error cxpProcessPlainNode()\n");
     }
-    else if (xmlStrlen(pucT) != 40) {
+    else if (xmlStrlen(pucT) != 31) {
       printf("Error xmlStrlen()\n");
     }
     else {
       n_ok++;
       printf("OK\n");
     }
-    cxpCtxtLogPrint(pccArg, 1, "PLAIN result:\n%s", pucT);
+    
+    //cxpCtxtLogPrint(pccArg, 1, "PLAIN result:\n%s", pucT);
     xmlFree(pucT);
     xmlFreeNode(pndPlain);
   }

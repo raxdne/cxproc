@@ -42,15 +42,15 @@ REM robocopy c:\windows\system32 %DIR_CGI% VCRUNTIME140D.DLL
 
 SET DIR_LOG="%PREFIX%\www\log"
 md %DIR_LOG%
-SET DIR_WWW="%PREFIX%\www\html"
+SET DIR_WWW="%PREFIX%\www\html\test"
 md %DIR_WWW%
 SET DIR_CONF="%PREFIX%\www\conf"
 md %DIR_CONF%
 
-robocopy %CXPBASE%.. %PREFIX% *.*
-robocopy %CXPBASE%..\doc %DIR_DOC% *.txt
-robocopy /S %CXPBASE%..\xml %PREFIX%\xml
-robocopy /S %CXPBASE%..\examples %PREFIX%\examples
+REM robocopy %CXPBASE%.. %PREFIX% *.*
+REM robocopy %CXPBASE%..\doc %DIR_DOC% *.txt
+REM robocopy /S %CXPBASE%..\xml %PREFIX%\xml
+REM robocopy /S %CXPBASE%..\examples %PREFIX%\examples
 
 pushd %PREFIX%
 REM "C:\UserData\Programme\7-ZipPortable\App\7-Zip\7z.exe" a -r ..\cxproc-v1.3-pre_%ARCH%.zip bin xml doc examples www\cgi-bin www\html\test -x!*.pdb -x!*.ilk -x!cxproc-test.exe

@@ -54,7 +54,7 @@ extern resNodePtr
 resNodeListFindPath(resNodePtr prnArg, xmlChar *pucArgPath, int iArgOptions);
 
 extern resNodePtr
-resNodeListFindPathNext(resNodePtr prnArg, xmlChar *pucArgPath);
+resNodeListFindPathNext(resNodePtr prnArg, xmlChar *pucArgPath, int iArgOptions);
 
 extern xmlNodePtr
 resNodeListToDOM(resNodePtr prnArg, int iLevelVerboseArg);

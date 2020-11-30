@@ -491,19 +491,25 @@ resNodeTestString(void)
 
 
   if (RUNTEST) {
-    xmlChar* pucTest;
+    xmlChar* pucT = NULL;
+    xmlChar* pucTT = NULL;
 
     i++;
     printf("TEST %i in '%s:%i': detect current working dir = ", i, __FILE__, __LINE__);
-    pucTest = resPathGetCwd();
-    if (resPathIsEquivalent(pucTest, BAD_CAST BUILDPREFIX)) {
+
+    pucT = resPathGetCwd();
+    pucTT = resPathCollapse(BAD_CAST BUILDPREFIX, FS_PATH_FULL);
+
+    if (resPathIsEquivalent(pucT, pucTT) == FALSE) {
+      printf("Error resPathGetCwd()\n");
+    }
+    else {
       n_ok++;
       printf("OK\n");
     }
-    else {
-      printf("Error resPathGetCwd()\n");
-    }
-    if (pucTest) xmlFree(pucTest);
+    
+    xmlFree(pucTT);
+    xmlFree(pucT);
   }
 
 

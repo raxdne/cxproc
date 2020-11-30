@@ -1518,11 +1518,12 @@ cxpProcessSystemNode(xmlNodePtr pndArg, cxpContextPtr pccArg)
       /* this is a system mkdir call */
       resNodePtr prnMkdir;
 
-      prnMkdir = resNodeConcatNew(cxpCtxtLocationGetStr(pccHere),pucAttrT);
-      /*!\todo use umask for MODE_DIR_CREATE */
-      fResult = resNodeMakeDirectory(prnMkdir,MODE_DIR_CREATE);
-      resNodeFree(prnMkdir);
-      cxpViewNodeResult(pndArg, pccHere);
+      if ((prnMkdir = resNodeConcatNew(cxpCtxtLocationGetStr(pccHere),pucAttrT))) {
+        /*!\todo use umask for MODE_DIR_CREATE */
+        fResult = resNodeMakeDirectoryStr(resNodeGetNameNormalized(prnMkdir),MODE_DIR_CREATE);
+        resNodeFree(prnMkdir);
+        cxpViewNodeResult(pndArg, pccHere);
+      }
     }
     else if ((pucAttrT = domGetAttributePtr(pndArg,BAD_CAST "rmdir"))) {
       /* this is a system mkdir call */

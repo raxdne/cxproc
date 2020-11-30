@@ -37,6 +37,9 @@ resNodeTest(void)
 {
   int n_ok;
   int i;
+  xmlChar *pucModuleTestReport = xmlStrdup("\n");
+  xmlChar mucTestLabel[BUFFER_LENGTH];
+  xmlChar mucTestResult[BUFFER_LENGTH];
 
   n_ok=0;
   i=0;
@@ -44,39 +47,46 @@ resNodeTest(void)
   if (RUNTEST) {
 
     i++;
-    printf("TEST %i in '%s:%i': processing of dummy resource node = ", i, __FILE__, __LINE__);
+    xmlStrPrintf(mucTestLabel,BUFFER_LENGTH,"\nTEST %i in '%s:%i': processing of dummy resource node = ", i, __FILE__, __LINE__);
+    fputs(mucTestLabel,stderr);
+    mucTestResult[0] = '\0';
 
     if (resNodeReset(NULL, NULL) == TRUE) {
-      printf("Error 1 resNodeReset()\n");
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error 1 resNodeReset()\n");
     }
     else if (resNodeReset(NULL, BAD_CAST"") == TRUE) {
-      printf("Error 2 resNodeReset()\n");
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error 2 resNodeReset()\n");
     }
     else if (resNodeReadStatus(NULL) == TRUE) {
-      printf("Error resNodeReadStatus()\n");
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeReadStatus()\n");
     }
     else if (resNodeIsExist(NULL) == TRUE) {
-      printf("Error resNodeIsExist()");
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeIsExist()\n");
     }
     else if (resNodeIsFile(NULL) == TRUE) {
-      printf("Error resNodeIsFile()");
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeIsFile()\n");
     }
     else if (resNodeIsDir(NULL) == TRUE) {
-      printf("Error resNodeIsDir()");
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeIsDir()\n");
     }
     else if (resNodeIsStd(NULL) == TRUE) {
-      printf("Error resNodeIsStd()");
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeIsStd()\n");
     }
     else if (resNodeDup(NULL,256) != NULL) {
-      printf("Error resNodeDup()");
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeDup()\n");
     }
     else if (resNodeGetErrorMsg(NULL) != NULL) {
-      printf("Error resNodeGetErrorMsg()\n");
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeGetErrorMsg()\n");
     }
     else {
       n_ok++;
-      printf("OK\n");
     }
+
+    if (xmlStrlen(mucTestResult) > 0) {
+      pucModuleTestReport = xmlStrcat(pucModuleTestReport,mucTestLabel);
+      pucModuleTestReport = xmlStrcat(pucModuleTestReport,mucTestResult);
+    }
+    
     resNodeFree(NULL);
   }
 
@@ -85,22 +95,29 @@ resNodeTest(void)
     resNodePtr prnT = NULL;
 
     i++;
-    printf("TEST %i in '%s:%i': new filesystem context set to NULL = ", i, __FILE__, __LINE__);
+    xmlStrPrintf(mucTestLabel,BUFFER_LENGTH,"\nTEST %i in '%s:%i': new filesystem context set to NULL = ", i, __FILE__, __LINE__);
+    fputs(mucTestLabel,stderr);
+    mucTestResult[0] = '\0';
 
     /* not initialized with a name, handle error without SIGSEG */
     if ((prnT = resNodeNew()) == NULL) {
-      printf("Error resNodeNew() ...\n");
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeNew()\n");
     }
     else if (resNodeReadStatus(prnT) == TRUE) {
-      printf("Error resNodeReadStatus(): %s\n",resNodeGetErrorMsg(prnT));
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeReadStatus(): %s\n",resNodeGetErrorMsg(prnT));
     }
     else if (resNodeSetContentPtr(prnT, NULL, 1) != NULL) {
-      printf("Error resNodeSetContentPtr(): %s\n",resNodeGetErrorMsg(prnT));
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeSetContentPtr(): %s\n",resNodeGetErrorMsg(prnT));
     }
     else {
       n_ok++;
-      printf("OK\n");
     }
+
+    if (xmlStrlen(mucTestResult) > 0) {
+      pucModuleTestReport = xmlStrcat(pucModuleTestReport,mucTestLabel);
+      pucModuleTestReport = xmlStrcat(pucModuleTestReport,mucTestResult);
+    }
+    
     resNodeFree(prnT);
   }
 
@@ -109,22 +126,29 @@ resNodeTest(void)
     resNodePtr prnT = NULL;
 
     i++;
-    printf("TEST %i in '%s:%i': new filesystem context set to NULL = ", i, __FILE__, __LINE__);
+    xmlStrPrintf(mucTestLabel,BUFFER_LENGTH,"\nTEST %i in '%s:%i': new filesystem context set to NULL = ", i, __FILE__, __LINE__);
+    fputs(mucTestLabel,stderr);
+    mucTestResult[0] = '\0';
 
     /* not initialized with a name, handle error without SIGSEG */
     if ((prnT = resNodeNew()) == NULL) {
-      printf("Error resNodeNew() ...\n");
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeNew()\n");
     }
     else if (resNodeReadStatus(prnT) == TRUE) {
-      printf("Error resNodeReadStatus(): %s\n",resNodeGetErrorMsg(prnT));
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeReadStatus(): %s\n",resNodeGetErrorMsg(prnT));
     }
     else if (resNodeSetContentPtr(prnT, NULL, 1) != NULL) {
-      printf("Error resNodeSetContentPtr(): %s\n",resNodeGetErrorMsg(prnT));
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeSetContentPtr(): %s\n",resNodeGetErrorMsg(prnT));
     }
     else {
       n_ok++;
-      printf("OK\n");
     }
+
+    if (xmlStrlen(mucTestResult) > 0) {
+      pucModuleTestReport = xmlStrcat(pucModuleTestReport,mucTestLabel);
+      pucModuleTestReport = xmlStrcat(pucModuleTestReport,mucTestResult);
+    }
+    
     resNodeFree(prnT);
   }
 
@@ -134,24 +158,31 @@ resNodeTest(void)
     resNodePtr prnT = NULL;
 
     i++;
-    printf("TEST %i in '%s:%i': redundant reset of new filesystem context = ", i, __FILE__, __LINE__);
+    xmlStrPrintf(mucTestLabel,BUFFER_LENGTH,"\nTEST %i in '%s:%i': redundant reset of new filesystem context = ", i, __FILE__, __LINE__);
+    fputs(mucTestLabel,stderr);
+    mucTestResult[0] = '\0';
 
     if ((prnT = resNodeDirNew(pucT)) == NULL) {
-      printf("Error resNodeDirNew(): %s\n",resNodeGetErrorMsg(prnT));
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeDirNew(): %s\n",resNodeGetErrorMsg(prnT));
     }
     else if (resNodeReset(prnT, pucT) == FALSE) {
-      printf("Error resNodeReset(): %s\n",resNodeGetErrorMsg(prnT));
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeReset(): %s\n",resNodeGetErrorMsg(prnT));
     }
     else if (resNodeResetNameBase(prnT) == FALSE || resNodeGetNameBase(prnT) == NULL) {
-      printf("Error resNodeResetNameBase()\n");
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeResetNameBase()\n");
     }
     else if (resNodeResetNameBase(prnT) == FALSE || resNodeGetNameBase(prnT) == NULL) {
-      printf("Error resNodeResetNameBase()\n");
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeResetNameBase()\n");
     }
     else {
       n_ok++;
-      printf("OK\n");
     }
+
+    if (xmlStrlen(mucTestResult) > 0) {
+      pucModuleTestReport = xmlStrcat(pucModuleTestReport,mucTestLabel);
+      pucModuleTestReport = xmlStrcat(pucModuleTestReport,mucTestResult);
+    }
+    
     resNodeFree(prnT);
   }
 
@@ -160,30 +191,37 @@ resNodeTest(void)
     resNodePtr prnT = NULL;
 
     i++;
-    printf("TEST %i in '%s:%i': reading of an NULL file context = ", i, __FILE__, __LINE__);
+    xmlStrPrintf(mucTestLabel,BUFFER_LENGTH,"\nTEST %i in '%s:%i': reading of an NULL file context = ", i, __FILE__, __LINE__);
+    fputs(mucTestLabel,stderr);
+    mucTestResult[0] = '\0';
 
     if ((prnT = resNodeDirNew(NULL)) == NULL) {
-      printf("Error resNodeDirNew(): %s\n",resNodeGetErrorMsg(prnT));
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeDirNew(): %s\n",resNodeGetErrorMsg(prnT));
     }
     else if (resNodeReadStatus(prnT) == FALSE) {
-      printf("Error resNodeReadStatus(): %s\n",resNodeGetErrorMsg(prnT));
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeReadStatus(): %s\n",resNodeGetErrorMsg(prnT));
     }
     else if (resNodeGetMimeType(prnT) != MIME_INODE_DIRECTORY) {
-      printf("Error resNodeGetMimeType(): %s\n",resNodeGetErrorMsg(prnT));
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeGetMimeType(): %s\n",resNodeGetErrorMsg(prnT));
     }
     else if (resNodeReset(prnT, BAD_CAST"") == FALSE) {
-      printf("Error resNodeReset(): %s\n",resNodeGetErrorMsg(prnT));
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeReset(): %s\n",resNodeGetErrorMsg(prnT));
     }
     else if (resNodeReadStatus(prnT) == TRUE) {
-      printf("Error resNodeReadStatus(): %s\n",resNodeGetErrorMsg(prnT));
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeReadStatus(): %s\n",resNodeGetErrorMsg(prnT));
     }
     else if (resNodeGetMimeType(prnT) != MIME_UNDEFINED) {
-      printf("Error resNodeGetMimeType(): %s\n",resNodeGetErrorMsg(prnT));
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeGetMimeType(): %s\n",resNodeGetErrorMsg(prnT));
     }
     else {
       n_ok++;
-      printf("OK\n");
     }
+
+    if (xmlStrlen(mucTestResult) > 0) {
+      pucModuleTestReport = xmlStrcat(pucModuleTestReport,mucTestLabel);
+      pucModuleTestReport = xmlStrcat(pucModuleTestReport,mucTestResult);
+    }
+    
     resNodeFree(prnT);
   }
 
@@ -192,36 +230,43 @@ resNodeTest(void)
     resNodePtr prnT = NULL;
 
     i++;
-    printf("TEST %i in '%s:%i': new filesystem context for non-existing file = ", i, __FILE__, __LINE__);
+    xmlStrPrintf(mucTestLabel,BUFFER_LENGTH,"\nTEST %i in '%s:%i': new filesystem context for non-existing file = ", i, __FILE__, __LINE__);
+    fputs(mucTestLabel,stderr);
+    mucTestResult[0] = '\0';
 
     if ((prnT = resNodeDirNew(BAD_CAST "file://" TESTPREFIX "dummy.txt")) == NULL) {
-      printf("Error resNodeDirNew(): %s\n",resNodeGetErrorMsg(prnT));
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeDirNew(): %s\n",resNodeGetErrorMsg(prnT));
     }
     else if (resPathIsDir(resNodeGetNameNormalized(prnT)) == TRUE) {
-      printf("Error resPathIsDir(): %s\n",resNodeGetErrorMsg(prnT));
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resPathIsDir(): %s\n",resNodeGetErrorMsg(prnT));
     }
     else if (resNodeReadStatus(prnT) == TRUE) {
-      printf("Error resNodeReadStatus(): %s\n",resNodeGetErrorMsg(prnT));
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeReadStatus(): %s\n",resNodeGetErrorMsg(prnT));
     }
     else if (resNodeIsExist(prnT) == TRUE) {
-      printf("Error resNodeIsExist(): %s\n",resNodeGetErrorMsg(prnT));
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeIsExist(): %s\n",resNodeGetErrorMsg(prnT));
     }
     else if (resNodeIsFile(prnT) == FALSE) {
-      printf("Error resNodeIsFile(): %s\n",resNodeGetErrorMsg(prnT));
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeIsFile(): %s\n",resNodeGetErrorMsg(prnT));
     }
     else if (resNodeIsDir(prnT) == TRUE) {
-      printf("Error resNodeIsDir(): %s\n",resNodeGetErrorMsg(prnT));
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeIsDir(): %s\n",resNodeGetErrorMsg(prnT));
     }
     else if (resNodeIsStd(prnT) == TRUE) {
-      printf("Error resNodeIsStd(): %s\n",resNodeGetErrorMsg(prnT));
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeIsStd(): %s\n",resNodeGetErrorMsg(prnT));
     }
     else if (resNodeIsReadable(prnT) == TRUE) {
-      printf("Error resNodeIsReadable(): %s\n",resNodeGetErrorMsg(prnT));
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeIsReadable(): %s\n",resNodeGetErrorMsg(prnT));
     }
     else {
       n_ok++;
-      printf("OK\n");
     }
+
+    if (xmlStrlen(mucTestResult) > 0) {
+      pucModuleTestReport = xmlStrcat(pucModuleTestReport,mucTestLabel);
+      pucModuleTestReport = xmlStrcat(pucModuleTestReport,mucTestResult);
+    }
+    
     resNodeFree(prnT);
   }
 
@@ -230,36 +275,43 @@ resNodeTest(void)
     resNodePtr prnT = NULL;
 
     i++;
-    printf("TEST %i in '%s:%i': new filesystem context for non-existing directory = ", i, __FILE__, __LINE__);
+    xmlStrPrintf(mucTestLabel,BUFFER_LENGTH,"\nTEST %i in '%s:%i': new filesystem context for non-existing directory = ", i, __FILE__, __LINE__);
+    fputs(mucTestLabel,stderr);
+    mucTestResult[0] = '\0';
 
     if ((prnT = resNodeDirNew(BAD_CAST "file://" TESTPREFIX "dummy/")) == NULL) {
-      printf("Error resNodeDirNew(): %s\n",resNodeGetErrorMsg(prnT));
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeDirNew(): %s\n",resNodeGetErrorMsg(prnT));
     }
-    else if (resPathIsDir(resNodeGetNameNormalized(prnT)) == FALSE) {
-      printf("Error resPathIsDir(): %s\n",resNodeGetErrorMsg(prnT));
+    else if (resPathIsDir(resNodeGetNameNormalized(prnT))) { /* trailing slashes have to be removed */
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resPathIsDir(): %s\n",resNodeGetErrorMsg(prnT));
     }
     else if (resNodeReadStatus(prnT) == TRUE) {
-      printf("Error resNodeReadStatus(): %s\n",resNodeGetErrorMsg(prnT));
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeReadStatus(): %s\n",resNodeGetErrorMsg(prnT));
     }
     else if (resNodeIsExist(prnT) == TRUE) {
-      printf("Error resNodeIsExist(): %s\n",resNodeGetErrorMsg(prnT));
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeIsExist(): %s\n",resNodeGetErrorMsg(prnT));
     }
     else if (resNodeIsFile(prnT) == TRUE) {
-      printf("Error resNodeIsFile(): %s\n",resNodeGetErrorMsg(prnT));
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeIsFile(): %s\n",resNodeGetErrorMsg(prnT));
     }
     else if (resNodeIsDir(prnT) == FALSE) {
-      printf("Error resNodeIsDir(): %s\n",resNodeGetErrorMsg(prnT));
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeIsDir(): %s\n",resNodeGetErrorMsg(prnT));
     }
     else if (resNodeIsStd(prnT) == TRUE) {
-      printf("Error resNodeIsStd(): %s\n",resNodeGetErrorMsg(prnT));
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeIsStd(): %s\n",resNodeGetErrorMsg(prnT));
     }
     else if (resNodeIsReadable(prnT) == TRUE) {
-      printf("Error resNodeIsReadable(): %s\n",resNodeGetErrorMsg(prnT));
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeIsReadable(): %s\n",resNodeGetErrorMsg(prnT));
     }
     else {
       n_ok++;
-      printf("OK\n");
     }
+
+    if (xmlStrlen(mucTestResult) > 0) {
+      pucModuleTestReport = xmlStrcat(pucModuleTestReport,mucTestLabel);
+      pucModuleTestReport = xmlStrcat(pucModuleTestReport,mucTestResult);
+    }
+    
     resNodeFree(prnT);
   }
 
@@ -268,39 +320,46 @@ resNodeTest(void)
     resNodePtr prnT = NULL;
 
     i++;
-    printf("TEST %i in '%s:%i': new filesystem context for existing directory = ", i, __FILE__, __LINE__);
+    xmlStrPrintf(mucTestLabel,BUFFER_LENGTH,"\nTEST %i in '%s:%i': new filesystem context for existing directory = ", i, __FILE__, __LINE__);
+    fputs(mucTestLabel,stderr);
+    mucTestResult[0] = '\0';
 
     if ((prnT = resNodeDirNew(BAD_CAST "file:/" TESTPREFIX "option/pie/")) == NULL) {
-      printf("Error resNodeDirNew(): %s\n", resNodeGetErrorMsg(prnT));
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeDirNew(): %s\n", resNodeGetErrorMsg(prnT));
     }
     else if (resNodeGetType(prnT) != rn_type_dir) {
-      printf("Error resNodeGetType(): %s\n", resNodeGetErrorMsg(prnT));
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeGetType(): %s\n", resNodeGetErrorMsg(prnT));
     }
-    else if (resPathIsDir(resNodeGetNameNormalized(prnT)) == FALSE) {
-      printf("Error resPathIsDir(): %s\n", resNodeGetErrorMsg(prnT));
+    else if (resPathIsDir(resNodeGetNameNormalized(prnT))) {
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resPathIsDir(): %s\n", resNodeGetErrorMsg(prnT));
     }
     else if (resNodeReadStatus(prnT) == FALSE) {
-      printf("Error resNodeReadStatus(): %s\n", resNodeGetErrorMsg(prnT));
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeReadStatus(): %s\n", resNodeGetErrorMsg(prnT));
     }
     else if (resNodeIsExist(prnT) == FALSE) {
-      printf("Error resNodeIsExist(): %s\n", resNodeGetErrorMsg(prnT));
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeIsExist(): %s\n", resNodeGetErrorMsg(prnT));
     }
     else if (resNodeIsFile(prnT) == TRUE) {
-      printf("Error resNodeIsFile(): %s\n", resNodeGetErrorMsg(prnT));
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeIsFile(): %s\n", resNodeGetErrorMsg(prnT));
     }
     else if (resNodeIsDir(prnT) == FALSE) {
-      printf("Error resNodeIsDir(): %s\n", resNodeGetErrorMsg(prnT));
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeIsDir(): %s\n", resNodeGetErrorMsg(prnT));
     }
     else if (resNodeIsStd(prnT) == TRUE) {
-      printf("Error resNodeIsStd(): %s\n", resNodeGetErrorMsg(prnT));
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeIsStd(): %s\n", resNodeGetErrorMsg(prnT));
     }
     else if (resNodeIsReadable(prnT) == FALSE) {
-      printf("Error resNodeIsReadable(): %s\n", resNodeGetErrorMsg(prnT));
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeIsReadable(): %s\n", resNodeGetErrorMsg(prnT));
     }
     else {
       n_ok++;
-      printf("OK\n");
     }
+
+    if (xmlStrlen(mucTestResult) > 0) {
+      pucModuleTestReport = xmlStrcat(pucModuleTestReport,mucTestLabel);
+      pucModuleTestReport = xmlStrcat(pucModuleTestReport,mucTestResult);
+    }
+    
     resNodeFree(prnT);
   }
 
@@ -309,39 +368,46 @@ resNodeTest(void)
     resNodePtr prnT = NULL;
 
     i++;
-    printf("TEST %i in '%s:%i': new filesystem context set and re-set to an existing file context = ", i, __FILE__, __LINE__);
+    xmlStrPrintf(mucTestLabel,BUFFER_LENGTH,"\nTEST %i in '%s:%i': new filesystem context set and re-set to an existing file context = ", i, __FILE__, __LINE__);
+    fputs(mucTestLabel,stderr);
+    mucTestResult[0] = '\0';
 
     if ((prnT = resNodeNew()) == NULL) {
-      printf("Error resNodeDirNew(): %s\n",resNodeGetErrorMsg(prnT));
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeDirNew(): %s\n",resNodeGetErrorMsg(prnT));
     }
     else if (resNodeReset(prnT, BAD_CAST TESTPREFIX "xml/config.cxp") == FALSE) {
-      printf("Error resNodeReset(): %s\n",resNodeGetErrorMsg(prnT));
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeReset(): %s\n",resNodeGetErrorMsg(prnT));
     }
     else if (resNodeReadStatus(prnT) == FALSE) {
-      printf("Error resNodeReadStatus(): %s\n",resNodeGetErrorMsg(prnT));
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeReadStatus(): %s\n",resNodeGetErrorMsg(prnT));
     }
     else if (resNodeIsExist(prnT) == FALSE) {
-      printf("Error resNodeIsExist(): %s\n",resNodeGetErrorMsg(prnT));
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeIsExist(): %s\n",resNodeGetErrorMsg(prnT));
     }
     else if (resNodeIsFile(prnT) == FALSE) {
-      printf("Error resNodeIsFile(): %s\n",resNodeGetErrorMsg(prnT));
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeIsFile(): %s\n",resNodeGetErrorMsg(prnT));
     }
     else if (resNodeReset(prnT, BAD_CAST TESTPREFIX "xsl/config.cxp") == FALSE) {
-      printf("Error resNodeReset(): %s\n",resNodeGetErrorMsg(prnT));
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeReset(): %s\n",resNodeGetErrorMsg(prnT));
     }
     else if (resNodeReadStatus(prnT) == FALSE) {
-      printf("Error resNodeReadStatus(): %s\n",resNodeGetErrorMsg(prnT));
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeReadStatus(): %s\n",resNodeGetErrorMsg(prnT));
     }
     else if (resNodeIsExist(prnT) == FALSE) {
-      printf("Error resNodeIsExist(): %s\n",resNodeGetErrorMsg(prnT));
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeIsExist(): %s\n",resNodeGetErrorMsg(prnT));
     }
     else if (resNodeIsFile(prnT) == FALSE) {
-      printf("Error resNodeIsFile(): %s\n",resNodeGetErrorMsg(prnT));
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeIsFile(): %s\n",resNodeGetErrorMsg(prnT));
     }
     else {
       n_ok++;
-      printf("OK\n");
     }
+
+    if (xmlStrlen(mucTestResult) > 0) {
+      pucModuleTestReport = xmlStrcat(pucModuleTestReport,mucTestLabel);
+      pucModuleTestReport = xmlStrcat(pucModuleTestReport,mucTestResult);
+    }
+    
     resNodeFree(prnT);
   }
 
@@ -350,27 +416,34 @@ resNodeTest(void)
     resNodePtr prnT = NULL;
 
     i++;
-    printf("TEST %i in '%s:%i': new filesystem context set = ", i, __FILE__, __LINE__);
+    xmlStrPrintf(mucTestLabel,BUFFER_LENGTH,"\nTEST %i in '%s:%i': new filesystem context set = ", i, __FILE__, __LINE__);
+    fputs(mucTestLabel,stderr);
+    mucTestResult[0] = '\0';
 
     if ((prnT = resNodeDirNew(BAD_CAST TESTPREFIX "abc.txt")) == NULL) {
-      printf("Error resNodeDirNew(): %s\n",resNodeGetErrorMsg(prnT));
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeDirNew(): %s\n",resNodeGetErrorMsg(prnT));
     }
     else if (resNodeReadStatus(prnT) == TRUE) {
-      printf("Error resNodeReadStatus(): %s\n",resNodeGetErrorMsg(prnT));
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeReadStatus(): %s\n",resNodeGetErrorMsg(prnT));
     }
     else if (resNodeIsExist(prnT) == TRUE) {
-      printf("Error resNodeIsExist(): %s\n",resNodeGetErrorMsg(prnT));
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeIsExist(): %s\n",resNodeGetErrorMsg(prnT));
     }
     else if (resNodeIsDir(prnT) == TRUE) {
-      printf("Error resNodeIsFile(): %s\n",resNodeGetErrorMsg(prnT));
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeIsFile(): %s\n",resNodeGetErrorMsg(prnT));
     }
     else if (resNodeIsCreateable(prnT) == FALSE) {
-      printf("Error resNodeIsCreateable(): %s\n",resNodeGetErrorMsg(prnT));
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeIsCreateable(): %s\n",resNodeGetErrorMsg(prnT));
     }
     else {
       n_ok++;
-      printf("OK\n");
     }
+
+    if (xmlStrlen(mucTestResult) > 0) {
+      pucModuleTestReport = xmlStrcat(pucModuleTestReport,mucTestLabel);
+      pucModuleTestReport = xmlStrcat(pucModuleTestReport,mucTestResult);
+    }
+    
     resNodeUnlink(prnT,FALSE);
     resNodeFree(prnT);
   }
@@ -380,17 +453,23 @@ resNodeTest(void)
     resNodePtr prnT = NULL;
 
     i++;
-    printf("TEST %i in '%s:%i': resNodeSplitStrNew() = ", i, __FILE__, __LINE__);
+    xmlStrPrintf(mucTestLabel,BUFFER_LENGTH,"\nTEST %i in '%s:%i': resNodeSplitStrNew() = ", i, __FILE__, __LINE__);
+    fputs(mucTestLabel,stderr);
+    mucTestResult[0] = '\0';
 
     if (resNodeSplitStrNew(NULL) != NULL) {
-      printf("Error 1 resNodeSplitStrNew()\n");
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error 1 resNodeSplitStrNew()\n");
     }
     else if ((prnT = resNodeSplitStrNew(BAD_CAST TESTPREFIX "option\\pie\\text\\test-pie-date.pie")) == NULL || resNodeGetCountDescendants(prnT) < 5) {
-      printf("Error 2 resNodeSplitStrNew()\n");
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error 2 resNodeSplitStrNew()\n");
     }
     else {
       n_ok++;
-      printf("OK\n");
+    }
+
+    if (xmlStrlen(mucTestResult) > 0) {
+      pucModuleTestReport = xmlStrcat(pucModuleTestReport,mucTestLabel);
+      pucModuleTestReport = xmlStrcat(pucModuleTestReport,mucTestResult);
     }
 
     resNodeFree(prnT);
@@ -405,43 +484,49 @@ resNodeTest(void)
     resNodePtr prnTTT = NULL;
 
     i++;
-    printf("TEST %i in '%s:%i': resNodeInsert() = ", i, __FILE__, __LINE__);
+    xmlStrPrintf(mucTestLabel,BUFFER_LENGTH,"\nTEST %i in '%s:%i': resNodeInsert() = ", i, __FILE__, __LINE__);
+    fputs(mucTestLabel,stderr);
+    mucTestResult[0] = '\0';
 
     if ((prnPath = resNodeSplitStrNew(BAD_CAST "option\\pie\\text\\test.pie")) == NULL) {
-      printf("Error 2 resNodeSplitStrNew()\n");
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error 2 resNodeSplitStrNew()\n");
     }
     else if ((prnT = resNodeDirNew(BAD_CAST"option/")) == NULL) {
-      printf("Error resNodeDirNew()\n");
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeDirNew()\n");
     }
     else if (resNodeAddChildNew(prnT, BAD_CAST"a.txt") == NULL) {
-      printf("Error resNodeAddChildNew()\n");
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeAddChildNew()\n");
     }
     else if ((prnTT = resNodeAddChildNew(prnT, BAD_CAST"pie/")) == NULL) {
-      printf("Error resNodeAddChildNew()\n");
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeAddChildNew()\n");
     }
     else if ((prnTTT = resNodeAddChildNew(prnTT, BAD_CAST"text/")) == NULL) {
-      printf("Error resNodeAddChildNew()\n");
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeAddChildNew()\n");
     }
     else if (resNodeAddChildNew(prnTTT, BAD_CAST"c.html") == NULL) {
-      printf("Error resNodeAddChildNew()\n");
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeAddChildNew()\n");
     }
 #if 0
     else if (resNodeAddChildNew(prnTTT, BAD_CAST"test.pie") == NULL) {
-      printf("Error resNodeAddChildNew()\n");
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeAddChildNew()\n");
     }
     else if (resNodeInsert(NULL,NULL) != NULL) {
-      printf("Error 1 resNodeInsert()\n");
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error 1 resNodeInsert()\n");
     }
     else if (resNodeInsert(prnPath,NULL) != NULL) {
-      printf("Error 1 resNodeInsert()\n");
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error 1 resNodeInsert()\n");
     }
 #endif
-    else if (resNodeInsert(prnT, prnPath) != NULL) {
-      printf("Error 1 resNodeInsert()\n");
+    else if (resNodeInsert(prnT, prnPath) == NULL) {
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error 1 resNodeInsert()\n");
     }
     else {
       n_ok++;
-      printf("OK\n");
+    }
+
+    if (xmlStrlen(mucTestResult) > 0) {
+      pucModuleTestReport = xmlStrcat(pucModuleTestReport,mucTestLabel);
+      pucModuleTestReport = xmlStrcat(pucModuleTestReport,mucTestResult);
     }
 
     //pucT = resNodeListToPlain(prnT,RN_INFO_MIN); fputs((const char *)pucT,stderr); xmlFree(pucT);
@@ -457,30 +542,37 @@ resNodeTest(void)
     resNodePtr prnTTT = NULL;
 
     i++;
-    printf("TEST %i in '%s:%i': resNodeInsert() = ", i, __FILE__, __LINE__);
+    xmlStrPrintf(mucTestLabel,BUFFER_LENGTH,"\nTEST %i in '%s:%i': resNodeInsert() = ", i, __FILE__, __LINE__);
+    fputs(mucTestLabel,stderr);
+    mucTestResult[0] = '\0';
 
     if ((prnT = resNodeSplitStrNew(BAD_CAST "option\\pie\\text\\test.pie")) == NULL) {
-      printf("Error 2 resNodeSplitStrNew()\n");
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error 2 resNodeSplitStrNew()\n");
     }
     else if (resNodeInsertStrNew(prnT, BAD_CAST "option\\pie\\text\\test.pie") != NULL) {
-      printf("Error 1 resNodeInsert()\n");
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error 1 resNodeInsert()\n");
     }
     else if (resNodeInsertStrNew(prnT, BAD_CAST "option\\pie\\test.pie") == NULL) {
-      printf("Error 1 resNodeInsert()\n");
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error 1 resNodeInsert()\n");
     }
     else if (resNodeInsertStrNew(prnT, BAD_CAST "option\\test.pie") == NULL) {
-      printf("Error 1 resNodeInsert()\n");
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error 1 resNodeInsert()\n");
     }
     else if (resNodeInsertStrNew(prnT, BAD_CAST "test.pie") == NULL) {
-      printf("Error 1 resNodeInsert()\n");
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error 1 resNodeInsert()\n");
     }
     else if (resNodeInsertStrNew(prnT, NULL) != NULL) {
-      printf("Error 1 resNodeInsert()\n");
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error 1 resNodeInsert()\n");
     }
     else {
       n_ok++;
-      printf("OK\n");
     }
+
+    if (xmlStrlen(mucTestResult) > 0) {
+      pucModuleTestReport = xmlStrcat(pucModuleTestReport,mucTestLabel);
+      pucModuleTestReport = xmlStrcat(pucModuleTestReport,mucTestResult);
+    }
+    
 
     //pucT = resNodeListToPlain(prnT,RN_INFO_MIN); fputs((const char *)pucT,stderr); xmlFree(pucT);
     resNodeFree(prnT);
@@ -492,17 +584,23 @@ resNodeTest(void)
     resNodePtr prnT = NULL;
 
     i++;
-    printf("TEST %i in '%s:%i': resNodeSplitLineBufferNew() = ", i, __FILE__, __LINE__);
+    xmlStrPrintf(mucTestLabel,BUFFER_LENGTH,"\nTEST %i in '%s:%i': resNodeSplitLineBufferNew() = ", i, __FILE__, __LINE__);
+    fputs(mucTestLabel,stderr);
+    mucTestResult[0] = '\0';
 
     if ((prnT = resNodeSplitLineBufferNew(NULL)) != NULL) {
-      printf("Error 2 resNodeSplitStrNew()\n");
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error 2 resNodeSplitStrNew()\n");
     }
     else if ((prnT = resNodeSplitLineBufferNew(BAD_CAST "option\\pie\\text\\test.pie\noption/pie/abc.xml\n\ntmp\\def.txt\n \n\r")) == NULL) {
-      printf("Error 1 resNodeInsert()\n");
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error 1 resNodeInsert()\n");
     }
     else {
       n_ok++;
-      printf("OK\n");
+    }
+
+    if (xmlStrlen(mucTestResult) > 0) {
+      pucModuleTestReport = xmlStrcat(pucModuleTestReport,mucTestLabel);
+      pucModuleTestReport = xmlStrcat(pucModuleTestReport,mucTestResult);
     }
 
     //pucT = resNodeListToPlain(prnT,RN_INFO_MIN); fputs((const char *)pucT,stderr); xmlFree(pucT);
@@ -515,19 +613,26 @@ resNodeTest(void)
     xmlChar mucT[BUFFER_LENGTH];
 
     i++;
-    printf("TEST %i in '%s:%i': build a list of filesystem contexts = ",i,__FILE__,__LINE__);
+    xmlStrPrintf(mucTestLabel,BUFFER_LENGTH,"\nTEST %i in '%s:%i': build a list of filesystem contexts = ",i,__FILE__,__LINE__);
+    fputs(mucTestLabel,stderr);
+    mucTestResult[0] = '\0';
 
     xmlStrPrintf(mucT,BUFFER_LENGTH-1, TEMPPREFIX"//%c/tmp/%c",PATHLIST_SEPARATOR,PATHLIST_SEPARATOR);
     if ((prnT = resNodeStrNew(mucT)) == NULL) {
-      printf("Error resNodeStrNew(): %s\n",resNodeGetErrorMsg(prnT));
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeStrNew(): %s\n",resNodeGetErrorMsg(prnT));
     }
     else if (resNodeGetLength(prnT) != 2) {
-      printf("Error resNodeGetLength(): %s\n",resNodeGetErrorMsg(prnT));
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeGetLength(): %s\n",resNodeGetErrorMsg(prnT));
     }
     else {
       n_ok++;
-      printf("OK\n");
     }
+
+    if (xmlStrlen(mucTestResult) > 0) {
+      pucModuleTestReport = xmlStrcat(pucModuleTestReport,mucTestLabel);
+      pucModuleTestReport = xmlStrcat(pucModuleTestReport,mucTestResult);
+    }
+    
     resNodeListFree(prnT);
   }
 
@@ -536,15 +641,25 @@ resNodeTest(void)
     resNodePtr prnT = NULL;
 
     i++;
-    printf("TEST %i in '%s:%i': new filesystem context set to an existing file context with quotes = ",i,__FILE__,__LINE__);
-    prnT = resNodeRootNew(NULL,BAD_CAST "\"" TESTPREFIX "plain/Length_1024.txt\"");
-    if (prnT != NULL && resNodeReadStatus(prnT) == TRUE) {
-      n_ok++;
-      printf("OK\n");
+    xmlStrPrintf(mucTestLabel,BUFFER_LENGTH,"\nTEST %i in '%s:%i': new filesystem context set to an existing file context with quotes = ",i,__FILE__,__LINE__);
+    fputs(mucTestLabel,stderr);
+    mucTestResult[0] = '\0';
+    
+    if ((prnT = resNodeRootNew(NULL,BAD_CAST "\"" TESTPREFIX "plain/Length_1024.txt\"")) == NULL) {
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeRootNew(): %s\n",resNodeGetErrorMsg(prnT));
+    }
+    else if (resNodeReadStatus(prnT) == FALSE) {
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeRootNew(): %s\n",resNodeGetErrorMsg(prnT));
     }
     else {
-      printf("Error resNodeRootNew(): %s\n",resNodeGetErrorMsg(prnT));
+      n_ok++;
     }
+
+    if (xmlStrlen(mucTestResult) > 0) {
+      pucModuleTestReport = xmlStrcat(pucModuleTestReport,mucTestLabel);
+      pucModuleTestReport = xmlStrcat(pucModuleTestReport,mucTestResult);
+    }
+
     resNodeFree(prnT);
   }
 
@@ -555,24 +670,32 @@ resNodeTest(void)
     xmlChar *pucTT;
 
     i++;
-    printf("TEST %i in '%s:%i': URI of an existing file context = ",i,__FILE__,__LINE__);
-    prnT = resNodeDirNew(BAD_CAST TESTPREFIX "config-test.cxp");
-    if (prnT) {
-      pucT = resNodeGetURI(prnT);
-      pucTT = resPathCollapse(BAD_CAST"file://///" TESTPREFIX "config-test.cxp", FS_PATH_FULL);
-      if (pucT != NULL && resPathIsEquivalent(pucT,pucTT)) {
-        n_ok++;
-        printf("OK\n");
-      }
-      else {
-        printf("Error resNodeGetURI(): %s\n",resNodeGetErrorMsg(prnT));
-      }
-      xmlFree(pucTT);
-      resNodeFree(prnT);
+    xmlStrPrintf(mucTestLabel,BUFFER_LENGTH,"\nTEST %i in '%s:%i': URI of an existing file context = ",i,__FILE__,__LINE__);
+    fputs(mucTestLabel,stderr);
+    mucTestResult[0] = '\0';
+
+    if ((prnT = resNodeDirNew(BAD_CAST TESTPREFIX "config-test.cxp")) == NULL) {
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeRootNew(): %s\n",resNodeGetErrorMsg(prnT));
+    }
+    else if ((pucT = resNodeGetURI(prnT)) == NULL) {
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeGetURI(): %s\n",resNodeGetErrorMsg(prnT));
+    }
+    else if ((pucTT = resPathCollapse(BAD_CAST"file://///" TESTPREFIX "config-test.cxp", FS_PATH_FULL)) == NULL) {
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resPathCollapse(): %s\n",resNodeGetErrorMsg(prnT));
+    }
+    else if (resPathIsEquivalent(pucT,pucTT) == FALSE) {
     }
     else {
-      printf("Error resNodeNew()\n");
+      n_ok++;
     }
+
+    if (xmlStrlen(mucTestResult) > 0) {
+      pucModuleTestReport = xmlStrcat(pucModuleTestReport,mucTestLabel);
+      pucModuleTestReport = xmlStrcat(pucModuleTestReport,mucTestResult);
+    }
+
+    xmlFree(pucTT);
+    resNodeFree(prnT);
   }
 
 
@@ -581,24 +704,32 @@ resNodeTest(void)
     xmlChar *pucT;
 
     i++;
-    printf("TEST %i in '%s:%i': URI of an existing URL context = ",i,__FILE__,__LINE__);
+    xmlStrPrintf(mucTestLabel,BUFFER_LENGTH,"\nTEST %i in '%s:%i': URI of an existing URL context = ",i,__FILE__,__LINE__);
+    fputs(mucTestLabel,stderr);
+    mucTestResult[0] = '\0';
+
 
     if ((prnT = resNodeDirNew(BAD_CAST"https://www.test.com:8181/path/file.txt?a=b&c=123")) == NULL) {
-      printf("Error resNodeDirNew(): %s\n",resNodeGetErrorMsg(prnT));
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeDirNew(): %s\n",resNodeGetErrorMsg(prnT));
     }
     else if (resNodeIsURL(prnT) == FALSE) {
-      printf("Error resNodeIsURL(): %s\n",resNodeGetErrorMsg(prnT));
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeIsURL(): %s\n",resNodeGetErrorMsg(prnT));
     }
     else if ((pucT = resNodeGetURI(prnT)) == NULL) {
-      printf("Error resNodeGetURI(): %s\n", resNodeGetErrorMsg(prnT));
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeGetURI(): %s\n", resNodeGetErrorMsg(prnT));
     }
     else if (resPathIsEquivalent(pucT,BAD_CAST"https://www.test.com:8181/path/file.txt?a=b&c=123") == FALSE) {
-      printf("Error resPathIsEquivalent(): %s\n",resNodeGetErrorMsg(prnT));
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resPathIsEquivalent(): %s\n",resNodeGetErrorMsg(prnT));
     }
     else {
       n_ok++;
-      printf("OK\n");
     }
+
+    if (xmlStrlen(mucTestResult) > 0) {
+      pucModuleTestReport = xmlStrcat(pucModuleTestReport,mucTestLabel);
+      pucModuleTestReport = xmlStrcat(pucModuleTestReport,mucTestResult);
+    }
+    
     resNodeFree(prnT);
   }
 
@@ -608,27 +739,35 @@ resNodeTest(void)
     xmlChar *pucT;
 
     i++;
-    printf("TEST %i in '%s:%i': URI of an existing URL context into an archive = ",i,__FILE__,__LINE__);
+    xmlStrPrintf(mucTestLabel,BUFFER_LENGTH,"\nTEST %i in '%s:%i': URI of an existing URL context into an archive = ",i,__FILE__,__LINE__);
+    fputs(mucTestLabel,stderr);
+    mucTestResult[0] = '\0';
+
 
     if ((prnT = resNodeDirNew(BAD_CAST HTTPPREFIX "test-zip-7.zip/path/test.txt")) == NULL) {
-      printf("Error resNodeDirNew(): %s\n",resNodeGetErrorMsg(prnT));
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeDirNew(): %s\n",resNodeGetErrorMsg(prnT));
     }
     else if (resNodeGetChild(prnT) == NULL) {
-      printf("Error resNodeDirNew(): %s\n",resNodeGetErrorMsg(prnT));
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeDirNew(): %s\n",resNodeGetErrorMsg(prnT));
     }
     else if ((pucT = resNodeGetURI(prnT)) == NULL) {
-      printf("Error resNodeGetURI(): %s\n",resNodeGetErrorMsg(prnT));
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeGetURI(): %s\n",resNodeGetErrorMsg(prnT));
     }
     else if (resPathIsEquivalent(pucT,BAD_CAST HTTPPREFIX "test-zip-7.zip") == FALSE) {
-      printf("Error resPathIsEquivalent(): %s\n",resNodeGetErrorMsg(prnT));
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resPathIsEquivalent(): %s\n",resNodeGetErrorMsg(prnT));
     }
     else if (resPathIsEquivalent(resNodeGetURI(resNodeGetChild(prnT)),BAD_CAST HTTPPREFIX "test-zip-7.zip/path/") == FALSE) {
-      printf("Error resPathIsEquivalent(): %s\n",resNodeGetErrorMsg(prnT));
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resPathIsEquivalent(): %s\n",resNodeGetErrorMsg(prnT));
     }
     else {
       n_ok++;
-      printf("OK\n");
     }
+
+    if (xmlStrlen(mucTestResult) > 0) {
+      pucModuleTestReport = xmlStrcat(pucModuleTestReport,mucTestLabel);
+      pucModuleTestReport = xmlStrcat(pucModuleTestReport,mucTestResult);
+    }
+    
     resNodeFree(prnT);
   }
 
@@ -638,23 +777,28 @@ resNodeTest(void)
     resNodePtr prnT = NULL;
 
     i++;
-    printf("TEST %i in '%s:%i': set basename and basedir of an context = ",i,__FILE__,__LINE__);
-    prnT = resNodeDirNew(BAD_CAST TESTPREFIX "xml/config.cxp");
-    if (prnT) {
-      pucTT = resPathCollapse(BAD_CAST TESTPREFIX "xml",FS_PATH_FULL);
-      if ( xmlStrcasecmp(resNodeGetNameBase(prnT),BAD_CAST"config.cxp")==0
-	   && resPathIsEquivalent(resNodeGetNameBaseDir(prnT), pucTT)) {
-	n_ok++;
-	printf("OK\n");
-      }
-      else {
-        printf("Error resNodeDirNew()\n");
-      }
-      xmlFree(pucTT);
+    xmlStrPrintf(mucTestLabel,BUFFER_LENGTH,"\nTEST %i in '%s:%i': set basename and basedir of an context = ",i,__FILE__,__LINE__);
+    fputs(mucTestLabel,stderr);
+    mucTestResult[0] = '\0';
+
+    if ((prnT = resNodeDirNew(BAD_CAST TESTPREFIX "xml/config.cxp")) == NULL) {
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"ERROR\n");
+    }
+    else if ((pucTT = resPathCollapse(BAD_CAST TESTPREFIX "xml",FS_PATH_FULL)) == NULL) {
+    }
+    else if (xmlStrcasecmp(resNodeGetNameBase(prnT),BAD_CAST"config.cxp") != 0) {
+    }
+    else if (resPathIsEquivalent(resNodeGetNameBaseDir(prnT), pucTT) == FALSE) {
     }
     else {
-      printf("ERROR\n");
+      n_ok++;
     }
+
+    if (xmlStrlen(mucTestResult) > 0) {
+      pucModuleTestReport = xmlStrcat(pucModuleTestReport,mucTestLabel);
+      pucModuleTestReport = xmlStrcat(pucModuleTestReport,mucTestResult);
+    }
+    
     resNodeFree(prnT);
   }
 
@@ -667,35 +811,42 @@ resNodeTest(void)
     xmlChar *pucT = NULL;
 
     i++;
-    printf("TEST %i in '%s:%i': new filesystem context  = ", i, __FILE__, __LINE__);
+    xmlStrPrintf(mucTestLabel,BUFFER_LENGTH,"\nTEST %i in '%s:%i': new filesystem context  = ", i, __FILE__, __LINE__);
+    fputs(mucTestLabel,stderr);
+    mucTestResult[0] = '\0';
 
     pucTest = resPathNormalize(BAD_CAST TESTPREFIX "plain/test-plain-3.xml");
 
     if ((prnT = resNodeDirNew(BAD_CAST TESTPREFIX)) == NULL) {
-      printf("Error resNodeDirNew()\n");
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeDirNew()\n");
     }
     else if ((prnDir = resNodeAddChildNew(prnT, BAD_CAST"plain/")) == NULL) {
-      printf("Error resNodeAddChildNew()\n");
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeAddChildNew()\n");
     }
     else if (resNodeGetType(prnDir) != rn_type_dir) {
-      printf("Error resNodeGetType()\n");
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeGetType()\n");
     }
     else if ((prnFile = resNodeAddChildNew(prnDir, BAD_CAST"test-plain-3.xml")) == NULL) {
-      printf("Error resNodeAddChildNew()\n");
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeAddChildNew()\n");
     }
     else if (resNodeGetType(prnFile) != rn_type_file) {
-      printf("Error resNodeGetType()\n");
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeGetType()\n");
     }
     else if ((pucT = resNodeGetNameNormalized(prnFile)) == NULL) {
-      printf("Error resNodeGetNameNormalized('%s') ...\n", pucT);
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeGetNameNormalized('%s')\n", pucT);
     }
     else if (resPathIsEquivalent(pucTest, pucT) == FALSE) {
-      printf("Error resPathIsEquivalent(): %s\n",resNodeGetErrorMsg(prnT));
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resPathIsEquivalent(): %s\n",resNodeGetErrorMsg(prnT));
     }
     else {
       n_ok++;
-      printf("OK\n");
     }
+
+    if (xmlStrlen(mucTestResult) > 0) {
+      pucModuleTestReport = xmlStrcat(pucModuleTestReport,mucTestLabel);
+      pucModuleTestReport = xmlStrcat(pucModuleTestReport,mucTestResult);
+    }
+    
     xmlFree(pucTest);
     resNodeFree(prnT);
   }
@@ -708,36 +859,43 @@ resNodeTest(void)
     xmlChar *pucTT = resPathNormalize(BAD_CAST TESTPREFIX "option/archive/test-zip-7.zip");
 
     i++;
-    printf("TEST %i in '%s:%i': set internal path = ", i, __FILE__, __LINE__);
+    xmlStrPrintf(mucTestLabel,BUFFER_LENGTH,"\nTEST %i in '%s:%i': set internal path = ", i, __FILE__, __LINE__);
+    fputs(mucTestLabel,stderr);
+    mucTestResult[0] = '\0';
 
     if ((prnT = resNodeDirNew(BAD_CAST pucT)) == NULL) {
-      printf("Error resNodeDirNew()\n");
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeDirNew()\n");
     }
     else if (resPathIsEquivalent(resNodeGetNameNormalized(prnT), pucTT) == FALSE) {
-      printf("Error resPathIsEquivalent()\n");
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resPathIsEquivalent()\n");
     }
     else if (resNodeGetType(prnT) != rn_type_archive) {
-      printf("Error resNodeGetType()\n");
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeGetType()\n");
     }
     else if (resNodeGetMimeType(prnT) != MIME_APPLICATION_ZIP) {
-      printf("Error resNodeGetMimeType()\n");
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeGetMimeType()\n");
     }
     else if ((prnChild = resNodeGetChild(prnT)) == NULL) {
-      printf("Error resNodeGetChild()\n");
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeGetChild()\n");
     }
     else if (resNodeGetType(prnChild) != rn_type_dir_in_archive) {
-      printf("Error resNodeGetType()\n");
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeGetType()\n");
     }
     else if (resNodeGetMimeType(prnChild) != MIME_INODE_DIRECTORY) {
-      printf("Error resNodeGetMimeType()\n");
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeGetMimeType()\n");
     }
     else if ((prnChild = resNodeGetChild(prnChild)) == NULL) {
-      printf("Error resNodeGetChild()\n");
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeGetChild()\n");
     }
     else {
       n_ok++;
-      printf("OK\n");
     }
+
+    if (xmlStrlen(mucTestResult) > 0) {
+      pucModuleTestReport = xmlStrcat(pucModuleTestReport,mucTestLabel);
+      pucModuleTestReport = xmlStrcat(pucModuleTestReport,mucTestResult);
+    }
+    
     resNodeFree(prnT);
     xmlFree(pucTT);
     xmlFree(pucT);
@@ -748,27 +906,34 @@ resNodeTest(void)
     resNodePtr prnT = NULL;
 
     i++;
-    printf("TEST %i in '%s:%i': resNodeAddSibling() = ", i, __FILE__, __LINE__);
+    xmlStrPrintf(mucTestLabel,BUFFER_LENGTH,"\nTEST %i in '%s:%i': resNodeAddSibling() = ", i, __FILE__, __LINE__);
+    fputs(mucTestLabel,stderr);
+    mucTestResult[0] = '\0';
 
     if ((prnT = resNodeDirNew(BAD_CAST"test/dummy.txt")) == NULL) {
-      printf("Error resNodeDirNew()\n");
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeDirNew()\n");
     }
     else if (resNodeAddSibling(prnT, resNodeDirNew(BAD_CAST"a.png")) == NULL) {
-      printf("Error resNodeAddSibling()\n");
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeAddSibling()\n");
     }
     else if (resNodeAddSibling(prnT, resNodeDirNew(BAD_CAST"b.png")) == NULL) {
-      printf("Error resNodeAddSibling()\n");
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeAddSibling()\n");
     }
     else if (resNodeAddSibling(prnT, resNodeDirNew(BAD_CAST"c.png")) == NULL) {
-      printf("Error resNodeAddSibling()\n");
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeAddSibling()\n");
     }
     else if (resNodeGetLength(prnT) != 4) {
-      printf("Error resNodeGetLength()\n");
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeGetLength()\n");
     }
     else {
       n_ok++;
-      printf("OK\n");
     }
+
+    if (xmlStrlen(mucTestResult) > 0) {
+      pucModuleTestReport = xmlStrcat(pucModuleTestReport,mucTestLabel);
+      pucModuleTestReport = xmlStrcat(pucModuleTestReport,mucTestResult);
+    }
+    
     resNodeListFree(prnT);
   }
 
@@ -778,33 +943,40 @@ resNodeTest(void)
     int j;
     
     i++;
-    printf("TEST %i in '%s:%i': resNodeAddChildNew() = ", i, __FILE__, __LINE__);
+    xmlStrPrintf(mucTestLabel,BUFFER_LENGTH,"\nTEST %i in '%s:%i': resNodeAddChildNew() = ", i, __FILE__, __LINE__);
+    fputs(mucTestLabel,stderr);
+    mucTestResult[0] = '\0';
 
     if ((prnT = resNodeDirNew(BAD_CAST"test/")) == NULL) {
-      printf("Error resNodeDirNew()\n");
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeDirNew()\n");
     }
     else if (resNodeAddChildNew(prnT, BAD_CAST"a.png") == FALSE) {
-      printf("Error resNodeAddChildNew()\n");
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeAddChildNew()\n");
     }
     else if (resNodeAddChildNew(prnT, BAD_CAST"b.png") == FALSE) {
-      printf("Error resNodeAddChildNew()\n");
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeAddChildNew()\n");
     }
     else if (resNodeAddChildNew(prnT, BAD_CAST"c.png") == FALSE) {
-      printf("Error resNodeAddChildNew()\n");
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeAddChildNew()\n");
     }
     else if (resNodeGetParent(resNodeGetChild(prnT)) != prnT) {
-      printf("Error resNodeGetParent()\n");
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeGetParent()\n");
     }
     else if (resNodeGetParent(resNodeGetNext(resNodeGetChild(prnT))) != prnT) {
-      printf("Error resNodeGetParent()\n");
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeGetParent()\n");
     }
     else if ((j = resNodeGetChildCount(prnT, rn_type_file)) != 3) {
-      printf("Error resNodeGetChildCount() = %i\n",j);
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeGetChildCount() = %i\n",j);
     }
     else {
       n_ok++;
-      printf("OK\n");
     }
+
+    if (xmlStrlen(mucTestResult) > 0) {
+      pucModuleTestReport = xmlStrcat(pucModuleTestReport,mucTestLabel);
+      pucModuleTestReport = xmlStrcat(pucModuleTestReport,mucTestResult);
+    }
+    
     resNodeFree(prnT);
   }
 
@@ -813,15 +985,22 @@ resNodeTest(void)
     resNodePtr prnT = NULL;
 
     i++;
-    printf("TEST %i in '%s:%i': resNodeInMemoryNew() = ",i,__FILE__,__LINE__);
+    xmlStrPrintf(mucTestLabel,BUFFER_LENGTH,"\nTEST %i in '%s:%i': resNodeInMemoryNew() = ",i,__FILE__,__LINE__);
+    fputs(mucTestLabel,stderr);
+    mucTestResult[0] = '\0';
 
-    if ((prnT = resNodeInMemoryNew())) {
-      n_ok++;
-      printf("OK\n");
+    if ((prnT = resNodeInMemoryNew()) == NULL) {
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error\n");
     }
     else {
-      printf("Error\n");
+      n_ok++;
     }
+ 
+    if (xmlStrlen(mucTestResult) > 0) {
+      pucModuleTestReport = xmlStrcat(pucModuleTestReport,mucTestLabel);
+      pucModuleTestReport = xmlStrcat(pucModuleTestReport,mucTestResult);
+    }
+    
     resNodeFree(prnT);
   }
 
@@ -830,18 +1009,26 @@ resNodeTest(void)
     resNodePtr prnT = NULL;
 
     i++;
-    printf("TEST %i in '%s:%i': resNodeAliasNew() = ",i,__FILE__,__LINE__);
+    xmlStrPrintf(mucTestLabel,BUFFER_LENGTH,"\nTEST %i in '%s:%i': resNodeAliasNew() = ",i,__FILE__,__LINE__);
+    fputs(mucTestLabel,stderr);
+    mucTestResult[0] = '\0';
+
 
     if ((prnT = resNodeAliasNew(BAD_CAST":TEST:")) == NULL) {
-      printf("Error resNodeAliasNew()\n");
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeAliasNew()\n");
     }
     else if (resNodeSetContentPtr(prnT,(void *)xmlStrdup(BAD_CAST"Content"),8) == NULL) {
-      printf("Error resNodeSetContentPtr()\n");
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeSetContentPtr()\n");
     }
     else {
       n_ok++;
-      printf("OK\n");
     }
+
+    if (xmlStrlen(mucTestResult) > 0) {
+      pucModuleTestReport = xmlStrcat(pucModuleTestReport,mucTestLabel);
+      pucModuleTestReport = xmlStrcat(pucModuleTestReport,mucTestResult);
+    }
+    
     resNodeFree(prnT);
   }
 
@@ -850,24 +1037,31 @@ resNodeTest(void)
     resNodePtr prnT = NULL;
 
     i++;
-    printf("TEST %i in '%s:%i': concat path of an context = ", i, __FILE__, __LINE__);
+    xmlStrPrintf(mucTestLabel,BUFFER_LENGTH,"\nTEST %i in '%s:%i': concat path of an context = ", i, __FILE__, __LINE__);
+    fputs(mucTestLabel,stderr);
+    mucTestResult[0] = '\0';
 
     if ((prnT = resNodeConcatNew(BAD_CAST"/tmp//", BAD_CAST"./test-res_node/xml/config.cxp")) == NULL) {
-      printf("Error resNodeConcatNew()\n");
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeConcatNew()\n");
     }
     else if (resPathIsEquivalent(resNodeGetNameNormalized(prnT), BAD_CAST "\\tmp\\test-res_node\\xml\\config.cxp") == FALSE) {
-      printf("Error resPathIsEquivalent()\n");
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resPathIsEquivalent()\n");
     }
     else if (resPathIsEquivalent(resNodeGetNameBase(prnT), BAD_CAST"config.cxp") == FALSE) {
-      printf("Error resPathIsEquivalent()\n");
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resPathIsEquivalent()\n");
     }
     else if (resPathIsEquivalent(resNodeGetNameBaseDir(prnT), BAD_CAST "\\tmp\\test-res_node\\xml") == FALSE) {
-      printf("Error resPathIsEquivalent()\n");
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resPathIsEquivalent()\n");
     }
     else {
       n_ok++;
-      printf("OK\n");
     }
+
+    if (xmlStrlen(mucTestResult) > 0) {
+      pucModuleTestReport = xmlStrcat(pucModuleTestReport,mucTestLabel);
+      pucModuleTestReport = xmlStrcat(pucModuleTestReport,mucTestResult);
+    }
+    
     resNodeFree(prnT);
   }
 
@@ -876,27 +1070,34 @@ resNodeTest(void)
     resNodePtr prnT = NULL;
 
     i++;
-    printf("TEST %i in '%s:%i': reset existing filesystem context = ", i, __FILE__, __LINE__);
+    xmlStrPrintf(mucTestLabel,BUFFER_LENGTH,"\nTEST %i in '%s:%i': reset existing filesystem context = ", i, __FILE__, __LINE__);
+    fputs(mucTestLabel,stderr);
+    mucTestResult[0] = '\0';
 
     if ((prnT = resNodeDirNew(BAD_CAST TESTPREFIX "/thread/config.cxp")) == NULL) {
-      printf("Error resNodeDirNew()\n");
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeDirNew()\n");
     }
     else if (resNodeReset(prnT, NULL) == FALSE) {
-      printf("Error resNodeReset()\n");
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeReset()\n");
     }
     else if (resNodeReadStatus(prnT) == TRUE) {
-      printf("Error resNodeReset()\n");
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeReset()\n");
     }
     else if (resNodeIsDir(prnT) == TRUE) {
-      printf("Error resNodeReset()\n");
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeReset()\n");
     }
     else if (resNodeIsFile(prnT) == TRUE) {
-      printf("Error resNodeReset()\n");
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeReset()\n");
     }
     else {
       n_ok++;
-      printf("OK\n");
     }
+
+    if (xmlStrlen(mucTestResult) > 0) {
+      pucModuleTestReport = xmlStrcat(pucModuleTestReport,mucTestLabel);
+      pucModuleTestReport = xmlStrcat(pucModuleTestReport,mucTestResult);
+    }
+    
     resNodeFree(prnT);
   }
 
@@ -910,57 +1111,64 @@ resNodeTest(void)
     int j;
     
     i++;
-    printf("TEST %i in '%s:%i': resNodeDup() = ", i, __FILE__, __LINE__);
+    xmlStrPrintf(mucTestLabel,BUFFER_LENGTH,"\nTEST %i in '%s:%i': resNodeDup() = ", i, __FILE__, __LINE__);
+    fputs(mucTestLabel,stderr);
+    mucTestResult[0] = '\0';
 
     if ((prnT = resNodeDirNew(BAD_CAST TESTPREFIX)) == NULL) {
-      printf("Error resNodeDirNew()\n");
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeDirNew()\n");
     }
     else if (resNodeAddChildNew(prnT, BAD_CAST"a.txt") == FALSE) {
-      printf("Error resNodeAddChildNew()\n");
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeAddChildNew()\n");
     }
     else if (resNodeSetContentPtr(prnT, pucT, xmlStrlen(pucT) + 1) == FALSE) {
-      printf("Error resNodeSetContentPtr()\n");
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeSetContentPtr()\n");
     }
     else if (resNodeAddChildNew(prnT, BAD_CAST"b.png") == FALSE) {
-      printf("Error resNodeAddChildNew()\n");
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeAddChildNew()\n");
     }
     else if (resNodeAddChildNew(prnT, BAD_CAST"c.png") == FALSE) {
-      printf("Error resNodeAddChildNew()\n");
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeAddChildNew()\n");
     }
     else if ((prnTT = resNodeDirNew(BAD_CAST TESTPREFIX "empty/")) == NULL) {
-      printf("Error resNodeDirNew()\n");
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeDirNew()\n");
     }
     else if (resNodeAddSibling(prnT,prnTT) == FALSE) {
-      printf("Error resNodeAddSibling()\n");
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeAddSibling()\n");
     }
     else if ((prnTTT = resNodeDup(prnT, (RN_DUP_CONTENT))) == NULL) {
-      printf("Error resNodeDup()\n");
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeDup()\n");
     }
     else if (resNodeGetContentPtr(prnTTT) == NULL || resNodeGetContentPtr(prnTTT) == pucT || xmlStrlen(BAD_CAST resNodeGetContentPtr(prnTTT)) != 6) {
-      printf("Error resNodeGetContentPtr()\n");
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeGetContentPtr()\n");
     }
     else if ((j = resNodeGetChildCount(prnTTT, rn_type_file)) != 0) {
-      printf("Error resNodeGetChildCount() = %i\n",j);
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeGetChildCount() = %i\n",j);
     }
     else if (resNodeGetNext(prnTTT) != NULL) {
-      printf("Error resNodeGetNext()\n");
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeGetNext()\n");
     }
     else if ((prnTTTT = resNodeDup(prnT, (RN_DUP_CONTENT | RN_DUP_CHILDS | RN_DUP_NEXT))) == NULL) {
-      printf("Error resNodeDup()\n");
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeDup()\n");
     }
     else if (resNodeGetContentPtr(prnTTTT) == NULL || resNodeGetContentPtr(prnTTTT) == pucT || xmlStrlen(BAD_CAST resNodeGetContentPtr(prnTTTT)) != 6) {
-      printf("Error resNodeGetContentPtr()\n");
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeGetContentPtr()\n");
     }
     else if ((j = resNodeGetChildCount(prnTTTT, rn_type_file)) != 3) {
-      printf("Error resNodeGetChildCount() = %i\n",j);
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeGetChildCount() = %i\n",j);
     }
     else if (resNodeGetNext(prnTTTT) == NULL || resNodeGetNext(prnTTTT) == prnT) {
-      printf("Error resNodeGetNext()\n");
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeGetNext()\n");
     }
     else {
       n_ok++;
-      printf("OK\n");
     }
+
+    if (xmlStrlen(mucTestResult) > 0) {
+      pucModuleTestReport = xmlStrcat(pucModuleTestReport,mucTestLabel);
+      pucModuleTestReport = xmlStrcat(pucModuleTestReport,mucTestResult);
+    }
+    
     resNodeListFree(prnT);
     resNodeListFree(prnTTT);
     resNodeListFree(prnTTTT);
@@ -973,24 +1181,34 @@ resNodeTest(void)
     resNodePtr prnT = NULL;
 
     i++;
-    printf("TEST %i in '%s:%i': construct a new filesystem context with string and context = ",i,__FILE__,__LINE__);
+    xmlStrPrintf(mucTestLabel,BUFFER_LENGTH,"\nTEST %i in '%s:%i': construct a new filesystem context with string and context = ",i,__FILE__,__LINE__);
+    fputs(mucTestLabel,stderr);
+    mucTestResult[0] = '\0';
 
-    prnContext = resNodeDirNew(BAD_CAST TESTPREFIX);
-    prnT = resNodeFromNodeNew(prnContext,BAD_CAST"thread/config.cxp");
-    pucTT = resPathCollapse(BAD_CAST TESTPREFIX "thread\\config.cxp",FS_PATH_FULL);
-    if (prnT != NULL && resPathIsEquivalent(resNodeGetNameNormalized(prnT),pucTT)) {
-      n_ok++;
-      printf("OK\n");
+    if ((prnContext = resNodeDirNew(BAD_CAST TESTPREFIX)) == NULL) {
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeDirNew()\n");
+    }
+    else if ((prnT = resNodeFromNodeNew(prnContext,BAD_CAST"thread/config.cxp")) == NULL) {
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeDirNew()\n");
+    }
+    else if ((pucTT = resPathCollapse(BAD_CAST TESTPREFIX "thread\\config.cxp",FS_PATH_FULL)) == NULL) {
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeAddChildNew()\n");
+    }
+    else if (resPathIsEquivalent(resNodeGetNameNormalized(prnT),pucTT) == FALSE) {
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resPathIsEquivalent()\n");
     }
     else {
-      printf("Error resNodeRead()\n");
+      n_ok++;
     }
+
+    if (xmlStrlen(mucTestResult) > 0) {
+      pucModuleTestReport = xmlStrcat(pucModuleTestReport,mucTestLabel);
+      pucModuleTestReport = xmlStrcat(pucModuleTestReport,mucTestResult);
+    }
+    
     xmlFree(pucTT);
     resNodeFree(prnT);
     resNodeFree(prnContext);
-  }
-  else {
-    printf("Error resNodeNew()\n");
   }
 
 
@@ -998,43 +1216,75 @@ resNodeTest(void)
     resNodePtr prnT = NULL;
 
     i++;
-    printf("TEST %i in '%s:%i': set recursion of existing filesystem context = ",i,__FILE__,__LINE__);
+    xmlStrPrintf(mucTestLabel,BUFFER_LENGTH,"\nTEST %i in '%s:%i': set recursion of existing filesystem context = ",i,__FILE__,__LINE__);
+    fputs(mucTestLabel,stderr);
+    mucTestResult[0] = '\0';
 
-    prnT = resNodeDirNew(BAD_CAST TESTPREFIX "/");
-    if (resNodeReadStatus(prnT)==TRUE
-	&& resNodeIsDir(prnT)==TRUE
-	&& resNodeIsRecursive(prnT)==FALSE
-	&& resNodeSetRecursion(prnT,TRUE)==TRUE
-	&& resNodeIsRecursive(prnT)==TRUE
-	&& resNodeGetNameBase(prnT) == NULL) {
-      n_ok++;
-      printf("OK\n");
+
+    if ((prnT = resNodeDirNew(BAD_CAST TESTPREFIX "/")) == NULL) {
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeDirNew()\n");
+    }
+    else if (resNodeReadStatus(prnT) == FALSE) {
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error 1\n");
+    }
+    else if (resNodeIsDir(prnT) == FALSE) {
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error 2\n");
+    }
+    else if (resNodeIsRecursive(prnT)) {
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error 3\n");
+    }
+    else if (resNodeSetRecursion(prnT,TRUE) == FALSE) {
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error 4\n");
+    }
+    else if (resNodeIsRecursive(prnT) == FALSE) {
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error 5\n");
+    }
+    else if (resNodeGetNameBase(prnT) == NULL) {
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error 6\n");
     }
     else {
-      printf("Error resNodeDirNew()\n");
+      n_ok++;
     }
+
+    if (xmlStrlen(mucTestResult) > 0) {
+      pucModuleTestReport = xmlStrcat(pucModuleTestReport,mucTestLabel);
+      pucModuleTestReport = xmlStrcat(pucModuleTestReport,mucTestResult);
+    }
+    
+
     resNodeFree(prnT);
   }
 
 
-  if (RUNTEST) {
+  if (SKIPTEST) {
     resNodePtr prnT = NULL;
     resNodePtr prnTT = NULL;
     xmlChar *pucT = BAD_CAST TEMPPREFIX "empty.png";
 
     i++;
-    printf("TEST %i in '%s:%i': resNodeCommentNew() = ", i, __FILE__, __LINE__);
+    xmlStrPrintf(mucTestLabel,BUFFER_LENGTH,"\nTEST %i in '%s:%i': resNodeCommentNew() = ", i, __FILE__, __LINE__);
+    fputs(mucTestLabel,stderr);
+    mucTestResult[0] = '\0';
 
-    if ((prnT = resNodeDirNew(pucT)) != NULL
-	&& (prnTT = resNodeCommentNew(prnT)) != NULL
-	&& xmlStrlen(resNodeGetNameNormalized(prnTT)) - xmlStrlen(resNodeGetNameNormalized(prnT)) == 4
-      ) {
-      n_ok++;
-      printf("OK\n");
+    if ((prnT = resNodeDirNew(pucT)) == NULL) {
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeDirNew()\n");
+    }
+    else if ((prnTT = resNodeCommentNew(prnT)) == NULL) {
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeReadStatus()\n");
+    }
+    else if (xmlStrlen(resNodeGetNameNormalized(prnTT)) - xmlStrlen(resNodeGetNameNormalized(prnT)) != 4) {
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error 6\n");
     }
     else {
-      printf("Error\n");
+      n_ok++;
     }
+
+    if (xmlStrlen(mucTestResult) > 0) {
+      pucModuleTestReport = xmlStrcat(pucModuleTestReport,mucTestLabel);
+      pucModuleTestReport = xmlStrcat(pucModuleTestReport,mucTestResult);
+    }
+    
+
     resNodeFree(prnTT);
     resNodeFree(prnT);
   }
@@ -1044,21 +1294,42 @@ resNodeTest(void)
     resNodePtr prnT = NULL;
 
     i++;
-    printf("TEST %i in '%s:%i': _resNodeSetNameAncestor() = ",i,__FILE__,__LINE__);
+    xmlStrPrintf(mucTestLabel,BUFFER_LENGTH,"\nTEST %i in '%s:%i': _resNodeSetNameAncestor() = ",i,__FILE__,__LINE__);
+    fputs(mucTestLabel,stderr);
+    mucTestResult[0] = '\0';
 
-    if ((prnT = resNodeDirNew(BAD_CAST"AAA")) != NULL
-	&& resNodeReset(prnT,NULL) == TRUE
-	&& _resNodeSetNameAncestor(prnT,NULL) == FALSE
-	&& resNodeReset(prnT,NULL) == TRUE
-	&& _resNodeSetNameAncestor(NULL,BAD_CAST TEMPPREFIX) == FALSE
-	&& resNodeReset(prnT,NULL) == TRUE
-	&& _resNodeSetNameAncestor(prnT,BAD_CAST TEMPPREFIX) == TRUE) {
-      n_ok++;
-      printf("OK\n");
+
+    if ((prnT = resNodeDirNew(BAD_CAST"AAA")) == NULL) {
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error 1\n");
+    }
+    else if (resNodeReset(prnT,NULL) == FALSE) {
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error 2\n");
+    }
+    else if (_resNodeSetNameAncestor(prnT,NULL)) {
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error 3\n");
+    }
+    else if (resNodeReset(prnT,NULL) == FALSE) {
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error 4\n");
+    }
+    else if (_resNodeSetNameAncestor(NULL,BAD_CAST TEMPPREFIX)) {
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error 5\n");
+    }
+    else if (resNodeReset(prnT,NULL) == FALSE) {
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error 6\n");
+    }
+    else if (_resNodeSetNameAncestor(prnT,BAD_CAST TEMPPREFIX) == FALSE) {
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error 7\n");
     }
     else {
-      printf("Error\n");
+      n_ok++;
     }
+
+    if (xmlStrlen(mucTestResult) > 0) {
+      pucModuleTestReport = xmlStrcat(pucModuleTestReport,mucTestLabel);
+      pucModuleTestReport = xmlStrcat(pucModuleTestReport,mucTestResult);
+    }
+    
+
     resNodeFree(prnT);
   }
 
@@ -1068,24 +1339,32 @@ resNodeTest(void)
     xmlChar* pucT;
 
     i++;
-    printf("TEST %i in '%s:%i': resNodeSetToParent() = ",i,__FILE__,__LINE__);
+    xmlStrPrintf(mucTestLabel,BUFFER_LENGTH,"\nTEST %i in '%s:%i': resNodeSetToParent() = ",i,__FILE__,__LINE__);
+    fputs(mucTestLabel,stderr);
+    mucTestResult[0] = '\0';
+
 
     if ((pucT = resPathCollapse(BAD_CAST TEMPPREFIX, FS_PATH_FULL)) == NULL) {
-      printf("Error\n");
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error\n");
     }
     else if ((prnT = resNodeDirNew(BAD_CAST TEMPPREFIX "/AAA/BBB")) == NULL) {
-      printf("Error\n");
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error\n");
     }
     else if (resNodeSetToParent(prnT) == FALSE || resNodeSetToParent(prnT) == FALSE) {
-      printf("Error\n");
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error\n");
     }
     else if (resPathIsEquivalent(resNodeGetNameNormalized(prnT), pucT) == FALSE) {
-      printf("Error\n");
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error\n");
     }
     else {
       n_ok++;
-      printf("OK\n");
     }
+
+    if (xmlStrlen(mucTestResult) > 0) {
+      pucModuleTestReport = xmlStrcat(pucModuleTestReport,mucTestLabel);
+      pucModuleTestReport = xmlStrcat(pucModuleTestReport,mucTestResult);
+    }
+    
     resNodeFree(prnT);
     xmlFree(pucT);
   }
@@ -1095,19 +1374,31 @@ resNodeTest(void)
     resNodePtr prnT = NULL;
 
     i++;
-    printf("TEST %i in '%s:%i': resNodeIsURL() = ",i,__FILE__,__LINE__);
+    xmlStrPrintf(mucTestLabel,BUFFER_LENGTH,"\nTEST %i in '%s:%i': resNodeIsURL() = ",i,__FILE__,__LINE__);
+    fputs(mucTestLabel,stderr);
+    mucTestResult[0] = '\0';
 
-    if ((prnT = resNodeDirNew(BAD_CAST TEMPPREFIX)) != NULL
-	&& resNodeIsURL(prnT) == FALSE
-	&& resNodeReset(prnT, BAD_CAST CXP_VER_URL) == TRUE
-	&& resNodeIsURL(prnT) == TRUE
-	) {
-      n_ok++;
-      printf("OK\n");
+    if ((prnT = resNodeDirNew(BAD_CAST TEMPPREFIX)) == NULL) {
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error\n");
+    }
+    else if (resNodeIsURL(prnT) == TRUE) {
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error\n");
+    }
+    else if (resNodeReset(prnT, BAD_CAST CXP_VER_URL) == FALSE) {
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error\n");
+    }
+    else if (resNodeIsURL(prnT) == FALSE) {
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error\n");
     }
     else {
-      printf("Error\n");
+      n_ok++;
     }
+
+    if (xmlStrlen(mucTestResult) > 0) {
+      pucModuleTestReport = xmlStrcat(pucModuleTestReport,mucTestLabel);
+      pucModuleTestReport = xmlStrcat(pucModuleTestReport,mucTestResult);
+    }
+    
     resNodeFree(prnT);
   }
 
@@ -1117,47 +1408,85 @@ resNodeTest(void)
     xmlChar *pucT = NULL;
 
     i++;
-    printf("TEST %i in '%s:%i': resNodeGetExtension() = ", i, __FILE__, __LINE__);
+    xmlStrPrintf(mucTestLabel,BUFFER_LENGTH,"\nTEST %i in '%s:%i': resNodeGetExtension() = ", i, __FILE__, __LINE__);
+    fputs(mucTestLabel,stderr);
+    mucTestResult[0] = '\0';
 
-    if ((prnT = resNodeDirNew(BAD_CAST TEMPPREFIX "empty.png")) != NULL
-	&& (pucT = resNodeGetExtension(prnT)) != NULL
-	&& xmlStrEqual(pucT,BAD_CAST "png")
-	&& resNodeReset(prnT,BAD_CAST TEMPPREFIX "empty.jpg") == TRUE
-	&& (pucT = resNodeGetExtension(prnT)) != NULL
-	&& xmlStrEqual(pucT,BAD_CAST "jpg")
-	&& resPathIsEquivalent(resNodeGetNameBase(prnT), BAD_CAST "empty.jpg")
-      ) {
-      n_ok++;
-      printf("OK\n");
+    if ((prnT = resNodeDirNew(BAD_CAST TEMPPREFIX "empty.png")) == NULL) {
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error\n");
+    }
+    else if ((pucT = resNodeGetExtension(prnT)) == NULL) {
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error\n");
+    }
+    else if (xmlStrEqual(pucT,BAD_CAST "png") == FALSE) {
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error\n");
+    }
+    else if (resNodeReset(prnT,BAD_CAST TEMPPREFIX "empty.jpg") == FALSE) {
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error\n");
+    }
+    else if ((pucT = resNodeGetExtension(prnT)) == NULL) {
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error\n");
+    }
+    else if (xmlStrEqual(pucT,BAD_CAST "jpg") == FALSE) {
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error\n");
+    }
+    else if (resPathIsEquivalent(resNodeGetNameBase(prnT), BAD_CAST "empty.jpg") == FALSE) {
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error\n");
     }
     else {
-      printf("Error\n");
+      n_ok++;
     }
+
+    if (xmlStrlen(mucTestResult) > 0) {
+      pucModuleTestReport = xmlStrcat(pucModuleTestReport,mucTestLabel);
+      pucModuleTestReport = xmlStrcat(pucModuleTestReport,mucTestResult);
+    }
+    
     resNodeFree(prnT);
   }
 
 
-  if (SKIPTEST) {
+  if (RUNTEST) {
     resNodePtr prnT = NULL;
 
     i++;
-    printf("TEST %i in '%s:%i': resNodeGetType() = ", i, __FILE__, __LINE__);
+    xmlStrPrintf(mucTestLabel,BUFFER_LENGTH,"\nTEST %i in '%s:%i': resNodeGetType() = ", i, __FILE__, __LINE__);
+    fputs(mucTestLabel,stderr);
+    mucTestResult[0] = '\0';
 
-    if ((prnT = resNodeDirNew(BAD_CAST TEMPPREFIX "empty.png")) != NULL
-	&& resNodeGetType(prnT) == rn_type_file
-	&& resNodeReset(prnT,BAD_CAST TEMPPREFIX "empty/") == TRUE
-	&& resNodeGetType(prnT) == rn_type_dir
-	&& resNodeReset(prnT, BAD_CAST CXP_VER_URL) == TRUE
-	&& resNodeGetType(prnT) == rn_type_url_http
-	&& resNodeReset(prnT,BAD_CAST "-") == TRUE
-	&& resNodeGetType(prnT) == rn_type_stdin
-      ) {
-      n_ok++;
-      printf("OK\n");
+    if ((prnT = resNodeDirNew(BAD_CAST TEMPPREFIX "empty.png")) == NULL) {
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error\n");
+    }
+    else if (resNodeGetType(prnT) != rn_type_file) {
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error\n");
+    }
+    else if (resNodeReset(prnT,BAD_CAST TEMPPREFIX "empty/") == FALSE) {
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error\n");
+    }
+    else if (resNodeGetType(prnT) != rn_type_dir) {
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error\n");
+    }
+    else if (resNodeReset(prnT, BAD_CAST CXP_VER_URL) == FALSE) {
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error\n");
+    }
+    else if (resNodeGetType(prnT) != rn_type_url_http) {
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error\n");
+    }
+    else if (resNodeReset(prnT,BAD_CAST "-") == FALSE) {
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error\n");
+    }
+    else if (resNodeGetType(prnT) != rn_type_stdin) {
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error\n");
     }
     else {
-      printf("Error\n");
+      n_ok++;
     }
+
+    if (xmlStrlen(mucTestResult) > 0) {
+      pucModuleTestReport = xmlStrcat(pucModuleTestReport,mucTestLabel);
+      pucModuleTestReport = xmlStrcat(pucModuleTestReport,mucTestResult);
+    }
+    
     resNodeFree(prnT);
   }
 
@@ -1168,65 +1497,82 @@ resNodeTest(void)
     xmlChar *pucT;
 
     i++;
-    printf("TEST %i in '%s:%i': resNodeGetNameRelative() = ", i, __FILE__, __LINE__);
+    xmlStrPrintf(mucTestLabel,BUFFER_LENGTH,"\nTEST %i in '%s:%i': resNodeGetNameRelative() = ", i, __FILE__, __LINE__);
+    fputs(mucTestLabel,stderr);
+    mucTestResult[0] = '\0';
 
     if ((prnT = resNodeDirNew(BAD_CAST TEMPPREFIX "empty/dummy.txt")) == NULL) {
-      printf("Error resNodeDirNew()\n");
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeDirNew()\n");
     }
     else if ((prnTT = resNodeDirNew(BAD_CAST TEMPPREFIX)) == NULL) {
-      printf("Error resNodeDirNew()\n");
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeDirNew()\n");
     }
     else if ((pucT = resNodeGetNameRelative(prnTT, prnT)) == NULL) {
-      printf("Error resNodeGetNameRelative()\n");
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeGetNameRelative()\n");
     }
     else if (resPathIsEquivalent(pucT, BAD_CAST "empty/dummy.txt") == FALSE) {
-      printf("Error resNodeGetNameRelative()\n");
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeGetNameRelative()\n");
     }
     else {
       n_ok++;
-      printf("OK\n");
     }
+
+    if (xmlStrlen(mucTestResult) > 0) {
+      pucModuleTestReport = xmlStrcat(pucModuleTestReport,mucTestLabel);
+      pucModuleTestReport = xmlStrcat(pucModuleTestReport,mucTestResult);
+    }
+    
     resNodeFree(prnTT);
     resNodeFree(prnT);
   }
 
 
   if (RUNTEST) {
+    xmlChar *pucA;
+    xmlChar *pucB;
+    xmlChar *pucC = NULL;
     resNodePtr prnT = NULL;
 
     i++;
-    printf("TEST %i in '%s:%i': rebuild existing filesystem context = ",i,__FILE__,__LINE__);
-    prnT = resNodeDirNew(BAD_CAST TESTPREFIX "thread/config.cxp");
-    if (prnT) {
-      if (resNodeReadStatus(prnT)==TRUE && resNodeIsDir(prnT)==FALSE && resNodeIsFile(prnT)==TRUE) {
-        xmlChar *pucA;
-        xmlChar *pucB;
-        xmlChar *pucC;
+    xmlStrPrintf(mucTestLabel,BUFFER_LENGTH,"\nTEST %i in '%s:%i': rebuild existing filesystem context = ",i,__FILE__,__LINE__);
+    fputs(mucTestLabel,stderr);
+    mucTestResult[0] = '\0';
 
-        pucA = resNodeGetNameBaseDir(prnT);
-        pucB = resNodeGetNameBase(prnT);
-
-        pucC = resPathConcatNormalized(pucA,pucB);
-
-        if (resNodeReset(prnT,pucC)) {
-          if (resNodeReadStatus(prnT)==TRUE && resNodeIsDir(prnT)==FALSE && resNodeIsFile(prnT)==TRUE) {
-            n_ok++;
-            printf("OK\n");
-          }
-          else {
-            printf("Error resNodeRead()\n");
-          }
-        }
-        else {
-          printf("Error resNodeReset()\n");
-        }
-        xmlFree(pucC);
-      }
-      resNodeFree(prnT);
+    if ((prnT = resNodeDirNew(BAD_CAST TESTPREFIX "thread/config.cxp")) == NULL) {
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeDirNew()\n");
+    }
+    else if (resNodeReadStatus(prnT) == FALSE) {
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeDirNew()\n");
+    }
+    else if (resNodeIsDir(prnT) == TRUE) {
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeDirNew()\n");
+    }
+    else if (resNodeIsFile(prnT) == FALSE) {
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeDirNew()\n");
+    }
+    else if ((pucA = resNodeGetNameBaseDir(prnT)) == NULL) {
+    }
+    else if ((pucB = resNodeGetNameBase(prnT)) == NULL) {
+    }
+    else if ((pucC = resPathConcatNormalized(pucA,pucB)) == NULL) {
+    }
+    else if (resNodeReset(prnT,pucC) == FALSE) {
+    }
+    else if (resNodeReadStatus(prnT) == FALSE) {
+    }
+    else if (resNodeIsDir(prnT) == TRUE && resNodeIsFile(prnT) == FALSE) {
     }
     else {
-      printf("Error resNodeNew()\n");
+      n_ok++;
     }
+
+    if (xmlStrlen(mucTestResult) > 0) {
+      pucModuleTestReport = xmlStrcat(pucModuleTestReport,mucTestLabel);
+      pucModuleTestReport = xmlStrcat(pucModuleTestReport,mucTestResult);
+    }
+    
+    xmlFree(pucC);
+    resNodeFree(prnT);
   }
 
 
@@ -1235,38 +1581,46 @@ resNodeTest(void)
     resNodePtr prnT = NULL;
 
     i++;
-    printf("TEST %i in '%s:%i': re-use of an used context = ",i,__FILE__,__LINE__);
-    prnT = resNodeDirNew(BAD_CAST TESTPREFIX "test.mak");
-    if (prnT) {
-      if (xmlStrcasecmp(resNodeGetNameBase(prnT),BAD_CAST"test.mak")==0) {
-	if ((pucTT = resPathCollapse(BAD_CAST TESTPREFIX,FS_PATH_FULL))
-	    && resPathIsEquivalent(resNodeGetNameBaseDir(prnT), pucTT)) {
-	  xmlFree(pucTT);
-	  if ((pucTT = resPathCollapse(BAD_CAST TESTPREFIX "test.mak",FS_PATH_FULL))
-	      && resPathIsEquivalent(resNodeGetNameNormalized(prnT), pucTT)
-	      && resNodeSetNameBaseNative(prnT,"t.txt")==TRUE
-	      && xmlStrcasecmp(resNodeGetNameBase(prnT),BAD_CAST"t.txt")==0) {
-	    xmlFree(pucTT);
-	    if ((pucTT = resPathCollapse(BAD_CAST TESTPREFIX,FS_PATH_FULL))
-		&& resPathIsEquivalent(resNodeGetNameBaseDir(prnT), pucTT)) {
-	      xmlFree(pucTT);
-	      if ((pucTT = resPathCollapse(BAD_CAST TESTPREFIX "t.txt",FS_PATH_FULL))
-		  && resPathIsEquivalent(resNodeGetNameNormalized(prnT), pucTT)) {
-		xmlFree(pucTT);
-		n_ok++;
-		printf("OK\n");
-	      }
-	    }
-	  }
-	}
-      }
-      else {
-	printf("Error resNodeDirNew()\n");
-      }
+    xmlStrPrintf(mucTestLabel,BUFFER_LENGTH,"\nTEST %i in '%s:%i': re-use of an used context = ",i,__FILE__,__LINE__);
+    fputs(mucTestLabel,stderr);
+    mucTestResult[0] = '\0';
+
+    if ((prnT = resNodeDirNew(BAD_CAST TESTPREFIX "test.mak")) == NULL) {
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeDirNew()\n");
+    }
+    else if (xmlStrcasecmp(resNodeGetNameBase(prnT),BAD_CAST"test.mak") != 0) {
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeDirNew()\n");
+    }
+    else if ((pucTT = resPathCollapse(BAD_CAST TESTPREFIX,FS_PATH_FULL)) == NULL) {
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeDirNew()\n");
+    }
+    else if (resPathIsEquivalent(resNodeGetNameBaseDir(prnT), pucTT) == FALSE) {
+    }
+    else if ((pucTT = resPathCollapse(BAD_CAST TESTPREFIX "test.mak",FS_PATH_FULL)) == NULL) {
+    }
+    else if (resPathIsEquivalent(resNodeGetNameNormalized(prnT), pucTT) == FALSE) {
+    }
+    else if (resNodeSetNameBaseNative(prnT,"t.txt") == FALSE) {
+    }
+    else if (xmlStrcasecmp(resNodeGetNameBase(prnT),BAD_CAST"t.txt") != 0) {
+    }
+    else if ((pucTT = resPathCollapse(BAD_CAST TESTPREFIX,FS_PATH_FULL)) == NULL) {
+    }
+    else if (resPathIsEquivalent(resNodeGetNameBaseDir(prnT), pucTT) == FALSE) {
+    }
+    else if ((pucTT = resPathCollapse(BAD_CAST TESTPREFIX "t.txt",FS_PATH_FULL)) == NULL) {
+    }
+    else if (resPathIsEquivalent(resNodeGetNameNormalized(prnT), pucTT) == FALSE) {
     }
     else {
-      printf("ERROR\n");
+      n_ok++;
     }
+
+    if (xmlStrlen(mucTestResult) > 0) {
+      pucModuleTestReport = xmlStrcat(pucModuleTestReport,mucTestLabel);
+      pucModuleTestReport = xmlStrcat(pucModuleTestReport,mucTestResult);
+    }
+
     resNodeFree(prnT);
   }
 
@@ -1275,18 +1629,26 @@ resNodeTest(void)
     resNodePtr prnT = NULL;
 
     i++;
-    printf("TEST %i in '%s:%i': parsing of a non-existing filesystem directory = ",i,__FILE__,__LINE__);
+    xmlStrPrintf(mucTestLabel,BUFFER_LENGTH,"\nTEST %i in '%s:%i': parsing of a non-existing filesystem directory = ",i,__FILE__,__LINE__);
+    fputs(mucTestLabel,stderr);
+    mucTestResult[0] = '\0';
+
 
     if ((prnT = resNodeDirNew(BAD_CAST TESTPREFIX "dummy//.")) == NULL) {
-      printf("Error resNodeDirNew()\n");
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeDirNew()\n");
     }
     else if (resNodeDirAppendEntries(prnT,NULL) == TRUE) {
-      printf("Error resNodeDirAppendEntries()\n");
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeDirAppendEntries()\n");
     }
     else {
       n_ok++;
-      printf("OK\n");
     }
+
+    if (xmlStrlen(mucTestResult) > 0) {
+      pucModuleTestReport = xmlStrcat(pucModuleTestReport,mucTestLabel);
+      pucModuleTestReport = xmlStrcat(pucModuleTestReport,mucTestResult);
+    }
+    
     resNodeFree(prnT);
   }
 
@@ -1296,25 +1658,32 @@ resNodeTest(void)
     resNodePtr prnT = NULL;
 
     i++;
-    printf("TEST %i in '%s:%i': parsing of an existing filesystem directory = ", i, __FILE__, __LINE__);
+    xmlStrPrintf(mucTestLabel,BUFFER_LENGTH,"\nTEST %i in '%s:%i': parsing of an existing filesystem directory = ", i, __FILE__, __LINE__);
+    fputs(mucTestLabel,stderr);
+    mucTestResult[0] = '\0';
 
     if ((prnT = resNodeDirNew(BAD_CAST TESTPREFIX "each")) == NULL) {
-      printf("Error resNodeDirNew()\n");
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeDirNew()\n");
     }
     else if (resNodeReadStatus(prnT) == FALSE) {
-      printf("Error resNodeReadStatus()\n");
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeReadStatus()\n");
     }
     else if (resNodeDirAppendEntries(prnT,NULL) == FALSE) {
-      printf("Error resNodeDirAppendEntries()\n");
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeDirAppendEntries()\n");
     }
     else if ((j = resNodeGetChildCount(prnT, rn_type_file)) != 4) {
       /* without resNodeReadStatus() for all childs, they are files by default */
-      printf("Error resNodeDirAppendEntries() = %i\n", j);
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeDirAppendEntries() = %i\n", j);
     }
     else {
       n_ok++;
-      printf("OK\n");
     }
+
+    if (xmlStrlen(mucTestResult) > 0) {
+      pucModuleTestReport = xmlStrcat(pucModuleTestReport,mucTestLabel);
+      pucModuleTestReport = xmlStrcat(pucModuleTestReport,mucTestResult);
+    }
+    
     resNodeFree(prnT);
   }
   
@@ -1329,7 +1698,9 @@ resNodeTest(void)
     pcre2_code *re_match = NULL;
 
     i++;
-    printf("TEST %i in '%s:%i': parsing of an existing filesystem directory with pattern matching = ", i, __FILE__, __LINE__);
+    xmlStrPrintf(mucTestLabel,BUFFER_LENGTH,"\nTEST %i in '%s:%i': parsing of an existing filesystem directory with pattern matching = ", i, __FILE__, __LINE__);
+    fputs(mucTestLabel,stderr);
+    mucTestResult[0] = '\0';
 
     re_match = pcre2_compile(
       (PCRE2_SPTR8)"C+", /* the pattern */
@@ -1340,64 +1711,70 @@ resNodeTest(void)
       NULL);                 /* use default compile context */
 
     if (re_match == NULL) {
-      printf("Error pcre2_compile()\n");
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error pcre2_compile()\n");
     }
     else if ((prnT = resNodeDirNew(BAD_CAST TESTPREFIX)) == NULL) {
-      printf("Error resNodeDirNew()\n");
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeDirNew()\n");
     }
     else if (resNodeReadStatus(prnT) == FALSE) {
-      printf("Error resNodeReadStatus()\n");
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeReadStatus()\n");
     }
     else if (resNodeDirAppendEntries(prnT, re_match) == FALSE) {
-      printf("Error resNodeDirAppendEntries()\n");
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeDirAppendEntries()\n");
     }
     else if ((j = resNodeGetChildCount(prnT, rn_type_file)) < 10 && j > 11) {
-      printf("Error resNodeDirAppendEntries() = %i\n", j);
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeDirAppendEntries() = %i\n", j);
     }
     else {
       n_ok++;
-      printf("OK\n");
     }
+
+    if (xmlStrlen(mucTestResult) > 0) {
+      pucModuleTestReport = xmlStrcat(pucModuleTestReport,mucTestLabel);
+      pucModuleTestReport = xmlStrcat(pucModuleTestReport,mucTestResult);
+    }
+    
     pcre2_code_free(re_match);
     resNodeFree(prnT);
   }
+#endif
 
 
   if (SKIPTEST) {
     resNodePtr prnT = NULL;
+    resNodePtr prnTT = NULL;
 
     i++;
-    printf("TEST %i in '%s:%i': link resolving twice = ",i,__FILE__,__LINE__);
-    prnT = resNodeDirNew(BAD_CAST"./test.lnk");
-    if (prnT) {
-      if (resNodeReadStatus(prnT)==TRUE && resNodeIsLink(prnT)) {
-        resNodePtr prnTT = NULL;
+    xmlStrPrintf(mucTestLabel,BUFFER_LENGTH,"\nTEST %i in '%s:%i': link resolving twice = ",i,__FILE__,__LINE__);
+    fputs(mucTestLabel,stderr);
+    mucTestResult[0] = '\0';
 
-        prnTT = resNodeResolveLinkChildNew(prnT);
-        if (prnTT) {
-          if (resNodeGetParent(prnTT) == prnT) {
-            n_ok++;
-            printf("OK\n");
-          }
-          else {
-            printf("Error resNodeAddChild()\n");
-          }
-	  resNodeFree(prnTT);
-       }
-        else {
-          printf("ERROR\n");
-        }
-      }
-      else {
-        printf("Error resNodeResolveLink()\n");
-      }
+    if ((prnT = resNodeDirNew(BAD_CAST"./test.lnk")) == NULL) {
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeDirNew()\n");
+    }
+    else if (resNodeReadStatus(prnT) == FALSE) {
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeDirNew()\n");
+    }
+    else if (resNodeIsLink(prnT) == FALSE) {
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeDirNew()\n");
+    }
+    if ((prnTT = resNodeResolveLinkChildNew(prnT)) == NULL) {
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeDirNew()\n");
+    }
+    else if (resNodeGetParent(prnTT) != prnT) {
     }
     else {
-      printf("ERROR\n");
+      n_ok++;
     }
+
+    if (xmlStrlen(mucTestResult) > 0) {
+      pucModuleTestReport = xmlStrcat(pucModuleTestReport,mucTestLabel);
+      pucModuleTestReport = xmlStrcat(pucModuleTestReport,mucTestResult);
+    }
+    
+    resNodeFree(prnTT);
     resNodeFree(prnT);
   }
-#endif
 
 
   if (RUNTEST) {
@@ -1406,27 +1783,34 @@ resNodeTest(void)
     xmlNodePtr pndT = NULL;
 
     i++;
-    printf("TEST %i in '%s:%i': resNodeTo*() XML file = ", i, __FILE__, __LINE__);
+    xmlStrPrintf(mucTestLabel,BUFFER_LENGTH,"\nTEST %i in '%s:%i': resNodeTo*() XML file = ", i, __FILE__, __LINE__);
+    fputs(mucTestLabel,stderr);
+    mucTestResult[0] = '\0';
 
     if ((prnT = resNodeDirNew(BAD_CAST TESTPREFIX "xml/dummy-a.xml")) == NULL) {
-      printf("Error resNodeDirNew()\n");
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeDirNew()\n");
     }
     else if (resNodeReadStatus(prnT) == FALSE) {
-      printf("Error resNodeReadStatus()\n");
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeReadStatus()\n");
     }
     else if (resNodeUpdate(prnT, RN_INFO_MAX, NULL, NULL) == FALSE) {
-      printf("Error resNodeUpdate()\n");
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeUpdate()\n");
     }
     else if ((pndT = resNodeToDOM(prnT, RN_INFO_MAX)) == NULL || domNumberOfChild(pndT, NULL) != 1) {
-      printf("Error resNodeToDOM()\n");
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeToDOM()\n");
     }
     else if ((pucT = resNodeToPlain(prnT, RN_INFO_MAX)) == NULL) {
-      printf("Error resNodeToPlain() = %i\n",xmlStrlen(pucT));
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeToPlain() = %i\n",xmlStrlen(pucT));
     }
     else {
       n_ok++;
-      printf("OK\n");
     }
+
+    if (xmlStrlen(mucTestResult) > 0) {
+      pucModuleTestReport = xmlStrcat(pucModuleTestReport,mucTestLabel);
+      pucModuleTestReport = xmlStrcat(pucModuleTestReport,mucTestResult);
+    }
+    
     //domPutNodeString(stderr, BAD_CAST "resNodeToDOM(): ", pndT);
     //puts((const char *)pucT);
     xmlFree(pucT);
@@ -1440,14 +1824,16 @@ resNodeTest(void)
     resNodePtr prnT = NULL;
 
     i++;
-    printf("TEST %i in '%s:%i': check filesystem context CRC = ",i,__FILE__,__LINE__);
+    xmlStrPrintf(mucTestLabel,BUFFER_LENGTH,"\nTEST %i in '%s:%i': check filesystem context CRC = ",i,__FILE__,__LINE__);
+    fputs(mucTestLabel,stderr);
+    mucTestResult[0] = '\0';
+
     prnT = resNodeRootNew(BAD_CAST"history/acal/acal.c");
     if (resNodeGetFileCrc(prnT)==1028943022) {
       n_ok++;
-      printf("OK\n");
     }
     else {
-      printf("Error _resNodeGetFileCrc()\n");
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error _resNodeGetFileCrc()\n");
     }
     resNodeFree(prnT);
   }
@@ -1458,21 +1844,29 @@ resNodeTest(void)
     xmlChar *pucPath = NULL;
 
     i++;
-    printf("TEST %i in '%s:%i': create an local index file = ",i,__FILE__,__LINE__);
+    xmlStrPrintf(mucTestLabel,BUFFER_LENGTH,"\nTEST %i in '%s:%i': create an local index file = ",i,__FILE__,__LINE__);
+    fputs(mucTestLabel,stderr);
+    mucTestResult[0] = '\0';
+
 
     if ((prnT = resNodeIndexNew(BAD_CAST TESTPREFIX "//")) == NULL) {
-      printf("Error resNodeIndexNew()\n");
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeIndexNew()\n");
     }
     else if (resNodeIndexSave(prnT) == FALSE) {
-      printf("Error resNodeIsMemory()\n");
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeIsMemory()\n");
     }
     else if ((pucPath = resNodeIndexFind(prnT,BAD_CAST "text\\test-pie-date.pie")) == NULL) {
-      printf("Error resNodeIsMemory()\n");
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeIsMemory()\n");
     }
     else {
       n_ok++;
-      printf("OK\n");
     }
+
+    if (xmlStrlen(mucTestResult) > 0) {
+      pucModuleTestReport = xmlStrcat(pucModuleTestReport,mucTestLabel);
+      pucModuleTestReport = xmlStrcat(pucModuleTestReport,mucTestResult);
+    }
+    
     xmlFree(pucPath);
     resNodeFree(prnT);
   }
@@ -1485,33 +1879,41 @@ resNodeTest(void)
     xmlChar *pucT;
     
     i++;
-    printf("TEST %i in '%s:%i': resNodeToDOM() = ",i,__FILE__,__LINE__);
+    xmlStrPrintf(mucTestLabel,BUFFER_LENGTH,"\nTEST %i in '%s:%i': resNodeToDOM() = ",i,__FILE__,__LINE__);
+    fputs(mucTestLabel,stderr);
+    mucTestResult[0] = '\0';
+
 
     if ((prnT = resNodeDirNew(BAD_CAST TESTPREFIX "plain/test-plain-3.xml")) == NULL) {
-      printf("Error domGetFirstChild()\n");
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error domGetFirstChild()\n");
     }
     else if (resNodeReadStatus(prnT) == FALSE) {
-      printf("Error resNodeReadStatus()\n");
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeReadStatus()\n");
     }
     else if (resNodeUpdate(prnT, RN_INFO_MAX, NULL, NULL) == FALSE) {
-      printf("Error resNodeUpdate()\n");
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeUpdate()\n");
     }
     else if ((pndTest = resNodeToDOM(prnT,RN_INFO_MAX)) == NULL) {
-      printf("Error resNodeToDOM()\n");
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeToDOM()\n");
     }
     else if (IS_NODE_FILE(pndTest) == FALSE || IS_NODE_PIE(pndTest->children) == FALSE) {
-      printf("Error PIE\n");
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error PIE\n");
     }
     else if (domGetAttributePtr(pndTest,BAD_CAST"object") != NULL) {
-      printf("Error object\n");
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error object\n");
     }
     else if (xmlStrEqual(domGetAttributePtr(pndTest,BAD_CAST"type"), BAD_CAST resNodeGetMimeTypeStr(prnT)) == FALSE) {
-      printf("Error domGetFirstChild()\n");
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error domGetFirstChild()\n");
     }
     else {
       n_ok++;
-      printf("OK\n");
     }
+
+    if (xmlStrlen(mucTestResult) > 0) {
+      pucModuleTestReport = xmlStrcat(pucModuleTestReport,mucTestLabel);
+      pucModuleTestReport = xmlStrcat(pucModuleTestReport,mucTestResult);
+    }
+    
     //domPutNodeString(stderr, BAD_CAST "resNodeToDOM(): ", pndTest);
     xmlFreeNodeList(pndTest);
     resNodeFree(prnT);
@@ -1524,40 +1926,50 @@ resNodeTest(void)
     xmlChar *pucT;
     
     i++;
-    printf("TEST %i in '%s:%i': resNodeReadStatus() = ",i,__FILE__,__LINE__);
+    xmlStrPrintf(mucTestLabel,BUFFER_LENGTH,"\nTEST %i in '%s:%i': resNodeReadStatus() = ",i,__FILE__,__LINE__);
+    fputs(mucTestLabel,stderr);
+    mucTestResult[0] = '\0';
+
 
     if ((prnT = resNodeDirNew(BAD_CAST TESTPREFIX "dir\\test-cad-creo.drw.11")) == NULL) {
-      printf("Error resNodeDirNew()\n");
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeDirNew()\n");
     }
     else if (resNodeReadStatus(prnT) == FALSE) {
-      printf("Error resNodeReadStatus()\n");
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeReadStatus()\n");
     }
     else if (resNodeUpdate(prnT, RN_INFO_MAX, NULL, NULL) == FALSE) {
-      printf("Error resNodeUpdate()\n");
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeUpdate()\n");
     }
     else if ((pndTest = resNodeToDOM(prnT,RN_INFO_MAX)) == NULL) {
-      printf("Error resNodeToDOM()\n");
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeToDOM()\n");
     }
     else if (IS_NODE_FILE(pndTest) == FALSE || pndTest->children != NULL) {
-      printf("Error PIE\n");
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error PIE\n");
     }
     else if (xmlStrEqual(domGetAttributePtr(pndTest,BAD_CAST"type"), BAD_CAST resNodeGetMimeTypeStr(prnT)) == FALSE) {
-      printf("Error type\n");
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error type\n");
     }
     else if (xmlStrEqual(domGetAttributePtr(pndTest,BAD_CAST"object"), BAD_CAST "TESTCONTENT.DRW") == FALSE) {
-      printf("Error object\n");
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error object\n");
     }
     else {
       n_ok++;
-      printf("OK\n");
     }
+
+    if (xmlStrlen(mucTestResult) > 0) {
+      pucModuleTestReport = xmlStrcat(pucModuleTestReport,mucTestLabel);
+      pucModuleTestReport = xmlStrcat(pucModuleTestReport,mucTestResult);
+    }
+    
     //domPutNodeString(stderr, BAD_CAST "resNodeToDOM(): ", pndTest);
     xmlFreeNodeList(pndTest);
     resNodeFree(prnT);
   }
 
-  
-  printf("\nResult in '%s': %i/%i OK\n\n",__FILE__,n_ok,i);
+  xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"\nResult in '%s': %i/%i OK\n",__FILE__,n_ok,i);
+  fputs(mucTestResult,stderr);
+  fputs(pucModuleTestReport,stderr);
 
+  xmlFree(pucModuleTestReport);
   return (i - n_ok);
 }

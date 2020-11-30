@@ -561,8 +561,7 @@ dirNodeToResNodeList(xmlNodePtr pndArg)
     }
     prnResult = prnNew;
   }
-#if 0
-  else if (IS_ENODE(pndArg)) {
+  else if (IS_NODE_PIE(pndArg) || IS_NODE_DIR(pndArg)) {
     for (pndI=pndArg->children; pndI; pndI=pndI->next) {
       if ((prnNew = dirNodeToResNodeList(pndI))) {
 	if (prnResult) {
@@ -574,7 +573,6 @@ dirNodeToResNodeList(xmlNodePtr pndArg)
       }
     }
   }
-#endif
   return prnResult;
 } /* end of dirNodeToResNodeList() */
 

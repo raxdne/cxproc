@@ -231,10 +231,10 @@ pieTextTagsTest(void)
     else if (CleanListTag(pndPie,FALSE) == FALSE) {
       printf("Error 3 CleanListTag()\n");
     }
-    else if (domNumberOfChild(pndPie, NAME_PIE_TTAG) != 2) {
+    else if (domNumberOfChild(pndPie, NAME_PIE_TTAG) != 3) {
       printf("Error 4 CleanListTag()\n");
     }
-    else if (CleanListTag(pndPie,FALSE) == FALSE) {
+    else if (CleanListTag(pndPie,TRUE) == FALSE) {
       printf("Error 5 CleanListTag()\n");
     }
     else if (domNumberOfChild(pndPie, NAME_PIE_TTAG) != 2) {

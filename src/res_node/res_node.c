@@ -1293,7 +1293,7 @@ resNodeSplitStrNew(xmlChar* pucArgPath)
       xmlChar* pucT;
       xmlChar* pucTT;
 
-      pucTT = pucStart = xmlStrdup(pucArgPath);
+      pucTT = pucStart = resPathCollapse(pucArgPath, FS_PATH_FULL);
 
       if (resPathIsAbsolute(pucArgPath)) {
 	if (resPathIsDosDrive(pucTT)) {
@@ -4288,10 +4288,10 @@ resNodeResetMimeType(resNodePtr prnArg)
 	resNodeSetMimeType(prnArg,resMimeGetTypeFromExt(resNodeGetExtension(prnArg)));
 	if (prnArg->eMimeType == MIME_UNDEFINED) {
 	  resNodeSetMimeType(prnArg,MIME_TEXT_HTML);
-	  PrintFormatLog(2, "Assumed default Content type of URL '%s' is '%s'", resNodeGetNameNormalized(prnArg), resNodeGetMimeTypeStr(prnArg));
+	  PrintFormatLog(4, "Assumed default Content type of URL '%s' is '%s'", resNodeGetNameNormalized(prnArg), resNodeGetMimeTypeStr(prnArg));
 	}
 	else {
-	  PrintFormatLog(2, "Detected Content type of URL '%s' is '%s'", resNodeGetNameNormalized(prnArg), resNodeGetMimeTypeStr(prnArg));
+	  PrintFormatLog(4, "Detected Content type of URL '%s' is '%s'", resNodeGetNameNormalized(prnArg), resNodeGetMimeTypeStr(prnArg));
 	}
       }
     }

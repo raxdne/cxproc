@@ -297,8 +297,8 @@ dirTest(cxpContextPtr pccArg)
     }
 
     //domPutDocString(stderr, BAD_CAST ": ", pdocTest);
-    domPutNodeString(stderr, BAD_CAST "SetTopPrefix(): ", pndT);
-    pucT = resNodeListToPlain(prnT,RN_INFO_MIN); fputs((const char *)pucT,stderr); xmlFree(pucT);
+    //domPutNodeString(stderr, BAD_CAST "SetTopPrefix(): ", pndT);
+    //pucT = resNodeListToPlain(prnT,RN_INFO_MIN); fputs((const char *)pucT,stderr); xmlFree(pucT);
     resNodeFree(prnT);
     xmlFreeNode(pndT);
     xmlFreeDoc(pdocTest);

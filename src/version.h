@@ -15,7 +15,7 @@
 
 #define CXP_VERSION_REVISION 0000
 
-#define CXP_REVISION_STR     "pre"
+#define CXP_REVISION_STR     "rc1"
 
 #define CXP_VERSION_BUILD    0000
 
