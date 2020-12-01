@@ -3548,7 +3548,12 @@ resNodeUpdate(resNodePtr prnArg, int iArgOptions, const pcre2_code *re_match, co
 	  fResult = (resNodeResolveLinkChildNew(prnArg) != NULL);
 	}
 	else if (resNodeIsFile(prnArg)) {
-	  fResult = (resNodeGetContent(prnArg, 1024) != NULL);
+	  if (resMimeIsXml(resNodeGetMimeType(prnArg))) {
+	    fResult = (resNodeGetContentDoc(prnArg) != NULL);
+	  }
+	  else {
+	    fResult = (resNodeGetContent(prnArg, 1024) != NULL);
+	  }
 	}
 	else {
 	}

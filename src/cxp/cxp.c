@@ -1227,6 +1227,7 @@ cxpProcessXmlNode(xmlNodePtr pndArg, cxpContextPtr pccArg)
 	pdocT = cxpProcessXmlNode(pndChildSource,pccHere);
       }
       else if (IS_NODE_DIR(pndChildSource) || IS_NODE_FILE(pndChildSource)) {
+	xmlSetProp(pndChildSource, BAD_CAST "verbosity", BAD_CAST"5");
 	pdocT = dirProcessDirNode(pndChildSource,NULL,pccHere);
       }
       else if (IS_NODE_PIE(pndChildSource)) {
