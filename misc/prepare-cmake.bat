@@ -14,7 +14,11 @@ IF "%FLAG64%" == "1" (
   CALL "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build\vcvars32.bat"
 )
 
-SET ARCH=%VSCMD_ARG_TGT_ARCH%-windows-static
+IF "%STATIC%" == "1" (
+  SET ARCH=%VSCMD_ARG_TGT_ARCH%-windows-static
+) ELSE (
+  SET ARCH=%VSCMD_ARG_TGT_ARCH%-windows
+)
 
 pushd C:\UserData\Develop\vcpkg
 REM bootstrap-vcpkg.bat -win64 -disableMetrics
