@@ -227,7 +227,6 @@ resNodeTestInOut(void)
 
   if (RUNTEST) {
     resNodePtr prnT = NULL;
-    long int liLength = 0;
 
     i++;
     printf("TEST %i in '%s:%i': reads content of a small file context = ",i,__FILE__,__LINE__);

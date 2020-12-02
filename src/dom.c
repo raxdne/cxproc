@@ -1690,8 +1690,6 @@ domNodeGrepNew(xmlNodePtr pndArg, xmlChar *pucArgGrep)
     
       pndResult = xmlNewNode(NULL,NAME_GREP);
       if (pndResult != NULL) {
-	xmlNodePtr pndBlock = NULL;
-	
 	xmlSetProp(pndResult, BAD_CAST ((opt_match_pcre & PCRE2_CASELESS) ? "imatch" : "match"), pucArgGrep);
 	if (domGrepRegExpInTree(pndResult,pndArg,re_grep)) {
 	}

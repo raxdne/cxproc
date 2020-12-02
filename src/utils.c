@@ -1573,7 +1573,7 @@ GetSelectedFileName(xmlChar *pucArgMsg, xmlChar *pucArgPath)
 
   // Display the Open dialog box.
 
-  if (GetOpenFileName(&ofn) == TRUE) {
+  if (GetOpenFileName(&ofn)) {
     if (ofn.lpstrFile[0] != '\0') {
       pucResult = xmlStrdup(BAD_CAST ofn.lpstrFile);
     }

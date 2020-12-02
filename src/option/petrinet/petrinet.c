@@ -1485,7 +1485,7 @@ pnetProcessPathnet(petrinet_t *ppnArg, BOOL_T flagXml, cxpContextPtr pccArg)
     xmlNodePtr nodeT;
     xmlNodePtr pndXslStylesheet;
     xmlNodePtr pndXslTemplate;
-    xmlNodePtr pndXslChoose;
+    xmlNodePtr pndXslChoose = NULL;
     xmlNodePtr pndXslWhen;
     xmlNodePtr pndXslOtherwise;
     xmlNodePtr pndKnot;
@@ -1593,6 +1593,8 @@ pnetProcessPathnet(petrinet_t *ppnArg, BOOL_T flagXml, cxpContextPtr pccArg)
       pndXslWhen = xmlNewChild(pndXslChoose, NULL, BAD_CAST "when", NULL);
       xmlSetProp(pndXslWhen, BAD_CAST "test", BAD_CAST "false()");
     }
+
+    assert(pndXslChoose != NULL);
 
     for (k=ppnArg->s; KNOTID(k); k++) {
       if (k->fMarker == FALSE) {

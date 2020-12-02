@@ -803,7 +803,7 @@ BOOL_T
 ImportNodeContent(xmlNodePtr pndArgImport, cxpContextPtr pccArg)
 {
   BOOL_T fResult = FALSE;
-  xmlChar *pucContent;
+  xmlChar *pucContent = NULL;
   xmlNodePtr pndBlock = NULL;
   BOOL_T fLocator;
 

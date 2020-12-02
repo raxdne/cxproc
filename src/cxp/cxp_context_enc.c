@@ -645,7 +645,7 @@ cxpCtxtEnvGetName(cxpContextPtr pccArg, index_t iIndex)
       }
       else {
 	/* no conversion necessary */
-	pucResult = xmlStrndup(BAD_CAST pchName, pchSep - pchName);
+	pucResult = xmlStrndup(BAD_CAST pchName, (int) (pchSep - pchName));
       }
     }
 
@@ -975,7 +975,7 @@ cxpCtxtCliGetName(cxpContextPtr pccArg, index_t iIndex)
   if ((pucValue = cxpCtxtCliGetValue(pccArg, iIndex))) {
     if ((pucSep = BAD_CAST xmlStrchr((const xmlChar *)pucValue, (xmlChar)'='))) {
       /*  */
-      pucResult = xmlStrndup(pucValue, pucSep - pucValue);
+      pucResult = xmlStrndup(pucValue, (int) (pucSep - pucValue));
     }
     else {
       pucResult = NULL;

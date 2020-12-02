@@ -366,7 +366,7 @@ cxpProcessEachNode(xmlNodePtr pndArg, cxpContextPtr pccArg)
 	  ovector = pcre2_get_ovector_pointer(match_data);
 #endif
 	  cxpCtxtLogPrint(pccArg,3, "each %i..%i in '%s'", ovector[0], ovector[1], pucSubstr);
-	  pucI = xmlStrndup(pucSubstr + ovector[0], ovector[1] - ovector[0]);
+	  pucI = xmlStrndup(pucSubstr + ovector[0], (int) (ovector[1] - ovector[0]));
 	  if (pucI == NULL) {
 	    cxpCtxtLogPutsExit(pccArg,45,"Cant duplicate iterator");
 	  }

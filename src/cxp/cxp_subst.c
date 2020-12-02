@@ -561,7 +561,7 @@ cxpSubstDetect(xmlNodePtr pndArgSubst, cxpContextPtr pccArg)
       if (pcxpSubstResult->pucCgi) {
 	/* do a UTF-8 encoding after the rfc1738 or base64 decoding */
 	pucT = pcxpSubstResult->pucCgi;
-	pcxpSubstResult->pucCgi = plainDetectAndDecode((const unsigned char*)pcxpSubstResult->pucCgi, strlen((const char*)pcxpSubstResult->pucCgi));
+	pcxpSubstResult->pucCgi = plainDetectAndDecode((const unsigned char*)pcxpSubstResult->pucCgi, (int) strlen((const char*)pcxpSubstResult->pucCgi));
 	xmlFree(pucT);
       }
 

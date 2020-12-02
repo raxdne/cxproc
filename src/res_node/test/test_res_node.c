@@ -37,7 +37,7 @@ resNodeTest(void)
 {
   int n_ok;
   int i;
-  xmlChar *pucModuleTestReport = xmlStrdup("\n");
+  xmlChar *pucModuleTestReport = xmlStrdup(BAD_CAST"\n");
   xmlChar mucTestLabel[BUFFER_LENGTH];
   xmlChar mucTestResult[BUFFER_LENGTH];
 
@@ -48,7 +48,7 @@ resNodeTest(void)
 
     i++;
     xmlStrPrintf(mucTestLabel,BUFFER_LENGTH,"\nTEST %i in '%s:%i': processing of dummy resource node = ", i, __FILE__, __LINE__);
-    fputs(mucTestLabel,stderr);
+    fputs((const char *)mucTestLabel,stderr);
     mucTestResult[0] = '\0';
 
     if (resNodeReset(NULL, NULL) == TRUE) {
@@ -96,7 +96,7 @@ resNodeTest(void)
 
     i++;
     xmlStrPrintf(mucTestLabel,BUFFER_LENGTH,"\nTEST %i in '%s:%i': new filesystem context set to NULL = ", i, __FILE__, __LINE__);
-    fputs(mucTestLabel,stderr);
+    fputs((const char *)mucTestLabel,stderr);
     mucTestResult[0] = '\0';
 
     /* not initialized with a name, handle error without SIGSEG */
@@ -127,7 +127,7 @@ resNodeTest(void)
 
     i++;
     xmlStrPrintf(mucTestLabel,BUFFER_LENGTH,"\nTEST %i in '%s:%i': new filesystem context set to NULL = ", i, __FILE__, __LINE__);
-    fputs(mucTestLabel,stderr);
+    fputs((const char *)mucTestLabel,stderr);
     mucTestResult[0] = '\0';
 
     /* not initialized with a name, handle error without SIGSEG */
@@ -159,7 +159,7 @@ resNodeTest(void)
 
     i++;
     xmlStrPrintf(mucTestLabel,BUFFER_LENGTH,"\nTEST %i in '%s:%i': redundant reset of new filesystem context = ", i, __FILE__, __LINE__);
-    fputs(mucTestLabel,stderr);
+    fputs((const char *)mucTestLabel,stderr);
     mucTestResult[0] = '\0';
 
     if ((prnT = resNodeDirNew(pucT)) == NULL) {
@@ -192,7 +192,7 @@ resNodeTest(void)
 
     i++;
     xmlStrPrintf(mucTestLabel,BUFFER_LENGTH,"\nTEST %i in '%s:%i': reading of an NULL file context = ", i, __FILE__, __LINE__);
-    fputs(mucTestLabel,stderr);
+    fputs((const char *)mucTestLabel,stderr);
     mucTestResult[0] = '\0';
 
     if ((prnT = resNodeDirNew(NULL)) == NULL) {
@@ -231,7 +231,7 @@ resNodeTest(void)
 
     i++;
     xmlStrPrintf(mucTestLabel,BUFFER_LENGTH,"\nTEST %i in '%s:%i': new filesystem context for non-existing file = ", i, __FILE__, __LINE__);
-    fputs(mucTestLabel,stderr);
+    fputs((const char *)mucTestLabel,stderr);
     mucTestResult[0] = '\0';
 
     if ((prnT = resNodeDirNew(BAD_CAST "file://" TESTPREFIX "dummy.txt")) == NULL) {
@@ -276,7 +276,7 @@ resNodeTest(void)
 
     i++;
     xmlStrPrintf(mucTestLabel,BUFFER_LENGTH,"\nTEST %i in '%s:%i': new filesystem context for non-existing directory = ", i, __FILE__, __LINE__);
-    fputs(mucTestLabel,stderr);
+    fputs((const char *)mucTestLabel,stderr);
     mucTestResult[0] = '\0';
 
     if ((prnT = resNodeDirNew(BAD_CAST "file://" TESTPREFIX "dummy/")) == NULL) {
@@ -321,7 +321,7 @@ resNodeTest(void)
 
     i++;
     xmlStrPrintf(mucTestLabel,BUFFER_LENGTH,"\nTEST %i in '%s:%i': new filesystem context for existing directory = ", i, __FILE__, __LINE__);
-    fputs(mucTestLabel,stderr);
+    fputs((const char *)mucTestLabel,stderr);
     mucTestResult[0] = '\0';
 
     if ((prnT = resNodeDirNew(BAD_CAST "file:/" TESTPREFIX "option/pie/")) == NULL) {
@@ -369,7 +369,7 @@ resNodeTest(void)
 
     i++;
     xmlStrPrintf(mucTestLabel,BUFFER_LENGTH,"\nTEST %i in '%s:%i': new filesystem context set and re-set to an existing file context = ", i, __FILE__, __LINE__);
-    fputs(mucTestLabel,stderr);
+    fputs((const char *)mucTestLabel,stderr);
     mucTestResult[0] = '\0';
 
     if ((prnT = resNodeNew()) == NULL) {
@@ -417,7 +417,7 @@ resNodeTest(void)
 
     i++;
     xmlStrPrintf(mucTestLabel,BUFFER_LENGTH,"\nTEST %i in '%s:%i': new filesystem context set = ", i, __FILE__, __LINE__);
-    fputs(mucTestLabel,stderr);
+    fputs((const char *)mucTestLabel,stderr);
     mucTestResult[0] = '\0';
 
     if ((prnT = resNodeDirNew(BAD_CAST TESTPREFIX "abc.txt")) == NULL) {
@@ -454,7 +454,7 @@ resNodeTest(void)
 
     i++;
     xmlStrPrintf(mucTestLabel,BUFFER_LENGTH,"\nTEST %i in '%s:%i': resNodeSplitStrNew() = ", i, __FILE__, __LINE__);
-    fputs(mucTestLabel,stderr);
+    fputs((const char *)mucTestLabel,stderr);
     mucTestResult[0] = '\0';
 
     if (resNodeSplitStrNew(NULL) != NULL) {
@@ -485,7 +485,7 @@ resNodeTest(void)
 
     i++;
     xmlStrPrintf(mucTestLabel,BUFFER_LENGTH,"\nTEST %i in '%s:%i': resNodeInsert() = ", i, __FILE__, __LINE__);
-    fputs(mucTestLabel,stderr);
+    fputs((const char *)mucTestLabel,stderr);
     mucTestResult[0] = '\0';
 
     if ((prnPath = resNodeSplitStrNew(BAD_CAST "option\\pie\\text\\test.pie")) == NULL) {
@@ -529,7 +529,7 @@ resNodeTest(void)
       pucModuleTestReport = xmlStrcat(pucModuleTestReport,mucTestResult);
     }
 
-    //pucT = resNodeListToPlain(prnT,RN_INFO_MIN); fputs((const char *)pucT,stderr); xmlFree(pucT);
+    //pucT = resNodeListToPlain(prnT,RN_INFO_MIN); fputs((const char *)(const char *)pucT,stderr); xmlFree(pucT);
     resNodeFree(prnPath);
     resNodeFree(prnT);
   }
@@ -543,7 +543,7 @@ resNodeTest(void)
 
     i++;
     xmlStrPrintf(mucTestLabel,BUFFER_LENGTH,"\nTEST %i in '%s:%i': resNodeInsert() = ", i, __FILE__, __LINE__);
-    fputs(mucTestLabel,stderr);
+    fputs((const char *)mucTestLabel,stderr);
     mucTestResult[0] = '\0';
 
     if ((prnT = resNodeSplitStrNew(BAD_CAST "option\\pie\\text\\test.pie")) == NULL) {
@@ -574,7 +574,7 @@ resNodeTest(void)
     }
     
 
-    //pucT = resNodeListToPlain(prnT,RN_INFO_MIN); fputs((const char *)pucT,stderr); xmlFree(pucT);
+    //pucT = resNodeListToPlain(prnT,RN_INFO_MIN); fputs((const char *)(const char *)pucT,stderr); xmlFree(pucT);
     resNodeFree(prnT);
   }
 
@@ -585,7 +585,7 @@ resNodeTest(void)
 
     i++;
     xmlStrPrintf(mucTestLabel,BUFFER_LENGTH,"\nTEST %i in '%s:%i': resNodeSplitLineBufferNew() = ", i, __FILE__, __LINE__);
-    fputs(mucTestLabel,stderr);
+    fputs((const char *)mucTestLabel,stderr);
     mucTestResult[0] = '\0';
 
     if ((prnT = resNodeSplitLineBufferNew(NULL)) != NULL) {
@@ -603,7 +603,7 @@ resNodeTest(void)
       pucModuleTestReport = xmlStrcat(pucModuleTestReport,mucTestResult);
     }
 
-    //pucT = resNodeListToPlain(prnT,RN_INFO_MIN); fputs((const char *)pucT,stderr); xmlFree(pucT);
+    //pucT = resNodeListToPlain(prnT,RN_INFO_MIN); fputs((const char *)(const char *)pucT,stderr); xmlFree(pucT);
     resNodeFree(prnT);
   }
 
@@ -614,7 +614,7 @@ resNodeTest(void)
 
     i++;
     xmlStrPrintf(mucTestLabel,BUFFER_LENGTH,"\nTEST %i in '%s:%i': build a list of filesystem contexts = ",i,__FILE__,__LINE__);
-    fputs(mucTestLabel,stderr);
+    fputs((const char *)mucTestLabel,stderr);
     mucTestResult[0] = '\0';
 
     xmlStrPrintf(mucT,BUFFER_LENGTH-1, TEMPPREFIX"//%c/tmp/%c",PATHLIST_SEPARATOR,PATHLIST_SEPARATOR);
@@ -642,7 +642,7 @@ resNodeTest(void)
 
     i++;
     xmlStrPrintf(mucTestLabel,BUFFER_LENGTH,"\nTEST %i in '%s:%i': new filesystem context set to an existing file context with quotes = ",i,__FILE__,__LINE__);
-    fputs(mucTestLabel,stderr);
+    fputs((const char *)mucTestLabel,stderr);
     mucTestResult[0] = '\0';
     
     if ((prnT = resNodeRootNew(NULL,BAD_CAST "\"" TESTPREFIX "plain/Length_1024.txt\"")) == NULL) {
@@ -671,7 +671,7 @@ resNodeTest(void)
 
     i++;
     xmlStrPrintf(mucTestLabel,BUFFER_LENGTH,"\nTEST %i in '%s:%i': URI of an existing file context = ",i,__FILE__,__LINE__);
-    fputs(mucTestLabel,stderr);
+    fputs((const char *)mucTestLabel,stderr);
     mucTestResult[0] = '\0';
 
     if ((prnT = resNodeDirNew(BAD_CAST TESTPREFIX "config-test.cxp")) == NULL) {
@@ -705,7 +705,7 @@ resNodeTest(void)
 
     i++;
     xmlStrPrintf(mucTestLabel,BUFFER_LENGTH,"\nTEST %i in '%s:%i': URI of an existing URL context = ",i,__FILE__,__LINE__);
-    fputs(mucTestLabel,stderr);
+    fputs((const char *)mucTestLabel,stderr);
     mucTestResult[0] = '\0';
 
 
@@ -740,7 +740,7 @@ resNodeTest(void)
 
     i++;
     xmlStrPrintf(mucTestLabel,BUFFER_LENGTH,"\nTEST %i in '%s:%i': URI of an existing URL context into an archive = ",i,__FILE__,__LINE__);
-    fputs(mucTestLabel,stderr);
+    fputs((const char *)mucTestLabel,stderr);
     mucTestResult[0] = '\0';
 
 
@@ -778,7 +778,7 @@ resNodeTest(void)
 
     i++;
     xmlStrPrintf(mucTestLabel,BUFFER_LENGTH,"\nTEST %i in '%s:%i': set basename and basedir of an context = ",i,__FILE__,__LINE__);
-    fputs(mucTestLabel,stderr);
+    fputs((const char *)mucTestLabel,stderr);
     mucTestResult[0] = '\0';
 
     if ((prnT = resNodeDirNew(BAD_CAST TESTPREFIX "xml/config.cxp")) == NULL) {
@@ -812,7 +812,7 @@ resNodeTest(void)
 
     i++;
     xmlStrPrintf(mucTestLabel,BUFFER_LENGTH,"\nTEST %i in '%s:%i': new filesystem context  = ", i, __FILE__, __LINE__);
-    fputs(mucTestLabel,stderr);
+    fputs((const char *)mucTestLabel,stderr);
     mucTestResult[0] = '\0';
 
     pucTest = resPathNormalize(BAD_CAST TESTPREFIX "plain/test-plain-3.xml");
@@ -860,7 +860,7 @@ resNodeTest(void)
 
     i++;
     xmlStrPrintf(mucTestLabel,BUFFER_LENGTH,"\nTEST %i in '%s:%i': set internal path = ", i, __FILE__, __LINE__);
-    fputs(mucTestLabel,stderr);
+    fputs((const char *)mucTestLabel,stderr);
     mucTestResult[0] = '\0';
 
     if ((prnT = resNodeDirNew(BAD_CAST pucT)) == NULL) {
@@ -907,7 +907,7 @@ resNodeTest(void)
 
     i++;
     xmlStrPrintf(mucTestLabel,BUFFER_LENGTH,"\nTEST %i in '%s:%i': resNodeAddSibling() = ", i, __FILE__, __LINE__);
-    fputs(mucTestLabel,stderr);
+    fputs((const char *)mucTestLabel,stderr);
     mucTestResult[0] = '\0';
 
     if ((prnT = resNodeDirNew(BAD_CAST"test/dummy.txt")) == NULL) {
@@ -944,7 +944,7 @@ resNodeTest(void)
     
     i++;
     xmlStrPrintf(mucTestLabel,BUFFER_LENGTH,"\nTEST %i in '%s:%i': resNodeAddChildNew() = ", i, __FILE__, __LINE__);
-    fputs(mucTestLabel,stderr);
+    fputs((const char *)mucTestLabel,stderr);
     mucTestResult[0] = '\0';
 
     if ((prnT = resNodeDirNew(BAD_CAST"test/")) == NULL) {
@@ -986,7 +986,7 @@ resNodeTest(void)
 
     i++;
     xmlStrPrintf(mucTestLabel,BUFFER_LENGTH,"\nTEST %i in '%s:%i': resNodeInMemoryNew() = ",i,__FILE__,__LINE__);
-    fputs(mucTestLabel,stderr);
+    fputs((const char *)mucTestLabel,stderr);
     mucTestResult[0] = '\0';
 
     if ((prnT = resNodeInMemoryNew()) == NULL) {
@@ -1010,7 +1010,7 @@ resNodeTest(void)
 
     i++;
     xmlStrPrintf(mucTestLabel,BUFFER_LENGTH,"\nTEST %i in '%s:%i': resNodeAliasNew() = ",i,__FILE__,__LINE__);
-    fputs(mucTestLabel,stderr);
+    fputs((const char *)mucTestLabel,stderr);
     mucTestResult[0] = '\0';
 
 
@@ -1038,7 +1038,7 @@ resNodeTest(void)
 
     i++;
     xmlStrPrintf(mucTestLabel,BUFFER_LENGTH,"\nTEST %i in '%s:%i': concat path of an context = ", i, __FILE__, __LINE__);
-    fputs(mucTestLabel,stderr);
+    fputs((const char *)mucTestLabel,stderr);
     mucTestResult[0] = '\0';
 
     if ((prnT = resNodeConcatNew(BAD_CAST"/tmp//", BAD_CAST"./test-res_node/xml/config.cxp")) == NULL) {
@@ -1071,7 +1071,7 @@ resNodeTest(void)
 
     i++;
     xmlStrPrintf(mucTestLabel,BUFFER_LENGTH,"\nTEST %i in '%s:%i': reset existing filesystem context = ", i, __FILE__, __LINE__);
-    fputs(mucTestLabel,stderr);
+    fputs((const char *)mucTestLabel,stderr);
     mucTestResult[0] = '\0';
 
     if ((prnT = resNodeDirNew(BAD_CAST TESTPREFIX "/thread/config.cxp")) == NULL) {
@@ -1112,7 +1112,7 @@ resNodeTest(void)
     
     i++;
     xmlStrPrintf(mucTestLabel,BUFFER_LENGTH,"\nTEST %i in '%s:%i': resNodeDup() = ", i, __FILE__, __LINE__);
-    fputs(mucTestLabel,stderr);
+    fputs((const char *)mucTestLabel,stderr);
     mucTestResult[0] = '\0';
 
     if ((prnT = resNodeDirNew(BAD_CAST TESTPREFIX)) == NULL) {
@@ -1182,7 +1182,7 @@ resNodeTest(void)
 
     i++;
     xmlStrPrintf(mucTestLabel,BUFFER_LENGTH,"\nTEST %i in '%s:%i': construct a new filesystem context with string and context = ",i,__FILE__,__LINE__);
-    fputs(mucTestLabel,stderr);
+    fputs((const char *)mucTestLabel,stderr);
     mucTestResult[0] = '\0';
 
     if ((prnContext = resNodeDirNew(BAD_CAST TESTPREFIX)) == NULL) {
@@ -1217,7 +1217,7 @@ resNodeTest(void)
 
     i++;
     xmlStrPrintf(mucTestLabel,BUFFER_LENGTH,"\nTEST %i in '%s:%i': set recursion of existing filesystem context = ",i,__FILE__,__LINE__);
-    fputs(mucTestLabel,stderr);
+    fputs((const char *)mucTestLabel,stderr);
     mucTestResult[0] = '\0';
 
 
@@ -1263,7 +1263,7 @@ resNodeTest(void)
 
     i++;
     xmlStrPrintf(mucTestLabel,BUFFER_LENGTH,"\nTEST %i in '%s:%i': resNodeCommentNew() = ", i, __FILE__, __LINE__);
-    fputs(mucTestLabel,stderr);
+    fputs((const char *)mucTestLabel,stderr);
     mucTestResult[0] = '\0';
 
     if ((prnT = resNodeDirNew(pucT)) == NULL) {
@@ -1295,7 +1295,7 @@ resNodeTest(void)
 
     i++;
     xmlStrPrintf(mucTestLabel,BUFFER_LENGTH,"\nTEST %i in '%s:%i': _resNodeSetNameAncestor() = ",i,__FILE__,__LINE__);
-    fputs(mucTestLabel,stderr);
+    fputs((const char *)mucTestLabel,stderr);
     mucTestResult[0] = '\0';
 
 
@@ -1340,7 +1340,7 @@ resNodeTest(void)
 
     i++;
     xmlStrPrintf(mucTestLabel,BUFFER_LENGTH,"\nTEST %i in '%s:%i': resNodeSetToParent() = ",i,__FILE__,__LINE__);
-    fputs(mucTestLabel,stderr);
+    fputs((const char *)mucTestLabel,stderr);
     mucTestResult[0] = '\0';
 
 
@@ -1375,7 +1375,7 @@ resNodeTest(void)
 
     i++;
     xmlStrPrintf(mucTestLabel,BUFFER_LENGTH,"\nTEST %i in '%s:%i': resNodeIsURL() = ",i,__FILE__,__LINE__);
-    fputs(mucTestLabel,stderr);
+    fputs((const char *)mucTestLabel,stderr);
     mucTestResult[0] = '\0';
 
     if ((prnT = resNodeDirNew(BAD_CAST TEMPPREFIX)) == NULL) {
@@ -1409,7 +1409,7 @@ resNodeTest(void)
 
     i++;
     xmlStrPrintf(mucTestLabel,BUFFER_LENGTH,"\nTEST %i in '%s:%i': resNodeGetExtension() = ", i, __FILE__, __LINE__);
-    fputs(mucTestLabel,stderr);
+    fputs((const char *)mucTestLabel,stderr);
     mucTestResult[0] = '\0';
 
     if ((prnT = resNodeDirNew(BAD_CAST TEMPPREFIX "empty.png")) == NULL) {
@@ -1451,7 +1451,7 @@ resNodeTest(void)
 
     i++;
     xmlStrPrintf(mucTestLabel,BUFFER_LENGTH,"\nTEST %i in '%s:%i': resNodeGetType() = ", i, __FILE__, __LINE__);
-    fputs(mucTestLabel,stderr);
+    fputs((const char *)mucTestLabel,stderr);
     mucTestResult[0] = '\0';
 
     if ((prnT = resNodeDirNew(BAD_CAST TEMPPREFIX "empty.png")) == NULL) {
@@ -1498,7 +1498,7 @@ resNodeTest(void)
 
     i++;
     xmlStrPrintf(mucTestLabel,BUFFER_LENGTH,"\nTEST %i in '%s:%i': resNodeGetNameRelative() = ", i, __FILE__, __LINE__);
-    fputs(mucTestLabel,stderr);
+    fputs((const char *)mucTestLabel,stderr);
     mucTestResult[0] = '\0';
 
     if ((prnT = resNodeDirNew(BAD_CAST TEMPPREFIX "empty/dummy.txt")) == NULL) {
@@ -1535,7 +1535,7 @@ resNodeTest(void)
 
     i++;
     xmlStrPrintf(mucTestLabel,BUFFER_LENGTH,"\nTEST %i in '%s:%i': rebuild existing filesystem context = ",i,__FILE__,__LINE__);
-    fputs(mucTestLabel,stderr);
+    fputs((const char *)mucTestLabel,stderr);
     mucTestResult[0] = '\0';
 
     if ((prnT = resNodeDirNew(BAD_CAST TESTPREFIX "thread/config.cxp")) == NULL) {
@@ -1582,7 +1582,7 @@ resNodeTest(void)
 
     i++;
     xmlStrPrintf(mucTestLabel,BUFFER_LENGTH,"\nTEST %i in '%s:%i': re-use of an used context = ",i,__FILE__,__LINE__);
-    fputs(mucTestLabel,stderr);
+    fputs((const char *)mucTestLabel,stderr);
     mucTestResult[0] = '\0';
 
     if ((prnT = resNodeDirNew(BAD_CAST TESTPREFIX "test.mak")) == NULL) {
@@ -1630,7 +1630,7 @@ resNodeTest(void)
 
     i++;
     xmlStrPrintf(mucTestLabel,BUFFER_LENGTH,"\nTEST %i in '%s:%i': parsing of a non-existing filesystem directory = ",i,__FILE__,__LINE__);
-    fputs(mucTestLabel,stderr);
+    fputs((const char *)mucTestLabel,stderr);
     mucTestResult[0] = '\0';
 
 
@@ -1659,7 +1659,7 @@ resNodeTest(void)
 
     i++;
     xmlStrPrintf(mucTestLabel,BUFFER_LENGTH,"\nTEST %i in '%s:%i': parsing of an existing filesystem directory = ", i, __FILE__, __LINE__);
-    fputs(mucTestLabel,stderr);
+    fputs((const char *)mucTestLabel,stderr);
     mucTestResult[0] = '\0';
 
     if ((prnT = resNodeDirNew(BAD_CAST TESTPREFIX "each")) == NULL) {
@@ -1699,7 +1699,7 @@ resNodeTest(void)
 
     i++;
     xmlStrPrintf(mucTestLabel,BUFFER_LENGTH,"\nTEST %i in '%s:%i': parsing of an existing filesystem directory with pattern matching = ", i, __FILE__, __LINE__);
-    fputs(mucTestLabel,stderr);
+    fputs((const char *)mucTestLabel,stderr);
     mucTestResult[0] = '\0';
 
     re_match = pcre2_compile(
@@ -1746,7 +1746,7 @@ resNodeTest(void)
 
     i++;
     xmlStrPrintf(mucTestLabel,BUFFER_LENGTH,"\nTEST %i in '%s:%i': link resolving twice = ",i,__FILE__,__LINE__);
-    fputs(mucTestLabel,stderr);
+    fputs((const char *)mucTestLabel,stderr);
     mucTestResult[0] = '\0';
 
     if ((prnT = resNodeDirNew(BAD_CAST"./test.lnk")) == NULL) {
@@ -1784,7 +1784,7 @@ resNodeTest(void)
 
     i++;
     xmlStrPrintf(mucTestLabel,BUFFER_LENGTH,"\nTEST %i in '%s:%i': resNodeTo*() XML file = ", i, __FILE__, __LINE__);
-    fputs(mucTestLabel,stderr);
+    fputs((const char *)mucTestLabel,stderr);
     mucTestResult[0] = '\0';
 
     if ((prnT = resNodeDirNew(BAD_CAST TESTPREFIX "xml/dummy-a.xml")) == NULL) {
@@ -1825,7 +1825,7 @@ resNodeTest(void)
 
     i++;
     xmlStrPrintf(mucTestLabel,BUFFER_LENGTH,"\nTEST %i in '%s:%i': check filesystem context CRC = ",i,__FILE__,__LINE__);
-    fputs(mucTestLabel,stderr);
+    fputs((const char *)mucTestLabel,stderr);
     mucTestResult[0] = '\0';
 
     prnT = resNodeRootNew(BAD_CAST"history/acal/acal.c");
@@ -1845,7 +1845,7 @@ resNodeTest(void)
 
     i++;
     xmlStrPrintf(mucTestLabel,BUFFER_LENGTH,"\nTEST %i in '%s:%i': create an local index file = ",i,__FILE__,__LINE__);
-    fputs(mucTestLabel,stderr);
+    fputs((const char *)mucTestLabel,stderr);
     mucTestResult[0] = '\0';
 
 
@@ -1880,7 +1880,7 @@ resNodeTest(void)
     
     i++;
     xmlStrPrintf(mucTestLabel,BUFFER_LENGTH,"\nTEST %i in '%s:%i': resNodeToDOM() = ",i,__FILE__,__LINE__);
-    fputs(mucTestLabel,stderr);
+    fputs((const char *)mucTestLabel,stderr);
     mucTestResult[0] = '\0';
 
 
@@ -1927,7 +1927,7 @@ resNodeTest(void)
     
     i++;
     xmlStrPrintf(mucTestLabel,BUFFER_LENGTH,"\nTEST %i in '%s:%i': resNodeReadStatus() = ",i,__FILE__,__LINE__);
-    fputs(mucTestLabel,stderr);
+    fputs((const char *)mucTestLabel,stderr);
     mucTestResult[0] = '\0';
 
 
@@ -1967,8 +1967,8 @@ resNodeTest(void)
   }
 
   xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"\nResult in '%s': %i/%i OK\n",__FILE__,n_ok,i);
-  fputs(mucTestResult,stderr);
-  fputs(pucModuleTestReport,stderr);
+  fputs((const char *)mucTestResult,stderr);
+  fputs((const char *)pucModuleTestReport,stderr);
 
   xmlFree(pucModuleTestReport);
   return (i - n_ok);

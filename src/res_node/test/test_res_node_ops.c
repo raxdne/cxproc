@@ -29,7 +29,7 @@ resNodeTestOperations(void)
   /* */
   int iMode = 0;
   //xmlChar *pucMsg = "";
-  xmlChar *pucModuleTestReport = xmlStrdup("\n");
+  xmlChar *pucModuleTestReport = xmlStrdup(BAD_CAST"\n");
   xmlChar mucTestLabel[BUFFER_LENGTH];
   xmlChar mucTestResult[BUFFER_LENGTH];
   
@@ -48,7 +48,7 @@ resNodeTestOperations(void)
 
     i++;
     xmlStrPrintf(mucTestLabel,BUFFER_LENGTH,"\nTEST %i in '%s:%i': resNodeMakeDirectory() = ", i, __FILE__, __LINE__);
-    fputs(mucTestLabel,stderr);
+    fputs((const char *)mucTestLabel,stderr);
     mucTestResult[0] = '\0';
 
     resNodeUnlinkStr(pucT);
@@ -91,7 +91,7 @@ resNodeTestOperations(void)
 
     i++;
     xmlStrPrintf(mucTestLabel,BUFFER_LENGTH,"\nTEST %i in '%s:%i': create a new subsubdirectory = ", i, __FILE__, __LINE__);
-    fputs(mucTestLabel,stderr);
+    fputs((const char *)mucTestLabel,stderr);
     mucTestResult[0] = '\0';
 
     if (resNodeMakeDirectoryStr(NULL, iMode) == TRUE) {
@@ -127,7 +127,7 @@ resNodeTestOperations(void)
 
     i++;
     xmlStrPrintf(mucTestLabel,BUFFER_LENGTH,"\nTEST %i in '%s:%i': resNodeSplitLineBufferNew() = ", i, __FILE__, __LINE__);
-    fputs(mucTestLabel,stderr);
+    fputs((const char *)mucTestLabel,stderr);
     mucTestResult[0] = '\0';
 
     if ((prnT = resNodeSplitLineBufferNew(BAD_CAST "option\\pie\\text\\\noption/pie/abc/\n\ntmp/a/b/c/\n \ntmp/a/e/f/g/\r")) == NULL) {
@@ -149,7 +149,7 @@ resNodeTestOperations(void)
     }
     
 
-    //pucT = resNodeListToPlain(prnT,RN_INFO_MIN); fputs((const char *)pucT,stderr); xmlFree(pucT);
+    //pucT = resNodeListToPlain(prnT,RN_INFO_MIN); fputs((const char *)(const char *)pucT,stderr); xmlFree(pucT);
     resNodeFree(prnT);
   }
 
@@ -160,7 +160,7 @@ resNodeTestOperations(void)
 
     i++;
     xmlStrPrintf(mucTestLabel,BUFFER_LENGTH,"\nTEST %i in '%s:%i': resNodeTransfer(copy) = ", i, __FILE__, __LINE__);
-    fputs(mucTestLabel,stderr);
+    fputs((const char *)mucTestLabel,stderr);
     mucTestResult[0] = '\0';
 
     resNodeUnlinkStr(BAD_CAST TEMPPREFIX "test.ics");
@@ -216,7 +216,7 @@ resNodeTestOperations(void)
   if (SKIPTEST) {
     i++;
     xmlStrPrintf(mucTestLabel,BUFFER_LENGTH,"\nTEST %i in '%s:%i': dummy arguments for resNodeTransferStr(copy) = ", i, __FILE__, __LINE__);
-    fputs(mucTestLabel,stderr);
+    fputs((const char *)mucTestLabel,stderr);
     mucTestResult[0] = '\0';
 
     if (resNodeTransferStr(NULL, NULL, FALSE) == TRUE) {
@@ -249,7 +249,7 @@ resNodeTestOperations(void)
 
     i++;
     xmlStrPrintf(mucTestLabel,BUFFER_LENGTH,"\nTEST %i in '%s:%i': resNodeTransfer(move) = ", i, __FILE__, __LINE__);
-    fputs(mucTestLabel,stderr);
+    fputs((const char *)mucTestLabel,stderr);
     mucTestResult[0] = '\0';
     
     if ((prnFrom = resNodeDirNew(BAD_CAST TEMPPREFIX "test.ics")) == NULL) {
@@ -311,7 +311,7 @@ resNodeTestOperations(void)
   if (SKIPTEST) {
     i++;
     xmlStrPrintf(mucTestLabel,BUFFER_LENGTH,"\nTEST %i in '%s:%i': dummy arguments for resNodeTransferStr(move) = ", i, __FILE__, __LINE__);
-    fputs(mucTestLabel,stderr);
+    fputs((const char *)mucTestLabel,stderr);
     mucTestResult[0] = '\0';
 
     if (resNodeTransferStr(NULL, NULL, TRUE) == TRUE) {
@@ -339,12 +339,10 @@ resNodeTestOperations(void)
 
 
   if (RUNTEST) {
-    resNodePtr prnFrom = NULL;
-    resNodePtr prnTo = NULL;
 
     i++;
     xmlStrPrintf(mucTestLabel,BUFFER_LENGTH,"\nTEST %i in '%s:%i': copying of an existing plain text file to existing directory = ", i, __FILE__, __LINE__);
-    fputs(mucTestLabel,stderr);
+    fputs((const char *)mucTestLabel,stderr);
     mucTestResult[0] = '\0';
 
     if (resNodeTransferStr(BAD_CAST TESTPREFIX "option/pie/text/2446.ics", BAD_CAST TEMPPREFIX, FALSE) == FALSE) {
@@ -377,7 +375,7 @@ resNodeTestOperations(void)
   if (RUNTEST) {
     i++;
     xmlStrPrintf(mucTestLabel,BUFFER_LENGTH,"\nTEST %i in '%s:%i': copying of an existing plain text file to a file in a non-existing directory = ", i, __FILE__, __LINE__);
-    fputs(mucTestLabel,stderr);
+    fputs((const char *)mucTestLabel,stderr);
     mucTestResult[0] = '\0';
 
     if (resNodeTransferStr(BAD_CAST TESTPREFIX "option/pie/text/2446.ics", BAD_CAST TEMPPREFIX "test-res_node_ops/t2.txt", FALSE) == FALSE) {
@@ -433,7 +431,7 @@ resNodeTestOperations(void)
   if (RUNTEST) {
     i++;
     xmlStrPrintf(mucTestLabel,BUFFER_LENGTH,"\nTEST %i in '%s:%i': copying of an existing plain text file from archive = ", i, __FILE__, __LINE__);
-    fputs(mucTestLabel,stderr);
+    fputs((const char *)mucTestLabel,stderr);
     mucTestResult[0] = '\0';
 
     if (resNodeTransferStr(BAD_CAST TESTPREFIX "option\\archive\\test-zip-7.zip\\sub\\a.txt", BAD_CAST TEMPPREFIX, FALSE) == FALSE) {
@@ -555,7 +553,7 @@ resNodeTestOperations(void)
   if (SKIPTEST) {
     i++;
     xmlStrPrintf(mucTestLabel,BUFFER_LENGTH,"\nTEST %i in '%s:%i': moving of an existing plain text file to an other volume = ", i, __FILE__, __LINE__);
-    fputs(mucTestLabel,stderr);
+    fputs((const char *)mucTestLabel,stderr);
     mucTestResult[0] = '\0';
 
     if (
@@ -588,8 +586,8 @@ resNodeTestOperations(void)
   }
 
   xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"\nResult in '%s': %i/%i OK\n",__FILE__,n_ok,i);
-  fputs(mucTestResult,stderr);
-  fputs(pucModuleTestReport,stderr);
+  fputs((const char *)mucTestResult,stderr);
+  fputs((const char *)pucModuleTestReport,stderr);
 
   xmlFree(pucModuleTestReport);
 

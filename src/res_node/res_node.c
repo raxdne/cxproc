@@ -1362,17 +1362,15 @@ resNodeInsert(resNodePtr prnArgTree, resNodePtr prnArg)
 {
   resNodePtr prnResult = NULL;
   resNodePtr prnT;
-  //resNodePtr prnTT;
   xmlChar* pucT = NULL;
-  xmlChar* pucTT = NULL;
 
   //assert(prnArgTree);
   //assert(prnArg);
   //assert(prnArg->children != NULL );
 
-  if ((pucTT = resNodeGetNameBase(prnArg)) != NULL) {
+  if ((pucT = resNodeGetNameBase(prnArg)) != NULL) {
     for (prnT = prnArgTree; prnT; prnT = prnT->next) {
-      if (resPathIsEquivalent(pucTT, resNodeGetNameBase(prnT))) {
+      if (resPathIsEquivalent(pucT, resNodeGetNameBase(prnT))) {
 	resNodeListUnlink(prnArg);
 	prnResult = resNodeInsert(prnT->children, prnArg->children);
       }
