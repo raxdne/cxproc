@@ -1,6 +1,4 @@
 
-Speicherung <main.txt 15.5.2015 20:40:46 developer>
-
 # A (C)onfigurable (X)ml (PROC)essor: “cxproc”
 
 ## AUTHOR and HOMEPAGE
@@ -46,6 +44,7 @@ Some Minor features are
 
 
 ## Advantages
+
 - With the multi step approach its easy to develop smaller, less   complex XML stylesheets.
 - There is a good performance with libxml2 and other libraries in C.
 - Configurations are usable on command line, scripts, file manager menus and   webservers (Apache/CGI tested only yet).
