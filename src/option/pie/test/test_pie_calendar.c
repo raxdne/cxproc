@@ -116,7 +116,7 @@ pieCalendarTest(cxpContextPtr pccArg)
     i++;
     printf("TEST %i in '%s:%i': calAddAttributeDayDiff() = ", i, __FILE__, __LINE__);
 
-    if ((pdocTest = xmlParseFile(TESTPREFIX "option\\pie\\text\\test-pie-date.pie")) == NULL) {
+    if ((pdocTest = xmlParseFile(TESTPREFIX "option/pie/text/test-pie-date.pie")) == NULL) {
       printf("Error xmlParseFile()\n");
     }
     else if (calAddAttributeDayDiff(pdocTest) != pdocTest) {

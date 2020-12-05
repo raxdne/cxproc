@@ -257,8 +257,8 @@ dirTest(cxpContextPtr pccArg)
     }
     //domPutNodeString(stderr, BAD_CAST "SetTopPrefix(): ", pndPie);
     //pucT = resNodeListToPlain(prnT,RN_INFO_MIN); fputs((const char *)pucT,stderr); xmlFree(pucT);
-    resNodeFree(prnT);
-    xmlFreeNode(pndDir);
+    resNodeListFree(prnT);
+    xmlFreeNode(pndPie);
   }
 
 

@@ -803,7 +803,7 @@ BOOL_T
 ImportNodeContent(xmlNodePtr pndArgImport, cxpContextPtr pccArg)
 {
   BOOL_T fResult = FALSE;
-  xmlChar *pucContent;
+  xmlChar *pucContent = NULL;
   xmlNodePtr pndBlock = NULL;
   BOOL_T fLocator;
 
@@ -828,6 +828,8 @@ ImportNodeContent(xmlNodePtr pndArgImport, cxpContextPtr pccArg)
   if (xmlStrEqual(domGetAttributePtr(pndBlock, BAD_CAST "type"), BAD_CAST"script")) {
 #ifdef HAVE_JS
     pucContent = scriptProcessScriptNode(pndBlock, pccArg);
+#else
+    /*\todo define fallback */
 #endif
   }
   else {

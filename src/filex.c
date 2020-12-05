@@ -139,6 +139,7 @@ main(int argc, char *argv[], char *envp[])
 	    }
 	    xmlBufferFree(buffer);
 	  }
+	  xmlFreeNode(pndT);
 	}
       }
       resNodeListFree(prnNew);
