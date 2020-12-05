@@ -451,6 +451,7 @@ pnetPrintPath(petrinet_t *ppnArg, cxpContextPtr pccArg)
     int i;
 
     for (i=0; i <= ppnArg->l_path; i++) {
+      assert(ppnArg->path[i] != NULL);
       cxpCtxtLogPrint(pccArg, 1," (%s '%s')", statep(ppnArg->path[i]) ? NAME_STATE : NAME_TRANSITION, ppnArg->path[i]->pucId);
     }
   }
@@ -1625,8 +1626,10 @@ pnetProcessPathnet(petrinet_t *ppnArg, BOOL_T flagXml, cxpContextPtr pccArg)
     }
 
     for (i=0; i < ppnArg->n_e; i++) {
-      assert(ppnArg->edge[i].from);
-      assert(ppnArg->edge[i].to);
+
+      assert(ppnArg->edge[i].from != NULL);
+      assert(ppnArg->edge[i].to != NULL);
+
       if  (ppnArg->edge[i].fMarker == FALSE || ppnArg->edge[i].from->fMarker == FALSE || ppnArg->edge[i].to->fMarker == FALSE) {
 	cxpCtxtLogPrint(pccArg, 3,"Filter relation '%s' -> '%s'", KNOTID(ppnArg->edge[i].from), KNOTID(ppnArg->edge[i].to));
 	if (flagXml) {

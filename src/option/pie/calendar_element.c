@@ -1186,7 +1186,7 @@ calConcatNextDate(xmlChar *pucArgGcal)
 	return NULL;
       }
       pucTmp = xmlStrcat(pucTmp, pucB);
-      memcpy(pucArgGcal,pucTmp,xmlStrlen(pucTmp)+1);
+      memcpy(pucArgGcal,pucTmp,(size_t)xmlStrlen(pucTmp)+1);
       xmlFree(pucTmp);
       return pucArgGcal;
     }

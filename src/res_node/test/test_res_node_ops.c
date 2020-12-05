@@ -83,7 +83,7 @@ resNodeTestOperations(void)
       pucModuleTestReport = xmlStrcat(pucModuleTestReport,mucTestResult);
     }
     
-    resNodeFree(prnT);
+    resNodeListFree(prnT);
   }
 
 
@@ -149,8 +149,8 @@ resNodeTestOperations(void)
     }
     
 
-    //pucT = resNodeListToPlain(prnT,RN_INFO_MIN); fputs((const char *)(const char *)pucT,stderr); xmlFree(pucT);
-    resNodeFree(prnT);
+    //pucT = resNodeListToPlain(prnT,RN_INFO_MIN); fputs((const char *)pucT,stderr); xmlFree(pucT);
+    resNodeListFree(prnT);
   }
 
 

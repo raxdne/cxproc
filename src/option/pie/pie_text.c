@@ -828,6 +828,8 @@ ImportNodeContent(xmlNodePtr pndArgImport, cxpContextPtr pccArg)
   if (xmlStrEqual(domGetAttributePtr(pndBlock, BAD_CAST "type"), BAD_CAST"script")) {
 #ifdef HAVE_JS
     pucContent = scriptProcessScriptNode(pndBlock, pccArg);
+#else
+    /*\todo define fallback */
 #endif
   }
   else {

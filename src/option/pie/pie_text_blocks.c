@@ -2460,6 +2460,8 @@ TaskNodeNew(xmlNodePtr pndArg)
 	}
       }
 
+      assert(pndHeader->children->content != NULL);
+
       if (pndHeader->children == pndHeader->last && xmlNodeIsText(pndHeader->children)) { /* header is a single string */
 	if (xmlStrlen(&pucContent[ovector[1]]) > 0) {
 	  xmlFree(pndHeader->children->content);

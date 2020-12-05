@@ -135,7 +135,7 @@
     </cxp:calendar>
   </cxp:xml>
   <cxp:system message="test-calendar-003-003: calendar from directory"/>
-  <cxp:xml name="result/test-calendar-003-003.xml">
+  <cxp:xml name="result/test-calendar-003-003.xml" valid="no">
     <cxp:calendar>
       <cxp:col id="embedded">
         <cxp:xml>

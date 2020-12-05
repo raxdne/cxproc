@@ -2127,10 +2127,12 @@ cxpChangeXslParam(xmlDocPtr pdocResult, char **param, BOOL_T fInsertvars, cxpCon
 
 /*! apply all sibling XSL elements of pndParent to pdocArgXml, non recursive!!
 
-\param pndArg a xmlNodePtr to append data
+\param pndArgParent a xmlNodePtr to append data
+\param ppdocArgResult
+\param ppucArgResult
 \param pccArg the resource node
 
-\return a new created xmlDocPtr or NULL in case of error
+\return TRUE if the transformation was successful, else FALSE
 
 \todo use DOM caching for XSL
 */
@@ -2140,7 +2142,7 @@ cxpProcessTransformations(const xmlDocPtr pdocArgXml, const xmlNodePtr pndArgPar
   BOOL_T fResult = FALSE;
 
 #ifdef DEBUG
-  cxpCtxtLogPrint(pccArg, 2, "cxpProcessTransformations(pdocArgXml=%0x,pndParent=%0x,pccArg=%0x)", pdocArgXml, pndArgParent, pccArg);
+  cxpCtxtLogPrint(pccArg, 3, "cxpProcessTransformations(pdocArgXml=%0x,pndParent=%0x,pccArg=%0x)", pdocArgXml, pndArgParent, pccArg);
 #endif
 
   if (ppdocArgResult != NULL || ppucArgResult != NULL) {
@@ -2290,7 +2292,7 @@ cxpProcessTransformations(const xmlDocPtr pdocArgXml, const xmlNodePtr pndArgPar
 	fResult = TRUE;
       }
       else if (ppucArgResult != NULL) { /* plain text result expected */
-	int l;
+	int l = 0;
 
 	assert(ppdocArgResult == NULL);
 	if (pucResult) {

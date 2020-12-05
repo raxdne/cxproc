@@ -162,11 +162,15 @@ void
 cxpCtxtCliPrintHelp(cxpContextPtr pccArg)
 {
   /*!  */
-  xmlChar *pucExecutable;
+  xmlChar *pucValue = NULL;
+  xmlChar *pucExecutable = NULL;
 
-  pucExecutable = resPathGetBasename(cxpCtxtCliGetValue(pccArg, 0));
-  assert(pucExecutable);
-
+  if ((pucValue = cxpCtxtCliGetValue(pccArg, 0)) != NULL) {
+    pucExecutable = resPathGetBasename(pucValue);
+    assert(pucExecutable);
+    xmlFree(pucValue);
+  }
+  
   cxpCtxtLogPrint(pccArg, 1,"\n%s - " CXP_VER_FILE_DESCRIPTION_STR " " CXP_VER_FILE_VERSION_STR "\n", pucExecutable);
 
   cxpCtxtLogPrint(pccArg, 1,"Copyright " CXP_VER_COPYRIGHT_STR "\n");
@@ -233,6 +237,8 @@ cxpCtxtCliPrintHelp(cxpContextPtr pccArg)
 
   cxpCtxtLogPrint(pccArg, 1,"Documentations, Copyrights, Examples see %s\n\n", CXP_VER_URL);
 
+  xmlFree(pucExecutable);
+  
 } /* end of cxpCtxtCliPrintHelp() */
 
 
@@ -244,23 +250,23 @@ cxpCtxtCliPrintHelp(cxpContextPtr pccArg)
 BOOL_T
 cxpCtxtCliParse(cxpContextPtr pccArg)
 {
-  BOOL_T fResult = TRUE;
-  resNodePtr prnExecutable;
-  xmlNodePtr pndDir;
-  xmlNodePtr pndMake;
-  xmlNodePtr pndPie;
-  xmlNodePtr pndImport;
-  xmlNodePtr pndXml;
-  xmlNodePtr pndXsl;
-  xmlChar *pucT;
-  xmlChar *pucLevelDirVerbosity;
-  int iArgCount;
-  xmlNsPtr pnsCxp;
+  BOOL_T fResult = FALSE;
 
-  if (pccArg == NULL) {
-    fResult = FALSE;
-  }
-  else {
+  if (pccArg) {
+    xmlNodePtr pndDir;
+    xmlNodePtr pndMake;
+    xmlNodePtr pndPie;
+    xmlNodePtr pndImport;
+    xmlNodePtr pndXml;
+    xmlNodePtr pndXsl;
+    xmlChar *pucT;
+    xmlChar *pucLevelDirVerbosity;
+    int iArgCount;
+    xmlNsPtr pnsCxp;
+    resNodePtr prnExecutable;
+
+    fResult = TRUE;
+    
     if (pccArg->pdocContextNode) {
       xmlFreeDoc(pccArg->pdocContextNode); /* release the old DOM */
     }
@@ -309,6 +315,8 @@ cxpCtxtCliParse(cxpContextPtr pccArg)
 
       if ((pucArgvFirst = cxpCtxtCliGetValue(pccArg, 1)) == NULL) {
 	fResult = FALSE;
+	xmlFree(pucLevelDirVerbosity);
+	resNodeFree(prnExecutable);
 	return fResult;
       }
       else if (xmlStrEqual(pucArgvFirst, BAD_CAST"-?")) {
@@ -327,6 +335,8 @@ cxpCtxtCliParse(cxpContextPtr pccArg)
 	  /*!\todo handle result as plain text */
 	  //cxpCtxtLogPrintDoc(pccArg, 1, "XML arg result", pccArg->pdocContextNode);
 
+	  xmlFree(pucLevelDirVerbosity);
+	  resNodeFree(prnExecutable);
 	  xmlFree(pucArgvFirst);
 	  xmlFree(pucArgvNext);
 	  return fResult;
@@ -948,7 +958,7 @@ cxpCtxtCliAddXsl(xmlNodePtr pndArgParent, cxpContextPtr pccArg)
       else {
 	/*!\todo handle additional types (XML, cxp, ...) */
       }
-  resNodeFree(prnT);
+      resNodeFree(prnT);
     }
     xmlFree(pucArgvN);
   }

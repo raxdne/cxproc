@@ -389,11 +389,11 @@ cxpCtxtSaveFileNode(cxpContextPtr pccArg,xmlNodePtr pndArg,xmlDocPtr pdocArgOutp
   if (prnOutput) { /* Save the result only if a \@name is given. */
     if (pdocArgOutput) {
       /* this is DOM content */
-      iContentLength = cxpCtxtOutputSaveFormat(pccArg,prnOutput,pdocArgOutput,NULL,(char *)pucAttrEncoding,1,FALSE);
+      iContentLength = cxpCtxtOutputSaveFormat(pccArg,prnOutput,pdocArgOutput,NULL,(char *)((pucAttrEncoding != NULL) ? pucAttrEncoding : BAD_CAST "UTF-8"),1,FALSE);
     }
     else if (pucArgOutput) {
       /* this is string content only */
-      iContentLength = cxpCtxtOutputSaveFormat(pccArg,prnOutput,NULL,pucArgOutput,(char *)pucAttrEncoding,0,fAppend);
+      iContentLength = cxpCtxtOutputSaveFormat(pccArg,prnOutput,NULL,pucArgOutput,(char *)((pucAttrEncoding != NULL) ? pucAttrEncoding : BAD_CAST "UTF-8"),0,fAppend);
     }
   }
   else {
