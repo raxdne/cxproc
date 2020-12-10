@@ -1370,7 +1370,6 @@ ProcessCalendarColumns(pieCalendarPtr pCalendarArg, cxpContextPtr pccArg)
       }
     }
     fResult = TRUE;
-    domUnsetNs(pndMeta);
   }
   return fResult;
 } /* end of ProcessCalendarColumns() */
@@ -1885,6 +1884,7 @@ SubstituteFormatStr(xmlNodePtr pndContext, xmlChar *fmt)
 	  puc0 = puc1 + 1;
 	}
       }
+#if 0
       else if (puc1[1] == 'M') {
 	/* multiple char formats */
 	if (puc1[2] == 'O' && puc1[3] == 'O' && puc1[4] == 'N') {
@@ -1931,6 +1931,7 @@ SubstituteFormatStr(xmlNodePtr pndContext, xmlChar *fmt)
 	  puc0 = puc1 + 1;
 	}
       }
+#endif
       else if (puc1[1] == 'B') {
 	if (isdigit(puc1[2]) && isdigit(puc1[3]) && isdigit(puc1[4]) && isdigit(puc1[5]) && isspace(puc1[6])) {
 	  /* difference in years */

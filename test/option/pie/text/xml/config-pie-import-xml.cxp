@@ -79,4 +79,13 @@
     <cxp:xml name="test-pie-import-xml-007.pie"/>
     <cxp:xpath select="/pie/section[1]/h[1]"/>
   </cxp:xml>
+  <cxp:system message="**** test-pie-import-xml-008: mix of namespaces"/>
+  <cxp:xml name="result/test-pie-import-xml-008.pie">
+    <cxp:pie tags="no">
+      <section>
+        <h>Import Test</h>
+        <import name="test-pie-ns.pie"/>
+      </section>
+    </cxp:pie>
+  </cxp:xml>
 </cxp:make>

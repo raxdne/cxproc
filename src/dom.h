@@ -130,6 +130,9 @@ extern void
 domUnsetNs(xmlNodePtr pndArg);
 
 extern BOOL_T
+_domTransferNsTo(xmlNodePtr pndArg, xmlDocPtr pdocArg);
+
+extern BOOL_T
 domNodesAreEqual(xmlNodePtr pndA, xmlNodePtr pndB);
 
 extern xmlNodePtr

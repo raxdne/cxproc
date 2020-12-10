@@ -149,7 +149,6 @@ ProcessPieDoc(xmlNodePtr pndArgResult, xmlDocPtr pdocArgPie, cxpContextPtr pccAr
       //cxpCtxtLogPrintDoc(pccInput, 2, "read result", pdocArgPie);
       pndT = xmlCopyNodeList(pndRoot->children);
       /*!\todo unlink meta and error nodes */
-      domUnsetNs(pndT);
       xmlAddChildList(pndArgResult, pndT);
       fResult = TRUE;
     }
@@ -252,7 +251,7 @@ pieProcessPieNode(xmlNodePtr pndArgPie, cxpContextPtr pccArg)
     else {
       pndBlock = xmlCopyNode(pndArgPie, 1); /* first copy for import processing */
       xmlNodeSetName(pndBlock, NAME_PIE_BLOCK);
-      domUnsetNs(pndBlock);
+      xmlSetNs(pndBlock,NULL);
     }
 
     if (pndArgPie->doc != NULL && STR_IS_NOT_EMPTY(pndArgPie->doc->URL)) {
@@ -440,7 +439,7 @@ ImportNodeCxp(xmlNodePtr pndArgImport, cxpContextPtr pccArg)
 	    //domPutNodeString(stderr,BAD_CAST "ImportNodeCxp()",pndPieProcRoot);
 	    xmlUnlinkNode(pndPieProcRoot);
 	    xmlNodeSetName(pndPieProcRoot, NAME_PIE_BLOCK);
-	    domUnsetNs(pndPieProcRoot);
+	    xmlSetNs(pndPieProcRoot,NULL);
 	    xmlReplaceNode(pndArgImport, pndPieProcRoot);
 	    xmlFreeNode(pndArgImport);
 	    TraverseImportNodes(pndPieProcRoot, pccArg); /* parse result recursively */
@@ -469,7 +468,7 @@ ImportNodeCxp(xmlNodePtr pndArgImport, cxpContextPtr pccArg)
 
       fResult = TRUE;
       pndBlock = pndArgImport;
-      domUnsetNs(pndBlock);
+      xmlSetNs(pndBlock,NULL);
       xmlNodeSetName(pndBlock, NAME_PIE_BLOCK);
       //xmlSetProp(pndBlock, BAD_CAST "context", resNodeGetURI(prnInput));
 
@@ -519,7 +518,7 @@ ImportNodeStdin(xmlNodePtr pndArgImport, cxpContextPtr pccArg)
   assert(IS_NODE_PIE_IMPORT(pndArgImport));
 
   pndBlock = pndArgImport;
-  domUnsetNs(pndBlock);
+  xmlSetNs(pndBlock,NULL);
   xmlNodeSetName(pndBlock, NAME_PIE_BLOCK);
   xmlSetProp(pndBlock, BAD_CAST "context", BAD_CAST"stdin");
 
@@ -597,7 +596,7 @@ ImportNodeFile(xmlNodePtr pndArgImport, cxpContextPtr pccArg)
     /*! \todo add cache handling for import */
 
     pndBlock = pndArgImport;
-    domUnsetNs(pndBlock);
+    xmlSetNs(pndBlock,NULL);
     xmlNodeSetName(pndBlock,NAME_PIE_BLOCK);
     xmlSetProp(pndBlock, BAD_CAST "context", resNodeGetURI(prnInput));
 
@@ -689,6 +688,8 @@ ImportNodeFile(xmlNodePtr pndArgImport, cxpContextPtr pccArg)
 
 	if (STR_IS_NOT_EMPTY(pucContent)) {
 	  if (ParsePlainBuffer(pndBlock, pucContent, m)) {
+	    domAddFileXpath(pndBlock, BAD_CAST"fxpath", NULL);
+	    domAddFileLocator(pndBlock, resNodeGetNameRelative(cxpCtxtRootGet(pccInput), prnInput));
 	    TraverseImportNodes(pndBlock, pccInput); /* parse result recursively */
 	  }
 	  else {
@@ -753,13 +754,18 @@ ImportNodeFile(xmlNodePtr pndArgImport, cxpContextPtr pccArg)
 	  xmlNodePtr pndT;
 
 	  if ((pndT = xmlDocGetRootElement(pdocPie)) != NULL && IS_NODE_PIE_PIE(pndT) && pndT->children != NULL) {
+#if 1
+	    /* domUnlinkNodeList(pndT); is not yet usable when there is a mix of namspaces */
+	    pndT = xmlCopyNodeList(pndT->children);
+#else
 	    pndT = pndT->children;
 	    domUnlinkNodeList(pndT);
-	    domUnsetNs(pndT);
+#endif
 	    xmlAddChildList(pndBlock, pndT);
 	  }
 	  xmlFreeDoc(pdocPie);
-	  //domPutNodeString(stderr,BAD_CAST "ImportNodeFile()",pndArgResult);
+	  domAddFileXpath(pndBlock, BAD_CAST"fxpath", NULL);
+	  domAddFileLocator(pndBlock, resNodeGetNameRelative(cxpCtxtRootGet(pccInput), prnInput));
 	  TraverseImportNodes(pndBlock, pccInput); /* parse result recursively */
 	}
 	else {
@@ -774,8 +780,8 @@ ImportNodeFile(xmlNodePtr pndArgImport, cxpContextPtr pccArg)
       }
       else if (domGetAttributeFlag(pndBlock, BAD_CAST "locator", fLocator)) {
 	/* add additional attributes for navigation */
-	domAddFileLocator(pndBlock, resNodeGetNameRelative(cxpCtxtRootGet(pccInput), prnInput));
-	domAddFileXpath(pndBlock, BAD_CAST"fxpath", NULL);
+	//domAddFileLocator(pndBlock, resNodeGetNameRelative(cxpCtxtRootGet(pccInput), prnInput));
+	//domAddFileXpath(pndBlock, BAD_CAST"fxpath", NULL);
       }
 
       xmlFree(pucAttrCache);
@@ -821,7 +827,7 @@ ImportNodeContent(xmlNodePtr pndArgImport, cxpContextPtr pccArg)
 
   fResult = TRUE;
   pndBlock = pndArgImport;
-  domUnsetNs(pndBlock);
+  xmlSetNs(pndBlock,NULL);
   xmlNodeSetName(pndBlock, NAME_PIE_BLOCK);
   //xmlSetProp(pndBlock, BAD_CAST "context", resNodeGetURI(prnInput));
 
@@ -844,7 +850,7 @@ ImportNodeContent(xmlNodePtr pndArgImport, cxpContextPtr pccArg)
     if (ParsePlainBuffer(pndBlock, pucContent, GetModeByAttr(pndBlock))) {
       TraverseImportNodes(pndBlock, pccArg); /* parse result recursively */
       if (domGetAttributeFlag(pndArgImport, BAD_CAST "locator", fLocator)) {
-	domAddFileLocator(pndBlock, resNodeGetNameRelative(cxpCtxtRootGet(pccArg), cxpCtxtLocationGet(pccArg)));
+	/*!\todo domAddFileLocator(pndBlock, resNodeGetNameRelative(cxpCtxtRootGet(pccArg), pndArgImport->doc->URL)); */
       }
     }
     else {

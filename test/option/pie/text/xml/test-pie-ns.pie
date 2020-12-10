@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+PKG2 - ProzessKettenGenerator second implementation 
+Copyright (C) 1999-2020 by Alexander Tenbusch
+
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License 
+along with this program; if not, write to the Free Software
+Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+
+-->
+<pie:pie xmlns:pie="http://www.tenbusch.info/pie" xmlns:pkg="http://www.tenbusch.info/pkg" class="petrinet">
+  <copyright>2005,2006,2011,2020 A. Tenbusch</copyright>
+  <author href="mailto:raxdne@web.de">A. Tenbusch<translation lang="en">A. Tenbusch</translation></author>
+  <section id="workflow" version="0.7">
+    <h>Workflow von Dokumenten-Formaten<translation lang="en">Workflow von Dokumenten-Formaten</translation></h>
+    <section id="computer">
+      <h>Computer-Welt<translation lang="en">Virtuality (Computer)</translation></h>
+      <pkg:stelle id="html_datei" color="green">
+        <h>HTML-Datei<translation lang="en">HTML file</translation></h>
+
+      </pkg:stelle>
+      <pkg:stelle id="pnm_datei">
+        <h>PNM-Datei<translation lang="en">PNM file</translation></h>
+
+      </pkg:stelle>
+      <pkg:stelle id="png_datei" color="green" rating="3">
+        <h>PNG-Datei<translation lang="en">PNG file</translation></h>
+
+      </pkg:stelle>
+      <pkg:stelle id="tiff_datei">
+        <h>TIFF-Datei<translation lang="en">TIFF file</translation></h>
+
+      </pkg:stelle>
+      <pkg:stelle id="pdf_datei" color="green" rating="3">
+        <h>PDF-Datei<translation lang="en">PDF file</translation></h>
+
+        <pkg:req ref="color_cmyk" cat="E"/>
+      </pkg:stelle>
+      <pkg:stelle id="ps_datei">
+        <h>PS-oder EPS-Datei<translation lang="en">PS or EPS file</translation></h>
+
+      </pkg:stelle>
+      <pkg:transition id="pdflatex">
+        <h>pdflatex<translation lang="en">pdflatex</translation></h>
+
+      </pkg:transition>
+      <pkg:transition id="acrobat">
+        <h>Acrobat<translation lang="en">Acrobat</translation></h>
+
+      </pkg:transition>
+      <pkg:transition id="acrobat_reader">
+        <h>Acrobat Reader<translation lang="en">Acrobat Reader</translation></h>
+	<import name="man/en/acrobat_reader.md"/>
+      </pkg:transition>
+      <pkg:transition id="ocr">
+        <h>Texterkennung (OCR)<translation lang="en">Texterkennung (OCR)</translation></h>
+
+        <pkg:req ref="resolution" cat="E"/>
+      </pkg:transition>
+      <pkg:transition id="pnmtops_pipe_gs" valid="no">
+        <h>Skript arbeitsblaetter.sh<translation lang="en">Skript arbeitsblaetter.sh</translation></h>
+
+      </pkg:transition>
+
+      <pkg:requirement id="resolution" color="green">
+        <h>Auflösung<translation lang="en">Auflösung</translation></h>
+        <pkg:check>GIMP: Info<translation lang="en">GIMP: Info</translation></pkg:check>
+
+      </pkg:requirement>
+      <pkg:relation from="web_browser" to="ps_datei"/>
+      <pkg:relation from="pnmtops_pipe_gs" to="pdf_datei"/>
+      <pkg:relation from="pnm_datei" to="pnmtops_pipe_gs"/>
+      <pkg:relation from="pnm_datei" to="pnmtopng"/>
+      <pkg:relation from="pnmtopng" to="png_datei"/>
+      <pkg:relation from="png_datei" to="ocr" color="green"/>
+      <pkg:relation from="png_datei" to="bildbearbeitung"/>
+      <pkg:relation from="pnm_datei" to="bildbearbeitung"/>
+      <pkg:relation from="pnm_datei" to="pnmtops"/>
+      <pkg:relation from="pnmtops" to="ps_datei"/>
+      <pkg:relation from="scan_daten" to="bildbearbeitung" color="green">
+        <abstract>über File--Aquire--Xsane<translation lang="en">über File--Aquire--Xsane</translation></abstract>
+      </pkg:relation>
+    </section>
+  </section>
+</pie:pie>

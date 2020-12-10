@@ -361,7 +361,41 @@ domSetNsRecursive(xmlNodePtr pndArg, xmlNsPtr ns)
 } /* end of domSetNsRecursive() */
 
 
-/*! 
+/*!
+ */
+BOOL_T
+_domTransferNsTo(xmlNodePtr pndArg, xmlDocPtr pdocArg)
+{
+  BOOL_T fResult = FALSE;
+
+  if (pndArg) {
+    xmlNsPtr *ppList = NULL;
+
+    if ((ppList = xmlGetNsList(pdocArg, xmlDocGetRootElement(pdocArg)))) {
+      xmlNsPtr pNsI = NULL;
+
+      for (pNsI = *ppList; pNsI; pNsI = pNsI->next) {
+#if 1
+	/* s. code in tree.c:xmlNewReconciliedNs() */
+	xmlNsPtr pNsT = NULL;
+
+	pNsT = xmlNewNs(pndArg, pNsI->href, pNsI->prefix);
+#else
+	xmlChar* pucT;
+
+	pucT = xmlStrdup(BAD_CAST "xmlns:");
+	pucT = xmlStrcat(pucT, pNsI->prefix);
+	xmlSetProp(pndArg, pucT, pNsI->href);
+#endif
+      }
+      fResult = TRUE;
+    }
+  }
+  return fResult;
+} /* end of domTransferNsTo() */
+
+
+/*!
 */
 void
 domUnsetNs(xmlNodePtr pndArg)
@@ -760,7 +794,7 @@ domAddFileLocator(xmlNodePtr pndArg, xmlChar *pucArg)
 \param pucArgPrefix pointer to XPath prefix for childs
  */
 void
-domAddFileXpath(xmlNodePtr pndArg, xmlChar *pucArgName, xmlChar *pucArgPrefix)
+domAddFileXpath(xmlNodePtr pndArg, xmlChar* pucArgName, xmlChar* pucArgPrefix)
 {
   if (IS_NODE_META(pndArg) || IS_NODE_PIE_ERROR(pndArg)) {
   }
@@ -775,13 +809,24 @@ domAddFileXpath(xmlNodePtr pndArg, xmlChar *pucArgName, xmlChar *pucArgPrefix)
 	if (IS_NODE_PIE_TTAG(pndChild) || IS_NODE_PIE_ETAG(pndChild) || IS_NODE_PIE_HTAG(pndChild) || IS_NODE_PIE_META(pndChild) || IS_NODE_PIE_ERROR(pndChild)) {
 	  /* dont set xpath attribute here */
 	}
+	else if (xmlHasProp(pndChild, pucArgName)) {
+	  /* there is an xpath attribute already */
+	}
 	else {
-	  xmlChar mpucT[BUFFER_LENGTH];
+#if 1
+	  xmlChar mucT[BUFFER_LENGTH];
 
-	  xmlStrPrintf(mpucT,BUFFER_LENGTH, "%s/*[%i]",(pucArgPrefix==NULL ? BAD_CAST "/*" : pucArgPrefix),i);
-	  xmlSetProp(pndChild,pucArgName,mpucT);
+	  xmlStrPrintf(mucT, BUFFER_LENGTH, "%s/*[%i]", (pucArgPrefix==NULL ? BAD_CAST "/*" : pucArgPrefix), i);
+	  xmlSetProp(pndChild, pucArgName, mucT);
+	  domAddFileXpath(pndChild, pucArgName, mucT);
+#else
+	  xmlChar* pucT = xmlGetNodePath(pndChild);
 
-	  domAddFileXpath(pndChild,pucArgName,mpucT);
+	  xmlSetProp(pndChild, pucArgName, pucT);
+	  xmlFree(pucT);
+	  domAddFileXpath(pndChild, pucArgName, pucT);
+#endif
+
 	}
       }
     }

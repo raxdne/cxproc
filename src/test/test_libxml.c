@@ -59,6 +59,63 @@ xmlTest(void)
   if (RUNTEST) {
     /* TEST:
      */
+    xmlDocPtr pdocResult = NULL;
+    xmlDocPtr pdocT = NULL;
+    int options;
+    xmlNodePtr pndT;
+    xmlNodePtr pndPieRoot = NULL;
+    xmlNodePtr pndBlock = NULL;
+    xmlNsPtr* ppList = NULL;
+    xmlNsPtr pNsI = NULL;
+    xmlNsPtr pNsT = NULL;
+
+    i++;
+    printf("TEST %i in '%s:%i': ", i, __FILE__, __LINE__);
+
+    options = XML_PARSE_RECOVER | XML_PARSE_NOENT | XML_PARSE_NOERROR | XML_PARSE_NOWARNING | XML_PARSE_NSCLEAN;
+#ifdef _WIN32
+    options |= XML_PARSE_NONET;
+#endif
+
+    if ((pdocResult = xmlNewDoc(BAD_CAST "1.0")) != NULL) {
+      //pdocResult->encoding = xmlStrdup(BAD_CAST"UTF-8");
+
+      pndPieRoot = xmlNewNode(NULL, BAD_CAST"root");
+      xmlDocSetRootElement(pdocResult, pndPieRoot);
+      xmlSetTreeDoc(pndPieRoot, pdocResult);
+
+      if ((pdocT = xmlReadFile((const char*)TESTPREFIX "option/pie/text/xml/test-pie-ns.pie", NULL, options)) == NULL) {
+	printf("ERROR xmlReadFile()\n");
+      }
+      else if ((ppList = xmlGetNsList(pdocT, xmlDocGetRootElement(pdocT))) == NULL) {
+	printf("ERROR xmlGetNsList()\n");
+      }
+      else {
+	n_ok++;
+	printf("OK\n");
+      }
+
+      pndBlock = xmlNewChild(pndPieRoot, NULL, BAD_CAST"block", NULL);
+      for (pNsI = *ppList; pNsI; pNsI = pNsI->next) {
+	/* s. code in tree.c:xmlNewReconciliedNs() */
+
+	pNsT = xmlNewNs(pndBlock, pNsI->href, pNsI->prefix);
+
+	pndT = xmlNewChild(pndBlock, pNsT, BAD_CAST"p", pNsT->prefix);
+      }
+      pndT = xmlNewChild(pndBlock, NULL, BAD_CAST"p", NULL);
+
+      //xmlSaveFileEnc("-", pdocResult, "UTF-8");
+
+      //xmlFreeNsList(pList);
+      xmlFreeDoc(pdocT);
+      xmlFreeDoc(pdocResult);
+    }
+  }
+
+  if (RUNTEST) {
+    /* TEST:
+     */
     int ciErrors = 0;
     xmlChar* pucAttr;
     xmlNodePtr pndT;
