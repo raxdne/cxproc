@@ -1300,6 +1300,7 @@ resNodeReadDoc(resNodePtr prnArg)
   else if (resNodeGetMimeType(prnArg) == MIME_APPLICATION_MMAP_XML
 #ifndef HAVE_LIBARCHIVE
     || resNodeGetMimeType(prnArg) == MIME_APPLICATION_VND_OPENXMLFORMATS_OFFICEDOCUMENT_WORDPROCESSINGML_DOCUMENT
+    || resNodeGetMimeType(prnArg) == MIME_APPLICATION_VND_OASIS_OPENDOCUMENT_SPREADSHEET
     || resNodeGetMimeType(prnArg) == MIME_APPLICATION_VND_OASIS_OPENDOCUMENT_TEXT
 #endif
   ) {
@@ -1316,7 +1317,8 @@ resNodeReadDoc(resNodePtr prnArg)
     else if (resNodeGetMimeType(prnArg) == MIME_APPLICATION_VND_OPENXMLFORMATS_OFFICEDOCUMENT_WORDPROCESSINGML_DOCUMENT) {
       pucPath = xmlStrcat(pucPath, BAD_CAST "!/word/document.xml");
     }
-    else if (resNodeGetMimeType(prnArg) == MIME_APPLICATION_VND_OASIS_OPENDOCUMENT_TEXT) {
+    else if (resNodeGetMimeType(prnArg) == MIME_APPLICATION_VND_OASIS_OPENDOCUMENT_SPREADSHEET
+	     || resNodeGetMimeType(prnArg) == MIME_APPLICATION_VND_OASIS_OPENDOCUMENT_TEXT) {
       pucPath = xmlStrcat(pucPath, BAD_CAST "!/content.xml");
     }
 #endif

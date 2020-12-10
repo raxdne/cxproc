@@ -1595,8 +1595,6 @@ pnetProcessPathnet(petrinet_t *ppnArg, BOOL_T flagXml, cxpContextPtr pccArg)
       xmlSetProp(pndXslWhen, BAD_CAST "test", BAD_CAST "false()");
     }
 
-    assert(pndXslChoose != NULL);
-
     for (k=ppnArg->s; KNOTID(k); k++) {
       if (k->fMarker == FALSE) {
 	cxpCtxtLogPrint(pccArg, 3,"Filter STELLE '%s'",KNOTID(k));
@@ -1604,6 +1602,7 @@ pnetProcessPathnet(petrinet_t *ppnArg, BOOL_T flagXml, cxpContextPtr pccArg)
 	  xmlSetProp(k->pndSource,BAD_CAST"valid",BAD_CAST"no");
 	}
 	else {
+	  assert(pndXslChoose != NULL);
 	  xmlStrPrintf(mpucT,BUFFER_LENGTH, "@id='%s'",KNOTID(k));
 	  pndXslWhen = xmlNewChild(pndXslChoose, NULL, BAD_CAST "when", NULL);
 	  xmlSetProp(pndXslWhen, BAD_CAST "test", mpucT);

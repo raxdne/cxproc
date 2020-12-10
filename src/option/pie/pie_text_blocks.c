@@ -458,7 +458,6 @@ GetParentElement(pieTextElementPtr ppeArg, xmlNodePtr pndArgParent)
 	  pndLast = pndT;
 	}
       }
-      assert(pndList != NULL || pndLast != NULL);
 
       for ( ; iDepth < pieElementGetDepth(ppeArg); iDepth++) {
 	if (pndList) {
@@ -2460,8 +2459,6 @@ TaskNodeNew(xmlNodePtr pndArg)
 	}
       }
 
-      assert(pndHeader->children->content != NULL);
-
       if (pndHeader->children == pndHeader->last && xmlNodeIsText(pndHeader->children)) { /* header is a single string */
 	if (xmlStrlen(&pucContent[ovector[1]]) > 0) {
 	  xmlFree(pndHeader->children->content);
@@ -2484,6 +2481,7 @@ TaskNodeNew(xmlNodePtr pndArg)
 	  pndHeader->children->content = xmlStrdup(&pucContent[ovector[1]]); /* without leading markup */
 	}
 	else {
+	  assert(pndHeader->children->content != NULL);
 	  pndHeader->children->content[0] = (xmlChar)'\0';
 	}
       }
