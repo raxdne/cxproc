@@ -662,6 +662,37 @@ StringEndsWithEntity(xmlChar*pucArg, int iArg)
 } /* end of StringEndsWithEntity() */
 
 
+/*! \return a pointer to first char after header markup in pucArg or NULL
+*/
+xmlChar* 
+StringGetEndOfHeaderMarker(xmlChar* pucArg)
+{
+  xmlChar* pucResult = NULL;
+
+  if (pucArg) {
+    xmlChar* pucT;
+    BOOL_T fHeader;
+
+    for (pucT = pucArg, fHeader = FALSE; ; pucT++) {
+      if (*pucT == (xmlChar*)'*') {
+	fHeader = TRUE;
+      }
+      else if (*pucT == (xmlChar*)' ') {
+	/* skip spaces */
+      }
+      else {
+	break;
+      }
+    }
+
+    if (fHeader) {
+      pucResult = pucT;
+    }
+  }
+  return pucResult;
+} /* end of StringGetEndOfHeaderMarker() */
+
+
 /*! \return TRUE if content string of pndArgParent is splitted into table data nodes using pucPatternSep, else FALSE
 */
 BOOL_T
@@ -680,9 +711,9 @@ SplitNodeToTableDataNodes(xmlNodePtr pndArgParent, xmlChar* pucPatternSep)
     xmlChar *pucBegin;
     xmlChar *pucSep;
     xmlChar* pucCell = NULL;
+    xmlChar* pucT;
     xmlNodePtr pndChild;
     xmlNodePtr pndT;
-    xmlNodePtr pndTD;
 
     pndChild = pndArgParent->children;
     xmlUnlinkNode(pndChild);
@@ -695,30 +726,30 @@ SplitNodeToTableDataNodes(xmlNodePtr pndArgParent, xmlChar* pucPatternSep)
 	/* its a XML entity like '&amp;' dont use this as separator */
 	pucSep++;
       }
-      else {
-	if ((pndTD = xmlNewNode(NULL, NAME_PIE_TD)) != NULL) {
-	  if ((pucCell = xmlStrndup(pucBegin, pucSep - pucBegin)) != NULL
-	    && (pndT = xmlNewText(pucCell)) != NULL) {
-	    StringRemovePairQuotes(pndT->content);
-	    xmlAddChild(pndTD, pndT);
-	  }
-	  xmlFree(pucCell);
-	  xmlAddChild(pndArgParent, pndTD);
+      else if ((pucCell = xmlStrndup(pucBegin, pucSep - pucBegin)) != NULL) {
+	StringRemovePairQuotes(pucCell);
+	if ((pucT = StringGetEndOfHeaderMarker(pucCell))) {
+	  xmlNewChild(pndArgParent, NULL, NAME_PIE_TH, pucT);
 	}
-
-	pucBegin = pucSep + xmlStrlen(pucPatternSep);
-	pucSep = pucBegin;
+	else {
+	  xmlNewChild(pndArgParent, NULL, NAME_PIE_TD, pucCell);
+	}
+	xmlFree(pucCell);
       }
+
+      pucBegin = pucSep + xmlStrlen(pucPatternSep);
+      pucSep = pucBegin;
     }
 
-    if (STR_IS_NOT_EMPTY(pucBegin) && (pndTD = xmlNewNode(NULL, NAME_PIE_TD)) != NULL) { /* append last cell in line */
-      if ((pucCell = xmlStrdup(pucBegin)) != NULL
-	&& (pndT = xmlNewText(pucCell)) != NULL) {
-	StringRemovePairQuotes(pndT->content);
-	xmlAddChild(pndTD, pndT);
+    if (STR_IS_NOT_EMPTY(pucBegin) && (pucCell = xmlStrdup(pucBegin)) != NULL) { /* append last cell in line */
+      StringRemovePairQuotes(pucCell);
+      if ((pucT = StringGetEndOfHeaderMarker(pucCell))) {
+	xmlNewChild(pndArgParent, NULL, NAME_PIE_TH, pucT);
+      }
+      else {
+	xmlNewChild(pndArgParent, NULL, NAME_PIE_TD, pucCell);
       }
       xmlFree(pucCell);
-      xmlAddChild(pndArgParent, pndTD);
     }
 
     xmlFreeNode(pndChild);

@@ -183,6 +183,7 @@ getBlockEnd(char *pchArgBlockBegin, int iArgLength)
 
 
 /*! 
+* \todo process numeric encoded entities?
 */
 BOOL_T
 addLine(xmlNodePtr pndArg, char *pchArg)
@@ -280,9 +281,12 @@ addLine(xmlNodePtr pndArg, char *pchArg)
 	  else if (pchSep - pchParameterBegin > 0) {
 	    xmlChar *pucText = xmlStrndup(BAD_CAST(pchSep+1),(pchT - pchSep - 1));
 	    xmlChar *pucNameElementParam = xmlStrndup(BAD_CAST pchParameterBegin,(pchSep - pchParameterBegin));
-	    StringToLower((char *)pucNameElementParam);
 
-	    xmlNewChild(pndParameter,NULL,pucNameElementParam,pucText);	  
+	    StringToLower((char *)pucNameElementParam);
+	    pucT = StringEncodeXmlDefaultEntitiesNew(pucText);
+
+	    xmlNewChild(pndParameter,NULL,pucNameElementParam, pucT);
+	    xmlFree(pucT);
 	    xmlFree(pucNameElementParam);
 	    xmlFree(pucText);
 	    pchParameterBegin = pchT + 1;
@@ -294,7 +298,9 @@ addLine(xmlNodePtr pndArg, char *pchArg)
       }
     }
     else {
-      xmlNewChild(pndElement,NULL,BAD_CAST"text",pucB);
+      pucT = StringEncodeXmlDefaultEntitiesNew(pucB);
+      xmlNewChild(pndElement, NULL, BAD_CAST"text", pucT);
+      xmlFree(pucT);
     }
 
     xmlFree(pucB);
