@@ -32,7 +32,7 @@
 
 #define CXP_O_READ   (1)
 
-#define CXP_O_SEARCH (3)
+#define CXP_O_SEARCH (2)
 
 #define CXP_O_WRITE  (4)
 

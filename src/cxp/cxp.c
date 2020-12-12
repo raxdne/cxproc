@@ -748,10 +748,19 @@ cxpResNodeResolveNew(cxpContextPtr pccArg, xmlNodePtr pndArg, xmlChar *pucArg, i
 	}
       }
 
-      if (resNodeIsReadable(prnResult) == FALSE && (iArgOptions & CXP_O_SEARCH) > CXP_O_READ) {
+      if (resNodeIsReadable(prnResult) == FALSE && (iArgOptions & CXP_O_SEARCH)) {
+	resNodePtr prnI;
+
 	resNodeFree(prnResult);
-	if ((prnResult = resNodeListFindPath(cxpCtxtSearchGet(pccArg), pucShortcut, (RN_FIND_FILE | RN_FIND_IN_SUBDIR))) != NULL) {
-	  prnResult = resNodeDup(prnResult, RN_DUP_THIS); /* found in search DOM */
+	prnResult = NULL;
+
+	for (prnI = cxpCtxtSearchGet(pccArg); prnI; prnI = resNodeGetNext(prnI)) {
+	  resNodePtr prnT;
+
+	  if ((prnT = resNodeListFindPath(prnI, pucShortcut, (RN_FIND_FILE | RN_FIND_IN_SUBDIR))) != NULL) {
+	    prnResult = resNodeDup(prnT, RN_DUP_THIS); /* found in search DOM */
+	    break;
+	  }
 	}
       }
 

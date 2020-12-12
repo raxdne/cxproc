@@ -230,7 +230,7 @@ cxpTest(cxpContextPtr pccArg)
     }
     resNodeFree(prnT);
 
-    if ((prnT = cxpResNodeResolveNew(pccTest, NULL, BAD_CAST "circular/config-circular.cxp", CXP_O_SEARCH | CXP_O_DIR)) == NULL) {
+    if ((prnT = cxpResNodeResolveNew(pccTest, NULL, BAD_CAST "circular/config-circular.cxp", CXP_O_SEARCH | CXP_O_DIR)) != NULL) {
       printf("Error 9\n");
       fResult = FALSE;
     }
@@ -553,6 +553,42 @@ cxpTest(cxpContextPtr pccArg)
 
 
   if (RUNTEST) {
+    resNodePtr prnT = NULL;
+    resNodePtr prnTT = NULL;
+    cxpContextPtr pccT;
+    xmlChar mucT[BUFFER_LENGTH];
+
+    i++;
+    printf("TEST %i in '%s:%i': set cxp context search path to multiple directories = ", i, __FILE__, __LINE__);
+
+    pccT = cxpCtxtDup(pccArg);
+    xmlStrPrintf(mucT, BUFFER_LENGTH-1, "%s/xml/sub1/sub11//%c%s/option/pie/text//%c/tmp/%c%c%s//%c",
+      TESTPREFIX, PATHLIST_SEPARATOR, TESTPREFIX, PATHLIST_SEPARATOR, PATHLIST_SEPARATOR, PATHLIST_SEPARATOR, TEMPPREFIX, PATHLIST_SEPARATOR);
+
+    if ((prnT = resNodeStrNew(mucT)) == NULL) {
+      printf("Error resNodeStrNew()\n");
+    }
+    else if (cxpCtxtSearchSet(pccT, prnT) == FALSE) {
+      printf("Error cxpCtxtSearchSet()\n");
+    }
+    else if ((prnTT = cxpResNodeResolveNew(pccT, NULL, BAD_CAST"config.cxp", (CXP_O_READ | CXP_O_SEARCH))) == NULL) {
+      printf("Error resNodeListFindPath()\n");
+    }
+    else if (resNodeIsFile(prnTT) == FALSE) {
+      printf("Error resNodeIsFile()\n");
+    }
+    else {
+      n_ok++;
+      printf("OK\n");
+    }
+
+    resNodeListFree(prnTT);
+    resNodeListFree(prnT);
+    cxpCtxtFree(pccT);
+  }
+
+
+  if (RUNTEST) {
     xmlNodePtr pndCopy;
 
     i++;
@@ -728,41 +764,6 @@ cxpTest(cxpContextPtr pccArg)
     xmlFreeNode(pndRoot);
   }
 #endif
-
-
-  if (RUNTEST) {
-    resNodePtr prnT = NULL;
-    resNodePtr prnTT = NULL;
-    cxpContextPtr pccT;
-    xmlChar mucT[BUFFER_LENGTH];
-
-    i++;
-    printf("TEST %i in '%s:%i': set cxp context search path to multiple directories = ", i, __FILE__, __LINE__);
-
-    pccT = cxpCtxtDup(pccArg);
-    xmlStrPrintf(mucT, BUFFER_LENGTH-1, "%s//%c/tmp/%c%c%s//%c",
-      TESTPREFIX, PATHLIST_SEPARATOR, PATHLIST_SEPARATOR, PATHLIST_SEPARATOR, TEMPPREFIX, PATHLIST_SEPARATOR);
-
-    if ((prnT = resNodeStrNew(mucT)) == NULL) {
-      printf("Error resNodeStrNew()\n");
-    }
-    else if (cxpCtxtSearchSet(pccT, prnT) == FALSE) {
-      printf("Error cxpCtxtSearchSet()\n");
-    }
-    else if ((prnTT = resNodeListFindPath(cxpCtxtSearchGet(pccT), BAD_CAST"config.cxp", (RN_FIND_FILE | RN_FIND_IN_SUBDIR))) == NULL) {
-      printf("Error resNodeListFindPath()\n");
-    }
-    else if (resNodeIsFile(prnTT) == FALSE) {
-      printf("Error resNodeIsFile()\n");
-    }
-    else {
-      n_ok++;
-      printf("OK\n");
-    }
-
-    resNodeListFree(prnT);
-    cxpCtxtFree(pccT);
-  }
 
 
   if (RUNTEST) {
