@@ -90,6 +90,9 @@ AddTableCellsEmpty(xmlNodePtr pndArg);
 static int
 CompressTable(xmlNodePtr pndArg);
 
+static xmlChar*
+StringGetEndOfHeaderMarker(xmlChar* pucArg);
+
 static xmlNodePtr
 SplitStringToDateNodes(const xmlChar *pucArg);
 
@@ -674,10 +677,10 @@ StringGetEndOfHeaderMarker(xmlChar* pucArg)
     BOOL_T fHeader;
 
     for (pucT = pucArg, fHeader = FALSE; ; pucT++) {
-      if (*pucT == (xmlChar*)'*') {
+      if (*pucT == (xmlChar)'*') {
 	fHeader = TRUE;
       }
-      else if (*pucT == (xmlChar*)' ') {
+      else if (*pucT == (xmlChar)' ') {
 	/* skip spaces */
       }
       else {

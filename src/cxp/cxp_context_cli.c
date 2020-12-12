@@ -299,7 +299,7 @@ cxpCtxtCliParse(cxpContextPtr pccArg)
       /* OK */
     }
     else {
-      pucLevelDirVerbosity = xmlStrdup(BAD_CAST "4");
+      pucLevelDirVerbosity = xmlStrdup(BAD_CAST "3");
     }
 
     /*! build internal DOM
@@ -445,6 +445,7 @@ cxpCtxtCliParse(cxpContextPtr pccArg)
 	  xmlFree(pucCxpString);
 	}
       }
+#if 0
       else if (xmlStrEqual(pucArgvFirst, BAD_CAST"-i") || xmlStrEqual(pucArgvFirst, BAD_CAST"-d")) {
 	/*! index all directories non-recusive
 	 */
@@ -464,6 +465,7 @@ cxpCtxtCliParse(cxpContextPtr pccArg)
 	  xmlFree(pucDir);
 	}
       }
+#endif
       else if (xmlStrEqual(pucArgvFirst, BAD_CAST"-s")) {
 	/*! search for file
 	 */
@@ -604,7 +606,7 @@ cxpCtxtCliParse(cxpContextPtr pccArg)
 	    pndXml = xmlNewChild(pndPlain, NULL, NAME_XML, NULL);
 	    pndDir = xmlNewChild(pndXml, NULL, NAME_DIR, NULL);
 	    xmlSetProp(pndDir, BAD_CAST "verbosity", pucLevelDirVerbosity);
-	    xmlSetProp(pndDir, BAD_CAST "index", BAD_CAST "skip"); /* skip index files in command line mode */
+	    //xmlSetProp(pndDir, BAD_CAST "index", BAD_CAST "skip"); /* skip index files in command line mode */
 	    xmlSetProp(pndDir, BAD_CAST "hidden", BAD_CAST "no"); /* skip hidden files in command line mode */
 
 	    for (i = j; (pucRelease = cxpCtxtCliGetValue(pccArg,i)); i++) {
