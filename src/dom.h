@@ -53,13 +53,13 @@ extern BOOL_T
 domWeightXPathInDoc(xmlDocPtr pdocArg, xmlChar *pucArg);
 
 extern void
-domRemoveFileLocator(xmlNodePtr pndArg);
+domUnsetPropFileLocator(xmlNodePtr pndArg);
 
 extern void
-domAddFileLocator(xmlNodePtr pndArg, xmlChar *pucArg);
+domSetPropFileLocator(xmlNodePtr pndArg, xmlChar *pucArg);
 
 extern void
-domAddFileXpath(xmlNodePtr pndArg, xmlChar *pucArgName, xmlChar *pucArgPrefix);
+domSetPropFileXpath(xmlNodePtr pndArg, xmlChar *pucArgName, xmlChar *pucArgPrefix);
 
 extern xmlChar *
 domNodeGetXpathStr(xmlNodePtr pndArg);
@@ -87,11 +87,8 @@ domNumberOfChild(xmlNodePtr pndArg, xmlChar *pucNameElement);
 extern xmlNodePtr
 domGetFirstChild(xmlNodePtr pndArg, xmlChar *pucNameElement);
 
-extern xmlChar * 
-domGetAttributePtr(xmlNodePtr pndArg, xmlChar *pucNameAttr);
-
 extern void
-domRemoveAttributes(xmlNodePtr pndArg);
+domUnsetPropAll(xmlNodePtr pndArg);
 
 extern xmlChar *
 domNodeEatContent(xmlNodePtr pndArg);
@@ -108,14 +105,11 @@ domNodeIsAttribute(xmlNodePtr pndArg);
 extern BOOL_T
 domNodeIsDescendant(xmlNodePtr pndArgTop, xmlNodePtr pndArg);
 
-extern xmlAttrPtr
-domGetAttributeNode(xmlNodePtr pndArg, xmlChar *pucNameAttr);
+extern BOOL_T
+domGetPropFlag(xmlNodePtr pndArg, xmlChar *pucNameAttr, BOOL_T fDefault);
 
 extern BOOL_T
-domGetAttributeFlag(xmlNodePtr pndArg, xmlChar *pucNameAttr, BOOL_T fDefault);
-
-extern BOOL_T
-domGetAttributeEqual(xmlNodePtr pndArg, xmlChar *pucNameAttr, xmlChar *pucValueAttr);
+domPropIsEqual(xmlNodePtr pndArg, xmlChar *pucNameAttr, xmlChar *pucValueAttr);
 
 extern xmlNodePtr
 domGetNextNode(xmlNodePtr pndArg, xmlChar *pucNameElement);

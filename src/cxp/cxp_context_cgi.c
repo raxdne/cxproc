@@ -399,7 +399,7 @@ cxpCtxtCgiParse(cxpContextPtr pccArg)
       if (pdocXsl) {
 	xmlNodePtr pndRoot = xmlDocGetRootElement(pdocXsl);
 	xmlNodePtr pndOutput = domGetFirstChild(pndRoot, BAD_CAST "output");
-	xmlChar *pucAttrMethod = domGetAttributePtr(pndOutput, BAD_CAST "method");
+	xmlChar *pucAttrMethod = xmlGetProp(pndOutput, BAD_CAST "method");
 
 	if (xmlStrEqual(pucAttrMethod, BAD_CAST "html")) {
 	  pndOutput = xmlNewChild(pndMake, NULL, NAME_XHTML, NULL);

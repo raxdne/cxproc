@@ -137,31 +137,31 @@ domTest(void)
     xmlNodePtr pndTest;
 
     i++;
-    printf("TEST %i in '%s:%i': domGetAttributeEqual() + domGetAttributeFlag() = ",i,__FILE__,__LINE__);
+    printf("TEST %i in '%s:%i': domPropIsEqual() + domGetPropFlag() = ",i,__FILE__,__LINE__);
 
     pndTest = xmlNewNode(NULL,NAME_PIE_PAR);
-    if (domGetAttributeEqual(pndTest, BAD_CAST"valid", NULL) == FALSE
-	&& domGetAttributeEqual(pndTest, NULL, NULL) == FALSE
-	&& domGetAttributeEqual(pndTest, BAD_CAST"valid", BAD_CAST"yes") == FALSE
-	&& domGetAttributeFlag(pndTest,BAD_CAST "valid",TRUE) == TRUE
-	&& domGetAttributeFlag(pndTest,BAD_CAST "valid",FALSE) == FALSE) {
+    if (domPropIsEqual(pndTest, BAD_CAST"valid", NULL) == FALSE
+	&& domPropIsEqual(pndTest, NULL, NULL) == FALSE
+	&& domPropIsEqual(pndTest, BAD_CAST"valid", BAD_CAST"yes") == FALSE
+	&& domGetPropFlag(pndTest,BAD_CAST "valid",TRUE) == TRUE
+	&& domGetPropFlag(pndTest,BAD_CAST "valid",FALSE) == FALSE) {
       xmlChar *pucTT = xmlStrdup(BAD_CAST"no");;
       
       domSetPropEat(pndTest,BAD_CAST"valid",pucTT);
-      if (domGetAttributeEqual(pndTest, BAD_CAST"valid", NULL) == FALSE
-	  && domGetAttributeEqual(pndTest, NULL, NULL) == FALSE
-	  && domGetAttributeEqual(pndTest, BAD_CAST"valid", BAD_CAST"yes") == FALSE
-	  && domGetAttributeEqual(pndTest, BAD_CAST"valid", BAD_CAST"no") == TRUE
-	  && domGetAttributeFlag(pndTest,BAD_CAST "valid",TRUE) == FALSE
-	  && domGetAttributeFlag(pndTest,BAD_CAST "valid",FALSE) == FALSE) {
+      if (domPropIsEqual(pndTest, BAD_CAST"valid", NULL) == FALSE
+	  && domPropIsEqual(pndTest, NULL, NULL) == FALSE
+	  && domPropIsEqual(pndTest, BAD_CAST"valid", BAD_CAST"yes") == FALSE
+	  && domPropIsEqual(pndTest, BAD_CAST"valid", BAD_CAST"no") == TRUE
+	  && domGetPropFlag(pndTest,BAD_CAST "valid",TRUE) == FALSE
+	  && domGetPropFlag(pndTest,BAD_CAST "valid",FALSE) == FALSE) {
 	
-	domRemoveAttributes(pndTest);
-	if (domGetAttributeEqual(pndTest, BAD_CAST"valid", NULL) == FALSE
-	    && domGetAttributeEqual(pndTest, NULL, NULL) == FALSE
-	    && domGetAttributeEqual(pndTest, BAD_CAST"valid", BAD_CAST"yes") == FALSE
-	    && domGetAttributeEqual(pndTest, BAD_CAST"valid", BAD_CAST"no") == FALSE
-	    && domGetAttributeFlag(pndTest,BAD_CAST "valid",TRUE) == TRUE
-	    && domGetAttributeFlag(pndTest,BAD_CAST "valid",FALSE) == FALSE) {
+	domUnsetPropAll(pndTest);
+	if (domPropIsEqual(pndTest, BAD_CAST"valid", NULL) == FALSE
+	    && domPropIsEqual(pndTest, NULL, NULL) == FALSE
+	    && domPropIsEqual(pndTest, BAD_CAST"valid", BAD_CAST"yes") == FALSE
+	    && domPropIsEqual(pndTest, BAD_CAST"valid", BAD_CAST"no") == FALSE
+	    && domGetPropFlag(pndTest,BAD_CAST "valid",TRUE) == TRUE
+	    && domGetPropFlag(pndTest,BAD_CAST "valid",FALSE) == FALSE) {
 	  n_ok++;
 	  printf("OK\n");
 	}
@@ -309,7 +309,7 @@ domTest(void)
 	//
 	&& domIsNodeInTree(pndRootA,pndRootA) == TRUE
 	// properties
-	//&& domIsNodeInTree(pndRootA,domGetAttributeNode(pndRootA,BAD_CAST"class")) == TRUE
+	//&& domIsNodeInTree(pndRootA,xmlHasProp(pndRootA,BAD_CAST"class")) == TRUE
 	// childs
 	&& domIsNodeInTree(pndRootA,pndRootA->children) == TRUE
 	&& domIsNodeInTree(pndRootA,pndRootA->children->children->children) == TRUE) {
@@ -350,7 +350,7 @@ domTest(void)
       //
       && domIsTreeOverlapping(pndRootA, pndRootA) == TRUE
       // properties
-      //&& domIsTreeOverlapping(pndRootA, domGetAttributeNode(pndRootA, BAD_CAST"class")) == TRUE
+      //&& domIsTreeOverlapping(pndRootA, xmlHasProp(pndRootA, BAD_CAST"class")) == TRUE
       // childs
       && domIsTreeOverlapping(pndRootA, pndRootA->children) == TRUE
       && domIsTreeOverlapping(pndRootA, pndRootA->children->children->children) == TRUE) {
@@ -490,12 +490,12 @@ domTest(void)
     xmlNodePtr pndRoot;
 
     i++;
-    printf("TEST %i in '%s:%i': domAddFileXpath() = ",i,__FILE__,__LINE__);
+    printf("TEST %i in '%s:%i': domSetPropFileXpath() = ",i,__FILE__,__LINE__);
 
     pdocT = xmlParseFile(TESTPREFIX "option/pie/text/test-pie-14.pie");
     pndRoot = xmlDocGetRootElement(pdocT);
-    domAddFileXpath(pndRoot,BAD_CAST"xpath",NULL);
-    if (domGetAttributePtr(pndRoot->children,BAD_CAST"xpath")) {
+    domSetPropFileXpath(pndRoot,BAD_CAST"xpath",NULL);
+    if (xmlGetProp(pndRoot->children,BAD_CAST"xpath")) {
       //domPutDocString(stderr,pdocT,BAD_CAST"cxpAddXpath()");
       n_ok++;
       printf("OK\n");
@@ -511,16 +511,16 @@ domTest(void)
     xmlNodePtr pndRoot;
 
     i++;
-    printf("TEST %i in '%s:%i': domAddFileLocator() and domAddFileXpath() = ",i,__FILE__,__LINE__);
+    printf("TEST %i in '%s:%i': domSetPropFileLocator() and domSetPropFileXpath() = ",i,__FILE__,__LINE__);
 
     pdocTest = xmlParseFile(TESTPREFIX "option/pie/text/test-pie-14.pie");
     pndRoot = xmlDocGetRootElement(pdocTest);
 
-    domAddFileLocator(pndRoot,BAD_CAST pdocTest->URL);
-    domAddFileXpath(pndRoot,BAD_CAST"fxpath",BAD_CAST"//");
-    if (xmlStrEqual(domGetAttributePtr(pndRoot->children,BAD_CAST"flocator"),pdocTest->URL)) {
+    domSetPropFileLocator(pndRoot,BAD_CAST pdocTest->URL);
+    domSetPropFileXpath(pndRoot,BAD_CAST"fxpath",BAD_CAST"//");
+    if (xmlStrEqual(xmlGetProp(pndRoot->children,BAD_CAST"flocator"),pdocTest->URL)) {
       xmlSaveFormatFileEnc(TEMPPREFIX "test-pie-14-locator.pie",pdocTest,"UTF-8",1);
-      domRemoveFileLocator(pndRoot);
+      domUnsetPropFileLocator(pndRoot);
       xmlSaveFormatFileEnc(TEMPPREFIX "test-pie-14-locator-removed.pie",pdocTest,"UTF-8",1);
       n_ok++;
       printf("OK\n");

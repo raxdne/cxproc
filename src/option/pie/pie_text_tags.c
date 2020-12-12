@@ -488,10 +488,10 @@ InheritHashtags(xmlDocPtr pdocArg)
 	    xmlChar* pucT;
 	    xmlNodePtr pndT;
 #if 0
-	    if (domGetAttributePtr(nodeset->nodeTab[i], BAD_CAST"impact") == NULL) {
+	    if (xmlGetProp(nodeset->nodeTab[i], BAD_CAST"impact") == NULL) {
 	      /* try to find this attribute at a ancestor node */
 	      for (pndT=nodeset->nodeTab[i]->parent; pndT; pndT=pndT->parent) {
-		if ((pucT = domGetAttributePtr(pndT, BAD_CAST"impact"))) {
+		if ((pucT = xmlGetProp(pndT, BAD_CAST"impact"))) {
 		  xmlSetProp(nodeset->nodeTab[i], BAD_CAST"impact", pucT);
 		  break;
 		}
@@ -599,7 +599,7 @@ CleanListTag(xmlNodePtr pndArg, BOOL_T fArgMerge)
 	    int iCountNeedle;
 	    xmlChar* pucAttrCount;
 
-	    if ((pucAttrCount = domGetAttributePtr(pndI, BAD_CAST"count"))) {
+	    if ((pucAttrCount = xmlGetProp(pndI, BAD_CAST"count"))) {
 	      iCountNeedle = atoi((char*)pucAttrCount);
 	    }
 	    else {
@@ -730,7 +730,7 @@ RecognizeNodeTags(xmlNodePtr pndTags, xmlNodePtr pndArg, pcre2_code* preArg)
     }
 
     /*! append class attribute value as an additional tag */
-    pucTag = domGetAttributePtr(pndArg, BAD_CAST"class");
+    pucTag = xmlGetProp(pndArg, BAD_CAST"class");
     if (STR_IS_NOT_EMPTY(pucTag)) {
 
       pucT = xmlStrdup(BAD_CAST"#");
@@ -899,7 +899,7 @@ RecognizeGlobalTags(xmlNodePtr pndTags, xmlNodePtr pndArg)
   if (IS_NODE_META(pndArg) || IS_NODE_PIE_PRE(pndArg) || IS_NODE_PIE_LINK(pndArg)) {
     /* skip */
   }
-  else if (domGetAttributeNode(pndArg,BAD_CAST"hidden") != NULL) {
+  else if (xmlHasProp(pndArg,BAD_CAST"hidden") != NULL) {
     /* skip */
   }
   else if (IS_ENODE(pndArg) && (pndArg->ns==NULL)) { //  || pndArg->ns==pnsPie
@@ -990,7 +990,7 @@ MergeTagNodes(xmlNodePtr pndArgA, xmlNodePtr pndArgB)
       int iCountNeedle;
       xmlChar* pucAttrCount;
 
-      if ((pucAttrCount = domGetAttributePtr(pndArgB, BAD_CAST"count"))) {
+      if ((pucAttrCount = xmlGetProp(pndArgB, BAD_CAST"count"))) {
 	iCountNeedle = atoi((char*)pucAttrCount);
       }
       else {

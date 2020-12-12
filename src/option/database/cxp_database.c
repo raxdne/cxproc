@@ -72,7 +72,7 @@ dbProcessDbNodeToDoc(xmlNodePtr pndArgDb, cxpContextPtr pccArg)
 
     prnDb = dbResNodeDatabaseOpenNew(pndArgDb,pccArg);
     if (prnDb) {
-      if (domGetAttributeFlag(pndArgDb, BAD_CAST "dump", FALSE)) {
+      if (domGetPropFlag(pndArgDb, BAD_CAST "dump", FALSE)) {
 	/* dump */
 	pdocResult = dbDumpContextToDoc(prnDb, (DB_PROC_DECL|DB_PROC_ENTRIES));
       }
@@ -141,7 +141,7 @@ dbProcessQueryNodeToNode(xmlNodePtr pndArgParent, resNodePtr prnArgDb, xmlNodePt
     xmlChar *pucT = NULL;
     int iOptionsHere = iOptions;
 
-    if (domGetAttributeFlag(pndArgQuery, BAD_CAST"declaration", FALSE)) {
+    if (domGetPropFlag(pndArgQuery, BAD_CAST"declaration", FALSE)) {
       iOptionsHere |= DB_PROC_DECL;
     }
 
@@ -205,7 +205,7 @@ dbProcessQueryNodeToPlain(resNodePtr prnArgDb, xmlNodePtr pndArgQuery, int iOpti
     xmlChar *pucT = NULL;
     int iOptionsHere = iOptions;
 
-    if (domGetAttributeFlag(pndArgQuery, BAD_CAST"declaration", FALSE) && IS_NODE_QUERY(pndArgQuery->parent) == FALSE) {
+    if (domGetPropFlag(pndArgQuery, BAD_CAST"declaration", FALSE) && IS_NODE_QUERY(pndArgQuery->parent) == FALSE) {
       /* ignore this in nested queriespndArgQuery */
       iOptionsHere |= DB_PROC_DECL;
     }
@@ -415,9 +415,9 @@ dbResNodeDatabaseOpenNew(xmlNodePtr pndArg, cxpContextPtr pccArg)
   /*
     detect the necessary connection informations
   */
-  pucNameDb = domGetAttributePtr(pndArg, BAD_CAST "name");
-  fWrite = domGetAttributeFlag(pndArg, BAD_CAST"write", FALSE);
-  fAppend = domGetAttributeFlag(pndArg, BAD_CAST"append", fWrite);
+  pucNameDb = xmlGetProp(pndArg, BAD_CAST "name");
+  fWrite = domGetPropFlag(pndArg, BAD_CAST"write", FALSE);
+  fAppend = domGetPropFlag(pndArg, BAD_CAST"append", fWrite);
 
   if (STR_IS_EMPTY(pucNameDb) || resPathIsInMemory(pucNameDb)) {
     prnResult = resNodeInMemoryNew();
@@ -469,7 +469,7 @@ dbProcessDirNode(resNodePtr prnArgDb, xmlNodePtr pndArgDir, cxpContextPtr pccArg
   }
 
   /*!\todo set depth attribute per single dir element, instead of global */
-  if ((pucAttrDepth = domGetAttributePtr(pndArgDir,BAD_CAST "depth"))!=NULL
+  if ((pucAttrDepth = xmlGetProp(pndArgDir,BAD_CAST "depth"))!=NULL
       && ((iDepth = atoi((char *)pucAttrDepth)) > 0)) {
   }
   else {
@@ -480,15 +480,15 @@ dbProcessDirNode(resNodePtr prnArgDb, xmlNodePtr pndArgDir, cxpContextPtr pccArg
   iLevelVerbose = dirMapInfoVerbosity(pndArgDir,pccArg);
   
 #ifdef HAVE_PCRE2
-  if (((pucAttrMatch = domGetAttributePtr(pndArgDir, BAD_CAST "imatch")) != NULL
+  if (((pucAttrMatch = xmlGetProp(pndArgDir, BAD_CAST "imatch")) != NULL
     && xmlStrlen(pucAttrMatch) > 0)
     ||
-    ((pucAttrMatch = domGetAttributePtr(pndArgDir, BAD_CAST "match")) != NULL
+    ((pucAttrMatch = xmlGetProp(pndArgDir, BAD_CAST "match")) != NULL
     && xmlStrlen(pucAttrMatch) > 0)) {
     size_t erroroffset;
     int errornumber;
 
-    if (domGetAttributeNode(pndArgDir, BAD_CAST "imatch")) {
+    if (xmlHasProp(pndArgDir, BAD_CAST "imatch")) {
       cxpCtxtLogPrint(pccArg,2, "Use caseless file match '%s' in %s with depth '%i'", pucAttrMatch, NAME_DIR, iDepth);
       opt_match_pcre |= PCRE2_CASELESS;
     }
@@ -512,7 +512,7 @@ dbProcessDirNode(resNodePtr prnArgDb, xmlNodePtr pndArgDir, cxpContextPtr pccArg
   }
 #endif
 
-  if (domGetAttributeFlag(pndArgDir,BAD_CAST "hidden",FALSE)) {
+  if (domGetPropFlag(pndArgDir,BAD_CAST "hidden",FALSE)) {
     cxpCtxtLogPrint(pccArg,2,"Read hidden directories");
     iOptions |= FS_PARSE_HIDDEN;
   }
@@ -529,7 +529,7 @@ dbProcessDirNode(resNodePtr prnArgDb, xmlNodePtr pndArgDir, cxpContextPtr pccArg
       continue;
     }
 
-    pucPath = domGetAttributePtr(pndChild,BAD_CAST "name");
+    pucPath = xmlGetProp(pndChild,BAD_CAST "name");
     if (pucPath == NULL || xmlStrlen(pucPath) < 1) {
 #ifdef HAVE_CGI
       pucPath = xmlStrdup(resNodeGetNameNormalized(cxpCtxtRootGet(pccArg)));

@@ -553,7 +553,7 @@ ParsePlainBuffer(xmlNodePtr pndArgTop, xmlChar* pucArg, rmode_t eArgMode)
     /* encode all XML entities in 'pucArg' */
     if ((pucText = StringDecodeNumericCharsNew(pucArg))) {
       ppeT = pieElementNew(pucText, eArgMode, LANG_DEFAULT);
-      /*\todo iMax = domGetAttributePtr(pndArgImport, BAD_CAST "max"); */
+      /*\todo iMax = xmlGetProp(pndArgImport, BAD_CAST "max"); */
       iMax = 512 * 1024;
     }
     else { /*  */
@@ -601,7 +601,7 @@ ParsePlainBuffer(xmlNodePtr pndArgTop, xmlChar* pucArg, rmode_t eArgMode)
 
 	  /* append to result DOM */
 	  if (pieElementGetMode(ppeT) == RMODE_TABLE) {
-	    if (IS_NODE_PIE_SECTION(pndParent) && xmlStrEqual(domGetAttributePtr(pndParent, BAD_CAST"type"), BAD_CAST "table")) {
+	    if (IS_NODE_PIE_SECTION(pndParent) && xmlStrEqual(xmlGetProp(pndParent, BAD_CAST"type"), BAD_CAST "table")) {
 	      /* there is a table parent already */
 	    }
 	    else {
@@ -627,7 +627,7 @@ ParsePlainBuffer(xmlNodePtr pndArgTop, xmlChar* pucArg, rmode_t eArgMode)
     //domPutNodeString(stderr, BAD_CAST"", pndArgTop);
 
     if (pieElementGetMode(ppeT) == RMODE_TABLE) {
-      TransformToTable(pndArgTop, pndParent, domGetAttributePtr(pndParent, BAD_CAST"sep"));
+      TransformToTable(pndArgTop, pndParent, xmlGetProp(pndParent, BAD_CAST"sep"));
       CompressTable(pndParent);
       AddTableCellsEmpty(pndParent);
       xmlUnsetProp(pndParent, BAD_CAST "sep");
@@ -979,7 +979,7 @@ TransformToTable(xmlNodePtr pndArgParent, xmlNodePtr pndArg, xmlChar *pucPattern
   if (pndArg) {
     xmlNodePtr pndChild;
 
-    if (IS_NODE_PIE_BLOCK(pndArg) || (IS_NODE_PIE_SECTION(pndArg) && domGetAttributeEqual(pndArg, BAD_CAST"type", BAD_CAST"table"))) {
+    if (IS_NODE_PIE_BLOCK(pndArg) || (IS_NODE_PIE_SECTION(pndArg) && domPropIsEqual(pndArg, BAD_CAST"type", BAD_CAST"table"))) {
       xmlChar *pucT;
 
       xmlNodeSetName(pndArg, NAME_PIE_TABLE);
@@ -1065,7 +1065,7 @@ IsImportCircularStr(xmlNodePtr pndArg, xmlChar *pucArgURI)
     xmlChar *pucT;
 
     for (pndT=pndArg->parent; pndT != NULL && fResult == FALSE; pndT=pndT->parent) {
-      if ((pucT = domGetAttributePtr(pndT, BAD_CAST"context"))) {
+      if ((pucT = xmlGetProp(pndT, BAD_CAST"context"))) {
 	if (resPathIsEquivalent(pucT, pucArgURI)) {
 	  PrintFormatLog(1, "Error circular for '%s' found", pucArgURI);
 	  fResult = TRUE;
@@ -1767,11 +1767,11 @@ RecognizeUrls(xmlNodePtr pndArg)
 	  /* nothing found */
 	}
 	else if (IS_NODE_PIE_LINK(pndArg)) {
-	  if (domGetAttributePtr(pndArg,BAD_CAST"href")==NULL) {
+	  if (xmlGetProp(pndArg,BAD_CAST"href")==NULL) {
 	    /* URL inside a link with no href attribute */
 	    xmlNodePtr pndFirstLink = domGetFirstChild(pndReplace,NAME_PIE_LINK);
 	    assert(pndFirstLink != NULL);
-	    xmlSetProp(pndArg, BAD_CAST "href", domGetAttributePtr(pndFirstLink,BAD_CAST"href"));
+	    xmlSetProp(pndArg, BAD_CAST "href", xmlGetProp(pndFirstLink,BAD_CAST"href"));
 	  }
 	  xmlFreeNodeList(pndReplace);
 	}
@@ -1784,7 +1784,7 @@ RecognizeUrls(xmlNodePtr pndArg)
 
 	  xmlNodeSetName(pndArg, NAME_PIE_FIG);
 	  xmlNodeSetContent(pndArg,NULL);
-	  xmlNewChild(pndArg, NULL, NAME_PIE_HEADER, domGetAttributePtr(pndT, BAD_CAST"title"));
+	  xmlNewChild(pndArg, NULL, NAME_PIE_HEADER, xmlGetProp(pndT, BAD_CAST"title"));
 	  xmlUnlinkNode(pndT);
 	  xmlAddChild(pndArg, pndT);
 	  xmlFreeNode(pndReplace);
@@ -2277,7 +2277,7 @@ CleanUpTree(xmlNodePtr pndArg)
   else if (IS_NODE_PIE_META(pndArg) || IS_NODE_PIE_TTAG(pndArg)) {
     /* to be ignored */
   }
-  else if (domGetAttributeNode(pndArg, BAD_CAST"w")) {
+  else if (xmlHasProp(pndArg, BAD_CAST"w")) {
     xmlNodePtr pndChild;
     xmlNodePtr pndNext = NULL;
 
@@ -2285,7 +2285,7 @@ CleanUpTree(xmlNodePtr pndArg)
       BOOL_T fT;
       
       for (fT = TRUE, pndChild = pndArg->children; fT && pndChild != NULL; pndChild = pndChild->next) {
-	fT = (domGetAttributeNode(pndChild, BAD_CAST"w") == NULL);
+	fT = (xmlHasProp(pndChild, BAD_CAST"w") == NULL);
       }
 
       if (fT) {
@@ -2323,7 +2323,7 @@ CleanUpTree(xmlNodePtr pndArg)
     }
     xmlUnsetProp(pndArg, BAD_CAST"w");
   }
-  else if (IS_NODE_PIE_HEADER(pndArg) && domGetAttributeNode(pndArg->parent, BAD_CAST"w") != NULL) {
+  else if (IS_NODE_PIE_HEADER(pndArg) && xmlHasProp(pndArg->parent, BAD_CAST"w") != NULL) {
     /* keep header if parent section has @w */
   }
   else {
@@ -2715,7 +2715,7 @@ SetTypeAttr(xmlNodePtr pndArgImport, rmode_t eArgMode)
     xmlChar *pucAttrType;
 
     fResult = TRUE;
-    if ((pucAttrType = domGetAttributePtr(pndArgImport, BAD_CAST "type")) != NULL) {
+    if ((pucAttrType = xmlGetProp(pndArgImport, BAD_CAST "type")) != NULL) {
       /* type is defined already, dont change it */
       fResult = (xmlStrEqual(pucAttrType, BAD_CAST "line") && eArgMode == RMODE_LINE)
 	|| (xmlStrEqual(pucAttrType, BAD_CAST "log") && eArgMode == RMODE_LINE)
@@ -2791,12 +2791,12 @@ GetModeByAttr(xmlNodePtr pndArgImport)
   if (IS_NODE_PIE_IMPORT(pndArgImport) || IS_NODE_PIE_BLOCK(pndArgImport)) {
     xmlChar *pucAttrType;
     
-    if ((pucAttrType = domGetAttributePtr(pndArgImport, BAD_CAST "type")) == NULL) {
+    if ((pucAttrType = xmlGetProp(pndArgImport, BAD_CAST "type")) == NULL) {
       xmlChar *pucAttrName;
       xmlChar *pucAttrNameExt;
       /* no type is defined */
       
-      if ((pucAttrName = domGetAttributePtr(pndArgImport, BAD_CAST "name")) != NULL
+      if ((pucAttrName = xmlGetProp(pndArgImport, BAD_CAST "name")) != NULL
 	  && (pucAttrNameExt = resPathGetExtension(pucAttrName)) != NULL) {
 	PrintFormatLog(1, "Ext '%s'", pucAttrNameExt);
 	eResultMode = GetModeByExtension(pucAttrNameExt);

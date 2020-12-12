@@ -102,7 +102,7 @@
 #define NAME_PATHTABLE BAD_CAST "pathtable"
 
 
-#define IS_VALID_NODE(NODE) (NODE != NULL && NODE->type == XML_ELEMENT_NODE && domGetAttributeFlag(NODE,BAD_CAST "valid",TRUE))
+#define IS_VALID_NODE(NODE) (NODE != NULL && NODE->type == XML_ELEMENT_NODE && domGetPropFlag(NODE,BAD_CAST "valid",TRUE))
 
 #define IS_ROOT(NODE) (NODE != NULL && NODE->type == XML_ELEMENT_NODE && NODE->doc != NULL && NODE == NODE->doc->children)
 

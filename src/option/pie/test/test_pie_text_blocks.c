@@ -1240,7 +1240,7 @@ pieTextBlocksTest(void)
       printf("Error 1 TaskNodeNew()\n");
     }
     else if (IS_NODE_PIE_TASK(pndT) == FALSE
-      || xmlStrEqual(domGetAttributePtr(pndT, BAD_CAST"class"), BAD_CAST"todo") == FALSE
+      || xmlStrEqual(xmlGetProp(pndT, BAD_CAST"class"), BAD_CAST"todo") == FALSE
       || domNumberOfChild(pndT, NAME_PIE_HEADER) != 1) {
       printf("Error 2 TaskNodeNew()\n");
     }
@@ -1256,7 +1256,7 @@ pieTextBlocksTest(void)
       printf("Error 1 TaskNodeNew()\n");
     }
     else if (IS_NODE_PIE_TASK(pndT) == FALSE
-      || xmlStrEqual(domGetAttributePtr(pndT, BAD_CAST"class"), BAD_CAST"todo") == FALSE
+      || xmlStrEqual(xmlGetProp(pndT, BAD_CAST"class"), BAD_CAST"todo") == FALSE
       || domNumberOfChild(pndT, NAME_PIE_HEADER) != 1) {
       printf("Error 2 TaskNodeNew()\n");
     }
@@ -1267,7 +1267,7 @@ pieTextBlocksTest(void)
       printf("Error 1 TaskNodeNew()\n");
     }
     else if (IS_NODE_PIE_TASK(pndT) == FALSE
-      || xmlStrEqual(domGetAttributePtr(pndT, BAD_CAST"class"), BAD_CAST"todo") == FALSE
+      || xmlStrEqual(xmlGetProp(pndT, BAD_CAST"class"), BAD_CAST"todo") == FALSE
       || domNumberOfChild(pndT, NAME_PIE_HEADER) != 1) {
       printf("Error 2 TaskNodeNew()\n");
     }
@@ -1276,8 +1276,8 @@ pieTextBlocksTest(void)
       printf("Error 1 TaskNodeNew()\n");
     }
     else if (IS_NODE_PIE_TASK(pndT) == FALSE
-      || xmlStrEqual(domGetAttributePtr(pndT, BAD_CAST"class"), BAD_CAST"todo") == FALSE
-      || xmlStrEqual(domGetAttributePtr(pndT, BAD_CAST"state"), BAD_CAST"done") == FALSE
+      || xmlStrEqual(xmlGetProp(pndT, BAD_CAST"class"), BAD_CAST"todo") == FALSE
+      || xmlStrEqual(xmlGetProp(pndT, BAD_CAST"state"), BAD_CAST"done") == FALSE
       || domNumberOfChild(pndT, NAME_PIE_HEADER) != 1) {
       printf("Error 2 TaskNodeNew()\n");
     }
@@ -1286,7 +1286,7 @@ pieTextBlocksTest(void)
       printf("Error 1 TaskNodeNew()\n");
     }
     else if (IS_NODE_PIE_TASK(pndT) == FALSE
-      || xmlStrEqual(domGetAttributePtr(pndT, BAD_CAST"class"), BAD_CAST"bug") == FALSE
+      || xmlStrEqual(xmlGetProp(pndT, BAD_CAST"class"), BAD_CAST"bug") == FALSE
       || domNumberOfChild(pndT, NAME_PIE_HEADER) != 1) {
       printf("Error 2 TaskNodeNew()\n");
     }
@@ -1295,7 +1295,7 @@ pieTextBlocksTest(void)
       printf("Error 1 TaskNodeNew()\n");
     }
     else if (IS_NODE_PIE_TASK(pndT) == FALSE
-      || xmlStrEqual(domGetAttributePtr(pndT, BAD_CAST"class"), BAD_CAST"req") == FALSE
+      || xmlStrEqual(xmlGetProp(pndT, BAD_CAST"class"), BAD_CAST"req") == FALSE
       || domNumberOfChild(pndT, NAME_PIE_HEADER) != 1) {
       printf("Error 2 TaskNodeNew()\n");
     }
@@ -1304,7 +1304,7 @@ pieTextBlocksTest(void)
       printf("Error 1 TaskNodeNew()\n");
     }
     else if (IS_NODE_PIE_TASK(pndT) == FALSE
-      || xmlStrEqual(domGetAttributePtr(pndT, BAD_CAST"class"), BAD_CAST"target") == FALSE
+      || xmlStrEqual(xmlGetProp(pndT, BAD_CAST"class"), BAD_CAST"target") == FALSE
       || domNumberOfChild(pndT, NAME_PIE_HEADER) != 1) {
       printf("Error 2 TaskNodeNew()\n");
     }

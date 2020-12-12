@@ -105,10 +105,10 @@ dirMapInfoVerbosity(xmlNodePtr pndArgFile, cxpContextPtr pccArg)
   xmlChar *pucAttrVerbosity;
 
   /* map integer attribute to info level */
-  pucAttrVerbosity = domGetAttributePtr(pndArgFile, BAD_CAST "verbosity");
+  pucAttrVerbosity = xmlGetProp(pndArgFile, BAD_CAST "verbosity");
 
-  if (domGetAttributePtr(pndArgFile, BAD_CAST "igrep") != NULL
-      || domGetAttributePtr(pndArgFile, BAD_CAST "grep") != NULL) {
+  if (xmlGetProp(pndArgFile, BAD_CAST "igrep") != NULL
+      || xmlGetProp(pndArgFile, BAD_CAST "grep") != NULL) {
     iResult |= RN_INFO_CONTENT;
   }
   else if (STR_IS_EMPTY(pucAttrVerbosity)) {
@@ -236,7 +236,7 @@ dirProcessDirNode(xmlNodePtr pndArgDir, resNodePtr prnArgContext, cxpContextPtr 
   iVerbosity = dirMapInfoVerbosity(pndArgDir, pccArg);
 
   /* get default depth from attribute */
-  if ((pucAttrDepth = domGetAttributePtr(pndArgDir,BAD_CAST "depth"))!=NULL
+  if ((pucAttrDepth = xmlGetProp(pndArgDir,BAD_CAST "depth"))!=NULL
       && ((iDepth = atoi((char *)pucAttrDepth)) > -1)) {
   }
   else {
@@ -245,15 +245,15 @@ dirProcessDirNode(xmlNodePtr pndArgDir, resNodePtr prnArgContext, cxpContextPtr 
   cxpCtxtLogPrint(pccArg,2,"Set default DIR depth to '%i'", iDepth);
   
 #ifdef HAVE_PCRE2
-  if (((pucAttrGrep = domGetAttributePtr(pndArgDir, BAD_CAST "igrep")) != NULL
+  if (((pucAttrGrep = xmlGetProp(pndArgDir, BAD_CAST "igrep")) != NULL
     && xmlStrlen(pucAttrGrep) > 0)
     ||
-    ((pucAttrGrep = domGetAttributePtr(pndArgDir, BAD_CAST "grep")) != NULL
+    ((pucAttrGrep = xmlGetProp(pndArgDir, BAD_CAST "grep")) != NULL
     && xmlStrlen(pucAttrGrep) > 0)) {
     size_t erroroffset;
     int errornumber;
 
-    if (domGetAttributeNode(pndArgDir, BAD_CAST "igrep")) {
+    if (xmlHasProp(pndArgDir, BAD_CAST "igrep")) {
       cxpCtxtLogPrint(pccArg,2, "Use caseless file grep '%s' in %s with depth '%i'", pucAttrGrep, NAME_DIR, iDepth);
       opt_grep_pcre |= PCRE2_CASELESS;
     }
@@ -276,15 +276,15 @@ dirProcessDirNode(xmlNodePtr pndArgDir, resNodePtr prnArgContext, cxpContextPtr 
     }
   }
 
-  if (((pucAttrMatch = domGetAttributePtr(pndArgDir, BAD_CAST "imatch")) != NULL
+  if (((pucAttrMatch = xmlGetProp(pndArgDir, BAD_CAST "imatch")) != NULL
     && xmlStrlen(pucAttrMatch) > 0)
     ||
-    ((pucAttrMatch = domGetAttributePtr(pndArgDir, BAD_CAST "match")) != NULL
+    ((pucAttrMatch = xmlGetProp(pndArgDir, BAD_CAST "match")) != NULL
     && xmlStrlen(pucAttrMatch) > 0)) {
     size_t erroroffset;
     int errornumber;
 
-    if (domGetAttributeNode(pndArgDir, BAD_CAST "imatch")) {
+    if (xmlHasProp(pndArgDir, BAD_CAST "imatch")) {
       cxpCtxtLogPrint(pccArg,2, "Use caseless file match '%s' in %s with depth '%i'", pucAttrMatch, NAME_DIR, iDepth);
       opt_match_pcre |= PCRE2_CASELESS;
     }
@@ -308,7 +308,7 @@ dirProcessDirNode(xmlNodePtr pndArgDir, resNodePtr prnArgContext, cxpContextPtr 
   }
 #endif
 
-  if (domGetAttributeFlag(pndArgDir,BAD_CAST "hidden",FALSE)) {
+  if (domGetPropFlag(pndArgDir,BAD_CAST "hidden",FALSE)) {
     cxpCtxtLogPrint(pccArg,2,"Read hidden directories");
     iOptions |= FS_PARSE_HIDDEN;
   }
@@ -345,12 +345,12 @@ dirProcessDirNode(xmlNodePtr pndArgDir, resNodePtr prnArgContext, cxpContextPtr 
     resNodePtr prnT;
     xmlNodePtr pndT;
 
-    if (domGetAttributePtr(pndEntry, BAD_CAST "verbosity")) {
+    if (xmlGetProp(pndEntry, BAD_CAST "verbosity")) {
       iVerbosityChild = dirMapInfoVerbosity(pndArgDir, pccArg);
     }
 
     /*! get depth attribute per single dir element, instead of global */
-    if ((pucAttrDepth = domGetAttributePtr(pndEntry,BAD_CAST "depth"))!=NULL
+    if ((pucAttrDepth = xmlGetProp(pndEntry,BAD_CAST "depth"))!=NULL
 	&& ((iDepthChild = atoi((char *)pucAttrDepth)) > -1)) {
     }
     else {
@@ -389,7 +389,7 @@ dirProcessDirNode(xmlNodePtr pndArgDir, resNodePtr prnArgContext, cxpContextPtr 
     resNodeFree(prnT);
   }
   
-  if (domGetAttributeFlag(pndArgDir,BAD_CAST "urlencode",fLocator)) {
+  if (domGetPropFlag(pndArgDir,BAD_CAST "urlencode",fLocator)) {
     /* add RFC1738 escaped attributes */
     addUrlEncoding(pndPie);
   }
@@ -419,11 +419,11 @@ addUrlEncoding(xmlNodePtr pndArg)
     }
   }
   else if (IS_NODE_DIR(pndArg)) {
-    if ((pucAttrName = domGetAttributePtr(pndArg,BAD_CAST "name")) != NULL) {
+    if ((pucAttrName = xmlGetProp(pndArg,BAD_CAST "name")) != NULL) {
       domSetPropEat(pndArg, BAD_CAST "urlname", EncodeRFC1738(pucAttrName));
     }
 
-    if ((pucAttrName = domGetAttributePtr(pndArg,BAD_CAST "prefix")) != NULL) {
+    if ((pucAttrName = xmlGetProp(pndArg,BAD_CAST "prefix")) != NULL) {
       domSetPropEat(pndArg, BAD_CAST "urlprefix", EncodeRFC1738(pucAttrName));
     }
 
@@ -432,11 +432,11 @@ addUrlEncoding(xmlNodePtr pndArg)
     }
   }
   else if (IS_NODE_FILE(pndArg)) {
-    if ((pucAttrName = domGetAttributePtr(pndArg, BAD_CAST "name")) != NULL) {
+    if ((pucAttrName = xmlGetProp(pndArg, BAD_CAST "name")) != NULL) {
       domSetPropEat(pndArg, BAD_CAST "urlname", EncodeRFC1738(pucAttrName));
     }
 
-    if ((pucAttrName = domGetAttributePtr(pndArg,BAD_CAST "prefix")) != NULL) {
+    if ((pucAttrName = xmlGetProp(pndArg,BAD_CAST "prefix")) != NULL) {
       domSetPropEat(pndArg, BAD_CAST "urlprefix", EncodeRFC1738(pucAttrName));
     }
 
@@ -475,14 +475,14 @@ SetTopPrefix(xmlNodePtr pndArg, resNodePtr prnArg, cxpContextPtr pccArg)
       if (STR_IS_EMPTY(pucAttrRoot)) {
 	pucAttrRoot = resNodeGetNameNormalized(cxpCtxtLocationGet(pccArg));
 	if (STR_IS_EMPTY(pucAttrRoot)) {
-	  pucAttrRoot = domGetAttributePtr(pndArg, BAD_CAST "root");
+	  pucAttrRoot = xmlGetProp(pndArg, BAD_CAST "root");
 	}
       }
 
       if (STR_IS_NOT_EMPTY(pucAttrRoot)) {
 	xmlChar* pucAttrPrefix;
 
-	pucAttrPrefix = domGetAttributePtr(pndArg, BAD_CAST "prefix");
+	pucAttrPrefix = xmlGetProp(pndArg, BAD_CAST "prefix");
 	if (STR_IS_NOT_EMPTY(pucAttrPrefix)) {
 	  xmlChar* pucT;
 
@@ -529,8 +529,8 @@ dirNodeToResNodeList(xmlNodePtr pndArg)
   xmlNodePtr pndI;
   xmlChar* pucAttrMap;
 
-  pucAttrMap = domGetAttributePtr(pndArg, BAD_CAST "map"); /* alternative name */
-  pucName = domGetAttributePtr(pndArg, BAD_CAST"name");
+  pucAttrMap = xmlGetProp(pndArg, BAD_CAST "map"); /* alternative name */
+  pucName = xmlGetProp(pndArg, BAD_CAST"name");
 
   if (IS_NODE_DIR(pndArg) && STR_IS_NOT_EMPTY(pucName)) {
     xmlChar* pucPrefix;
@@ -544,7 +544,7 @@ dirNodeToResNodeList(xmlNodePtr pndArg)
       resNodeAddChild(prnNew, dirNodeToResNodeList(pndI));
     }
 
-    if ((pucPrefix = domGetAttributePtr(pndArg, BAD_CAST"prefix"))) {
+    if ((pucPrefix = xmlGetProp(pndArg, BAD_CAST"prefix"))) {
       //prnResult = resNodeSplitStrNew(pucPrefix);
       //resNodeAddChild(resNodeGetLastDescendant(prnResult), prnNew);
       if (resNodeSetNameBaseDir(prnNew, pucPrefix)) {

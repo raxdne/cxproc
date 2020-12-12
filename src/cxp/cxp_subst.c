@@ -229,28 +229,28 @@ cxpSubstDetect(xmlNodePtr pndArgSubst, cxpContextPtr pccArg)
 
       pcxpSubstResult->pndSubst = pndArgSubst;
 
-      if (domGetAttributeEqual(pndArgSubst,BAD_CAST"encoding",BAD_CAST"base64")) {
+      if (domPropIsEqual(pndArgSubst,BAD_CAST"encoding",BAD_CAST"base64")) {
 	pcxpSubstResult->eEncoding = base64;
       }
-      else if (domGetAttributeFlag(pndArgSubst,BAD_CAST"escaping",FALSE)) {
+      else if (domGetPropFlag(pndArgSubst,BAD_CAST"escaping",FALSE)) {
 	pcxpSubstResult->eEncoding = rfc1738;
       }
 
-      if ((pucT = domGetAttributePtr(pndArgSubst, BAD_CAST "name"))) {
+      if ((pucT = xmlGetProp(pndArgSubst, BAD_CAST "name"))) {
 	if (xmlStrlen(pucT) > 0 && ! IS_ENODE(pndArgSubst->children)) {
 	  pcxpSubstResult->pucName  = xmlStrdup(pucT);
 	}
       }
-      else if ((pucT = domGetAttributePtr(pndArgSubst, BAD_CAST "string"))) {
+      else if ((pucT = xmlGetProp(pndArgSubst, BAD_CAST "string"))) {
 	pcxpSubstResult->pucName  = xmlStrdup(pucT);
       }
 
-      if ((pucT = domGetAttributePtr(pndArgSubst, BAD_CAST "default"))) {
+      if ((pucT = xmlGetProp(pndArgSubst, BAD_CAST "default"))) {
 	/* detect a possible default value */
 	pcxpSubstResult->pucDefault = xmlStrdup(pucT);
       }
 
-      if (((pucT = domGetAttributePtr(pndArgSubst, BAD_CAST "to")) != NULL
+      if (((pucT = xmlGetProp(pndArgSubst, BAD_CAST "to")) != NULL
 	   && (pucT = xmlStrdup(pucT)) != NULL)
 	  ||
 	  ((pcxpSubstResult->pndPlain = domGetFirstChild(pndArgSubst, NAME_PLAIN)) != NULL
@@ -276,7 +276,7 @@ cxpSubstDetect(xmlNodePtr pndArgSubst, cxpContextPtr pccArg)
       }
 #endif
 
-      if ((pucT = domGetAttributePtr(pndArgSubst, BAD_CAST "dir"))) {
+      if ((pucT = xmlGetProp(pndArgSubst, BAD_CAST "dir"))) {
 	/*
   	       this is a substitution with current directories
 	 */
@@ -320,7 +320,7 @@ cxpSubstDetect(xmlNodePtr pndArgSubst, cxpContextPtr pccArg)
 	}
       }
 
-      pucT = domGetAttributePtr(pndArgSubst, BAD_CAST "filename");
+      pucT = xmlGetProp(pndArgSubst, BAD_CAST "filename");
       if (STR_IS_NOT_EMPTY(pucT)) {
 	/*
           this is a substitution with file name
@@ -346,7 +346,7 @@ cxpSubstDetect(xmlNodePtr pndArgSubst, cxpContextPtr pccArg)
       }
       /*!\todo use also dirSearchFile() */
 
-      pucT = domGetAttributePtr(pndArgSubst, BAD_CAST "ext");
+      pucT = xmlGetProp(pndArgSubst, BAD_CAST "ext");
       if (STR_IS_NOT_EMPTY(pucT)) {
 	/*
           this is a substitution with file extension
@@ -365,7 +365,7 @@ cxpSubstDetect(xmlNodePtr pndArgSubst, cxpContextPtr pccArg)
 	}
       }
 
-      if ((pucT = domGetAttributePtr(pndArgSubst, BAD_CAST "type")) != NULL) {
+      if ((pucT = xmlGetProp(pndArgSubst, BAD_CAST "type")) != NULL) {
 	/*
   	    this is a substitution with symbolic MIME type string
 	 */
@@ -386,26 +386,26 @@ cxpSubstDetect(xmlNodePtr pndArgSubst, cxpContextPtr pccArg)
       }
 
       /* this is a substitution with current time values */
-      pcxpSubstResult->pucNow = GetNowFormatStr(domGetAttributePtr(pndArgSubst, BAD_CAST "now"));
+      pcxpSubstResult->pucNow = GetNowFormatStr(xmlGetProp(pndArgSubst, BAD_CAST "now"));
       /* no RFC 1738 encoding required */
 
-      if ((pucT = domGetAttributePtr(pndArgSubst, BAD_CAST "argv"))) {
+      if ((pucT = xmlGetProp(pndArgSubst, BAD_CAST "argv"))) {
 	/* this is a substitution with program arguments */
 	pcxpSubstResult->pucArgv = cxpCtxtCliGetFormat(pccArg, pucT);
       }
 
-      if ((pucT = domGetAttributePtr(pndArgSubst, BAD_CAST "env"))!=NULL) {
+      if ((pucT = xmlGetProp(pndArgSubst, BAD_CAST "env"))!=NULL) {
 	/* this is a substitution with Environment variables */
 	pcxpSubstResult->pucEnv = cxpCtxtEnvGetValueByName(pccArg,pucT);
       }
 
-      if ((pucT = domGetAttributePtr(pndArgSubst, BAD_CAST "host"))!=NULL) {
+      if ((pucT = xmlGetProp(pndArgSubst, BAD_CAST "host"))!=NULL) {
 	/* this is a substitution with Host information variables */
 	pcxpSubstResult->pucHost = cxpCtxtGetHostValueNamed(pccArg,pucT);
       }
 
 #ifdef HAVE_CGI
-      if ((pucT = domGetAttributePtr(pndArgSubst, BAD_CAST "cgi"))) {
+      if ((pucT = xmlGetProp(pndArgSubst, BAD_CAST "cgi"))) {
 	/* dont restrict to cxpContextRunmodeIsCgi() because offline testing */
 	//fAccess = FALSE;
 	if ((pcxpSubstResult->pucCgi = cxpCtxtCgiGetValueByName(pccArg,pucT)) == NULL && (pcxpSubstResult->pucCgi = cxpCtxtCliGetValueByName(pccArg, pucT)) == NULL) {
@@ -423,7 +423,7 @@ cxpSubstDetect(xmlNodePtr pndArgSubst, cxpContextPtr pccArg)
 	      //fAccess = TRUE;
 	      xmlFree(pcxpSubstResult->pucCgi);
 
-	      if (domGetAttributeFlag(pndArgSubst, BAD_CAST "normalize", FALSE)) {
+	      if (domGetPropFlag(pndArgSubst, BAD_CAST "normalize", FALSE)) {
 		pcxpSubstResult->pucCgi = xmlStrdup(resNodeGetNameNormalized(prnT));
 	      }
 	      else {
@@ -565,7 +565,7 @@ cxpSubstDetect(xmlNodePtr pndArgSubst, cxpContextPtr pccArg)
 	xmlFree(pucT);
       }
 
-      pcxpSubstResult->fReplaceInAttr = domGetAttributeFlag(pndArgSubst,BAD_CAST"attribute",FALSE);
+      pcxpSubstResult->fReplaceInAttr = domGetPropFlag(pndArgSubst,BAD_CAST"attribute",FALSE);
 #ifdef HAVE_CGI
       /* avoid huge log output */
 #else

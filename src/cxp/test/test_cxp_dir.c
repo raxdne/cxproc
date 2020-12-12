@@ -196,10 +196,10 @@ dirTest(cxpContextPtr pccArg)
     else if (SetTopPrefix(pndDir, prnT, pccT) == FALSE) {
       printf("Error 4 SetTopPrefix()\n");
     }
-    else if (domGetAttributeNode(pndT, BAD_CAST"prefix") == NULL) {
-      printf("Error domGetAttributeNode()\n");
+    else if (xmlHasProp(pndT, BAD_CAST"prefix") == NULL) {
+      printf("Error xmlHasProp()\n");
     }
-    else if ((pucT = domGetAttributePtr(pndTT, BAD_CAST"prefix")) == NULL || xmlStrEqual(pucT, resNodeGetNameNormalized(prnTT)) == FALSE) {
+    else if ((pucT = xmlGetProp(pndTT, BAD_CAST"prefix")) == NULL || xmlStrEqual(pucT, resNodeGetNameNormalized(prnTT)) == FALSE) {
       printf("Error xmlStrEqual()\n");
     }
     else {

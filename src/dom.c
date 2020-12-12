@@ -215,7 +215,7 @@ IncrementWeightProp(xmlNodePtr pndArg, int iArg)
     int iCurrent;
     xmlAttrPtr patT;
 
-    if ((patT = domGetAttributeNode(pndArg, BAD_CAST"w")) == NULL
+    if ((patT = xmlHasProp(pndArg, BAD_CAST"w")) == NULL
       || patT->children == NULL || STR_IS_EMPTY(patT->children->content)) {
       /* there is no attribute value yet, initial value '1' */
       iResult = 1;
@@ -486,16 +486,16 @@ domGetFirstChild(xmlNodePtr pndArg, xmlChar *pucNameElement)
 /* End of domGetFirstChild() */
 
 
-/*! domGetAttributeFlag
+/*! domGetPropFlag
 \param pndArg parent node for attributes
 \param pucNameAttr name of wanted attribute
 \param fDefault default return value if attribute not found
 \return a flag value according to attribute value
 */
 BOOL_T
-domGetAttributeFlag(xmlNodePtr pndArg, xmlChar *pucNameAttr, BOOL_T fDefault)
+domGetPropFlag(xmlNodePtr pndArg, xmlChar *pucNameAttr, BOOL_T fDefault)
 {
-  xmlChar *pucAttr = domGetAttributePtr(pndArg,pucNameAttr);
+  xmlChar *pucAttr = xmlGetProp(pndArg,pucNameAttr);
 
   if (pucAttr) {
     if (xmlStrcasecmp(pucAttr,BAD_CAST "yes")==0) {
@@ -507,20 +507,20 @@ domGetAttributeFlag(xmlNodePtr pndArg, xmlChar *pucNameAttr, BOOL_T fDefault)
   }
   return fDefault;
 }
-/* End of domGetAttributeFlag() */
+/* End of domGetPropFlag() */
 
 
-/*! domGetAttributeEqual
+/*! domPropIsEqual
 \param pndArg parent node for attributes
 \param pucNameAttr name of wanted attribute
 \param pucValueAttr compare value of wanted attribute
 \return true if value of named argument matches given value
 */
 BOOL_T
-domGetAttributeEqual(xmlNodePtr pndArg, xmlChar *pucNameAttr, xmlChar *pucValueAttr)
+domPropIsEqual(xmlNodePtr pndArg, xmlChar *pucNameAttr, xmlChar *pucValueAttr)
 {
   BOOL_T fResult = FALSE;
-  xmlChar *pucAttr = domGetAttributePtr(pndArg,pucNameAttr);
+  xmlChar *pucAttr = xmlGetProp(pndArg,pucNameAttr);
 
   if (STR_IS_NOT_EMPTY(pucAttr) && STR_IS_NOT_EMPTY(pucValueAttr)
       && xmlStrcasecmp(pucAttr,pucValueAttr)==0) {
@@ -528,29 +528,7 @@ domGetAttributeEqual(xmlNodePtr pndArg, xmlChar *pucNameAttr, xmlChar *pucValueA
   }
   return fResult;
 }
-/* End of domGetAttributeEqual() */
-
-
-/*!
-\param pndArg parent node for attributes
-\param pucNameAttr name of wanted attribute
-\return the content pointer of the attribute named 'pucNameAttr'
-of 'pndArg' OR NULL if no attribute found
-*/
-xmlChar *
-domGetAttributePtr(xmlNodePtr pndArg, xmlChar *pucNameAttr)
-{
-  xmlChar *pucResult = NULL;
-
-  if (pndArg != NULL && STR_IS_NOT_EMPTY(pucNameAttr)) {
-    xmlAttrPtr patAttr;
-
-    if ((patAttr = domGetAttributeNode(pndArg, pucNameAttr)) != NULL && patAttr->children != NULL && patAttr->children->type == XML_TEXT_NODE) {
-      pucResult = patAttr->children->content;
-    }
-  }
-  return pucResult;
-} /* End of domGetAttributePtr() */
+/* End of domPropIsEqual() */
 
 
 /*!
@@ -679,51 +657,16 @@ domNodeGetContentPtr(xmlNodePtr cur)
 
 
 /*!
-\param pndArg parent node for attributes
-\param pucNameAttr name of wanted attribute
-\return the node pointer of the attribute named 'pucNameAttr'
-of 'pndArg' OR NULL if no attribute found
-*/
-xmlAttrPtr
-domGetAttributeNode(xmlNodePtr pndArg, xmlChar *pucNameAttr)
-{
-  if (pndArg != NULL && pucNameAttr != NULL && ! isend(*pucNameAttr)) {
-    xmlAttrPtr patAttr;
-
-    for (patAttr = pndArg->properties; patAttr != NULL; patAttr = patAttr->next) {
-      if (xmlStrcasecmp(patAttr->name, pucNameAttr)==0) {
-	return patAttr;
-      }
-    }
-  }
-  return NULL;
-} /* End of domGetAttributeNode() */
-
-
-/*!
-\param pndArgTarget node to copy attributes to
-\param pndArgSource node to copy attributes from
-*/
-void
-domAttrCopy(xmlNodePtr pndArgTarget, xmlNodePtr pndArgSource)
-{
-  if (pndArgTarget != NULL && pndArgSource != NULL) {
-    /*!\todo implement */
-  }
-} /* End of domAttrCopy() */
-
-
-/*!
 \param pndArg node to delete attributes
 */
 void
-domRemoveAttributes(xmlNodePtr pndArg)
+domUnsetPropAll(xmlNodePtr pndArg)
 {
   if (pndArg) {
     xmlFreeNodeList((xmlNodePtr)pndArg->properties);
     pndArg->properties = NULL;
   }
-} /* End of domRemoveAttributes() */
+} /* End of domUnsetPropAll() */
 
 
 /*! Adds locator attribute to all descendant element nodes.
@@ -732,7 +675,7 @@ domRemoveAttributes(xmlNodePtr pndArg)
 \param pucArg pointer to locator string for childs
  */
 void
-domRemoveFileLocator(xmlNodePtr pndArg)
+domUnsetPropFileLocator(xmlNodePtr pndArg)
 {
   if (IS_NODE_META(pndArg) || IS_NODE_PIE_ERROR(pndArg)) {
   }
@@ -741,11 +684,11 @@ domRemoveFileLocator(xmlNodePtr pndArg)
     for (pndChild = pndArg->children; pndChild != NULL; pndChild = pndChild->next) {
       xmlUnsetProp(pndChild,BAD_CAST"flocator");
       xmlUnsetProp(pndChild,BAD_CAST"fxpath");
-      domRemoveFileLocator(pndChild);
+      domUnsetPropFileLocator(pndChild);
     }
   }
 }
-/* End of domRemoveFileLocator() */
+/* End of domUnsetPropFileLocator() */
 
 
 /*! Adds locator attribute to all descendant element nodes.
@@ -754,7 +697,7 @@ domRemoveFileLocator(xmlNodePtr pndArg)
 \param pucArg pointer to locator string for childs
  */
 void
-domAddFileLocator(xmlNodePtr pndArg, xmlChar *pucArg)
+domSetPropFileLocator(xmlNodePtr pndArg, xmlChar *pucArg)
 {
   if (pucArg == NULL || isend(*pucArg)) {
     /* no usable value, dont set the attribute, no recursion */
@@ -766,7 +709,7 @@ domAddFileLocator(xmlNodePtr pndArg, xmlChar *pucArg)
     for (pndChild = pndArg->children; pndChild != NULL; pndChild = pndChild->next) {
       if (IS_NODE_PIE_SECTION(pndChild) || IS_NODE(pndChild,BAD_CAST"node")) {
 	xmlSetProp(pndChild,BAD_CAST"flocator",pucArg);
-	domAddFileLocator(pndChild,pucArg);
+	domSetPropFileLocator(pndChild,pucArg);
       }
       else if (IS_NODE_PIE_TASK(pndChild)
 	|| IS_NODE_PIE_TARGET(pndChild)
@@ -780,12 +723,12 @@ domAddFileLocator(xmlNodePtr pndArg, xmlChar *pucArg)
 	xmlSetProp(pndChild,BAD_CAST"flocator",pucArg);
       }
       else {
-	domAddFileLocator(pndChild,pucArg);
+	domSetPropFileLocator(pndChild,pucArg);
       }
     }
   }
 }
-/* End of domAddFileLocator() */
+/* End of domSetPropFileLocator() */
 
 
 /*! Adds XPath attribute to all descendant element nodes.
@@ -794,7 +737,7 @@ domAddFileLocator(xmlNodePtr pndArg, xmlChar *pucArg)
 \param pucArgPrefix pointer to XPath prefix for childs
  */
 void
-domAddFileXpath(xmlNodePtr pndArg, xmlChar* pucArgName, xmlChar* pucArgPrefix)
+domSetPropFileXpath(xmlNodePtr pndArg, xmlChar* pucArgName, xmlChar* pucArgPrefix)
 {
   if (IS_NODE_META(pndArg) || IS_NODE_PIE_ERROR(pndArg)) {
   }
@@ -818,13 +761,13 @@ domAddFileXpath(xmlNodePtr pndArg, xmlChar* pucArgName, xmlChar* pucArgPrefix)
 
 	  xmlStrPrintf(mucT, BUFFER_LENGTH, "%s/*[%i]", (pucArgPrefix==NULL ? BAD_CAST "/*" : pucArgPrefix), i);
 	  xmlSetProp(pndChild, pucArgName, mucT);
-	  domAddFileXpath(pndChild, pucArgName, mucT);
+	  domSetPropFileXpath(pndChild, pucArgName, mucT);
 #else
 	  xmlChar* pucT = xmlGetNodePath(pndChild);
 
 	  xmlSetProp(pndChild, pucArgName, pucT);
 	  xmlFree(pucT);
-	  domAddFileXpath(pndChild, pucArgName, pucT);
+	  domSetPropFileXpath(pndChild, pucArgName, pucT);
 #endif
 
 	}
@@ -833,7 +776,7 @@ domAddFileXpath(xmlNodePtr pndArg, xmlChar* pucArgName, xmlChar* pucArgPrefix)
   }
   /*!\todo exclude import text nodes and existing attributes also */
 }
-/* End of domAddFileXpath() */
+/* End of domSetPropFileXpath() */
 
 
 /*! \return a string containing XPath of pndArg
@@ -1416,7 +1359,7 @@ domIncrProp(xmlNodePtr pndArg, xmlChar *pucArg, int iArg)
     xmlAttrPtr patT;
     xmlChar mucCount[32];
 
-    patT = domGetAttributeNode(pndArg, pucArg);
+    patT = xmlHasProp(pndArg, pucArg);
     if (patT) {
       xmlChar *pucAttrCurrent;
 
@@ -1437,41 +1380,19 @@ domIncrProp(xmlNodePtr pndArg, xmlChar *pucArg, int iArg)
 } /* end of domIncrProp() */
 
 
-/*! derived from xmlSetProp(), same result, but pucValue is freed at last
+/*! same result like xmlSetProp(), but pucValue is freed at last
 */
 xmlAttrPtr
-domSetPropEat(xmlNodePtr pndArg, xmlChar *pucArg, xmlChar *pucValue) {
-
+domSetPropEat(xmlNodePtr pndArg, xmlChar *pucArg, xmlChar *pucValue) 
+{
   xmlAttrPtr patResult = NULL;
 
-  if ((pndArg == NULL) || (pucArg == NULL) || (pndArg->type != XML_ELEMENT_NODE)) {
-  }
-  else {
-    /*
-   * handle QNames
-   */
-    int iLength;
-    const xmlChar *nqname;
-
-    nqname = xmlSplitQName3(pucArg, &iLength);
-    if (nqname != NULL) {
-      xmlNsPtr ns;
-      xmlChar *pucPrefix = xmlStrndup(pucArg, iLength);
-
-      ns = xmlSearchNs(pndArg->doc, pndArg, pucPrefix);
-      if (pucPrefix != NULL)
-	xmlFree(pucPrefix);
-      if (ns != NULL)
-	patResult = xmlSetNsProp(pndArg, ns, nqname, pucValue);
-    }
-    else {
-      patResult = xmlSetNsProp(pndArg, NULL, pucArg, pucValue);
-    }
+  if ((patResult = xmlSetProp(pndArg, pucArg, pucValue))) {
   }
   xmlFree(pucValue);
+
   return patResult;
-}
-/* end of domSetPropEat() */
+} /* end of domSetPropEat() */
 
 
 /*! 
@@ -1488,7 +1409,7 @@ domGetXslOutputMethod(xmlDocPtr pdocArg)
     //domPutDocString(stderr, "DOM contains no XML stylesheet", pdocArg);
   }
   else if ((pndArgXslOutput = domGetFirstChild(pndRootXsl,BAD_CAST"output")) == NULL
-      || (pucMethod = domGetAttributePtr(pndArgXslOutput,BAD_CAST"method")) == NULL) {
+      || (pucMethod = xmlGetProp(pndArgXslOutput,BAD_CAST"method")) == NULL) {
     PrintFormatLog(1,"XML stylesheet contains no output method");
   }
 

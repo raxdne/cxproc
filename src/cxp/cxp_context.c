@@ -287,7 +287,7 @@ cxpCtxtSaveFileNode(cxpContextPtr pccArg,xmlNodePtr pndArg,xmlDocPtr pdocArgOutp
     return FALSE;
   }
 
-  if (domGetAttributeFlag(pndArg,BAD_CAST "dump",FALSE)) {
+  if (domGetPropFlag(pndArg,BAD_CAST "dump",FALSE)) {
     if (pdocArgOutput) {
       cxpCtxtLogPrintDoc(pccArg,1,NULL,pdocArgOutput);
     }
@@ -297,7 +297,7 @@ cxpCtxtSaveFileNode(cxpContextPtr pccArg,xmlNodePtr pndArg,xmlDocPtr pdocArgOutp
   }
 
   /*! cache DOM if required */
-  pucAttrNameCached = domGetAttributePtr(pndArg,BAD_CAST "cacheas");
+  pucAttrNameCached = xmlGetProp(pndArg,BAD_CAST "cacheas");
   if (STR_IS_NOT_EMPTY(pucAttrNameCached)) {
     /* symbol is ID, ready for later transformations */
     if (pdocArgOutput) {
@@ -311,7 +311,7 @@ cxpCtxtSaveFileNode(cxpContextPtr pccArg,xmlNodePtr pndArg,xmlDocPtr pdocArgOutp
     pucAttrNameCached = NULL;
   }
 
-  pucAttrName = domGetAttributePtr(pndArg,BAD_CAST "name");
+  pucAttrName = xmlGetProp(pndArg,BAD_CAST "name");
   if (STR_IS_NOT_EMPTY(pucAttrName)) {
     if (resPathIsStd(pucAttrName)) {
       /* stdout */
@@ -320,7 +320,7 @@ cxpCtxtSaveFileNode(cxpContextPtr pccArg,xmlNodePtr pndArg,xmlDocPtr pdocArgOutp
     else {
       prnOutput = resNodeFromNodeNew(cxpCtxtLocationGet(pccArg),pucAttrName);
 
-      if (domGetAttributeFlag(pndArg,BAD_CAST "cache",FALSE)) {
+      if (domGetPropFlag(pndArg,BAD_CAST "cache",FALSE)) {
 	/* filename is ID, ready for later transformations */
 	if (pdocArgOutput) {
 	  cxpCtxtCacheAppendDoc(pccArg,pdocArgOutput,resNodeGetNameNormalized(prnOutput));
@@ -335,11 +335,11 @@ cxpCtxtSaveFileNode(cxpContextPtr pccArg,xmlNodePtr pndArg,xmlDocPtr pdocArgOutp
     pucAttrName = NULL;
   }
 
-  pucAttrResponse = domGetAttributePtr(pndArg,BAD_CAST "response");
+  pucAttrResponse = xmlGetProp(pndArg,BAD_CAST "response");
 
-  pucAttrEncoding = domGetAttributePtr(pndArg,BAD_CAST "encoding");
+  pucAttrEncoding = xmlGetProp(pndArg,BAD_CAST "encoding");
 
-  fAppend = (pucAttrMode = domGetAttributePtr(pndArg,BAD_CAST "mode")) && xmlStrcasecmp(pucAttrMode,BAD_CAST "append")==0;
+  fAppend = (pucAttrMode = xmlGetProp(pndArg,BAD_CAST "mode")) && xmlStrcasecmp(pucAttrMode,BAD_CAST "append")==0;
 
   /*!\todo respect the other \@mode values (s. DTD) */
 
@@ -363,8 +363,8 @@ cxpCtxtSaveFileNode(cxpContextPtr pccArg,xmlNodePtr pndArg,xmlDocPtr pdocArgOutp
   }
   else if (resNodeGetType(prnOutput) == rn_type_stdout) {
     /* s. RFC 1806 */
-    xmlChar *pucAttrType = domGetAttributePtr(pndArg,BAD_CAST "type");
-    xmlChar *pucAttrDisposition = domGetAttributePtr(pndArg,BAD_CAST "disposition");
+    xmlChar *pucAttrType = xmlGetProp(pndArg,BAD_CAST "type");
+    xmlChar *pucAttrDisposition = xmlGetProp(pndArg,BAD_CAST "disposition");
     printf("Content-Type: ");
     if (pucAttrType && xmlStrlen(pucAttrType)>5) {
       printf("%s;",pucAttrType);
@@ -606,7 +606,7 @@ cxpCtxtFromAttr(cxpContextPtr pccArg, xmlNodePtr pndArg)
     resNodeFree(prnT);
   }
 
-  pucAttr = domGetAttributePtr(pndArg, BAD_CAST "log");
+  pucAttr = xmlGetProp(pndArg, BAD_CAST "log");
   if (STR_IS_NOT_EMPTY(pucAttr)) {
     iAttr = atoi((const char *)pucAttr);
     if (iAttr == cxpCtxtLogGetLevel(pccArg) || iAttr > 5) {
@@ -622,10 +622,10 @@ cxpCtxtFromAttr(cxpContextPtr pccArg, xmlNodePtr pndArg)
 
   /*\todo detect searchpath */
 
-  //    cxpCtxtSetReadonly(pccResult,domGetAttributeFlag(pndArg,BAD_CAST "readonly",FALSE));
+  //    cxpCtxtSetReadonly(pccResult,domGetPropFlag(pndArg,BAD_CAST "readonly",FALSE));
 
   if (pccResult != pccArg) {
-    cxpCtxtCacheEnable(pccResult, domGetAttributeFlag(pndArg, BAD_CAST "cache", (pccArg ? pccArg->fCaching : TRUE)));
+    cxpCtxtCacheEnable(pccResult, domGetPropFlag(pndArg, BAD_CAST "cache", (pccArg ? pccArg->fCaching : TRUE)));
     cxpCtxtAddChild(pccArg,pccResult);
   }
 

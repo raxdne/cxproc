@@ -108,8 +108,8 @@ pieGetAncestorContextStr(xmlNodePtr pndArg)
     xmlNodePtr pndT;
 
     for (pndT=pndArg; pndT; pndT=pndT->parent) {
-      if ((pucResult = domGetAttributePtr(pndT, BAD_CAST"context"))
-	|| (pucResult = domGetAttributePtr(pndT, BAD_CAST"prefix"))) {
+      if ((pucResult = xmlGetProp(pndT, BAD_CAST"context"))
+	|| (pucResult = xmlGetProp(pndT, BAD_CAST"prefix"))) {
 	pucResult = xmlStrdup(pucResult);
 	break;
       }
@@ -267,7 +267,7 @@ pieProcessPieNode(xmlNodePtr pndArgPie, cxpContextPtr pccArg)
     xmlSetTreeDoc(pndPieRoot, pdocResult);
     xmlDocSetRootElement(pdocResult, pndPieRoot);
 
-    if (domGetAttributeFlag(pndPieRoot, NAME_PIE_IMPORT, TRUE)) {
+    if (domGetPropFlag(pndPieRoot, NAME_PIE_IMPORT, TRUE)) {
       cxpContextPtr pccImport;
 
       cxpCtxtLogPrint(pccArg, 2, "Importing from node");
@@ -297,7 +297,7 @@ pieProcessPieNode(xmlNodePtr pndArgPie, cxpContextPtr pccArg)
     /*! \todo add error logs to DOM */
     //pndError = xmlNewChild(pndPieRoot, NULL, NAME_ERROR, NULL);
 
-    if (domGetAttributeFlag(pndArgPie, BAD_CAST "script", TRUE)) {
+    if (domGetPropFlag(pndArgPie, BAD_CAST "script", TRUE)) {
       cxpCtxtLogPrint(pccArg, 2, "Recognize scripts");
       RecognizeScripts(pndPieRoot);
       TraverseScriptNodes(pndPieRoot, pccArg);
@@ -306,7 +306,7 @@ pieProcessPieNode(xmlNodePtr pndArgPie, cxpContextPtr pccArg)
       cxpCtxtLogPrint(pccArg, 3, "Ignoring scripts");
     }
 
-    if (domGetAttributeFlag(pndArgPie, BAD_CAST "figure", TRUE)) {
+    if (domGetPropFlag(pndArgPie, BAD_CAST "figure", TRUE)) {
       cxpCtxtLogPrint(pccArg, 2, "Recognize Figures");
       RecognizeFigures(pndPieRoot);
     }
@@ -314,7 +314,7 @@ pieProcessPieNode(xmlNodePtr pndArgPie, cxpContextPtr pccArg)
       cxpCtxtLogPrint(pccArg, 3, "Ignoring Figures markup");
     }
 
-    if (domGetAttributeFlag(pndArgPie, BAD_CAST "url", TRUE)) {
+    if (domGetPropFlag(pndArgPie, BAD_CAST "url", TRUE)) {
       cxpCtxtLogPrint(pccArg, 2, "Recognize URLs");
       /*! \todo use an attribute for regexp?? */
       RecognizeUrls(pndPieRoot);
@@ -332,7 +332,7 @@ pieProcessPieNode(xmlNodePtr pndArgPie, cxpContextPtr pccArg)
     RecognizeInlines(pndPieRoot);
     RecognizeDates(pndPieRoot);
 
-    if (domGetAttributeFlag(pndArgPie, BAD_CAST "todo", TRUE)) {
+    if (domGetPropFlag(pndArgPie, BAD_CAST "todo", TRUE)) {
       cxpCtxtLogPrint(pccArg, 2, "Recognize tasks markup");
       RecognizeTasks(pndPieRoot);
     }
@@ -342,7 +342,7 @@ pieProcessPieNode(xmlNodePtr pndArgPie, cxpContextPtr pccArg)
 
     //xmlSetProp(pndArgPie, BAD_CAST "xpath",BAD_CAST "/*/*[1]/*[1]/*[1]/*");
 
-    pucAttr = domGetAttributePtr(pndArgPie, BAD_CAST "xpath"); /*  */
+    pucAttr = xmlGetProp(pndArgPie, BAD_CAST "xpath"); /*  */
     if (STR_IS_NOT_EMPTY(pucAttr) && xmlStrEqual(pucAttr,BAD_CAST"/*") == FALSE) {
       xmlDocPtr pdocResultXPath;
 
@@ -354,7 +354,7 @@ pieProcessPieNode(xmlNodePtr pndArgPie, cxpContextPtr pccArg)
       }
     }
 
-    pucAttr = domGetAttributePtr(pndArgPie, BAD_CAST "tags"); /* domGetAttributeFlag() not used because of (empty|yes|no|regexp) */
+    pucAttr = xmlGetProp(pndArgPie, BAD_CAST "tags"); /* domGetPropFlag() not used because of (empty|yes|no|regexp) */
     if (STR_IS_NOT_EMPTY(pucAttr) && xmlStrcasecmp(pucAttr, BAD_CAST "no") == 0) {
       /* explicit: no */
     }
@@ -365,7 +365,7 @@ pieProcessPieNode(xmlNodePtr pndArgPie, cxpContextPtr pccArg)
 
     //xmlSetProp(pndArgPie, BAD_CAST "pattern", BAD_CAST "t[contains(text(),'Year')]");
 
-    pucAttr = domGetAttributePtr(pndArgPie, BAD_CAST "pattern"); /*  */
+    pucAttr = xmlGetProp(pndArgPie, BAD_CAST "pattern"); /*  */
     if (STR_IS_NOT_EMPTY(pucAttr)) {
       xmlChar *pucTT;
 
@@ -383,7 +383,7 @@ pieProcessPieNode(xmlNodePtr pndArgPie, cxpContextPtr pccArg)
 
     /*! \todo global cite recognition in scientific text */
 
-    if (domGetAttributeFlag(pndArgPie, BAD_CAST "offset", FALSE)) {
+    if (domGetPropFlag(pndArgPie, BAD_CAST "offset", FALSE)) {
       calAddAttributeDayDiff(pdocResult);
     }
   }
@@ -621,7 +621,7 @@ ImportNodeFile(xmlNodePtr pndArgImport, cxpContextPtr pccArg)
       else {
 	iMimeType = resNodeGetMimeType(prnInput);
       }
-      pucAttrType = domGetAttributePtr(pndBlock, BAD_CAST"type");
+      pucAttrType = xmlGetProp(pndBlock, BAD_CAST"type");
 
       /* set a new cxpContext with file-based location */
       pccInput = cxpCtxtNew();
@@ -688,8 +688,8 @@ ImportNodeFile(xmlNodePtr pndArgImport, cxpContextPtr pccArg)
 
 	if (STR_IS_NOT_EMPTY(pucContent)) {
 	  if (ParsePlainBuffer(pndBlock, pucContent, m)) {
-	    domAddFileXpath(pndBlock, BAD_CAST"fxpath", NULL);
-	    domAddFileLocator(pndBlock, resNodeGetNameRelative(cxpCtxtRootGet(pccInput), prnInput));
+	    domSetPropFileXpath(pndBlock, BAD_CAST"fxpath", NULL);
+	    domSetPropFileLocator(pndBlock, resNodeGetNameRelative(cxpCtxtRootGet(pccInput), prnInput));
 	    TraverseImportNodes(pndBlock, pccInput); /* parse result recursively */
 	  }
 	  else {
@@ -764,8 +764,8 @@ ImportNodeFile(xmlNodePtr pndArgImport, cxpContextPtr pccArg)
 	    xmlAddChildList(pndBlock, pndT);
 	  }
 	  xmlFreeDoc(pdocPie);
-	  domAddFileXpath(pndBlock, BAD_CAST"fxpath", NULL);
-	  domAddFileLocator(pndBlock, resNodeGetNameRelative(cxpCtxtRootGet(pccInput), prnInput));
+	  domSetPropFileXpath(pndBlock, BAD_CAST"fxpath", NULL);
+	  domSetPropFileLocator(pndBlock, resNodeGetNameRelative(cxpCtxtRootGet(pccInput), prnInput));
 	  TraverseImportNodes(pndBlock, pccInput); /* parse result recursively */
 	}
 	else {
@@ -774,14 +774,14 @@ ImportNodeFile(xmlNodePtr pndArgImport, cxpContextPtr pccArg)
 	}
       }
 
-      if (domGetAttributeFlag(pndBlock, BAD_CAST "locator", TRUE) == FALSE) {
+      if (domGetPropFlag(pndBlock, BAD_CAST "locator", TRUE) == FALSE) {
 	/* explicit NO */
-	domRemoveFileLocator(pndBlock);
+	domUnsetPropFileLocator(pndBlock);
       }
-      else if (domGetAttributeFlag(pndBlock, BAD_CAST "locator", fLocator)) {
+      else if (domGetPropFlag(pndBlock, BAD_CAST "locator", fLocator)) {
 	/* add additional attributes for navigation */
-	//domAddFileLocator(pndBlock, resNodeGetNameRelative(cxpCtxtRootGet(pccInput), prnInput));
-	//domAddFileXpath(pndBlock, BAD_CAST"fxpath", NULL);
+	//domSetPropFileLocator(pndBlock, resNodeGetNameRelative(cxpCtxtRootGet(pccInput), prnInput));
+	//domSetPropFileXpath(pndBlock, BAD_CAST"fxpath", NULL);
       }
 
       xmlFree(pucAttrCache);
@@ -831,7 +831,7 @@ ImportNodeContent(xmlNodePtr pndArgImport, cxpContextPtr pccArg)
   xmlNodeSetName(pndBlock, NAME_PIE_BLOCK);
   //xmlSetProp(pndBlock, BAD_CAST "context", resNodeGetURI(prnInput));
 
-  if (xmlStrEqual(domGetAttributePtr(pndBlock, BAD_CAST "type"), BAD_CAST"script")) {
+  if (xmlStrEqual(xmlGetProp(pndBlock, BAD_CAST "type"), BAD_CAST"script")) {
 #ifdef HAVE_JS
     pucContent = scriptProcessScriptNode(pndBlock, pccArg);
 #else
@@ -849,8 +849,8 @@ ImportNodeContent(xmlNodePtr pndArgImport, cxpContextPtr pccArg)
   if (STR_IS_NOT_EMPTY(pucContent)) {
     if (ParsePlainBuffer(pndBlock, pucContent, GetModeByAttr(pndBlock))) {
       TraverseImportNodes(pndBlock, pccArg); /* parse result recursively */
-      if (domGetAttributeFlag(pndArgImport, BAD_CAST "locator", fLocator)) {
-	/*!\todo domAddFileLocator(pndBlock, resNodeGetNameRelative(cxpCtxtRootGet(pccArg), pndArgImport->doc->URL)); */
+      if (domGetPropFlag(pndArgImport, BAD_CAST "locator", fLocator)) {
+	/*!\todo domSetPropFileLocator(pndBlock, resNodeGetNameRelative(cxpCtxtRootGet(pccArg), pndArgImport->doc->URL)); */
       }
     }
     else {
@@ -989,7 +989,7 @@ ProcessImportNode(xmlNodePtr pndArgImport, cxpContextPtr pccArg)
 
     //pccHere = cxpCtxtFromAttr(pccArg, pndArgImport);
     //pccDoc = cxpCtxtFromAttr(NULL, pndArgImport);
-    pucAttrName = domGetAttributePtr(pndArgImport, BAD_CAST"name");
+    pucAttrName = xmlGetProp(pndArgImport, BAD_CAST"name");
 
     if (resPathIsStd(pucAttrName)) {
       fResult = ImportNodeStdin(pndArgImport, pccHere);
@@ -1040,7 +1040,7 @@ TraverseScriptNodes(xmlNodePtr pndCurrent, cxpContextPtr pccArg)
     xmlNodePtr pndChild;
     int iLengthStr;
 
-    if (IS_NODE_PIE_IMPORT(pndCurrent) && xmlStrEqual(domGetAttributePtr(pndCurrent,BAD_CAST"type"),BAD_CAST"script")) {
+    if (IS_NODE_PIE_IMPORT(pndCurrent) && xmlStrEqual(xmlGetProp(pndCurrent,BAD_CAST"type"),BAD_CAST"script")) {
       if ((pndChild = pndCurrent->children) != NULL
 	&& xmlNodeIsText(pndChild)
 	&& pndChild->content != NULL
@@ -1164,7 +1164,7 @@ pieGetParentHeaderStr(xmlNodePtr pndN)
       else {
 	xmlChar *pucHeader = NULL;
 	xmlChar *pucAttrText;
-	if ((pucAttrText = domGetAttributePtr(pndI,BAD_CAST"TEXT"))
+	if ((pucAttrText = xmlGetProp(pndI,BAD_CAST"TEXT"))
 	    && xmlStrlen(pucAttrText) > 0) {
 	  xmlChar *pucRelease;
 	  pucHeader = xmlStrncatNew(pucAttrText, BAD_CAST " :: ", -1);
@@ -1185,7 +1185,7 @@ pieGetParentHeaderStr(xmlNodePtr pndN)
       else {
         xmlChar *pucHeader = NULL;
         xmlChar *pucAttrText;
-        if ((pucAttrText = domGetAttributePtr(pndI,BAD_CAST"name"))
+        if ((pucAttrText = xmlGetProp(pndI,BAD_CAST"name"))
             && xmlStrlen(pucAttrText) > 0) {
           xmlChar *pucRelease;
           pucHeader = xmlStrncatNew(pucAttrText, BAD_CAST " :: ", -1);

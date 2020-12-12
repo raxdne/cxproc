@@ -275,7 +275,7 @@ cxpProcessEachNode(xmlNodePtr pndArg, cxpContextPtr pccArg)
   else if (IS_VALID_NODE(pndArg) == FALSE) {
     cxpCtxtLogPrint(pccArg,4,"No valid iteration EACH");
   }
-  else if ((pucAttrName = domGetAttributePtr(pndArg,BAD_CAST "name"))!=NULL
+  else if ((pucAttrName = xmlGetProp(pndArg,BAD_CAST "name"))!=NULL
       && (xmlStrlen(pucAttrName) > 0)
       && (pndFrom = domGetFirstChild(pndArg,NAME_FROM))!=NULL ) {
     if (pndFrom->children) {
@@ -316,7 +316,7 @@ cxpProcessEachNode(xmlNodePtr pndArg, cxpContextPtr pccArg)
       /* pdocResult->encoding = xmlStrdup(BAD_CAST "ISO-8859-1"); */
       pdocResult->encoding = xmlStrdup(BAD_CAST "UTF-8"); /* according to conversion in ParseImportNodePlainContent() */
       /* set thread attribute according to pndArg */
-      if ((pucAttrThread = domGetAttributePtr(pndArg,BAD_CAST "thread"))) {
+      if ((pucAttrThread = xmlGetProp(pndArg,BAD_CAST "thread"))) {
 	xmlSetProp(pndMake,BAD_CAST "thread",pucAttrThread);
       }
 
@@ -398,7 +398,7 @@ cxpProcessEachNode(xmlNodePtr pndArg, cxpContextPtr pccArg)
 	pcre2_match_data_free(match_data);   /* Release memory used for the match */
 #endif
       }
-      if (domGetAttributeFlag(pndArg,BAD_CAST "dump",FALSE)) {
+      if (domGetPropFlag(pndArg,BAD_CAST "dump",FALSE)) {
 	cxpCtxtLogPrintDoc(pccArg, 1, NULL, pdocResult);
       }
       xmlFree(pucValues);
@@ -440,7 +440,7 @@ cxpProcessXmlNodeEmbedded(xmlNodePtr pndArg, cxpContextPtr pccArg)
   
   if (IS_NODE_XML(pndArg)) {
     if (IS_VALID_NODE(pndArg)
-      && domGetAttributeFlag(pndArg, BAD_CAST "eval", TRUE) == TRUE) {
+      && domGetPropFlag(pndArg, BAD_CAST "eval", TRUE) == TRUE) {
       /*! 'pndArg' is a processing node 'xml', not marked as eval="no"  */
       xmlDocPtr pdocT;
 
@@ -533,7 +533,7 @@ cxpAttributeLocatorResNodeNew(cxpContextPtr pccArg, xmlNodePtr pndArg, xmlChar *
     resNodePtr prnT = NULL;
 
     if (IS_NODE_MAKE(pndArg)) {
-      pucAttrValue = domGetAttributePtr(pndArg, BAD_CAST "dir");
+      pucAttrValue = xmlGetProp(pndArg, BAD_CAST "dir");
       if (STR_IS_EMPTY(pucAttrValue) || xmlStrEqual(pucAttrValue,BAD_CAST"pwd")) {
 	/* keep location of pccArg */
 	prnT = cxpCtxtLocationDup(pccArg);
@@ -598,7 +598,7 @@ cxpResNodeResolveNew(cxpContextPtr pccArg, xmlNodePtr pndArg, xmlChar *pucArg, i
     xmlChar *pucAttrName = NULL;
 
     if (pndArg != NULL) {
-      pucAttrName = domGetAttributePtr(pndArg, BAD_CAST "name");
+      pucAttrName = xmlGetProp(pndArg, BAD_CAST "name");
       if (pucAttrName == NULL) { /* no attribute 'name' */
       }
       else if (STR_IS_EMPTY(pucAttrName) || xmlStrEqual(pucAttrName, BAD_CAST".")) { /* valid but empty attribute 'name' */
@@ -620,7 +620,7 @@ cxpResNodeResolveNew(cxpContextPtr pccArg, xmlNodePtr pndArg, xmlChar *pucArg, i
 	else { /* no child elements => source node, read and search if neccessary, readable */
 	  iArgOptions |= CXP_O_READ;
 
-	  if (domGetAttributeFlag(pndArg, BAD_CAST"search", FALSE)) {
+	  if (domGetPropFlag(pndArg, BAD_CAST"search", FALSE)) {
 	    /* explicit search flag at pndArg */
 	    iArgOptions |= CXP_O_SEARCH;
 	  }
@@ -847,7 +847,7 @@ cxpResNodeResolveNew(cxpContextPtr pccArg, xmlNodePtr pndArg, xmlChar *pucArg, i
       /* check attribute "cacheas" */
       xmlChar *pucAttrNameCacheAs;
 
-      pucAttrNameCacheAs = domGetAttributePtr(pndArg, BAD_CAST "cacheas");
+      pucAttrNameCacheAs = xmlGetProp(pndArg, BAD_CAST "cacheas");
       if (STR_IS_NOT_EMPTY(pucAttrNameCacheAs)) {
 	resNodeSetNameAlias(prnResult, pucAttrNameCacheAs);
       }
@@ -883,10 +883,10 @@ cxpProcessPlainNode(xmlNodePtr pndArg, cxpContextPtr pccArg)
     BOOL_T fSearch;
     cxpContextPtr pccHere = pccArg;
 
-    pucAttrName        = domGetAttributePtr(pndArg,BAD_CAST "name");
-    //pucAttrNameCacheAs = domGetAttributePtr(pndArg,BAD_CAST "cacheas");
-    fCache             = domGetAttributeFlag(pndArg,BAD_CAST "cache",  FALSE);
-    fSearch            = domGetAttributeFlag(pndArg,BAD_CAST "search",FALSE);
+    pucAttrName        = xmlGetProp(pndArg,BAD_CAST "name");
+    //pucAttrNameCacheAs = xmlGetProp(pndArg,BAD_CAST "cacheas");
+    fCache             = domGetPropFlag(pndArg,BAD_CAST "cache",  FALSE);
+    fSearch            = domGetPropFlag(pndArg,BAD_CAST "search",FALSE);
 
     //pccHere = cxpCtxtFromAttr(pccArg,pndArg);
 
@@ -933,7 +933,7 @@ cxpProcessPlainNode(xmlNodePtr pndArg, cxpContextPtr pccArg)
 	  resNodePtr prnComment;
 	  resNodePtr prnSrc;
 
-	  prnSrc = resNodeFromNodeNew(cxpCtxtLocationGet(pccArg),domGetAttributePtr(pndChild,BAD_CAST "src"));
+	  prnSrc = resNodeFromNodeNew(cxpCtxtLocationGet(pccArg),xmlGetProp(pndChild,BAD_CAST "src"));
 	  if (prnSrc) {
 	    prnComment = resNodeCommentNew(prnSrc);
 	    if (prnComment != NULL && resNodeIsFile(prnComment)) {
@@ -1070,7 +1070,7 @@ cxpIsStorageNode(xmlNodePtr pndArg)
 {
   BOOL_T fResult = FALSE;
 
-  if (domGetAttributeNode(pndArg, BAD_CAST "name")) {
+  if (xmlHasProp(pndArg, BAD_CAST "name")) {
     xmlNodePtr pndChild;
 
     for (pndChild=pndArg->children; fResult == FALSE && pndChild != NULL; pndChild=pndChild->next) {
@@ -1122,7 +1122,7 @@ cxpGetXmlSourceNode(xmlNodePtr pndArg, cxpContextPtr pccArg)
     if (IS_NODE_XML(pndChild)) {
       if (pndResult) {
 	cxpCtxtLogPrint(pccArg, 1, "Ignoring redundant XML source: '%s/%s[@name='%s']'",
-	  pndArg->name, pndChild->name, domGetAttributePtr(pndChild, BAD_CAST"name"));
+	  pndArg->name, pndChild->name, xmlGetProp(pndChild, BAD_CAST"name"));
 	break;
       }
       pndResult = pndChild;
@@ -1130,7 +1130,7 @@ cxpGetXmlSourceNode(xmlNodePtr pndArg, cxpContextPtr pccArg)
     else if (IS_NODE_XSL(pndChild) || IS_NODE(pndChild, BAD_CAST"stylesheet")) {
       if (pndResult) {
 	cxpCtxtLogPrint(pccArg, 1, "Accepting: '%s/%s[@name='%s']'",
-	  pndArg->name, pndChild->name, domGetAttributePtr(pndChild, BAD_CAST"name"));
+	  pndArg->name, pndChild->name, xmlGetProp(pndChild, BAD_CAST"name"));
       }
       else {
 	pndResult = pndChild;
@@ -1139,7 +1139,7 @@ cxpGetXmlSourceNode(xmlNodePtr pndArg, cxpContextPtr pccArg)
     else if (IS_NODE_DIR(pndChild) || IS_NODE_FILE(pndChild) || IS_NODE_ZIP(pndChild)) {
       if (pndResult) {
 	cxpCtxtLogPrint(pccArg,1,"Ignoring redundant XML source: '%s/%s[@name='%s']'",
-	    pndArg->name,pndChild->name,domGetAttributePtr(pndChild,BAD_CAST"name"));
+	    pndArg->name,pndChild->name,xmlGetProp(pndChild,BAD_CAST"name"));
 	break;
       }
       pndResult = pndChild;
@@ -1147,7 +1147,7 @@ cxpGetXmlSourceNode(xmlNodePtr pndArg, cxpContextPtr pccArg)
     else if (IS_NODE_JSON(pndChild) || IS_NODE_PIE(pndChild) || IS_NODE_CALENDAR(pndChild)) {
       if (pndResult) {
 	cxpCtxtLogPrint(pccArg,1,"Ignoring redundant XML source: '%s/%s[@name='%s']'",
-	    pndArg->name,pndChild->name,domGetAttributePtr(pndChild,BAD_CAST"name"));
+	    pndArg->name,pndChild->name,xmlGetProp(pndChild,BAD_CAST"name"));
 	break;
       }
       pndResult = pndChild;
@@ -1158,7 +1158,7 @@ cxpGetXmlSourceNode(xmlNodePtr pndArg, cxpContextPtr pccArg)
     else if (IS_NODE_PATHNET(pndChild) || IS_NODE_PATHTABLE(pndChild)) {
       if (pndResult) {
 	cxpCtxtLogPrint(pccArg,1,"Ignoring redundant XML source: '%s/%s[@name='%s']'",
-	    pndArg->name,pndChild->name,domGetAttributePtr(pndChild,BAD_CAST"name"));
+	    pndArg->name,pndChild->name,xmlGetProp(pndChild,BAD_CAST"name"));
 	break;
       }
       pndResult = pndChild;
@@ -1166,7 +1166,7 @@ cxpGetXmlSourceNode(xmlNodePtr pndArg, cxpContextPtr pccArg)
     else if (IS_NODE_INFO(pndChild)) {
       if (pndResult) {
 	cxpCtxtLogPrint(pccArg,1,"Ignoring redundant XML source: '%s/%s[@name='%s']'",
-	    pndArg->name,pndChild->name,domGetAttributePtr(pndChild,BAD_CAST"name"));
+	    pndArg->name,pndChild->name,xmlGetProp(pndChild,BAD_CAST"name"));
 	break;
       }
       pndResult = pndChild;
@@ -1174,7 +1174,7 @@ cxpGetXmlSourceNode(xmlNodePtr pndArg, cxpContextPtr pccArg)
     else if (IS_ENODE(pndChild)) { /* every other element node */
       if (pndResult) {
 	cxpCtxtLogPrint(pccArg,1,"Ignoring redundant XML source: '%s/%s[@name='%s']'",
-	    pndArg->name,pndChild->name,domGetAttributePtr(pndChild,BAD_CAST"name"));
+	    pndArg->name,pndChild->name,xmlGetProp(pndChild,BAD_CAST"name"));
 	break;
       }
       pndResult = pndChild;
@@ -1213,7 +1213,7 @@ cxpProcessXmlNode(xmlNodePtr pndArg, cxpContextPtr pccArg)
     xmlDocPtr pdocT = NULL; /* preliminary result DOM */
     xmlNodePtr pndChildSource;
 
-    pucAttrName = domGetAttributePtr(pndArg, BAD_CAST "name");
+    pucAttrName = xmlGetProp(pndArg, BAD_CAST "name");
 
     if ((pndChildSource = cxpGetXmlSourceNode(pndArg, pccArg))) {
       /*
@@ -1298,7 +1298,7 @@ cxpProcessXmlNode(xmlNodePtr pndArg, cxpContextPtr pccArg)
 	  cxpCtxtSaveFileNode(pccArg, pndArg, pdocResult, NULL);
 
 	  /*! evaluate DOM if required */
-	  if (IS_NODE_XML(pndArg) && domGetAttributeFlag(pndArg, BAD_CAST "eval", FALSE)) {
+	  if (IS_NODE_XML(pndArg) && domGetPropFlag(pndArg, BAD_CAST "eval", FALSE)) {
 	    xmlNodePtr pndRoot;
 
 	    pndRoot = xmlDocGetRootElement(pdocResult);
@@ -1349,13 +1349,13 @@ cxpProcessXmlNode(xmlNodePtr pndArg, cxpContextPtr pccArg)
 	      pdocResult->URL = NULL;
 	    }
 	  }
-	  else if (domGetAttributeFlag(pndArg, BAD_CAST "locator", FALSE)) {
+	  else if (domGetPropFlag(pndArg, BAD_CAST "locator", FALSE)) {
 	    /* add additional attributes for navigation */
 	    xmlNodePtr pndRoot;
 
 	    pndRoot = xmlDocGetRootElement(pdocResult);
-	    domAddFileLocator(pndRoot,resNodeGetNameRelative(cxpCtxtRootGet(pccArg),prnFile));
-	    domAddFileXpath(pndRoot,BAD_CAST"fxpath",NULL);
+	    domSetPropFileLocator(pndRoot,resNodeGetNameRelative(cxpCtxtRootGet(pccArg),prnFile));
+	    domSetPropFileXpath(pndRoot,BAD_CAST"fxpath",NULL);
 	  }
 	  cxpCtxtCacheAppendResNodeEat(pccArg,prnFile);
 	}
@@ -1365,7 +1365,7 @@ cxpProcessXmlNode(xmlNodePtr pndArg, cxpContextPtr pccArg)
 	}
       }
 
-      if (domGetAttributeFlag(pndArg,BAD_CAST "dump",FALSE)) {
+      if (domGetPropFlag(pndArg,BAD_CAST "dump",FALSE)) {
 	cxpCtxtLogPrintDoc(pccArg, 1, NULL, pdocResult);
       }
     }
@@ -1376,7 +1376,7 @@ cxpProcessXmlNode(xmlNodePtr pndArg, cxpContextPtr pccArg)
     if (pdocResult) {
       xmlNodePtr pndRoot;
 
-      pucSchema = domGetAttributePtr(pndArg, BAD_CAST "schema");
+      pucSchema = xmlGetProp(pndArg, BAD_CAST "schema");
       if (pucSchema != NULL && xmlStrlen(pucSchema) > 4) {
 	if (ValidateSchema(pdocResult, pucSchema, pccArg) == FALSE) {
 	  /*!\todo append validation error messages to existing meta element? */
@@ -1386,12 +1386,12 @@ cxpProcessXmlNode(xmlNodePtr pndArg, cxpContextPtr pccArg)
 	cxpCtxtLogPrint(pccArg,4, "No Schema Validation requested");
       }
 
-      if (domGetAttributeFlag(pndArg,BAD_CAST "xpath",FALSE)) {
+      if (domGetPropFlag(pndArg,BAD_CAST "xpath",FALSE)) {
 	pndRoot = xmlDocGetRootElement(pdocResult);
 	if (pndRoot) {
 	  cxpCtxtLogPrint(pccArg,2,"Add XPath attribute to every element");
-	  /*!\todo redundant to "domAddFileXpath(pndRoot,BAD_CAST"fxpath",NULL);" */
-	  domAddFileXpath(pndRoot,BAD_CAST"xpath",NULL);
+	  /*!\todo redundant to "domSetPropFileXpath(pndRoot,BAD_CAST"fxpath",NULL);" */
+	  domSetPropFileXpath(pndRoot,BAD_CAST"xpath",NULL);
 	}
       }
     }
@@ -1425,7 +1425,7 @@ cxpProcessSystemNode(xmlNodePtr pndArg, cxpContextPtr pccArg)
 
     //pccHere = cxpCtxtFromAttr(pccArg,pndArg);
 
-    if ((pucAttrT = domGetAttributePtr(pndArg,BAD_CAST "message"))) {
+    if ((pucAttrT = xmlGetProp(pndArg,BAD_CAST "message"))) {
       /*!\todo convert pucAttrT to isolat1? */
       xmlChar *pucT;
       xmlChar *pucMessage;
@@ -1437,7 +1437,7 @@ cxpProcessSystemNode(xmlNodePtr pndArg, cxpContextPtr pccArg)
 	}
       }
 
-      if (domGetAttributeFlag(pndArg,BAD_CAST "timer",FALSE)) {
+      if (domGetPropFlag(pndArg,BAD_CAST "timer",FALSE)) {
 	/* append timer string to message */
 	xmlChar mpucT[BUFFER_LENGTH];
 
@@ -1449,7 +1449,7 @@ cxpProcessSystemNode(xmlNodePtr pndArg, cxpContextPtr pccArg)
 #ifdef HAVE_CGI
       // no pause at all
 #else
-      if (domGetAttributeFlag(pndArg, BAD_CAST "pause", FALSE)) {
+      if (domGetPropFlag(pndArg, BAD_CAST "pause", FALSE)) {
 	/* pause with prompt and dummy input when not in CGI mode */
 	char mcT[10];
 	(void)fgets(mcT,sizeof(mcT)-1,stdin);
@@ -1461,11 +1461,11 @@ cxpProcessSystemNode(xmlNodePtr pndArg, cxpContextPtr pccArg)
 #ifdef HAVE_CGI
       // no dialog, exec or call at all
 #else
-    else if ((pucAttrT = domGetAttributePtr(pndArg,BAD_CAST "dialog"))) {
+    else if ((pucAttrT = xmlGetProp(pndArg,BAD_CAST "dialog"))) {
       cxpCtxtLogPrint(pccArg,3,"Using dialog value '%s'",pucAttrT);
       fResult = cxpCtxtCliMessageBox(pucAttrT,pccHere);
     }
-    else if ((pucAttrT = domGetAttributePtr(pndArg, BAD_CAST "exec"))) { /* this is a system shell exec */
+    else if ((pucAttrT = xmlGetProp(pndArg, BAD_CAST "exec"))) { /* this is a system shell exec */
       xmlChar* pucAttrCommand;
 
       if ((pucAttrCommand = xmlStrdup(pucAttrT))) { /*!\bug convert pucAttrT to isolat1 */
@@ -1488,7 +1488,7 @@ cxpProcessSystemNode(xmlNodePtr pndArg, cxpContextPtr pccArg)
 	PrintFormatLog(1, "Command encoding error '%s'", pucAttrT);
       }
     }
-    else if ((pucAttrT = domGetAttributePtr(pndArg,BAD_CAST "call"))) { /* this is a system shell call */
+    else if ((pucAttrT = xmlGetProp(pndArg,BAD_CAST "call"))) { /* this is a system shell call */
       resNodePtr prnFile;
 
       prnFile = cxpResNodeResolveNew(pccHere, NULL, pucAttrT, (CXP_O_FILE | CXP_O_READ));
@@ -1510,11 +1510,11 @@ cxpProcessSystemNode(xmlNodePtr pndArg, cxpContextPtr pccArg)
       resNodeFree(prnFile);
     }
 #endif
-    else if ((pucAttrT = domGetAttributePtr(pndArg,BAD_CAST "chdir"))) { /* this is a system chdir call */
+    else if ((pucAttrT = xmlGetProp(pndArg,BAD_CAST "chdir"))) { /* this is a system chdir call */
       resNodeReset(cxpCtxtLocationGet(pccHere),pucAttrT); /*! avoid global chdir */
       fResult = cxpViewNodeResult(pndArg, pccHere);
     }
-    else if ((pucAttrT = domGetAttributePtr(pndArg,BAD_CAST "mkdir"))) {
+    else if ((pucAttrT = xmlGetProp(pndArg,BAD_CAST "mkdir"))) {
       /* this is a system mkdir call */
       resNodePtr prnMkdir;
 
@@ -1525,13 +1525,13 @@ cxpProcessSystemNode(xmlNodePtr pndArg, cxpContextPtr pccArg)
         cxpViewNodeResult(pndArg, pccHere);
       }
     }
-    else if ((pucAttrT = domGetAttributePtr(pndArg,BAD_CAST "rmdir"))) {
+    else if ((pucAttrT = xmlGetProp(pndArg,BAD_CAST "rmdir"))) {
       /* this is a system mkdir call */
       resNodePtr prnRmdir;
 
       prnRmdir = resNodeConcatNew(cxpCtxtLocationGetStr(pccHere),pucAttrT);
       /*!\todo test if cxpCtxtLocationGet(pccHere) != prnRmdir */
-      fResult = resNodeUnlink(prnRmdir,domGetAttributeFlag(pndArg,BAD_CAST "recursive",FALSE));
+      fResult = resNodeUnlink(prnRmdir,domGetPropFlag(pndArg,BAD_CAST "recursive",FALSE));
       resNodeFree(prnRmdir);
     }
     else {
@@ -1565,7 +1565,7 @@ cxpProcessMakeNode(xmlNodePtr pndArg,cxpContextPtr pccArg)
     xmlNodePtr pndChild;
     cxpContextPtr pccHere = pccArg;
 
-    fValidation = domGetAttributeFlag(pndArg, BAD_CAST "validation", TRUE);
+    fValidation = domGetPropFlag(pndArg, BAD_CAST "validation", TRUE);
     if (fValidation == FALSE) {
       cxpCtxtLogPrint(pccArg, 3, "Skipping XML pre-substitution validation");
     }
@@ -1590,7 +1590,7 @@ cxpProcessMakeNode(xmlNodePtr pndArg,cxpContextPtr pccArg)
 
       /*!\todo set the max number of threads via attribute threads="11" */
 
-      if ((fThread = domGetAttributeFlag(pndArg,BAD_CAST "thread",FALSE))) {
+      if ((fThread = domGetPropFlag(pndArg,BAD_CAST "thread",FALSE))) {
 	cxpCtxtLogPrint(pccArg,2,"Threads enabled");
       }
       else {
@@ -1617,7 +1617,7 @@ cxpProcessMakeNode(xmlNodePtr pndArg,cxpContextPtr pccArg)
 	return;
       }
 
-      if (domGetAttributeFlag(pndArg, BAD_CAST "dump", FALSE)) {
+      if (domGetPropFlag(pndArg, BAD_CAST "dump", FALSE)) {
 	cxpCtxtLogPrintDoc(pccArg, 1, NULL, pndArg->doc);
       }
 
@@ -1672,7 +1672,7 @@ cxpProcessMakeNode(xmlNodePtr pndArg,cxpContextPtr pccArg)
 
 	  pdocResultT = cxpProcessXmlNode(pndChild, pccHere);
 	  if (pdocResultT) {
-	    if (domGetAttributeFlag(pndChild, BAD_CAST "eval", FALSE)) {
+	    if (domGetPropFlag(pndChild, BAD_CAST "eval", FALSE)) {
 	      /*! */
 	      xmlNodePtr pndEval;
 	      xmlChar *pucAttrValue;
@@ -1782,7 +1782,7 @@ cxpXslParamProcess(xmlNodePtr pndArg, cxpContextPtr pccArg)
 
   //pccHere = cxpCtxtFromAttr(pccArg,pndArg);
 
-  if (domGetAttributeFlag(pndArg, BAD_CAST "appendcgi", FALSE)) {
+  if (domGetPropFlag(pndArg, BAD_CAST "appendcgi", FALSE)) {
 #ifdef HAVE_CGI
     /* CGI environment */
     index_t i;
@@ -1814,7 +1814,7 @@ cxpXslParamProcess(xmlNodePtr pndArg, cxpContextPtr pccArg)
       /* all PARAM siblings */
       if (IS_NODE_VARIABLE(pndChildParam)) {
 	/* this is an PARAM */
-	xmlChar *pucName = domGetAttributePtr(pndChildParam,BAD_CAST "name");
+	xmlChar *pucName = xmlGetProp(pndChildParam,BAD_CAST "name");
 	xmlChar *pucSelect = NULL;
 	xmlChar *pucSelectTest = NULL;
 	cxpSubstPtr pcxpSubstT;
@@ -1837,7 +1837,7 @@ cxpXslParamProcess(xmlNodePtr pndArg, cxpContextPtr pccArg)
 	      xmlFreeDoc(pdocT);
 	    }
 	  }
-	  else if ((pucAttrSelect = domGetAttributePtr(pndChildParam,BAD_CAST "select"))) {
+	  else if ((pucAttrSelect = xmlGetProp(pndChildParam,BAD_CAST "select"))) {
 	    /* use attribute value */
 	    cxpCtxtLogPrint(pccArg,3,"VARIABLE '%s' from attribute 'select'",pucName);
 	    pucSelect = xmlStrdup(pucAttrSelect);
@@ -2046,7 +2046,7 @@ cxpUpdateXslVariable(xmlNodePtr pndArg, char *pcValue, cxpContextPtr pccArg)
   if (pndArg != NULL && STR_IS_NOT_EMPTY(pcValue)) {
     xmlChar *pucAttrSelect;
 
-    pucAttrSelect = domGetAttributePtr(pndArg, BAD_CAST "select");
+    pucAttrSelect = xmlGetProp(pndArg, BAD_CAST "select");
     if ((STR_IS_NOT_EMPTY(pucAttrSelect) && pucAttrSelect[0]==(xmlChar)'\'') || pcValue[0]=='\'') {
       /* probably it's a string variable */
       xmlChar *pucValueNew = NULL;
@@ -2087,7 +2087,7 @@ cxpChangeXslParam(xmlDocPtr pdocResult, char **param, BOOL_T fInsertvars, cxpCon
 	if (IS_NODE_XSL_VARIABLE(pndCurrent)) {
 	  xmlChar *pucAttrName;
 
-	  if ((pucAttrName = domGetAttributePtr(pndCurrent, BAD_CAST "name")) != NULL
+	  if ((pucAttrName = xmlGetProp(pndCurrent, BAD_CAST "name")) != NULL
 	    && xmlStrEqual(pucAttrName, BAD_CAST param[i])
 	    && cxpUpdateXslVariable(pndCurrent, param[i+1], pccArg)) {
 	    /* variable exists already */
@@ -2217,7 +2217,7 @@ cxpProcessTransformations(const xmlDocPtr pdocArgXml, const xmlNodePtr pndArgPar
 	  else if (pdocResult == NULL) {
 	    break;
 	  }
-	  else if ((pucXpath = domGetAttributePtr(pndChild, BAD_CAST"select")) == NULL) {
+	  else if ((pucXpath = xmlGetProp(pndChild, BAD_CAST"select")) == NULL) {
 	  }
 	  else if (xmlStrEqual(pucXpath, BAD_CAST"/*")) {
 	  }
@@ -2251,7 +2251,7 @@ cxpProcessTransformations(const xmlDocPtr pdocArgXml, const xmlNodePtr pndArgPar
 	    ppchParam = (char **)cxpXslParamProcess(pndChild, pccHere);
 	    if (ppchParam) {
 	      /*!\todo handle ppchParam[] as Global Vars ? (but see comment at libxslt/variables.c:947) */
-	      cxpChangeXslParam(pdocXsl, ppchParam, domGetAttributeFlag(pndChild, BAD_CAST "insertvars", FALSE), pccArg);
+	      cxpChangeXslParam(pdocXsl, ppchParam, domGetPropFlag(pndChild, BAD_CAST "insertvars", FALSE), pccArg);
 	    }
 
 	    //cxpCtxtLogPrintDoc(pccArg,1,NULL,pdocArgXml);
@@ -2348,7 +2348,7 @@ cxpXslRetrieve(const xmlNodePtr pndArgXsl, cxpContextPtr pccArg)
   }
   else if (IS_NODE_XSL(pndArgXsl)) {
     //cxpContextPtr pccHere = pccArg;
-    xmlChar *pucAttrFile = domGetAttributePtr(pndArgXsl,BAD_CAST "name");
+    xmlChar *pucAttrFile = xmlGetProp(pndArgXsl,BAD_CAST "name");
     xmlChar *pucAttrFileNorm = NULL;
 
     //pccHere = cxpCtxtFromAttr(pccArg,pndArgXsl);
@@ -2390,7 +2390,7 @@ cxpXslRetrieve(const xmlNodePtr pndArgXsl, cxpContextPtr pccArg)
 	    cxpCtxtLogPrint(pccArg,2, "Reading XSL '%s'", resNodeGetNameNormalized(prnFile));
 	    pdocResult = resNodeReadDoc(prnFile);
 
-	    pucAttrContext = domGetAttributePtr(pndArgXsl,BAD_CAST "context");
+	    pucAttrContext = xmlGetProp(pndArgXsl,BAD_CAST "context");
 	    if (STR_IS_NOT_EMPTY(pucAttrContext)) {
 	      resNodePtr prnContext; /* resource node according to pucAttrContext */
 
@@ -2402,8 +2402,8 @@ cxpXslRetrieve(const xmlNodePtr pndArgXsl, cxpContextPtr pccArg)
 	      resNodeFree(prnContext);
 	    }
 
-	    pucAttrNameCacheAs = domGetAttributePtr(pndArgXsl,BAD_CAST "cacheas");
-	    fCache             = domGetAttributeFlag(pndArgXsl,BAD_CAST "cache",  FALSE);
+	    pucAttrNameCacheAs = xmlGetProp(pndArgXsl,BAD_CAST "cacheas");
+	    fCache             = domGetPropFlag(pndArgXsl,BAD_CAST "cache",  FALSE);
 	    if (STR_IS_NOT_EMPTY(pucAttrNameCacheAs)) {
 	      cxpCtxtCacheAppendDoc(pccArg, pdocResult, pucAttrNameCacheAs);
 	    }
@@ -2591,7 +2591,7 @@ ValidateCxpTree(xmlNodePtr pndArg, cxpContextPtr pccArg)
     return fResult;
   }
 
-  if (domGetAttributeFlag(pndArg,BAD_CAST "validation",TRUE) == FALSE) {
+  if (domGetPropFlag(pndArg,BAD_CAST "validation",TRUE) == FALSE) {
     cxpCtxtLogPrint(pccArg,2,"Skipping XML Validation");
     return fResult;
   }
@@ -2619,7 +2619,7 @@ ValidateCxpTree(xmlNodePtr pndArg, cxpContextPtr pccArg)
       }
       else {
 	cxpCtxtLogPrint(pccArg,1,"Validation error: '%s/%s[@name=\"%s\"]' is not allowed",
-	    pndArg->name, pndChild->name,domGetAttributePtr(pndChild,BAD_CAST"name"));
+	    pndArg->name, pndChild->name,xmlGetProp(pndChild,BAD_CAST"name"));
 	fResult = FALSE;
       }
       pndChild = pndChild->next;
@@ -2659,7 +2659,7 @@ ValidateCxpTree(xmlNodePtr pndArg, cxpContextPtr pccArg)
 	else if (IS_NODE_MAKE(pndChild) || IS_NODE_THREAD(pndChild)
 	  || IS_NODE_FROM(pndChild) || IS_NODE_EACH(pndChild)) {
 	  cxpCtxtLogPrint(pccArg,1,"Validation error: '%s/%s[@name=\"%s\"]' is not allowed",
-	      pndArg->name, pndChild->name,domGetAttributePtr(pndChild,BAD_CAST"name"));
+	      pndArg->name, pndChild->name,xmlGetProp(pndChild,BAD_CAST"name"));
 	  fResult = FALSE;
 	}
 	else {
@@ -2683,7 +2683,7 @@ ValidateCxpTree(xmlNodePtr pndArg, cxpContextPtr pccArg)
 	else if (IS_NODE_MAKE(pndChild)
 	  || IS_NODE_FROM(pndChild) || IS_NODE_EACH(pndChild)) {
 		cxpCtxtLogPrint(pccArg,1,"Validation error: '%s/%s[@name=\"%s\"]' is not allowed",
-		    pndArg->name, pndChild->name,domGetAttributePtr(pndChild,BAD_CAST"name"));
+		    pndArg->name, pndChild->name,xmlGetProp(pndChild,BAD_CAST"name"));
 	  iChildCount++;
 	  fResult = FALSE;
 	}
@@ -2724,7 +2724,7 @@ ValidateCxpTree(xmlNodePtr pndArg, cxpContextPtr pccArg)
       if (IS_NODE_MAKE(pndChild)
 	|| IS_NODE_FROM(pndChild) || IS_NODE_EACH(pndChild)) {
 	cxpCtxtLogPrint(pccArg,1,"Validation error: '%s/%s[@name=\"%s\"]' is not allowed",
-	    pndArg->name, pndChild->name,domGetAttributePtr(pndChild,BAD_CAST"name"));
+	    pndArg->name, pndChild->name,xmlGetProp(pndChild,BAD_CAST"name"));
 	fResult = FALSE;
       }
       else {
@@ -2759,7 +2759,7 @@ ValidateCxpTree(xmlNodePtr pndArg, cxpContextPtr pccArg)
 	}
 	else {
 		cxpCtxtLogPrint(pccArg,1,"Validation error: '%s/%s[@name=\"%s\"]' is not allowed",
-		    pndArg->name, pndChild->name,domGetAttributePtr(pndChild,BAD_CAST"name"));
+		    pndArg->name, pndChild->name,xmlGetProp(pndChild,BAD_CAST"name"));
 	//  fResult = FALSE;
 	}
       }
@@ -2796,7 +2796,7 @@ ValidateCxpTree(xmlNodePtr pndArg, cxpContextPtr pccArg)
       }
       else {
 	cxpCtxtLogPrint(pccArg,1,"Validation error: '%s/%s[@name=\"%s\"]' is not allowed",
-	    pndArg->name, pndChild->name,domGetAttributePtr(pndChild,BAD_CAST"name"));
+	    pndArg->name, pndChild->name,xmlGetProp(pndChild,BAD_CAST"name"));
 	fResult = FALSE;
       }
       pndChild = pndChild->next;
@@ -2841,7 +2841,7 @@ ValidateCxpTree(xmlNodePtr pndArg, cxpContextPtr pccArg)
       }
       else {
 	cxpCtxtLogPrint(pccArg,1,"Validation error: '%s/%s[@name=\"%s\"]' is not allowed",
-	    pndArg->name, pndChild->name,domGetAttributePtr(pndChild,BAD_CAST"name"));
+	    pndArg->name, pndChild->name,xmlGetProp(pndChild,BAD_CAST"name"));
 	fResult = FALSE;
       }
       pndChild = pndChild->next;
@@ -2869,7 +2869,7 @@ ValidateCxpTree(xmlNodePtr pndArg, cxpContextPtr pccArg)
       }
       else {
 	cxpCtxtLogPrint(pccArg,1,"Validation error: '%s/%s[@name=\"%s\"]' is not allowed",
-	    pndArg->name, pndChild->name,domGetAttributePtr(pndChild,BAD_CAST"name"));
+	    pndArg->name, pndChild->name,xmlGetProp(pndChild,BAD_CAST"name"));
 	fResult = FALSE;
       }
       pndChild = pndChild->next;
@@ -2898,7 +2898,7 @@ ValidateCxpTree(xmlNodePtr pndArg, cxpContextPtr pccArg)
       }
       else {
 	cxpCtxtLogPrint(pccArg,1,"Validation error: '%s/%s[@name=\"%s\"]' is not allowed",
-	    pndArg->name, pndChild->name,domGetAttributePtr(pndChild,BAD_CAST"name"));
+	    pndArg->name, pndChild->name,xmlGetProp(pndChild,BAD_CAST"name"));
 	fResult = FALSE;
       }
       pndChild = pndChild->next;
@@ -2927,7 +2927,7 @@ ValidateCxpTree(xmlNodePtr pndArg, cxpContextPtr pccArg)
       }
       else {
 	cxpCtxtLogPrint(pccArg,1,"Validation error: '%s/%s[@name=\"%s\"]' is not allowed",
-	    pndArg->name, pndChild->name,domGetAttributePtr(pndChild,BAD_CAST"name"));
+	    pndArg->name, pndChild->name,xmlGetProp(pndChild,BAD_CAST"name"));
 	fResult = FALSE;
       }
       pndChild = pndChild->next;
@@ -2955,7 +2955,7 @@ ValidateCxpTree(xmlNodePtr pndArg, cxpContextPtr pccArg)
       }
       else {
 	cxpCtxtLogPrint(pccArg,1,"Validation error: '%s/%s[@name=\"%s\"]' is not allowed",
-	    pndArg->name, pndChild->name,domGetAttributePtr(pndChild,BAD_CAST"name"));
+	    pndArg->name, pndChild->name,xmlGetProp(pndChild,BAD_CAST"name"));
 	fResult = FALSE;
       }
       pndChild = pndChild->next;
@@ -2985,7 +2985,7 @@ ValidateCxpTree(xmlNodePtr pndArg, cxpContextPtr pccArg)
       }
       else {
 	cxpCtxtLogPrint(pccArg,1,"Validation error: '%s/%s[@name=\"%s\"]' is not allowed",
-	    pndArg->name, pndChild->name,domGetAttributePtr(pndChild,BAD_CAST"name"));
+	    pndArg->name, pndChild->name,xmlGetProp(pndChild,BAD_CAST"name"));
 	fResult = FALSE;
       }
       pndChild = pndChild->next;
@@ -3013,7 +3013,7 @@ ValidateCxpTree(xmlNodePtr pndArg, cxpContextPtr pccArg)
       }
       else {
 	cxpCtxtLogPrint(pccArg,1,"Validation error: '%s/%s[@name=\"%s\"]' is not allowed",
-	    pndArg->name, pndChild->name,domGetAttributePtr(pndChild,BAD_CAST"name"));
+	    pndArg->name, pndChild->name,xmlGetProp(pndChild,BAD_CAST"name"));
 	fResult = FALSE;
       }
       pndChild = pndChild->next;
@@ -3036,12 +3036,12 @@ cxpViewNodeResult(xmlNodePtr pndArg, cxpContextPtr pccArg)
   xmlChar mpucCall[BUFFER_LENGTH];
     resNodePtr prnTarget;
 
-  if (domGetAttributeFlag(pndArg, BAD_CAST "view", FALSE)
+  if (domGetPropFlag(pndArg, BAD_CAST "view", FALSE)
     &&
-    (((pucAttrName = domGetAttributePtr(pndArg, BAD_CAST "name")) != NULL && resPathIsStd(pucAttrName) == FALSE)
-      || (pucAttrName = domGetAttributePtr(pndArg, BAD_CAST "to")) != NULL
-      || (pucAttrName = domGetAttributePtr(pndArg, BAD_CAST "chdir")) != NULL
-      || (pucAttrName = domGetAttributePtr(pndArg, BAD_CAST "mkdir")) != NULL
+    (((pucAttrName = xmlGetProp(pndArg, BAD_CAST "name")) != NULL && resPathIsStd(pucAttrName) == FALSE)
+      || (pucAttrName = xmlGetProp(pndArg, BAD_CAST "to")) != NULL
+      || (pucAttrName = xmlGetProp(pndArg, BAD_CAST "chdir")) != NULL
+      || (pucAttrName = xmlGetProp(pndArg, BAD_CAST "mkdir")) != NULL
       )
     && (prnTarget = cxpResNodeResolveNew(pccArg, NULL, pucAttrName, CXP_O_READ)) != NULL) {
     /*
@@ -3053,7 +3053,7 @@ cxpViewNodeResult(xmlNodePtr pndArg, cxpContextPtr pccArg)
 
     pucPathCall = xmlStrdup(BAD_CAST resNodeGetNameNormalizedNative(prnTarget));
 
-    if ((pucAttrPath = domGetAttributePtr(pndArg, BAD_CAST "path")) != NULL && xmlStrlen(pucAttrPath) > 0) {
+    if ((pucAttrPath = xmlGetProp(pndArg, BAD_CAST "path")) != NULL && xmlStrlen(pucAttrPath) > 0) {
       /* append the anchor/path to the filename */
       pucPathCall = xmlStrcat(pucPathCall, BAD_CAST "#");
       pucPathCall = xmlStrcat(pucPathCall, pucAttrPath);
@@ -3098,7 +3098,7 @@ cxpProcessCopyNode(xmlNodePtr pndArgCopy, cxpContextPtr pccArg)
     resNodePtr prnContent = NULL;
     resNodePtr prnTo = NULL;
 
-    if ((pucTo = domGetAttributePtr(pndArgCopy, BAD_CAST "to")) == NULL || STR_IS_EMPTY(pucTo)
+    if ((pucTo = xmlGetProp(pndArgCopy, BAD_CAST "to")) == NULL || STR_IS_EMPTY(pucTo)
       || (prnTo = cxpResNodeResolveNew(pccArg, pndArgCopy, pucTo, CXP_O_WRITE)) == NULL) {
 #ifdef HAVE_CGI
       printf("Status: 501\r\n"
@@ -3107,8 +3107,8 @@ cxpProcessCopyNode(xmlNodePtr pndArgCopy, cxpContextPtr pccArg)
 #endif
       cxpCtxtLogPrint(pccArg, 1, "No valid target name");
     }
-    else if ((pucFrom = domGetAttributePtr(pndArgCopy, BAD_CAST "from")) == NULL || STR_IS_EMPTY(pucFrom)
-      || (prnFrom = cxpResNodeResolveNew(pccArg, pndArgCopy, pucFrom, ((domGetAttributeFlag(pndArgCopy, BAD_CAST"search", FALSE)) ? CXP_O_SEARCH | CXP_O_READ : CXP_O_READ))) == NULL) {
+    else if ((pucFrom = xmlGetProp(pndArgCopy, BAD_CAST "from")) == NULL || STR_IS_EMPTY(pucFrom)
+      || (prnFrom = cxpResNodeResolveNew(pccArg, pndArgCopy, pucFrom, ((domGetPropFlag(pndArgCopy, BAD_CAST"search", FALSE)) ? CXP_O_SEARCH | CXP_O_READ : CXP_O_READ))) == NULL) {
 #ifdef HAVE_CGI
       printf("Status: 501\r\n"
 	"Content-Type: text/plain\r\n\r\n"
@@ -3137,8 +3137,8 @@ cxpProcessCopyNode(xmlNodePtr pndArgCopy, cxpContextPtr pccArg)
     else if (resNodeIsStd(prnTo)) {
 #ifdef HAVE_CGI
       /* s. RFC 1806 */
-      xmlChar *pucAttrType = domGetAttributePtr(pndArgCopy, BAD_CAST "type");
-      xmlChar *pucAttrDisposition = domGetAttributePtr(pndArgCopy, BAD_CAST "disposition");
+      xmlChar *pucAttrType = xmlGetProp(pndArgCopy, BAD_CAST "type");
+      xmlChar *pucAttrDisposition = xmlGetProp(pndArgCopy, BAD_CAST "disposition");
 
       printf("Content-Type: %s\n", (pucAttrType && xmlStrlen(pucAttrType)>5) ? pucAttrType : BAD_CAST resNodeGetMimeTypeStr(prnContent));
       printf("Content-Disposition: attachment; filename=%s\n", (pucAttrDisposition && xmlStrlen(pucAttrDisposition)>5) ? pucAttrDisposition : resNodeGetNameBase(prnContent));
@@ -3155,7 +3155,7 @@ cxpProcessCopyNode(xmlNodePtr pndArgCopy, cxpContextPtr pccArg)
 	fResult = TRUE;
       }
     }
-    else if (resNodeTransfer(prnContent, prnTo, domGetAttributeFlag(pndArgCopy, BAD_CAST "delete", FALSE)) == FALSE) {
+    else if (resNodeTransfer(prnContent, prnTo, domGetPropFlag(pndArgCopy, BAD_CAST "delete", FALSE)) == FALSE) {
 #ifdef HAVE_CGI
       printf("Status: 503\r\n"
 	"Content-Type: text/plain\r\n\r\n"
@@ -3167,7 +3167,7 @@ cxpProcessCopyNode(xmlNodePtr pndArgCopy, cxpContextPtr pccArg)
     }
 
 #ifdef HAVE_CGI
-    if ((pucAttrResponse = domGetAttributePtr(pndArgCopy, BAD_CAST "response"))) {
+    if ((pucAttrResponse = xmlGetProp(pndArgCopy, BAD_CAST "response"))) {
       printf("Status: 200 OK\r\n"
 	"Content-Type: text/plain;\r\n\r\n"
 	"Cxproc '%s' '%s' = '%s' OK\r\n", pucFrom, pucTo, pucAttrResponse);
