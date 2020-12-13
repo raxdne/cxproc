@@ -1315,6 +1315,7 @@ cxpProcessXmlNode(xmlNodePtr pndArg, cxpContextPtr pccArg)
 	      /* process only but no result DOM expected */
 	      cxpCtxtLogPrint(pccArg, 2, "MAKE evaluation");
 	      cxpProcessMakeNode(pndRoot, pccHere);
+	      xmlFreeDoc(pdocResult);
 	      pdocResult = NULL;
 	    }
 	    else if (IS_NODE_XML(pndRoot)) {
@@ -2165,24 +2166,32 @@ cxpProcessTransformations(const xmlDocPtr pdocArgXml, const xmlNodePtr pndArgPar
       //pccHere = cxpCtxtFromAttr(pccArg,pndArgParent);
 
       if (pdocArgXml == NULL) {
-	xmlNodePtr pndT;
-
 	pdocResult = xmlNewDoc(BAD_CAST "1.0");
-	pndT = xmlNewDocNode(pdocResult, NULL, BAD_CAST"dummy", NULL);
-	xmlDocSetRootElement(pdocResult, pndT);
-	pdocResult->encoding = xmlStrdup(BAD_CAST "UTF-8"); /* according to conversion in ParseImportNodePlainContent() */
+	if (pdocResult) {
+	  xmlNodePtr pndT;
 
-	cxpCtxtLogPrint(pccArg, 1, "Use a new created dummy DOM");
+	  pndT = xmlNewDocNode(pdocResult, NULL, BAD_CAST"dummy", NULL);
+	  xmlDocSetRootElement(pdocResult, pndT);
+	  pdocResult->encoding = xmlStrdup(BAD_CAST "UTF-8"); /* according to conversion in ParseImportNodePlainContent() */
+	  cxpCtxtLogPrint(pccArg, 1, "Use a new created dummy DOM");
+	}
+	else {
+	  cxpCtxtLogPrint(pccArg, 1, "Cant create new DOM");
+	}
       }
       else {
 	pdocResult = xmlCopyDoc(pdocArgXml,1);
+	if (pdocResult) {
+	  cxpCtxtLogPrint(pccArg, 1, "Use a fresh copy of DOM");
+	}
+	else {
+	  cxpCtxtLogPrint(pccArg, 1, "Cant copy DOM");
+	}
       }
-      assert(pdocResult != NULL);
 
       /*! step all transformation nodes (subst, xsl), ending with DOM or plain result
        */
       for (pndChild=pndArgParent->children; pndChild != NULL; pndChild=pndChildNext) {
-	xmlDocPtr pdocT;	/* preliminary result DOM */
 
 	pndChildNext = pndChild->next; /* because of node removal after substitution */
 
@@ -2204,6 +2213,8 @@ cxpProcessTransformations(const xmlDocPtr pdocArgXml, const xmlNodePtr pndArgPar
 	    cxpSubstFree(pcxpSubstT);
 	  }
 	  else if (pdocResult) {
+	    xmlDocPtr pdocT;	/* preliminary result DOM */
+
 	    pdocT = xmlCopyDoc(pdocResult, 1);
 	    if (pdocT) {
 	      cxpSubstInChildNodes(xmlDocGetRootElement(pdocT), pndChild, pccArg);
@@ -2219,6 +2230,7 @@ cxpProcessTransformations(const xmlDocPtr pdocArgXml, const xmlNodePtr pndArgPar
 	}
 	else if (IS_NODE_XPATH(pndChild)) {
 	  xmlChar* pucXpath;
+	  xmlDocPtr pdocT;	/* preliminary result DOM */
 
 	  if (pucResult) {
 	    break;
@@ -2266,24 +2278,31 @@ cxpProcessTransformations(const xmlDocPtr pdocArgXml, const xmlNodePtr pndArgPar
 	    //cxpCtxtLogPrintDoc(pccArg,1,NULL,pdocArgXml);
 	    //cxpCtxtLogPrintDoc(pccArg,1,NULL,pdocXsl);
 
-	    if (xmlStrEqual(domGetXslOutputMethod(pdocXsl), BAD_CAST"text")) {
-	      /*!\todo test on following XSL nodes */
+	    if (xmlStrEqual(domGetXslOutputMethod(pdocXsl), BAD_CAST"xml")
+	      || xmlStrEqual(domGetXslOutputMethod(pdocXsl), BAD_CAST"html")) {
+	      xmlDocPtr pdocT;	/* preliminary result DOM */
 
-	      pucResult = cxpXslTransformToText(pdocResult, pdocXsl, ppchParam, pccHere);
-	      xmlFreeDoc(pdocResult);
-	      pdocResult = NULL; /* loop ends when pdocResult is NULL */
-	    }
-	    else {
 	      pdocT = cxpXslTransformToDom(pdocResult, pdocXsl, ppchParam, pccHere);
 	      if (pdocT != NULL && pdocT != pdocResult) {
 		xmlFreeDoc(pdocResult);
-		pdocResult = pdocT;
+		pdocResult = pdocT; /* new result DOM */
 	      }
 	      else {
 		cxpCtxtLogPrint(pccArg, 1, "No result with Stylesheet '%s'", pucNameFileXsl);
 		xmlFreeDoc(pdocResult);
 		pdocResult = NULL;
 	      }
+	    }
+	    else if (xmlStrEqual(domGetXslOutputMethod(pdocXsl), BAD_CAST"text")) {
+	      /*!\todo test on following XSL nodes */
+	      pucResult = cxpXslTransformToText(pdocResult, pdocXsl, ppchParam, pccHere);
+	      xmlFreeDoc(pdocResult);
+	      pdocResult = NULL; /* loop ends when pdocResult is NULL */
+	    }
+	    else {
+	      xmlFreeDoc(pdocResult);
+	      pdocResult = NULL;
+	      cxpCtxtLogPrint(pccArg, 1, "No <xsl:output> defined");
 	    }
 
 	    cxpXslParamFree(ppchParam);
@@ -2307,7 +2326,8 @@ cxpProcessTransformations(const xmlDocPtr pdocArgXml, const xmlNodePtr pndArgPar
 	  *ppucArgResult = pucResult;
 	}
 	else {
-	  xmlDocDumpFormatMemory(pdocResult, ppucArgResult, &l, 1);
+	  xmlDocDumpFormatMemoryEnc(pdocResult, ppucArgResult, &l, "UTF-8", 1);
+	  xmlFreeDoc(pdocResult);
 	}
 	fResult = TRUE;
       }

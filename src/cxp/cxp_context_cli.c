@@ -913,9 +913,7 @@ cxpCtxtCliAddXsl(xmlNodePtr pndArgParent, cxpContextPtr pccArg)
     assert(k < 256);
     pucArgvN = cxpCtxtCliGetValue(pccArg,k);
     if (STR_IS_NOT_EMPTY(pucArgvN)) {
-      prnT = resNodeDup(cxpCtxtLocationGet(pccArg), RN_DUP_THIS);
-      resNodeReset(prnT, pucArgvN);
-      resNodeResetMimeType(prnT);
+      prnT = resNodeConcatNew(cxpCtxtLocationGetStr(pccArg), pucArgvN);
       if (resNodeGetMimeType(prnT) == MIME_TEXT_XSL) {
 	xmlNodePtr pndXsl;
 	xmlDocPtr pdocXsl;

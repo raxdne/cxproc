@@ -1620,7 +1620,7 @@ ELSE(MSVC)
   # http://stackoverflow.com/questions/40325957/how-do-i-add-valgrind-tests-to-my-cmake-test-target
   add_custom_target(test_memcheck
     COMMAND ${CMAKE_CTEST_COMMAND} --force-new-ctest-process --test-action memcheck
-    COMMAND cat "${CXPROC_PREFIX}/Testing/Temporary/MemoryChecker.*.log")
+    )
 ENDIF(MSVC)
 
 # set envionment variables for testing

@@ -31,6 +31,8 @@ popd
 
 set PREFIX=%CXPBASE%..\..\%ARCH%
 
+SET DIR_BIN="%PREFIX%\bin"
+md %DIR_BIN%
 SET DIR_BUILD="%PREFIX%\build"
 md %DIR_BUILD%
 SET DIR_DOC="%PREFIX%\doc"
@@ -62,6 +64,7 @@ popd
 
 pushd %CXPBASE%..
 REM "C:\UserData\Programme\cmake\bin\cmake.exe" -B %DIR_BUILD% -G "Visual Studio 16 2019" -A %VSCMD_ARG_TGT_ARCH% -DCMAKE_TOOLCHAIN_FILE=C:\UserData\Develop\vcpkg\scripts\buildsystems\vcpkg.cmake -D CXPROC_DOC:BOOL=OFF -D CXPROC_PIE:BOOL=ON -D CXPROC_EXPERIMENTAL:BOOL=OFF -D CXPROC_DEBUG:BOOL=OFF -D CXPROC_CXX:BOOL=OFF
+REM "C:\UserData\Programme\cmake\bin\cmake.exe" --build %DIR_BUILD% --config Release --target cxproc
 popd
 
 REM TODO: CPack s. https://cmake.org/cmake/help/latest/module/CPack.html

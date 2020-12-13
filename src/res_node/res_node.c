@@ -1403,9 +1403,12 @@ resNodeInsertStrNew(resNodePtr prnArg, xmlChar* pucArgPath)
     prnT = resNodeSplitStrNew(pucArgPath);
     if (prnT) {
       prnResult = resNodeInsert(prnArg,prnT);
+#if 0
       if (prnResult != prnT) {
-//	resNodeFree(prnT);
+	resNodeFree(prnT);
       }
+#endif
+      /*!\bug free rest of prnT */
     }
   }
   return prnResult;
