@@ -495,7 +495,7 @@ domGetFirstChild(xmlNodePtr pndArg, xmlChar *pucNameElement)
 BOOL_T
 domGetPropFlag(xmlNodePtr pndArg, xmlChar *pucNameAttr, BOOL_T fDefault)
 {
-  xmlChar *pucAttr = xmlGetProp(pndArg,pucNameAttr);
+  xmlChar *pucAttr = domGetPropValuePtr(pndArg,pucNameAttr);
 
   if (pucAttr) {
     if (xmlStrcasecmp(pucAttr,BAD_CAST "yes")==0) {
@@ -520,7 +520,7 @@ BOOL_T
 domPropIsEqual(xmlNodePtr pndArg, xmlChar *pucNameAttr, xmlChar *pucValueAttr)
 {
   BOOL_T fResult = FALSE;
-  xmlChar *pucAttr = xmlGetProp(pndArg,pucNameAttr);
+  xmlChar *pucAttr = domGetPropValuePtr(pndArg,pucNameAttr);
 
   if (STR_IS_NOT_EMPTY(pucAttr) && STR_IS_NOT_EMPTY(pucValueAttr)
       && xmlStrcasecmp(pucAttr,pucValueAttr)==0) {
@@ -529,6 +529,29 @@ domPropIsEqual(xmlNodePtr pndArg, xmlChar *pucNameAttr, xmlChar *pucValueAttr)
   return fResult;
 }
 /* End of domPropIsEqual() */
+
+
+/*! similar to xmlGetProp() but returns only a pointer
+* 
+\param pndArg parent node for attributes
+\param pucNameAttr name of wanted attribute
+\return the content pointer of the attribute named 'pucNameAttr'
+of 'pndArg' OR NULL if no attribute found
+*/
+xmlChar *
+domGetPropValuePtr(xmlNodePtr pndArg, xmlChar *pucNameAttr)
+{
+  xmlChar *pucResult = NULL;
+
+  if (pndArg != NULL && STR_IS_NOT_EMPTY(pucNameAttr)) {
+    xmlAttrPtr patAttr;
+
+    if ((patAttr = xmlHasProp(pndArg, pucNameAttr)) != NULL && patAttr->children != NULL && patAttr->children->type == XML_TEXT_NODE) {
+      pucResult = patAttr->children->content;
+    }
+  }
+  return pucResult;
+} /* End of domGetPropValuePtr() */
 
 
 /*!
@@ -1409,7 +1432,7 @@ domGetXslOutputMethod(xmlDocPtr pdocArg)
     //domPutDocString(stderr, "DOM contains no XML stylesheet", pdocArg);
   }
   else if ((pndArgXslOutput = domGetFirstChild(pndRootXsl,BAD_CAST"output")) == NULL
-      || (pucMethod = xmlGetProp(pndArgXslOutput,BAD_CAST"method")) == NULL) {
+      || (pucMethod = domGetPropValuePtr(pndArgXslOutput,BAD_CAST"method")) == NULL) {
     PrintFormatLog(1,"XML stylesheet contains no output method");
   }
 

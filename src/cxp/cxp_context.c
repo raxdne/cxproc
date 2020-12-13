@@ -297,7 +297,7 @@ cxpCtxtSaveFileNode(cxpContextPtr pccArg,xmlNodePtr pndArg,xmlDocPtr pdocArgOutp
   }
 
   /*! cache DOM if required */
-  pucAttrNameCached = xmlGetProp(pndArg,BAD_CAST "cacheas");
+  pucAttrNameCached = domGetPropValuePtr(pndArg,BAD_CAST "cacheas");
   if (STR_IS_NOT_EMPTY(pucAttrNameCached)) {
     /* symbol is ID, ready for later transformations */
     if (pdocArgOutput) {
@@ -311,7 +311,7 @@ cxpCtxtSaveFileNode(cxpContextPtr pccArg,xmlNodePtr pndArg,xmlDocPtr pdocArgOutp
     pucAttrNameCached = NULL;
   }
 
-  pucAttrName = xmlGetProp(pndArg,BAD_CAST "name");
+  pucAttrName = domGetPropValuePtr(pndArg,BAD_CAST "name");
   if (STR_IS_NOT_EMPTY(pucAttrName)) {
     if (resPathIsStd(pucAttrName)) {
       /* stdout */
@@ -335,11 +335,11 @@ cxpCtxtSaveFileNode(cxpContextPtr pccArg,xmlNodePtr pndArg,xmlDocPtr pdocArgOutp
     pucAttrName = NULL;
   }
 
-  pucAttrResponse = xmlGetProp(pndArg,BAD_CAST "response");
+  pucAttrResponse = domGetPropValuePtr(pndArg,BAD_CAST "response");
 
-  pucAttrEncoding = xmlGetProp(pndArg,BAD_CAST "encoding");
+  pucAttrEncoding = domGetPropValuePtr(pndArg,BAD_CAST "encoding");
 
-  fAppend = (pucAttrMode = xmlGetProp(pndArg,BAD_CAST "mode")) && xmlStrcasecmp(pucAttrMode,BAD_CAST "append")==0;
+  fAppend = (pucAttrMode = domGetPropValuePtr(pndArg,BAD_CAST "mode")) && xmlStrcasecmp(pucAttrMode,BAD_CAST "append")==0;
 
   /*!\todo respect the other \@mode values (s. DTD) */
 
@@ -363,8 +363,8 @@ cxpCtxtSaveFileNode(cxpContextPtr pccArg,xmlNodePtr pndArg,xmlDocPtr pdocArgOutp
   }
   else if (resNodeGetType(prnOutput) == rn_type_stdout) {
     /* s. RFC 1806 */
-    xmlChar *pucAttrType = xmlGetProp(pndArg,BAD_CAST "type");
-    xmlChar *pucAttrDisposition = xmlGetProp(pndArg,BAD_CAST "disposition");
+    xmlChar *pucAttrType = domGetPropValuePtr(pndArg,BAD_CAST "type");
+    xmlChar *pucAttrDisposition = domGetPropValuePtr(pndArg,BAD_CAST "disposition");
     printf("Content-Type: ");
     if (pucAttrType && xmlStrlen(pucAttrType)>5) {
       printf("%s;",pucAttrType);
@@ -606,7 +606,7 @@ cxpCtxtFromAttr(cxpContextPtr pccArg, xmlNodePtr pndArg)
     resNodeFree(prnT);
   }
 
-  pucAttr = xmlGetProp(pndArg, BAD_CAST "log");
+  pucAttr = domGetPropValuePtr(pndArg, BAD_CAST "log");
   if (STR_IS_NOT_EMPTY(pucAttr)) {
     iAttr = atoi((const char *)pucAttr);
     if (iAttr == cxpCtxtLogGetLevel(pccArg) || iAttr > 5) {

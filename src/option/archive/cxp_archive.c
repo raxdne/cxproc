@@ -71,7 +71,7 @@ arcProcessZipNode(xmlNodePtr pndArgZip, cxpContextPtr pccArg)
 
       resNodeSetMimeType(prnZip,MIME_APPLICATION_ZIP);
 #if 0
-      if ((pucT = xmlGetProp(pndArgZip, BAD_CAST"context"))) {
+      if ((pucT = domGetPropValuePtr(pndArgZip, BAD_CAST"context"))) {
 	pccHere = cxpCtxtFromAttr(pccArg, pndArgZip);
       }
       else {
@@ -103,7 +103,7 @@ arcProcessZipNode(xmlNodePtr pndArgZip, cxpContextPtr pccArg)
 	xmlNodePtr pndChildZip = NULL;
 
 	/*!\todo set depth attribute per single dir element, instead of global */
-	if ((pucAttr = xmlGetProp(pndArgZip, BAD_CAST "level")) != NULL
+	if ((pucAttr = domGetPropValuePtr(pndArgZip, BAD_CAST "level")) != NULL
 	  && ((iLevelCompress = atoi((char*)pucAttr)) > 0)) {
 	  cxpCtxtLogPrint(pccArg, 3, "Set compress level to '%i'", iLevelCompress);
 	}

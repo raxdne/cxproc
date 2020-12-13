@@ -150,7 +150,7 @@ rpProcessImage(xmlNodePtr pndArg, resNodePtr prnArgSrc, resNodePtr prnArgTo)
      */
     height_frame = 0;
     width_frame  = 0;
-    pucAttrFrame = xmlGetProp(pndArg,BAD_CAST "frame");
+    pucAttrFrame = domGetPropValuePtr(pndArg,BAD_CAST "frame");
     if (pucAttrFrame) {
       char *pcEnd;
       width_frame = (unsigned long) strtol((const char *)pucAttrFrame, &pcEnd, 10);
@@ -256,7 +256,7 @@ rpProcessImage(xmlNodePtr pndArg, resNodePtr prnArgSrc, resNodePtr prnArgTo)
 
     /*! allow visible annotation of pImage */
 
-    pucAttrNote = xmlGetProp(pndArg,BAD_CAST "note");
+    pucAttrNote = domGetPropValuePtr(pndArg,BAD_CAST "note");
     if (pucAttrNote != NULL && xmlStrlen(pucAttrNote) > 0) {
       DrawInfo *pDrawInfo;
       int res;
@@ -350,7 +350,7 @@ rpMain(xmlNodePtr pndArg, cxpContextPtr pccArg)
 #if 0
   xmlChar *pucAttrTo;
 
-  pucAttrTo  = xmlGetProp(pndArg,BAD_CAST "to");
+  pucAttrTo  = domGetPropValuePtr(pndArg,BAD_CAST "to");
   if ((pucAttrTo != NULL && xmlStrlen(pucAttrTo) > 0)) {
     xmlNodePtr pndChild;
     resNodePtr prnTo;
@@ -360,7 +360,7 @@ rpMain(xmlNodePtr pndArg, cxpContextPtr pccArg)
     if ((pndChild = domGetFirstChild(pndArg,NAME_IMAGE))) {
       xmlChar *pucAttrSrc;
 
-      pucAttrSrc = xmlGetProp(pndChild,BAD_CAST "src");
+      pucAttrSrc = domGetPropValuePtr(pndChild,BAD_CAST "src");
       if ((pucAttrSrc != NULL && xmlStrlen(pucAttrSrc) > 0)) {
 	resNodePtr prnSrc;
 

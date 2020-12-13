@@ -553,7 +553,7 @@ ParsePlainBuffer(xmlNodePtr pndArgTop, xmlChar* pucArg, rmode_t eArgMode)
     /* encode all XML entities in 'pucArg' */
     if ((pucText = StringDecodeNumericCharsNew(pucArg))) {
       ppeT = pieElementNew(pucText, eArgMode, LANG_DEFAULT);
-      /*\todo iMax = xmlGetProp(pndArgImport, BAD_CAST "max"); */
+      /*\todo iMax = domGetPropValuePtr(pndArgImport, BAD_CAST "max"); */
       iMax = 512 * 1024;
     }
     else { /*  */
@@ -601,7 +601,7 @@ ParsePlainBuffer(xmlNodePtr pndArgTop, xmlChar* pucArg, rmode_t eArgMode)
 
 	  /* append to result DOM */
 	  if (pieElementGetMode(ppeT) == RMODE_TABLE) {
-	    if (IS_NODE_PIE_SECTION(pndParent) && xmlStrEqual(xmlGetProp(pndParent, BAD_CAST"type"), BAD_CAST "table")) {
+	    if (IS_NODE_PIE_SECTION(pndParent) && xmlStrEqual(domGetPropValuePtr(pndParent, BAD_CAST"type"), BAD_CAST "table")) {
 	      /* there is a table parent already */
 	    }
 	    else {
@@ -627,7 +627,7 @@ ParsePlainBuffer(xmlNodePtr pndArgTop, xmlChar* pucArg, rmode_t eArgMode)
     //domPutNodeString(stderr, BAD_CAST"", pndArgTop);
 
     if (pieElementGetMode(ppeT) == RMODE_TABLE) {
-      TransformToTable(pndArgTop, pndParent, xmlGetProp(pndParent, BAD_CAST"sep"));
+      TransformToTable(pndArgTop, pndParent, domGetPropValuePtr(pndParent, BAD_CAST"sep"));
       CompressTable(pndParent);
       AddTableCellsEmpty(pndParent);
       xmlUnsetProp(pndParent, BAD_CAST "sep");
@@ -1065,7 +1065,7 @@ IsImportCircularStr(xmlNodePtr pndArg, xmlChar *pucArgURI)
     xmlChar *pucT;
 
     for (pndT=pndArg->parent; pndT != NULL && fResult == FALSE; pndT=pndT->parent) {
-      if ((pucT = xmlGetProp(pndT, BAD_CAST"context"))) {
+      if ((pucT = domGetPropValuePtr(pndT, BAD_CAST"context"))) {
 	if (resPathIsEquivalent(pucT, pucArgURI)) {
 	  PrintFormatLog(1, "Error circular for '%s' found", pucArgURI);
 	  fResult = TRUE;
@@ -1767,11 +1767,11 @@ RecognizeUrls(xmlNodePtr pndArg)
 	  /* nothing found */
 	}
 	else if (IS_NODE_PIE_LINK(pndArg)) {
-	  if (xmlGetProp(pndArg,BAD_CAST"href")==NULL) {
+	  if (domGetPropValuePtr(pndArg,BAD_CAST"href")==NULL) {
 	    /* URL inside a link with no href attribute */
 	    xmlNodePtr pndFirstLink = domGetFirstChild(pndReplace,NAME_PIE_LINK);
 	    assert(pndFirstLink != NULL);
-	    xmlSetProp(pndArg, BAD_CAST "href", xmlGetProp(pndFirstLink,BAD_CAST"href"));
+	    xmlSetProp(pndArg, BAD_CAST "href", domGetPropValuePtr(pndFirstLink,BAD_CAST"href"));
 	  }
 	  xmlFreeNodeList(pndReplace);
 	}
@@ -1784,7 +1784,7 @@ RecognizeUrls(xmlNodePtr pndArg)
 
 	  xmlNodeSetName(pndArg, NAME_PIE_FIG);
 	  xmlNodeSetContent(pndArg,NULL);
-	  xmlNewChild(pndArg, NULL, NAME_PIE_HEADER, xmlGetProp(pndT, BAD_CAST"title"));
+	  xmlNewChild(pndArg, NULL, NAME_PIE_HEADER, domGetPropValuePtr(pndT, BAD_CAST"title"));
 	  xmlUnlinkNode(pndT);
 	  xmlAddChild(pndArg, pndT);
 	  xmlFreeNode(pndReplace);
@@ -2715,7 +2715,7 @@ SetTypeAttr(xmlNodePtr pndArgImport, rmode_t eArgMode)
     xmlChar *pucAttrType;
 
     fResult = TRUE;
-    if ((pucAttrType = xmlGetProp(pndArgImport, BAD_CAST "type")) != NULL) {
+    if ((pucAttrType = domGetPropValuePtr(pndArgImport, BAD_CAST "type")) != NULL) {
       /* type is defined already, dont change it */
       fResult = (xmlStrEqual(pucAttrType, BAD_CAST "line") && eArgMode == RMODE_LINE)
 	|| (xmlStrEqual(pucAttrType, BAD_CAST "log") && eArgMode == RMODE_LINE)
@@ -2791,12 +2791,12 @@ GetModeByAttr(xmlNodePtr pndArgImport)
   if (IS_NODE_PIE_IMPORT(pndArgImport) || IS_NODE_PIE_BLOCK(pndArgImport)) {
     xmlChar *pucAttrType;
     
-    if ((pucAttrType = xmlGetProp(pndArgImport, BAD_CAST "type")) == NULL) {
+    if ((pucAttrType = domGetPropValuePtr(pndArgImport, BAD_CAST "type")) == NULL) {
       xmlChar *pucAttrName;
       xmlChar *pucAttrNameExt;
       /* no type is defined */
       
-      if ((pucAttrName = xmlGetProp(pndArgImport, BAD_CAST "name")) != NULL
+      if ((pucAttrName = domGetPropValuePtr(pndArgImport, BAD_CAST "name")) != NULL
 	  && (pucAttrNameExt = resPathGetExtension(pucAttrName)) != NULL) {
 	PrintFormatLog(1, "Ext '%s'", pucAttrNameExt);
 	eResultMode = GetModeByExtension(pucAttrNameExt);

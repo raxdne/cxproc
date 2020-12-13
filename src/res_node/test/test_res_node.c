@@ -1899,10 +1899,10 @@ resNodeTest(void)
     else if (IS_NODE_FILE(pndTest) == FALSE || IS_NODE_PIE(pndTest->children) == FALSE) {
       xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error PIE\n");
     }
-    else if (xmlGetProp(pndTest,BAD_CAST"object") != NULL) {
+    else if (domGetPropValuePtr(pndTest,BAD_CAST"object") != NULL) {
       xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error object\n");
     }
-    else if (xmlStrEqual(xmlGetProp(pndTest,BAD_CAST"type"), BAD_CAST resNodeGetMimeTypeStr(prnT)) == FALSE) {
+    else if (xmlStrEqual(domGetPropValuePtr(pndTest,BAD_CAST"type"), BAD_CAST resNodeGetMimeTypeStr(prnT)) == FALSE) {
       xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error domGetFirstChild()\n");
     }
     else {
@@ -1946,10 +1946,10 @@ resNodeTest(void)
     else if (IS_NODE_FILE(pndTest) == FALSE || pndTest->children != NULL) {
       xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error PIE\n");
     }
-    else if (xmlStrEqual(xmlGetProp(pndTest,BAD_CAST"type"), BAD_CAST resNodeGetMimeTypeStr(prnT)) == FALSE) {
+    else if (xmlStrEqual(domGetPropValuePtr(pndTest,BAD_CAST"type"), BAD_CAST resNodeGetMimeTypeStr(prnT)) == FALSE) {
       xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error type\n");
     }
-    else if (xmlStrEqual(xmlGetProp(pndTest,BAD_CAST"object"), BAD_CAST "TESTCONTENT.DRW") == FALSE) {
+    else if (xmlStrEqual(domGetPropValuePtr(pndTest,BAD_CAST"object"), BAD_CAST "TESTCONTENT.DRW") == FALSE) {
       xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error object\n");
     }
     else {

@@ -415,7 +415,7 @@ dbResNodeDatabaseOpenNew(xmlNodePtr pndArg, cxpContextPtr pccArg)
   /*
     detect the necessary connection informations
   */
-  pucNameDb = xmlGetProp(pndArg, BAD_CAST "name");
+  pucNameDb = domGetPropValuePtr(pndArg, BAD_CAST "name");
   fWrite = domGetPropFlag(pndArg, BAD_CAST"write", FALSE);
   fAppend = domGetPropFlag(pndArg, BAD_CAST"append", fWrite);
 
@@ -469,7 +469,7 @@ dbProcessDirNode(resNodePtr prnArgDb, xmlNodePtr pndArgDir, cxpContextPtr pccArg
   }
 
   /*!\todo set depth attribute per single dir element, instead of global */
-  if ((pucAttrDepth = xmlGetProp(pndArgDir,BAD_CAST "depth"))!=NULL
+  if ((pucAttrDepth = domGetPropValuePtr(pndArgDir,BAD_CAST "depth"))!=NULL
       && ((iDepth = atoi((char *)pucAttrDepth)) > 0)) {
   }
   else {
@@ -480,10 +480,10 @@ dbProcessDirNode(resNodePtr prnArgDb, xmlNodePtr pndArgDir, cxpContextPtr pccArg
   iLevelVerbose = dirMapInfoVerbosity(pndArgDir,pccArg);
   
 #ifdef HAVE_PCRE2
-  if (((pucAttrMatch = xmlGetProp(pndArgDir, BAD_CAST "imatch")) != NULL
+  if (((pucAttrMatch = domGetPropValuePtr(pndArgDir, BAD_CAST "imatch")) != NULL
     && xmlStrlen(pucAttrMatch) > 0)
     ||
-    ((pucAttrMatch = xmlGetProp(pndArgDir, BAD_CAST "match")) != NULL
+    ((pucAttrMatch = domGetPropValuePtr(pndArgDir, BAD_CAST "match")) != NULL
     && xmlStrlen(pucAttrMatch) > 0)) {
     size_t erroroffset;
     int errornumber;
@@ -529,7 +529,7 @@ dbProcessDirNode(resNodePtr prnArgDb, xmlNodePtr pndArgDir, cxpContextPtr pccArg
       continue;
     }
 
-    pucPath = xmlGetProp(pndChild,BAD_CAST "name");
+    pucPath = domGetPropValuePtr(pndChild,BAD_CAST "name");
     if (pucPath == NULL || xmlStrlen(pucPath) < 1) {
 #ifdef HAVE_CGI
       pucPath = xmlStrdup(resNodeGetNameNormalized(cxpCtxtRootGet(pccArg)));

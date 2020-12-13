@@ -199,7 +199,7 @@ dirTest(cxpContextPtr pccArg)
     else if (xmlHasProp(pndT, BAD_CAST"prefix") == NULL) {
       printf("Error xmlHasProp()\n");
     }
-    else if ((pucT = xmlGetProp(pndTT, BAD_CAST"prefix")) == NULL || xmlStrEqual(pucT, resNodeGetNameNormalized(prnTT)) == FALSE) {
+    else if ((pucT = domGetPropValuePtr(pndTT, BAD_CAST"prefix")) == NULL || xmlStrEqual(pucT, resNodeGetNameNormalized(prnTT)) == FALSE) {
       printf("Error xmlStrEqual()\n");
     }
     else {

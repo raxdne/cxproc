@@ -87,6 +87,9 @@ domNumberOfChild(xmlNodePtr pndArg, xmlChar *pucNameElement);
 extern xmlNodePtr
 domGetFirstChild(xmlNodePtr pndArg, xmlChar *pucNameElement);
 
+extern xmlChar *
+domGetPropValuePtr(xmlNodePtr pndArg, xmlChar *pucNameAttr);
+
 extern void
 domUnsetPropAll(xmlNodePtr pndArg);
 

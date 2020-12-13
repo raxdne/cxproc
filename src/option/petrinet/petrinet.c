@@ -299,15 +299,15 @@ pnetProcessNode(xmlNodePtr pndArg, cxpContextPtr pccArg)
 	    xmlChar *pucAttrNMax;
 
 	    pnetSetPathLength(ppnNew,
-	      (char *)xmlGetProp(pndArg, BAD_CAST "lmin"),
-	      (char *)xmlGetProp(pndArg, BAD_CAST "lmax"), pccArg);
+	      (char *)domGetPropValuePtr(pndArg, BAD_CAST "lmin"),
+	      (char *)domGetPropValuePtr(pndArg, BAD_CAST "lmax"), pccArg);
 
-	    pucAttrStart = xmlGetProp(pndArg, BAD_CAST "start");
+	    pucAttrStart = domGetPropValuePtr(pndArg, BAD_CAST "start");
 	    if (pucAttrStart != NULL && xmlStrlen(pucAttrStart) > 0 && pnetSetStart(ppnNew, pucAttrStart, pccArg)) {
 
 	      /*!\todo insert meta element */
 
-	      if ((pucAttrNMax = xmlGetProp(pndArg, BAD_CAST "nmax"))) {
+	      if ((pucAttrNMax = domGetPropValuePtr(pndArg, BAD_CAST "nmax"))) {
 		ppnNew->n_max = atoi((const char *)pucAttrNMax);
 	      }
 	      else {
@@ -318,9 +318,9 @@ pnetProcessNode(xmlNodePtr pndArg, cxpContextPtr pccArg)
 		xmlChar *pucAttrTarget;
 
 		/* target knot required */
-		pucAttrTarget = xmlGetProp(pndArg, BAD_CAST "target");
+		pucAttrTarget = domGetPropValuePtr(pndArg, BAD_CAST "target");
 		if (pucAttrTarget != NULL && xmlStrlen(pucAttrTarget) > 0 && pnetSetTarget(ppnNew, pucAttrTarget, pccArg)) {
-		  if (xmlStrEqual(xmlGetProp(pndArg, BAD_CAST"type"), BAD_CAST"xml")) {
+		  if (xmlStrEqual(domGetPropValuePtr(pndArg, BAD_CAST"type"), BAD_CAST"xml")) {
 		    pdocResult = pnetProcessPathtableSource(ppnNew, pccArg);
 		  }
 		  else {
@@ -332,7 +332,7 @@ pnetProcessNode(xmlNodePtr pndArg, cxpContextPtr pccArg)
 		}
 	      }
 	      else if (IS_NODE(pndArg, NAME_PATHNET)) {
-		if (xmlStrEqual(xmlGetProp(pndArg, BAD_CAST"type"), BAD_CAST"xml")) {
+		if (xmlStrEqual(domGetPropValuePtr(pndArg, BAD_CAST"type"), BAD_CAST"xml")) {
 		  pdocResult = pnetProcessPathnet(ppnNew, TRUE, pccArg);
 		}
 		else {
@@ -379,7 +379,7 @@ pnetNew(xmlDocPtr pdocXml, cxpContextPtr pccArg)
     ppnResult->pndRoot = xmlDocGetRootElement(pdocXml); /* Get the root element node */
     
     /* set id of petrinet */
-    ppnResult->pucId = xmlGetProp(ppnResult->pndRoot, BAD_CAST  "id");
+    ppnResult->pucId = domGetPropValuePtr(ppnResult->pndRoot, BAD_CAST  "id");
     if (KNOTID(ppnResult)==NULL) {
       /* no valid id set */
       ppnResult->pucId = xmlStrdup(BAD_CAST  "anonymous");
@@ -527,7 +527,7 @@ pnetInitKnots(petrinet_t *ppnArg, xmlNode *pndArg, cxpContextPtr pccArg)
 	assert(i > -1);
 	ppnArg->s[i].i = i;
 	ppnArg->s[i].type = state;
-	ppnArg->s[i].pucId = xmlGetProp(pndT, BAD_CAST  "id");
+	ppnArg->s[i].pucId = domGetPropValuePtr(pndT, BAD_CAST  "id");
 	ppnArg->s[i].pndSource = pndT;
 	cxpCtxtLogPrint(pccArg, 4,"'%s' '%s'", NAME_STATE, ppnArg->s[i].pucId);
 	ppnArg->n_s++;
@@ -538,7 +538,7 @@ pnetInitKnots(petrinet_t *ppnArg, xmlNode *pndArg, cxpContextPtr pccArg)
 	assert(i > -1);
 	ppnArg->t[i].i = i;
 	ppnArg->t[i].type = transition;
-	ppnArg->t[i].pucId = xmlGetProp(pndT, BAD_CAST  "id");
+	ppnArg->t[i].pucId = domGetPropValuePtr(pndT, BAD_CAST  "id");
 	ppnArg->t[i].pndSource = pndT;
 	cxpCtxtLogPrint(pccArg, 4,"'%s' '%s'", NAME_TRANSITION, ppnArg->t[i].pucId);
 	ppnArg->n_t++;
@@ -668,8 +668,8 @@ pnetInitEdges(petrinet_t *ppnArg, edge_t *pEdgeArg, xmlNode * pndArg, cxpContext
 
 	pEdgeArg->pndSource = pndT;
 	pEdgeArg->fMarker = TRUE;
-	pucAttrFrom = xmlGetProp(pndT, BAD_CAST  "from");
-	pucAttrTo = xmlGetProp(pndT, BAD_CAST  "to");
+	pucAttrFrom = domGetPropValuePtr(pndT, BAD_CAST  "from");
+	pucAttrTo = domGetPropValuePtr(pndT, BAD_CAST  "to");
 
 	if (pucAttrFrom && pucAttrTo) {
 	  a = pnetGetStateIndexForId(ppnArg, pucAttrFrom);

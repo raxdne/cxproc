@@ -108,8 +108,8 @@ pieGetAncestorContextStr(xmlNodePtr pndArg)
     xmlNodePtr pndT;
 
     for (pndT=pndArg; pndT; pndT=pndT->parent) {
-      if ((pucResult = xmlGetProp(pndT, BAD_CAST"context"))
-	|| (pucResult = xmlGetProp(pndT, BAD_CAST"prefix"))) {
+      if ((pucResult = domGetPropValuePtr(pndT, BAD_CAST"context"))
+	|| (pucResult = domGetPropValuePtr(pndT, BAD_CAST"prefix"))) {
 	pucResult = xmlStrdup(pucResult);
 	break;
       }
@@ -342,7 +342,7 @@ pieProcessPieNode(xmlNodePtr pndArgPie, cxpContextPtr pccArg)
 
     //xmlSetProp(pndArgPie, BAD_CAST "xpath",BAD_CAST "/*/*[1]/*[1]/*[1]/*");
 
-    pucAttr = xmlGetProp(pndArgPie, BAD_CAST "xpath"); /*  */
+    pucAttr = domGetPropValuePtr(pndArgPie, BAD_CAST "xpath"); /*  */
     if (STR_IS_NOT_EMPTY(pucAttr) && xmlStrEqual(pucAttr,BAD_CAST"/*") == FALSE) {
       xmlDocPtr pdocResultXPath;
 
@@ -354,7 +354,7 @@ pieProcessPieNode(xmlNodePtr pndArgPie, cxpContextPtr pccArg)
       }
     }
 
-    pucAttr = xmlGetProp(pndArgPie, BAD_CAST "tags"); /* domGetPropFlag() not used because of (empty|yes|no|regexp) */
+    pucAttr = domGetPropValuePtr(pndArgPie, BAD_CAST "tags"); /* domGetPropFlag() not used because of (empty|yes|no|regexp) */
     if (STR_IS_NOT_EMPTY(pucAttr) && xmlStrcasecmp(pucAttr, BAD_CAST "no") == 0) {
       /* explicit: no */
     }
@@ -365,7 +365,7 @@ pieProcessPieNode(xmlNodePtr pndArgPie, cxpContextPtr pccArg)
 
     //xmlSetProp(pndArgPie, BAD_CAST "pattern", BAD_CAST "t[contains(text(),'Year')]");
 
-    pucAttr = xmlGetProp(pndArgPie, BAD_CAST "pattern"); /*  */
+    pucAttr = domGetPropValuePtr(pndArgPie, BAD_CAST "pattern"); /*  */
     if (STR_IS_NOT_EMPTY(pucAttr)) {
       xmlChar *pucTT;
 
@@ -621,7 +621,7 @@ ImportNodeFile(xmlNodePtr pndArgImport, cxpContextPtr pccArg)
       else {
 	iMimeType = resNodeGetMimeType(prnInput);
       }
-      pucAttrType = xmlGetProp(pndBlock, BAD_CAST"type");
+      pucAttrType = domGetPropValuePtr(pndBlock, BAD_CAST"type");
 
       /* set a new cxpContext with file-based location */
       pccInput = cxpCtxtNew();
@@ -831,7 +831,7 @@ ImportNodeContent(xmlNodePtr pndArgImport, cxpContextPtr pccArg)
   xmlNodeSetName(pndBlock, NAME_PIE_BLOCK);
   //xmlSetProp(pndBlock, BAD_CAST "context", resNodeGetURI(prnInput));
 
-  if (xmlStrEqual(xmlGetProp(pndBlock, BAD_CAST "type"), BAD_CAST"script")) {
+  if (xmlStrEqual(domGetPropValuePtr(pndBlock, BAD_CAST "type"), BAD_CAST"script")) {
 #ifdef HAVE_JS
     pucContent = scriptProcessScriptNode(pndBlock, pccArg);
 #else
@@ -989,7 +989,7 @@ ProcessImportNode(xmlNodePtr pndArgImport, cxpContextPtr pccArg)
 
     //pccHere = cxpCtxtFromAttr(pccArg, pndArgImport);
     //pccDoc = cxpCtxtFromAttr(NULL, pndArgImport);
-    pucAttrName = xmlGetProp(pndArgImport, BAD_CAST"name");
+    pucAttrName = domGetPropValuePtr(pndArgImport, BAD_CAST"name");
 
     if (resPathIsStd(pucAttrName)) {
       fResult = ImportNodeStdin(pndArgImport, pccHere);
@@ -1040,7 +1040,7 @@ TraverseScriptNodes(xmlNodePtr pndCurrent, cxpContextPtr pccArg)
     xmlNodePtr pndChild;
     int iLengthStr;
 
-    if (IS_NODE_PIE_IMPORT(pndCurrent) && xmlStrEqual(xmlGetProp(pndCurrent,BAD_CAST"type"),BAD_CAST"script")) {
+    if (IS_NODE_PIE_IMPORT(pndCurrent) && xmlStrEqual(domGetPropValuePtr(pndCurrent,BAD_CAST"type"),BAD_CAST"script")) {
       if ((pndChild = pndCurrent->children) != NULL
 	&& xmlNodeIsText(pndChild)
 	&& pndChild->content != NULL
@@ -1164,7 +1164,7 @@ pieGetParentHeaderStr(xmlNodePtr pndN)
       else {
 	xmlChar *pucHeader = NULL;
 	xmlChar *pucAttrText;
-	if ((pucAttrText = xmlGetProp(pndI,BAD_CAST"TEXT"))
+	if ((pucAttrText = domGetPropValuePtr(pndI,BAD_CAST"TEXT"))
 	    && xmlStrlen(pucAttrText) > 0) {
 	  xmlChar *pucRelease;
 	  pucHeader = xmlStrncatNew(pucAttrText, BAD_CAST " :: ", -1);
@@ -1185,7 +1185,7 @@ pieGetParentHeaderStr(xmlNodePtr pndN)
       else {
         xmlChar *pucHeader = NULL;
         xmlChar *pucAttrText;
-        if ((pucAttrText = xmlGetProp(pndI,BAD_CAST"name"))
+        if ((pucAttrText = domGetPropValuePtr(pndI,BAD_CAST"name"))
             && xmlStrlen(pucAttrText) > 0) {
           xmlChar *pucRelease;
           pucHeader = xmlStrncatNew(pucAttrText, BAD_CAST " :: ", -1);
