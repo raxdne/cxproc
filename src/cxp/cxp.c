@@ -962,8 +962,11 @@ cxpProcessPlainNode(xmlNodePtr pndArg, cxpContextPtr pccArg)
 	    resNodeFree(prnSrc);
 	  }
 	}
+	else if (IS_NODE_XSL(pndChild)) {
+	  /* OK, but will be processed later */
+	}
 	else {
-	  cxpCtxtLogPrint(pccArg,1,"No valid element");
+	  cxpCtxtLogPrint(pccArg,1,"No valid element '%s'",pndChild->name);
 	}
 
 	if (pucChildResult) {

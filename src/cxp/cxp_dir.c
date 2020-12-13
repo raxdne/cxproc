@@ -112,7 +112,12 @@ dirMapInfoVerbosity(xmlNodePtr pndArgFile, cxpContextPtr pccArg)
     iResult |= RN_INFO_CONTENT;
   }
   else if (STR_IS_EMPTY(pucAttrVerbosity)) {
-    /* keep default */
+    if (domNodeHasAncestor(pndArgFile, NAME_PIE_IMPORT)) {
+      iResult = RN_INFO_MAX;
+    }
+    else {
+      /* keep default */
+    }
   }
   else if (xmlStrEqual(pucAttrVerbosity, BAD_CAST "5")) {
     iResult = RN_INFO_MAX;

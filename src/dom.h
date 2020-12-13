@@ -160,6 +160,9 @@ domIsTreeOverlapping(xmlNodePtr pndArgA, xmlNodePtr pndArgB);
 
 #endif
 
+extern BOOL_T
+domNodeHasAncestor(xmlNodePtr pndArg, xmlChar* pucArg);
+
 extern xmlNodePtr
 domValidateTree(xmlNodePtr pndArg);
 

@@ -1476,6 +1476,27 @@ domIsNodeInTree(xmlNodePtr pndArgHaystack, xmlNodePtr pndArgNeedle)
 /* end of domIsNodeInTree() */
 
 
+/*! \return TRUE if 'pndArg' has an ancestor node with name 'pucArg'
+ */
+BOOL_T
+domNodeHasAncestor(xmlNodePtr pndArg, xmlChar* pucArg)
+{
+  BOOL_T fResult = FALSE;
+
+  if (pndArg != NULL && STR_IS_NOT_EMPTY(pucArg)) {
+    xmlNodePtr pndT;
+
+    /* check node ancestors */
+    for (pndT = pndArg->parent; fResult == FALSE && pndT != NULL; pndT = pndT->parent) {
+      if (IS_NODE(pndT, pucArg)) {
+	fResult = TRUE;
+      }
+    }
+  }
+  return fResult;
+} /* end of domNodeHasAncestor() */
+
+
 /*! returns TRUE if there is an overlapping between pndArgA and pndArgB
 */
 BOOL_T

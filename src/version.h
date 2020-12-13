@@ -15,7 +15,7 @@
 
 #define CXP_VERSION_REVISION 0000
 
-#define CXP_REVISION_STR     "rc1"
+#define CXP_REVISION_STR     "rc2"
 
 #define CXP_VERSION_BUILD    0000
 
@@ -23,7 +23,7 @@
 
 /*!\todo define permanent namespace URL */
 
-#define CXP_VERSION_URL      "http://www.tenbusch.info/cxproc"
+#define CXP_VERSION_URL      "https://github.com/raxdne/cxproc"
 
 #define CXP_VER_FILE_DESCRIPTION_STR    "A Configurable Xml PROCessor."
 #define CXP_VER_FILE_VERSION            CXP_VERSION_MAJOR, CXP_VERSION_MINOR, CXP_VERSION_REVISION, CXP_VERSION_BUILD
