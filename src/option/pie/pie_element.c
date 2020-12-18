@@ -513,7 +513,7 @@ StrLineIsEmpty(xmlChar *pucArg, int *piArgEnd)
     }
 
     if (piArgEnd != NULL) {
-      *piArgEnd = pucT - pucArg;
+      *piArgEnd = (int)(pucT - pucArg);
     }
   }
   return fResult;
@@ -552,7 +552,7 @@ MdStrLineIsEmpty(xmlChar *pucArg, int *piArgEnd)
     }
 
     if (fResult && piArgEnd != NULL) {
-      *piArgEnd = pucT - pucArg;
+      *piArgEnd = (int)(pucT - pucArg);
     }
   }
   return fResult;
@@ -575,7 +575,7 @@ MdStrLineIsListEnum(xmlChar *pucArg, int *piArgEnd)
       else if (isdigit(pucT[0]) && (pucT[1] == (xmlChar)'.' || pucT[1] == (xmlChar)')') && (pucT[2] == (xmlChar)' ')) {
 	fResult = TRUE;
 	if (piArgEnd) {
-	  *piArgEnd = pucT - pucArg + 2;
+	  *piArgEnd = (int)(pucT - pucArg + 2);
 	}
 	break;
       }
@@ -605,7 +605,7 @@ MdStrLineIsList(xmlChar *pucArg, int *piArgEnd)
 	if ((pucT[1] == (xmlChar)' ' || pucT[1] == (xmlChar)'\t')) {
 	  fResult = TRUE;
 	  if (piArgEnd) {
-	    *piArgEnd = pucT - pucArg + 1;
+	    *piArgEnd = (int)(pucT - pucArg + 1);
 	  }
 	}
 	break;
@@ -677,7 +677,7 @@ MdStrLineIsHeader(xmlChar *pucArg, int *piArgEnd)
       if (pucT[0] == (xmlChar)'#') {
 	fResult = TRUE;
 	if (piArgEnd) {
-	  *piArgEnd = &pucT[1] - pucArg;
+	  *piArgEnd = (int)(&pucT[1] - pucArg);
 	  if (*piArgEnd > 6) {
 	    /* markup is too long, reset result */
 	    *piArgEnd = 0;
@@ -715,7 +715,7 @@ MdStrLineIsHeaderLine(xmlChar *pucArg, int *piArgEnd)
     }
 
     if (fResult && piArgEnd != NULL) {
-      *piArgEnd = pucT - pucArg + 1;
+      *piArgEnd = (int)(pucT - pucArg + 1);
       if (*piArgEnd < 2) {
 	/* underline is too short, reset result */
 	*piArgEnd = 0;
@@ -748,7 +748,7 @@ MdStrLineIsRuler(xmlChar *pucArg, int *piArgEnd)
     }
 
     if (fResult && piArgEnd != NULL) {
-      *piArgEnd = pucT - pucArg + 1;
+      *piArgEnd = (int)(pucT - pucArg + 1);
       if (*piArgEnd < 2) {
 	/* underline is too short, reset result */
 	*piArgEnd = 0;
@@ -818,7 +818,7 @@ pieElementHasNext(pieTextElementPtr ppeArg)
 	if ((puc1 = BAD_CAST xmlStrstr(puc0, BAD_CAST"#end_of_skip")) != NULL) {
 	  /* skip string between markups */
 	  assert(Strnstr(puc0 + 1, (puc1 - puc0), BAD_CAST"#begin_of_skip") == NULL); /* nested skip markup? */
-	  ppeArg->iBegin = (puc1 + xmlStrlen(BAD_CAST"#end_of_skip") - ppeArg->pucSource);
+	  ppeArg->iBegin = (index_t)(puc1 + xmlStrlen(BAD_CAST"#end_of_skip") - ppeArg->pucSource);
 	  fResult = TRUE;
 	}
 	else {
@@ -841,8 +841,8 @@ pieElementHasNext(pieTextElementPtr ppeArg)
 	  /* copy string between markups */
 	  assert(Strnstr(puc0 + 1, (puc1 - puc0), BAD_CAST"#begin_of_script") == NULL); /* nested script markup? */
 
-	  ppeArg->pucContent = xmlStrndup(puc0 + xmlStrlen(BAD_CAST"#begin_of_script"), (puc1 - (puc0 + xmlStrlen(BAD_CAST"#begin_of_script"))));
-	  ppeArg->iBegin += (puc1 + xmlStrlen(BAD_CAST"#end_of_script") - puc0);
+	  ppeArg->pucContent = xmlStrndup(puc0 + xmlStrlen(BAD_CAST"#begin_of_script"), (int)(puc1 - (puc0 + xmlStrlen(BAD_CAST"#begin_of_script"))));
+	  ppeArg->iBegin += (index_t)(puc1 + xmlStrlen(BAD_CAST"#end_of_script") - puc0);
 	}
 	else {
 	  /* no end markup found, copy end of string */
@@ -868,12 +868,12 @@ pieElementHasNext(pieTextElementPtr ppeArg)
 	  assert(Strnstr(puc0 + 1, (puc1 - puc0), BAD_CAST"#begin_of_pre") == NULL); /* nested pre markup? */
 
 	  for (l = xmlStrlen(BAD_CAST"#begin_of_pre"); puc0[l] == (xmlChar)'\n'; l++); /* skip leading empty lines */
-	  ppeArg->pucContent = xmlStrndup(puc0 + l, (puc1 - (puc0 + l)));
+	  ppeArg->pucContent = xmlStrndup(puc0 + l, (int)(puc1 - (puc0 + l)));
 	  for (l = xmlStrlen(ppeArg->pucContent) - 1; l > 0 && (ppeArg->pucContent[l] == (xmlChar)'\n' || ppeArg->pucContent[l] == (xmlChar)'\r'); l--) {
 	    ppeArg->pucContent[l] = (xmlChar)'\0'; /* cut trailing empty lines */
 	  }
 
-	  ppeArg->iBegin += (puc1 + xmlStrlen(BAD_CAST"#end_of_pre") - puc0);
+	  ppeArg->iBegin += (index_t)(puc1 + xmlStrlen(BAD_CAST"#end_of_pre") - puc0);
 	}
 	else {
 	  /* no end markup found, copy end of string */
@@ -901,12 +901,12 @@ pieElementHasNext(pieTextElementPtr ppeArg)
 	if ((puc1 = BAD_CAST xmlStrstr(puc0+l, BAD_CAST"```")) != NULL) {
 	  /* copy string between markups */
 
-	  ppeArg->pucContent = xmlStrndup(puc0 + l, (puc1 - (puc0 + l)));
+	  ppeArg->pucContent = xmlStrndup(puc0 + l, (int)(puc1 - (puc0 + l)));
 	  for (l = xmlStrlen(ppeArg->pucContent) - 1; l > 0 && (ppeArg->pucContent[l] == (xmlChar)'\n' || ppeArg->pucContent[l] == (xmlChar)'\r'); l--) {
 	    ppeArg->pucContent[l] = (xmlChar)'\0'; /* cut trailing empty lines */
 	  }
 
-	  ppeArg->iBegin += (puc1 + 3 - puc0);
+	  ppeArg->iBegin += (index_t)(puc1 + 3 - puc0);
 	}
 	else {
 	  /* no end markup found, copy end of string */
@@ -933,12 +933,12 @@ pieElementHasNext(pieTextElementPtr ppeArg)
 	if ((puc1 = BAD_CAST xmlStrstr(puc0+l, BAD_CAST"~~~")) != NULL) {
 	  /* copy string between markups */
 
-	  ppeArg->pucContent = xmlStrndup(puc0 + l, (puc1 - (puc0 + l)));
+	  ppeArg->pucContent = xmlStrndup(puc0 + l, (int)(puc1 - (puc0 + l)));
 	  for (l = xmlStrlen(ppeArg->pucContent) - 1; l > 0 && (ppeArg->pucContent[l] == (xmlChar)'\n' || ppeArg->pucContent[l] == (xmlChar)'\r'); l--) {
 	    ppeArg->pucContent[l] = (xmlChar)'\0'; /* cut trailing empty lines */
 	  }
 
-	  ppeArg->iBegin += (puc1 + 3 - puc0);
+	  ppeArg->iBegin += (index_t)(puc1 + 3 - puc0);
 	}
 	else {
 	  /* no end markup found, copy end of string */
@@ -962,8 +962,8 @@ pieElementHasNext(pieTextElementPtr ppeArg)
 	  /* copy string between markups */
 	  assert(Strnstr(puc0 + 1, (puc1 - puc0), BAD_CAST"#begin_of_cxp") == NULL); /* nested cxp markup? */
 
-	  ppeArg->pucContent = xmlStrndup(puc0 + xmlStrlen(BAD_CAST"#begin_of_cxp"), (puc1 - (puc0 + xmlStrlen(BAD_CAST"#begin_of_cxp"))));
-	  ppeArg->iBegin += (puc1 + xmlStrlen(BAD_CAST"#end_of_cxp") - puc0);
+	  ppeArg->pucContent = xmlStrndup(puc0 + xmlStrlen(BAD_CAST"#begin_of_cxp"), (int)(puc1 - (puc0 + xmlStrlen(BAD_CAST"#begin_of_cxp"))));
+	  ppeArg->iBegin += (index_t)(puc1 + xmlStrlen(BAD_CAST"#end_of_cxp") - puc0);
 	}
 	else {
 	  /* no end markup found, copy end of string */
@@ -1009,8 +1009,8 @@ pieElementHasNext(pieTextElementPtr ppeArg)
 	  /* copy string between markups */
 	  assert(Strnstr(puc0 + 1, (puc1 - puc0), BAD_CAST"#begin_of_csv") == NULL); /* nested csv markup? */
 
-	  ppeArg->pucContent = xmlStrndup(pucT, puc1 - pucT);
-	  ppeArg->iBegin += (puc1 + xmlStrlen(BAD_CAST"#end_of_csv") - puc0);
+	  ppeArg->pucContent = xmlStrndup(pucT, (int)(puc1 - pucT));
+	  ppeArg->iBegin += (index_t)(puc1 + xmlStrlen(BAD_CAST"#end_of_csv") - puc0);
 	}
 	else {
 	  /* no end markup found, copy end of string */
@@ -1365,7 +1365,7 @@ _pieElementUpdateMarkup(pieTextElementPtr ppeArg)
 
       ppeArg->iWeight = j - k;
 
-      pucB = BAD_CAST xmlMalloc(ppeArg->iLength * 2);
+      pucB = BAD_CAST xmlMalloc((size_t) ppeArg->iLength * 2);
       k++; /* to include space char too */
       memcpy(pucB, pucA, k);
       pucB[k] = '\0';
@@ -1387,7 +1387,7 @@ _pieElementUpdateMarkup(pieTextElementPtr ppeArg)
 	  else {
 	    pucB[k++] = (xmlChar)'@';
 	  }
-	  memcpy(&pucB[k], &pucA[j], i - j);
+	  memcpy(&pucB[k], &pucA[j], (size_t) i - j);
 
 #ifdef EXPERIMENTAL
 	  if ((pucT = Strnstr(&pucB[k], i - j, BAD_CAST"_org")) != NULL
@@ -1465,7 +1465,7 @@ pieElementParse(pieTextElementPtr ppeArg)
       }
       else {
 	ppeArg->eType = listitem;
-	ppeArg->iDepth = (pucA - ppeArg->pucContent) / 2 + 1; /* https://spec.commonmark.org/0.29/#example-277 */
+	ppeArg->iDepth = (index_t)(pucA - ppeArg->pucContent) / 2 + 1; /* https://spec.commonmark.org/0.29/#example-277 */
 	pucA++;
       }
       break;
@@ -1636,7 +1636,7 @@ pieElementReplaceCharMarkup(pieTextElementPtr ppeArg)
     xmlChar* pucResult;
     xmlChar* pucC = ppeArg->pucContent; /* shortcut only */
 
-    pucResult = BAD_CAST xmlMalloc(ppeArg->iLength * 2);
+    pucResult = BAD_CAST xmlMalloc((size_t) ppeArg->iLength * 2);
 
     for (k=i=0; pucC[i]; ) {
       int iCode;
@@ -2015,7 +2015,7 @@ pieElementToDOM(pieTextElementPtr ppeT)
 	      int l;
 	      xmlChar* pucDate;
 
-	      l = pucSep - pucC;
+	      l = (int)(pucSep - pucC);
 	      for (; isspace(*pucSep); pucSep++);
 
 	      pucDate = xmlStrndup(pucC, l);

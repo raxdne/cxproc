@@ -716,7 +716,6 @@ SplitNodeToTableDataNodes(xmlNodePtr pndArgParent, xmlChar* pucPatternSep)
     xmlChar* pucCell = NULL;
     xmlChar* pucT;
     xmlNodePtr pndChild;
-    xmlNodePtr pndT;
 
     pndChild = pndArgParent->children;
     xmlUnlinkNode(pndChild);
@@ -725,11 +724,11 @@ SplitNodeToTableDataNodes(xmlNodePtr pndArgParent, xmlChar* pucPatternSep)
 
     for (pucBegin = pucSep = pndChild->content; (pucSep = BAD_CAST xmlStrstr(pucSep, pucPatternSep)); ) {
 
-      if (fMix && StringEndsWithEntity(pucBegin, pucSep - pucBegin)) {
+      if (fMix && StringEndsWithEntity(pucBegin, (int)(pucSep - pucBegin))) {
 	/* its a XML entity like '&amp;' dont use this as separator */
 	pucSep++;
       }
-      else if ((pucCell = xmlStrndup(pucBegin, pucSep - pucBegin)) != NULL) {
+      else if ((pucCell = xmlStrndup(pucBegin, (int)(pucSep - pucBegin))) != NULL) {
 	StringRemovePairQuotes(pucCell);
 	if ((pucT = StringGetEndOfHeaderMarker(pucCell))) {
 	  xmlNewChild(pndArgParent, NULL, NAME_PIE_TH, pucT);
@@ -910,7 +909,6 @@ CompressTable(xmlNodePtr pndArg)
     int i;
     BOOL_T fEmpty;
     xmlNodePtr pndCell;
-    xmlNodePtr pndTableCellNext;
     xmlNodePtr pndTableRow;
     xmlNodePtr pndTableRowNext;
 
@@ -948,6 +946,8 @@ CompressTable(xmlNodePtr pndArg)
       /* all cells in column i are empty */
       for (pndTableRow=pndArg->children; fEmpty && pndTableRow != NULL; pndTableRow = pndTableRow->next) {
 	if (IS_NODE_PIE_TR(pndTableRow)) {
+	  xmlNodePtr pndTableCellNext;
+
 	  for (j = 0, pndCell = pndTableRow->children; pndCell != NULL; j++, pndCell = pndTableCellNext) {
 	    pndTableCellNext = pndCell->next;
 	    if (j == i) {
@@ -980,8 +980,6 @@ TransformToTable(xmlNodePtr pndArgParent, xmlNodePtr pndArg, xmlChar *pucPattern
     xmlNodePtr pndChild;
 
     if (IS_NODE_PIE_BLOCK(pndArg) || (IS_NODE_PIE_SECTION(pndArg) && domPropIsEqual(pndArg, BAD_CAST"type", BAD_CAST"table"))) {
-      xmlChar *pucT;
-
       xmlNodeSetName(pndArg, NAME_PIE_TABLE);
       xmlNewTextChild(pndArg, NULL, NAME_PIE_TTAG, BAD_CAST"#table");
 
@@ -1131,18 +1129,18 @@ TranslateUncToUrl(const xmlChar *pucArg)
 	xmlChar *pucT;
 	xmlChar *pucPost;
 
-	pucUnc = xmlStrndup(pucA, ovector[1] - ovector[0]);
+	pucUnc = xmlStrndup(pucA, (int)(ovector[1] - ovector[0]));
 	PrintFormatLog(3, "UNC '%s' (%i..%i) in '%s'", pucUnc, ovector[0], ovector[1], pucArg);
 
 	if (ovector[0] > 6 && xmlStrncasecmp(BAD_CAST &pucArg[ovector[0] - 7], BAD_CAST"file://", 7) == 0) {
 	  /* the content ends with "file://" already */
-	  pucRelease = xmlStrndup(pucArg, ovector[0]);
+	  pucRelease = xmlStrndup(pucArg, (int)ovector[0]);
 	  pucPre = xmlStrncatNew(pucRelease, BAD_CAST "/", -1);
 	  xmlFree(pucRelease);
 	}
 	else if (ovector[0] > 0) {
 	  /* the content starts with text	*/
-	  pucRelease = xmlStrndup(pucArg, ovector[0]);
+	  pucRelease = xmlStrndup(pucArg, (int)ovector[0]);
 	  pucPre = xmlStrncatNew(pucRelease, BAD_CAST "file:///", -1);
 	  xmlFree(pucRelease);
 	}
@@ -1152,10 +1150,10 @@ TranslateUncToUrl(const xmlChar *pucArg)
 
 	if (pucArg[ovector[0]] == '\\' && pucArg[ovector[0] + 1] == '\\') {
 	  /* UNC noatation */
-	  pucRelease = xmlStrndup(&(pucArg[ovector[0] + 1]), ovector[1] - ovector[0] - 1);
+	  pucRelease = xmlStrndup(&(pucArg[ovector[0] + 1]), (int)(ovector[1] - ovector[0] - 1));
 	}
 	else {
-	  pucRelease = xmlStrndup(&(pucArg[ovector[0]]), ovector[1] - ovector[0]);
+	  pucRelease = xmlStrndup(&(pucArg[ovector[0]]), (int)(ovector[1] - ovector[0]));
 	}
 
 	for (i = 0; pucRelease[i] != '\0'; i++) {
@@ -1216,7 +1214,7 @@ GetLinkDisplayNameNew(const xmlChar *pucArg)
     }
 
     if (b > 0 && l > 12) {
-      pucResult = xmlStrndup(&pucArg[b], l);
+      pucResult = xmlStrndup(&pucArg[b], (int)l);
       for (i=0; pucResult[i] != '\0'; i++) {
         if ( ! isalnum(pucResult[i])) {
   	pucResult[i] = ' ';
@@ -1281,7 +1279,7 @@ SplitTupelToLinkNodes(const xmlChar *pucArg)
 
       i++;
       if (ovector[i*2+1] - ovector[i*2] > 0) {
-	pucPre = xmlStrndup(&pucArg[ovector[0]], ovector[i*2+1] - ovector[i*2]);
+	pucPre = xmlStrndup(&pucArg[ovector[0]], (int)(ovector[i*2+1] - ovector[i*2]));
 	PrintFormatLog(3, "URL pre '%s' (%i..%i) in '%s'", pucPre, ovector[i*2], ovector[i*2+1], pucArg);
 	xmlAddChild(pndResult, xmlNewText(pucPre));
 	xmlFree(pucPre);
@@ -1291,7 +1289,7 @@ SplitTupelToLinkNodes(const xmlChar *pucArg)
       if (ovector[i*2+1] - ovector[i*2] > 0) {
 	/*! \todo Percent-encode non-ASCII chars (s. https://en.wikipedia.org/wiki/Percent-encoding) */
 #if 1
-	pucUrl = xmlStrndup(&pucArg[ovector[i*2]], ovector[i*2+1] - ovector[i*2]);
+	pucUrl = xmlStrndup(&pucArg[ovector[i*2]], (int)(ovector[i*2+1] - ovector[i*2]));
 #else
 	xmlChar *pucT;
 
@@ -1311,7 +1309,7 @@ SplitTupelToLinkNodes(const xmlChar *pucArg)
 
       i++;
       if (ovector[i*2+1] - ovector[i*2] > 0) {
-	pucUrlDisplay = xmlStrndup(&pucArg[ovector[i*2]], ovector[i*2+1] - ovector[i*2]);
+	pucUrlDisplay = xmlStrndup(&pucArg[ovector[i*2]], (int)(ovector[i*2+1] - ovector[i*2]));
 	PrintFormatLog(3, "URL display name '%s' (%i..%i) in '%s'", pucUrlDisplay, ovector[i*2], ovector[i*2+1], pucArg);
       }
       else {
@@ -1403,7 +1401,7 @@ SplitTupelToLinkNodesMd(const xmlChar *pucArg)
       if (ovector[0] > 0) {
 	xmlChar *pucPre;
 
-	pucPre = xmlStrndup(pucArg, ovector[0]);
+	pucPre = xmlStrndup(pucArg, (int)ovector[0]);
 	PrintFormatLog(3, "URL pre text '%s' (%i..%i) in '%s'", pucPre, 0, ovector[0], pucArg);
 	xmlAddChild(pndResult, xmlNewText(pucPre));
 	xmlFree(pucPre);
@@ -1413,7 +1411,7 @@ SplitTupelToLinkNodesMd(const xmlChar *pucArg)
       if (ovector[i*2+1] - ovector[i*2] > 0) {
 	xmlChar *pucUrlDisplay = NULL;
 
-	pucUrlDisplay = xmlStrndup(&pucArg[ovector[i*2]], ovector[i*2+1] - ovector[i*2]);
+	pucUrlDisplay = xmlStrndup(&pucArg[ovector[i*2]], (int)(ovector[i*2+1] - ovector[i*2]));
 	if (pucArg[ovector[0]] == '!') {
 	  PrintFormatLog(3, "Image display text '%s' (%i..%i) in '%s'", pucUrlDisplay, ovector[i*2], ovector[i*2+1], pucArg);
 	  pndLink = xmlNewChild(pndResult, NULL, NAME_PIE_IMG, NULL);
@@ -1432,7 +1430,7 @@ SplitTupelToLinkNodesMd(const xmlChar *pucArg)
 
 	/*! \todo Percent-encode non-ASCII chars (s. https://en.wikipedia.org/wiki/Percent-encoding) */
 #if 1
-	pucUrl = xmlStrndup(&pucArg[ovector[i*2]], ovector[i*2+1] - ovector[i*2]);
+	pucUrl = xmlStrndup(&pucArg[ovector[i*2]], (int)(ovector[i*2+1] - ovector[i*2]));
 #else
 	xmlChar *pucT;
 
@@ -1534,10 +1532,10 @@ SplitStringToLinkNodes(const xmlChar *pucArg)
 	if (xmlStrcasestr(pucA, BAD_CAST"file://.") == pucA) {
 	  /* there is no information about file context, problems in CGI mode */
 	  /* remove non-conformant file:// prefix from relative path */
-	  pucUrl = xmlStrndup(pucA + 7, ovector[1] - ovector[0] - 7);
+	  pucUrl = xmlStrndup(pucA + 7, (int)(ovector[1] - ovector[0] - 7));
 	}
 	else {
-	  pucUrl = xmlStrndup(pucA, ovector[1] - ovector[0]);
+	  pucUrl = xmlStrndup(pucA, (int)(ovector[1] - ovector[0]));
 	}
 
 	PrintFormatLog(3, "URL '%s' (%i..%i) in '%s'", pucUrl, ovector[0], ovector[1], pucArg);
@@ -1546,7 +1544,7 @@ SplitStringToLinkNodes(const xmlChar *pucArg)
 
 	if (ovector[0] > 0) {
 	  /* the content starts with text	*/
-	  xmlChar *pucT = xmlStrndup(pucArg, ovector[0]);
+	  xmlChar *pucT = xmlStrndup(pucArg, (int)ovector[0]);
 	  xmlAddChild(pndResult, xmlNewText(pucT));
 	  xmlFree(pucT);
 	}
@@ -1645,12 +1643,12 @@ SplitStringToAutoLinkNodes(const xmlChar *pucArg)
 
 	if (ovector[0] > 0) {
 	  /* the content starts with text	*/
-	  xmlChar *pucT = xmlStrndup(pucArg, ovector[0]);
+	  xmlChar *pucT = xmlStrndup(pucArg, (int)ovector[0]);
 	  xmlAddChild(pndResult, xmlNewText(pucT));
 	  xmlFree(pucT);
 	}
 
-	i0 = ovector[0];
+	i0 = (index_t)ovector[0];
 	if (pucArg[i0] == '<') {
 	  i0++;
 	}
@@ -1662,7 +1660,7 @@ SplitStringToAutoLinkNodes(const xmlChar *pucArg)
 	  i0 += 4;
 	}
 
-	i1 = ovector[1];
+	i1 = (index_t)ovector[1];
 	if (i1 > 1 && pucArg[i1-1] == '>') {
 	  i1 -= 1;
 	}
@@ -1735,7 +1733,7 @@ SplitStringToAutoLinkNodes(const xmlChar *pucArg)
 xmlNodePtr
 RecognizeUrls(xmlNodePtr pndArg)
 {
-  if (IS_NODE_META(pndArg) || IS_NODE_PIE_PRE(pndArg) || IS_NODE_PIE_LINK(pndArg)) {
+  if (IS_NODE_META(pndArg) || IS_NODE_PIE_PRE(pndArg) || IS_NODE_PIE_TABLE(pndArg) || IS_NODE_PIE_LINK(pndArg)) {
     /* skip */
   }
   else if (IS_ENODE(pndArg) && (pndArg->ns==NULL || pndArg->ns==pnsPie)) {
@@ -1865,7 +1863,7 @@ SplitStringToScriptNode(const xmlChar *pucArg)
 
       if (ovector[i*2+1] - ovector[i*2] > 0) {
 	if (ovector[i*2] > 0) {
-	  pucPre = xmlStrndup(pucArg, ovector[i*2]);
+	  pucPre = xmlStrndup(pucArg, (int)ovector[i*2]);
 	  PrintFormatLog(3, "Script pre '%s' (%i..%i) in '%s'", pucPre, 0, ovector[0], pucArg);
 	  xmlAddChild(pndResult, xmlNewText(pucPre));
 	  xmlFree(pucPre);
@@ -1879,7 +1877,7 @@ SplitStringToScriptNode(const xmlChar *pucArg)
 	pndScript = xmlNewNode(NULL,NAME_PIE_IMPORT);
 	xmlSetProp(pndScript, BAD_CAST "type", BAD_CAST "script");
 
-	pucScript = xmlStrndup(&pucArg[ovector[i*2]], ovector[i*2+1] - ovector[i*2]);
+	pucScript = xmlStrndup(&pucArg[ovector[i*2]], (int)(ovector[i*2+1] - ovector[i*2]));
 	xmlAddChild(pndScript,xmlNewText(pucScript));
 	xmlAddChild(pndResult,pndScript);
 	xmlFree(pucScript);
@@ -2047,8 +2045,8 @@ SplitStringToInlineNodes(const xmlChar *pucArg)
 	index_t i1;
 	xmlChar *pucIn;
 
-	for (i0=ovector[0]; pucArg[i0] == pucArg[ovector[0]]; i0++);
-	for (i1=ovector[1]; i1 > 0 && pucArg[i1-1] == pucArg[ovector[0]]; i1--);
+	for (i0=(index_t)ovector[0]; pucArg[i0] == pucArg[ovector[0]]; i0++);
+	for (i1=(index_t)ovector[1]; i1 > 0 && pucArg[i1-1] == pucArg[ovector[0]]; i1--);
 	pucIn = xmlStrndup((xmlChar *)pucArg + i0, i1 - i0);
 
 	PrintFormatLog(3, "Inline '%s' in '%s'", pucIn, pucArg);
@@ -2057,7 +2055,7 @@ SplitStringToInlineNodes(const xmlChar *pucArg)
 
 	if (ovector[0] > 0) {
 	  /* the content starts with text	*/
-	  xmlChar *pucT = xmlStrndup(pucArg, ovector[0]);
+	  xmlChar *pucT = xmlStrndup(pucArg, (int)ovector[0]);
 	  xmlAddChild(pndResult, xmlNewText(pucT));
 	  xmlFree(pucT);
 	}
@@ -2129,10 +2127,10 @@ SplitStringToDateNodes(const xmlChar *pucArg)
 	xmlChar *pucA = (xmlChar *)pucArg + ovector[2];
 
 	if (rc > 2) {
-	  pucDate = xmlStrndup(pucA, ovector[5] - ovector[2]);
+	  pucDate = xmlStrndup(pucA, (int)(ovector[5] - ovector[2]));
 	}
 	else {
-	  pucDate = xmlStrndup(pucA, ovector[3] - ovector[2]);
+	  pucDate = xmlStrndup(pucA, (int)(ovector[3] - ovector[2]));
 	}
 
 	PrintFormatLog(3, "Date '%s' (%i..%i) in '%s'", pucDate, ovector[2], ovector[3], pucArg);
@@ -2141,7 +2139,7 @@ SplitStringToDateNodes(const xmlChar *pucArg)
 
 	if (ovector[0] > 0) {
 	  /* the content starts with text	*/
-	  xmlChar *pucT = xmlStrndup(pucArg, ovector[0]);
+	  xmlChar *pucT = xmlStrndup(pucArg, (int)ovector[0]);
 	  xmlAddChild(pndResult, xmlNewText(pucT));
 	  xmlFree(pucT);
 	}
@@ -2475,42 +2473,42 @@ TaskNodeNew(xmlNodePtr pndArg)
 
       pndResult = xmlNewNode(NULL, NAME_PIE_TASK);
       pndHeader = xmlCopyNode(pndArg, 1); /* copy all child elements 'link' etc */
-      xmlNodeSetName(pndHeader, NAME_PIE_HEADER);
-      xmlAddChild(pndResult, pndHeader);
+      if (pndHeader != NULL && pndHeader->children != NULL) {
+	xmlChar* pucT;
 
-      /*! remove leading markup
-      */
-      assert(pndHeader != NULL);
-      assert(pndHeader->children != NULL);
+	xmlNodeSetName(pndHeader, NAME_PIE_HEADER);
+	xmlAddChild(pndResult, pndHeader);
 
-      /* pndHeader can have multiple childs */
+	/*! remove leading markup
+	*/
+	assert(pndHeader != NULL);
+	assert(pndHeader->children != NULL);
 
-      for (pndT = pndHeader->children; pndT; pndT = pndTT) { /* relocate all list childs to new task node */
-	pndTT = pndT->next;
-	if (IS_NODE_PIE_LIST(pndT)) {
-	  xmlUnlinkNode(pndT);
-	  xmlAddChild(pndResult, pndT);
-	}
-      }
+	/* pndHeader can have multiple childs */
 
-      if (pndHeader->children == pndHeader->last && xmlNodeIsText(pndHeader->children)) { /* header is a single string */
-	if (xmlStrlen(&pucContent[ovector[1]]) > 0) {
-	  xmlFree(pndHeader->children->content);
-	  pndHeader->children->content = xmlStrdup(&pucContent[ovector[1]]); /* without leading markup */
-	}
-      }
-      else if (pndHeader->children == pndHeader->last && IS_NODE_PIE_LINK(pndHeader->children)) { /* header is a single link node */
-	if (pndHeader->children->children != NULL && pndHeader->children->children->content != NULL) {
-	  if (xmlStrlen(&pucContent[ovector[1]]) > 0) {
-	    xmlFree(pndHeader->children->children->content);
-	    pndHeader->children->children->content = xmlStrdup(&pucContent[ovector[1]]); /* without leading markup */
+	for (pndT = pndHeader->children; pndT; pndT = pndTT) { /* relocate all list childs to new task node */
+	  pndTT = pndT->next;
+	  if (IS_NODE_PIE_LIST(pndT)) {
+	    xmlUnlinkNode(pndT);
+	    xmlAddChild(pndResult, pndT);
 	  }
 	}
-      }
-      else { /**/
-	xmlChar *pucT;
 
-	if (xmlStrlen(&pucContent[ovector[1]]) > 0) {
+	if (pndHeader->children == pndHeader->last && xmlNodeIsText(pndHeader->children)) { /* header is a single string */
+	  if (xmlStrlen(&pucContent[ovector[1]]) > 0) {
+	    xmlFree(pndHeader->children->content);
+	    pndHeader->children->content = xmlStrdup(&pucContent[ovector[1]]); /* without leading markup */
+	  }
+	}
+	else if (pndHeader->children == pndHeader->last && IS_NODE_PIE_LINK(pndHeader->children)) { /* header is a single link node */
+	  if (pndHeader->children->children != NULL && pndHeader->children->children->content != NULL) {
+	    if (xmlStrlen(&pucContent[ovector[1]]) > 0) {
+	      xmlFree(pndHeader->children->children->content);
+	      pndHeader->children->children->content = xmlStrdup(&pucContent[ovector[1]]); /* without leading markup */
+	    }
+	  }
+	}
+	else if (xmlStrlen(&pucContent[ovector[1]]) > 0) {
 	  xmlFree(pndHeader->children->content);
 	  pndHeader->children->content = xmlStrdup(&pucContent[ovector[1]]); /* without leading markup */
 	}
@@ -2518,44 +2516,41 @@ TaskNodeNew(xmlNodePtr pndArg)
 	  assert(pndHeader->children->content != NULL);
 	  pndHeader->children->content[0] = (xmlChar)'\0';
 	}
-      }
 
-      /*! relocate properties from header to task
-      */
-      if (pndHeader->properties) {
-	xmlAttrPtr patT;
+	/*! relocate properties from header to task
+	*/
+	if (pndHeader->properties) {
+	  xmlAttrPtr patT;
 
-	for (patT = pndResult->properties = pndHeader->properties; patT; patT = patT->next) {
-	  patT->parent = pndResult;
+	  for (patT = pndResult->properties = pndHeader->properties; patT; patT = patT->next) {
+	    patT->parent = pndResult;
+	  }
+	  pndHeader->properties = NULL;
 	}
-	pndHeader->properties = NULL;
-      }
 
-      /*! derive class attribute from markup
-      */
-      {
-	xmlChar* pucT;
+	/*! derive class attribute from markup
+	*/
+	pucT = xmlStrndup(pucContent, (int)ovector[3]);
+	if (pucT) {
+	  StringToLower((char*)pucT);
 
-	pucT = xmlStrndup(pucContent, ovector[3]);
-	StringToLower((char*)pucT);
+	  if (xmlStrEqual(pucT, BAD_CAST"done")) {
+	    xmlSetProp(pndResult, BAD_CAST"class", BAD_CAST"todo");
+	    xmlSetProp(pndResult, BAD_CAST"state", BAD_CAST"done");
+	    xmlNewTextChild(pndResult, NULL, NAME_PIE_TTAG, BAD_CAST"#done");
+	  }
+	  else {
+	    xmlChar* pucTT;
 
-	if (xmlStrEqual(pucT, BAD_CAST"done")) {
-	  xmlSetProp(pndResult, BAD_CAST"class", BAD_CAST"todo");
-	  xmlSetProp(pndResult, BAD_CAST"state", BAD_CAST"done");
-	  xmlNewTextChild(pndResult, NULL, NAME_PIE_TTAG, BAD_CAST"#done");
+	    xmlSetProp(pndResult, BAD_CAST"class", pucT);
+	    pucTT = xmlStrdup(BAD_CAST"#");
+	    pucTT = xmlStrcat(pucTT, pucT);
+	    xmlNewTextChild(pndResult, NULL, NAME_PIE_TTAG, pucTT);
+	    xmlFree(pucTT);
+	  }
+	  xmlFree(pucT);
 	}
-	else {
-	  xmlChar* pucTT;
-
-	  xmlSetProp(pndResult, BAD_CAST"class", pucT);
-	  pucTT = xmlStrdup(BAD_CAST"#");
-	  pucTT = xmlStrcat(pucTT, pucT);
-	  xmlNewTextChild(pndResult, NULL, NAME_PIE_TTAG, pucTT);
-	  xmlFree(pucTT);
-	}
-	xmlFree(pucT);
       }
-
       xmlNewTextChild(pndResult, NULL, NAME_PIE_TTAG, BAD_CAST"#task");
     }
     pcre2_match_data_free(match_data);   /* Release memory used for the match */
@@ -2661,7 +2656,7 @@ RecognizeFigures(xmlNodePtr pndArg)
 	      xmlChar *pucRelease;
 	      xmlNodePtr pndRelease;
 
-	      pucRelease = xmlStrndup(pucSubstr + ovector[4], ovector[5] - ovector[4]);
+	      pucRelease = xmlStrndup(pucSubstr + ovector[4], (int)(ovector[5] - ovector[4]));
 	      PrintFormatLog(3, "fig '%s' (%i..%i) in '%s'", pucRelease, ovector[0], ovector[1], pucSubstr);
 
 	      pndRelease = pndArg->children;
@@ -2672,7 +2667,7 @@ RecognizeFigures(xmlNodePtr pndArg)
 
 	      if (pcre2_get_ovector_count(match_data) > 2 && ovector[7] - ovector[6] > 0) {
 		/* there exists an additional name */
-		pucT = xmlStrndup(pucSubstr + ovector[6], ovector[7] - ovector[6]);
+		pucT = xmlStrndup(pucSubstr + ovector[6], (int)(ovector[7] - ovector[6]));
 	      }
 	      else {
 		/* use filename as header */

@@ -225,7 +225,7 @@ xmlDocPtr
 pieProcessPieNode(xmlNodePtr pndArgPie, cxpContextPtr pccArg)
 {
   xmlNodePtr pndMeta;
-  xmlNodePtr pndError;
+  //xmlNodePtr pndError;
   xmlDocPtr pdocResult = NULL;
   xmlNodePtr pndPieRoot = NULL;
   xmlNodePtr pndBlock = NULL;
@@ -239,7 +239,6 @@ pieProcessPieNode(xmlNodePtr pndArgPie, cxpContextPtr pccArg)
 
   if (IS_NODE_PIE(pndArgPie) && pndArgPie->children != NULL && (pdocResult = xmlNewDoc(BAD_CAST "1.0")) != NULL) {
     xmlNodePtr pndMakePieCopy;
-    xmlNodePtr pndTags;
 
     pdocResult->encoding = xmlStrdup(BAD_CAST"UTF-8");
     pndPieRoot = xmlNewNode(NULL,NAME_PIE_PIE);
@@ -458,9 +457,7 @@ ImportNodeCxp(xmlNodePtr pndArgImport, cxpContextPtr pccArg)
     }
   }
   else if ((pndChild = domGetFirstChild(pndArgImport, NAME_PLAIN)) != NULL) {
-    xmlDocPtr pdocT;
     xmlChar *pucContent = NULL;
-    int iLen;
 
     pucContent = cxpProcessPlainNode(pndChild, pccArg);
     if (STR_IS_NOT_EMPTY(pucContent)) {

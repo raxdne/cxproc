@@ -128,7 +128,7 @@ getLineLength(char *pchArg)
 
   for (pchT=pchArg; *pchT != '\0' && *pchT != '\n' && *pchT != '\r'; pchT++) {}
 
-  return (pchT - pchArg);
+  return (int)(pchT - pchArg);
 }
 /* end of getLineLength() */
 
@@ -219,8 +219,8 @@ addLine(xmlNodePtr pndArg, char *pchArg)
     xmlChar *pucNameElement = NULL;
     xmlChar *pucT;
 
-    pucA = xmlStrndup(BAD_CAST pchArg,(pchSep - pchArg)); /* property and parametres */
-    pucB = xmlStrndup(BAD_CAST(pchSep + 1),(pchArg + l - pchSep - 1)); /* attributes */
+    pucA = xmlStrndup(BAD_CAST pchArg, (int)(pchSep - pchArg)); /* property and parametres */
+    pucB = xmlStrndup(BAD_CAST(pchSep + 1), (int)(pchArg + l - pchSep - 1)); /* attributes */
 /*!\todo decode 7-bit value */
 
     /* detect property and parametres
@@ -242,7 +242,7 @@ addLine(xmlNodePtr pndArg, char *pchArg)
 
 	if (*pchT == ';' || i == l) {
 
-	  xmlChar *pucText = xmlStrndup(BAD_CAST(pndAttributeBegin),(pchT - pndAttributeBegin));
+	  xmlChar *pucText = xmlStrndup(BAD_CAST(pndAttributeBegin), (int)(pchT - pndAttributeBegin));
 	  ciAttribute++;
 
 	  /* "Family Name, Given Name, Additional Names, Honorific Prefixes, and Honorific Suffixes" */
@@ -335,7 +335,9 @@ getNextBlock(xmlNodePtr pndArg, char *pchArg, int iArgLength)
 
       pchBlockEnd = getBlockEnd(pchBlockBegin,iArgLength);
       if (pchBlockEnd) {
-	int iBlockLength = pchBlockEnd - pchBlockBegin; /* set "return" value */
+	int iBlockLength;
+	
+	iBlockLength = (int)(pchBlockEnd - pchBlockBegin); /* set "return" value */
 	if (iBlockLength > 0) {
 	  char *pchLineNext;
 	  char *pchBlockContent;
@@ -415,7 +417,7 @@ getNextBlock(xmlNodePtr pndArg, char *pchArg, int iArgLength)
 	    }
 	  }
 	  /* all block childs */
-	  getNextBlock(pndNew,pchBlockContent,pchBlockEnd - pchBlockContent);
+	  getNextBlock(pndNew,pchBlockContent,(int)(pchBlockEnd - pchBlockContent));
 	}
       }
     }
@@ -441,13 +443,15 @@ vcfParse(xmlNodePtr pndArgParent, xmlNodePtr pndArgSource, char *pchArgSource, l
   //PrintFormatLog(1,"Read vcf file '%s'", pchArgNameFile);
 
   if (pchArgSource) {
-    int l = strlen(pchArgSource);
-
+    int l;
+    
+    l = (int)strlen(pchArgSource);
     if (RemoveLineBreaks((char *)pchArgSource,l)) {
-      int i = strlen(pchArgSource);
+      int i;
+      
+      i = (int)strlen(pchArgSource);
       getNextBlock(pndArgParent,pchArgSource,i);
     }
-    //xmlFree(pucContent);
   }
   else {
     PrintFormatLog(1,"Empty input");

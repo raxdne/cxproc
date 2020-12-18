@@ -45,7 +45,7 @@ static BOOL_T fExtensions = TRUE; /*! flag to include 'X-' elements in DOM */
 static BOOL_T
 RemoveLineBreaks(char *pchArg, int iArgLength);
 
-static int
+static size_t
 getLineLength(char *pchArg);
 
 static char *
@@ -100,16 +100,15 @@ RemoveLineBreaks(char *pchArg, int iArgLength)
 
 /*! \return the number of chars before '\n'
 */
-int
+size_t
 getLineLength(char *pchArg)
 {
   char *pchT;
 
   for (pchT=pchArg; *pchT != '\0' && *pchT != '\n' && *pchT != '\r'; pchT++) {}
 
-  return (pchT - pchArg);
-}
-/* end of getLineLength() */
+  return (size_t)(pchT - pchArg);
+} /* end of getLineLength() */
 
 
 /*! 
@@ -119,7 +118,7 @@ getNextLine(char *pchArg)
 {
   char *pchT;
   char *pchResult = NULL;
-  int l;
+  size_t l;
 
   for (pchT=pchArg; *pchT == '\n' || *pchT == '\r'; pchT++) {} /* skip leading linebreaks */
 
@@ -188,8 +187,8 @@ getBlockEnd(char *pchArgBlockBegin, int iArgLength)
 BOOL_T
 addLine(xmlNodePtr pndArg, char *pchArg)
 {
-  int l = getLineLength(pchArg);
-  char *pchSep = (char *)Strnstr(BAD_CAST pchArg,l,BAD_CAST ":");
+  size_t l = getLineLength(pchArg);
+  char* pchSep = (char*)Strnstr(BAD_CAST pchArg, (int)l, BAD_CAST ":");
 
   if (pchSep > pchArg) {
     xmlChar *pucA;
@@ -198,8 +197,8 @@ addLine(xmlNodePtr pndArg, char *pchArg)
     xmlChar *pucT;
     xmlNodePtr pndElement;
 
-    pucA = xmlStrndup(BAD_CAST pchArg,(pchSep - pchArg));
-    pucB = xmlStrndup(BAD_CAST(pchSep + 1),(pchArg + l - pchSep - 1));
+    pucA = xmlStrndup(BAD_CAST pchArg,(int)(pchSep - pchArg));
+    pucB = xmlStrndup(BAD_CAST(pchSep + 1), (int)(pchArg + (int)l - pchSep - 1));
 
     pucT = BAD_CAST xmlStrchr(pucA,(xmlChar)';');
     if (pucA[0]=='X' && pucA[1]=='-' && fExtensions == FALSE) {
@@ -212,7 +211,7 @@ addLine(xmlNodePtr pndArg, char *pchArg)
       char *pchT;
       int i;
 
-      pucNameElement = xmlStrndup(pucA,(pucT - pucA));
+      pucNameElement = xmlStrndup(pucA, (int)(pucT - pucA));
       StringToLower((char *)pucNameElement);
       l = xmlStrlen(pucA);
 
@@ -228,8 +227,8 @@ addLine(xmlNodePtr pndArg, char *pchArg)
 	    /* ignore this */
 	  }
 	  else if (pchSep - pchParameterBegin > 0) {
-	    xmlChar *pucText = xmlStrndup(BAD_CAST(pchSep+1),(pchT - pchSep - 1));
-	    xmlChar *pucNameElementParam = xmlStrndup(BAD_CAST pchParameterBegin,(pchSep - pchParameterBegin));
+	    xmlChar *pucText = xmlStrndup(BAD_CAST(pchSep+1), (int)(pchT - pchSep - 1));
+	    xmlChar *pucNameElementParam = xmlStrndup(BAD_CAST pchParameterBegin, (int)(pchSep - pchParameterBegin));
 	    StringToLower((char *)pucNameElementParam);
 
 	    xmlNewChild(pndParameter,NULL,pucNameElementParam,pucText);	  
@@ -279,8 +278,8 @@ addLine(xmlNodePtr pndArg, char *pchArg)
 	    /* ignore this */
 	  }
 	  else if (pchSep - pchParameterBegin > 0) {
-	    xmlChar *pucText = xmlStrndup(BAD_CAST(pchSep+1),(pchT - pchSep - 1));
-	    xmlChar *pucNameElementParam = xmlStrndup(BAD_CAST pchParameterBegin,(pchSep - pchParameterBegin));
+	    xmlChar* pucText = xmlStrndup(BAD_CAST(pchSep+1), (int)(pchT - pchSep - 1));
+	    xmlChar *pucNameElementParam = xmlStrndup(BAD_CAST pchParameterBegin, (int)(pchSep - pchParameterBegin));
 
 	    StringToLower((char *)pucNameElementParam);
 	    pucT = StringEncodeXmlDefaultEntitiesNew(pucText);
@@ -330,18 +329,18 @@ getNextBlock(xmlNodePtr pndArg, char *pchArg, int iArgLength)
 
       pchBlockEnd = getBlockEnd(pchBlockBegin,iArgLength);
       if (pchBlockEnd) {
-	int iBlockLength = pchBlockEnd - pchBlockBegin; /* set "return" value */
+	int iBlockLength = (int) (pchBlockEnd - pchBlockBegin); /* set "return" value */
 	if (iBlockLength > 0) {
 	  char *pchLineNext;
 	  char *pchBlockContent;
 	  int ciDepth;
-	  int iLengthName = getLineLength(pchBlockEnd) - 4;
+	  size_t iLengthName = getLineLength(pchBlockEnd) - 4;
 	  xmlChar *pucName;
 	  xmlNodePtr pndNew;
 	  xmlNodePtr pndProperties;
 	  xmlNodePtr pndComponents;
 
-	  pucName = xmlStrndup(BAD_CAST (pchBlockEnd + 4), iLengthName);
+	  pucName = xmlStrndup(BAD_CAST (pchBlockEnd + 4), (int)iLengthName);
 #if 1
 	  PrintFormatLog(3,"Element %s %i Byte",pucName,iBlockLength);
 #else
@@ -390,7 +389,7 @@ getNextBlock(xmlNodePtr pndArg, char *pchArg, int iArgLength)
 	    }
 	  }
 	  /* all block childs */
-	  getNextBlock(pndComponents,pchBlockContent,pchBlockEnd - pchBlockContent);
+	  getNextBlock(pndComponents,pchBlockContent, (int)(pchBlockEnd - pchBlockContent));
 	}
       }
     }

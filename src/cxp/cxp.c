@@ -285,7 +285,6 @@ cxpProcessEachNode(xmlNodePtr pndArg, cxpContextPtr pccArg)
       int i;
       xmlChar *pucSubstr;
       xmlChar *pucValues;
-      xmlChar *pucT;
 
 #ifdef HAVE_PCRE2
       if (pccArg->re_each==NULL) {
@@ -481,7 +480,7 @@ cxpProcessXmlNodeEmbedded(xmlNodePtr pndArg, cxpContextPtr pccArg)
       }
     }
   }
-  else if (pndArg->children) {
+  else if (pndArg != NULL && pndArg->children != NULL) {
     xmlNodePtr pndChild;
 
     for (pndChild = pndArg->children; pndChild;) {
@@ -878,7 +877,7 @@ cxpProcessPlainNode(xmlNodePtr pndArg, cxpContextPtr pccArg)
 {
   xmlChar *pucResult = NULL;
   xmlChar *pucAttrName;
-  xmlChar *pucAttrNameCacheAs;
+  //xmlChar *pucAttrNameCacheAs;
 
 #ifdef DEBUG
   cxpCtxtLogPrint(pccArg,1,"pieProcessPlainNode(pndArg=%0x,pccArg=%0x)",pndArg,pccArg);
@@ -1121,6 +1120,18 @@ cxpIsNs(xmlNodePtr pndArg)
 } /* end of cxpIsNs() */
 
 
+/*! \return TRUE if pndArg is a node in cxp namespace
+*/
+xmlNsPtr
+cxpGetNs(void)
+{
+  if (pnsCxp == NULL) {
+    pnsCxp = xmlNewNs(NULL, BAD_CAST CXP_NAMESPACE_URL, BAD_CAST"cxp");
+  }
+  return pnsCxp;
+} /* end of cxpGetNs() */
+
+
 /*! \return a node pointer to XML source child node of pndArg
 */
 xmlNodePtr
@@ -1218,7 +1229,6 @@ cxpProcessXmlNode(xmlNodePtr pndArg, cxpContextPtr pccArg)
     /* ignore NULL and invalid elements */
   }
   else if (IS_NODE_XML(pndArg)) {
-    BOOL_T fCache;
     xmlChar *pucSchema;
     xmlChar *pucT = NULL;
     xmlChar *pucAttrName;
@@ -1338,7 +1348,6 @@ cxpProcessXmlNode(xmlNodePtr pndArg, cxpContextPtr pccArg)
       /*
       this is a simple input XML element (no child's, but name attribute)
        */
-      xmlChar *pucAttrNameCached;
 
       /*!\todo validate="yes" for XML validation on demand */
 
@@ -1688,7 +1697,6 @@ cxpProcessMakeNode(xmlNodePtr pndArg,cxpContextPtr pccArg)
 	    if (domGetPropFlag(pndChild, BAD_CAST "eval", FALSE)) {
 	      /*! */
 	      xmlNodePtr pndEval;
-	      xmlChar *pucAttrValue;
 
 	      cxpCtxtLogPrint(pccArg, 2, "Self evaluating");
 
@@ -1787,7 +1795,7 @@ cxpXslParamProcess(xmlNodePtr pndArg, cxpContextPtr pccArg)
 {
   cxpContextPtr pccHere = pccArg;
   xmlChar **ppucResult = NULL;
-  index_t ciNodeVariable;
+  size_t ciNodeVariable;
 
   if (pndArg == NULL) {
     return ppucResult;
@@ -1951,7 +1959,6 @@ cxpCtxtSearchSet(cxpContextPtr pccArg, resNodePtr prnArg)
 
   if (pccArg) {
     xmlChar *pucPathValue = NULL;
-    resNodePtr prnTest;
 
 #ifdef DEBUG
     cxpCtxtLogPrint(pccArg, 2, "cxpCtxtSearchSet(cxpContextPtr pccArg, resNodePtr prnArg)");
@@ -1996,13 +2003,6 @@ cxpCtxtSearchSet(cxpContextPtr pccArg, resNodePtr prnArg)
 	else {
 	}
       }
-#elif 0
-      /* find "cxproc" in default installation directory */
-      pucPathValue = xmlStrdup(BAD_CAST"/usr/local/share/cxproc//:/usr/share/cxproc//:/opt/cxproc//:");
-      pucRelease = pucPathValue;
-      pucPathValue = xmlStrncatNew(pucPathValue, pucExecutablePath, -1);
-      xmlFree(pucRelease);
-      /*!\todo use configured value from "../config.h" or -D in Makefile.am ? */
 #endif
       xmlFree(pucExecutablePath);
     }
@@ -2033,15 +2033,6 @@ cxpCtxtSearchSet(cxpContextPtr pccArg, resNodePtr prnArg)
 	resNodeGetNameNormalized(cxpCtxtSearchGet(pccArg)), resNodeGetNameNormalized(cxpCtxtRootGet(pccArg)));
     }
 
-#if 0
-    for (prnTest = pccArg->prnSearch; prnTest; prnTest = resNodeGetNext(prnTest)) {
-      if (resNodeIsFile(prnTest) && resNodeIsExecuteable(prnTest)) {
-	resNodeSetToParent(prnTest);
-	resNodeSetRecursion(prnTest, TRUE);
-      }
-    }
-#endif
-    
     fResult = TRUE;
   }
 
@@ -2092,7 +2083,6 @@ cxpChangeXslParam(xmlDocPtr pdocResult, char **param, BOOL_T fInsertvars, cxpCon
   if (pdocResult != NULL && param != NULL && param[0] != NULL) {
     xmlNodePtr pndCurrent;
     xmlNodePtr pndRoot = xmlDocGetRootElement(pdocResult);
-    xmlChar mpucValue[BUFFER_LENGTH];
     index_t i;
 
     for (i=0; param[i]; i+=2) {	/* all name/value pairs */
@@ -3235,7 +3225,6 @@ cxpInfoProgram(xmlNodePtr pndArg, cxpContextPtr pccArg)
     xmlNodePtr nodeSource;
 
     xmlSetProp(pndResult, BAD_CAST "name", BAD_CAST CXP_VER_PRODUCTNAME_STR);
-    xmlSetProp(pndResult, BAD_CAST "ns", BAD_CAST CXP_VER_URL);
 
     nodeSource = xmlNewChild(pndResult, NULL, BAD_CAST"source", NULL);
     xmlSetProp(nodeSource, BAD_CAST "url", BAD_CAST CXP_VERSION_URL);
@@ -3310,9 +3299,8 @@ cxpProcessInfoNode(xmlNodePtr pndInfo, cxpContextPtr pccArg)
   pdocResult = xmlNewDoc(BAD_CAST "1.0");
   pndRoot = xmlNewDocNode(pdocResult, NULL, NAME_INFO, NULL); 
   xmlDocSetRootElement(pdocResult, pndRoot);
-  pnsCxp = xmlNewNs(pndRoot, BAD_CAST CXP_VER_URL, BAD_CAST "cxp");
-  xmlSetNs(pndRoot,pnsCxp);
-  
+  xmlSetNs(pndRoot,cxpGetNs());
+
   nodeProgram = cxpInfoProgram(pndRoot, pccArg);
   if (nodeProgram) {
 #ifdef __GLIBC__
@@ -3618,6 +3606,15 @@ pieProcessPieNode(xmlNodePtr pndArgPie, cxpContextPtr pccArg)
 /* end of pieProcessPieNode() */
 
 #endif
+
+/*! exit procedure for this module
+*/
+void
+cxpCleanup(void)
+{
+  xmlFreeNs(pnsCxp);
+} /* end of cxpCleanup() */
+
 
 #ifdef TESTCODE
 #include "test/test_cxp.c"

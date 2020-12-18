@@ -193,7 +193,7 @@ AddTagNodeNew(xmlNodePtr pndArg, const xmlChar* pucArg)
 
   if (pndArg != NULL && STR_IS_NOT_EMPTY(pucArg)) {
     xmlNodePtr pndT;
-    xmlChar* pucT;
+    //xmlChar* pucT;
 
     /* find an existing htag node with same content */
     for (pndT = pndArg->children; pndT; pndT = pndT->next) {
@@ -265,14 +265,14 @@ SplitStringToHashTagNodes(const xmlChar* pucArg, pcre2_code* preArg)
 	xmlChar* pucHashtag;
 	xmlChar* pucA = (xmlChar*)pucArg + ovector[0];
 
-	pucHashtag = xmlStrndup(pucA, ovector[1] - ovector[0]);
+	pucHashtag = xmlStrndup(pucA, (int)(ovector[1] - ovector[0]));
 	PrintFormatLog(3, "Hashtag '%s' (%i..%i) in '%s'", pucHashtag, ovector[0], ovector[1], pucArg);
 
 	pndResult = xmlNewNode(NULL, BAD_CAST "dummy");
 
 	if (ovector[0] > 0) {
 	  /* the content starts with text	*/
-	  xmlChar* pucT = xmlStrndup(pucArg, ovector[0]);
+	  xmlChar* pucT = xmlStrndup(pucArg, (int)ovector[0]);
 	  xmlAddChild(pndResult, xmlNewText(pucT));
 	  xmlFree(pucT);
 	}
@@ -475,7 +475,6 @@ InheritHashtags(xmlDocPtr pdocArg)
     xmlNodePtr pndRoot;
 
     if ((pndRoot = xmlDocGetRootElement(pdocArg))) {
-      xmlNodePtr pndPieXPathRoot;
       xmlXPathObjectPtr result;
 
       if ((result = domGetXPathNodeset(pdocArg, BAD_CAST"//*[name() = 'task' or name() = 'p' or name() = 'h' or name() = 'link' or name() = 'th' or name() = 'td']")) != NULL) {
@@ -485,12 +484,13 @@ InheritHashtags(xmlDocPtr pdocArg)
 	nodeset = result->nodesetval;
 	if (nodeset->nodeNr > 0) {
 	  for (i=0; i < nodeset->nodeNr; i++) {
-	    xmlChar* pucT;
 	    xmlNodePtr pndT;
 #if 0
 	    if (domGetPropValuePtr(nodeset->nodeTab[i], BAD_CAST"impact") == NULL) {
 	      /* try to find this attribute at a ancestor node */
 	      for (pndT=nodeset->nodeTab[i]->parent; pndT; pndT=pndT->parent) {
+		xmlChar* pucT;
+
 		if ((pucT = domGetPropValuePtr(pndT, BAD_CAST"impact"))) {
 		  xmlSetProp(nodeset->nodeTab[i], BAD_CAST"impact", pucT);
 		  break;
@@ -714,7 +714,6 @@ RecognizeNodeTags(xmlNodePtr pndTags, xmlNodePtr pndArg, pcre2_code* preArg)
     /* skip existing tag elements */
   }
   else if (IS_ENODE(pndArg) && (pndArg->ns==NULL)) { //  || pndArg->ns==pnsPie
-    xmlChar* pucT;
     xmlChar* pucTag;
     xmlNodePtr pndListTag = NULL;
     xmlNodePtr pndChild;
@@ -723,6 +722,8 @@ RecognizeNodeTags(xmlNodePtr pndTags, xmlNodePtr pndArg, pcre2_code* preArg)
 #if 0
     /*! append element name value as an additional tag */
     if (IS_NODE_PIE_TASK(pndArg) || IS_NODE_PIE_FIG(pndArg)) {
+      xmlChar* pucT;
+
       pucT = xmlStrdup(BAD_CAST"#");
       pucT = xmlStrcat(pucT, pndArg->name);
       pndListTag = AppendListTag(pndListTag, pucT);
@@ -732,6 +733,7 @@ RecognizeNodeTags(xmlNodePtr pndTags, xmlNodePtr pndArg, pcre2_code* preArg)
     /*! append class attribute value as an additional tag */
     pucTag = domGetPropValuePtr(pndArg, BAD_CAST"class");
     if (STR_IS_NOT_EMPTY(pucTag)) {
+      xmlChar* pucT;
 
       pucT = xmlStrdup(BAD_CAST"#");
       pucT = xmlStrcat(pucT, pucTag);
@@ -765,7 +767,7 @@ RecognizeNodeTags(xmlNodePtr pndTags, xmlNodePtr pndArg, pcre2_code* preArg)
 
 	    ovector = pcre2_get_ovector_pointer(match_data);
 	    PrintFormatLog(4, "tag %i..%i in '%s'", ovector[0], ovector[1], pucSubstr);
-	    pucTag = xmlStrndup(pucSubstr + ovector[0], ovector[1] - ovector[0]);
+	    pucTag = xmlStrndup(pucSubstr + ovector[0], (int)(ovector[1] - ovector[0]));
 	    pndListTag = AppendListTag(pndListTag, pucTag);
 	    xmlFree(pucTag);
 	    if (*(pucSubstr + ovector[1]) == '\0') {
@@ -828,7 +830,6 @@ ProcessTags(xmlDocPtr pdocPie, xmlChar* pucAttrTags)
 
   if (pdocPie != NULL && (pndRoot = xmlDocGetRootElement(pdocPie)) != NULL) {
     int errornumber = 0;
-    size_t erroroffset;
     xmlNodePtr pndMeta;
     xmlNodePtr pndTags = NULL;
 
@@ -856,6 +857,8 @@ ProcessTags(xmlDocPtr pdocPie, xmlChar* pucAttrTags)
     }
     else if (xmlStrlen(pucAttrTags) > 1) {
       /* use default regexp */
+      size_t erroroffset;
+
       pcre2_code* re_tag_local = NULL;
 
       PrintFormatLog(2, "Initialize tag regexp with '%s'", pucAttrTags);

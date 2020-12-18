@@ -809,7 +809,7 @@ cxpCtxtEnvDup(cxpContextPtr pccArg, char *envp[])
       if (i > 0) {
 	pccArg->iCountEnv = i;
 
-	pccArg->ppcEnv = (char**)xmlMalloc(sizeof(char*) * (i + 1));
+	pccArg->ppcEnv = (char**)xmlMalloc(sizeof(char*) * (size_t)(i + 1));
 	if (pccArg->ppcEnv) {
 	  pccArg->ppcEnv[i] = NULL; /* terminator */
 	  for (i--; i > -1; i--) {
@@ -910,7 +910,7 @@ cxpCtxtEncShellCommand(cxpContextPtr pccArg, xmlChar *pucArg)
       /* convert */
 
       int_out = BUFFER_LENGTH - 1;
-      int_in = xmlStrlen(pucArg) + 1;
+      int_in = (size_t) xmlStrlen(pucArg) + 1;
       strncpy(mpchIn, (char *)pucArg, int_out);
       mpchIn[int_in] = '\0';
       pchIn = mpchIn;

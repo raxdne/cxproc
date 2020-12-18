@@ -810,7 +810,7 @@ ScanDateIterationStepMultipy(pieCalendarElementPtr pceArg)
 
     if (pceArg->iAnchor > 0 && pucSep != NULL && pucSep[0] == '.' && isdigit(pucSep[1])) {
       int i;
-      char *pcEnd;
+      char *pcEnd = NULL;
 
       i = strtol((char *)pucSep + 1,(char **)&pcEnd,10);
       if (i > 1 && i < 367) {
@@ -846,7 +846,7 @@ ScanDateIterationStepNext(pieCalendarElementPtr pceArg)
     if (pceArg->iAnchor > 0 && pucSep != NULL && pucSep[0] == ':' && isdigit(pucSep[1])) {
       /* add the next days to anchor */
       int i;
-      char *pcEnd;
+      char *pcEnd = NULL;
 
       i = strtol((char *)pucSep + 1,(char **)&pcEnd,10);
       if (i > 1 && i < 367) {

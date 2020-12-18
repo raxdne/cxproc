@@ -39,6 +39,8 @@
 typedef int  pcre2_code; 	/*! for configuration reasons only */
 #endif
 
+#define CXP_NAMESPACE_URL      "http://www.tenbusch.info/cxproc"
+
 /*! numeric index type */
 typedef int index_t;
 

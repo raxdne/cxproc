@@ -250,7 +250,6 @@ domWeightXPathInDoc(xmlDocPtr pdocArg, xmlChar *pucArg)
     xmlNodePtr pndRoot;
 
     if ((pndRoot = xmlDocGetRootElement(pdocArg))) {
-      xmlNodePtr pndPieXPathRoot;
       xmlXPathObjectPtr result;
 
       if ((result = domGetXPathNodeset(pdocArg, pucArg)) != NULL) {
@@ -1301,11 +1300,13 @@ isEmptyTextNode(xmlNodePtr pndArg)
  * @cur:  the node
  *
  * Unlink a node from it's current context, the node is not freed
+ * 
+ * \bug handling of used namespaces
  */
 void
 domUnlinkNodeList(xmlNodePtr cur) {
 
-    assert(cur != NULL);
+  if (cur) {
     assert(isValidNodeType(cur));
 
     if (cur->type == XML_ELEMENT_NODE && cur == xmlDocGetRootElement(cur->doc)) {
@@ -1317,7 +1318,7 @@ domUnlinkNodeList(xmlNodePtr cur) {
     }
 
     if (cur->parent != NULL && cur->parent != (xmlNodePtr)cur->doc) {
-      /* 
+      /*
 	 regular node
       */
       xmlNodePtr parent;
@@ -1325,9 +1326,10 @@ domUnlinkNodeList(xmlNodePtr cur) {
 
       parent = cur->parent;
       if (cur->type == XML_ATTRIBUTE_NODE) {
-	if (parent->properties == (xmlAttrPtr) cur)
+	if (parent->properties == (xmlAttrPtr)cur)
 	  parent->properties = NULL;
-      } else {
+      }
+      else {
 	/* unlink references from parents */
 	if (parent->children == cur)
 	  parent->children = cur->prev;
@@ -1337,9 +1339,9 @@ domUnlinkNodeList(xmlNodePtr cur) {
       /* unlink references to parents */
       for (pndNext=cur; pndNext; pndNext=pndNext->next) {
 	//if (pndNext->type == XML_ELEMENT_NODE) {
-	  xmlSetTreeDoc(pndNext,NULL);
-	  pndNext->parent = NULL;
-	  //}
+	xmlSetTreeDoc(pndNext, NULL);
+	pndNext->parent = NULL;
+	//}
       }
     }
 
@@ -1348,8 +1350,8 @@ domUnlinkNodeList(xmlNodePtr cur) {
       cur->prev->next = NULL;
       cur->prev = NULL;
     }
-}
-/* end of domUnlinkNodeList() */
+  }
+} /* end of domUnlinkNodeList() */
 
 
 /*! increments value of named property by iArg numerically
@@ -1384,8 +1386,6 @@ domIncrProp(xmlNodePtr pndArg, xmlChar *pucArg, int iArg)
 
     patT = xmlHasProp(pndArg, pucArg);
     if (patT) {
-      xmlChar *pucAttrCurrent;
-
       if (iArg != 0 && patT->children != NULL && STR_IS_NOT_EMPTY(patT->children->content)) {
 	int iCurrent;
 
@@ -1652,8 +1652,6 @@ domGrepRegExpInTree(xmlNodePtr pndResultArg, xmlNodePtr pndArg, const pcre2_code
 			 NULL);            /* number of elements (NOT size in bytes) */
 
 	if (rc > -1) {
-	  xmlChar *pucT;
-	  
 	  pndMatch = xmlNewChild(pndResultArg,NULL,NAME_MATCH,NULL);
 	  domSetPropEat(pndMatch, BAD_CAST"xpath", domNodeGetXpathStr(pndChild->parent));
 	  xmlNewChild(pndMatch,NULL,pndChild->parent->name,pucText);

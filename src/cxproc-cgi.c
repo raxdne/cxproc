@@ -132,6 +132,7 @@ main(int argc, char *argv[], char *envp[])
       || atexit(xmlCleanupParser) != 0
       || atexit(xmlMemoryDump) != 0
       || atexit(domCleanup) != 0
+      || atexit(cxpCleanup) != 0
       || atexit(cgi_quit) != 0
 #ifdef HAVE_PIE
       || atexit(pieTextCleanup) != 0

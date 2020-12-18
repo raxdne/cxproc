@@ -41,6 +41,12 @@
 #define CXP_O_DIR    (16)
 
 
+extern xmlNsPtr
+cxpGetNs(void);
+
+extern void
+cxpCleanup(void);
+
 extern BOOL_T
 cxpProcessTransformations(const xmlDocPtr pdocArgXml, const xmlNodePtr pndArgParent, xmlDocPtr *ppdocArgResult, xmlChar **ppucArgResult, cxpContextPtr pccArg);
 

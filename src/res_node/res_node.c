@@ -274,10 +274,10 @@ resNodeAddChildNew(resNodePtr prnArg, xmlChar *pucArgPath)
 	    }
 	  }
 	  else if (resPathBeginIsArchive(pucT)) {
-	    pucBase = xmlStrndup(pucT, pucSep - pucT); /* duplicate without trailing separator */
+	    pucBase = xmlStrndup(pucT, (int)(pucSep - pucT)); /* duplicate without trailing separator */
 	  }
 	  else if (pucSep - pucT > 0) {
-	    pucBase = xmlStrndup(pucT, pucSep + 1 - pucT); /* duplicate including _one_ trailing separator */
+	    pucBase = xmlStrndup(pucT, (int)(pucSep + 1 - pucT)); /* duplicate including _one_ trailing separator */
 	  }
 	  while (issep(*pucSep)) pucSep++;
 	}
@@ -1305,14 +1305,14 @@ resNodeSplitStrNew(xmlChar* pucArgPath)
 	  pucTT++;
 	}
 
-	pucT = xmlStrndup(pucStart, pucTT - pucStart); /* root */
+	pucT = xmlStrndup(pucStart, (int)(pucTT - pucStart)); /* root */
 	resNodeReset(prnResult, pucT);
 	resNodeSetType(prnResult, rn_type_root);
 	xmlFree(pucT);
       }
       else if ((pucTT = resPathGetNextSeparator(pucStart))) {
 
-	pucT = xmlStrndup(pucStart, pucTT - pucStart);
+	pucT = xmlStrndup(pucStart, (int)(pucTT - pucStart));
 	resNodeSetNameBase(prnResult, pucT);
 	xmlFree(pucT);
 
@@ -1331,7 +1331,7 @@ resNodeSplitStrNew(xmlChar* pucArgPath)
 	  pucSep++;
 	}
 
-	if ((pucT = xmlStrndup(pucTT, pucSep - pucTT))) {
+	if ((pucT = xmlStrndup(pucTT, (int)(pucSep - pucTT)))) {
 	  prnT = resNodeAddChildNew(prnT, pucT);
 	  xmlFree(pucT);
 	}
@@ -1761,7 +1761,7 @@ _resNodeSetNameAncestor(resNodePtr prnArg, xmlChar *pucArgPath)
 
       for (pucT0=pucT1=pucPath; *pucT1; pucT1++) {
 	if (issep(*pucT1)) {
-	  prnArg->pucNameAncestor = xmlStrndup(pucT0,(pucT1 - pucT0 + 1));
+	  prnArg->pucNameAncestor = xmlStrndup(pucT0, (int)(pucT1 - pucT0 + 1));
 	  break;
 	}
       }
@@ -2001,7 +2001,7 @@ resNodeReset(resNodePtr prnArg, xmlChar *pucArgPath)
       }
 
 #ifdef _MSC_VER
-      if (prnArg->pcNameNormalizedNative != NULL && (iLength = strlen(prnArg->pcNameNormalizedNative)) > 1) {
+      if (prnArg->pcNameNormalizedNative != NULL && (iLength = (int)strlen(prnArg->pcNameNormalizedNative)) > 1) {
 	xmlChar *pucEnd = BAD_CAST &(prnArg->pcNameNormalizedNative[iLength]);
 	/*! - cut all redundant trailing path separators */
 	for (pucEnd--; pucEnd > BAD_CAST prnArg->pcNameNormalizedNative && issep(*pucEnd) && issep(*(pucEnd - 1)); pucEnd--) {
@@ -3698,7 +3698,7 @@ resNodeReadStatus(resNodePtr prnArg)
 	    else if (s.st_mode & _S_IFREG) {
 	      if (xmlStrEqual(resNodeGetExtension(prnArg), BAD_CAST"lnk")) {
 		char *pcT;
-		int i;
+		size_t i;
 
 		if ((pcT = resNodeGetNameNormalizedNative(prnArg)) && (i = strlen(pcT)) && pcT[i-4] == '.' && pcT[i-3] == 'l' && pcT[i-2] == 'n' && pcT[i-1] == 'k') {
 		  /* cut trailing ".lnk" from windows native name */
@@ -4002,16 +4002,18 @@ resNodeGetMtimeStr(resNodePtr prnArg)
 long int
 resNodeGetSize(resNodePtr prnArg)
 {
+  long int liResult = -1;
+
   if (prnArg) {
     if (prnArg->liSizeContent > 0) {
-      return prnArg->liSizeContent; /* size of read content */
+      liResult = prnArg->liSizeContent; /* size of read content */
     }
     if (prnArg->liSize == 0) {
       resNodeReadStatus(prnArg);
     }
-    return prnArg->liSize; /* size of file etc */
+    liResult = prnArg->liSize; /* size of file etc */
   }
-  return -1;
+  return liResult;
 } /* end of resNodeGetSize() */
 
 

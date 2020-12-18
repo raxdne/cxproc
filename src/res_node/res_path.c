@@ -147,7 +147,7 @@ xmlChar*
 resPathEncode(const char* pchArg)
 {
   xmlChar* pucResult = NULL;
-  int iLength = 0;
+  size_t iLength = 0;
 
   if (pchArg != NULL && (iLength = strlen(pchArg)) > 0) {
     if (iconvFsEncode == NULL) {
@@ -204,9 +204,9 @@ char *
 resPathDecode(xmlChar *pucArg)
 {
   char* pchResult = NULL;
-  int iLength = 0;
+  size_t iLength = 0;
 
-  if (pucArg != NULL && (iLength = xmlStrlen(pucArg)) > 0) {
+  if (pucArg != NULL && (iLength = (size_t) xmlStrlen(pucArg)) > 0) {
     if (iconvFsDecode == NULL) {
       pchResult = (char*)xmlStrdup(pucArg);
     }
@@ -935,13 +935,13 @@ resPathGetExtension(xmlChar *pucArg)
       /* case (4) */
       if (pucResult==NULL) {
 	pucT++;
-	diResult = pucTail - pucT;
+	diResult = (int)(pucTail - pucT);
 	if (pucTail - pucArg > 1 && diResult > 0 && diResult < FS_LENGTH_EXT) {
 	  return xmlStrdup(pucTail);
 	}
       }
       else {
-	diResult = pucT - pucResult;
+	diResult = (int)(pucT - pucResult);
 	if (pucResult - pucArg > 1 && diResult > 0 && diResult < FS_LENGTH_EXT) {
 	  return xmlStrndup(pucResult,diResult);
 	}
@@ -1041,7 +1041,7 @@ resPathGetBasedir(xmlChar *pucArgNameFile)
   }
 
   if (resPathIsDir(pucArgNameFile)) {
-    return xmlStrndup(pucArgNameFile, pucEnd - pucArgNameFile + 1);
+    return xmlStrndup(pucArgNameFile, (int)(pucEnd - pucArgNameFile + 1));
   }
 
   for (ptr=BAD_CAST pucArgNameFile, pucSep=NULL;
@@ -1061,7 +1061,7 @@ resPathGetBasedir(xmlChar *pucArgNameFile)
     }
     else if (pucSep - pucPath > 0 || ! isdot(*pucPath)) {
       /* there is a directory path on argv[1] */
-      return xmlStrndup(pucPath, pucSep - pucPath);
+      return xmlStrndup(pucPath, (int)(pucSep - pucPath));
     }
   }
 
@@ -1116,7 +1116,7 @@ resPathGetBasename(xmlChar *pucArgNameFile)
   }
   else if (pucSep != NULL && pucEnd - pucSep > 0) {
     /* there is a basename */
-    return xmlStrndup(pucSep + 1, pucEnd - pucSep);
+    return xmlStrndup(pucSep + 1, (int)(pucEnd - pucSep));
   }
   return NULL;
 }
@@ -1143,7 +1143,7 @@ resPathGetRootname(xmlChar *pucArgNameFile)
       
 	pucEnd = BAD_CAST xmlStrstr(pucRoot, pucExt);
 	if (STR_IS_NOT_EMPTY(pucEnd) && (pucEnd - pucRoot > 0)) {
-	  pucResult = xmlStrndup(pucRoot, pucEnd - pucRoot - 1);
+	  pucResult = xmlStrndup(pucRoot, (int)(pucEnd - pucRoot - 1));
 	}
       }
       xmlFree(pucExt);
@@ -1166,7 +1166,7 @@ resPathGetQuoted(xmlChar *pucArgNameFile)
     int l;
 
     l = xmlStrlen(pucArgNameFile);
-    pucResult = BAD_CAST xmlMalloc(l*2);
+    pucResult = BAD_CAST xmlMalloc((size_t) l * 2);
     if (pucResult) {
       int i;
       int j;
@@ -1278,7 +1278,7 @@ resPathGetDirFind(xmlChar *pucArgPath, xmlChar *pucArgNeedle)
       for (i=0; ! isseporend(pucT[i]); i++) {
 	/* find next path separator or end of string */
       }
-      iLengthNameDir = &pucT[i] - pucArgPath;
+      iLengthNameDir = (int)(&pucT[i] - pucArgPath);
 
       if (iLengthNameDir > 0 && iLengthNameDir < BUFFER_LENGTH) {
 	pucResult = xmlStrndup(pucArgPath,iLengthNameDir);
@@ -1351,7 +1351,7 @@ CopyPath(xmlChar *pucArgTarget, xmlChar *pucArgSource)
     }
   }
 
-  return (pucT - pucArgTarget);
+  return (int)(pucT - pucArgTarget);
 }
 /* end of CopyPath() */
 
@@ -1374,7 +1374,7 @@ resPathConcat(xmlChar *pucArgA, xmlChar *pucArgB)
       /* concatenate strings, separated by slash */
       int iLength;
 
-      pucResult = BAD_CAST xmlMalloc(xmlStrlen(pucArgA) + xmlStrlen(pucArgB) + 2);
+      pucResult = BAD_CAST xmlMalloc(((size_t) xmlStrlen(pucArgA) + xmlStrlen(pucArgB) + 2));
       iLength = CopyPath(pucResult,pucArgA);
 
       if (resPathIsDosDrive(pucArgB)) {
@@ -1396,7 +1396,7 @@ resPathConcat(xmlChar *pucArgA, xmlChar *pucArgB)
       }
     }
     else {
-      pucResult = BAD_CAST xmlMalloc(xmlStrlen(pucArgA) + 1);
+      pucResult = BAD_CAST xmlMalloc((size_t) xmlStrlen(pucArgA) + 1);
       CopyPath(pucResult,pucArgA);
     }
   }
@@ -1441,7 +1441,7 @@ resPathGetPathOfArchive(xmlChar *pucArg)
     xmlChar *pucSep;
 
     if ((pucSep = resPathGetPathInNextArchivePtr(pucArg)) && pucSep - pucArg > 4) {
-      pucResult = xmlStrndup(pucArg, pucSep - pucArg);
+      pucResult = xmlStrndup(pucArg, (int)(pucSep - pucArg));
       resPathCutTrailingChars(pucResult);
       resPathRemoveQuotes(pucResult);
     }
