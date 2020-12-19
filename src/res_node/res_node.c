@@ -4005,13 +4005,15 @@ resNodeGetSize(resNodePtr prnArg)
   size_t liResult = 0;
 
   if (prnArg) {
-    if (prnArg->liSizeContent > 0) {
-      liResult = prnArg->liSizeContent; /* size of read content */
-    }
     if (prnArg->liSize == 0) {
       resNodeReadStatus(prnArg);
     }
-    liResult = prnArg->liSize; /* size of file etc */
+    if (prnArg->liSizeContent > 0) {
+      liResult = prnArg->liSizeContent; /* size of read content */
+    }
+    else {
+      liResult = prnArg->liSize; /* size of file etc */
+    }
   }
   return liResult;
 } /* end of resNodeGetSize() */

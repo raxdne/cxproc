@@ -1430,6 +1430,9 @@ pieElementParse(pieTextElementPtr ppeArg)
   else if (pieElementGetMode(ppeArg) == RMODE_PRE || pieElementIsPre(ppeArg)) {
     /*! pre-formatted content */
   }
+  else if (pieElementIsCsv(ppeArg)) {
+    /*! CSV-formatted content */
+  }
   else if (pieElementGetMode(ppeArg) == RMODE_MD) { /* https://daringfireball.net/projects/markdown/syntax */
 #ifdef WITH_MARKDOWN
     int i;

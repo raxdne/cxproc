@@ -615,7 +615,7 @@ resNodeSaveContent(resNodePtr prnArg)
     }
     else if (prnArg->eAccess == rn_access_file) {
       PrintFormatLog(3, "Save file '%s'", resNodeGetNameNormalized(prnArg));
-      if (fwrite(resNodeGetContentPtr(prnArg),resNodeGetSize(prnArg),1,(FILE *)resNodeGetHandleIO(prnArg)) == 1) {
+      if (fwrite(resNodeGetContentPtr(prnArg),resNodeGetSize(prnArg),(size_t)1,(FILE *)resNodeGetHandleIO(prnArg)) == 1) {
       }
       else {
 	/*!\todo handle error code 'errno' */

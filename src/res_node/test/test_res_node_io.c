@@ -256,7 +256,7 @@ resNodeTestInOut(void)
     resNodePtr prnT = NULL;
 
     void *pContent;
-    long int liLengthLarge = 512 * SIZE_MEGA;
+    size_t liLengthLarge = 512 * SIZE_MEGA;
     xmlChar *pucNameFile = BAD_CAST TEMPPREFIX "512MB.dat";
 
     i++;
