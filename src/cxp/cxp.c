@@ -36,11 +36,15 @@
 #endif
 #endif
 
+#ifdef HAVE_ZLIB
+#include <zlib.h>
+#endif
+
 #ifdef HAVE_PCRE2
 #include <pcre2.h>
 #endif
 
-/* 
+ /*
  */
 #include <libxslt/xslt.h>
 #include <libxslt/xsltutils.h>
@@ -3336,6 +3340,13 @@ cxpProcessInfoNode(xmlNodePtr pndInfo, cxpContextPtr pccArg)
     xmlSetProp(nodeOption,BAD_CAST "ns",BAD_CAST"http://www.pcre.org/");
     xmlStrPrintf(mpucOut,BUFFER_LENGTH, "%i.%i",PCRE2_MAJOR,PCRE2_MINOR);
     xmlSetProp(nodeOption,BAD_CAST "version",mpucOut);
+#endif
+
+#ifdef HAVE_ZLIB
+    nodeOption = xmlNewChild(nodeProgram, NULL, BAD_CAST"lib", NULL);
+    xmlSetProp(nodeOption, BAD_CAST "name", BAD_CAST"zlib");
+    xmlSetProp(nodeOption, BAD_CAST "ns", BAD_CAST"http://zlib.net/");
+    xmlSetProp(nodeOption, BAD_CAST "version", BAD_CAST ZLIB_VERSION);
 #endif
 
     nodeOption = xmlNewChild(nodeProgram,NULL,BAD_CAST"module",NULL);

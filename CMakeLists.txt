@@ -483,23 +483,27 @@ ELSE (ZLIB_FOUND)
 ENDIF (ZLIB_FOUND)
 
 IF (CXPROC_LIBZ)
-  INCLUDE_DIRECTORIES(${ZLIB_INCLUDE_DIR})
+  INCLUDE_DIRECTORIES(${ZLIB_INCLUDE_DIR} ${CXPROC_SRCLIB_DIR}/minizip)
   add_compile_definitions(HAVE_ZLIB)
   SET(FILEX_SOURCES ${FILEX_SOURCES}
-    ${CXPROC_SRCLIB_DIR}/xmlzipio/zip.c
-    ${CXPROC_SRCLIB_DIR}/xmlzipio/unzip.c
+    ${CXPROC_SRCLIB_DIR}/minizip/ioapi.c
+    ${CXPROC_SRCLIB_DIR}/minizip/zip.c
+    ${CXPROC_SRCLIB_DIR}/minizip/unzip.c
     ${CXPROC_SRCLIB_DIR}/xmlzipio/xmlzipio.c)
   SET(FILEX_HEADERS ${FILEX_HEADERS}
-    ${CXPROC_SRCLIB_DIR}/xmlzipio/zip.h
-    ${CXPROC_SRCLIB_DIR}/xmlzipio/unzip.h
+    ${CXPROC_SRCLIB_DIR}/minizip/ioapi.h
+    ${CXPROC_SRCLIB_DIR}/minizip/zip.h
+    ${CXPROC_SRCLIB_DIR}/minizip/unzip.h
     ${CXPROC_SRCLIB_DIR}/xmlzipio/xmlzipio.h)
   SET(CXPROC_SOURCES ${CXPROC_SOURCES}
-    ${CXPROC_SRCLIB_DIR}/xmlzipio/zip.c
-    ${CXPROC_SRCLIB_DIR}/xmlzipio/unzip.c
+    ${CXPROC_SRCLIB_DIR}/minizip/ioapi.c
+    ${CXPROC_SRCLIB_DIR}/minizip/zip.c
+    ${CXPROC_SRCLIB_DIR}/minizip/unzip.c
     ${CXPROC_SRCLIB_DIR}/xmlzipio/xmlzipio.c)
   SET(CXPROC_HEADERS ${CXPROC_HEADERS}
-    ${CXPROC_SRCLIB_DIR}/xmlzipio/zip.h
-    ${CXPROC_SRCLIB_DIR}/xmlzipio/unzip.h
+    ${CXPROC_SRCLIB_DIR}/minizip/ioapi.h
+    ${CXPROC_SRCLIB_DIR}/minizip/zip.h
+    ${CXPROC_SRCLIB_DIR}/minizip/unzip.h
     ${CXPROC_SRCLIB_DIR}/xmlzipio/xmlzipio.h)
   IF (${ZLIB_LIBRARIES} MATCHES ".+static.*\\.lib$" OR ${ZLIB_LIBRARIES} MATCHES ".+\\.a$")
     add_compile_definitions(ZLIB_STATIC)
