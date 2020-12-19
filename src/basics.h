@@ -54,7 +54,7 @@ typedef int index_t;
 #define NAME_CONFIG_INDEX ".index.cxp"
 
 /*! size of static buffers */
-#define BUFFER_LENGTH ((int)(4 * 1024))
+#define BUFFER_LENGTH ((size_t)(4 * 1024))
 
 #ifndef BOOL_T
   #ifdef __cplusplus

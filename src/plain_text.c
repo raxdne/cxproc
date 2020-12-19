@@ -98,7 +98,7 @@ plainGetContextTextEat(resNodePtr prnArg, int iArgMax)
     if (pucT) {
       int iLength;
 
-      iLength = resNodeGetSize(prnArg);
+      iLength = (int)resNodeGetSize(prnArg);
       if (iLength > 0) {
 	pucT[iLength] = (xmlChar) '\0';
 	/*! encode to UTF-8 */
@@ -326,8 +326,8 @@ plainDetectAndDecode(const unsigned char *pucArg, int iLength)
     }
 
     if (cdHere) {
-      int_in  = iLength - iOffset;
-      int_out = iLength * 2;
+      int_in  = (size_t)(iLength - iOffset);
+      int_out = (size_t)(iLength * (int) 2);
 
       pucResult = BAD_CAST xmlMalloc((int_out + 1) * sizeof(xmlChar));
       if (pucResult) {

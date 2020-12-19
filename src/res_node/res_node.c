@@ -2585,7 +2585,7 @@ resNodeContentToDOM(xmlNodePtr pndArg, resNodePtr prnArg)
 {
   if (pndArg) {
     RN_MIME_TYPE iMimeType;
-    long int liSizeContent;
+    size_t liSizeContent;
 
     /*\bug fails when there is no child because of archive errors */
     
@@ -3999,10 +3999,10 @@ resNodeGetMtimeStr(resNodePtr prnArg)
   \param prnArg a pointer to a resource node
   \return value of liSize or -1 in case of errors
 */
-long int
+size_t
 resNodeGetSize(resNodePtr prnArg)
 {
-  long int liResult = -1;
+  size_t liResult = 0;
 
   if (prnArg) {
     if (prnArg->liSizeContent > 0) {
@@ -4022,14 +4022,14 @@ resNodeGetSize(resNodePtr prnArg)
   \param prnArg a pointer to a resource node
   \return value of liSize or -1 in case of errors
 */
-long int
-resNodeSetSize(resNodePtr prnArg, long int iArg)
+size_t
+resNodeSetSize(resNodePtr prnArg, size_t iArg)
 {
   if (prnArg) {
     prnArg->liSize = iArg;
     return prnArg->liSize;
   }
-  return -1;
+  return 0;
 } /* end of resNodeSetSize() */
 
 
@@ -4038,13 +4038,13 @@ resNodeSetSize(resNodePtr prnArg, long int iArg)
   \param prnArg a pointer to a resource node
   \return recursive value of liSize or -1 in case of errors
 */
-long long
+size_t
 resNodeGetRecursiveSize(resNodePtr prnArg)
 {
   if (prnArg) {
     return prnArg->liRecursiveSize;
   }
-  return -1;
+  return 0;
 } /* end of resNodeGetRecursiveSize() */
 
 
@@ -4053,14 +4053,14 @@ resNodeGetRecursiveSize(resNodePtr prnArg)
   \param prnArg a pointer to a resource node
   \return recursive value of liSize or -1 in case of errors
 */
-long long
-resNodeIncrRecursiveSize(resNodePtr prnArg, long long iArg)
+size_t
+resNodeIncrRecursiveSize(resNodePtr prnArg, size_t iArg)
 {
   if (prnArg) {
     prnArg->liRecursiveSize += iArg;
     return prnArg->liRecursiveSize;
   }
-  return -1;
+  return 0;
 } /* end of resNodeIncrRecursiveSize() */
 
 

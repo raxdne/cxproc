@@ -239,8 +239,8 @@ struct _resNode {
 
   RN_MIME_TYPE eMimeType;	/*! numerical mime type of this resource */
 
-  long liSize;			/*! size _info_ in Bytes (meta datum!) */
-  long long liRecursiveSize;
+  size_t liSize;			/*! size _info_ in Bytes (meta datum!) */
+  size_t liRecursiveSize;
 
   time_t tMtime;            /*! modification time value of context */
   xmlChar *pucMtime;        /*! UTF-8 encoded entry mtime string */
@@ -568,17 +568,17 @@ resNodeGetMtime(resNodePtr prnArg);
 extern xmlChar *
 resNodeGetMtimeStr(resNodePtr prnArg);
 
-extern long int
+extern size_t
 resNodeGetSize(resNodePtr prnArg);
 
-extern long int
-resNodeSetSize(resNodePtr prnArg, long int iArg);
+extern size_t
+resNodeSetSize(resNodePtr prnArg, size_t iArg);
 
-extern long long
+extern size_t
 resNodeGetRecursiveSize(resNodePtr prnArg);
 
-extern long long
-resNodeIncrRecursiveSize(resNodePtr prnArg, long long iArg);
+extern size_t
+resNodeIncrRecursiveSize(resNodePtr prnArg, size_t iArg);
 
 extern BOOL_T
 resNodeSetRecursion(resNodePtr prnArg, BOOL_T fArgFlag);

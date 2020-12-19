@@ -206,7 +206,7 @@ StringEndsWith(char* pchArgBegin, const char* pchArgNeedle)
 
     assert(pchArgBegin != pchArgNeedle);
 
-    for (i=strlen(pchArgBegin), j=strlen(pchArgNeedle); i > -1 && j > -1; i--, j--) {
+    for (i = (int)strlen(pchArgBegin), j = (int)strlen(pchArgNeedle); i > -1 && j > -1; i--, j--) {
       if (pchArgNeedle[j] == pchArgBegin[i]) {
 	if (j == 0) {
 	  pcResult = &pchArgBegin[i];
@@ -268,7 +268,7 @@ StringDecodeNumericCharsNew(xmlChar *pucArg)
 
 	if (iCode > 129 && iCode < 160) {
 	  /* to be skipped (s. http://www.cs.tut.fi/~jkorpela/www/windows-chars.html) */
-	  j = pucT - &pucArg[i];
+	  j = (int)(pucT - &pucArg[i]);
 	  i += j - 1;
 	  k += j;
 	}
@@ -276,7 +276,7 @@ StringDecodeNumericCharsNew(xmlChar *pucArg)
 	  j = xmlCopyCharMultiByte(&pucResult[k], iCode);
 	  assert(j > 0);
 	  k += j;
-	  i = pucT - pucArg - 1;
+	  i = (int)(pucT - pucArg - 1);
 	}
       }
       else {
@@ -559,7 +559,7 @@ ReplaceStr(const xmlChar *haystack, const xmlChar *needle, const xmlChar *replac
       }
 
       if (found - haystack > 0) {
-        prefix = xmlStrndup(haystack,(found - haystack));
+        prefix = xmlStrndup(haystack, (int)(found - haystack));
         pucRelease = prefix;
         prefix = xmlStrncatNew(pucRelease,replace,xmlStrlen(replace));
         xmlFree(pucRelease);
@@ -704,7 +704,7 @@ chomp(unsigned char *c)
     for ( a--; a>c && *a==(unsigned char)' '; a--) {
       *a = (unsigned char)'\0';
     }
-    iResult = (a-c);
+    iResult = (int)(a-c);
   }
   return iResult;
 }
@@ -1109,7 +1109,7 @@ EncodeRFC1738(const xmlChar *input) {
 
     while (*cur != '\0') {
       if (out - buffer > (buffer_size - BUFFER_LENGTH / 10)) {
-	int indx = out - buffer;
+	int indx = (int)(out - buffer);
 
 	//growBufferReentrant();
 	buffer_size *= 2;

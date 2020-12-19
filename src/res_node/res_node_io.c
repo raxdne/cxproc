@@ -74,10 +74,10 @@ CloseSqlite(resNodePtr prnArg);
 static BOOL_T
 resNodeReadContent(resNodePtr prnArg, int iArgMax);
 
-static long int
-resNodeSetBlockSize(resNodePtr prnArg, long int iArg);
+static size_t
+resNodeSetBlockSize(resNodePtr prnArg, size_t iArg);
 
-static long int
+static size_t
 resNodeGetBlockSize(resNodePtr prnArg);
 
 static int
@@ -614,11 +614,6 @@ resNodeSaveContent(resNodePtr prnArg)
 #endif
     }
     else if (prnArg->eAccess == rn_access_file) {
-      size_t i;
-#ifdef _MSC_VER
-      errno_t iError;
-#endif
-
       PrintFormatLog(3, "Save file '%s'", resNodeGetNameNormalized(prnArg));
       if (fwrite(resNodeGetContentPtr(prnArg),resNodeGetSize(prnArg),1,(FILE *)resNodeGetHandleIO(prnArg)) == 1) {
       }
@@ -873,9 +868,9 @@ resNodeReadContent(resNodePtr prnArg, int iArgMax)
 
   if (prnArg != NULL) {
     char *pchInput = NULL;  /*! pointer to collection buffer */
-    int cchResultAllocated = 0;
-    int cchResult = 0;		/*! counter for collected string length */
-    int cchReadInput = 0;		/*! counter for collected string length */
+    size_t cchResultAllocated = 0;
+    size_t cchResult = 0;		/*! counter for collected string length */
+    size_t cchReadInput = 0;		/*! counter for collected string length */
     int iLoop;
 
     assert(prnArg->eMode == mode_read);
@@ -947,7 +942,7 @@ resNodeReadContent(resNodePtr prnArg, int iArgMax)
       if (pInput) {
 	memset(pInput,0,resNodeGetSize(prnArg) + 1); /* to get a null termination of buffer */
 #ifdef _MSC_VER
-	cchReadInput = fread_s(pInput, iArgMax * BUFFER_LENGTH, 1, resNodeGetSize(prnArg), (FILE *)resNodeGetHandleIO(prnArg));
+	cchReadInput = fread_s(pInput, (size_t)(iArgMax * BUFFER_LENGTH), (size_t)1, resNodeGetSize(prnArg), (FILE *)resNodeGetHandleIO(prnArg));
 #else
 	cchReadInput = fread(pInput, 1, resNodeGetSize(prnArg), (FILE *)resNodeGetHandleIO(prnArg));
 #endif
@@ -996,7 +991,7 @@ resNodeReadContent(resNodePtr prnArg, int iArgMax)
 
 	if (pchInput) {
 	  if (resNodeGetType(prnArg) == rn_type_file || resNodeGetType(prnArg) == rn_type_stdin) {
-	    cchReadInput = fread(&(pchInput[cchResult]), 1, resNodeGetBlockSize(prnArg), (FILE *)resNodeGetHandleIO(prnArg));
+	    cchReadInput = fread(&(pchInput[cchResult]), (size_t)1, resNodeGetBlockSize(prnArg), (FILE *)resNodeGetHandleIO(prnArg));
 	    /*!\todo handle VC++ newline processing */
 	    if (ferror((FILE *)resNodeGetHandleIO(prnArg))) {
 	      /*!\todo why is input_length != stStat.st_size with VC++ */
@@ -1341,11 +1336,11 @@ resNodeReadDoc(resNodePtr prnArg)
     if (resNodeGetContent(prnArg,1024)) {
       if (resNodeGetMimeType(prnArg) == MIME_TEXT_HTML) {
 	options = XML_PARSE_RECOVER | XML_PARSE_NOENT | XML_PARSE_NOERROR | XML_PARSE_NOWARNING | XML_PARSE_NSCLEAN | XML_PARSE_NODICT;
-	pdocResult = htmlReadMemory((const char *)resNodeGetContentPtr(prnArg), resNodeGetSize(prnArg), NULL, (const char*)"UTF-8", options);
+	pdocResult = htmlReadMemory((const char *)resNodeGetContentPtr(prnArg), (int)resNodeGetSize(prnArg), NULL, (const char*)"UTF-8", options);
       }
       else {
 	options = XML_PARSE_RECOVER | XML_PARSE_NOENT | XML_PARSE_NOERROR | XML_PARSE_NOWARNING | XML_PARSE_NSCLEAN | XML_PARSE_NODICT;
-	pdocResult = xmlReadMemory((const char *)resNodeGetContentPtr(prnArg), resNodeGetSize(prnArg), NULL, NULL, options);
+	pdocResult = xmlReadMemory((const char *)resNodeGetContentPtr(prnArg), (int)resNodeGetSize(prnArg), NULL, NULL, options);
       }
     }
 
@@ -1420,14 +1415,14 @@ resNodeGetHandleIO(resNodePtr prnArg)
   \param prnArg the context
   \return value of liSizeBlock or -1 in case of errors
 */
-long int
-resNodeSetBlockSize(resNodePtr prnArg, long int iArg)
+size_t
+resNodeSetBlockSize(resNodePtr prnArg, size_t iArg)
 {
   if (prnArg != NULL) {
     prnArg->liSizeBlock = iArg;
     return resNodeGetBlockSize(prnArg);
   }
-  return -1;
+  return 0;
 } /* end of resNodeSetBlockSize() */
 
 
@@ -1436,13 +1431,13 @@ resNodeSetBlockSize(resNodePtr prnArg, long int iArg)
 \param prnArg the context
 \return value of liSizeBlock or -1 in case of errors
 */
-long int
+size_t
 resNodeGetBlockSize(resNodePtr prnArg)
 {
   if (prnArg != NULL) {
     return prnArg->liSizeBlock;
   }
-  return -1;
+  return 0;
 } /* end of resNodeGetBlockSize() */
 
 

@@ -632,7 +632,7 @@ pnetNewEdges(petrinet_t *ppnArg, cxpContextPtr pccArg)
       memset(ppnArg->edge, 0, ciSize);
       tail = pnetInitEdges(ppnArg, ppnArg->edge, ppnArg->pndRoot,pccArg);
       tail->from = NULL;
-      ppnArg->n_e = (tail - ppnArg->edge);
+      ppnArg->n_e = (index_t)(tail - ppnArg->edge);
       cxpCtxtLogPrint(pccArg, 2,"Valid '%s' nodes: %i", NAME_EDGE, ppnArg->n_e);
       
       fResult = TRUE;

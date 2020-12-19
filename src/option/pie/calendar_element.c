@@ -555,7 +555,7 @@ ScanCalendarElementDate(pieCalendarElementPtr pceArgResult)
       if (pucSepEnd != pucE) {
 	/* entry for a specified day of week found
 	 */
-	pucDow = xmlStrndup(pucE, (pucSepEnd - pucE));
+	pucDow = xmlStrndup(pucE, (int)(pucSepEnd - pucE));
 	d_week = GetDayOfWeekInt(pucDow);
 	xmlFree(pucDow);
       }
@@ -1104,7 +1104,7 @@ calConcatNextDate(xmlChar *pucArgGcal)
       /* skip all chars in second calendar string */
     }
 
-    l_new = pucE - pucB;
+    l_new = (int) (pucE - pucB);
 
     if (l_new > 0) {
       if (fWeek) {
