@@ -430,6 +430,32 @@ StringRemovePairQuotes(xmlChar *pucArg)
 } /* end of StringRemovePairQuotes() */
 
 
+/*! removes all pair quote in pucArg
+
+\return TRUE if pucArg is not empty, elese FALSE
+*/
+BOOL_T
+StringRemoveBackslashes(xmlChar* pucArg)
+{
+  BOOL_T fResult = FALSE;
+
+  if (STR_IS_NOT_EMPTY(pucArg)) {
+    xmlChar* pucA;
+    xmlChar* pucB;
+
+    for (pucA = pucB = pucArg; isend(*pucA) == FALSE; pucA++, pucB++) {
+      if (*pucA == (xmlChar)'\\') {
+	pucA++;
+      }
+      *pucB = *pucA;
+    }
+    *pucB = (xmlChar)'\0';
+    fResult = TRUE;
+  }
+  return fResult;
+} /* end of StringRemoveBackslashes() */
+
+
 /*! \return pointer to a quoted copy of pucArg
 */
 xmlChar *
@@ -1462,6 +1488,78 @@ DecodeBase64(const xmlChar *pucArg)
   return BAD_CAST pchT;
 }
 /* end of DecodeBase64() */
+
+
+/*
+*  Converts Quoted-Printable encoding (=xy numbers) in given the string.
+* 
+*  https://en.wikipedia.org/wiki/Quoted-printable
+* 
+* \return number of errors as negative integer or 0 if success
+*/
+int
+DecodeQuotedPrintable(xmlChar* pucArg)
+{
+  int iResult = 0;
+
+  if (pucArg) {
+    index_t i;
+    index_t j = 0;
+
+    for (i=j=0; pucArg[i] != '\0'; i++, j++) {
+      if (pucArg[i] == '=' && isalnum(pucArg[i+1]) && isalnum(pucArg[i+2])) {
+	xmlChar k = 0;
+
+	if (isdigit(pucArg[i+1])) {
+	  k += (pucArg[i+1] - '0') * 16;
+	}
+	else if (pucArg[i+1] > '@' && pucArg[i+1] < 'G') {
+	  k += (pucArg[i+1] - '@' + 9) * 16;
+	}
+	else {
+	  perror("Quoted-Printable encoding error\n");
+	  pucArg[j] = '_';
+	  i += 2;
+	  iResult--;
+	  continue;
+	}
+
+	if (isdigit(pucArg[i+2])) {
+	  k += (pucArg[i+2] - '0');
+	}
+	else if (pucArg[i+2] > '@' && pucArg[i+2] < 'G') {
+	  k += (pucArg[i+2] - '@' + 9);
+	}
+	else {
+	  perror("Quoted-Printable encoding error\n");
+	  pucArg[j] = '_';
+	  i += 2;
+	  iResult--;
+	  continue;
+	}
+
+	if (k > 0x1F && k < 0xFF) {
+	  pucArg[j] = k;
+	}
+	else {
+	  perror("Quoted-Printable encoding error\n");
+	  pucArg[j] = '_';
+	  iResult--;
+	}
+	i += 2;
+      }
+      else {
+	pucArg[j] = pucArg[i];
+      }
+    }
+    pucArg[j] = '\0';
+  }
+  else {
+    //perror("Quoted-Printable encoding error\n");
+    iResult--;
+  }
+  return iResult;
+} /* end of DecodeQuotedPrintable() */
 
 
 #ifdef _MSC_VER

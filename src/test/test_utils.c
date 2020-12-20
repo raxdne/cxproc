@@ -175,6 +175,32 @@ utilsTest(void)
 
 
   if (RUNTEST) {
+    xmlChar* pucError = xmlStrdup(BAD_CAST"=47=08=1=6H=7a=74 ");
+    xmlChar* pucT = xmlStrdup(BAD_CAST"Der Almsee ist ein Bergsee im ober=F6sterreichischen Teil des Salzkammergutes im Gemeindegebiet von Gr=FCnau im Almtal, am Nordfu=DF des Toten Gebirges und liegt auf 589 m =FC. A.");
+
+    i++;
+    printf("TEST %i in '%s:%i': = ", i, __FILE__, __LINE__);
+
+    if (DecodeQuotedPrintable(NULL) != -1) {
+      printf("ERROR\n");
+    }
+    else if (DecodeQuotedPrintable(pucError) != -3) {
+      printf("ERROR\n");
+    }
+    else if (DecodeQuotedPrintable(pucT) != 0) {
+      printf("ERROR\n");
+    }
+    else {
+      n_ok++;
+      printf("OK\n");
+    }
+    puts(pucT);
+    xmlFree(pucT);
+    xmlFree(pucError);
+  }
+
+
+  if (RUNTEST) {
 
     i++;
     printf("TEST %i in '%s:%i': change string to lowercase chars = ", i, __FILE__, __LINE__);

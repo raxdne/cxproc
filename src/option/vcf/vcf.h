@@ -18,8 +18,8 @@
   Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 */
 
-extern xmlNodePtr
-vcfParse(xmlNodePtr pndArgParent, xmlNodePtr pndArgSource, char *pchArgSource, lang_t lang);
+extern BOOL_T
+vcfParse(xmlNodePtr pndArg, resNodePtr prnArg);
 
 #ifdef TESTCODE
 extern int

@@ -21,6 +21,7 @@
 
 /* 
     s. http://tools.ietf.org/html/rfc2426
+    https://www.w3.org/2002/12/cal/
     http://en.wikipedia.org/wiki/VCard
 
     transformation into xCard format
@@ -35,32 +36,32 @@
  */
 #include "basics.h"
 #include "utils.h"
-#include <cxp/cxp_context.h>
 #include "dom.h"
-#include <pie/pie_text.h>
+#include "plain_text.h"
 #include <vcf/vcf.h>
 
+static BOOL_T fExtensions = FALSE; /*! flag to include 'X-' elements in DOM */
 
 static BOOL_T
-RemoveLineBreaks(char *pchArg, int iArgLength);
+RemoveLineBreaks(char* pchArg, int iArgLength);
 
-static int
-getLineLength(char *pchArg);
+static size_t
+getLineLength(char* pchArg);
 
-static char *
-getNextLine(char *pchArg);
+static char*
+getNextLine(char* pchArg);
 
-static char *
-getBlockType(char *pchArgTarget, char *pchArgBlockBegin, int iArgLength);
+static char*
+getBlockType(char* pchArgTarget, char* pchArgBlockBegin, int iArgLength);
 
-static char *
-getBlockEnd(char *pchArgBlockBegin, int iArgLength);
+static char*
+getBlockEnd(char* pchArgBlockBegin, int iArgLength);
 
 static BOOL_T
-addLine(xmlNodePtr pndArg, char *pchArg);
+addLine(xmlNodePtr pndArg, char* pchArg);
 
-static char *
-getNextBlock(xmlNodePtr pndArg, char *pchArg, int iArgLength);
+static char*
+getNextBlock(xmlNodePtr pndArg, char* pchArg, int iArgLength);
 
 
 /*! removes the linebreaks at long lines
@@ -68,79 +69,56 @@ getNextBlock(xmlNodePtr pndArg, char *pchArg, int iArgLength);
 !\todo handle non conformant linebreaks (simple '\n')
 */
 BOOL_T
-RemoveLineBreaks(char *pchArg, int iArgLength)
+RemoveLineBreaks(char* pchArg, int iArgLength)
 {
-    char *pchA;
-    char *pchB;
-    char *pchEnd = pchArg + iArgLength;
+  char* pchA;
+  char* pchB;
+  char* pchEnd = pchArg + iArgLength;
 
-    for (pchB=pchA=pchArg; pchB < pchEnd; pchB++) {
-      if (pchB[0]=='\r' && pchB[1]=='\n' && (pchB[2]=='\t' || pchB[2]==' ')) {
-	pchB++;
-	pchB++;
-      }
-      else if (pchB[0]=='\n' && (pchB[1]=='\t' || pchB[1]==' ')) {
-	pchB++;
-      }
-      else {
-	*pchA = *pchB;
-	pchA++;
-      }
+  for (pchB=pchA=pchArg; pchB < pchEnd; pchB++) {
+    if (pchB[0]=='\r' && pchB[1]=='\n' && (pchB[2]=='\t' || pchB[2]==' ')) {
+      pchB++;
+      pchB++;
     }
-    *pchA = '\0';
+    else if (pchB[0]=='\n' && (pchB[1]=='\t' || pchB[1]==' ')) {
+      pchB++;
+    }
+    else if (pchB[0]=='\\' && pchB[1]==',') {
+      /* ignore this backslash */
+    }
+    else {
+      *pchA = *pchB;
+      pchA++;
+    }
+  }
+  *pchA = '\0';
 
   return TRUE;
 }
 /* end of RemoveLineBreaks() */
-
-#if 0
-/* 
-*/
-BOOL_T
-RemoveChar(char *pchArg, char chArg)
-{
-    char *pchA;
-    char *pchB;
-
-    for (pchB=pchA=pchArg; *pchB != '\0'; pchB++) {
-      if (*pchB == chArg) {
-	/* skip this char */
-      }
-      else {
-	*pchA = *pchB;
-	pchA++;
-      }
-    }
-    *pchA = '\0';
-
-  return TRUE;
-}
-/* end of RemoveLineBreaks() */
-#endif
 
 
 /*! \return the number of chars before '\n'
 */
-int
-getLineLength(char *pchArg)
+size_t
+getLineLength(char* pchArg)
 {
-  char *pchT;
+  char* pchT;
 
   for (pchT=pchArg; *pchT != '\0' && *pchT != '\n' && *pchT != '\r'; pchT++) {}
 
-  return (int)(pchT - pchArg);
-}
-/* end of getLineLength() */
+  return (size_t)(pchT - pchArg);
+} /* end of getLineLength() */
 
 
-/*! 
+/*!
 */
-char *
-getNextLine(char *pchArg)
+char*
+getNextLine(char* pchArg)
 {
-  char *pchT;
-  char *pchResult = NULL;
-  int l;
+  char* pchT;
+  char* pchResult = NULL;
+  size_t l;
 
   for (pchT=pchArg; *pchT == '\n' || *pchT == '\r'; pchT++) {} /* skip leading linebreaks */
 
@@ -154,20 +132,20 @@ getNextLine(char *pchArg)
 /* end of getNextLine() */
 
 
-/*! 
+/*!
 */
-char *
-getBlockType(char *pchArgTarget, char *pchArgBlockBegin, int iArgLength)
+char*
+getBlockType(char* pchArgTarget, char* pchArgBlockBegin, int iArgLength)
 {
-  char *pchT;
+  char* pchT;
   int i;
 
-  if (   pchArgBlockBegin[0]=='B'
-      && pchArgBlockBegin[1]=='E'
-      && pchArgBlockBegin[2]=='G'
-      && pchArgBlockBegin[3]=='I'
-      && pchArgBlockBegin[4]=='N'
-      && pchArgBlockBegin[5]==':') {
+  if (pchArgBlockBegin[0]=='B'
+    && pchArgBlockBegin[1]=='E'
+    && pchArgBlockBegin[2]=='G'
+    && pchArgBlockBegin[3]=='I'
+    && pchArgBlockBegin[4]=='N'
+    && pchArgBlockBegin[5]==':') {
     pchT = pchArgBlockBegin + 6;
   }
   else {
@@ -184,12 +162,11 @@ getBlockType(char *pchArgTarget, char *pchArgBlockBegin, int iArgLength)
 /* end of getBlockType() */
 
 
-/*! 
+/*!
 */
-char *
-getBlockEnd(char *pchArgBlockBegin, int iArgLength)
+char*
+getBlockEnd(char* pchArgBlockBegin, int iArgLength)
 {
-  //int iLength;
   char mchBlockEndNeedle[1024];
 
   mchBlockEndNeedle[0] = 'E';
@@ -197,116 +174,124 @@ getBlockEnd(char *pchArgBlockBegin, int iArgLength)
   mchBlockEndNeedle[2] = 'D';
   mchBlockEndNeedle[3] = ':';
 
-  //iLength = 1024 - 4;
-  getBlockType(&mchBlockEndNeedle[4],pchArgBlockBegin,iArgLength);
+  getBlockType(&mchBlockEndNeedle[4], pchArgBlockBegin, iArgLength);
 
-  return (char *)Strnstr(BAD_CAST pchArgBlockBegin,iArgLength,BAD_CAST mchBlockEndNeedle);
+  return (char*)Strnstr(BAD_CAST pchArgBlockBegin, iArgLength, BAD_CAST mchBlockEndNeedle);
 }
 /* end of getBlockEnd() */
 
 
-/*! 
+/*!
+* \todo process numeric encoded entities?
 */
 BOOL_T
-addLine(xmlNodePtr pndArg, char *pchArg)
+addLine(xmlNodePtr pndArg, char* pchArg)
 {
-  int l = getLineLength(pchArg);
-  char *pchSep = (char *)Strnstr(BAD_CAST pchArg,l,BAD_CAST ":");
+  size_t l = getLineLength(pchArg);
+  char* pchSep = (char*)Strnstr(BAD_CAST pchArg, (int)l, BAD_CAST ":");
 
   if (pchSep > pchArg) {
-    xmlChar *pucA;
-    xmlChar *pucB;
-    xmlChar *pucNameElement = NULL;
-    xmlChar *pucT;
+    xmlChar* pucA;
+    xmlChar* pucB;
+    xmlChar* pucNameElement;
+    xmlChar* pucT;
+    xmlNodePtr pndElement;
 
-    pucA = xmlStrndup(BAD_CAST pchArg, (int)(pchSep - pchArg)); /* property and parametres */
-    pucB = xmlStrndup(BAD_CAST(pchSep + 1), (int)(pchArg + l - pchSep - 1)); /* attributes */
-/*!\todo decode 7-bit value */
+    pucA = xmlStrndup(BAD_CAST pchArg, (int)(pchSep - pchArg));
+    pucB = xmlStrndup(BAD_CAST(pchSep + 1), (int)(pchArg + (int)l - pchSep - 1));
 
-    /* detect property and parametres
-    */
-
-    if (xmlStrEqual(pucA,BAD_CAST"N")) { /* name */
-
-      char *pndAttributeBegin;
-      char *pchT;
+    pucT = BAD_CAST xmlStrchr(pucA, (xmlChar)';');
+    if (pucA[0]=='X' && pucA[1]=='-' && fExtensions == FALSE) {
+      /* ignore this */
+      return FALSE;
+    }
+    else if (pucT) {
+      xmlNodePtr pndParameter;
+      char* pchParameterBegin;
+      char* pchT;
       int i;
-      int ciAttribute;
 
-      l = xmlStrlen(pucB);
+      pucNameElement = xmlStrndup(pucA, (int)(pucT - pucA));
+      StringToLower((char*)pucNameElement);
+      l = xmlStrlen(pucA);
 
-      for (i=0, ciAttribute=0, pchSep=pchT=pndAttributeBegin=(char *)pucB; i<=l; i++, pchT++) {
+      pndElement = xmlNewChild(pndArg, NULL, pucNameElement, NULL);
+      pndParameter = xmlNewChild(pndElement, NULL, BAD_CAST"parameters", NULL);
 
-	assert(*pchT != ':');
-	//assert(*pchT != '\0');
+      for (i=0, pchSep=pchT=pchParameterBegin=(char*)(pucT+1); i<l; i++, pchT++) {
+	if (*pchT == '=') {
+	  pchSep = pchT;
+	}
+	else if (*pchT == ';' || *pchT == ':' || *pchT == '\0') {
+	  if (pchParameterBegin[0]=='X' && pchParameterBegin[1]=='-' && fExtensions == FALSE) {
+	    /* ignore this */
+	  }
+	  else if (pchSep - pchParameterBegin > 0) {
+	    xmlChar* pucText = xmlStrndup(BAD_CAST(pchSep+1), (int)(pchT - pchSep - 1));
+	    xmlChar* pucNameElementParam = xmlStrndup(BAD_CAST pchParameterBegin, (int)(pchSep - pchParameterBegin));
+	    StringToLower((char*)pucNameElementParam);
 
-	if (*pchT == ';' || i == l) {
+	    xmlNewChild(pndParameter, NULL, pucNameElementParam, pucText);
+	    xmlFree(pucNameElementParam);
+	    xmlFree(pucText);
+	    pchParameterBegin = pchT + 1;
+	  }
+	  else {
+	    xmlChar* pucText = xmlStrndup(BAD_CAST(pchParameterBegin), (int)(pchT - pchParameterBegin));
 
-	  xmlChar *pucText = xmlStrndup(BAD_CAST(pndAttributeBegin), (int)(pchT - pndAttributeBegin));
-	  ciAttribute++;
+	    xmlNewChild(pndParameter, NULL, BAD_CAST"type", pucText);
+	    xmlFree(pucText);
+	    pchParameterBegin = pchT + 1;
+	  }
+	  if (*pchT == ':' || *pchT == '\0') {
+	    break;
+	  }
+	}
+      }
+      xmlFree(pucNameElement);
+    }
+    else {
+      StringToLower((char*)pucA);
+      pndElement = xmlNewChild(pndArg, NULL, pucA, NULL);
+    }
 
-	  /* "Family Name, Given Name, Additional Names, Honorific Prefixes, and Honorific Suffixes" */
-	  xmlNewChild(pndArg,NULL, BAD_CAST (
-	    (ciAttribute == 1) ? "firstname" : ((ciAttribute == 2) ? "name" : ((ciAttribute == 3) ? "additional" : ((ciAttribute == 4) ? "prefix" : ((ciAttribute == 5) ? "suffix" : "na"))))
-	    ), pucText);
+    /*! create content child
+    */
+    {
+      char* pchT;
 
-	  xmlFree(pucText);
-	  pndAttributeBegin = pchT + 1;
+      for (pchSep = pchT = (char*)(pucB); ; pchT++) {
+
+	if (*pchT == ';' || *pchT == '\0') {
+	  if (pchT == pchSep) {
+	      xmlNewChild(pndElement, NULL, BAD_CAST"text", NULL);
+	  }
+	  else if (pchT - pchSep > 0) {
+	    xmlChar* pucText = xmlStrndup(BAD_CAST(pchSep), (int)(pchT - pchSep));
+
+	    pucT = StringEncodeXmlDefaultEntitiesNew(pucText);
+	    if (pucT) {
+	      StringRemoveBackslashes(pucT);
+	      DecodeQuotedPrintable(pucT);
+	      xmlNewChild(pndElement, NULL, BAD_CAST"text", pucT);
+	      xmlFree(pucT);
+	    }
+	    else {
+	      xmlNewChild(pndElement, NULL, BAD_CAST"text", NULL);
+	    }
+	    xmlFree(pucText);
+	  }
+
+	  if (*pchT == '\0') {
+	    break;
+	  }
+	  else {
+	    pchSep = pchT + 1;
+	  }
 	}
       }
     }
-    else if (xmlStrEqual(pucA,BAD_CAST"FN")) { /* formatted text corresponding to the name */
-      /* this is a single text attribute */
-      xmlNewChild(pndArg,NULL,BAD_CAST"display",pucB);
-      StringToId((char *)pucB);
-      xmlSetProp(pndArg,BAD_CAST"id",pucB);
-    }
-    else if (xmlStrEqual(pucA,BAD_CAST"BDAY")) { /* birth date */
-      /* this is a single text attribute */
-      xmlNewChild(pndArg,NULL,BAD_CAST"birthday",pucB);
-    }
-    else if (xmlStrstr(pucA,BAD_CAST"ADR")==pucA) { /* delivery address */
-      /* this is a single text attribute */
-      for (pucT=pucB; *pucT != '\0'; pucT++) {
-	if (*pucT == ';') {
-	  *pucT = '\n';
-	}
-      }
-      if (xmlStrstr(pucA,BAD_CAST"WORK")) { /*  */
-	xmlNewChild(pndArg,NULL,BAD_CAST"work",pucB);
-      }
-      else { /*  */
-	xmlNewChild(pndArg,NULL,BAD_CAST"private",pucB);
-      }
-    }
-    else if (xmlStrstr(pucA,BAD_CAST"EMAIL")==pucA) { /*  */
-      /* this is a single text attribute */
-      if (xmlStrstr(pucA,BAD_CAST"WORK")) { /*  */
-	xmlNewChild(pndArg,NULL,BAD_CAST"work",pucB);
-      }
-      else { /*  */
-	xmlNewChild(pndArg,NULL,BAD_CAST"private",pucB);
-      }
-    }
-    else if (xmlStrstr(pucA,BAD_CAST"TEL")==pucA) { /*  */
-      /* this is a single text attribute */
-      if (xmlStrstr(pucA,BAD_CAST"CELL")) { /*  */
-	xmlNewChild(pndArg,NULL,BAD_CAST"mobile",pucB);
-      }
-      else if (xmlStrstr(pucA,BAD_CAST"WORK")) { /*  */
-	xmlNewChild(pndArg,NULL,BAD_CAST"work",pucB);
-      }
-      else { /* if (xmlStrstr(pucA,BAD_CAST"HOME"))  */
-	xmlNewChild(pndArg,NULL,BAD_CAST"private",pucB);
-      }
-    }
-    else { /* */
-      /* this is a single text attribute */
-      StringToLower((char *)pucA);
-      xmlNewChild(pndArg,NULL,pucA,pucB);
-    }
-    
-    xmlFree(pucNameElement);
+
     xmlFree(pucB);
     xmlFree(pucA);
   }
@@ -316,55 +301,49 @@ addLine(xmlNodePtr pndArg, char *pchArg)
 /* end of addLine() */
 
 
-
 /*! \return a pointer to the begin of first next block
 */
-char *
-getNextBlock(xmlNodePtr pndArg, char *pchArg, int iArgLength)
+char*
+getNextBlock(xmlNodePtr pndArg, char* pchArg, int iArgLength)
 {
-  char *pchBlockBegin = NULL;
+  char* pchBlockBegin = NULL;
 
   if (iArgLength > 10) {
-    char *pchBlockEnd;
-    //char *pchEnd = pchArg + iArgLength; /* pointer to end of char range, not '\0' terminated */
+    char* pchBlockEnd;
 
     /*
     all block siblings
     */
-    for (pchBlockBegin = pchArg; (pchBlockBegin = (char *)Strnstr(BAD_CAST pchBlockBegin,iArgLength,BAD_CAST"BEGIN:")); pchBlockBegin=pchBlockEnd) {
+    for (pchBlockBegin = pchArg; (pchBlockBegin = (char*)Strnstr(BAD_CAST pchBlockBegin, iArgLength, BAD_CAST"BEGIN:")); pchBlockBegin=pchBlockEnd) {
 
-      pchBlockEnd = getBlockEnd(pchBlockBegin,iArgLength);
+      pchBlockEnd = getBlockEnd(pchBlockBegin, iArgLength);
       if (pchBlockEnd) {
-	int iBlockLength;
-	
-	iBlockLength = (int)(pchBlockEnd - pchBlockBegin); /* set "return" value */
+	int iBlockLength = (int)(pchBlockEnd - pchBlockBegin); /* set "return" value */
 	if (iBlockLength > 0) {
-	  char *pchLineNext;
-	  char *pchBlockContent;
+	  char* pchLineNext;
+	  char* pchBlockContent;
 	  int ciDepth;
-	  int iLengthName = getLineLength(pchBlockEnd) - 4;
-	  xmlChar *pucName;
+	  size_t iLengthName = getLineLength(pchBlockEnd) - 4;
+	  xmlChar* pucName;
 	  xmlNodePtr pndNew;
-	  xmlNodePtr pndNewAdr;
-	  xmlNodePtr pndNewTel;
-	  xmlNodePtr pndNewMail;
+	  xmlNodePtr pndProperties;
+	  xmlNodePtr pndComponents;
 
-	  pucName = xmlStrndup(BAD_CAST (pchBlockEnd + 4), iLengthName);
+	  pucName = xmlStrndup(BAD_CAST(pchBlockEnd + 4), (int)iLengthName);
 #if 1
-	  PrintFormatLog(3,"Element %s %i Byte",pucName,iBlockLength);
+	  PrintFormatLog(3, "Element %s %i Byte", pucName, iBlockLength);
 #else
-	  xmlChar *pucTT;
-	  pucTT = xmlStrndup(pchBlockBegin,20);
-	  PrintFormatLog(1,pucTT);
+	  xmlChar* pucTT;
+	  pucTT = xmlStrndup(pchBlockBegin, 20);
+	  fprintf(stderr, pucTT);
 	  xmlFree(pucTT);
 #endif
-	  StringToLower((char *)pucName);
-	  pndNew = xmlNewChild(pndArg,NULL,pucName,NULL);
-	  pndNewAdr = xmlNewChild(pndNew,NULL,BAD_CAST"address",NULL);
-	  pndNewTel = xmlNewChild(pndNew,NULL,BAD_CAST"phone",NULL);
-	  pndNewMail = xmlNewChild(pndNew,NULL,BAD_CAST"mail",NULL);
+	  StringToLower((char*)pucName);
+	  pndNew = xmlNewChild(pndArg, NULL, pucName, NULL);
 	  xmlFree(pucName);
-	  
+	  pndProperties = xmlNewChild(pndNew, NULL, BAD_CAST"properties", NULL);
+	  pndComponents = xmlNewChild(pndNew, NULL, BAD_CAST"components", NULL);
+
 	  pchBlockContent = pchBlockBegin + getLineLength(pchBlockBegin);
 	  while (*pchBlockContent == '\n' || *pchBlockContent == '\r') {
 	    pchBlockContent++; /* skip leading linebreaks */
@@ -373,51 +352,33 @@ getNextBlock(xmlNodePtr pndArg, char *pchArg, int iArgLength)
 	    all lines of current block
 	  */
 	  for (ciDepth=0, pchLineNext=pchBlockContent;
-	       pchLineNext != NULL && pchLineNext < pchBlockEnd;
-	       (pchLineNext = getNextLine(pchLineNext))) {
-	    if (   pchLineNext[0]=='B'
-		&& pchLineNext[1]=='E'
-		&& pchLineNext[2]=='G'
-		&& pchLineNext[3]=='I'
-		&& pchLineNext[4]=='N'
-		&& pchLineNext[5]==':') {
+	    pchLineNext != NULL && pchLineNext < pchBlockEnd;
+	    (pchLineNext = getNextLine(pchLineNext))) {
+	    if (pchLineNext[0]=='B'
+	      && pchLineNext[1]=='E'
+	      && pchLineNext[2]=='G'
+	      && pchLineNext[3]=='I'
+	      && pchLineNext[4]=='N'
+	      && pchLineNext[5]==':') {
 	      ciDepth++;
 	    }
-	    else if (   pchLineNext[0]=='E'
-		     && pchLineNext[1]=='N'
-		     && pchLineNext[2]=='D'
-		     && pchLineNext[3]==':') {
+	    else if (pchLineNext[0]=='E'
+	      && pchLineNext[1]=='N'
+	      && pchLineNext[2]=='D'
+	      && pchLineNext[3]==':') {
 	      ciDepth--;
 	    }
 	    else if (ciDepth==0) {
-	      if (pchLineNext[0]=='X' && pchLineNext[1]=='-') {
+	      if (pchLineNext[0]=='X' && pchLineNext[1]=='-' && fExtensions == FALSE) {
 		/* ignore */
 	      }
-	      else if (xmlStrstr(BAD_CAST pchLineNext,BAD_CAST"VERSION") == BAD_CAST pchLineNext) {
-		/* ignore this */
-	      }
-	      else if (xmlStrstr(BAD_CAST pchLineNext,BAD_CAST"REV") == BAD_CAST pchLineNext) {
-		/* ignore this */
-	      }
-	      else if (xmlStrstr(BAD_CAST pchLineNext,BAD_CAST"LABEL") == BAD_CAST pchLineNext) {
-		/* ignore this */
-	      }
-	      else if (xmlStrstr(BAD_CAST pchLineNext,BAD_CAST"TEL") == BAD_CAST pchLineNext) {
-		addLine(pndNewTel,pchLineNext);
-	      }
-	      else if (xmlStrstr(BAD_CAST pchLineNext,BAD_CAST"ADR") == BAD_CAST pchLineNext) {
-		addLine(pndNewAdr,pchLineNext);
-	      }
-	      else if (xmlStrstr(BAD_CAST pchLineNext,BAD_CAST"EMAIL") == BAD_CAST pchLineNext) {
-		addLine(pndNewMail,pchLineNext);
-	      }
 	      else {
-		addLine(pndNew,pchLineNext);
+		addLine(pndProperties, pchLineNext);
 	      }
 	    }
 	  }
 	  /* all block childs */
-	  getNextBlock(pndNew,pchBlockContent,(int)(pchBlockEnd - pchBlockContent));
+	  getNextBlock(pndComponents, pchBlockContent, (int)(pchBlockEnd - pchBlockContent));
 	}
       }
     }
@@ -427,38 +388,36 @@ getNextBlock(xmlNodePtr pndArg, char *pchArg, int iArgLength)
 /* end of getNextBlock() */
 
 
-/*! Append the plain vCard formatted text from filehandle to the given pndArgParent
+/*! parse an vCard formatted buffer, append tree to the given pndArg
 
-\param pndArgParent
-\param pndArgSource node of pie element with options
-\param pchArgSource
-\param lang for language specific defaults
+\param pndArg
 
-if in is NULL, the single text child node of pndArgSource is used as single input paragraph
-
- */
-xmlNodePtr
-vcfParse(xmlNodePtr pndArgParent, xmlNodePtr pndArgSource, char *pchArgSource, lang_t lang)
+*/
+BOOL_T
+vcfParse(xmlNodePtr pndArg, resNodePtr prnArg)
 {
-  //PrintFormatLog(1,"Read vcf file '%s'", pchArgNameFile);
+  BOOL_T fResult = FALSE;
 
-  if (pchArgSource) {
-    int l;
-    
-    l = (int)strlen(pchArgSource);
-    if (RemoveLineBreaks((char *)pchArgSource,l)) {
-      int i;
-      
-      i = (int)strlen(pchArgSource);
-      getNextBlock(pndArgParent,pchArgSource,i);
+  if (pndArg != NULL && (resNodeIsFile(prnArg) || resNodeIsURL(prnArg))) {
+    xmlChar* pucContent;
+
+    PrintFormatLog(3, "Read vCard file '%s'", resNodeGetNameNormalized(prnArg));
+
+    pucContent = plainGetContextTextEat(prnArg, 1024);
+    if (pucContent) {
+      if (RemoveLineBreaks((char*)pucContent, xmlStrlen(pucContent))) {
+	getNextBlock(pndArg, (char*)pucContent, xmlStrlen(pucContent));
+	fResult = TRUE;
+      }
+      xmlFree(pucContent);
+    }
+    else {
+      PrintFormatLog(1, "Empty input");
+      xmlSetProp(pndArg, BAD_CAST "type", BAD_CAST "error/file");
     }
   }
-  else {
-    PrintFormatLog(1,"Empty input");
-    xmlSetProp(pndArgParent, BAD_CAST "type", BAD_CAST "error/file");
-  }
 
-  return pndArgParent;
+  return fResult;
 }
 /* end of vcfParse() */
 

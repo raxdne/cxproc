@@ -65,6 +65,9 @@ StringReplaceUmlauteNew(const xmlChar *pucArg);
 extern BOOL_T
 StringRemovePairQuotes(xmlChar *pucArg);
 
+extern BOOL_T
+StringRemoveBackslashes(xmlChar* pucArg);
+
 extern xmlChar *
 StringAddPairQuotesNew(xmlChar *pucArg, xmlChar *pucArgChar);
 
@@ -113,6 +116,8 @@ EncodeBase64(const xmlChar *input);
 extern xmlChar *
 DecodeBase64(const xmlChar *input);
 
+extern int
+DecodeQuotedPrintable(xmlChar* pucArg);
 
 extern xmlChar *
 GetSelectedFolderName(xmlChar *pucArgMsg, xmlChar *pucArgPath);

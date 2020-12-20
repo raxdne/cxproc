@@ -34,7 +34,7 @@ vcfTest(void)
     i++;
     printf("TEST %i in '%s:%i': empty vcfParse() = ",i,__FILE__,__LINE__);
 
-    if (vcfParse(NULL,NULL,NULL, LANG_FR) != NULL) {
+    if (vcfParse(NULL,NULL)) {
       printf("Error vcfParse()\n");
     }
     else {
@@ -46,7 +46,6 @@ vcfTest(void)
   if (RUNTEST) {
     xmlDocPtr pdocResult = NULL;
     xmlNodePtr pndFile;
-    xmlChar *pucContent = NULL;
     resNodePtr prnInput = NULL; /*! context for import of new document (avoid side effect) */
 
     i++;
@@ -60,10 +59,7 @@ vcfTest(void)
     if ((prnInput = resNodeDirNew(BAD_CAST TESTPREFIX "option/vcf/20121108181826.vcf")) == NULL) {
       printf("Error resNodeDirNew()\n");
     }
-    else if ((pucContent = plainGetContextTextEat(prnInput,1024)) == NULL) {
-      printf("Error plainGetContextTextEat()\n");
-    }
-    else if (vcfParse(pndFile,pndFile,(char *)pucContent,LANG_DEFAULT) == NULL) {
+    else if (vcfParse(pndFile, prnInput) == FALSE) {
       printf("Error vcfParse()\n");
     }
     else {
@@ -72,7 +68,6 @@ vcfTest(void)
     }
     
     //xmlSaveFormatFileEnc("-", pdocResult, "UTF-8", 1);
-    xmlFree(pucContent);
     resNodeFree(prnInput);
     xmlFreeDoc(pdocResult);
   }

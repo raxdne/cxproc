@@ -38,6 +38,7 @@
 #ifdef HAVE_PIE
 #include <pie/pie_text_blocks.h>
 #include <ics/ics.h>
+#include <vcf/vcf.h>
 #endif
 
 #include "dom.h"
@@ -2601,7 +2602,6 @@ resNodeContentToDOM(xmlNodePtr pndArg, resNodePtr prnArg)
     case MIME_TEXT_MARKDOWN:
 #endif
     case MIME_TEXT_CSV:
-    case MIME_TEXT_VCARD:
       {
 	xmlNodePtr pndPie = NULL;
 
@@ -2679,6 +2679,11 @@ resNodeContentToDOM(xmlNodePtr pndArg, resNodePtr prnArg)
     case MIME_TEXT_CALENDAR:
       icsParse(pndArg, prnArg);
       break;
+
+    case MIME_TEXT_VCARD:
+      vcfParse(pndArg, prnArg);
+      break;
+
 #else
     case MIME_TEXT_PLAIN:
     case MIME_TEXT_PLAIN_CALENDAR:
