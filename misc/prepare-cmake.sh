@@ -3,15 +3,11 @@
 # (p) 2016,2020 A. Tenbusch
 #
 
-DEBUG=1
+# rsync -avC ~/cxproc-build/cxproc/ developer@cubietruck-dev:cxproc-build/cxproc/
 
 PREFIX=../$(uname -i)
 
 PREFIX=$PREFIX"-"$(uname -o | tr '[:upper:]' '[:lower:]' | tr '[:punct:]' '-')
-
-if [ $DEBUG = 1 ] ; then
-  PREFIX=$PREFIX-debug
-fi
 
 test -d $PREFIX || mkdir -p $PREFIX
 

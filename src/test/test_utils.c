@@ -194,7 +194,7 @@ utilsTest(void)
       n_ok++;
       printf("OK\n");
     }
-    puts(pucT);
+    // puts(pucT);
     xmlFree(pucT);
     xmlFree(pucError);
   }

@@ -258,6 +258,11 @@ embedded scripts in Texts
 
 decoding of RFC1738 URL with Umlaute to UTF-8
 
+change markup
+
+    <pre></pre>
+    <script></script>
+
 #### pie_timezone
 
 test sunrise sunset with Shanghai, Berlin, Boston
@@ -313,5 +318,11 @@ see REST principles
 caching (eid derived from mtime and size -> problems with imports)
 
 „XProc: An XML Pipeline Language“ <http://www.w3.org/TR/xproc/>
+
+- s. <https://transpect.github.io/index.html>
+
+The [JasperReports Library](http://community.jaspersoft.com/project/jasperreports-library) is the world's most popular open source reporting engine.
+
+[XMLStarlet command line XML toolkit](https://sourceforge.net/projects/xmlstar/)
 
 http://fuse.sourceforge.net/ dynamic generation of files in a pseudo filesystem

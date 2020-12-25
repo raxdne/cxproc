@@ -63,7 +63,7 @@ REM "C:\UserData\Programme\7-ZipPortable\App\7-Zip\7z.exe" a -r ..\cxproc-v1.3-p
 popd
 
 pushd %CXPBASE%..
-REM "C:\UserData\Programme\cmake\bin\cmake.exe" -B %DIR_BUILD% -G "Visual Studio 16 2019" -A %VSCMD_ARG_TGT_ARCH% -DCMAKE_TOOLCHAIN_FILE=C:\UserData\Develop\vcpkg\scripts\buildsystems\vcpkg.cmake -D CXPROC_DOC:BOOL=OFF -D CXPROC_PIE:BOOL=ON -D CXPROC_EXPERIMENTAL:BOOL=OFF -D CXPROC_DEBUG:BOOL=OFF -D CXPROC_CXX:BOOL=OFF
+REM "C:\UserData\Programme\cmake\bin\cmake.exe" -B %DIR_BUILD% -G "Visual Studio 16 2019" -A %VSCMD_ARG_TGT_ARCH% -DCMAKE_TOOLCHAIN_FILE=C:\UserData\Develop\vcpkg\scripts\buildsystems\vcpkg.cmake -D CXPROC_DOC:BOOL=OFF -D CXPROC_PIE:BOOL=ON -D CXPROC_EXPERIMENTAL:BOOL=OFF -D CXPROC_CXX:BOOL=OFF
 REM "C:\UserData\Programme\cmake\bin\cmake.exe" --build %DIR_BUILD% --config Release --target cxproc
 popd
 

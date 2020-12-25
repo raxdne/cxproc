@@ -1582,6 +1582,8 @@ domAddNodeToError(xmlDocPtr pdocArg, xmlNodePtr pndArg)
 /* End of domAddNodeToError() */
 
 
+#ifdef HAVE_PCRE2
+
 /*! greps for a regexp in all descendant element nodes.
 
 \param pndArg pointer to node to add attribute
@@ -1714,6 +1716,8 @@ domNodeGrepNew(xmlNodePtr pndArg, xmlChar *pucArgGrep)
   }
   return pndResult;
 } /* End of domNodeGrepNew() */
+
+#endif
 
 
 /*! change the URL of DOM pdocArg to URI of pccArg

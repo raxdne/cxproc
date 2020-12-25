@@ -111,6 +111,7 @@ dirMapInfoVerbosity(xmlNodePtr pndArgFile, cxpContextPtr pccArg)
       || domGetPropValuePtr(pndArgFile, BAD_CAST "grep") != NULL) {
     iResult |= RN_INFO_CONTENT;
   }
+#ifdef HAVE_PIE
   else if (STR_IS_EMPTY(pucAttrVerbosity)) {
     if (domNodeHasAncestor(pndArgFile, NAME_PIE_IMPORT)) {
       iResult = RN_INFO_MAX;
@@ -119,6 +120,7 @@ dirMapInfoVerbosity(xmlNodePtr pndArgFile, cxpContextPtr pccArg)
       /* keep default */
     }
   }
+#endif
   else if (xmlStrEqual(pucAttrVerbosity, BAD_CAST "5")) {
     iResult = RN_INFO_MAX;
   }
@@ -167,6 +169,7 @@ GrepDirNew(xmlNodePtr pndArg, const pcre2_code *re_grep, cxpContextPtr pccArg)
 
     pndGrep = xmlNewNode(NULL,NAME_GREP);
     if (pndGrep) {
+#ifdef HAVE_PCRE2
 #if 1
       if (domGrepRegExpInTree(pndGrep,pndContent,re_grep)) {
 	xmlAddChild(pndArg,pndGrep);
@@ -185,7 +188,10 @@ GrepDirNew(xmlNodePtr pndArg, const pcre2_code *re_grep, cxpContextPtr pccArg)
 	xmlFreeNode(pndGrep);
       }
 #endif
-    }
+#else
+      /*!\todo handle search without regexp */
+#endif
+   }
   }
   else {
     /* ignore */

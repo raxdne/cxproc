@@ -1,33 +1,33 @@
 
-# How to build cxproc on a GNU system
+# How to build cxproc on a GNU/Linux system
 
 ## Ubuntu
 
-Configuration tools
+Core tools
 
-    sudo apt install debconf debconf-i18n debianutils lintian debhelper g++ cpp gcc gdb make strace diffutils patch pkg-config gawk xsltproc cmake cmake-qt-gui
+    sudo apt install debconf debconf-i18n debianutils lintian debhelper g++ cpp gcc gdb make diffutils patch xsltproc cmake cmake-qt-gui
 
-additional core libraries
+Core libraries
 
-    sudo apt install libc6-dev libpcre2 libpcre2-dev libarchive-dev zip unzip libzip-dev zlib1g zlib1g-dev libxml2 libxml2-utils libxml2-dbg libxml2-dev libxslt1-dbg libxslt1-dev libxslt1.1 sqlite3 libsqlite3-dev liblzma-dev libbz2-dev duktape duktape-dev
+    sudo apt install libc6-dev libpcre2-dev libarchive-dev zip unzip libzip-dev zlib1g zlib1g-dev libxml2 libxml2-utils libxml2-dbg libxml2-dev libxslt1-dbg libxslt1-dev libxslt1.1 sqlite3 libsqlite3-dev liblzma-dev libbz2-dev duktape duktape-dev
 
-Graphic libraries
+Graphic libraries (optional)
 
     sudo apt install imagemagick libmagickcore-dev libgif-dev libgif7 libexif12 libexif-dev libjpeg8 libjpeg8-dev libpng12-0 libpng12-dev libtiff5 libtiff5-dev
 
-Audio libraries
+Audio libraries (optional)
 
     sudo apt install libid3tag0-dev libogg-dev libvorbis-dev
 
 Development environment
 
-    sudo apt install apache2 apache2-utils doxygen graphviz valgrind kcachegrind splint cflow mc screen w3m wget ssh rsync meld git emacs samba samba-common smbclient cifs-utils
+    sudo apt install apache2 apache2-utils doxygen graphviz valgrind kcachegrind strace splint cflow mc screen w3m wget ssh rsync meld git emacs samba samba-common smbclient cifs-utils
 
 ## Fedora (package names are not up-to-date)
 
 s. <http://rpmfind.net/linux/rpm2html/search.php>
 
-Configuration tools
+Core tools
 
     sudo dnf install cpp gcc gcc-c++ gdb make strace patch pkg-config gawk cmake cmake-gui
 
@@ -53,28 +53,16 @@ Development environment
 
 ## CMake
 
-command line
-
 build directory is defined by `misc/prepare-cmake.sh`
 
 	cd cxproc
-    sh misc/prepare-cmake.sh
+	. misc/prepare-cmake.sh
+	(cd $PREFIX/build && cmake ~/cxproc-build/cxproc/ "-GUnix Makefiles" -DCMAKE_BUILD_TYPE=Release -DCXPROC_DOC:BOOL=OFF -DCXPROC_EXPERIMENTAL:BOOL=OFF)
+	cmake --build $PREFIX/build
+	(cd $PREFIX/build && ctest)
+	cmake --build $PREFIX/build --target package
 
 GUI
-
-## GNU Make
-
-build
-
-    make -C
-
-test
-
-package
-
-## CTest
-
-    make -C
 
 ## Doxygen
 
