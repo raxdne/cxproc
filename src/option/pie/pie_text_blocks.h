@@ -60,9 +60,6 @@ RecognizeDates(xmlNodePtr pndArg);
 extern xmlNodePtr
 RecognizeInlines(xmlNodePtr pndArg);
 
-extern int
-_WeightPatternInTree(xmlNodePtr pndArg, xmlChar *pucArgPattern);
-
 extern xmlNodePtr
 CleanUpTree(xmlNodePtr pndArg);
 

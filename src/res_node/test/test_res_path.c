@@ -970,7 +970,7 @@ resNodeTestString(void)
 #ifdef _WIN32
 	resPathIsEquivalent(pucTest, BAD_CAST pchTest) == TRUE || resPathIsEquivalent(pucTest, pucTestEncoded) == FALSE || strcmp(pchTestFail, "Test______abc.txt") == 0
 #else
-	resPathIsEquivalent(pucTest, BAD_CAST pchTest) == FALSE || resPathIsEquivalent(pucTest, pucTestEncoded) == FALSE || resPathIsEquivalent(pucTest, pchTestFail) == FALSE
+	resPathIsEquivalent(pucTest, BAD_CAST pchTest) == FALSE || resPathIsEquivalent(pucTest, pucTestEncoded) == FALSE || resPathIsEquivalent(pucTest, BAD_CAST pchTestFail) == FALSE
 #endif
 	) {
       n_ok++;

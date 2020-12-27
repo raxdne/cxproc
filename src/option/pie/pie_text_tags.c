@@ -59,9 +59,6 @@ static pcre2_code* re_tag = NULL;
 static xmlNodePtr
 AddTagNodeNew(xmlNodePtr pndArg, const xmlChar* pucArg);
 
-static BOOL_T
-_TagNodeIsCovered(xmlNodePtr pndArgA, xmlNodePtr pndArgB);
-
 static xmlNodePtr
 SplitStringToHashTagNodes(const xmlChar* pucArg, pcre2_code* preArg);
 
@@ -533,31 +530,6 @@ InheritHashtags(xmlDocPtr pdocArg)
 } /* end of InheritHashtags() */
 
 
-/*!
-*/
-int
-_TagMatch(xmlChar* pucArgA, xmlChar* pucArgB)
-{
-  int iResult = -1;
-
-  assert(pucArgA != pucArgB);
-  assert(STR_IS_NOT_EMPTY(pucArgA));
-  assert(STR_IS_NOT_EMPTY(pucArgB));
-
-  for (iResult=0; ; iResult++) {
-    if (pucArgA[iResult] == '\0' || pucArgB[iResult] == '\0') {
-      break; /* end of a string found */
-    }
-    else if (pucArgB[iResult] == pucArgA[iResult]) {
-    }
-    else {
-      break; /* end of match found */
-    }
-  }
-  return iResult;
-} /* end of TagMatch() */
-
-
 /*! clean list of tags and count (cleanup of similar tags)
 
 \todo compress list, use attribute weight to remove redundant tags
@@ -784,12 +756,6 @@ RecognizeNodeTags(xmlNodePtr pndTags, xmlNodePtr pndArg, pcre2_code* preArg)
 	  pcre2_match_data_free(match_data);   /* Release memory used for the match */
 	}
       }
-      else if (IS_NODE_PIE_ETAG(pndChild)) {
-	/* use text content of explicit tag as tag */
-	if (pndChild->children != NULL && (pucTag = pndChild->children->content) != NULL) {
-	  pndListTag = AppendListTag(pndListTag, pucTag);
-	}
-      }
       else if (IS_NODE_PIE_TR(pndChild)
 	|| IS_NODE_PIE_SECTION(pndChild)
 	|| IS_NODE_PIE_TASK(pndChild)
@@ -944,7 +910,6 @@ TagStrIsCovered(xmlChar* pucArgA, xmlChar* pucArgB)
   }
   else if (STR_IS_EMPTY(pucArgB)) {
     PrintFormatLog(3, "Tag B is empty");
-    fResult = TRUE;
   }
   else if (xmlStrcasecmp(pucArgA, pucArgB) == 0) {
     PrintFormatLog(4, "Tag '%s' is equal to '%s'", pucArgA, pucArgB);
@@ -965,18 +930,6 @@ TagStrIsCovered(xmlChar* pucArgA, xmlChar* pucArgB)
   
   return fResult;
 } /* End of TagStrIsCovered() */
-
-
-/*! \return TRUE if
-*/
-BOOL_T
-_TagNodeIsCovered(xmlNodePtr pndArgA, xmlNodePtr pndArgB)
-{
-  return (pndArgA != pndArgB
-    && IS_NODE_PIE_TTAG(pndArgA) && IS_NODE_PIE_TTAG(pndArgB)
-    && xmlNodeIsText(pndArgA->children) && xmlNodeIsText(pndArgB->children)
-    && TagStrIsCovered(pndArgA->children->content, pndArgB->children->content));
-} /* End of TagNodeIsCovered() */
 
 
 /*! \return pointer to next element in iteration if pndArgB is merged to pndArgA successfully

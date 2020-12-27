@@ -26,9 +26,6 @@
 #define CXP_PIE_URL (BAD_CAST "http://www.tenbusch.info/pie")
 
 extern xmlDocPtr
-pieParseFile(xmlChar *pucArg, cxpContextPtr pccArg);
-
-extern xmlDocPtr
 pieProcessPieNode(xmlNodePtr pndMakePie, cxpContextPtr pccArg);
 
 extern xmlChar *

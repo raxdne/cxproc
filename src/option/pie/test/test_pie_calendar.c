@@ -133,27 +133,6 @@ pieCalendarTest(cxpContextPtr pccArg)
 
   if (RUNTEST) {
     xmlDocPtr pdocTest = NULL;
-
-    i++;
-    printf("TEST %i in '%s:%i': calAddAttributeDayDiff() = ", i, __FILE__, __LINE__);
-
-    if ((pdocTest = pieParseFile(BAD_CAST TESTPREFIX "option\\pie\\text\\test-pie-date.pie",pccArg)) == NULL) {
-      printf("Error pieParseFile()\n");
-    }
-    else if (calAddAttributeDayDiff(pdocTest) != pdocTest) {
-      printf("Error calAddAttributeDayDiff()\n");
-    }
-    else {
-      n_ok++;
-      printf("OK\n");
-    }
-    //domPutDocString(stderr, BAD_CAST "calAddAttributeDayDiff() result", pdocTest);
-    xmlFreeDoc(pdocTest);
-  }
-
-
-  if (RUNTEST) {
-    xmlDocPtr pdocTest = NULL;
     xmlDocPtr pdocDir = NULL;
     xmlNodePtr pndT;
     xmlNodePtr pndPie;

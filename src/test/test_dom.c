@@ -790,9 +790,9 @@ domTest(void)
     i++;
     printf("TEST %i in '%s:%i': XPath nodeset ", i, __FILE__, __LINE__);
 
-    if ((pdocResult = pieParseFile(BAD_CAST TESTPREFIX "option/pie/text/test-pie-14.pie",NULL)) == NULL
+    if ((pdocResult = xmlParseFile(TESTPREFIX "option/pie/text/test-pie-14.pie")) == NULL
       || (pndRoot = xmlDocGetRootElement(pdocResult)) == NULL) {
-      printf("Error 1 pieParseFile()\n");
+      printf("Error 1 xmlParseFile()\n");
     }
     else if (domWeightXPathInDoc(pdocResult, pucPattern) == FALSE) {
       printf("Error 1 domWeightXPathInDoc()\n");

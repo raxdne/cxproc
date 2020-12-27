@@ -73,9 +73,6 @@ static BOOL_T
 ImportNodeFile(xmlNodePtr pndArgImport, cxpContextPtr pccArg);
 
 static BOOL_T
-_ImportNodeArg(xmlNodePtr pndArgResult, xmlNodePtr pndArgImport, cxpContextPtr pccArg);
-
-static BOOL_T
 ImportNodeContent(xmlNodePtr pndArgImport, cxpContextPtr pccArg);
 
 static BOOL_T
@@ -175,43 +172,6 @@ NodeHasSingleText(xmlNodePtr pndArg)
   return (pndArg != NULL && pndArg->children != NULL && pndArg->children == pndArg->last && pndArg->children->type == XML_TEXT_NODE);
 }
 /* End of NodeHasSingleText() */
-
-
-/*! process the PIE child instructions of pndArgPie
-
-\param pdocArgPie DOM to process a pie tree
-\param pccArg the processing context
-
-\return new allocated pie DOM if successful, else NULL
-*/
-xmlDocPtr
-pieParseFile(xmlChar *pucArg, cxpContextPtr pccArg)
-{
-  xmlDocPtr pdocResult = NULL;
-  xmlNodePtr pndPieRoot = NULL;
-
-#ifdef DEBUG
-  cxpCtxtLogPrint(pccArg, 4, "pieParseFile(pucArg=%0x,pccArg=%0x)", pucArg, pccArg);
-#endif
-
-  if ((pndPieRoot = xmlNewNode(NULL, NAME_PIE_PIE))) {
-    xmlNodePtr pndT = NULL;
-
-    pndT = xmlNewChild(pndPieRoot, NULL, NAME_PIE_IMPORT, NULL);
-    xmlSetProp(pndT, BAD_CAST"name", pucArg);
-    xmlSetProp(pndT, BAD_CAST"tags", BAD_CAST"yes");
-
-    //domPutNodeString(stderr, BAD_CAST "split result", pndPieRoot);
-    if ((pdocResult = pieProcessPieNode(pndPieRoot, pccArg))) {
-    }
-    else {
-      /* no pie make instructions */
-    }
-    xmlFreeNode(pndPieRoot);
-    //domPutDocString(stderr, BAD_CAST "split result", pdocResult);
-  }
-  return pdocResult;
-} /* end of pieParseFile() */
 
 
 /*! process the PIE child instructions of pndArgPie
@@ -866,46 +826,6 @@ ImportNodeContent(xmlNodePtr pndArgImport, cxpContextPtr pccArg)
   return fResult;
 }
 /* end of ImportNodeContent() */
-
-
-/*! process the import instructions of pndArgImport in directory context of pccArg
-
-\param pndArgResult node to append processing result
-\param pndArgImport node to test for import, else traversing childs
-\param pccArg the processing context
-
-\return TRUE if import was successful, else FALSE
-*/
-BOOL_T
-_ImportNodeArg(xmlNodePtr pndArgResult, xmlNodePtr pndArgImport, cxpContextPtr pccArg)
-{
-  BOOL_T fResult = FALSE;
-
-  return fResult;
-
-#ifdef DEBUG
-  cxpCtxtLogPrint(pccArg, 1, "ImportNodeArg(pndArgImport=%0x,pccArg=%0x)", pndArgImport, pccArg);
-#endif
-
-  if (pndArgImport) {
-    cxpSubstPtr pcxpSubstT;
-
-    pcxpSubstT = cxpSubstDetect(pndArgImport, pccArg);
-    if (pcxpSubstT) {
-      xmlChar *pucContent;
-
-      if ((pucContent = cxpSubstGetPtr(pcxpSubstT)) != NULL && xmlStrlen(pucContent) > 0) {
-
-	/*!\todo build an import result pndPieResult */
-
-	fResult = TRUE;
-      }
-      cxpSubstFree(pcxpSubstT);
-    }
-  }
-  return fResult;
-}
-/* end of ImportNodeArg() */
 
 
 /*! traverse DOM of pndArg searching for import nodes in context of pccArg and
