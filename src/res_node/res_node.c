@@ -2662,7 +2662,7 @@ resNodeContentToDOM(xmlNodePtr pndArg, resNodePtr prnArg)
 	  }
 	  pndTags = xmlNewChild(pndMeta, NULL, NAME_PIE_TAGLIST, NULL);
 
-	  RecognizeHashtags(pndPie,NULL);
+	  RecognizeHashtags(pndPie,NULL, NULL);
 	  RecognizeGlobalTags(pndTags, pndPie);
 	  CleanListTag(pndTags, FALSE);
 	  //domPutNodeString(stderr, BAD_CAST "resNodeContentToDOM(): ", pndPie);

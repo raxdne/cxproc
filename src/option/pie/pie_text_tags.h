@@ -20,7 +20,7 @@
 */
 
 extern BOOL_T
-RecognizeHashtags(xmlNodePtr pndArg, pcre2_code* preArg);
+RecognizeHashtags(xmlNodePtr pndArg, pcre2_code* preArgHashTag, pcre2_code* preArgBlockTag);
 
 extern BOOL_T
 InheritHashtags(xmlDocPtr pdocArg);
@@ -34,8 +34,6 @@ CleanListTag(xmlNodePtr pndArg, BOOL_T fArgMerge);
 extern xmlNodePtr
 RecognizeGlobalTags(xmlNodePtr pndTags, xmlNodePtr pndArg);
 
-extern void
-pieTextTagsCleanup(void);
 
 #ifdef TESTCODE
 extern int

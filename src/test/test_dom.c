@@ -801,7 +801,7 @@ domTest(void)
       || (nodeset = result->nodesetval) == NULL) {
       printf("Error 3 domGetXPathNodeset()\n");
     }
-    else if (nodeset->nodeNr != 7) {
+    else if (nodeset->nodeNr != 5) {
       printf("Error 4 domGetXPathNodeset()\n");
     }
     else {
@@ -849,7 +849,7 @@ domTest(void)
       printf("OK\n");
     }
 
-    domPutNodeString(stderr,BAD_CAST"domNodeGrepNew()",pndT);
+    //domPutNodeString(stderr,BAD_CAST"domNodeGrepNew()",pndT);
     xmlFreeNode(pndT);
     xmlFreeDoc(pdocTest);
   }

@@ -87,7 +87,6 @@ ImportNodeStdin(xmlNodePtr pndArgImport, cxpContextPtr pccArg);
 void
 pieTextCleanup(void)
 {
-  pieTextTagsCleanup();
   pieTextBlocksCleanup();
 } /* end of pieTextCleanup() */
 
@@ -1045,7 +1044,7 @@ pieGetParentHeaderStr(xmlNodePtr pndN)
 	  xmlNodePtr pndHeaderChild;
 
 	  for (pndHeaderChild=pndHeader->children; pndHeaderChild; pndHeaderChild=pndHeaderChild->next) {
-	    if (IS_NODE_PIE_LINK(pndHeaderChild) || IS_NODE_PIE_DATE(pndHeaderChild) || IS_NODE_PIE_HTAG(pndHeaderChild)) {
+	    if (IS_NODE_PIE_LINK(pndHeaderChild) || IS_NODE_PIE_DATE(pndHeaderChild) || IS_NODE_PIE_HTAG(pndHeaderChild) || IS_NODE_PIE_ETAG(pndHeaderChild)) {
 	      if ((pucT = domNodeGetContentPtr(pndHeaderChild))) {
 		/* append first text node content of link node */
 		pucHeader = xmlStrcat(pucHeader, pucT);
