@@ -395,6 +395,9 @@ extern int
 resNodeGetChildCount(resNodePtr prnArgList, RN_TYPE eArgType);
 
 extern int
+resNodeGetSiblingsCount(resNodePtr prnArgList, RN_TYPE eArgType);
+
+extern int
 resNodeGetCountDescendants(resNodePtr prnArgList);
 
 extern xmlChar *

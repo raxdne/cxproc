@@ -71,6 +71,9 @@ resNodeListToXml(resNodePtr prnArg, int iLevelVerboseArg);
 extern xmlChar *
 resNodeListToPlain(resNodePtr prnArg, int iLevelVerboseArg);
 
+extern xmlChar*
+resNodeListToPlainTree(resNodePtr prnArg, xmlChar* pucArgPrefix, int iArgOptions);
+
 #ifdef TESTCODE
 int
 resNodeTestList(void);

@@ -823,6 +823,65 @@ resNodeListToPlain(resNodePtr prnArg, int iArgOptions)
 } /* end of resNodeListToPlain() */
 
 
+/*! Resource Node List To a plain tree view
+
+\param prnArg -- resNode tree to build as plain string
+\param pucArgPrefix -- pointer to prefix string, representing depth
+\param iArgOptions bits for options
+
+\return pointer to buffer with plain output
+*/
+xmlChar*
+resNodeListToPlainTree(resNodePtr prnArg, xmlChar *pucArgPrefix, int iArgOptions)
+{
+  xmlChar* pucResult = NULL;
+
+  if (prnArg) {
+    resNodePtr prnT;
+    xmlChar* pucPrefix;
+
+    if (STR_IS_NOT_EMPTY(pucArgPrefix)) {
+      pucPrefix = xmlStrncatNew(pucArgPrefix, BAD_CAST"    ", -1);
+    }
+    else {
+      pucPrefix = xmlStrdup(BAD_CAST"    ");
+    }
+
+    for (prnT = prnArg; prnT; prnT = resNodeGetNext(prnT)) {
+      xmlChar* pucT = NULL;
+      xmlChar* pucTT = NULL;
+      resNodePtr prnChild;
+
+      pucTT = xmlStrdup(pucPrefix);
+      if ((pucT = xmlStrcat(pucTT, resNodeGetNameBase(prnT)))) {
+	if (pucResult) {
+	  pucResult = xmlStrcat(pucResult, pucT);
+	  xmlFree(pucT);
+	}
+	else {
+	  pucResult = pucT;
+	}
+	pucResult = xmlStrcat(pucResult, BAD_CAST"\n");
+      }
+
+      if ((prnChild = resNodeGetChild(prnT))) {
+	if ((pucT = resNodeListToPlainTree(prnChild, pucPrefix, iArgOptions))) {
+	  if (pucResult) {
+	    pucResult = xmlStrcat(pucResult, pucT);
+	    xmlFree(pucT);
+	  }
+	  else {
+	    pucResult = pucT;
+	  }
+	}
+      }
+    }
+    xmlFree(pucPrefix);
+  }
+  return pucResult;
+} /* end of resNodeListToPlainTree() */
+
+
 #ifdef TESTCODE
 #include "test/test_res_node_list.c"
 #endif

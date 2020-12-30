@@ -603,15 +603,17 @@ resPathIsRelative(xmlChar *pucArg)
 
 
 /*! \return TRUE if pucArg starts as with a single path separator
+
+  single slash/backslash is the valid mimimum
 */
 BOOL_T
 resPathIsLeadingSeparator(xmlChar *pucArg)
 {
   return (pucArg != NULL
     &&
-    ((issep(pucArg[0]) && ! isseporend(pucArg[1]))
+    ((issep(pucArg[0]))
     ||
-    (isquot(pucArg[0]) && issep(pucArg[1]) && !isseporend(pucArg[2]))));
+    (isquot(pucArg[0]) && issep(pucArg[1]))));
 }
 /* end of resPathIsLeadingSeparator() */
 

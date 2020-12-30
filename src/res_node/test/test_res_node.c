@@ -189,6 +189,35 @@ resNodeTest(void)
 
   if (RUNTEST) {
     resNodePtr prnT = NULL;
+    resNodePtr prnTT = NULL;
+
+    i++;
+    xmlStrPrintf(mucTestLabel, BUFFER_LENGTH, "\nTEST %i in '%s:%i':  = ", i, __FILE__, __LINE__);
+    fputs((const char*)mucTestLabel, stderr);
+    mucTestResult[0] = '\0';
+
+    if ((prnT = resNodeDirNew(BAD_CAST"/tmp/")) == NULL) {
+      xmlStrPrintf(mucTestResult, BUFFER_LENGTH, "Error resNodeDirNew(): %s\n", resNodeGetErrorMsg(prnT));
+    }
+    else if ((prnTT = resNodeDirNew(BAD_CAST"/")) == NULL) {
+      xmlStrPrintf(mucTestResult, BUFFER_LENGTH, "Error resNodeDirNew(): %s\n", resNodeGetErrorMsg(prnT));
+    }
+    else {
+      n_ok++;
+    }
+
+    if (xmlStrlen(mucTestResult) > 0) {
+      pucModuleTestReport = xmlStrcat(pucModuleTestReport, mucTestLabel);
+      pucModuleTestReport = xmlStrcat(pucModuleTestReport, mucTestResult);
+    }
+
+    resNodeFree(prnTT);
+    resNodeFree(prnT);
+  }
+
+
+  if (RUNTEST) {
+    resNodePtr prnT = NULL;
 
     i++;
     xmlStrPrintf(mucTestLabel,BUFFER_LENGTH,"\nTEST %i in '%s:%i': reading of an NULL file context = ", i, __FILE__, __LINE__);
@@ -477,6 +506,7 @@ resNodeTest(void)
 
 
   if (RUNTEST) {
+    int j;
     xmlChar* pucT;
     resNodePtr prnPath = NULL;
     resNodePtr prnT = NULL;
@@ -490,6 +520,9 @@ resNodeTest(void)
 
     if ((prnPath = resNodeSplitStrNew(BAD_CAST "option\\pie\\text\\test.pie")) == NULL) {
       xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error 2 resNodeSplitStrNew()\n");
+    }
+    else if ((j = resNodeGetLength(prnPath)) != 4) {
+      xmlStrPrintf(mucTestResult, BUFFER_LENGTH, "Error resNodeGetLength() = %i\n", j);
     }
     else if ((prnT = resNodeDirNew(BAD_CAST"option/")) == NULL) {
       xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeDirNew()\n");
@@ -506,7 +539,6 @@ resNodeTest(void)
     else if (resNodeAddChildNew(prnTTT, BAD_CAST"c.html") == NULL) {
       xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeAddChildNew()\n");
     }
-#if 0
     else if (resNodeAddChildNew(prnTTT, BAD_CAST"test.pie") == NULL) {
       xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeAddChildNew()\n");
     }
@@ -514,11 +546,16 @@ resNodeTest(void)
       xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error 1 resNodeInsert()\n");
     }
     else if (resNodeInsert(prnPath,NULL) != NULL) {
-      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error 1 resNodeInsert()\n");
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error 2 resNodeInsert()\n");
     }
-#endif
-    else if (resNodeInsert(prnT, prnPath) == NULL) {
-      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error 1 resNodeInsert()\n");
+    else if ((prnTTT = resNodeInsert(NULL, prnPath)) != prnPath) {
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error 3 resNodeInsert()\n");
+    }
+    else if (resNodeInsert(prnT, prnPath) != prnT) {
+      xmlStrPrintf(mucTestResult, BUFFER_LENGTH, "Error 4 resNodeInsert()\n");
+    }
+    else if ((j = resNodeGetCountDescendants(prnT)) != 6) {
+      xmlStrPrintf(mucTestResult, BUFFER_LENGTH, "Error resNodeGetCountDescendants() = %i\n", j);
     }
     else {
       n_ok++;
@@ -529,40 +566,42 @@ resNodeTest(void)
       pucModuleTestReport = xmlStrcat(pucModuleTestReport,mucTestResult);
     }
 
-    //pucT = resNodeListToPlain(prnT,RN_INFO_MIN); fputs((const char *)(const char *)pucT,stderr); xmlFree(pucT);
+    //pucT = resNodeListToPlainTree(prnT, NULL, RN_INFO_MIN); fputs((const char*)pucT, stderr); xmlFree(pucT);
     resNodeFree(prnPath);
     resNodeFree(prnT);
   }
 
 
   if (RUNTEST) {
+    int j;
     xmlChar* pucT;
     resNodePtr prnT = NULL;
-    resNodePtr prnTT = NULL;
-    resNodePtr prnTTT = NULL;
 
     i++;
-    xmlStrPrintf(mucTestLabel,BUFFER_LENGTH,"\nTEST %i in '%s:%i': resNodeInsert() = ", i, __FILE__, __LINE__);
+    xmlStrPrintf(mucTestLabel,BUFFER_LENGTH,"\nTEST %i in '%s:%i': resNodeInsertStrNew() = ", i, __FILE__, __LINE__);
     fputs((const char *)mucTestLabel,stderr);
     mucTestResult[0] = '\0';
 
     if ((prnT = resNodeSplitStrNew(BAD_CAST "option\\pie\\text\\test.pie")) == NULL) {
       xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error 2 resNodeSplitStrNew()\n");
     }
-    else if (resNodeInsertStrNew(prnT, BAD_CAST "option\\pie\\text\\test.pie") != NULL) {
-      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error 1 resNodeInsert()\n");
+    else if (resNodeInsertStrNew(prnT, BAD_CAST "option\\pie\\text\\test.pie") != prnT) {
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error 1 resNodeInsertStrNew()\n");
     }
     else if (resNodeInsertStrNew(prnT, BAD_CAST "option\\pie\\test.pie") == NULL) {
-      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error 1 resNodeInsert()\n");
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error 2 resNodeInsertStrNew()\n");
     }
     else if (resNodeInsertStrNew(prnT, BAD_CAST "option\\test.pie") == NULL) {
-      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error 1 resNodeInsert()\n");
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error 3 resNodeInsertStrNew()\n");
     }
     else if (resNodeInsertStrNew(prnT, BAD_CAST "test.pie") == NULL) {
-      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error 1 resNodeInsert()\n");
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error 4 resNodeInsertStrNew()\n");
     }
     else if (resNodeInsertStrNew(prnT, NULL) != NULL) {
-      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error 1 resNodeInsert()\n");
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error 5 resNodeInsertStrNew()\n");
+    }
+    else if ((j = resNodeGetCountDescendants(prnT)) != 6) {
+      xmlStrPrintf(mucTestResult, BUFFER_LENGTH, "Error resNodeGetCountDescendants() = %i\n", j);
     }
     else {
       n_ok++;
@@ -573,26 +612,30 @@ resNodeTest(void)
       pucModuleTestReport = xmlStrcat(pucModuleTestReport,mucTestResult);
     }
     
-
-    //pucT = resNodeListToPlain(prnT,RN_INFO_MIN); fputs((const char *)(const char *)pucT,stderr); xmlFree(pucT);
+    //pucT = resNodeListToPlainTree(prnT, NULL, RN_INFO_MIN); fputs((const char*)pucT, stderr); xmlFree(pucT);
     resNodeFree(prnT);
   }
 
 
   if (RUNTEST) {
+    int j;
     xmlChar* pucT;
     resNodePtr prnT = NULL;
+    resNodePtr prnTT = NULL;
 
     i++;
     xmlStrPrintf(mucTestLabel,BUFFER_LENGTH,"\nTEST %i in '%s:%i': resNodeSplitLineBufferNew() = ", i, __FILE__, __LINE__);
     fputs((const char *)mucTestLabel,stderr);
     mucTestResult[0] = '\0';
 
-    if ((prnT = resNodeSplitLineBufferNew(NULL)) != NULL) {
+    if ((prnTT = resNodeSplitLineBufferNew(NULL)) != NULL) {
       xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error 2 resNodeSplitStrNew()\n");
     }
     else if ((prnT = resNodeSplitLineBufferNew(BAD_CAST "option\\pie\\text\\test.pie\noption/pie/abc.xml\n\ntmp\\def.txt\n \n\r")) == NULL) {
       xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error 1 resNodeInsert()\n");
+    }
+    else if ((j = resNodeGetCountDescendants(prnT)) != 5) {
+      xmlStrPrintf(mucTestResult, BUFFER_LENGTH, "Error resNodeGetCountDescendants() = %i\n", j);
     }
     else {
       n_ok++;
@@ -603,13 +646,15 @@ resNodeTest(void)
       pucModuleTestReport = xmlStrcat(pucModuleTestReport,mucTestResult);
     }
 
-    //pucT = resNodeListToPlain(prnT,RN_INFO_MIN); fputs((const char *)(const char *)pucT,stderr); xmlFree(pucT);
+    //pucT = resNodeListToPlainTree(prnT,NULL,RN_INFO_MIN); fputs((const char *)pucT,stderr); xmlFree(pucT);
     resNodeFree(prnT);
+    resNodeFree(prnTT);
   }
 
 
   if (RUNTEST) {
     resNodePtr prnT = NULL;
+    xmlChar *pucT;
     xmlChar mucT[BUFFER_LENGTH];
 
     i++;
@@ -621,8 +666,11 @@ resNodeTest(void)
     if ((prnT = resNodeStrNew(mucT)) == NULL) {
       xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeStrNew(): %s\n",resNodeGetErrorMsg(prnT));
     }
-    else if (resNodeGetLength(prnT) != 2) {
-      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeGetLength(): %s\n",resNodeGetErrorMsg(prnT));
+    else if (resNodeGetChild(prnT) != NULL) {
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeGetChild()\n");
+    }
+    else if (resNodeGetNext(prnT) == NULL || resNodeGetChild(resNodeGetNext(prnT)) != NULL) {
+      xmlStrPrintf(mucTestResult, BUFFER_LENGTH, "Error resNodeGetNext()\n");
     }
     else {
       n_ok++;
@@ -633,6 +681,7 @@ resNodeTest(void)
       pucModuleTestReport = xmlStrcat(pucModuleTestReport,mucTestResult);
     }
     
+    //pucT = resNodeListToPlainTree(prnT,NULL,RN_INFO_MIN); fputs((const char *)pucT,stderr); xmlFree(pucT);
     resNodeListFree(prnT);
   }
 
@@ -799,6 +848,7 @@ resNodeTest(void)
       pucModuleTestReport = xmlStrcat(pucModuleTestReport,mucTestResult);
     }
     
+    xmlFree(pucTT);
     resNodeFree(prnT);
   }
 
@@ -922,8 +972,11 @@ resNodeTest(void)
     else if (resNodeAddSibling(prnT, resNodeDirNew(BAD_CAST"c.png")) == NULL) {
       xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeAddSibling()\n");
     }
-    else if (resNodeGetLength(prnT) != 4) {
+    else if (resNodeGetLength(prnT) != 1) {
       xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeGetLength()\n");
+    }
+    else if (resNodeGetSiblingsCount(prnT, rn_type_file) != 3) {
+      xmlStrPrintf(mucTestResult, BUFFER_LENGTH, "Error resNodeGetSiblingsCount()\n");
     }
     else {
       n_ok++;
@@ -1577,7 +1630,10 @@ resNodeTest(void)
 
 
   if (RUNTEST) {
+    xmlChar *pucT = NULL;
     xmlChar *pucTT = NULL;
+    xmlChar *pucTTT = NULL;
+    xmlChar *pucTTTT = NULL;
     resNodePtr prnT = NULL;
 
     i++;
@@ -1591,10 +1647,10 @@ resNodeTest(void)
     else if (xmlStrcasecmp(resNodeGetNameBase(prnT),BAD_CAST"test.mak") != 0) {
       xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeDirNew()\n");
     }
-    else if ((pucTT = resPathCollapse(BAD_CAST TESTPREFIX,FS_PATH_FULL)) == NULL) {
+    else if ((pucT = resPathCollapse(BAD_CAST TESTPREFIX,FS_PATH_FULL)) == NULL) {
       xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeDirNew()\n");
     }
-    else if (resPathIsEquivalent(resNodeGetNameBaseDir(prnT), pucTT) == FALSE) {
+    else if (resPathIsEquivalent(resNodeGetNameBaseDir(prnT), pucT) == FALSE) {
     }
     else if ((pucTT = resPathCollapse(BAD_CAST TESTPREFIX "test.mak",FS_PATH_FULL)) == NULL) {
     }
@@ -1604,13 +1660,13 @@ resNodeTest(void)
     }
     else if (xmlStrcasecmp(resNodeGetNameBase(prnT),BAD_CAST"t.txt") != 0) {
     }
-    else if ((pucTT = resPathCollapse(BAD_CAST TESTPREFIX,FS_PATH_FULL)) == NULL) {
+    else if ((pucTTT = resPathCollapse(BAD_CAST TESTPREFIX,FS_PATH_FULL)) == NULL) {
     }
-    else if (resPathIsEquivalent(resNodeGetNameBaseDir(prnT), pucTT) == FALSE) {
+    else if (resPathIsEquivalent(resNodeGetNameBaseDir(prnT), pucTTT) == FALSE) {
     }
-    else if ((pucTT = resPathCollapse(BAD_CAST TESTPREFIX "t.txt",FS_PATH_FULL)) == NULL) {
+    else if ((pucTTTT = resPathCollapse(BAD_CAST TESTPREFIX "t.txt",FS_PATH_FULL)) == NULL) {
     }
-    else if (resPathIsEquivalent(resNodeGetNameNormalized(prnT), pucTT) == FALSE) {
+    else if (resPathIsEquivalent(resNodeGetNameNormalized(prnT), pucTTTT) == FALSE) {
     }
     else {
       n_ok++;
@@ -1621,6 +1677,10 @@ resNodeTest(void)
       pucModuleTestReport = xmlStrcat(pucModuleTestReport,mucTestResult);
     }
 
+    xmlFree(pucTTTT);
+    xmlFree(pucTTT);
+    xmlFree(pucTT);
+    xmlFree(pucT);
     resNodeFree(prnT);
   }
 

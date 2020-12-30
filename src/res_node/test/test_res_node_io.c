@@ -164,9 +164,11 @@ resNodeTestInOut(void)
     else if (resNodeGetChild(prnT) != NULL) {
       printf("Error resNodeOpen()\n");
     }
+#if 0
     else if (resNodeGetLength(prnT) != 1) {
       printf("Error resNodeGetLength() ...\n");
     }
+#endif
     else if (prnT->eAccess != rn_access_archive) {
       printf("Error eAccess\n");
     }

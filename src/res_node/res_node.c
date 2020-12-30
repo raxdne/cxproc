@@ -124,11 +124,12 @@ resNodeDup(resNodePtr prnArg, int iArgOptions)
 	resNodeSetContentPtr(prnResult,pT,resNodeGetSize(prnArg));
       }
       
-      if (iArgOptions & RN_DUP_CHILDS && (prnChild = resNodeGetChild(prnArg)) != NULL) {
-	
-	if (resNodeIsLink(prnArg)) {
+      for (prnChild = resNodeGetChild(prnArg); (iArgOptions & RN_DUP_CHILDS) && prnChild != NULL; prnChild = resNodeGetNext(prnChild)) {
+
+	if (resNodeIsLink(prnChild)) {
 	}
 	else if (resNodeIsFileInArchive(prnChild)) {
+#if 0
 	  resNodePtr prnNew;
 
 	  prnNew = resNodeNew();
@@ -178,9 +179,10 @@ resNodeDup(resNodePtr prnArg, int iArgOptions)
 	    resNodeAddChild(prnNew,resNodeDup(prnChild,iArgOptions));
 	  }
 	  resNodeAddChild(prnResult,prnNew);
+#endif
 	}
 	else {
-	  resNodeAddChild(prnResult,resNodeDup(prnChild,iArgOptions));
+	  resNodeAddChild(prnResult, resNodeDup(prnChild, (iArgOptions ^ RN_DUP_NEXT)));
 	}
       }
 
@@ -637,6 +639,8 @@ resNodeAddSibling(resNodePtr prnArgList, resNodePtr prnArg)
 
       assert(prnLast->next == NULL);
 	
+      resNodeListUnlink(prnArg);
+
       prnLast->next = prnArg;
       prnArg->prev = prnLast;
 
@@ -812,16 +816,16 @@ resNodeGetAncestorPathStr(resNodePtr prnArg)
 } /* end of resNodeGetAncestorPathStr() */
 
 
-/*! Resource Node List Get list length
+/*! for tests only
 
-\return number of next resource nodes in list
+\return number of child descendant resource nodes in list
 */
 int
 resNodeGetLength(resNodePtr prnArg)
 {
   int iResult;
 
-  for (iResult=0; prnArg; prnArg = resNodeGetNext(prnArg)) {
+  for (iResult=0; prnArg; prnArg = resNodeGetChild(prnArg)) {
     iResult++;
   }
 
@@ -851,6 +855,36 @@ resNodeGetChildCount(resNodePtr prnArgList, RN_TYPE eArgType)
   }
   return iResult;
 } /* end of resNodeGetChildCount() */
+
+
+/*! 
+
+\param prnArgList -- pointer to resNode list
+\param eArgType -- type of resNode to count
+\return number of siblings
+*/
+int
+resNodeGetSiblingsCount(resNodePtr prnArgList, RN_TYPE eArgType)
+{
+  int iResult = -1;
+
+  if (prnArgList) {
+    resNodePtr prnT;
+
+    for (iResult = 0, prnT = prnArgList->prev; prnT; prnT = prnT->prev) {
+      if (resNodeGetType(prnT) == eArgType) {
+	iResult++;
+      }
+    }
+
+    for (prnT = prnT = prnArgList->next; prnT; prnT = prnT->next) {
+      if (resNodeGetType(prnT) == eArgType) {
+	iResult++;
+      }
+    }
+  }
+  return iResult;
+} /* end of resNodeGetSiblingsCount() */
 
 
 /*! Resource Node List Append
@@ -1175,7 +1209,7 @@ resNodeDirNew(xmlChar *pucArgPath)
 #ifdef _MSC_VER
     else if (resPathIsLeadingSeparator(pucPath)) { /* without drive letter */
       pucT = resPathGetCwd();
-      prnResult->pucNameNormalized = xmlStrndup(pucT, 2);
+      prnResult->pucNameNormalized = xmlStrndup(pucT, 3);
       resNodeConcat(prnResult, pucPath);
       xmlFree(pucT);
       if (resPathIsTrailingSeparator(pucPath)) { /*  */
@@ -1355,35 +1389,57 @@ resNodeSplitStrNew(xmlChar* pucArgPath)
 
 /*! inserts a new resource node for pucArgPath into the tree of prnArg
 
-\param prnArg a pointer to an existing resource node 
-\return pointer to a freshly allocated 'resNode'
+\param prnArgTree a pointer to a resource node tree
+\param prnArg a pointer to an resource node list to insert into 'prnArgTree'
+
+\return 
 */
 resNodePtr
 resNodeInsert(resNodePtr prnArgTree, resNodePtr prnArg)
 {
-  resNodePtr prnResult = NULL;
-  resNodePtr prnT;
-  xmlChar* pucT = NULL;
+  resNodePtr prnResult = prnArg;
+  resNodePtr prnPath;
+  resNodePtr prnTree;
 
-  //assert(prnArgTree);
-  //assert(prnArg);
-  //assert(prnArg->children != NULL );
+  for (prnPath = prnArg, prnTree = prnArgTree; prnPath != NULL && prnTree != NULL; ) {
+    BOOL_T fMatch;
+    resNodePtr prnT;
 
-  if ((pucT = resNodeGetNameBase(prnArg)) != NULL) {
-    for (prnT = prnArgTree; prnT; prnT = prnT->next) {
-      if (resPathIsEquivalent(pucT, resNodeGetNameBase(prnT))) {
-	resNodeListUnlink(prnArg);
-	prnResult = resNodeInsert(prnT->children, prnArg->children);
+    do {
+      prnT = prnTree;
+      fMatch = resPathIsEquivalent(resNodeGetNameBase(prnPath), resNodeGetNameBase(prnTree));
+      if (fMatch) {
+	if (prnPath->children) {
+	  if (prnTree->children) {
+	    prnPath = prnPath->children;
+	    prnTree = prnTree->children;
+	    break; /* step to childrens */
+	  }
+	  else {
+	    /* that was the last node in 'prnTree', append childs of 'prnPath' to 'prnTree' */
+	    prnResult = prnPath->children;
+	    resNodeAddChild(prnTree, prnResult);
+	    return prnResult;
+	  }
+	}
+	else {
+	  /* that was the last node in 'prnPath', it's included already */
+	  prnResult = prnArgTree;
+	  return prnResult;
+	}
       }
-      else if (prnT->next == NULL) {
-	/* no matching child node found */
-	resNodeAddSibling(prnT, prnArg);
-	prnResult = prnArg;
-	break;
-      }
+    } while ((prnTree = prnTree->next) != NULL);
+
+    if (fMatch) {
     }
-  }
+    else {
+      prnResult = prnPath;
+      resNodeAddSibling(prnT, prnResult);
+      break;
+    }
 
+  }
+  
   return prnResult;
 } /* end of resNodeInsert() */
 
@@ -1404,12 +1460,9 @@ resNodeInsertStrNew(resNodePtr prnArg, xmlChar* pucArgPath)
     prnT = resNodeSplitStrNew(pucArgPath);
     if (prnT) {
       prnResult = resNodeInsert(prnArg,prnT);
-#if 0
-      if (prnResult != prnT) {
+      if (prnResult == prnArg || prnResult != prnT) {
 	resNodeFree(prnT);
       }
-#endif
-      /*!\bug free rest of prnT */
     }
   }
   return prnResult;
