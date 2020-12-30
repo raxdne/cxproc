@@ -1,51 +1,34 @@
 
 # TODO
 
-TODO: remove "#ifdef EXPERIMENTAL"
-
 ## Documentation
 
-build presentation from `doc/*.*` using <impress.js>
+TODO: build presentation from `doc/*.*` using <impress.js>
+
+TODO: update descriptions in Doxygen format #v13
 
 ## Features
 
-shell environment
+REQ: shell environment
 
     <xsl:thread>
-	<cxp:system execute="dir c:\temp">
-		<!-- set shell environment -->
+	  <cxp:system execute="dir %TEMP%">
 		<cxp:env name="TEMP" select="c:\temp"/>
-	</cxp:system>
+	  </cxp:system>
     </xsl:thread>
 
-parser for source codes C, LaTeX etc detect TODO|BUG|TEST etc in comments of procedure context
+REQ: parser for source codes C, LaTeX etc
 
-## GUI
+- detect TODO|BUG|TEST etc in comments of procedure context
 
-s. Gtkdialog, GTK2-window for log messages and confirmations (á la ‚dialog‘ utility)
-
-- <http://jplugins.directory/ferromenu/?show=web>
-- <http://www.gtk.org/download/win32_tutorial.php>
+REQ: Dialog for log messages and confirmations (á la ‚dialog‘ utility, s. Gtkdialog, GTK2-window)
 - Tinyfiledialogs <http://sourceforge.net/projects/tinyfiledialogs/>
 - wxwidgets <http://docs.wxwidgets.org/trunk/index.html>
 - <http://www.fltk.org/index.php>
 - <http://iup.sourceforge.net/>
 - <http://cpptk.sourceforge.net/index.html>
 
-## STL/librp
-
-- integrate [admesh](https://github.com/admesh)
-- output of
-  - Meta info (Bounding-Box, Facets, ...)
-  - XML based formats ([X3D](http://xml.coverpages.org/vrml-X3D.html) )
-  - other formats (VRML, GnuPlot, PovRay)
-- processing, slicing using libadmesh and librp
-  - Slices as SVG
-  - runtime diagram
-
-## Backends
-
-- Filesystem
+REQ: additional Backends
 - ZIP file
 - URL
   - http
@@ -55,67 +38,46 @@ s. Gtkdialog, GTK2-window for log messages and confirmations (á la ‚dialog‘
   - Subversion
   - Git
 - Document DB
+  - SQLite
   - MongoDB <http://en.wikipedia.org/wiki/MongoDB>
   -	MySQL/MariaDB
 
-## CGI
+## Security
 
-TODO: check security ++
-
+TEST: check security #v13 ++
 - access control in CGI mode
 - HTTP Status message if access denied
 
-## Security
+Limitations or Sandbox
+- use Unicode functions to avoid MAX_PATH on Windows
 
-- Limitations or Sandbox
-  - use Unicode functions to avoid MAX_PATH on Windows
-  - <cxp:make readonly="no|yes|write|unlink|create"> "rcwd"
-  - <cxp:make network="no">
-  - prevent system() in cgi_mode (or readonly_mode)
-- <https://www.tu-braunschweig.de/Medien-DB/sec/pubs/2016-ccs.pdf>
+- prevent system() in cgi_mode (or readonly_mode)
 - Docker
 
-## Building
+REQ: flags for permissions
 
-TODO: statically linked binaries for ARMv7, x64_linux, x64_windows?
-
-TODO: detail information in binaries
-
-TODO: pack library frontends in bin/ xmllint, xsltproc, zip, curl ...
-
-TODO: Binary without Microsoft Runtime DLL (at all requiered libs??)
-
-VC++
-
-- Side-by-side assembly <https://en.wikipedia.org/wiki/Side-by-side_assembly>
-        <https://www.codeguru.com/cpp/article.php/c18071/Simplify-Visual-C-Application-Deployment-with-Manifest-Files.htm>
-        <https://docs.microsoft.com/de-de/cpp/build/understanding-manifest-generation-for-c-cpp-programs?view=vs-2019>
-
-  - target_link_options(cxproc-cgi     PUBLIC /MANIFEST /ManifestFile:${CXPROC_SRC_DIR}/cxproc.manifest)
-
-  - ADD_CUSTOM_COMMAND( 	TARGET cxproc-cgi 	POST_BUILD 	COMMAND "mt.exe" -manifest \"${CXPROC_SRC_DIR}/cxproc.manifest\" -inputresource:\"$<TARGET_FILE:cxproc-cgi>\"\;\#1 -outputresource:\"$<TARGET_FILE:cxproc-cgi>\"\;\#1 	COMMENT "Adding display aware manifest..."  ) 
-
-MacOS?
-
-TODO: test LLVM
-
-TODO: Package Information for pkg-config in cxproc.pc.in (s. xml2-config)
-
-## Code quality
-
-- compiler warnings C, C++
-- splint
-- memcheck
-- VC++ code analysis
-- Valgrind/memcheck (s. ctest)
+	<cxp:make readonly="no|yes|write|unlink|create"> "rcwd"
+	<cxp:make network="no">
 
 ## Profiling
 
-TODO: gprof and valgrind/cachegrind (KCachegrind)
+TODO: gprof and valgrind/cachegrind (KCachegrind) #v13
+
+## Building
+
+DONE: Binary without Microsoft Runtime DLL (at all requiered libs??)
+
+TODO: statically linked binaries for ARMv7, x64_linux, x64_windows  #v13
+
+TODO: provide a Flatpack
+
+TODO: detail information in binaries #v13
+
+TODO: MacOS binaries
 
 ## XML
 
-TODO: Update of RELAX NG schemas (translation by [trang](http://www.thaiopensource.com/relaxng/trang-manual.html) )
+TODO: Update of RELAX NG schemas (translation by [trang](http://www.thaiopensource.com/relaxng/trang-manual.html) ) #v13 ++
 
 ## Testing
 
@@ -126,22 +88,7 @@ Test with text files from Gutenberg Project <https://www.gutenberg.org/>
 
 ## Deployment
 
-TODO: CMake packaging
-
-Packages
-
-- deb
-- rpm
-- tar.gz
-- zip
-- exe
-  - 7zip
-  - NSI
-
-Hosting
-
-- Github
-- Web server
+TODO: CMake packaging (deb, rpm, tar.gz, zip, 7zip, NSI) #v13
 
 ## Scripting
 
@@ -152,23 +99,10 @@ Javascript
 - Duktape
 - node.js + V8
 - REST based server
-- Frontend
 
-Tcl
+REQ: Tcl bindings "Tcxproc"
 
-- as package (no embedded Tcl interpreter)
-- Tcl bindings "Tcxproc"
-
-Python
-
-use cases
-
-- XML creation (from plain text)
-- plain XML modifications before parsing
-- regexp tasks in XML/XSL
-- preprocessor-like embedding in XML/XHTML, JS, CSS
-- JSON generator and tests
-- automatic tests
+REQ: Python bindings
 
 ## Web server
 
@@ -201,17 +135,6 @@ REST Principles
 
 ## option
 
-### sqlite
-
-Module "xmlsqlio" (similar to "xmlzipio")
-
-- transparent SQL to XML access
-- xmlRead("sql:///tmp/abc.db3:SELECT * FROM table;")
-
-### plain
-
-HTML to UTF-8 Plain text Renderer `<cxp:plain><cxp:html name="abc.html"/></cxp:plain>` like "w3m -dump"
-
 ### pie
 
 #### pie_csv
@@ -226,50 +149,39 @@ markup
 
 parse from UTF-8 memory buffer
 
-examples
-
-- <https://github.com/dinedal/textql>
-- harelba.github.io > Q <http://harelba.github.io/q/>
-- boyet.com > Articles > Csvparser <http://www.boyet.com/articles/csvparser.html>
-- <https://stackoverflow.com/questions/12911299/read-csv-file-in-c>
-- <https://github.com/JamesRamm/csv_parser>
-
-libraries
-
-- <https://github.com/rgamble/libcsv>
-
 #### pie_calendar
 
 #### pie_text
 
-append XML attributes to text markup
-
-    ** TEST @assignee="abc" @date="1234567"
-    paragraph kajdsklj @style="def"
-
-- additional generic attributes as „[class="abc" cluster="cad" effort="1"]“
-
-    JSON-like? „* Section json="[class:'abc', cluster:'cad', effort:1]"“ → ‘section class="abc" cluster="cad" effort="1"/‚
-    JSON-like? „json="{Section [class:'abc', cluster:'cad', effort:1]}"“ → ‘section class="abc" cluster="cad" effort="1"/‚
-
-embedded scripts in Texts
-
-    #begin_of_script_viewable
+REQ: append XML attributes to text markup
+- `** TEST @assignee="abc" @date="1234567"`
+- additional generic attributes as `[class="abc" cluster="cad" effort="1"]`
+- JSON-like? `* Section json="[class:'abc', cluster:'cad', effort:1]"`
 
 decoding of RFC1738 URL with Umlaute to UTF-8
 
-change markup
+TODO: change markup #v13
 
     <pre></pre>
-    <script></script>
+    <script display="yes"></script>
 
 #### pie_timezone
 
-test sunrise sunset with Shanghai, Berlin, Boston
+TEST: sunrise sunset with Shanghai, Berlin, Boston
 
-calculate different time zone values
+REQ: calculate different time zone values
 
-#### markdown
+### sqlite
+
+REQ: transparent SQL to XML access  `xmlRead("sql:///tmp/abc.db3:SELECT * FROM table;")` ("xmlsqlio", similar to "xmlzipio")
+
+### plain
+
+REQ: HTML to UTF-8 Plain text Renderer `<cxp:plain><cxp:html name="abc.html"/></cxp:plain>` like "w3m -dump"
+
+## Misc
+
+### markdown
 
 <https://daringfireball.net/projects/markdown/basics>
 
@@ -295,8 +207,6 @@ ImageMagick
       <cxp:scale="300"/>
     </cxp:image>
 
-## Misc
-
 ### gallery
 
 - add a "move/copy Picture to" option
@@ -311,11 +221,20 @@ ImageMagick
 - playlist formats xspf, m3u
 - playlist from Archive file
 
+### STL/librp
+
+- integrate [admesh](https://github.com/admesh)
+- output of
+  - Meta info (Bounding-Box, Facets, ...)
+  - XML based formats ([X3D](http://xml.coverpages.org/vrml-X3D.html) )
+  - other formats (VRML, GnuPlot, PovRay)
+- processing, slicing using libadmesh and librp
+  - Slices as SVG
+  - runtime diagram
+
 ## References
 
 see REST principles
-
-caching (eid derived from mtime and size -> problems with imports)
 
 „XProc: An XML Pipeline Language“ <http://www.w3.org/TR/xproc/>
 
@@ -325,4 +244,16 @@ The [JasperReports Library](http://community.jaspersoft.com/project/jasperreport
 
 [XMLStarlet command line XML toolkit](https://sourceforge.net/projects/xmlstar/)
 
-http://fuse.sourceforge.net/ dynamic generation of files in a pseudo filesystem
+### CSV
+
+<https://github.com/dinedal/textql>
+
+https://github.com/harelba/q
+
+<https://stackoverflow.com/questions/12911299/read-csv-file-in-c>
+
+<https://github.com/JamesRamm/csv_parser>
+
+<https://github.com/rgamble/libcsv>
+
+

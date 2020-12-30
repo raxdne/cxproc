@@ -46,19 +46,30 @@ Setup
 ### Thirdparty Software for Web Usage
 
 
-## Dependency Walker x86/x64_86
+## [Notepad++](https://notepad-plus-plus.org/downloads/)
 
-## CMake
+XML Tools
 
-s. `vcpkg\downloads`
+## [Dependencies](https://github.com/lucasg/Dependencies/releases)
 
-	SET PATH=%PATH%;C:\User\Programme\cmake\bin
+## [Git for Windows](https://gitforwindows.org/)
 
 ## [PortableGit](https://sourceforge.net/projects/gitportable/)
 
 `vcpkg\downloads\tools\git-2.26.2-1-windows`
 
+## TortoiseGit
+
+## [CMake](https://cmake.org/download/)
+
+s. `vcpkg\downloads`
+
+	SET PATH=%PATH%;C:\User\Programme\cmake\bin
+
 ## CTest
 
 	"C:\UserData\Programme\cmake\bin\ctest.exe" -C Debug
 
+## [Firefox](https://www.mozilla.org/en-US/firefox/all/#product-desktop-release)
+
+## [HxD](https://mh-nexus.de/de/hxd/)
