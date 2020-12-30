@@ -1,83 +1,122 @@
-<?xml version="1.0" encoding="ISO-8859-1"?>
-************ >>xxmmllzziippiioo ************
-********** AA zziipp ffiillee hhaannddlleerr ffoorr _ll_ii_bb_xx_mm_ll_22 **********
+ZIPxmlzipio
+
+A zip file handler for libxml2
+
 xmlzipio adds support for reading and writing files inside ziparchives to
 libxml2.
-It is based on the minizip and miniunzip examples provided with _z_l_i_b.
->
-******** FFiilleess ((aanndd tthheeiirr lliicceennssee)) ********
+
+It is based on the minizip and miniunzip examples provided with zlib.
+
+-------------------------------------------------------------------------------
+
+Files (and their license)
+
 xmlzipio.h
-> xmlzipio.c
+xmlzipio.c
+
 The interface for xmlzipio and it's implementation. xmlzipio.c/.h are published
-under the terms of _t_h_e_ _M_I_T_ _L_i_c_e_n_s_e.
+under the terms of the MIT License.
+
 zip.h
-> zip.c
-> unzip.h
-> unzip.c
+zip.c
+unzip.h
+unzip.c
+
 Files taken from minizip and miniunzip to deal with the zip archives. zip.c/.h
-and unzip.c/.h are published under the terms of _z_l_i_b_/_l_i_b_p_n_g_ _l_i_c_e_n_s_e.
+and unzip.c/.h are published under the terms of zlib/libpng license.
+
 Makefile.am
->
+
 Example Makefile shows how to integrate xmlzipio into your project using
 libtool and automake.
+
 README
-> LICENSE
-> schraubstock.jpg
-> xmlzipio.html
->
+LICENSE
+schraubstock.jpg
+xmlzipio.html
+
 And a small doku.
->
-******** UUssaaggee ********
-Download the _f_i_l_e_s and add them to your project. (If you use automake you can
+
+-------------------------------------------------------------------------------
+
+Usage
+
+Download the files and add them to your project. (If you use automake you can
 just use the Makefile.am to create a libxmlzipio.la)
+
 Include xmlzipio.h. Than call xmlZipRegisterInputCallback() and
 xmlZipRegisterOutputCallback(). Now you can call for example xmlParseFile
 (XMLFileName) to parse an xml file. The filename must be of the form zip:
 zipname!filename (i.e. zip:web.zip!/xml/index.xml). Note that filename must be
 an absolute path, that means it must begin with "/".
-This syntax is inspired by that discribed at _h_t_t_p_:_/_/_j_a_k_a_r_t_a_._a_p_a_c_h_e_._o_r_g_/_c_o_m_m_o_n_s_/
-_s_a_n_d_b_o_x_/_v_f_s_/_f_i_l_e_s_y_s_t_e_m_s_._h_t_m_l_#_Z_i_p_%_2_0_a_n_d_%_2_0_J_a_r. The idea is, that you can use zip
+
+This syntax is inspired by that discribed at http://jakarta.apache.org/commons/
+sandbox/vfs/filesystems.html#Zip%20and%20Jar. The idea is, that you can use zip
 with any uri supported by libxml. By now, only local paths and file uris are
-supported (see _L_i_m_i_t_a_t_i_o_n_s).
-EExxaammppllee::
-> xmlDocPtr doc;>
-> xmlKeepBlanksDefault(0);
-> xmlRegisterDefaultInputCallbacks();
-> xmlRegisterDefaultOutputCallbacks();
-> xmlZipRegisterInputCallback();
-> xmlZipRegisterOutputCallback(); // it's importend to xmlzipio after the
-default handlers, so xmlzipio is asked first.
->
-> doc = xmlParseFile("test.zip#zip:text.xml");
-> ...
-> xmlSaveFormatFileEnc ("test.zip#zip:text.xml", doc, "UTF-8", 0);
->
-> xmlFreeDoc(doc);
-> xmlCleanupParser();
->
-******** LLiimmiittaattiioonnss ********
+supported (see Limitations).
+
+Example:
+xmlDocPtr doc;
+
+xmlKeepBlanksDefault(0);
+xmlRegisterDefaultInputCallbacks();
+xmlRegisterDefaultOutputCallbacks();
+xmlZipRegisterInputCallback();
+xmlZipRegisterOutputCallback(); // it's importend to xmlzipio after the default
+handlers, so xmlzipio is asked first.
+
+doc = xmlParseFile("test.zip#zip:text.xml");
+...
+xmlSaveFormatFileEnc ("test.zip#zip:text.xml", doc, "UTF-8", 0);
+
+xmlFreeDoc(doc);
+xmlCleanupParser();
+-------------------------------------------------------------------------------
+
+Limitations
+
 Currently only local paths and file uris are supported
-llooccaall ppaatthhss:: zip:../dir/somefile.zip!/file.xml
-> aanndd ffiillee uurriiss:: zip:file:///home/user/dir/somefile.zip!/file.xml
+
+local paths: zip:../dir/somefile.zip!/file.xml
+and file uris: zip:file:///home/user/dir/somefile.zip!/file.xml
+
 The next step would be to use xmlIO again to access the archive. This would
 give us the posibility to read files from the web or use nested zip archives
+
 zip:http://domain.org/somefile.zip!/file.xml
-> zip:zip:file:///home/user/dir/somefile.zip!/files.zip!/content.xml
->
-******** IInntteerrffaaccee ********
+zip:zip:file:///home/user/dir/somefile.zip!/files.zip!/content.xml
+-------------------------------------------------------------------------------
+
+Interface
+
 int xmlCompressionLevel (int c)
+
 Change the CopressionLevel for the zip archive.
+
 c:       the new compression level (0..9). 0 for deflated.
 Returns: the old compression level.
+
 int xmlZipRegisterInputCallback ()
+
 Register the Callbacks to add read zip archives.
+
 int xmlZipRegisterOutputCallback ()
+
 Register the Callbacks to add write zip archives.
->
-******** DDoowwnnllooaadd ********
-_x_m_l_z_i_p_i_o_._t_a_r_._g_z
+
+-------------------------------------------------------------------------------
+
+Download
+
+xmlzipio.tar.gz
+
 incorporated changes in the naming scheme (Thu Oct 30)
-_x_m_l_z_i_p_i_o_-_0_._1_._t_a_r_._g_z
+
+xmlzipio-0.1.tar.gz
+
 initial release (Wed Oct 29)
->
-  Last modified: Thu Oct 30 17:39:39 CET 2003
+
+-------------------------------------------------------------------------------
+
+Last modified: Thu Oct 30 17:39:39 CET 2003
+
