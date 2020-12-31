@@ -41,7 +41,7 @@
 /* multibyte characters */
 #define UTF8_UMLAUT "\xC3\xA4" "\xC3\x84" "\xC3\xB6" "\xC3\x96" "\xC3\xBC" "\xC3\x9C" "\xC3\x9F"
 
-/* core regexp for hashtags, can be extended by a XML processing instruction 'tag-regexp' */
+/* core regexp for hashtags, can be extended by a XML processing instruction 'regexp-tag' */
 #define RE_HASHTAG "[#@][A-Za-z0-9_" UTF8_UMLAUT "]+"
 
 
@@ -373,7 +373,7 @@ RecognizeHashtags(xmlNodePtr pndArg, pcre2_code* preArgHashTag, pcre2_code* preA
       fResult = FALSE;
     }
   }
-  else if (IS_NODE_PIE_BLOCK(pndArg)) {
+  else if (IS_NODE_PIE_PIE(pndArg) || IS_NODE_PIE_BLOCK(pndArg)) {
     xmlChar* pucRegExpTag = NULL;
 
     if ((pucRegExpTag = GetBlockTagRegExpStr(pndArg)) != NULL) {
@@ -471,7 +471,7 @@ RecognizeHashtags(xmlNodePtr pndArg, pcre2_code* preArgHashTag, pcre2_code* preA
 } /* End of RecognizeHashtags() */
 
 
-/*! \return a pointer to the non-empty value of processing instruction node "tag-regexp"
+/*! \return a pointer to the non-empty value of processing instruction node "regexp-tag"
 */
 xmlChar*
 GetBlockTagRegExpStr(xmlNodePtr pndArg)
@@ -483,7 +483,7 @@ GetBlockTagRegExpStr(xmlNodePtr pndArg)
     xmlChar* pucT = NULL;
     
     for (pndI = pndArg->children; pndI != NULL; pndI = pndI->next) {
-      if (pndI->type == XML_PI_NODE && xmlStrEqual(pndI->name, BAD_CAST"tag-regexp") && (pucT = domNodeGetContentPtr(pndI)) != NULL) {
+      if (pndI->type == XML_PI_NODE && xmlStrEqual(pndI->name, BAD_CAST"regexp-tag") && (pucT = domNodeGetContentPtr(pndI)) != NULL) {
 	if (pucResult) {
 	  /*!\todo check regexp */
 	  pucResult = xmlStrcat(pucResult,BAD_CAST"|");

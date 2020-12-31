@@ -312,13 +312,12 @@ pieProcessPieNode(xmlNodePtr pndArgPie, cxpContextPtr pccArg)
       }
     }
 
-    pucAttr = domGetPropValuePtr(pndArgPie, BAD_CAST "tags"); /* domGetPropFlag() not used because of (empty|yes|no|regexp) */
-    if (STR_IS_NOT_EMPTY(pucAttr) && xmlStrcasecmp(pucAttr, BAD_CAST "no") == 0) {
-      /* explicit: no */
+    if (domGetPropFlag(pndArgPie, BAD_CAST "tags", TRUE)) {
+      cxpCtxtLogPrint(pccArg, 2, "Recognize tags");
+      ProcessTags(pdocResult, NULL);
     }
     else {
-      cxpCtxtLogPrint(pccArg, 2, "Recognize tags '%s'", pucAttr);
-      ProcessTags(pdocResult, pucAttr);
+      cxpCtxtLogPrint(pccArg, 3, "Ignoring tags");
     }
 
     //xmlSetProp(pndArgPie, BAD_CAST "pattern", BAD_CAST "t[contains(text(),'Year')]");
@@ -421,8 +420,14 @@ ImportNodeCxp(xmlNodePtr pndArgImport, cxpContextPtr pccArg)
     pucContent = cxpProcessPlainNode(pndChild, pccArg);
     if (STR_IS_NOT_EMPTY(pucContent)) {
       xmlNodePtr pndBlock;
+      xmlNodePtr pndRelease;
 
       fResult = TRUE;
+
+      pndRelease = pndArgImport->children;
+      domUnlinkNodeList(pndRelease);
+      xmlFreeNodeList(pndRelease);
+
       pndBlock = pndArgImport;
       xmlSetNs(pndBlock,NULL);
       xmlNodeSetName(pndBlock, NAME_PIE_BLOCK);
