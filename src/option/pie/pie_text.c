@@ -81,6 +81,9 @@ ImportNodeCxp(xmlNodePtr pndArgImport, cxpContextPtr pccArg);
 static BOOL_T
 ImportNodeStdin(xmlNodePtr pndArgImport, cxpContextPtr pccArg);
 
+static void
+SetPropLocators(xmlNodePtr pndArg, xmlChar* pucArgFileName, xmlChar* pucArgPrefix);
+
 
 /*! exit procedure for this module
 */
@@ -303,13 +306,19 @@ pieProcessPieNode(xmlNodePtr pndArgPie, cxpContextPtr pccArg)
     pucAttr = domGetPropValuePtr(pndArgPie, BAD_CAST "xpath"); /*  */
     if (STR_IS_NOT_EMPTY(pucAttr) && xmlStrEqual(pucAttr,BAD_CAST"/*") == FALSE) {
       xmlDocPtr pdocResultXPath;
+      xmlChar *pucXPath;
 
-      cxpCtxtLogPrint(pccArg, 2, "Locator XPath for '%s'", pucAttr);
-      if ((pdocResultXPath = domGetXPathDoc(pdocResult, pucAttr)) != NULL) {
+      pucXPath = xmlStrdup(BAD_CAST"/descendant-or-self::*[@fxpath = '");
+      pucXPath = xmlStrcat(pucXPath,pucAttr);
+      pucXPath = xmlStrcat(pucXPath,BAD_CAST"']");
+
+      cxpCtxtLogPrint(pccArg, 2, "Locator XPath for '%s'", pucXPath);
+      if ((pdocResultXPath = domGetXPathDoc(pdocResult, pucXPath)) != NULL) {
 	xmlFreeDoc(pdocResult);
 	pdocResult = pdocResultXPath;
 	pndPieRoot = xmlDocGetRootElement(pdocResult);
       }
+      xmlFree(pucXPath);
     }
 
     if (domGetPropFlag(pndArgPie, BAD_CAST "tags", TRUE)) {
@@ -649,8 +658,7 @@ ImportNodeFile(xmlNodePtr pndArgImport, cxpContextPtr pccArg)
 
 	if (STR_IS_NOT_EMPTY(pucContent)) {
 	  if (ParsePlainBuffer(pndBlock, pucContent, m)) {
-	    domSetPropFileXpath(pndBlock, BAD_CAST"fxpath", NULL);
-	    domSetPropFileLocator(pndBlock, resNodeGetNameRelative(cxpCtxtRootGet(pccInput), prnInput));
+	    SetPropLocators(pndBlock, resNodeGetNameRelative(cxpCtxtRootGet(pccInput), prnInput), NULL);
 	    TraverseImportNodes(pndBlock, pccInput); /* parse result recursively */
 	  }
 	  else {
@@ -725,24 +733,13 @@ ImportNodeFile(xmlNodePtr pndArgImport, cxpContextPtr pccArg)
 	    xmlAddChildList(pndBlock, pndT);
 	  }
 	  xmlFreeDoc(pdocPie);
-	  domSetPropFileXpath(pndBlock, BAD_CAST"fxpath", NULL);
-	  domSetPropFileLocator(pndBlock, resNodeGetNameRelative(cxpCtxtRootGet(pccInput), prnInput));
+	  SetPropLocators(pndBlock, resNodeGetNameRelative(cxpCtxtRootGet(pccInput), prnInput), NULL);
 	  TraverseImportNodes(pndBlock, pccInput); /* parse result recursively */
 	}
 	else {
 	  cxpCtxtLogPrint(pccInput, 1, "Cant read from '%s'", resNodeGetNameNormalized(prnInput));
 	  xmlSetProp(pndBlock, BAD_CAST"error", BAD_CAST"parse");
 	}
-      }
-
-      if (domGetPropFlag(pndBlock, BAD_CAST "locator", TRUE) == FALSE) {
-	/* explicit NO */
-	domUnsetPropFileLocator(pndBlock);
-      }
-      else if (domGetPropFlag(pndBlock, BAD_CAST "locator", fLocator)) {
-	/* add additional attributes for navigation */
-	//domSetPropFileLocator(pndBlock, resNodeGetNameRelative(cxpCtxtRootGet(pccInput), prnInput));
-	//domSetPropFileXpath(pndBlock, BAD_CAST"fxpath", NULL);
       }
 
       xmlFree(pucAttrCache);
@@ -811,7 +808,7 @@ ImportNodeContent(xmlNodePtr pndArgImport, cxpContextPtr pccArg)
     if (ParsePlainBuffer(pndBlock, pucContent, GetModeByAttr(pndBlock))) {
       TraverseImportNodes(pndBlock, pccArg); /* parse result recursively */
       if (domGetPropFlag(pndArgImport, BAD_CAST "locator", fLocator)) {
-	/*!\todo domSetPropFileLocator(pndBlock, resNodeGetNameRelative(cxpCtxtRootGet(pccArg), pndArgImport->doc->URL)); */
+	SetPropLocators(pndBlock, resNodeGetNameRelative(cxpCtxtRootGet(pccArg), pndArgImport->doc->URL), NULL);
       }
     }
     else {
@@ -1133,6 +1130,45 @@ pieGetParentHeaderStr(xmlNodePtr pndN)
   return NULL;
 }
 /* end of pieGetParentHeaderStr() */
+
+
+/*! Adds attributes fxpath and flocator to all descendant element nodes.
+
+\param pndArg pointer to node to add attribute
+\param pucArgFileName pointer to value for flocator
+\param pucArgPrefix pointer to xpath prefix for childs
+ */
+void
+SetPropLocators(xmlNodePtr pndArg, xmlChar* pucArgFileName, xmlChar* pucArgPrefix)
+{
+  if (IS_NODE_META(pndArg) || IS_NODE_PIE_ERROR(pndArg)) {
+  }
+  else if (IS_ENODE(pndArg)) {
+    xmlNodePtr pndChild;
+    int i=0;
+
+    for (pndChild = pndArg->children; pndChild != NULL; pndChild = pndChild->next) {
+
+      if (IS_ENODE(pndChild)) {
+	i++;
+	if (IS_NODE_PIE_TTAG(pndChild) || IS_NODE_PIE_ETAG(pndChild) || IS_NODE_PIE_HTAG(pndChild) || IS_NODE_PIE_META(pndChild) || IS_NODE_PIE_ERROR(pndChild)) {
+	  /* dont set xpath attribute here */
+	}
+	else if (xmlHasProp(pndChild, BAD_CAST"flocator")) {
+	  /* there is an xpath attribute already */
+	}
+	else {
+	  xmlChar mucT[BUFFER_LENGTH];
+
+	  xmlStrPrintf(mucT, BUFFER_LENGTH, "%s/*[%i]", (pucArgPrefix==NULL ? BAD_CAST "/*" : pucArgPrefix), i);
+	  xmlSetProp(pndChild, BAD_CAST"fxpath", mucT);
+	  SetPropLocators(pndChild, pucArgFileName, mucT);
+	  xmlSetProp(pndChild,BAD_CAST"flocator",pucArgFileName);
+	}
+      }
+    }
+  }
+} /* end of SetPropLocators() */
 
 
 

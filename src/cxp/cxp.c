@@ -1154,7 +1154,16 @@ cxpGetXmlSourceNode(xmlNodePtr pndArg, cxpContextPtr pccArg)
       }
       pndResult = pndChild;
     }
-    else if (IS_NODE_XSL(pndChild) || IS_NODE(pndChild, BAD_CAST"stylesheet")) {
+    else if (IS_NODE_XPATH(pndChild)) {
+      if (pndResult) {
+	cxpCtxtLogPrint(pccArg, 1, "Accepting: '%s/%s[@select='%s']''",
+	  pndArg->name, pndChild->name, domGetPropValuePtr(pndChild, BAD_CAST"select"));
+      }
+      else {
+	pndResult = pndChild;
+      }
+    }
+    else if (IS_NODE_XPATH(pndChild) || IS_NODE_XSL(pndChild) || IS_NODE(pndChild, BAD_CAST"stylesheet")) {
       if (pndResult) {
 	cxpCtxtLogPrint(pccArg, 1, "Accepting: '%s/%s[@name='%s']'",
 	  pndArg->name, pndChild->name, domGetPropValuePtr(pndChild, BAD_CAST"name"));
