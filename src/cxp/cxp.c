@@ -1425,7 +1425,6 @@ cxpProcessXmlNode(xmlNodePtr pndArg, cxpContextPtr pccArg)
 	pndRoot = xmlDocGetRootElement(pdocResult);
 	if (pndRoot) {
 	  cxpCtxtLogPrint(pccArg,2,"Add XPath attribute to every element");
-	  /*!\todo redundant to "domSetPropFileXpath(pndRoot,BAD_CAST"fxpath",NULL);" */
 	  domSetPropFileXpath(pndRoot,BAD_CAST"xpath",NULL);
 	}
       }

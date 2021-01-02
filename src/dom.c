@@ -770,29 +770,20 @@ domSetPropFileXpath(xmlNodePtr pndArg, xmlChar* pucArgName, xmlChar* pucArgPrefi
     for (pndChild = pndArg->children; pndChild != NULL; pndChild = pndChild->next) {
 
       if (IS_ENODE(pndChild)) {
-	i++;
-	if (IS_NODE_PIE_TTAG(pndChild) || IS_NODE_PIE_ETAG(pndChild) || IS_NODE_PIE_HTAG(pndChild) || IS_NODE_PIE_META(pndChild) || IS_NODE_PIE_ERROR(pndChild)) {
-	  /* dont set xpath attribute here */
-	}
-	else if (xmlHasProp(pndChild, pucArgName)) {
-	  /* there is an xpath attribute already */
-	}
-	else {
 #if 1
-	  xmlChar mucT[BUFFER_LENGTH];
+	xmlChar mucT[BUFFER_LENGTH];
 
-	  xmlStrPrintf(mucT, BUFFER_LENGTH, "%s/*[%i]", (pucArgPrefix==NULL ? BAD_CAST "/*" : pucArgPrefix), i);
-	  xmlSetProp(pndChild, pucArgName, mucT);
-	  domSetPropFileXpath(pndChild, pucArgName, mucT);
+	i++;
+	xmlStrPrintf(mucT, BUFFER_LENGTH, "%s/*[%i]", (pucArgPrefix==NULL ? BAD_CAST "/*" : pucArgPrefix), i);
+	xmlSetProp(pndChild, pucArgName, mucT);
+	domSetPropFileXpath(pndChild, pucArgName, mucT);
 #else
-	  xmlChar* pucT = xmlGetNodePath(pndChild);
+	xmlChar* pucT = xmlGetNodePath(pndChild);
 
-	  xmlSetProp(pndChild, pucArgName, pucT);
-	  xmlFree(pucT);
-	  domSetPropFileXpath(pndChild, pucArgName, pucT);
+	xmlSetProp(pndChild, pucArgName, pucT);
+	xmlFree(pucT);
+	domSetPropFileXpath(pndChild, pucArgName, pucT);
 #endif
-
-	}
       }
     }
   }
@@ -803,6 +794,8 @@ domSetPropFileXpath(xmlNodePtr pndArg, xmlChar* pucArgName, xmlChar* pucArgPrefi
 
 /*! \return a string containing XPath of pndArg
   \param pndArg pointer to start node
+
+  \deprecated replaced by xmlGetNodePath()
  */
 xmlChar *
 domNodeGetXpathStr(xmlNodePtr pndArg)
@@ -1622,7 +1615,7 @@ domGrepRegExpInTree(xmlNodePtr pndResultArg, xmlNodePtr pndArg, const pcre2_code
 
 	if (rc > -1) {
 	  pndMatch = xmlNewChild(pndResultArg,NULL,NAME_MATCH,NULL);
-	  domSetPropEat(pndMatch, BAD_CAST"xpath", domNodeGetXpathStr(pndArg));
+	  domSetPropEat(pndMatch, BAD_CAST"xpath", xmlGetNodePath(pndArg));
 	  pndT = xmlNewChild(pndMatch,NULL,pndArg->name,NULL);
 	  //pndT = xmlNewChild(pndT,NULL,pndAttr->name,pucText);
 	  xmlSetProp(pndT, pndAttr->name, pucText);
@@ -1655,7 +1648,7 @@ domGrepRegExpInTree(xmlNodePtr pndResultArg, xmlNodePtr pndArg, const pcre2_code
 
 	if (rc > -1) {
 	  pndMatch = xmlNewChild(pndResultArg,NULL,NAME_MATCH,NULL);
-	  domSetPropEat(pndMatch, BAD_CAST"xpath", domNodeGetXpathStr(pndChild->parent));
+	  domSetPropEat(pndMatch, BAD_CAST"xpath", xmlGetNodePath(pndChild->parent));
 	  xmlNewChild(pndMatch,NULL,pndChild->parent->name,pucText);
 	  /*!\todo split text() into resulting substrings */
 	  /*!\todo xmlSetProp(pndMatch, BAD_CAST"n", BAD_CAST"3"); */

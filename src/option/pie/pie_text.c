@@ -806,9 +806,13 @@ ImportNodeContent(xmlNodePtr pndArgImport, cxpContextPtr pccArg)
 
   if (STR_IS_NOT_EMPTY(pucContent)) {
     if (ParsePlainBuffer(pndBlock, pucContent, GetModeByAttr(pndBlock))) {
+      resNodePtr prnDoc;
+      
       TraverseImportNodes(pndBlock, pccArg); /* parse result recursively */
-      if (domGetPropFlag(pndArgImport, BAD_CAST "locator", fLocator)) {
-	SetPropLocators(pndBlock, resNodeGetNameRelative(cxpCtxtRootGet(pccArg), pndArgImport->doc->URL), NULL);
+      if (domGetPropFlag(pndArgImport, BAD_CAST "locator", fLocator)
+	  && pndArgImport->doc != NULL && (prnDoc = resNodeDirNew(BAD_CAST pndArgImport->doc->URL)) != NULL) {
+	SetPropLocators(pndBlock, resNodeGetNameRelative(cxpCtxtRootGet(pccArg), prnDoc), NULL);
+	resNodeFree(prnDoc);
       }
     }
     else {

@@ -99,9 +99,6 @@ main(int argc, char *argv[], char *envp[])
       url/file
       url/archive
       url/database
-
-      filex -t xml|html|json|plain|sql
-      filex -i dir//
       */
 
       prnArgv = resNodeDirNew(BAD_CAST argv[i]);
@@ -118,6 +115,8 @@ main(int argc, char *argv[], char *envp[])
     if (prnNew) {
       resNodePtr prnT;
 
+      /*!\todo append separate result DOM to a common result DOM? */
+      
       for (prnT=prnNew; prnT; prnT = resNodeGetNext(prnT)) {
 	xmlNodePtr pndT;
 
