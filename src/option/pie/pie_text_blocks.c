@@ -2284,6 +2284,7 @@ RecognizeInlines(xmlNodePtr pndArg)
       /* pndChild is a text node */
       xmlNodePtr pndReplace;
 
+#if 0
       /*! use some Unicode chars in text nodes
       */
       if (xmlStrcasestr(pndArg->content, BAD_CAST STR_PIE_OK)) {
@@ -2296,7 +2297,7 @@ RecognizeInlines(xmlNodePtr pndArg)
 	  xmlNewTextChild(pndArg->parent, NULL, NAME_PIE_TTAG, BAD_CAST"#done");
 	}
       }
-
+      
       if (xmlStrcasestr(pndArg->content, BAD_CAST STR_PIE_CANCEL)) {
 	if (IS_NODE_PIE_HEADER(pndArg->parent) && IS_ENODE(pndArg->parent->parent)) {
 	  xmlSetProp(pndArg->parent->parent, BAD_CAST"hidden", BAD_CAST"1");
@@ -2305,6 +2306,7 @@ RecognizeInlines(xmlNodePtr pndArg)
 	  xmlSetProp(pndArg->parent, BAD_CAST"hidden", BAD_CAST"1");
 	}
       }
+#endif
 
       pndReplace = SplitStringToInlineNodes(pndArg->content);
       if (pndReplace) {
@@ -2463,9 +2465,13 @@ TaskNodeNew(xmlNodePtr pndArg)
 	*/
 	pucT = xmlStrndup(pucContent, (int)ovector[3]);
 	if (pucT) {
+	  xmlChar* pucTTT;
+	  
+	  pucTTT = xmlNodeListGetString(pndArg->doc,pndArg->children,0);
 	  StringToLower((char*)pucT);
-
-	  if (xmlStrEqual(pucT, BAD_CAST"done")) {
+	  if (xmlStrEqual(pucT, BAD_CAST"done")
+	      || (xmlStrEqual(pucT, BAD_CAST"todo") && xmlStrcasestr(pucTTT, BAD_CAST STR_PIE_OK) != NULL)) {
+	    /* map 'DONE:' to a @class = 'todo' and @state='done' */
 	    xmlSetProp(pndResult, BAD_CAST"class", BAD_CAST"todo");
 	    xmlSetProp(pndResult, BAD_CAST"state", BAD_CAST"done");
 	    xmlNewTextChild(pndResult, NULL, NAME_PIE_TTAG, BAD_CAST"#done");
@@ -2474,11 +2480,20 @@ TaskNodeNew(xmlNodePtr pndArg)
 	    xmlChar* pucTT;
 
 	    xmlSetProp(pndResult, BAD_CAST"class", pucT);
+	    if (xmlStrcasestr(pucTTT, BAD_CAST STR_PIE_CANCEL) != NULL) {
+	      xmlSetProp(pndResult, BAD_CAST"state", BAD_CAST"rejected");
+	      xmlNewTextChild(pndResult, NULL, NAME_PIE_TTAG, BAD_CAST"#rejected");
+	    }
+	    else if (xmlStrcasestr(pucTTT, BAD_CAST STR_PIE_OK) != NULL) {
+	      xmlSetProp(pndResult, BAD_CAST"state", BAD_CAST"done");
+	      xmlNewTextChild(pndResult, NULL, NAME_PIE_TTAG, BAD_CAST"#done");
+	    }
 	    pucTT = xmlStrdup(BAD_CAST"#");
 	    pucTT = xmlStrcat(pucTT, pucT);
 	    xmlNewTextChild(pndResult, NULL, NAME_PIE_TTAG, pucTT);
 	    xmlFree(pucTT);
 	  }
+	  xmlFree(pucTTT);
 	  xmlFree(pucT);
 	}
       }
