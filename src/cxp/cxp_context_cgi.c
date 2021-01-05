@@ -130,7 +130,7 @@ cxpCtxtCgiNew(int argc, char *argv[], char *envp[])
     }
     xmlFree(pucT);
 
-    cxpCtxtLogPrint(pccResult,1,"Based on %s %s-%s",CXP_VERSION_URL,CXP_VERSION_STR,CXP_REVISION_STR);
+    cxpCtxtLogPrint(pccResult,1,"Based on %s",CXP_VER_FILE_VERSION_STR);
 
     if (cxpCtxtRootSet(pccResult,NULL)) {
       cxpCtxtSearchSet(pccResult, NULL);

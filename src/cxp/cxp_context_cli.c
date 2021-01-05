@@ -95,7 +95,7 @@ cxpCtxtCliNew(int argc, char *argv[], char *envp[])
 
     cxpCtxtLogPrint(pccResult,2,
       "**************************************************************\n"
-      "Based on %s %s-%s",CXP_VERSION_URL,CXP_VERSION_STR,CXP_REVISION_STR);
+      "Based on %s",CXP_VER_FILE_VERSION_STR);
 
     /*! set initial context locator to current working directory (startup directory)
     */
