@@ -57,11 +57,11 @@ execute_process(COMMAND git describe --tags --long
   WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
   )
 string(STRIP "${GIT_TAG}" GIT_TAG)
-#string(SUBSTRING "${GIT_TAG}" 0 7 GIT_TAG)
+#string(SUBSTRING "${GIT_TAG}" 0 6 GIT_TAG)
 
 set(PROJECT_VERSION_MAJOR "1")
 set(PROJECT_VERSION_MINOR "3")
-set(PROJECT_VERSION_PATCH "rc2")
+set(PROJECT_VERSION_PATCH "")
 
 # https://vicrucann.github.io/tutorials/quick-cmake-doxygen/
 # check if Doxygen is installed
