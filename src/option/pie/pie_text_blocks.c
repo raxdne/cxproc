@@ -805,12 +805,13 @@ AddTableCellsEmpty(xmlNodePtr pndArg)
 
   i = GetTableColumns(pndArg);
   if (i > 0) {
+    int r;
     xmlNodePtr pndArgRow;
-    xmlChar mucColSpan[128];
+    xmlChar mucT[128];
 
-    xmlStrPrintf(mucColSpan,128,"%i",i);
+    xmlStrPrintf(mucT,128,"%i",i);
     
-    for (pndArgRow=pndArg->children; pndArgRow; pndArgRow = pndArgRow->next) {
+    for (r=0, pndArgRow=pndArg->children; pndArgRow; pndArgRow = pndArgRow->next, r++) {
 
       if (IS_NODE_PIE_TR(pndArgRow)) {
 	int j;
@@ -824,7 +825,7 @@ AddTableCellsEmpty(xmlNodePtr pndArg)
 	}
 
 	if (fHeader && pndArgRow->children == pndArgRow->last) { /* single header cell */
-	  xmlSetProp(pndArgRow->children, BAD_CAST "colspan", mucColSpan);
+	  xmlSetProp(pndArgRow->children, BAD_CAST "colspan", mucT);
 	}
 	else {
 	  /*!
@@ -853,6 +854,10 @@ AddTableCellsEmpty(xmlNodePtr pndArg)
 	}
       }
     }
+    /* add some meta data to table */
+    xmlSetProp(pndArg, BAD_CAST "cols", mucT);
+    xmlStrPrintf(mucT,128,"%i",r);
+    xmlSetProp(pndArg, BAD_CAST "rows", mucT);
   }
   return iResult;
 } /* end of AddTableCellsEmpty() */

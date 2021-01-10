@@ -1579,6 +1579,7 @@ calAddAttributeDayDiff(xmlDocPtr pdocArg)
       if (RegisterDateNodes(pCalendarResult, BAD_CAST"/pie//*[name() = 'date' or @date]")
 	&& ParseDates(pCalendarResult)) {
 	AddAttributeDayDiff(pCalendarResult);
+	/*!\todo add an attribute with canonical ISO date (e.g. output of ICS format) */
 	pdocResult = pCalendarResult->pdocCalendar;
       }
       pCalendarResult->pdocCalendar = NULL;

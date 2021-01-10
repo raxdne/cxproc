@@ -809,7 +809,7 @@ pieElementHasNext(pieTextElementPtr ppeArg)
 	else {
 	}
       }
-      else if (pieElementGetMode(ppeArg) == RMODE_PAR && StringBeginsWith((char *)puc0, "#begin_of_skip")) {
+      else if (StringBeginsWith((char *)puc0, "#begin_of_skip")) {
 	/*
 	handle skip markup in input file
 	*/
