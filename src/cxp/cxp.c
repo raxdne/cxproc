@@ -3241,6 +3241,7 @@ cxpInfoProgram(xmlNodePtr pndArg, cxpContextPtr pccArg)
     nodeSource = xmlNewChild(pndResult, NULL, BAD_CAST"source", NULL);
     xmlSetProp(nodeSource, BAD_CAST "url", BAD_CAST CXP_VERSION_URL);
     xmlSetProp(nodeSource, BAD_CAST "version", BAD_CAST CXP_VER_FILE_VERSION_STR);
+    xmlSetProp(nodeSource, BAD_CAST "branch", BAD_CAST CXP_VER_FILE_BRANCH_STR);
 
     nodeOption = xmlNewChild(pndResult, NULL, BAD_CAST"compilation", NULL);
     xmlSetProp(nodeOption, BAD_CAST "build", BAD_CAST CXP_VERSION_BUILD_STR);

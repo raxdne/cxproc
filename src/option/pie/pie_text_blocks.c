@@ -697,6 +697,8 @@ StringGetEndOfHeaderMarker(xmlChar* pucArg)
 
 
 /*! \return TRUE if content string of pndArgParent is splitted into table data nodes using pucPatternSep, else FALSE
+
+\todo compile 'pucPatternSep' as a regexp if '/[;|]/'
 */
 BOOL_T
 SplitNodeToTableDataNodes(xmlNodePtr pndArgParent, xmlChar* pucPatternSep)
