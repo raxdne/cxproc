@@ -2063,16 +2063,30 @@ cxpUpdateXslVariable(xmlNodePtr pndArg, char *pcValue, cxpContextPtr pccArg)
     xmlChar *pucAttrSelect;
 
     pucAttrSelect = domGetPropValuePtr(pndArg, BAD_CAST "select");
-    if ((STR_IS_NOT_EMPTY(pucAttrSelect) && pucAttrSelect[0]==(xmlChar)'\'') || pcValue[0]=='\'') {
-      /* probably it's a string variable */
-      xmlChar *pucValueNew = NULL;
-
+    if (STR_IS_EMPTY(pucAttrSelect)) {
+      /*\todo handle text node */
+#if 0
       if (STR_IS_NOT_EMPTY(BAD_CAST pcValue) && (pucValueNew = xmlStrdup(BAD_CAST pcValue)) != NULL && StringRemovePairQuotes(pucValueNew)) {
 	xmlUnsetProp(pndArg, BAD_CAST "select");
 	/*!\todo xmlUnlink(pndCurrent->children); */
 	xmlNewTextChild(pndArg, domGetNsXsl(), BAD_CAST"text", pucValueNew);
       }
+#endif
+    }
+    else if (pucAttrSelect[0]==(xmlChar)'\'') { /* it's a string variable? */
+      xmlChar *pucT = NULL;
+      xmlChar *pucValueNew = NULL;
+
+      pucT = xmlStrdup(BAD_CAST pcValue);
+      StringRemovePairQuotes(pucT); /* the current ones */
+
+      pucValueNew = xmlStrdup(BAD_CAST "'");
+      pucValueNew = xmlStrcat(pucValueNew, pucT);
+      pucValueNew = xmlStrcat(pucValueNew, BAD_CAST "'");
+      
+      xmlSetProp(pndArg, BAD_CAST "select", BAD_CAST pucValueNew);
       xmlFree(pucValueNew);
+      xmlFree(pucT);
     }
     else {
       xmlSetProp(pndArg, BAD_CAST "select", BAD_CAST pcValue);
@@ -2106,6 +2120,7 @@ cxpChangeXslParam(xmlDocPtr pdocResult, char **param, BOOL_T fInsertvars, cxpCon
 	    && xmlStrEqual(pucAttrName, BAD_CAST param[i])
 	    && cxpUpdateXslVariable(pndCurrent, param[i+1], pccArg)) {
 	    /* variable exists already */
+	    cxpCtxtLogPrint(pccArg, 3, "Updating VARIABLE '%s' with value '%s'", param[i], param[i+1]);
 	    break;
 	  }
 	}

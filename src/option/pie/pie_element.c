@@ -394,6 +394,16 @@ pieElementIsMetaTags(pieTextElementPtr ppeArg)
 
 /*!
 */
+BOOL_T
+pieElementIsMetaOrigin(pieTextElementPtr ppeArg)
+{
+  return (ppeArg != NULL && StringBeginsWith((char *)pieElementGetBeginPtr(ppeArg),"ORIGIN: "));
+}
+/* end of pieElementIsMetaOrigin() */
+
+
+/*!
+*/
 int
 pieElementGetDepth(pieTextElementPtr ppeArg)
 {

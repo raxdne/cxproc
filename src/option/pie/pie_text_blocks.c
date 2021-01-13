@@ -588,6 +588,11 @@ ParsePlainBuffer(xmlNodePtr pndArgTop, xmlChar* pucArg, rmode_t eArgMode)
 	  }
 	}
       }
+      else if (pieElementIsMetaOrigin(ppeT)) {
+	if ((pucT = pieElementGetBeginPtr(ppeT)) != NULL) {
+	  xmlSetProp(pndBlock, BAD_CAST "context", &pucT[8]);
+	}
+      }
       else {
 	pieElementReplaceCharNumerics(ppeT);
 	pieElementParse(ppeT);
