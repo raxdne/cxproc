@@ -2052,7 +2052,7 @@ cxpCtxtSearchSet(cxpContextPtr pccArg, resNodePtr prnArg)
 } /* end of cxpCtxtSearchSet() */
 
 
-/*! global XSL variables only (between RootElement and first xsl:template element)
+/*! update value of xsl:variable node, if a string value is required then append it as new text child
 */
 BOOL_T
 cxpUpdateXslVariable(xmlNodePtr pndArg, char *pcValue, cxpContextPtr pccArg)
@@ -2062,37 +2062,28 @@ cxpUpdateXslVariable(xmlNodePtr pndArg, char *pcValue, cxpContextPtr pccArg)
   if (pndArg != NULL && STR_IS_NOT_EMPTY(pcValue)) {
     xmlChar *pucAttrSelect;
 
-    pucAttrSelect = domGetPropValuePtr(pndArg, BAD_CAST "select");
-    if (STR_IS_EMPTY(pucAttrSelect)) {
-      /*\todo handle text node */
-#if 0
-      if (STR_IS_NOT_EMPTY(BAD_CAST pcValue) && (pucValueNew = xmlStrdup(BAD_CAST pcValue)) != NULL && StringRemovePairQuotes(pucValueNew)) {
-	xmlUnsetProp(pndArg, BAD_CAST "select");
-	/*!\todo xmlUnlink(pndCurrent->children); */
-	xmlNewTextChild(pndArg, domGetNsXsl(), BAD_CAST"text", pucValueNew);
-      }
-#endif
-    }
-    else if (pucAttrSelect[0]==(xmlChar)'\'') { /* it's a string variable? */
-      xmlChar *pucT = NULL;
+    if ((pucAttrSelect = domGetPropValuePtr(pndArg, BAD_CAST "select")) == NULL || pucAttrSelect[0]==(xmlChar)'\'') {
+      /* it's a string variable */
       xmlChar *pucValueNew = NULL;
-
-      pucT = xmlStrdup(BAD_CAST pcValue);
-      StringRemovePairQuotes(pucT); /* the current ones */
-
-      pucValueNew = xmlStrdup(BAD_CAST "'");
-      pucValueNew = xmlStrcat(pucValueNew, pucT);
-      pucValueNew = xmlStrcat(pucValueNew, BAD_CAST "'");
       
-      xmlSetProp(pndArg, BAD_CAST "select", BAD_CAST pucValueNew);
-      xmlFree(pucValueNew);
-      xmlFree(pucT);
+      if ((pucValueNew = xmlStrdup(BAD_CAST pcValue)) != NULL && StringRemovePairQuotes(pucValueNew)) {
+	xmlNodePtr pndRelease = pndArg->children;
+
+	if (pndRelease) {
+	  domUnlinkNodeList(pndRelease);
+	  xmlFreeNodeList(pndRelease);
+	  pndArg->children = NULL;
+	}
+	xmlUnsetProp(pndArg, BAD_CAST "select");
+	fResult = (xmlAddChild(pndArg,xmlNewText(pucValueNew)) != NULL);
+      }
+      else {
+      }
     }
     else {
       xmlSetProp(pndArg, BAD_CAST "select", BAD_CAST pcValue);
+      fResult = TRUE;
     }
-
-    fResult = TRUE;
   }
 
   return fResult;
