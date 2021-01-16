@@ -119,7 +119,10 @@ static BOOL_T
 ValidateSchema(const xmlDocPtr pdocArgXml, const xmlChar *pucArg, cxpContextPtr pccArg);
 
 static BOOL_T
-cxpChangeXslParam(xmlDocPtr pdocResult, char **param, BOOL_T fInsertvars, cxpContextPtr pccArg);
+ChangeXslParam(xmlDocPtr pdocResult, char **param, cxpContextPtr pccArg);
+
+static BOOL_T
+UpdateXslVariable(xmlNodePtr pndArg, char *pcValue, cxpContextPtr pccArg);
 
 static xmlDocPtr
 cxpXslTransformToDom(const xmlDocPtr pdocArgXml, const xmlDocPtr pdocArgXsl, char **ppchArgParam, cxpContextPtr pccArg);
@@ -2055,7 +2058,7 @@ cxpCtxtSearchSet(cxpContextPtr pccArg, resNodePtr prnArg)
 /*! update value of xsl:variable node, if a string value is required then append it as new text child
 */
 BOOL_T
-cxpUpdateXslVariable(xmlNodePtr pndArg, char *pcValue, cxpContextPtr pccArg)
+UpdateXslVariable(xmlNodePtr pndArg, char *pcValue, cxpContextPtr pccArg)
 {
   BOOL_T fResult = FALSE;
 
@@ -2067,19 +2070,17 @@ cxpUpdateXslVariable(xmlNodePtr pndArg, char *pcValue, cxpContextPtr pccArg)
       xmlChar *pucValueNew = NULL;
       
       if ((pucValueNew = xmlStrdup(BAD_CAST pcValue)) != NULL) {
-	xmlNodePtr pndRelease = pndArg->children;
+	xmlNodePtr pndRelease;
 
-	if (pndRelease) {
-	  domUnlinkNodeList(pndRelease);
-	  xmlFreeNodeList(pndRelease);
-	  pndArg->children = NULL;
-	}
+	pndRelease = pndArg->children;
+	pndArg->children = NULL;
+	pndArg->last = NULL;
+	xmlFreeNodeList(pndRelease);
+
 	xmlUnsetProp(pndArg, BAD_CAST "select");
 	StringRemovePairQuotes(pucValueNew);
 	fResult = (xmlAddChild(pndArg,xmlNewText(pucValueNew)) != NULL);
 	xmlFree(pucValueNew);
-      }
-      else {
       }
     }
     else {
@@ -2087,67 +2088,50 @@ cxpUpdateXslVariable(xmlNodePtr pndArg, char *pcValue, cxpContextPtr pccArg)
       fResult = TRUE;
     }
   }
-
   return fResult;
-} /* end of cxpUpdateXslVariable() */
+} /* end of UpdateXslVariable() */
 
 
 /*! global XSL variables only (between RootElement and first xsl:template element)
 */
 BOOL_T
-cxpChangeXslParam(xmlDocPtr pdocResult, char **param, BOOL_T fInsertvars, cxpContextPtr pccArg)
+ChangeXslParam(xmlDocPtr pdocResult, char **param, cxpContextPtr pccArg)
 {
   BOOL_T fResult = FALSE;
 
   if (pdocResult != NULL && param != NULL && param[0] != NULL) {
-    xmlNodePtr pndCurrent;
-    xmlNodePtr pndRoot = xmlDocGetRootElement(pdocResult);
     index_t i;
 
     for (i=0; param[i]; i+=2) {	/* all name/value pairs */
-      for (pndCurrent=pndRoot->children; pndCurrent; pndCurrent=pndCurrent->next) {
+      xmlNodePtr pndRoot = xmlDocGetRootElement(pdocResult);
+      xmlNodePtr pndCurrent;
+      
+      for (pndCurrent = pndRoot->children;
+	   pndCurrent != NULL && IS_NODE_XSL_TEMPLATE(pndCurrent) == FALSE;
+	   pndCurrent = pndCurrent->next) {
+	
+	/* exit when the first xsl:template element is reached */
+	
 	if (IS_NODE_XSL_VARIABLE(pndCurrent)) {
 	  xmlChar *pucAttrName;
 
 	  if ((pucAttrName = domGetPropValuePtr(pndCurrent, BAD_CAST "name")) != NULL
-	    && xmlStrEqual(pucAttrName, BAD_CAST param[i])
-	    && cxpUpdateXslVariable(pndCurrent, param[i+1], pccArg)) {
-	    /* variable exists already */
+	    && xmlStrEqual(pucAttrName, BAD_CAST param[i])) {
+	    /* according xsl:variable found */
 	    cxpCtxtLogPrint(pccArg, 3, "Updating VARIABLE '%s' with value '%s'", param[i], param[i+1]);
+	    fResult = UpdateXslVariable(pndCurrent, param[i+1], pccArg);
 	    break;
 	  }
 	  else {
+	    /*!\todo handle child tree of xsl:variable */
 	    cxpCtxtLogPrint(pccArg, 4, "Skipping VARIABLE '%s'", pucAttrName);
 	  }
 	}
-	else if (IS_NODE_XSL_TEMPLATE(pndCurrent)) {
-	  /*
-	  the first xsl:template element is reached, insert this new variable
-	  */
-	  xmlNodePtr pndVariable;
-
-	  if (fInsertvars) {
-	    cxpCtxtLogPrint(pccArg, 2, "Inserting VARIABLE '%s' with value '%s'", param[i], param[i+1]);
-	    if ((pndVariable = xmlNewNode(pndCurrent->ns, BAD_CAST "variable")) != NULL
-	      && xmlSetProp(pndVariable, BAD_CAST "name", BAD_CAST param[i]) != NULL
-	      && cxpUpdateXslVariable(pndVariable, param[i+1], pccArg)) {
-	      xmlAddPrevSibling(pndCurrent, pndVariable);
-	    }
-	    /* insert the xsl:variable after xsl:import and xsl:output
-	    -> before first xsl:template
-	    */
-	  }
-	  else {
-	    cxpCtxtLogPrint(pccArg, 3, "Ignoring VARIABLE '%s'", param[i]);
-	  }
-	  break;
-	}
       }
     }
-    fResult = TRUE;
   }
   return fResult;
-} /* end of cxpChangeXslParam() */
+} /* end of ChangeXslParam() */
 
 
 /*! apply all sibling XSL elements of pndParent to pdocArgXml, non recursive!!
@@ -2288,7 +2272,7 @@ cxpProcessTransformations(const xmlDocPtr pdocArgXml, const xmlNodePtr pndArgPar
 	    ppchParam = (char **)cxpXslParamProcess(pndChild, pccHere);
 	    if (ppchParam) {
 	      /*!\todo handle ppchParam[] as Global Vars ? (but see comment at libxslt/variables.c:947) */
-	      cxpChangeXslParam(pdocXsl, ppchParam, domGetPropFlag(pndChild, BAD_CAST "insertvars", FALSE), pccArg);
+	      ChangeXslParam(pdocXsl, ppchParam, pccArg);
 	    }
 
 	    //cxpCtxtLogPrintDoc(pccArg,1,NULL,pdocArgXml);
@@ -2823,7 +2807,7 @@ ValidateCxpTree(xmlNodePtr pndArg, cxpContextPtr pccArg)
     for (pndAttr = pndArg->properties; pndAttr;) {
       if (xmlStrEqual(pndAttr->name,BAD_CAST"valid") || xmlStrEqual(pndAttr->name,BAD_CAST"context") || xmlStrEqual(pndAttr->name,BAD_CAST"xpath")
 	|| xmlStrEqual(pndAttr->name,BAD_CAST"name") || xmlStrEqual(pndAttr->name,BAD_CAST"cache") || xmlStrEqual(pndAttr->name,BAD_CAST"cacheas")
-	|| xmlStrEqual(pndAttr->name,BAD_CAST"appendcgi") || xmlStrEqual(pndAttr->name,BAD_CAST"insertvars") || xmlStrEqual(pndAttr->name,BAD_CAST"search")) {
+	|| xmlStrEqual(pndAttr->name,BAD_CAST"appendcgi") || xmlStrEqual(pndAttr->name,BAD_CAST"search")) {
       }
       else {
 	cxpCtxtLogPrint(pccArg,1,"Validation warning: '%s/@%s' is not used",pndArg->name,pndAttr->name);

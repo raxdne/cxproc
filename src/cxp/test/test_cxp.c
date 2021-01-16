@@ -903,27 +903,28 @@ cxpTest(cxpContextPtr pccArg)
   if (RUNTEST) {
     xmlChar *pucT = NULL;
     xmlDocPtr pdocXsl = NULL;
+    xsltStylesheetPtr pxslT = NULL;
     cxpContextPtr pccT;
-    char *param[] ={ "str_path", "'/abc.txt'", "pattern", "'htag = 'muller''", "int_a", "123", "flag", "false()", NULL };
+    char *param[] = { "str_path_1", "'/rst.txt'", "str_path_2", "'uvw.txt'", "str_path_3", "'xyz.txt'", "pattern", "'htag = 'muller''", "int_a", "123", "flag", "false()", NULL };
 
     i++;
-    printf("TEST %i in '%s:%i': cxpChangeXslParam() = ", i, __FILE__, __LINE__);
+    printf("TEST %i in '%s:%i': ChangeXslParam() = ", i, __FILE__, __LINE__);
 
     pccT = cxpCtxtDup(pccArg);
 
-    pdocXsl = xmlReadFile(TESTPREFIX "xsl/TestValidate.xsl", NULL, 0);
+    pdocXsl = xmlReadFile(TESTPREFIX "xsl/TestVariableChange.xsl", NULL, 0);
 
-    if (cxpChangeXslParam(NULL, NULL, NULL, NULL)) {
-      printf("Error 1 cxpChangeXslParam()\n");
+    if (ChangeXslParam(NULL, NULL, NULL)) {
+      printf("Error 1 ChangeXslParam()\n");
     }
-    else if (cxpChangeXslParam(pdocXsl, NULL, FALSE, pccT)) {
-      printf("Error 2 cxpChangeXslParam()\n");
+    else if (ChangeXslParam(pdocXsl, NULL, pccT)) {
+      printf("Error 2 ChangeXslParam()\n");
     }
-    else if (cxpChangeXslParam(pdocXsl, param, FALSE, pccT) == FALSE) {
-      printf("Error 3 cxpChangeXslParam()\n");
+    else if (ChangeXslParam(pdocXsl, param, pccT) == FALSE) {
+      printf("Error 3 ChangeXslParam()\n");
     }
-    else if (cxpChangeXslParam(pdocXsl, param, TRUE, pccT) == FALSE) {
-      printf("Error 4 cxpChangeXslParam()\n");
+    else if ((pxslT = xsltParseStylesheetDoc(pdocXsl)) == NULL) {
+      printf("ERROR 'Cant parse this Stylesheet'\n");
     }
     else {
       n_ok++;
@@ -933,7 +934,12 @@ cxpTest(cxpContextPtr pccArg)
 
     cxpCtxtFree(pccT);
     xmlFree(pucT);
-    xmlFreeDoc(pdocXsl);
+    if (pxslT) {
+      xsltFreeStylesheet(pxslT);  /* xsltFreeStylesheet() releases the DOM also */
+    }
+    else {
+      xmlFreeDoc(pdocXsl);
+    }
   }
 
 
