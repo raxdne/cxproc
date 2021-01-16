@@ -396,9 +396,9 @@ StringReplaceUmlauteNew(const xmlChar *pucArg)
 } /* end of StringReplaceUmlauteNew() */
 
 
-/*! removes all pair quote in pucArg
+/*! removes all pair of apostrophs in pucArg
 
-\return TRUE if pucArg is not empty, elese FALSE
+\return TRUE if there is a pair of apostrophs in pucArg (and string is modified)
 */
 BOOL_T
 StringRemovePairQuotes(xmlChar *pucArg)
@@ -414,6 +414,7 @@ StringRemovePairQuotes(xmlChar *pucArg)
     if (*pucA == (xmlChar)'\'' || *pucA == (xmlChar)'\"') {
       for (pucB = pucArg + xmlStrlen(pucArg) - 1; pucB > pucArg && isspace(*pucB); pucB--);
       if (*pucB == *pucA) {
+	/* there is a pair of apostrophs in pucArg */
 	if (pucB - pucA > 1) {
 	  memmove(pucArg,pucA+1,pucB - pucA - 1);
 	  pucArg[pucB - pucA - 1] = (xmlChar)'\0';

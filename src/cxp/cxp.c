@@ -2066,7 +2066,7 @@ cxpUpdateXslVariable(xmlNodePtr pndArg, char *pcValue, cxpContextPtr pccArg)
       /* it's a string variable */
       xmlChar *pucValueNew = NULL;
       
-      if ((pucValueNew = xmlStrdup(BAD_CAST pcValue)) != NULL && StringRemovePairQuotes(pucValueNew)) {
+      if ((pucValueNew = xmlStrdup(BAD_CAST pcValue)) != NULL) {
 	xmlNodePtr pndRelease = pndArg->children;
 
 	if (pndRelease) {
@@ -2075,7 +2075,9 @@ cxpUpdateXslVariable(xmlNodePtr pndArg, char *pcValue, cxpContextPtr pccArg)
 	  pndArg->children = NULL;
 	}
 	xmlUnsetProp(pndArg, BAD_CAST "select");
+	StringRemovePairQuotes(pucValueNew);
 	fResult = (xmlAddChild(pndArg,xmlNewText(pucValueNew)) != NULL);
+	xmlFree(pucValueNew);
       }
       else {
       }
@@ -2113,6 +2115,9 @@ cxpChangeXslParam(xmlDocPtr pdocResult, char **param, BOOL_T fInsertvars, cxpCon
 	    /* variable exists already */
 	    cxpCtxtLogPrint(pccArg, 3, "Updating VARIABLE '%s' with value '%s'", param[i], param[i+1]);
 	    break;
+	  }
+	  else {
+	    cxpCtxtLogPrint(pccArg, 4, "Skipping VARIABLE '%s'", pucAttrName);
 	  }
 	}
 	else if (IS_NODE_XSL_TEMPLATE(pndCurrent)) {
