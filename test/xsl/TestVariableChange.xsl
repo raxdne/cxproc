@@ -18,6 +18,13 @@
   
   <xsl:variable name="flag" select="false()"/>
   
+  <xsl:variable name="ns_test">
+    <a><b><c/></b></a>
+  </xsl:variable>
+  
+  <!-- no break by comment -->
+  <xsl:variable name="ns_2" select="$ns_test"/>
+
   <xsl:template match="/">
     <xsl:element name="html">
       <xsl:element name="head">

@@ -902,6 +902,66 @@ cxpTest(cxpContextPtr pccArg)
 
   if (RUNTEST) {
     xmlChar *pucT = NULL;
+    xmlNodePtr pndXsl;
+    xmlNodePtr pndVariable;
+    xmlDocPtr pdocXsl = NULL;
+    xsltStylesheetPtr pxslT = NULL;
+    cxpContextPtr pccT;
+
+    i++;
+    printf("TEST %i in '%s:%i': UpdateXslVariables() = ", i, __FILE__, __LINE__);
+
+    pccT = cxpCtxtDup(pccArg);
+
+    pndXsl = xmlNewNode(NULL, NAME_XSL);
+    pndVariable = xmlNewChild(pndXsl, NULL, NAME_VARIABLE, NULL);
+    xmlSetProp(pndVariable,BAD_CAST"name",BAD_CAST"str_path_1");
+    xmlNewTextChild(pndVariable,NULL,BAD_CAST"text",BAD_CAST"/rst.txt");
+    pndVariable = xmlNewChild(pndXsl, NULL, NAME_VARIABLE, NULL);
+    xmlSetProp(pndVariable, BAD_CAST"name", BAD_CAST"str_path_2");
+    xmlSetProp(pndVariable, BAD_CAST"select", BAD_CAST"'uvw.txt'");
+    pndVariable = xmlNewChild(pndXsl, NULL, NAME_VARIABLE, BAD_CAST"uvw.txt");
+    xmlSetProp(pndVariable, BAD_CAST"name", BAD_CAST"str_path_3");
+    pndVariable = xmlNewChild(pndXsl, NULL, NAME_VARIABLE, NULL);
+    xmlSetProp(pndVariable, BAD_CAST"name", BAD_CAST"ns_test");
+    xmlNewChild(pndVariable, NULL, BAD_CAST "a", NULL);
+    xmlNewChild(pndVariable, NULL, BAD_CAST "b", NULL);
+    xmlNewChild(pndVariable, NULL, BAD_CAST "c", NULL);
+
+    pdocXsl = xmlReadFile(TESTPREFIX "xsl/TestVariableChange.xsl", NULL, 0);
+
+    if (UpdateXslVariables(NULL, NULL, NULL)) {
+      printf("Error 1 UpdateXslVariables()\n");
+    }
+    else if (UpdateXslVariables(pdocXsl, NULL, pccT)) {
+      printf("Error 2 UpdateXslVariables()\n");
+    }
+    else if (UpdateXslVariables(pdocXsl, pndXsl, pccT) == FALSE) {
+      printf("Error 3 UpdateXslVariables()\n");
+    }
+    else if ((pxslT = xsltParseStylesheetDoc(pdocXsl)) == NULL) {
+      printf("ERROR 'Cant parse this Stylesheet'\n");
+    }
+    else {
+      n_ok++;
+      printf("OK\n");
+    }
+    cxpCtxtLogPrintDoc(pccArg, 1, "XML result", pdocXsl);
+
+    cxpCtxtFree(pccT);
+    xmlFree(pucT);
+    if (pxslT) {
+      xsltFreeStylesheet(pxslT);  /* xsltFreeStylesheet() releases the DOM also */
+    }
+    else {
+      xmlFreeDoc(pdocXsl);
+    }
+    xmlFreeNode(pndVariable);
+  }
+
+
+  if (SKIPTEST) {
+    xmlChar *pucT = NULL;
     xmlDocPtr pdocXsl = NULL;
     xsltStylesheetPtr pxslT = NULL;
     cxpContextPtr pccT;

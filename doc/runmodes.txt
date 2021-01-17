@@ -17,11 +17,6 @@ URL like
 http://localhost:8181/cxproc/exe?file=doc/modules.txt&type=text-plain&cxp=PieUiDefault
 #end_of_pre
 
-appends all CGI variables of this call to the cxp:xsl
-#begin_of_pre
- appendcgi="yes"
-#end_of_pre
-
 **** AJAX
 
 special in CGI

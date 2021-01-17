@@ -443,7 +443,6 @@ cxpCtxtCgiParse(cxpContextPtr pccArg)
 	}
 	pndXsl = xmlNewChild(pndOutput, NULL, NAME_XSL, NULL);
 	xmlSetProp(pndXsl, BAD_CAST "name", resNodeGetNameNormalized(prnCgiXsl));
-	xmlSetProp(pndXsl, BAD_CAST "appendcgi", BAD_CAST "yes");
 
 	cxpCtxtCacheAppendDoc(pccArg, pdocXsl, resNodeGetNameNormalized(prnCgiXsl));
 	xmlFreeDoc(pdocXsl);
