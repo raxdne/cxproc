@@ -2722,6 +2722,7 @@ resNodeContentToDOM(xmlNodePtr pndArg, resNodePtr prnArg)
 	  RecognizeUrls(pndPie);
 	  RecognizeScripts(pndPie);
 	  RecognizeTasks(pndPie);
+	  RecognizeInlines(pndPie);
 	  RecognizeDates(pndPie);
 	  RecognizeFigures(pndPie);
 	  xmlAddChild(pndArg, pndPie);
