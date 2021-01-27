@@ -1530,6 +1530,7 @@ pieElementParse(pieTextElementPtr ppeArg)
   }
   else {
     xmlChar *pucA;
+    xmlChar *pucB;
 
     pucA=ppeArg->pucContent;
 
@@ -1560,8 +1561,15 @@ pieElementParse(pieTextElementPtr ppeArg)
       break;
 
     case '*':
-      ppeArg->eType = header;
+      pucB = pucA;
       for (ppeArg->iDepth=0; *pucA == (xmlChar)'*'; pucA++, ppeArg->iDepth++) {}
+      if (ppeArg->iDepth == 3 && xmlStrstr(pucA,BAD_CAST"***") != NULL) {
+	/* its a strong markup */
+	pucA = pucB;
+      }
+      else {
+	ppeArg->eType = header;
+      }
       break;
 
     case '%':
