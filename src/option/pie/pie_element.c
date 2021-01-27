@@ -1399,7 +1399,7 @@ _pieElementUpdateMarkup(pieTextElementPtr ppeArg)
 	  }
 	  memcpy(&pucB[k], &pucA[j], (size_t) i - j);
 
-#ifdef EXPERIMENTAL
+#ifdef LEGACY
 	  if ((pucT = Strnstr(&pucB[k], i - j, BAD_CAST"_org")) != NULL
 	    || (pucT = Strnstr(&pucB[k], i - j, BAD_CAST"_do")) != NULL
 	    || (pucT = Strnstr(&pucB[k], i - j, BAD_CAST"_review")) != NULL

@@ -1767,9 +1767,11 @@ RecognizeUrls(xmlNodePtr pndArg)
 	else if ((pndReplace = SplitTupelToLinkNodesMd(pucRelease))) {
 	  RecognizeUrls(pndReplace);
 	}
+#ifdef LEGACY
 	else if ((pndReplace = SplitTupelToLinkNodes(pucRelease))) {
 	  RecognizeUrls(pndReplace);
 	}
+#endif
 	else if ((pndReplace = SplitStringToLinkNodes(pucRelease))) {
 	}
 

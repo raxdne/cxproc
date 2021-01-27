@@ -3331,23 +3331,37 @@ cxpInfoProgram(xmlNodePtr pndArg, cxpContextPtr pccArg)
     xmlSetProp(nodeOption, BAD_CAST "date", BAD_CAST __TIMESTAMP__);
 #endif
 
+    xmlSetProp(nodeOption, BAD_CAST "lang",
 #ifdef __cplusplus
-    xmlSetProp(nodeOption, BAD_CAST "lang", BAD_CAST"C++");
+	       BAD_CAST"C++"
 #else
-    xmlSetProp(nodeOption, BAD_CAST "lang", BAD_CAST"C");
+	       BAD_CAST"C"
 #endif
+	       );
 
+    xmlSetProp(nodeOption, BAD_CAST "legacy",
+#ifdef LEGACY
+	       BAD_CAST"yes"
+#else
+	       BAD_CAST"no"
+#endif
+	       );
+
+    xmlSetProp(nodeOption, BAD_CAST "experimental",
 #ifdef EXPERIMENTAL
-    xmlSetProp(nodeOption, BAD_CAST "experimental", BAD_CAST"yes");
+	       BAD_CAST"yes"
 #else
-    xmlSetProp(nodeOption, BAD_CAST "experimental", BAD_CAST"no");
+	       BAD_CAST"no"
 #endif
+	       );
 
+    xmlSetProp(nodeOption, BAD_CAST "debug",
 #ifdef DEBUG
-    xmlSetProp(nodeOption, BAD_CAST "debug", BAD_CAST"yes");
+	       BAD_CAST"yes"
 #else
-    xmlSetProp(nodeOption, BAD_CAST "debug", BAD_CAST"no");
+	       BAD_CAST"no"
 #endif
+	       );
 
   }
   return pndResult;
