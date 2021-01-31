@@ -286,11 +286,10 @@
 			  (interactive)
 			  (if (buffer-file-name)
 			      (save-buffer))
-			  (compile (concat "make -j 4 -C " prefix "/../x86_64-gnu-linux-debug/build/"
-					   " all" ;cxproc filex cxproc-cgi cxproc-test 
+			  (compile (concat "cmake --build " prefix "/../x86_64-gnu-linux/build/ -j 4"
+					   ;" all" cxproc filex cxproc-cgi cxproc-test 
 			  		   ))
 					;(compile "make test")
-					;(shell-command (concat prefix "/../x86_64-gnu-linux-debug/bin/filex"))
 			  )
 		)
 
@@ -299,7 +298,7 @@
 			  (interactive)
 			  (if (buffer-file-name)
 			      (save-buffer))
-			  (compile (concat "make -C " prefix "/../x86_64-gnu-linux-debug"
+			  (compile (concat "make -C " prefix "/../x86_64-gnu-linux"
 					   " clean"
 			  		   ))
 			  ;(compile "make test")

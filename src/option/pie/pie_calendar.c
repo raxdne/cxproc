@@ -160,9 +160,6 @@ static void
 AddAttributeDayDiff(pieCalendarPtr pCalendarArg);
 
 static BOOL_T
-AddAttributeTime(xmlNodePtr pndArg);
-
-static BOOL_T
 RegisterDateNodes(pieCalendarPtr pCalendarArg, xmlChar *pucArg);
 
 static BOOL_T
@@ -714,9 +711,6 @@ CalendarUpdate(pieCalendarPtr pCalendarArg)
 	xmlNodePtr pndNew;
 
 	if ((pndNew = xmlCopyNode(pndCurrent, 1))) {
-#ifdef EXPERIMENTAL
-	  AddAttributeTime(pndNew);
-#endif
 	  if ((pucT = domGetPropValuePtr(pndNew, BAD_CAST"id"))) {
 	    /* rename id attribute to idref in copy of pndNew
 	    */
@@ -897,28 +891,67 @@ AddAttributeDayDiff(pieCalendarPtr pCalendarArg)
 	  
 #ifdef EXPERIMENTAL
 	  /*!\todo concatenate sequential dates */
-	  xmlStrPrintf(mpucT, BUFFER_LENGTH,
-		       //"%04i-%02i-%02iT%02i:%02i:%02i%s",
-		       //"%04i%02i%02iT%02i%02i%02i%s",
-		       "%04i%02i%02iT%02i%02i%02i",
-		       pceT->iYear, pceT->iMonth, pceT->iDay,
-		       pceT->iHourA, pceT->iMinuteA, pceT->iSecondA
-		       //tzGetId(pCalendarArg->iTimezone)
-		       );
+
+	  if (pceT->iYear > 1900 && pceT->iMonth > 0 && pceT->iDay > 0 ) {
+	    if (pceT->iHourA > -1 && pceT->iMinuteA > -1 && pceT->iSecondA > -1) {
+	      xmlStrPrintf(mpucT, BUFFER_LENGTH,
+			   "%04i-%02i-%02iT%02i:%02i:%02i%s",
+			   pceT->iYear,
+			   pceT->iMonth,
+			   pceT->iDay,
+			   pceT->iHourA,
+			   pceT->iMinuteA,
+			   pceT->iSecondA,
+			   tzGetId(pCalendarArg->iTimezone)
+			   );
+	    }
+	    else {
+	      xmlStrPrintf(mpucT, BUFFER_LENGTH,
+			   "%04i-%02i-%02i",
+			   pceT->iYear,
+			   pceT->iMonth,
+			   pceT->iDay
+			   );
+	    }
 #if 1
-	  xmlSetProp(pndCurrent, BAD_CAST"iso", mpucT);
+	    xmlSetProp(pndCurrent, BAD_CAST"iso", mpucT);
 #else
-	  if (pucIso) {
-	    pucIso = xmlStrcat(pucIso,BAD_CAST"+");
-	    pucIso = xmlStrcat(pucIso,mpucT);
-	  }
-	  else {
-	    pucIso = xmlStrdup(mpucT);
-	  }
+	    if (pucIso) {
+	      pucIso = xmlStrcat(pucIso,BAD_CAST"+");
+	      pucIso = xmlStrcat(pucIso,mpucT);
+	    }
+	    else {
+	      pucIso = xmlStrdup(mpucT);
+	    }
+	    domSetPropEat(pndCurrent, BAD_CAST"iso", pucIso);
 #endif
+
+	    if (pceT->iHourA > -1) {
+	      xmlChar buffer[BUFFER_LENGTH];
+
+	      xmlStrPrintf(buffer,BUFFER_LENGTH-1, "%02i", (pceT->iHourA > -1) ? pceT->iHourA : 0);
+	      xmlSetProp(pndCurrent, BAD_CAST "hour", buffer);
+
+	      xmlStrPrintf(buffer,BUFFER_LENGTH-1, "%02i", (pceT->iMinuteA > -1) ? pceT->iMinuteA : 0);
+	      xmlSetProp(pndCurrent, BAD_CAST "minute", buffer);
+
+	      xmlStrPrintf(buffer,BUFFER_LENGTH-1, "%02i", (pceT->iSecondA > -1) ? pceT->iSecondA : 0);
+	      xmlSetProp(pndCurrent, BAD_CAST "second", buffer);
+
+	      if (pceT->iHourB > -1) {
+		xmlStrPrintf(buffer,BUFFER_LENGTH-1, "%02i", (pceT->iHourB > -1) ? pceT->iHourB : 0);
+		xmlSetProp(pndCurrent, BAD_CAST "hour-end", buffer);
+
+		xmlStrPrintf(buffer,BUFFER_LENGTH-1, "%02i", (pceT->iMinuteB > -1) ? pceT->iMinuteB : 0);
+		xmlSetProp(pndCurrent, BAD_CAST "minute-end", buffer);
+
+		xmlStrPrintf(buffer,BUFFER_LENGTH-1, "%02i", (pceT->iSecondB > -1) ? pceT->iSecondB : 0);
+		xmlSetProp(pndCurrent, BAD_CAST "second-end", buffer);
+	      }
+	    }
+	  }
 #endif
 	}
-	//domSetPropEat(pndCurrent, BAD_CAST"iso", pucIso);
 
 	xmlStrPrintf(mpucT, BUFFER_LENGTH, "%li", iDayAbsoluteMax - GetToday());
 	xmlSetProp(pndCurrent, BAD_CAST"diff", mpucT);
@@ -1222,10 +1255,10 @@ ParseDates(pieCalendarPtr pCalendarArg)
     for (pceT = pCalendarArg->pceFirst; pceT; pceT = pceT->pNext) {
       if (ScanCalendarElementDate(pceT)) {
 	ScanDateIteration(pceT);
-      }
 #ifdef EXPERIMENTAL
-	ScanTimeString(NULL,pceT);
+        ScanCalendarElementTime(pceT);
 #endif
+      }
 #if 0
       else {
 	//domAddNodeToError(pCalendarArg->pdocCalendar,xmlCopyNode(pceT->patAttr->parent,1));
@@ -2091,75 +2124,6 @@ SubstituteFormat(xmlNodePtr pndArg)
   return TRUE;
 }
 /* end of SubstituteFormat() */
-
-
-/*! adds the leading time values of pndArg content as an attribute.
-
-\param pndArg parent node
-\return TRUE
-*/
-BOOL_T
-AddAttributeTime(xmlNodePtr pndArg)
-{
-
-#ifdef DEBUG
-  PrintFormatLog(1,"AddAttributeTime(pndArg=%0x)",pndArg);
-#endif
-
-  if (pndArg==NULL || pndArg->type!=XML_ELEMENT_NODE) {
-    return FALSE;
-  }
-  else if (IS_NODE_PIE_META(pndArg)) {
-    return FALSE;
-  }
-  else if (IS_NODE_PIE_PAR(pndArg)) {
-    /*    */
-    xmlChar *pucT;
-
-    pucT = domNodeGetContentPtr(pndArg);
-    if (pucT) {
-      pieCalendarElementType ceT;
-      xmlChar *pucSep;
-
-      pucSep = ScanTimeString(pucT,&ceT);
-      if (pucSep) {
-	if (ceT.iHourA > -1) {
-	  xmlChar buffer[BUFFER_LENGTH];
-
-	  xmlStrPrintf(buffer,BUFFER_LENGTH-1, "%02i", (ceT.iHourA > -1) ? ceT.iHourA : 0);
-	  xmlSetProp(pndArg, BAD_CAST "hour", buffer);
-
-	  xmlStrPrintf(buffer,BUFFER_LENGTH-1, "%02i", (ceT.iMinuteA > -1) ? ceT.iMinuteA : 0);
-	  xmlSetProp(pndArg, BAD_CAST "minute", buffer);
-
-	  xmlStrPrintf(buffer,BUFFER_LENGTH-1, "%02i", (ceT.iSecondA > -1) ? ceT.iSecondA : 0);
-	  xmlSetProp(pndArg, BAD_CAST "second", buffer);
-
-	  if (ceT.iHourB > -1) {
-	    xmlStrPrintf(buffer,BUFFER_LENGTH-1, "%02i", (ceT.iHourB > -1) ? ceT.iHourB : 0);
-	    xmlSetProp(pndArg, BAD_CAST "hour-end", buffer);
-
-	    xmlStrPrintf(buffer,BUFFER_LENGTH-1, "%02i", (ceT.iMinuteB > -1) ? ceT.iMinuteB : 0);
-	    xmlSetProp(pndArg, BAD_CAST "minute-end", buffer);
-
-	    xmlStrPrintf(buffer,BUFFER_LENGTH-1, "%02i", (ceT.iSecondB > -1) ? ceT.iSecondB : 0);
-	    xmlSetProp(pndArg, BAD_CAST "second-end", buffer);
-	  }
-	  while (isspace(*pucSep)) {
-	    pucSep++;
-	  }
-	  if (xmlStrlen(pucSep) > 0) {
-	    pucT = xmlStrdup(pucSep);
-	    xmlNodeSetContent(pndArg,pucT);
-	    xmlFree(pucT);
-	  }
-	}
-      }
-    }
-  }
-  return TRUE;
-}
-/* end of AddAttributeTime() */
 
 
 /*! creates a DOM for a whole 'year'

@@ -161,6 +161,15 @@ CalendarElementNew(xmlChar *pucArg)
     pceResult->iWeek = -1;
     pceResult->iDayWeek = -1;
     pceResult->iStep = -1;
+
+    pceResult->iHourA = -1;
+    pceResult->iMinuteA = -1;
+    pceResult->iSecondA = -1;
+
+    pceResult->iHourB = -1;
+    pceResult->iMinuteB = -1;
+    pceResult->iSecondB = -1;
+
     if (STR_IS_NOT_EMPTY(pucArg) && EndOfDate(pucArg) > pucArg) {
       pceResult->pucDate = xmlStrdup(pucArg);
     }
@@ -657,116 +666,188 @@ ScanCalendarElementDate(pieCalendarElementPtr pceArgResult)
  \return NULL in case of error, else pointer to xmlChar after Time expression string
   */
 xmlChar*
-ScanTimeString(xmlChar* pucArgGcal, pieCalendarElementPtr pceArg)
+ScanTimeTripeString(xmlChar* pucArgGcal, int *piArgHour, int *piArgMinute, int *piArgSecond)
 {
   xmlChar *pucResult = NULL;
-  xmlChar *pucGcal = NULL;
 
-  if (pceArg) {
-    pceArg->iHourA   = -1;
-    pceArg->iMinuteA = -1;
-    pceArg->iSecondA = -1;
-    pceArg->iHourB   = -1;
-    pceArg->iMinuteB = -1;
-    pceArg->iSecondB = -1;
+  if (piArgHour) {
+    *piArgHour = -1;
   }
 
-  if (pucArgGcal != NULL) {
-    pucGcal = pucArgGcal;
-  }
-  else if (pceArg == NULL) {
-  }
-  else if (pceArg->pucSep != NULL) {
-    pucGcal = pceArg->pucSep;
-  }
-  else {
-    pucGcal = pceArg->pucDate;
+  if (piArgMinute) {
+    *piArgMinute = -1;
   }
 
-  if (pucGcal != NULL && xmlStrlen(pucGcal) > 2) {
+  if (piArgSecond) {
+    *piArgSecond = -1;
+  }
+
+  if (pucArgGcal != NULL && xmlStrlen(pucArgGcal) > 2) {
     xmlChar *pucT;
-    pieCalendarElementType ceT;
     int j;
 
-    pucT = pucGcal;
-    if (pucT[0] == 'T') {
+    pucT = pucArgGcal;
+    if (pucT[0] == 'T' || pucT[0] == '-') {
       pucT++;
     }
 
     j = strtotime(pucT);
-    if (j > -1 && j < 24 && (pucT[0] == '.' || pucT[0] == '-' || pucT[0] == ':') && isdigit(pucT[1])) {
+    if (j > -1 && j < 24 && (pucT[0] == '.' || pucT[0] == ':') && isdigit(pucT[1])) {
 
-      if (pceArg) {
-	pceArg->iHourA = j;
-	pceArg->iMinuteA = 0;
-	pceArg->iSecondA = 0;
+      if (piArgHour) {
+	*piArgHour = j;
+      }
+
+      if (piArgMinute) {
+	*piArgMinute = 0;
+      }
+
+      if (piArgSecond) {
+	*piArgSecond = 0;
       }
 
       if (pucT[0] == ':') {
 	pucT++;
 	j = strtotime(pucT);
 	if (j > -1 && j < 60) {
-	  if (pceArg) pceArg->iMinuteA = j;
+
+	  if (piArgMinute) {
+	    *piArgMinute = j;
+	  }
+
 	  if (pucT[0] == ':' && isdigit(pucT[1])) {
 	    pucT++;
 	    j = strtotime(pucT);
 	    if (j > -1 && j < 60) {
-	      if (pceArg) pceArg->iSecondA = j;
-
-	      /* detect time zone */
-	      if (pucT[0] == 'Z') {
-		/* UTC time is also known as "Zulu" time */
+	      
+	      if (piArgSecond) {
+		*piArgSecond = j;
 	      }
-	      else if (pucT[0] == '+' || pucT[0] == '-') {
-		/* time zone as offset */
-		xmlChar *pucTT;
-
-		for (pucTT = pucT + 1; isdigit(*pucTT); pucTT++);
-
-		if (pucTT - pucT < 5) {
-		  j = strtotime(pucT);
-		  if (j > -13 && j < 15) {
-		    if (pceArg) pceArg->iTimezoneOffset = j * 60;
-		    if (pucTT[0] == ':') {
-		      for (pucTT++, pucT = pucTT; isdigit(*pucTT); pucTT++);
-
-		      if (pucTT - pucT < 3) {
-			j = strtotime(pucT);
-			if (j > -1 && j < 60) {
-			  if (pceArg) pceArg->iTimezoneOffset += j;
-			  pucT = pucTT;
-			}
-		      }
-		    }
-		  }
-		}
-	      }
-#ifdef HAVE_PIE
-	      else if (isalpha(pucT[0])) {
-		/* time zone as non-standardized Abbreviations */
-		int tzT;
-
-		tzT = tzGetNumber(pucT);
-		if (tzT == PIE_TZ_END) {
-		  tzT = PIE_TZ_UTC;
-		}
-		if (pceArg) pceArg->iTimezoneOffset = tzGetOffset(tzT);
-		while (isalpha(*pucT)) pucT++;
-	      }
-#endif
 	    }
 	  }
 	}
       }
-      else if (pucT[0] == '-') {
-	pucT = ScanTimeString(pucT+1,&ceT);
-	if (pceArg) {
-	  pceArg->iHourB   = ceT.iHourA;
-	  pceArg->iMinuteB = ceT.iMinuteA;
-	  pceArg->iSecondB = ceT.iSecondA;
+      else if (pucT[0] == '.') {
+	pucT++;
+	j = strtotime(pucT);
+
+	if (pucT[0] == '.') { /* three numbers separated by '.' are not a time string */
+	  if (piArgHour) {
+	    *piArgHour = -1;
+	  }
+
+	  if (piArgMinute) {
+	    *piArgMinute = -1;
+	  }
+
+	  if (piArgSecond) {
+	    *piArgSecond = -1;
+	  }
+	  pucT = NULL;
+	}
+	else if (j > -1 && j < 60) {
+
+	  if (piArgMinute) {
+	    *piArgMinute = j;
+	  }
 	}
       }
+      pucResult = pucT;
+    }
+  }
+  return pucResult;
+} /* end of ScanTimeTripeString() */
+
+
+/*! Scans 'pucGcal' for a time description and write the results to
+  the given addresses.
+
+ \param
+ \return NULL in case of error, else pointer to xmlChar after Time expression string
+  */
+BOOL_T
+ScanCalendarElementTime(pieCalendarElementPtr pceArg)
+{
+  BOOL_T fResult = FALSE;
+
+  if (pceArg) {
+    int j;
+    xmlChar *pucT;
+    
+    pucT = (pceArg->pucSep != NULL) ? pceArg->pucSep : pceArg->pucDate;
+
+    if ((pucT = ScanTimeTripeString(pucT, &(pceArg->iHourA), &(pceArg->iMinuteA), &(pceArg->iSecondA)))) {
+
+      /* detect time zone */
+      if (pucT[0] == 'Z') {
+	/* UTC time is also known as "Zulu" time */
+      }
+      else if (pucT[0] == '+') {
+	/* time zone as offset */
+	xmlChar *pucTT;
+
+	for (pucTT = pucT + 1; isdigit(*pucTT); pucTT++);
+
+	if (pucTT - pucT < 5) {
+	  j = strtotime(pucT);
+	  if (j > -13 && j < 15) {
+	    if (pceArg) pceArg->iTimezoneOffset = j * 60;
+	    if (pucTT[0] == ':') {
+	      for (pucTT++, pucT = pucTT; isdigit(*pucTT); pucTT++);
+
+	      if (pucTT - pucT < 3) {
+		j = strtotime(pucT);
+		if (j > -1 && j < 60) {
+		  if (pceArg) pceArg->iTimezoneOffset += j;
+		  pucT = pucTT;
+		}
+	      }
+	    }
+	  }
+	}
+      }
+      else if (pucT[0] == '\xE2' && pucT[1] == '\x88' && pucT[2] == '\x92') { /* UTF-8 'Minus' */
+	/* time zone as offset */
+	xmlChar *pucTT;
+
+	for (pucTT = pucT + 3; isdigit(*pucTT); pucTT++);
+
+	if (pucTT - pucT < 5) {
+	  j = strtotime(pucT);
+	  if (j > -13 && j < 15) {
+	    if (pceArg) pceArg->iTimezoneOffset = j * 60;
+	    if (pucTT[0] == ':') {
+	      for (pucTT++, pucT = pucTT; isdigit(*pucTT); pucTT++);
+
+	      if (pucTT - pucT < 3) {
+		j = strtotime(pucT);
+		if (j > -1 && j < 60) {
+		  if (pceArg) pceArg->iTimezoneOffset += j;
+		  pucT = pucTT;
+		}
+	      }
+	    }
+	  }
+	}
+      }
+#ifdef HAVE_PIE
+      else if (isalpha(pucT[0])) {
+	/* time zone as non-standardized Abbreviations */
+	int tzT;
+
+	tzT = tzGetNumber(pucT);
+	if (tzT == PIE_TZ_END) {
+	  tzT = PIE_TZ_UTC;
+	}
+	if (pceArg) pceArg->iTimezoneOffset = tzGetOffset(tzT);
+	while (isalpha(*pucT)) pucT++;
+      }
+#endif
+      else if (pucT[0] == '-') {
+	pucT = ScanTimeTripeString(pucT+1, &(pceArg->iHourB), &(pceArg->iMinuteB), &(pceArg->iSecondB));
+      }
       else {
+#if 0
 	pucT++;
 	j = strtotime(pucT);
 	if (j > -1 && j < 60) {
@@ -774,7 +855,7 @@ ScanTimeString(xmlChar* pucArgGcal, pieCalendarElementPtr pceArg)
 	  if (pceArg) pceArg->iMinuteA = j;
 
 	  if (pucT[0] == '-' && isdigit(pucT[1])) {
-	    pucT = ScanTimeString(pucT+1,&ceT);
+	    pucT = ScanCalendarElementTime(pucT+1,&ceT);
 	    if (pceArg) {
 	      pceArg->iHourB   = ceT.iHourA;
 	      pceArg->iMinuteB = ceT.iMinuteA;
@@ -789,14 +870,14 @@ ScanTimeString(xmlChar* pucArgGcal, pieCalendarElementPtr pceArg)
 	    }
 	  }
 	}
+#endif
       }
-      pceArg->pucSep = pucResult = pucT;
+      pceArg->pucSep = pucT;
+      fResult = (pceArg->pucSep != NULL);
     }
   }
-
-  return pucResult;
-}
-/* end of ScanTimeString() */
+  return fResult;
+} /* end of ScanCalendarElementTime() */
 
 
 /*!
