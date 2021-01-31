@@ -86,8 +86,7 @@ SetLogLevelStr(xmlChar *pucArg)
 
 
 /*! \return TRUE if pchArg was converted to lowercases successfully
-
-\bug when pchArg contains non-ASCII chars
+  Stops at the string end or line end of pchArg, works properly when pchArg contains ASCII chars only!
 */
 BOOL_T
 StringToLower(char *pchArg)
@@ -142,7 +141,7 @@ StringToId(char *pchArg)
 
 /*! \return TRUE if pchArg was converted to uppercases successfully
 
-\bug when pchArg contains non-ASCII chars 
+  Stops at the string end or line end of pchArg, works properly when pchArg contains ASCII chars only!
 */
 BOOL_T
 StringToUpper(char *pchArg)
@@ -164,7 +163,7 @@ StringToUpper(char *pchArg)
 } /* end of StringToUpper() */
 
 
-/*! 
+/*! \return TRUE if all chars of pchArgNeedle are the begin of pchArgBegin
 */
 BOOL_T
 StringBeginsWith(char *pchArgBegin, const char *pchArgNeedle)
@@ -194,22 +193,22 @@ StringBeginsWith(char *pchArgBegin, const char *pchArgNeedle)
 } /* end of StringBeginsWith() */
 
 
-/*!
+/*! \return TRUE if all chars of pchArgNeedle are the end of pchArgEnd
 */
 char *
-StringEndsWith(char* pchArgBegin, const char* pchArgNeedle)
+StringEndsWith(char* pchArgEnd, const char* pchArgNeedle)
 {
   char *pcResult = NULL;
 
-  if (STR_IS_NOT_EMPTY(pchArgBegin) && STR_IS_NOT_EMPTY(pchArgNeedle)) {
+  if (STR_IS_NOT_EMPTY(pchArgEnd) && STR_IS_NOT_EMPTY(pchArgNeedle)) {
     int i, j;
 
-    assert(pchArgBegin != pchArgNeedle);
+    assert(pchArgEnd != pchArgNeedle);
 
-    for (i = (int)strlen(pchArgBegin), j = (int)strlen(pchArgNeedle); i > -1 && j > -1; i--, j--) {
-      if (pchArgNeedle[j] == pchArgBegin[i]) {
+    for (i = (int)strlen(pchArgEnd), j = (int)strlen(pchArgNeedle); i > -1 && j > -1; i--, j--) {
+      if (pchArgNeedle[j] == pchArgEnd[i]) {
 	if (j == 0) {
-	  pcResult = &pchArgBegin[i];
+	  pcResult = &pchArgEnd[i];
 	  break; /* end of a string found */
 	}
       }
@@ -397,9 +396,9 @@ StringReplaceUmlauteNew(const xmlChar *pucArg)
 } /* end of StringReplaceUmlauteNew() */
 
 
-/*! removes all pair quote in pucArg
+/*! removes all pair of apostrophs in pucArg
 
-\return TRUE if pucArg is not empty, elese FALSE
+\return TRUE if there is a pair of apostrophs in pucArg (and string is modified)
 */
 BOOL_T
 StringRemovePairQuotes(xmlChar *pucArg)
@@ -415,6 +414,7 @@ StringRemovePairQuotes(xmlChar *pucArg)
     if (*pucA == (xmlChar)'\'' || *pucA == (xmlChar)'\"') {
       for (pucB = pucArg + xmlStrlen(pucArg) - 1; pucB > pucArg && isspace(*pucB); pucB--);
       if (*pucB == *pucA) {
+	/* there is a pair of apostrophs in pucArg */
 	if (pucB - pucA > 1) {
 	  memmove(pucArg,pucA+1,pucB - pucA - 1);
 	  pucArg[pucB - pucA - 1] = (xmlChar)'\0';

@@ -588,6 +588,11 @@ ParsePlainBuffer(xmlNodePtr pndArgTop, xmlChar* pucArg, rmode_t eArgMode)
 	  }
 	}
       }
+      else if (pieElementIsMetaOrigin(ppeT)) {
+	if ((pucT = pieElementGetBeginPtr(ppeT)) != NULL) {
+	  xmlSetProp(pndBlock, BAD_CAST "context", &pucT[8]);
+	}
+      }
       else {
 	pieElementReplaceCharNumerics(ppeT);
 	pieElementParse(ppeT);
@@ -697,6 +702,8 @@ StringGetEndOfHeaderMarker(xmlChar* pucArg)
 
 
 /*! \return TRUE if content string of pndArgParent is splitted into table data nodes using pucPatternSep, else FALSE
+
+\todo compile 'pucPatternSep' as a regexp if '/[;|]/'
 */
 BOOL_T
 SplitNodeToTableDataNodes(xmlNodePtr pndArgParent, xmlChar* pucPatternSep)
@@ -805,12 +812,13 @@ AddTableCellsEmpty(xmlNodePtr pndArg)
 
   i = GetTableColumns(pndArg);
   if (i > 0) {
+    int r;
     xmlNodePtr pndArgRow;
-    xmlChar mucColSpan[128];
+    xmlChar mucT[128];
 
-    xmlStrPrintf(mucColSpan,128,"%i",i);
+    xmlStrPrintf(mucT,128,"%i",i);
     
-    for (pndArgRow=pndArg->children; pndArgRow; pndArgRow = pndArgRow->next) {
+    for (r=0, pndArgRow=pndArg->children; pndArgRow; pndArgRow = pndArgRow->next, r++) {
 
       if (IS_NODE_PIE_TR(pndArgRow)) {
 	int j;
@@ -824,7 +832,7 @@ AddTableCellsEmpty(xmlNodePtr pndArg)
 	}
 
 	if (fHeader && pndArgRow->children == pndArgRow->last) { /* single header cell */
-	  xmlSetProp(pndArgRow->children, BAD_CAST "colspan", mucColSpan);
+	  xmlSetProp(pndArgRow->children, BAD_CAST "colspan", mucT);
 	}
 	else {
 	  /*!
@@ -853,6 +861,10 @@ AddTableCellsEmpty(xmlNodePtr pndArg)
 	}
       }
     }
+    /* add some meta data to table */
+    xmlSetProp(pndArg, BAD_CAST "cols", mucT);
+    xmlStrPrintf(mucT,128,"%i",r);
+    xmlSetProp(pndArg, BAD_CAST "rows", mucT);
   }
   return iResult;
 } /* end of AddTableCellsEmpty() */
@@ -1755,9 +1767,11 @@ RecognizeUrls(xmlNodePtr pndArg)
 	else if ((pndReplace = SplitTupelToLinkNodesMd(pucRelease))) {
 	  RecognizeUrls(pndReplace);
 	}
+#ifdef LEGACY
 	else if ((pndReplace = SplitTupelToLinkNodes(pucRelease))) {
 	  RecognizeUrls(pndReplace);
 	}
+#endif
 	else if ((pndReplace = SplitStringToLinkNodes(pucRelease))) {
 	}
 
@@ -2274,7 +2288,7 @@ RecognizeInlines(xmlNodePtr pndArg)
 
   if (pndArg) {
     pndResult = pndArg->next;
-    if (IS_NODE_META(pndArg) || IS_NODE_PIE_PRE(pndArg) || IS_NODE_PIE_LINK(pndArg) || IS_NODE_PIE_DATE(pndArg) || IS_NODE_SCRIPT(pndArg)) {
+    if (IS_NODE_META(pndArg) || IS_NODE_PIE_PRE(pndArg) || IS_NODE_PIE_DATE(pndArg) || IS_NODE_SCRIPT(pndArg)) {
       /* skip */
     }
     else if (IS_NODE_PIE_ETAG(pndArg) || IS_NODE_PIE_HTAG(pndArg) || IS_NODE_PIE_TTAG(pndArg) || IS_NODE_PIE_DATE(pndArg)) {

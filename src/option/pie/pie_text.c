@@ -252,6 +252,7 @@ pieProcessPieNode(xmlNodePtr pndArgPie, cxpContextPtr pccArg)
     /*! \todo avoid copy of complete pie tree here */
     xmlAddChild(pndMeta, pndMakePieCopy);
     /* Get the current time. */
+    xmlSetProp(pndMeta, BAD_CAST"tzname", tzGetId(0));    
     domSetPropEat(pndMeta, BAD_CAST "ctime", GetNowFormatStr(BAD_CAST "%s"));
     domSetPropEat(pndMeta, BAD_CAST "ctime2", GetDateIsoString(0));
 

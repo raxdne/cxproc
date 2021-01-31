@@ -44,13 +44,6 @@ TEST ENCODING: ABC ÖÄÜß DEF
 
 *** xsl
 
-inserts cxp:variables to the global XSL DOM as new xsl:variable (quick
-and dirty)
-#begin_of_pre
- <cxp:xsl insertvars="yes"/>
-#end_of_pre
-default is no, because of advantage of XSL internal declaration
-
 *** Directory
 
 parser for filesystem directories
