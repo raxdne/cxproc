@@ -57,11 +57,16 @@ execute_process(COMMAND git describe --tags --long
   WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
   )
 string(STRIP "${GIT_TAG}" GIT_TAG)
-#string(SUBSTRING "${GIT_TAG}" 0 7 GIT_TAG)
+
+execute_process(COMMAND git branch --show-current
+  OUTPUT_VARIABLE GIT_BRANCH
+  WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+  )
+string(STRIP "${GIT_BRANCH}" GIT_BRANCH)
 
 set(PROJECT_VERSION_MAJOR "1")
 set(PROJECT_VERSION_MINOR "3")
-set(PROJECT_VERSION_PATCH "rc2")
+set(PROJECT_VERSION_PATCH "")
 
 # https://vicrucann.github.io/tutorials/quick-cmake-doxygen/
 # check if Doxygen is installed
@@ -840,6 +845,12 @@ ENDIF ()
 #SET(CXPROC_BUFSIZE 4096 CACHE NUMBER "Default size for buffers.")
 #OPTION(CXPROC_BUFSIZE "Default size for buffers." "4096")
 
+SET(CXPROC_LEGACY ON CACHE BOOL "Compile code for handling of legacy issues")
+MARK_AS_ADVANCED(CXPROC_LEGACY)
+IF (CXPROC_LEGACY)
+  add_definitions(-DLEGACY)
+ENDIF (CXPROC_LEGACY)
+
 SET(CXPROC_EXPERIMENTAL OFF CACHE BOOL "Compile experimental code")
 MARK_AS_ADVANCED(CXPROC_EXPERIMENTAL)
 IF (CXPROC_EXPERIMENTAL)
@@ -852,7 +863,7 @@ IF (CXPROC_AJAX)
   add_definitions(-DWITH_AJAX)
 ENDIF (CXPROC_AJAX)
 
-add_definitions(-DCXP_VER_FILE_VERSION_STR="${GIT_TAG}")
+add_definitions(-DCXP_VER_FILE_VERSION_STR="${GIT_TAG}" -DCXP_VER_FILE_BRANCH_STR="${GIT_BRANCH}")
 
 IF(MSVC)
   SET(CMAKE_C_FLAGS "/MT /Gm- /MP /GS /GR- /Gd /analyze- /errorreport:prompt -D_REENTRANT -DDEF_MEM_LEVEL=8 -D_CRT_NONSTDC_NO_DEPRECATE -D_CRT_SECURE_NO_DEPRECATE -D_CRT_SECURE_NO_WARNINGS -DWIN32_LEAN_AND_MEAN")
@@ -1709,6 +1720,7 @@ include(CPack)
   STRING(TOUPPER "${CMAKE_BUILD_TYPE}" buildtype)
   MESSAGE(STATUS "")
   MESSAGE(STATUS "git tag ..............................: ${GIT_TAG}")
+  MESSAGE(STATUS "git branch ...........................: ${GIT_BRANCH}")
   MESSAGE(STATUS "")
   MESSAGE(STATUS "CXPROC configuration summary:")
   MESSAGE(STATUS "")
@@ -1721,6 +1733,7 @@ include(CPack)
   MESSAGE(STATUS "")
   MESSAGE(STATUS "  Build static binary ............... : ${CXPROC_STATIC}")
 #  MESSAGE(STATUS "  Buffer size for cxproc ............ : ${CXPROC_BUFSIZE}")
+  MESSAGE(STATUS "  Compile cxproc code for legacy  ... : ${CXPROC_LEGACY}")
   MESSAGE(STATUS "  Compile cxproc experimental code .. : ${CXPROC_EXPERIMENTAL}")
   MESSAGE(STATUS "  Compile cxproc MARKDOWN code ...... : ${CXPROC_MARKDOWN}")
   MESSAGE(STATUS "  Compile cxproc AJAX code .......... : ${CXPROC_AJAX}")

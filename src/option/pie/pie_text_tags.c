@@ -74,6 +74,8 @@ GetBlockTagRegExpStr(xmlNodePtr pndArg);
 
 \param pucArg
 \return updated copy of pucArg or NULL in case of errors
+
+\deprecated for legacy markup only
 */
 xmlChar*
 StringUpdateMarkupNew(xmlChar* pucArg, int* piArg)
@@ -426,7 +428,13 @@ RecognizeHashtags(xmlNodePtr pndArg, pcre2_code* preArgHashTag, pcre2_code* preA
       int iWeight = 0;
       xmlChar* pucT;
 
-      if (xmlNodeIsText(pndChild) && (pucT = StringUpdateMarkupNew(pndChild->content, &iWeight)) != NULL) { /* pndChild is a text node */
+      if (xmlNodeIsText(pndChild)
+#ifdef LEGACY
+	  && (pucT = StringUpdateMarkupNew(pndChild->content, &iWeight)) != NULL
+#else
+	  && (pucT = xmlStrdup(pndChild->content)) != NULL
+#endif
+	  ) { /* pndChild is a text node */
 	xmlNodePtr pndReplace;
 
 	pndReplace = SplitStringToTagNodes(pucT, preArgHashTag, preArgBlockTag);

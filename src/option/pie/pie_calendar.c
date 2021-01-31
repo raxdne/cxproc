@@ -861,9 +861,10 @@ AddAttributeDayDiff(pieCalendarPtr pCalendarArg)
 	|| IS_NODE_PIE_PAR(pndCurrent))) {
 
 	long int iDayAbsoluteMax;
+	xmlChar *pucIso;
 	xmlChar mpucT[BUFFER_LENGTH];
 
-	for (iDayAbsoluteMax = 0, pceT->pucSep = NULL; ScanCalendarElementDate(pceT);) {
+	for (pucIso = NULL, iDayAbsoluteMax = 0, pceT->pucSep = NULL; ScanCalendarElementDate(pceT);) {
 	  long int iDayAbsolute = 0;
 
 #ifdef DEBUG
@@ -888,10 +889,35 @@ AddAttributeDayDiff(pieCalendarPtr pCalendarArg)
 	  }
 	  else {
 	  }
+	  
 	  if (iDayAbsolute > 0 && (iDayAbsolute - GetToday()) > (iDayAbsoluteMax - GetToday())) {
 	    iDayAbsoluteMax = iDayAbsolute;
 	  }
+	  
+#ifdef EXPERIMENTAL
+	  /*!\todo concatenate sequential dates */
+	  xmlStrPrintf(mpucT, BUFFER_LENGTH,
+		       //"%04i-%02i-%02iT%02i:%02i:%02i%s",
+		       //"%04i%02i%02iT%02i%02i%02i%s",
+		       "%04i%02i%02iT%02i%02i%02i",
+		       pceT->iYear, pceT->iMonth, pceT->iDay,
+		       pceT->iHourA, pceT->iMinuteA, pceT->iSecondA
+		       //tzGetId(pCalendarArg->iTimezone)
+		       );
+#if 1
+	  xmlSetProp(pndCurrent, BAD_CAST"iso", mpucT);
+#else
+	  if (pucIso) {
+	    pucIso = xmlStrcat(pucIso,BAD_CAST"+");
+	    pucIso = xmlStrcat(pucIso,mpucT);
+	  }
+	  else {
+	    pucIso = xmlStrdup(mpucT);
+	  }
+#endif
+#endif
 	}
+	//domSetPropEat(pndCurrent, BAD_CAST"iso", pucIso);
 
 	xmlStrPrintf(mpucT, BUFFER_LENGTH, "%li", iDayAbsoluteMax - GetToday());
 	xmlSetProp(pndCurrent, BAD_CAST"diff", mpucT);
@@ -1579,6 +1605,7 @@ calAddAttributeDayDiff(xmlDocPtr pdocArg)
       if (RegisterDateNodes(pCalendarResult, BAD_CAST"/pie//*[name() = 'date' or @date]")
 	&& ParseDates(pCalendarResult)) {
 	AddAttributeDayDiff(pCalendarResult);
+	/*!\todo add an attribute with canonical ISO date (e.g. output of ICS format) */
 	pdocResult = pCalendarResult->pdocCalendar;
       }
       pCalendarResult->pdocCalendar = NULL;

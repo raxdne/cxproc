@@ -420,6 +420,8 @@ pieTextTest(cxpContextPtr pccArg)
     xmlNewChild(pndTest, NULL, NAME_PIE_PAR, BAD_CAST"post pre");
     pndImport = xmlNewChild(pndTest, NULL, NAME_PIE_IMPORT, NULL);
     xmlSetProp(pndImport, BAD_CAST "name", BAD_CAST TESTPREFIX "option/pie/text/test-pie-12b.txt");
+    pndImport = xmlNewChild(pndTest, NULL, NAME_PIE_IMPORT, NULL);
+    xmlSetProp(pndImport, BAD_CAST "name", BAD_CAST TESTPREFIX "option/pie/text/test-pie-12c.txt");
 
     TraverseImportNodes(pndPie, pccArg);
 

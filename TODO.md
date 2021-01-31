@@ -151,6 +151,8 @@ parse from UTF-8 memory buffer
 
 #### pie_calendar
 
+REQ: handle https://en.wikipedia.org/wiki/ISO_8601#Week_dates
+
 #### pie_text
 
 REQ: append XML attributes to text markup

@@ -394,6 +394,16 @@ pieElementIsMetaTags(pieTextElementPtr ppeArg)
 
 /*!
 */
+BOOL_T
+pieElementIsMetaOrigin(pieTextElementPtr ppeArg)
+{
+  return (ppeArg != NULL && StringBeginsWith((char *)pieElementGetBeginPtr(ppeArg),"ORIGIN: "));
+}
+/* end of pieElementIsMetaOrigin() */
+
+
+/*!
+*/
 int
 pieElementGetDepth(pieTextElementPtr ppeArg)
 {
@@ -809,7 +819,7 @@ pieElementHasNext(pieTextElementPtr ppeArg)
 	else {
 	}
       }
-      else if (pieElementGetMode(ppeArg) == RMODE_PAR && StringBeginsWith((char *)puc0, "#begin_of_skip")) {
+      else if (StringBeginsWith((char *)puc0, "#begin_of_skip")) {
 	/*
 	handle skip markup in input file
 	*/
@@ -1389,7 +1399,7 @@ _pieElementUpdateMarkup(pieTextElementPtr ppeArg)
 	  }
 	  memcpy(&pucB[k], &pucA[j], (size_t) i - j);
 
-#ifdef EXPERIMENTAL
+#ifdef LEGACY
 	  if ((pucT = Strnstr(&pucB[k], i - j, BAD_CAST"_org")) != NULL
 	    || (pucT = Strnstr(&pucB[k], i - j, BAD_CAST"_do")) != NULL
 	    || (pucT = Strnstr(&pucB[k], i - j, BAD_CAST"_review")) != NULL
@@ -1520,6 +1530,7 @@ pieElementParse(pieTextElementPtr ppeArg)
   }
   else {
     xmlChar *pucA;
+    xmlChar *pucB;
 
     pucA=ppeArg->pucContent;
 
@@ -1550,8 +1561,15 @@ pieElementParse(pieTextElementPtr ppeArg)
       break;
 
     case '*':
-      ppeArg->eType = header;
+      pucB = pucA;
       for (ppeArg->iDepth=0; *pucA == (xmlChar)'*'; pucA++, ppeArg->iDepth++) {}
+      if (ppeArg->iDepth == 3 && xmlStrstr(pucA,BAD_CAST"***") != NULL) {
+	/* its a strong markup */
+	pucA = pucB;
+      }
+      else {
+	ppeArg->eType = header;
+      }
       break;
 
     case '%':

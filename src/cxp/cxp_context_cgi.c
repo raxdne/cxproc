@@ -130,7 +130,7 @@ cxpCtxtCgiNew(int argc, char *argv[], char *envp[])
     }
     xmlFree(pucT);
 
-    cxpCtxtLogPrint(pccResult,1,"Based on %s %s-%s",CXP_VERSION_URL,CXP_VERSION_STR,CXP_REVISION_STR);
+    cxpCtxtLogPrint(pccResult,1,"Based on %s %s",CXP_VER_FILE_VERSION_STR,CXP_VER_FILE_BRANCH_STR);
 
     if (cxpCtxtRootSet(pccResult,NULL)) {
       cxpCtxtSearchSet(pccResult, NULL);
@@ -443,8 +443,6 @@ cxpCtxtCgiParse(cxpContextPtr pccArg)
 	}
 	pndXsl = xmlNewChild(pndOutput, NULL, NAME_XSL, NULL);
 	xmlSetProp(pndXsl, BAD_CAST "name", resNodeGetNameNormalized(prnCgiXsl));
-	xmlSetProp(pndXsl, BAD_CAST "appendcgi", BAD_CAST "yes");
-	xmlSetProp(pndXsl, BAD_CAST "insertvars", BAD_CAST "no");
 
 	cxpCtxtCacheAppendDoc(pccArg, pdocXsl, resNodeGetNameNormalized(prnCgiXsl));
 	xmlFreeDoc(pdocXsl);
