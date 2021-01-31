@@ -360,7 +360,7 @@ ScanCalendarElementDate(pieCalendarElementPtr pceArgResult)
     return FALSE;
   }
 
-  pucGcal = pceArgResult->pucDate;
+  for (pucGcal = pceArgResult->pucDate; isspace(*pucGcal);pucGcal++);
 
   if (isdigit(pucGcal[0]) && isdigit(pucGcal[1]) && isdigit(pucGcal[2]) && isdigit(pucGcal[3])) {
     /*!\todo check chars of year string [12][90][0-9][0-9] */
@@ -790,7 +790,7 @@ ScanTimeString(xmlChar* pucArgGcal, pieCalendarElementPtr pceArg)
 	  }
 	}
       }
-      pucResult = pucT;
+      pceArg->pucSep = pucResult = pucT;
     }
   }
 

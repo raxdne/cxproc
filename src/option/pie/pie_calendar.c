@@ -714,8 +714,9 @@ CalendarUpdate(pieCalendarPtr pCalendarArg)
 	xmlNodePtr pndNew;
 
 	if ((pndNew = xmlCopyNode(pndCurrent, 1))) {
-	  //AddAttributeTime(pndNew);
-
+#ifdef EXPERIMENTAL
+	  AddAttributeTime(pndNew);
+#endif
 	  if ((pucT = domGetPropValuePtr(pndNew, BAD_CAST"id"))) {
 	    /* rename id attribute to idref in copy of pndNew
 	    */
@@ -1222,6 +1223,9 @@ ParseDates(pieCalendarPtr pCalendarArg)
       if (ScanCalendarElementDate(pceT)) {
 	ScanDateIteration(pceT);
       }
+#ifdef EXPERIMENTAL
+	ScanTimeString(NULL,pceT);
+#endif
 #if 0
       else {
 	//domAddNodeToError(pCalendarArg->pdocCalendar,xmlCopyNode(pceT->patAttr->parent,1));
