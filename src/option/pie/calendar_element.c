@@ -670,18 +670,6 @@ ScanTimeTripeString(xmlChar* pucArgGcal, int *piArgHour, int *piArgMinute, int *
 {
   xmlChar *pucResult = NULL;
 
-  if (piArgHour) {
-    *piArgHour = -1;
-  }
-
-  if (piArgMinute) {
-    *piArgMinute = -1;
-  }
-
-  if (piArgSecond) {
-    *piArgSecond = -1;
-  }
-
   if (pucArgGcal != NULL && xmlStrlen(pucArgGcal) > 2) {
     xmlChar *pucT;
     int j;
@@ -690,71 +678,106 @@ ScanTimeTripeString(xmlChar* pucArgGcal, int *piArgHour, int *piArgMinute, int *
     if (pucT[0] == 'T' || pucT[0] == '-') {
       pucT++;
     }
-
-    j = strtotime(pucT);
-    if (j > -1 && j < 24 && (pucT[0] == '.' || pucT[0] == ':') && isdigit(pucT[1])) {
-
-      if (piArgHour) {
+    else {
+      while(pucT[0] == ' ') {
+	pucT++;
+      }
+    }
+    
+    if (isdigit(pucT[0]) && isdigit(pucT[1])
+	&& isdigit(pucT[2]) && isdigit(pucT[3])
+	&& isdigit(pucT[4]) && isdigit(pucT[5])
+	&& ! isdigit(pucT[6])) {
+      /* 6 digits without separator chars */
+      
+      if (piArgHour != NULL && (j = (pucT[0] - '0') * 10 + (pucT[1] - '0')) < 24) {
 	*piArgHour = j;
-      }
 
-      if (piArgMinute) {
-	*piArgMinute = 0;
-      }
+	if (piArgMinute != NULL && (j = (pucT[2] - '0') * 10 + (pucT[3] - '0')) < 60) {
+	  *piArgMinute = j;
 
-      if (piArgSecond) {
-	*piArgSecond = 0;
-      }
+	  if (piArgSecond != NULL && (j = (pucT[4] - '0') * 10 + (pucT[5] - '0')) < 60) {
+	    *piArgSecond = j;
 
-      if (pucT[0] == ':') {
-	pucT++;
-	j = strtotime(pucT);
-	if (j > -1 && j < 60) {
-
-	  if (piArgMinute) {
-	    *piArgMinute = j;
-	  }
-
-	  if (pucT[0] == ':' && isdigit(pucT[1])) {
-	    pucT++;
-	    j = strtotime(pucT);
-	    if (j > -1 && j < 60) {
-	      
-	      if (piArgSecond) {
-		*piArgSecond = j;
-	      }
-	    }
+	    pucResult = pucT + 6;
 	  }
 	}
       }
-      else if (pucT[0] == '.') {
-	pucT++;
-	j = strtotime(pucT);
+    }
+    else if (isdigit(pucT[0]) && isdigit(pucT[1])
+	     && pucT[2] == ':' && isdigit(pucT[3]) && isdigit(pucT[4])
+	     && pucT[5] == ':' && isdigit(pucT[6]) && isdigit(pucT[7])
+	     && ! isdigit(pucT[8])) {
+      /* 6 digits ':' separator chars */
+      
+      if (piArgHour != NULL && (j = (pucT[0] - '0') * 10 + (pucT[1] - '0')) < 24) {
+	*piArgHour = j;
 
-	if (pucT[0] == '.') { /* three numbers separated by '.' are not a time string */
-	  if (piArgHour) {
-	    *piArgHour = -1;
-	  }
+	if (piArgMinute != NULL && (j = (pucT[3] - '0') * 10 + (pucT[4] - '0')) < 60) {
+	  *piArgMinute = j;
 
-	  if (piArgMinute) {
-	    *piArgMinute = -1;
-	  }
+	  if (piArgSecond != NULL && (j = (pucT[6] - '0') * 10 + (pucT[7] - '0')) < 60) {
+	    *piArgSecond = j;
 
-	  if (piArgSecond) {
-	    *piArgSecond = -1;
-	  }
-	  pucT = NULL;
-	}
-	else if (j > -1 && j < 60) {
-
-	  if (piArgMinute) {
-	    *piArgMinute = j;
+	    pucResult = pucT + 8;
 	  }
 	}
       }
-      pucResult = pucT;
+    }
+    else if (isdigit(pucT[0]) && isdigit(pucT[1])
+	     && pucT[2] == '.' && isdigit(pucT[3]) && isdigit(pucT[4])
+	     && ! isdigit(pucT[5])) {
+      /* 4 digits '.' separator chars */
+      
+      if (piArgHour != NULL && (j = (pucT[0] - '0') * 10 + (pucT[1] - '0')) < 24) {
+	*piArgHour = j;
+
+	if (piArgMinute != NULL && (j = (pucT[3] - '0') * 10 + (pucT[4] - '0')) < 60) {
+	  *piArgMinute = j;
+
+	  if (piArgSecond != NULL) {
+	    *piArgSecond = 0;
+	  }
+
+	  pucResult = pucT + 5;
+	}
+      }
+    }
+    else if (isdigit(pucT[0])
+	     && pucT[1] == '.' && isdigit(pucT[2]) && isdigit(pucT[3])
+	     && ! isdigit(pucT[4])) {
+      /* 3 digits '.' separator chars */
+      
+      if (piArgHour != NULL && (j = (pucT[0] - '0')) < 24) {
+	*piArgHour = j;
+
+	if (piArgMinute != NULL && (j = (pucT[2] - '0') * 10 + (pucT[3] - '0')) < 60) {
+	  *piArgMinute = j;
+
+	  if (piArgSecond != NULL) {
+	    *piArgSecond = 0;
+	  }
+
+	  pucResult = pucT + 4;
+	}
+      }
     }
   }
+
+  if (pucResult == NULL) {	/* reset values */
+    if (piArgHour) {
+      *piArgHour = -1;
+    }
+
+    if (piArgMinute) {
+      *piArgMinute = -1;
+    }
+
+    if (piArgSecond) {
+      *piArgSecond = -1;
+    }
+  }
+  
   return pucResult;
 } /* end of ScanTimeTripeString() */
 

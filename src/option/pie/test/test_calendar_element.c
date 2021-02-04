@@ -225,11 +225,18 @@ ceTest(void)
 	     || h != 4 || m != 44 || s != 44) {
       printf("ERROR\n");
     }
+    else if ((pucT = ScanTimeTripeString(BAD_CAST"T055555", &h, &m, &s)) == NULL
+	     || h != 5 || m != 55 || s != 55) {
+      printf("ERROR\n");
+    }
+    else if ((pucT = ScanTimeTripeString(BAD_CAST"T056655", &h, &m, &s)) != NULL) {
+      printf("ERROR\n");
+    }
     else if ((pucT = ScanTimeTripeString(BAD_CAST"T02:24:24Z", &h, &m, &s)) == NULL
 	     || h != 2 || m != 24 || s != 24) {
       printf("ERROR\n");
     }
-    else if ((pucT = ScanTimeTripeString(BAD_CAST" 03:33-5:55", &h, &m, &s)) == NULL
+    else if ((pucT = ScanTimeTripeString(BAD_CAST" 03:33:00-5.55", &h, &m, &s)) == NULL
 	     || h != 3 || m != 33 || s != 00) {
       printf("ERROR\n");
     }
@@ -1166,7 +1173,7 @@ ceTest(void)
     i++;
     printf("TEST %i in '%s:%i': ScanCalendarElementTime ",i,__FILE__,__LINE__);
 
-    if ((pceT = CalendarElementNew(BAD_CAST" 11.33.21 ABC")) == NULL) {
+    if ((pceT = CalendarElementNew(BAD_CAST" 11.73.21 ABC")) == NULL) {
       printf("ERROR\n");
     }
     else if (ScanCalendarElementDate(pceT) == TRUE) {
