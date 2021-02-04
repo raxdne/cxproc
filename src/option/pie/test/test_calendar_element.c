@@ -1363,7 +1363,7 @@ ceTest(void)
       || pceT->iMonth != 12 || pceT->iDay != 11 || pceT->iWeek != -1 || pceT->iDayWeek != -1
       || pceT->iHourA != 10 || pceT->iMinuteA != 11 || pceT->iSecondA != 0
       || pceT->iHourB != -1 || pceT->iMinuteB != -1 || pceT->iSecondB != -1
-      || pceT->iTimezoneOffset == 360) {
+      || pceT->iTimezoneOffset != -360) {
       printf("ERROR\n");
     }
     else {

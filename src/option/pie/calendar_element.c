@@ -829,7 +829,7 @@ ScanCalendarElementTime(pieCalendarElementPtr pceArg)
 	  }
 	}
       }
-      else if (pucT[0] == '\xE2' && pucT[1] == '\x88' && pucT[2] == '\x92') { /* UTF-8 'Minus' */
+      else if (pucT[0] == '\xE2' && pucT[1] == '\x88' && pucT[2] == '\x92') { /*!\bug handle UTF-8 'Minus' */
 	/* time zone as offset */
 	xmlChar *pucTT;
 
@@ -862,7 +862,12 @@ ScanCalendarElementTime(pieCalendarElementPtr pceArg)
 	if (tzT == PIE_TZ_END) {
 	  tzT = PIE_TZ_UTC;
 	}
-	if (pceArg) pceArg->iTimezoneOffset = tzGetOffset(tzT);
+	
+	if (pceArg) {
+	  pceArg->iTimezone = tzT;
+	  pceArg->iTimezoneOffset = tzGetOffset(tzT);
+	}
+	
 	while (isalpha(*pucT)) pucT++;
       }
 #endif
