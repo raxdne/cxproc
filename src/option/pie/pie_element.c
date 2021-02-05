@@ -2027,27 +2027,7 @@ pieElementToDOM(pieTextElementPtr ppeT)
 	else if (STR_IS_NOT_EMPTY(pucC)) {
 	  pndResult = xmlNewNode(NULL, NAME_PIE_PAR);
 	  if (pndResult) {
-	    xmlChar* pucSep;
-
-	    if (pieElementGetMode(ppeT) == RMODE_LINE
-	      && (pucSep = EndOfDate(pucC)) != NULL
-	      && (pucSep - pucC) > 3) { /* log format */
-
-	      int l;
-	      xmlChar* pucDate;
-
-	      l = (int)(pucSep - pucC);
-	      for (; isspace(*pucSep); pucSep++);
-
-	      pucDate = xmlStrndup(pucC, l);
-	      if (pucDate) {
-		xmlAddChild(pndResult, xmlNewText(pucSep));
-		domSetPropEat(pndResult, BAD_CAST "date", pucDate);
-	      }
-	    }
-	    else {
-	      xmlAddChild(pndResult, xmlNewText(pucC));
-	    }
+	    xmlAddChild(pndResult, xmlNewText(pucC));
 	  }
 	}
 	else {

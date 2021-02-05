@@ -783,6 +783,7 @@ CalendarUpdate(pieCalendarPtr pCalendarArg)
 	  InsertCalendarElementEat(pCalendarArg, pceT, pndNew);
 	}
       }
+#ifdef LEGACY
       else if (IS_NODE_PIE_FILE(pceT->pndEntry) && (pndCurrent = pceT->pndEntry) != NULL) {
 	xmlChar *pucText;
 
@@ -802,9 +803,10 @@ CalendarUpdate(pieCalendarPtr pCalendarArg)
 	  }
 	}
       }
+#endif
     }
   }
-} /* End of CalendarUpdate() */
+} /* end of CalendarUpdate() */
 
 
 /*! set attribute today at calendar DOM of 'pCalendarArg'
@@ -1169,7 +1171,11 @@ RegisterDateNodes(pieCalendarPtr pCalendarArg, xmlChar *pucArg)
 	result = domGetXPathNodeset(pCalendarArg->pdocCalendar, pucArg);
       }
       else {
+#ifdef LEGACY
 	result = domGetXPathNodeset(pCalendarArg->pdocCalendar, BAD_CAST"/calendar/col//*[name() = 'date' or @date or @mtime2]");
+#else
+	result = domGetXPathNodeset(pCalendarArg->pdocCalendar, BAD_CAST"/child::calendar/child::col/descendant::date");
+#endif
       }
 
       if (result) {
@@ -1183,10 +1189,14 @@ RegisterDateNodes(pieCalendarPtr pCalendarArg, xmlChar *pucArg)
 	    else if (nodeset->nodeTab[i]->prev == NULL && nodeset->nodeTab[i]->next == NULL) {
 	      /* ignore isolated date elements */
 	    }
+	    else if ((pucT = domGetPropValuePtr(nodeset->nodeTab[i], BAD_CAST "ref"))) {
+	      /* use attribute value */
+	    }
 	    else {
 	      pucT = domNodeGetContentPtr(nodeset->nodeTab[i]);
 	    }
 	  }
+#ifdef LEGACY
 	  else if ((pucT = domGetPropValuePtr(nodeset->nodeTab[i], BAD_CAST "date"))) {
 	  }
 	  else if ((pucT = domGetPropValuePtr(nodeset->nodeTab[i], BAD_CAST "done"))) {
@@ -1195,6 +1205,7 @@ RegisterDateNodes(pieCalendarPtr pCalendarArg, xmlChar *pucArg)
 	  }
 	  else {
 	  }
+#endif
 
 	  if (STR_IS_NOT_EMPTY(pucT) && (pceNew = CalendarElementNew(pucT)) != NULL) {
 	    xmlNodePtr pndCol;
@@ -1287,7 +1298,7 @@ PrintCalendarSetup(pieCalendarPtr pCalendarArg, cxpContextPtr pccArg)
     unsigned int i;
 
     PrintFormatLog(1, "Calendar");
-      for (pceT = pCalendarArg->pceFirst, i=0; pceT != NULL; pceT = pceT->pNext, i++) {
+    for (pceT = pCalendarArg->pceFirst, i=0; pceT != NULL; pceT = pceT->pNext, i++) {
       assert((pceT->patAttr != NULL && pceT->patAttr->parent != NULL) || (pceT->pndEntry != NULL && pceT->pndEntry->parent != NULL));
       PrintCalendarElement(pceT);
     }
@@ -1342,7 +1353,7 @@ ProcessCalendarColumns(pieCalendarPtr pCalendarArg, cxpContextPtr pccArg)
 	    if (pndRoot) {
 	      domFreeNodeByName(pndRoot, NAME_META);
 	      PrintFormatLog(2, "Insert XML DOM into calendar");
-	      /*!\todo avoid copy of DOM, replace instead */
+	      /*!\todo avoid copy of DOM, replace instead (respect the used namespaces) */
 #if 0
 	      xmlUnlinkNode(pndRoot);
 	      xmlSetTreeDoc(pndRoot, pCalendarArg->pdocCalendar);
@@ -1522,7 +1533,8 @@ CalendarSetup(xmlNodePtr pndArg, cxpContextPtr pccArg)
       || xmlSetProp(pndT, BAD_CAST"id", BAD_CAST "legend") == NULL
       || xmlSetProp(pndT, BAD_CAST"name", BAD_CAST"Legend") == NULL
       || (pndTT = xmlNewChild(pndT, NULL, NAME_PIE_PAR, BAD_CAST"%a %d.%m. (%j)")) == NULL
-      || (pndTT = xmlNewChild(pndTT, NULL, NAME_PIE_DATE, BAD_CAST"00000000")) == NULL) {
+      || (pndTT = xmlNewChild(pndTT, NULL, NAME_PIE_DATE, NULL)) == NULL
+      || xmlSetProp(pndTT, BAD_CAST"ref", BAD_CAST"00000000") == NULL) {
       PrintFormatLog(1, "Cannot create new calendar");
     }
     else if ((pndT = xmlNewChild(pndCalendarCopy, NULL, NAME_PIE_COL, NULL)) == NULL
