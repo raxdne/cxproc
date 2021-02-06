@@ -156,6 +156,7 @@ parse from UTF-8 memory buffer
 REQ: handle https://en.wikipedia.org/wiki/ISO_8601#Week_dates
 
 REQ: handle timezone in date node
+- TODO: code refactoring using libc database (s. https://en.wikipedia.org/wiki/Tz_database)
 
 #### pie_text
 

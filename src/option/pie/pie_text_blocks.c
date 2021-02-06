@@ -38,15 +38,6 @@
 #include <petrinet/petrinet.h>
 #endif
 
-#define STR_UTF8_HEAVY_CHECK_MARK "\xE2\x9C\x94"
-
-#define STR_UTF8_HEAVY_BALLOT_X "\xE2\x9C\x98"
-
-#define STR_PIE_OK STR_UTF8_HEAVY_CHECK_MARK
-
-#define STR_PIE_CANCEL STR_UTF8_HEAVY_BALLOT_X
-
-
 /*! \todo German Umlaute in UNC */
 /* s. "Regular Expressions Cookbook" by Jan Goyvaerts and Steven Levithan, Chapter "Validate Windows Paths"
    Published by O’Reilly Media, Inc.
@@ -60,7 +51,7 @@
 #define RE_LINK_MD_AUTO "(<|&lt;|\\xE2\\x80\\x99)([^<> \\t]+)(>|&gt;|\\xE2\\x80\\x98)"
 #define RE_FIG "^[ \\t]*(Fig|Abb)\\.[ \\t]*([^ \\t]+)[ \\t]*(.+)*$"
 #define RE_SCRIPT "script=\\\"([^\\\"]+)\\\""
-#define RE_DATE "\\b([1290]{2}[0-9]{2}-*[01][0-9]-*[0123][0-9]|[1290]{2}[0-9]{2}[0123][0-9]|[0123][0-9]\.[01][0-9]\.[1290]{2}[0-9]{2})([,+:#\\.x][0-9]+|T[012][0-9]:*[0-5][0-9]:*[0-5][0-9](\\+[0-9]{2}:*[0-9]{2}|Z|[A-Z]{3})*|[\t ]+[012]*[0-9].[0-5][0-9](-[0-9]{1,2}.[0-5][0-9])*)*\\b"
+#define RE_DATE "\\b([1290]{2}[0-9]{2}-*[01][0-9]-*[0123][0-9]|[1290]{2}[0-9]{2}[0123][0-9]|[0123][0-9]\.[01][0-9]\.[1290]{2}[0-9]{2})([,+:#\\.x][0-9]+|T[012][0-9]:*[0-5][0-9]:*[0-5][0-9]((\\+|" STR_UTF8_MINUS ")[0-9]{2}:*[0-9]{2}|Z|[A-Z]{3})*|[\t ]+[012]*[0-9].[0-5][0-9](-[0-9]{1,2}.[0-5][0-9])*)*\\b"
 #define RE_INLINE "_{2,}[^_]+_{2,}|\\*{2,}[^\\*]+\\*{2,}|`[^`]+`"
 #define RE_IMPORT "^#import\\(\\\"(.+)\\\"\\,*([a-z]+)*\\,*([a-z]+)*\\,*([a-z]+)*\\)$"
 #define RE_TASK "^(TODO|DONE|REQ|BUG|TARGET|TEST)(:[ \\t]*)"
