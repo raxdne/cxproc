@@ -157,7 +157,7 @@ static void
 CalendarUpdate(pieCalendarPtr pCalendarArg);
 
 static void
-AddAttributeDayDiff(pieCalendarPtr pCalendarArg);
+AddDateAttributes(pieCalendarElementPtr pceArg);
 
 static BOOL_T
 RegisterDateNodes(pieCalendarPtr pCalendarArg, xmlChar *pucArg);
@@ -839,34 +839,25 @@ CalendarSetToday(pieCalendarPtr pCalendarArg)
 
 
 /*! insert a day diff attribute to all registered calendar elements of the according DOM.
+	
+  add an attribute with canonical ISO date (e.g. output of ICS format)
 */
 void
-AddAttributeDayDiff(pieCalendarPtr pCalendarArg)
+AddDateAttributes(pieCalendarElementPtr pceArg)
 {
-  if (pCalendarArg != NULL && pCalendarArg->pdocCalendar != NULL) {
-    /*! insert COL entities */
+  if (pceArg) {
     pieCalendarElementPtr pceT;
     unsigned int i;
 
-    for (pceT = pCalendarArg->pceFirst, i=0; pceT; pceT = pceT->pNext, i++) {
+    for (pceT = pceArg, i=0; pceT; pceT = pceT->pNext, i++) {
       xmlNodePtr pndCurrent = pceT->pndEntry;
 
-      if (IS_VALID_NODE(pndCurrent)
-	&& (IS_NODE_PIE_SECTION(pndCurrent)
-	|| IS_NODE_PIE_TASK(pndCurrent)
-	|| IS_NODE_PIE_DATE(pndCurrent)
-	|| IS_NODE_PIE_PAR(pndCurrent))) {
+      if (IS_VALID_NODE(pndCurrent)) {
 
 	long int iDayAbsoluteMax;
-	xmlChar *pucIso;
+	xmlChar *pucIso = NULL;
 	xmlChar mpucT[BUFFER_LENGTH];
-
-	for (pucIso = NULL, iDayAbsoluteMax = 0, pceT->pucSep = NULL; ScanCalendarElementDate(pceT);) {
-	  long int iDayAbsolute = 0;
-
-#ifdef DEBUG
-	  PrintCalendarElement(pceT);
-#endif
+	long int iDayAbsolute = 0;
 
 	  if (pceT->iMonth > 0) {
 	    if (pceT->iDay > 0) {
@@ -904,7 +895,8 @@ AddAttributeDayDiff(pieCalendarPtr pCalendarArg)
 			   pceT->iHourA,
 			   pceT->iMinuteA,
 			   pceT->iSecondA,
-			   tzGetId(pCalendarArg->iTimezone)
+			   //tzGetId(pCalendarArg->iTimezone)
+			   ""
 			   );
 	    }
 	    else {
@@ -953,15 +945,13 @@ AddAttributeDayDiff(pieCalendarPtr pCalendarArg)
 	    }
 	  }
 #endif
-	}
-
-	xmlStrPrintf(mpucT, BUFFER_LENGTH, "%li", iDayAbsoluteMax - GetToday());
-	xmlSetProp(pndCurrent, BAD_CAST"diff", mpucT);
+	  xmlStrPrintf(mpucT, BUFFER_LENGTH, "%li", iDayAbsoluteMax - GetToday());
+	  xmlSetProp(pndCurrent, BAD_CAST"diff", mpucT);
       }
     }
   }
 }
-/* End of AddAttributeDayDiff() */
+/* End of AddDateAttributes() */
 
 
 /*! \return an array of year numbers
@@ -1153,7 +1143,7 @@ SplitDateSequences(pieCalendarElementPtr pceArg)
 BOOL_T
 RegisterDateNodes(pieCalendarPtr pCalendarArg, xmlChar *pucArg)
 {
-  BOOL_T fResult = TRUE;
+  BOOL_T fResult = FALSE;
 
 #ifdef DEBUG
   PrintFormatLog(2,"RegisterDateNodes(pCalendarArg=%0x)",pCalendarArg);
@@ -1174,7 +1164,7 @@ RegisterDateNodes(pieCalendarPtr pCalendarArg, xmlChar *pucArg)
 #ifdef LEGACY
 	result = domGetXPathNodeset(pCalendarArg->pdocCalendar, BAD_CAST"/calendar/col//*[name() = 'date' or @date or @mtime2]");
 #else
-	result = domGetXPathNodeset(pCalendarArg->pdocCalendar, BAD_CAST"/child::calendar/child::col/descendant::date");
+	result = domGetXPathNodeset(pCalendarArg->pdocCalendar, BAD_CAST"/calendar/col//date");
 #endif
       }
 
@@ -1237,12 +1227,12 @@ RegisterDateNodes(pieCalendarPtr pCalendarArg, xmlChar *pucArg)
 	  }
 	}
 	xmlXPathFreeObject(result);
+	fResult = TRUE;
       }
 
 #ifdef DEBUG
     PrintCalendarSetup(pCalendarArg,NULL);
 #endif
-    fResult = TRUE;
   }
 
   return fResult;
@@ -1269,6 +1259,7 @@ ParseDates(pieCalendarPtr pCalendarArg)
 #ifdef EXPERIMENTAL
         ScanCalendarElementTime(pceT);
 #endif
+	AddDateAttributes(pceT);
       }
 #if 0
       else {
@@ -1277,9 +1268,6 @@ ParseDates(pieCalendarPtr pCalendarArg)
       }
 #endif
     }
-#ifdef DEBUG
-    PrintCalendarSetup(pCalendarArg, NULL);
-#endif
   }
   return fResult;
 } /* end of ParseDates() */
@@ -1651,12 +1639,13 @@ calAddAttributeDayDiff(xmlDocPtr pdocArg)
       */
       pCalendarResult->pdocCalendar = pdocArg;
       pCalendarResult->pndCalendarRoot = xmlDocGetRootElement(pdocArg);
-      if (RegisterDateNodes(pCalendarResult, BAD_CAST"/pie//*[name() = 'date' or @date]")
-	&& ParseDates(pCalendarResult)) {
-	AddAttributeDayDiff(pCalendarResult);
-	/*!\todo add an attribute with canonical ISO date (e.g. output of ICS format) */
+      if (RegisterDateNodes(pCalendarResult, BAD_CAST"/pie//date")
+	  && ParseDates(pCalendarResult)) {
 	pdocResult = pCalendarResult->pdocCalendar;
       }
+#ifdef DEBUG
+      PrintCalendarSetup(pCalendarResult,NULL);
+#endif
       pCalendarResult->pdocCalendar = NULL;
       CalendarFree(pCalendarResult);
     }

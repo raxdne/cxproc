@@ -296,12 +296,9 @@
 (global-set-key [C-f3]  (lambda ()
 			  ""
 			  (interactive)
-			  (if (buffer-file-name)
-			      (save-buffer))
-			  (compile (concat "make -C " prefix "/../x86_64-gnu-linux"
-					   " clean"
+			  (compile (concat "cmake --build " prefix "/../x86_64-gnu-linux/build/"
+					   " --target clean"
 			  		   ))
-			  ;(compile "make test")
 			  )
 		)
 

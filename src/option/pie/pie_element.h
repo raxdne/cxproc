@@ -179,6 +179,9 @@ pieElementIsEnum(pieTextElementPtr ppeArg);
 extern BOOL_T
 pieElementIsMetaTags(pieTextElementPtr ppeArg);
 
+extern BOOL_T
+pieElementIsMetaOrigin(pieTextElementPtr ppeArg);
+
 extern int
 pieElementStrnlenEmpty(xmlChar *pucArg, int iArg);
 

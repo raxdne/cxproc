@@ -42,6 +42,8 @@ REQ: additional Backends
   - MongoDB <http://en.wikipedia.org/wiki/MongoDB>
   -	MySQL/MariaDB
 
+REQ: use environment variable `LANG` for localization of calendar, articles etc
+
 ## Security
 
 TEST: check security #v13 ++
@@ -152,6 +154,8 @@ parse from UTF-8 memory buffer
 #### pie_calendar
 
 REQ: handle https://en.wikipedia.org/wiki/ISO_8601#Week_dates
+
+REQ: handle timezone in date node
 
 #### pie_text
 

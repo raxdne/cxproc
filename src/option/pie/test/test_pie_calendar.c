@@ -113,7 +113,7 @@ pieCalendarTest(cxpContextPtr pccArg)
       n_ok++;
       printf("OK\n");
     }
-    //domPutDocString(stderr, BAD_CAST "calAddAttributeDayDiff() result", pdocTest);
+    domPutDocString(stderr, BAD_CAST "calAddAttributeDayDiff() result", pdocTest);
     xmlFreeDoc(pdocTest);
   }
 
