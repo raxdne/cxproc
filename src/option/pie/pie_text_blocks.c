@@ -38,15 +38,6 @@
 #include <petrinet/petrinet.h>
 #endif
 
-#define STR_UTF8_HEAVY_CHECK_MARK "\xE2\x9C\x94"
-
-#define STR_UTF8_HEAVY_BALLOT_X "\xE2\x9C\x98"
-
-#define STR_PIE_OK STR_UTF8_HEAVY_CHECK_MARK
-
-#define STR_PIE_CANCEL STR_UTF8_HEAVY_BALLOT_X
-
-
 /*! \todo German Umlaute in UNC */
 /* s. "Regular Expressions Cookbook" by Jan Goyvaerts and Steven Levithan, Chapter "Validate Windows Paths"
    Published by O’Reilly Media, Inc.
@@ -60,7 +51,37 @@
 #define RE_LINK_MD_AUTO "(<|&lt;|\\xE2\\x80\\x99)([^<> \\t]+)(>|&gt;|\\xE2\\x80\\x98)"
 #define RE_FIG "^[ \\t]*(Fig|Abb)\\.[ \\t]*([^ \\t]+)[ \\t]*(.+)*$"
 #define RE_SCRIPT "script=\\\"([^\\\"]+)\\\""
-#define RE_DATE "\\b([1290]{2}[0-9]{2}-*[0-9]{2}-*[0-9]{2}|[1290]{2}[0-9]{4})([,+:#\\.x][0-9]+|[Z][0-9]{2}:[0-9]{2}:[0-9]{2})*\\b"
+
+#define RE_DATE_YEAR   "[1290]{2}[0-9]{2}"
+#define RE_DATE_EASTER "\\@e[\\-+][0-9]+"
+#define RE_DATE_WEEK   "\\*w[0-5]*[0-9](mon|tue|wed|thu|fri|sat|sun)"
+#define RE_DATE_MONTH  "[01][0-9]"
+#define RE_DATE_DAY    "[0123][0-9]"
+#define RE_DATE_HOUR   "[\t ]+[012]*[0-9]\\.[0-5][0-9](-[012]*[0-9]\\.[0-5][0-9])*"
+
+#define RE_DATE_ISO_TIME "T[012][0-9]:*[0-5][0-9]:*[0-5][0-9]((\\+|" STR_UTF8_MINUS ")[0-9]{2}:*[0-9]{2}|Z|[A-Z]{3})"
+#define RE_DATE_MODS   "[,+:#.x][0-9]+"
+#define RE_DATE_TIME   "[\t ]+[012]*[0-9].[0-5][0-9](-[0-9]{1,2}.[0-5][0-9])*"
+#define RE_DATE_GERMAN "[0123]*[0-9]\.[01]*[0-9]\.[1290]{2}[0-9]{2}"
+
+#define RE_DATE "\\b("							\
+  "(" RE_DATE_YEAR "-" RE_DATE_MONTH "-" RE_DATE_DAY "(" RE_DATE_ISO_TIME "|" RE_DATE_HOUR ")*" ")" \
+  "|"									\
+  "(" RE_DATE_YEAR RE_DATE_MONTH RE_DATE_DAY "(" RE_DATE_MODS ")*" "(" RE_DATE_HOUR ")*" ")"	\
+  "|"									\
+  "(" RE_DATE_YEAR RE_DATE_MONTH RE_DATE_DAY "(" RE_DATE_ISO_TIME "|" RE_DATE_HOUR ")*" ")"	\
+  "|"									\
+  "(" RE_DATE_YEAR RE_DATE_EASTER ")"						\
+  "|"									\
+  "(" RE_DATE_GERMAN "(" RE_DATE_HOUR ")*" ")"						\
+  "|"									\
+  "(" RE_DATE_YEAR RE_DATE_WEEK ")"					\
+  "|"									\
+  "(" RE_DATE_YEAR RE_DATE_MONTH ")"					\
+  "|"									\
+  "(" RE_DATE_YEAR ")"							\
+  ")\\b"
+
 #define RE_INLINE "_{2,}[^_]+_{2,}|\\*{2,}[^\\*]+\\*{2,}|`[^`]+`"
 #define RE_IMPORT "^#import\\(\\\"(.+)\\\"\\,*([a-z]+)*\\,*([a-z]+)*\\,*([a-z]+)*\\)$"
 #define RE_TASK "^(TODO|DONE|REQ|BUG|TARGET|TEST)(:[ \\t]*)"
@@ -2140,25 +2161,21 @@ SplitStringToDateNodes(const xmlChar *pucArg)
 	xmlChar *pucDate;
 	xmlChar *pucA = (xmlChar *)pucArg + ovector[2];
 
-	if (rc > 2) {
-	  pucDate = xmlStrndup(pucA, (int)(ovector[5] - ovector[2]));
+	if ((pucDate = xmlStrndup(pucA, (int)(ovector[3] - ovector[2]))) != NULL) {
+
+	  PrintFormatLog(3, "Date '%s' (%i..%i) in '%s'", pucDate, ovector[2], ovector[3], pucArg);
+
+	  pndResult = xmlNewNode(NULL, BAD_CAST "dummy");
+
+	  if (ovector[0] > 0) {
+	    /* the content starts with text	*/
+	    xmlChar *pucT = xmlStrndup(pucArg, (int)ovector[0]);
+	    xmlAddChild(pndResult, xmlNewText(pucT));
+	    xmlFree(pucT);
+	  }
+
+	  pndIn = xmlNewTextChild(pndResult, NULL, NAME_PIE_DATE, pucDate);
 	}
-	else {
-	  pucDate = xmlStrndup(pucA, (int)(ovector[3] - ovector[2]));
-	}
-
-	PrintFormatLog(3, "Date '%s' (%i..%i) in '%s'", pucDate, ovector[2], ovector[3], pucArg);
-
-	pndResult = xmlNewNode(NULL, BAD_CAST "dummy");
-
-	if (ovector[0] > 0) {
-	  /* the content starts with text	*/
-	  xmlChar *pucT = xmlStrndup(pucArg, (int)ovector[0]);
-	  xmlAddChild(pndResult, xmlNewText(pucT));
-	  xmlFree(pucT);
-	}
-
-	pndIn = xmlNewTextChild(pndResult, NULL, NAME_PIE_DATE, pucDate);
 
 	if (ducOrigin > ovector[1]) {
 	  /* the content ends with text, recursion */

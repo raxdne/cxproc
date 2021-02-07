@@ -30,19 +30,6 @@ pieCalendarTest(cxpContextPtr pccArg)
   n_ok=0;
   i=0;
 
-  if (SKIPTEST) {
-    xmlNodePtr pndTask;
-
-    i++;
-    printf("TEST %i in '%s:%i': calculate delta days = ",i,__FILE__,__LINE__);
-
-    pndTask = xmlNewNode(NULL,NAME_PIE_TASK);
-    xmlSetProp(pndTask, BAD_CAST "date", BAD_CAST"2012*w2mon");
-    //AddAttributeDayDiff(pndTask);
-    n_ok++;
-    printf("OK\n");
-    xmlFreeNode(pndTask);
-  }
 
   if (RUNTEST) {
     xmlNodePtr pndMakeCalendar;
@@ -126,7 +113,7 @@ pieCalendarTest(cxpContextPtr pccArg)
       n_ok++;
       printf("OK\n");
     }
-    //domPutDocString(stderr, BAD_CAST "calAddAttributeDayDiff() result", pdocTest);
+    domPutDocString(stderr, BAD_CAST "calAddAttributeDayDiff() result", pdocTest);
     xmlFreeDoc(pdocTest);
   }
 
