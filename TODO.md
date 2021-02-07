@@ -18,7 +18,6 @@ REQ: shell environment
     </xsl:thread>
 
 REQ: parser for source codes C, LaTeX etc
-
 - detect TODO|BUG|TEST etc in comments of procedure context
 
 REQ: Dialog for log messages and confirmations (á la ‚dialog‘ utility, s. Gtkdialog, GTK2-window)
@@ -52,7 +51,6 @@ TEST: check security #v13 ++
 
 Limitations or Sandbox
 - use Unicode functions to avoid MAX_PATH on Windows
-
 - prevent system() in cgi_mode (or readonly_mode)
 - Docker
 
@@ -155,9 +153,6 @@ parse from UTF-8 memory buffer
 
 REQ: handle https://en.wikipedia.org/wiki/ISO_8601#Week_dates
 
-REQ: handle timezone in date node
-- TODO: code refactoring using libc database (s. https://en.wikipedia.org/wiki/Tz_database)
-
 #### pie_text
 
 REQ: append XML attributes to text markup
@@ -167,7 +162,7 @@ REQ: append XML attributes to text markup
 
 decoding of RFC1738 URL with Umlaute to UTF-8
 
-TODO: change markup #v13
+TODO: change markup #v14
 
     <pre></pre>
     <script display="yes"></script>
@@ -177,6 +172,9 @@ TODO: change markup #v13
 TEST: sunrise sunset with Shanghai, Berlin, Boston
 
 REQ: calculate different time zone values
+
+REQ: handle timezone in date node
+- TODO: code refactoring using libc database (s. https://en.wikipedia.org/wiki/Tz_database)
 
 ### sqlite
 

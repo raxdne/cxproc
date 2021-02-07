@@ -1766,7 +1766,7 @@ SplitStringToAutoLinkNodes(const xmlChar *pucArg)
 xmlNodePtr
 RecognizeUrls(xmlNodePtr pndArg)
 {
-  if (IS_NODE_META(pndArg) || IS_NODE_PIE_PRE(pndArg) || IS_NODE_PIE_TABLE(pndArg) || IS_NODE_PIE_LINK(pndArg)) {
+  if (IS_NODE_META(pndArg) || IS_NODE_PIE_PRE(pndArg) || IS_NODE_PIE_TT(pndArg) || IS_NODE_PIE_TABLE(pndArg) || IS_NODE_PIE_LINK(pndArg)) {
     /* skip */
   }
   else if (IS_ENODE(pndArg) && (pndArg->ns==NULL || pndArg->ns==pnsPie)) {
