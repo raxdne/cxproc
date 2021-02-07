@@ -249,15 +249,17 @@ cxpSubstDetect(xmlNodePtr pndArgSubst, cxpContextPtr pccArg)
 	/* detect a possible default value */
 	pcxpSubstResult->pucDefault = xmlStrdup(pucT);
       }
-
+      else if (pndArgSubst->children != NULL && pndArgSubst->children == pndArgSubst->last && xmlNodeIsText(pndArgSubst->children)
+	  && (pucT = xmlNodeGetContent(pndArgSubst->children)) != NULL) {
+	/* detect a possible default value */
+	pcxpSubstResult->pucDefault = xmlStrdup(pucT);
+      }
+      
       if (((pucT = domGetPropValuePtr(pndArgSubst, BAD_CAST "to")) != NULL
 	   && (pucT = xmlStrdup(pucT)) != NULL)
 	  ||
 	  ((pcxpSubstResult->pndPlain = domGetFirstChild(pndArgSubst, NAME_PLAIN)) != NULL
 	   && (pucT = cxpProcessPlainNode(pcxpSubstResult->pndPlain,pccArg)) != NULL)
-	  ||
-	  (pndArgSubst->children != NULL && pndArgSubst->children == pndArgSubst->last && xmlNodeIsText(pndArgSubst->children)
-	   && (pucT = xmlNodeGetContent(pndArgSubst->children)) != NULL)
 	  ) {
 	/* this is a substitution with a simple string or plain result of child */
 	pcxpSubstResult->pucTo = pucT;

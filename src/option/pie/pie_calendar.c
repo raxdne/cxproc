@@ -901,16 +901,16 @@ AddDateAttributes(pieCalendarElementPtr pceArg)
 			 );
 	      
 	    if (pceT->iTimezoneOffset) {
-	      xmlChar *pucT = NULL;
-		
+	      xmlChar* pucT = NULL;
+
 	      if (pceT->iTimezoneOffset < 0) {
-		pucT = xmlStrncatNew(mpucT, STR_UTF8_MINUS, -1);
+		pucT = xmlStrncatNew(mpucT, BAD_CAST STR_UTF8_MINUS, -1);
 	      }
 	      else if (pceT->iTimezoneOffset > 0) {
-		pucT = xmlStrncatNew(mpucT,"+",-1);
+		pucT = xmlStrncatNew(mpucT, BAD_CAST "+", -1);
 	      }
 
-	      xmlStrPrintf(mpucT,BUFFER_LENGTH-1, "%s%02i:%02i", pucT, (abs(pceT->iTimezoneOffset) / 60), (abs(pceT->iTimezoneOffset) % 60));
+	      xmlStrPrintf(mpucT, BUFFER_LENGTH - 1, "%s%02i:%02i", pucT, (abs(pceT->iTimezoneOffset) / 60), (abs(pceT->iTimezoneOffset) % 60));
 	      xmlFree(pucT);
 	    }
 	    
