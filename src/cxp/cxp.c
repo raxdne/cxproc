@@ -2194,7 +2194,7 @@ UpdateXslVariables(xmlDocPtr pdocResult, xmlNodePtr pndArgCxpXsl, cxpContextPtr 
 		    }
 		  }
 		  else {
-		      cxpCtxtLogPrint(pccArg, 1, "Substitution VARIABLE '%s' failed (no value found)", pucAttrName, pucValue);
+		    cxpCtxtLogPrint(pccArg, 1, "Substitution VARIABLE '%s' failed (no new value found)", pucAttrName, pucValue);
 		  }
 		  cxpSubstFree(pcxpSubstT);
 		}

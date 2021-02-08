@@ -725,7 +725,7 @@ ScanTimeTripeString(xmlChar* pucArgGcal, int *piArgHour, int *piArgMinute, int *
       }
     }
     else if (isdigit(pucT[0]) && isdigit(pucT[1])
-	     && pucT[2] == '.' && isdigit(pucT[3]) && isdigit(pucT[4])
+	     && (pucT[2] == '.' || pucT[2] == ':') && isdigit(pucT[3]) && isdigit(pucT[4])
 	     && ! isdigit(pucT[5])) {
       /* 4 digits '.' separator chars */
       

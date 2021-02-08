@@ -1064,7 +1064,7 @@ GetYearArray(pieCalendarPtr pCalendarArg)
 	  result[1] = 0;
 	}
       }
-      else if (year_delta < 10) {
+      else if (year_delta < 20) {
 	result = (int*)xmlMemMalloc((size_t)((year_delta + 2) * sizeof(int)));
 	if (result) {
 	  for (i=0; year_min+i <= year_max; i++) {

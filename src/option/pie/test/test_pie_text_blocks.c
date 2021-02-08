@@ -1181,6 +1181,9 @@ pieTextBlocksTest(void)
     else if ((pndT = SplitStringToDateNodes(BAD_CAST"20160307+11")) == NULL || xmlAddChild(pndPie, pndT) == NULL) {
       printf("Error 3 SplitStringToDateNodes()\n");
     }
+    else if ((pndT = SplitStringToDateNodes(BAD_CAST"2016/2017")) != NULL) {
+      printf("Error 4 SplitStringToDateNodes()\n");
+    }
     else {
       n_ok++;
       printf("OK\n");

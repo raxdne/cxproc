@@ -249,6 +249,9 @@ cxpSubstDetect(xmlNodePtr pndArgSubst, cxpContextPtr pccArg)
 	/* detect a possible default value */
 	pcxpSubstResult->pucDefault = xmlStrdup(pucT);
       }
+      else if ((pucT = domGetPropValuePtr(pndArgSubst, BAD_CAST "select"))) {
+	pcxpSubstResult->pucDefault = xmlStrdup(pucT);
+      }
       else if (pndArgSubst->children != NULL && pndArgSubst->children == pndArgSubst->last && xmlNodeIsText(pndArgSubst->children)
 	  && (pucT = xmlNodeGetContent(pndArgSubst->children)) != NULL) {
 	/* detect a possible default value */
