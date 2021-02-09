@@ -67,9 +67,11 @@
 typedef enum {
   PIE_CALENDAR_MDAY, 
   PIE_CALENDAR_WDAY, 
-  PIE_CALENDAR_MDAY_HOUR, 
+  PIE_CALENDAR_YDAY,
+  PIE_CALENDAR_MDAY_HOUR,
   PIE_CALENDAR_WDAY_HOUR, 
-  PIE_CALENDAR_WEEK, 
+  PIE_CALENDAR_YDAY_HOUR,
+  PIE_CALENDAR_WEEK,
   PIE_CALENDAR_MONTH, 
   PIE_CALENDAR_YEAR
 } pieCalendarType;
@@ -1493,8 +1495,14 @@ CalendarSetup(xmlNodePtr pndArg, cxpContextPtr pccArg)
       else if (xmlStrEqual(pucAttrType, BAD_CAST"hour")) {
 	pCalendarResult->eType = PIE_CALENDAR_MDAY_HOUR;
       }
+      else if (xmlStrEqual(pucAttrType, BAD_CAST"yday")) {
+	pCalendarResult->eType = PIE_CALENDAR_YDAY;
+      }
       else if (xmlStrEqual(pucAttrType, BAD_CAST"year")) {
 	pCalendarResult->eType = PIE_CALENDAR_YEAR;
+      }
+      else {
+        pCalendarResult->eType = PIE_CALENDAR_MDAY;
       }
     }
     else {
@@ -2201,7 +2209,6 @@ AddTreeYear(pieCalendarPtr pCalendarArg, int year)
     else {
       xmlNodePtr pndMonth = NULL;
       xmlNodePtr pndWeek = NULL;
-      xmlNodePtr pndDay;
       int iDaysDiff;
       int i;
 
@@ -2231,33 +2238,46 @@ AddTreeYear(pieCalendarPtr pCalendarArg, int year)
 	  }
 	}
 
-	if (pCalendarArg->eType == PIE_CALENDAR_MDAY || pCalendarArg->eType == PIE_CALENDAR_MDAY_HOUR
-	    || pCalendarArg->eType == PIE_CALENDAR_WDAY || pCalendarArg->eType == PIE_CALENDAR_WDAY_HOUR) {
+	if (pCalendarArg->eType == PIE_CALENDAR_YEAR) {
+	  pCalendarArg->mpndDay[iDayAbsolute] = pndYear;
+	}
+	else if (pCalendarArg->eType == PIE_CALENDAR_MONTH) {
+	  pCalendarArg->mpndDay[iDayAbsolute] = pndMonth;
+	}
+	else if (pCalendarArg->eType == PIE_CALENDAR_WEEK) {
+	  pCalendarArg->mpndDay[iDayAbsolute] = pndWeek;
+	}
+	else {
+	  xmlNodePtr pndDay = NULL;
 
 	  if (pCalendarArg->eType == PIE_CALENDAR_MDAY || pCalendarArg->eType == PIE_CALENDAR_MDAY_HOUR) {
 	    pndDay = xmlNewChild(pndMonth, NULL, NAME_PIE_DAY, NULL);
 	  }
-	  else {
+	  else if (pCalendarArg->eType == PIE_CALENDAR_WDAY || pCalendarArg->eType == PIE_CALENDAR_WDAY_HOUR) {
 	    pndDay = xmlNewChild(pndWeek, NULL, NAME_PIE_DAY, NULL);
+	  }
+	  else {
+	    pndDay = xmlNewChild(pndYear, NULL, NAME_PIE_DAY, NULL);
 	  }
 
 	  xmlSetProp(pndDay, BAD_CAST "mon", BAD_CAST mpucNumber[t.tm_mon + 1]);
 
 	  xmlSetProp(pndDay, BAD_CAST "om", BAD_CAST mpucNumber[t.tm_mday]);
 
-	  xmlStrPrintf( buffer,BUFFER_LENGTH, "%i", t.tm_yday + 1);
+	  xmlStrPrintf(buffer, BUFFER_LENGTH, "%i", t.tm_yday + 1);
 	  xmlSetProp(pndDay, BAD_CAST "oy", buffer);
 
-	  xmlStrPrintf( buffer,BUFFER_LENGTH, "%i", t.tm_wday);
+	  xmlStrPrintf(buffer, BUFFER_LENGTH, "%i", t.tm_wday);
 	  xmlSetProp(pndDay, BAD_CAST "ow", BAD_CAST mpucNumber[t.tm_wday]);
 	  /* attribute is used in calGetWeekNode() */
 	  xmlSetProp(pndDay, BAD_CAST "own", dow[t.tm_wday]);
 
 	  xmlSetProp(pndDay, BAD_CAST "cw", BAD_CAST mpucNumber[week_current]);
 
-	  xmlStrPrintf( buffer, BUFFER_LENGTH, "%i", iDayAbsolute);
+	  xmlStrPrintf(buffer, BUFFER_LENGTH, "%i", iDayAbsolute);
 	  xmlSetProp(pndDay, BAD_CAST "abs", buffer);
 
+#ifdef EXPERIMENTAL
 	  if (pCalendarArg->fCoordinate) {
 	    double dHourUTCSunrise;
 	    double dHourUTCSunset;
@@ -2265,9 +2285,9 @@ AddTreeYear(pieCalendarPtr pCalendarArg, int year)
 
 	    /*\bug non-sense values  sunrise="67:20" sunset="75:07" */
 
-	    sun_rise_set(t.tm_year + 1900,t.tm_mon + 1,t.tm_mday,
-		pCalendarArg->dLongitude,pCalendarArg->dLatitude,
-		&dHourUTCSunrise,&dHourUTCSunset);
+	    sun_rise_set(t.tm_year + 1900, t.tm_mon + 1, t.tm_mday,
+	      pCalendarArg->dLongitude, pCalendarArg->dLatitude,
+	      &dHourUTCSunrise, &dHourUTCSunset);
 
 	    // Sunrise
 	    dHourUTCSunrise += pCalendarArg->iTimezoneOffset; // FIXME
@@ -2275,8 +2295,8 @@ AddTreeYear(pieCalendarPtr pCalendarArg, int year)
 	      dHourUTCSunrise += 1.0;
 	    }
 	    iMinute = RoundToInt(dHourUTCSunrise * 60.0);
-	    xmlStrPrintf(buffer,BUFFER_LENGTH, "%i:%02i", iMinute / 60, iMinute % 60);
-	    xmlSetProp(pndDay,BAD_CAST "sunrise",buffer);
+	    xmlStrPrintf(buffer, BUFFER_LENGTH, "%i:%02i", iMinute / 60, iMinute % 60);
+	    xmlSetProp(pndDay, BAD_CAST "sunrise", buffer);
 
 	    // Sunset
 	    dHourUTCSunset += pCalendarArg->iTimezoneOffset; // FIXME
@@ -2284,43 +2304,35 @@ AddTreeYear(pieCalendarPtr pCalendarArg, int year)
 	      dHourUTCSunset += 1.0;
 	    }
 	    iMinute = RoundToInt(dHourUTCSunset * 60.0);
-	    xmlStrPrintf(buffer,BUFFER_LENGTH, "%i:%02i", iMinute / 60, iMinute % 60);
-	    xmlSetProp(pndDay,BAD_CAST "sunset",buffer);
+	    xmlStrPrintf(buffer, BUFFER_LENGTH, "%i:%02i", iMinute / 60, iMinute % 60);
+	    xmlSetProp(pndDay, BAD_CAST "sunset", buffer);
 
 	    // Moon
-	    if (IsFullMoonConway(t.tm_year + 1900,t.tm_mon + 1,t.tm_mday)) {
-	      xmlSetProp(pndDay,BAD_CAST "moon",BAD_CAST"full");
+	    if (IsFullMoonConway(t.tm_year + 1900, t.tm_mon + 1, t.tm_mday)) {
+	      xmlSetProp(pndDay, BAD_CAST "moon", BAD_CAST"full");
 	    }
 
-	    xmlSetProp(pndDay,BAD_CAST "dst", BAD_CAST(t.tm_isdst ? "yes" : "no"));
+	    xmlSetProp(pndDay, BAD_CAST "dst", BAD_CAST(t.tm_isdst ? "yes" : "no"));
 	  }
+#endif
 
 	  /*
-	        add the time difference from today in days
+		add the time difference from today in days
 	   */
 	  pCalendarArg->mpndDay[iDayAbsolute] = pndDay;
 
 	  iDaysDiff = iDayAbsolute - iDayToday;
-	  xmlStrPrintf( buffer, BUFFER_LENGTH, "%i", iDaysDiff);
+	  xmlStrPrintf(buffer, BUFFER_LENGTH, "%i", iDaysDiff);
 	  xmlSetProp(pndDay, BAD_CAST "diff", buffer);
-	  
+
 	  if (pCalendarArg->eType == PIE_CALENDAR_MDAY_HOUR || pCalendarArg->eType == PIE_CALENDAR_WDAY_HOUR) {
-	    for (i=0; i<24; i++) {
+	    for (i = 0; i < 24; i++) {
 	      xmlNodePtr pndHour;
 
 	      pndHour = xmlNewChild(pndDay, NULL, NAME_PIE_HOUR, NULL);
 	      xmlSetProp(pndHour, BAD_CAST "nr", BAD_CAST mpucNumber[i]);
 	    }
 	  }
-	}
-	else if (pCalendarArg->eType == PIE_CALENDAR_WEEK) {
-	  pCalendarArg->mpndDay[iDayAbsolute] = pndWeek;
-	}
-	else if (pCalendarArg->eType == PIE_CALENDAR_MONTH) {
-	  pCalendarArg->mpndDay[iDayAbsolute] = pndMonth;
-	}
-	else if (pCalendarArg->eType == PIE_CALENDAR_YEAR) {
-	  pCalendarArg->mpndDay[iDayAbsolute] = pndYear;
 	}
 
 	if (t.tm_wday == 0) { /* am Sonntag */
