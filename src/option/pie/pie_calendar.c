@@ -1443,6 +1443,8 @@ CalendarNew(void)
   if (pCalendarResult) {
     memset(pCalendarResult,0,sizeof(pieCalendar));
     memset(pCalendarResult->mpndDay, 0, sizeof(pCalendarResult->mpndDay));
+    
+    pCalendarResult->eType = PIE_CALENDAR_MDAY;
   }
   return pCalendarResult;
 }
@@ -1483,6 +1485,7 @@ CalendarSetup(xmlNodePtr pndArg, cxpContextPtr pccArg)
     }
 
     if (IS_NODE_CALENDAR(pndArg) && (pucAttrType = domGetPropValuePtr(pndArg, BAD_CAST "type"))) {
+      
       if (xmlStrEqual(pucAttrType, BAD_CAST"week")) {
 	pCalendarResult->eType = PIE_CALENDAR_WEEK;
       }
@@ -1492,21 +1495,20 @@ CalendarSetup(xmlNodePtr pndArg, cxpContextPtr pccArg)
       else if (xmlStrEqual(pucAttrType, BAD_CAST"month")) {
 	pCalendarResult->eType = PIE_CALENDAR_MONTH;
       }
+      else if (xmlStrEqual(pucAttrType, BAD_CAST"mday")) {
+	pCalendarResult->eType = PIE_CALENDAR_MDAY;
+      }
+#if 0
       else if (xmlStrEqual(pucAttrType, BAD_CAST"hour")) {
 	pCalendarResult->eType = PIE_CALENDAR_MDAY_HOUR;
+      }
+#endif
+      else if (xmlStrEqual(pucAttrType, BAD_CAST"year")) {
+	pCalendarResult->eType = PIE_CALENDAR_YEAR;
       }
       else if (xmlStrEqual(pucAttrType, BAD_CAST"yday")) {
 	pCalendarResult->eType = PIE_CALENDAR_YDAY;
       }
-      else if (xmlStrEqual(pucAttrType, BAD_CAST"year")) {
-	pCalendarResult->eType = PIE_CALENDAR_YEAR;
-      }
-      else {
-        pCalendarResult->eType = PIE_CALENDAR_MDAY;
-      }
-    }
-    else {
-      pCalendarResult->eType = PIE_CALENDAR_MDAY;
     }
 
     pCalendarResult->fCoordinate = FALSE;
@@ -1833,30 +1835,40 @@ SubstituteFormatStr(xmlNodePtr pndContext, xmlChar *fmt)
 
       if (pndYear == NULL) {
 	/* context nodes not yet initialized */
+	pndDay   = NULL;
 	if (IS_NODE_PIE_YEAR(pndContext->parent)) {
 	  /* node for whole year */
-	  pndDay   = NULL;
 	  pndWeek  = NULL;
 	  pndMonth = NULL;
 	  pndYear  = pndContext->parent;
 	}
 	else if (IS_NODE_PIE_MONTH(pndContext->parent)) {
-	  pndDay   = NULL;
 	  pndWeek  = NULL;
 	  pndMonth = pndContext->parent;
 	  pndYear  = pndContext->parent->parent;
 	}
 	else if (IS_NODE_PIE_WEEK(pndContext->parent)) {
-	  pndDay   = NULL;
 	  pndWeek  = pndContext->parent;
 	  pndMonth = NULL;
 	  pndYear  = pndContext->parent->parent;
 	}
 	else if (IS_NODE_PIE_DAY(pndContext->parent)) {
 	  pndDay   = pndContext->parent;
-	  pndWeek  = NULL;
-	  pndMonth = pndContext->parent->parent;
-	  pndYear  = pndContext->parent->parent->parent;
+	  if (IS_NODE_PIE_WEEK(pndContext->parent->parent)) {
+	    pndWeek  = pndContext->parent->parent;
+	    pndMonth = NULL;
+	    pndYear  = pndContext->parent->parent->parent;
+	  }
+	  else if (IS_NODE_PIE_MONTH(pndContext->parent->parent)) {
+	    pndWeek  = NULL;
+	    pndMonth = pndContext->parent->parent;
+	    pndYear  = pndContext->parent->parent->parent;
+	  }
+	  else {
+	    pndWeek  = NULL;
+	    pndMonth = NULL;
+	    pndYear  = pndContext->parent->parent;
+	  }
 	}
 	else {
 	}
@@ -1868,7 +1880,7 @@ SubstituteFormatStr(xmlNodePtr pndContext, xmlChar *fmt)
 	  pucValue = domGetPropValuePtr(pndYear,BAD_CAST "ad");
 	}
 	else if (puc1[1] == 'm') { /* month of year */
-	  pucValue = domGetPropValuePtr(pndMonth,BAD_CAST "nr");
+	  pucValue = domGetPropValuePtr(pndDay,BAD_CAST "mon");
 	}
 	else if (puc1[1] == 'd') { /* day of month */
 	  pucValue = domGetPropValuePtr(pndDay,BAD_CAST "om");
@@ -1880,11 +1892,7 @@ SubstituteFormatStr(xmlNodePtr pndContext, xmlChar *fmt)
 	  pucValue = domGetPropValuePtr(pndDay,BAD_CAST "oy");
 	}
 	else if (puc1[1] == 'V') { /* ISO week of year */
-	  if ((pndWeek && (pucValue = domGetPropValuePtr(pndWeek,BAD_CAST "nr")))) {
-	  }
-	  else {
-	    pucValue = domGetPropValuePtr(pndDay,BAD_CAST "cw");
-	  }
+	  pucValue = domGetPropValuePtr(pndDay,BAD_CAST "cw");
 	}
 
 	if (pucValue) {
@@ -2259,6 +2267,15 @@ AddTreeYear(pieCalendarPtr pCalendarArg, int year)
 	  else {
 	    pndDay = xmlNewChild(pndYear, NULL, NAME_PIE_DAY, NULL);
 	  }
+	  
+	  if (pCalendarArg->eType == PIE_CALENDAR_MDAY_HOUR || pCalendarArg->eType == PIE_CALENDAR_WDAY_HOUR) {
+	    for (i = 0; i < 24; i++) {
+	      xmlNodePtr pndHour;
+
+	      pndHour = xmlNewChild(pndDay, NULL, NAME_PIE_HOUR, NULL);
+	      xmlSetProp(pndHour, BAD_CAST "nr", BAD_CAST mpucNumber[i]);
+	    }
+	  }
 
 	  xmlSetProp(pndDay, BAD_CAST "mon", BAD_CAST mpucNumber[t.tm_mon + 1]);
 
@@ -2324,15 +2341,6 @@ AddTreeYear(pieCalendarPtr pCalendarArg, int year)
 	  iDaysDiff = iDayAbsolute - iDayToday;
 	  xmlStrPrintf(buffer, BUFFER_LENGTH, "%i", iDaysDiff);
 	  xmlSetProp(pndDay, BAD_CAST "diff", buffer);
-
-	  if (pCalendarArg->eType == PIE_CALENDAR_MDAY_HOUR || pCalendarArg->eType == PIE_CALENDAR_WDAY_HOUR) {
-	    for (i = 0; i < 24; i++) {
-	      xmlNodePtr pndHour;
-
-	      pndHour = xmlNewChild(pndDay, NULL, NAME_PIE_HOUR, NULL);
-	      xmlSetProp(pndHour, BAD_CAST "nr", BAD_CAST mpucNumber[i]);
-	    }
-	  }
 	}
 
 	if (t.tm_wday == 0) { /* am Sonntag */
