@@ -3414,6 +3414,8 @@ resNodeToSql(resNodePtr prnArg, int iArgOptions)
 
   \param prnArg a pointer to a resource node
   \return TRUE if an according filesystem entry exists
+
+  \deprecated because of portability and performance issues
 */
 BOOL_T
 resNodeSetOwner(resNodePtr prnArg)
@@ -3569,6 +3571,7 @@ resNodeUpdate(resNodePtr prnArg, int iArgOptions, const pcre2_code *re_match, co
 	resNodeResetMimeType(prnArg);
       }
 
+#if 0
       if (iArgOptions & RN_INFO_META
 	&& (resNodeIsFile(prnArg) || resNodeIsDir(prnArg) || resNodeIsFileInArchive(prnArg) || resNodeIsDirInArchive(prnArg))) {
 #ifdef _MSC_VER
@@ -3578,7 +3581,8 @@ resNodeUpdate(resNodePtr prnArg, int iArgOptions, const pcre2_code *re_match, co
 #endif
 	/*\todo use resNodeSetProp() */
       }
-
+#endif
+      
       if (iArgOptions & RN_INFO_CONTENT) {
 	if (resNodeIsURL(prnArg)) {
 	  if (resNodeGetContent(prnArg, 1024) != NULL && resNodeIsMemory(prnArg)) { /* content fetched from URL */
@@ -3922,6 +3926,8 @@ _resNodeGetFileCrc(resNodePtr prnArg)
 
 
 /*! \return a pointer to the owner string of resource node
+
+\deprecated s. resNodeSetOwner()
 */
 xmlChar *
 resNodeGetOwner(resNodePtr prnArg)

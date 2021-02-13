@@ -380,9 +380,11 @@ dbParseDirTraverse(resNodePtr prnArgDb, resNodePtr prnArgContext, int iDepthArg,
 
       if (iLevelVerboseArg > 1) {
 	resNodeResetMimeType(prnArgContext);
+#if 0
 	if (iLevelVerboseArg > 2) {
 	  resNodeSetOwner(prnArgContext);
 	}
+#endif
       }
 
       pucStatement = resNodeToSql(prnArgContext, 1);
