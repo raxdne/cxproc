@@ -3543,7 +3543,7 @@ cxpProcessInfoNode(xmlNodePtr pndInfo, cxpContextPtr pccArg)
 
     nodeOption = xmlNewChild(nodeProgram, NULL, BAD_CAST"option", NULL);
     xmlSetProp(nodeOption,BAD_CAST "name",BAD_CAST"libexif");
-    xmlSetProp(nodeOption,BAD_CAST "ns",BAD_CAST"http://libexif.sourceforge.net/");
+    xmlSetProp(nodeOption,BAD_CAST "ns",BAD_CAST"https://github.com/libexif");
 #ifdef HAVE_LIBEXIF
     xmlSetProp(nodeOption,BAD_CAST "select", BAD_CAST "yes");
     xmlSetProp(nodeOption,BAD_CAST "version",BAD_CAST "0.6.21");

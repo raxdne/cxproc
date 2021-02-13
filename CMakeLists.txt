@@ -617,7 +617,7 @@ ENDIF (CXPROC_DUKTAPE)
 # either local libexif or system libexif
 #
 
-find_path(LIBEXIF_INCLUDE_DIR NAMES libexif/exif.h
+find_path(LIBEXIF_INCLUDE_DIR NAMES libexif/exif-data.h
   HINTS "${CXPROC_PREFIX}/include"
   ) 
 

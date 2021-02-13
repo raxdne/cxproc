@@ -245,6 +245,20 @@ resMimeIsDatabase(int iMimeType)
 } /* end of resMimeIsDatabase() */
 
 
+/*! \return TRUE if iMimeType is a picture/image format
+*/
+BOOL_T
+resMimeIsPicture(int iMimeType)
+{
+  return (iMimeType == MIME_IMAGE_GIF
+	  || iMimeType == MIME_IMAGE_JPEG
+	  || iMimeType == MIME_IMAGE_PNG
+	  || iMimeType == MIME_IMAGE_TIFF
+	  || iMimeType == MIME_IMAGE_WMF
+	  );
+} /* end of resMimeIsPicture() */
+
+
 /*! \return TRUE if iMimeType is an archive format
 */
 BOOL_T

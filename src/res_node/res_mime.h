@@ -177,6 +177,9 @@ extern BOOL_T
 resMimeIsDatabase(int iMimeType);
 
 extern BOOL_T
+resMimeIsPicture(int iMimeType);
+
+extern BOOL_T
 resMimeIsArchive(int iMimeType);
 
 extern BOOL_T

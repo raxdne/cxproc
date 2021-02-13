@@ -2297,6 +2297,20 @@ resNodeIsDatabase(resNodePtr prnArg)
 } /* end of resNodeIsDatabase() */
 
 
+/*! \return TRUE if prnArg is a processable picture file
+*/
+BOOL_T
+resNodeIsPicture(resNodePtr prnArg)
+{
+  BOOL_T fResult = FALSE;
+
+  if (prnArg) {
+    fResult = resMimeIsPicture(resNodeGetMimeType(prnArg));
+  }
+  return fResult;
+} /* end of resNodeIsPicture() */
+
+
 /*! \return TRUE if prnArg is a processable archive file
 */
 BOOL_T
@@ -3108,6 +3122,9 @@ resNodeToDOM(resNodePtr prnArg, int iArgOptions)
     }
     else if (iArgOptions & RN_INFO_CONTENT && resNodeIsLink(prnArg)) {
       /*!\todo add link target content */
+    }
+    else if (resNodeIsPicture(prnArg)) {
+      resNodeContentToDOM(pndT, prnArg);
     }
     else if (resNodeIsFile(prnArg)) {
 
