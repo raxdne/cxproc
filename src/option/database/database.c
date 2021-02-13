@@ -454,6 +454,7 @@ BOOL_T
 dbParseDirCreateTables(resNodePtr prnArgDb)
 {
   BOOL_T fResult = TRUE;
+  xmlChar *pucSql = NULL;
   xmlChar mpucT[BUFFER_LENGTH];
   char* zErr = NULL;
   int rc;
@@ -462,88 +463,91 @@ dbParseDirCreateTables(resNodePtr prnArgDb)
 
   pdbContext = (sqlite3 *)resNodeGetHandleIO(prnArgDb);
 
-  rc = sqlite3_exec(pdbContext,
-      "create table if not exists directory(i INTEGER PRIMARY KEY, depth INTEGER, type INTEGER, mime INTEGER, r INTEGER, w INTEGER, x INTEGER, h INTEGER, owner text, name text, ext text, object text, size INTEGER, rsize INTEGER, path text, mtime INTEGER, mtime2 text);",
-      NULL,
-      NULL,
-      &zErr);
-  if (rc != SQLITE_OK) {
-    if (zErr) {
-      PrintFormatLog(1, "SQL error: %s\n", zErr);
+  if (TableExists(prnArgDb,BAD_CAST"meta") == FALSE) {
+    pucSql = "create table meta(i INTEGER PRIMARY KEY, timestamp INTEGER, key text, value text);";
+    rc = sqlite3_exec(pdbContext, (const char *)pucSql, NULL, NULL, &zErr);
+    if (rc == SQLITE_OK) {
+    }
+    else if (zErr) {
+      PrintFormatLog(1, "SQL error 'meta': %s\n", zErr);
+      sqlite3_free(zErr);
+      fResult = FALSE;
+    }
+  }
+  dbInsertMetaLog(prnArgDb,"log/create",NULL);
+
+  if (TableExists(prnArgDb,BAD_CAST"directory") == FALSE) {
+    pucSql = "create table directory("
+      "i INTEGER PRIMARY KEY, "
+      "depth INTEGER, "
+      "type INTEGER, "
+      "mime INTEGER, "
+      "r INTEGER, "
+      "w INTEGER, "
+      "x INTEGER, "
+      "h INTEGER, "
+      "owner text, "
+      "name text, "
+      "ext text, "
+      "object text, "
+      "size INTEGER, "
+      "rsize INTEGER, "
+      "path text, "
+      "mtime INTEGER, "
+      "mtime2 text"
+      ");";
+    rc = sqlite3_exec(pdbContext, (const char *)pucSql, NULL, NULL, &zErr);
+    if (rc == SQLITE_OK) {
+    }
+    else if (zErr) {
+      PrintFormatLog(1, "SQL error 'directory': %s\n", zErr);
       sqlite3_free(zErr);
       fResult = FALSE;
     }
   }
 
   if (TableExists(prnArgDb,BAD_CAST"mimetypes") == FALSE) {
-    rc = sqlite3_exec(pdbContext,"create table mimetypes(mime INTEGER, name text);",NULL,NULL,&zErr);
-    if (rc != SQLITE_OK) {
-      if (zErr) {
-	PrintFormatLog(1, "SQL error: %s\n", zErr);
-	sqlite3_free(zErr);
-	fResult = FALSE;
-      }
-    }
-
+    pucSql = xmlStrdup("create table mimetypes(mime INTEGER, name text);");
     for (i=MIME_UNKNOWN; i < MIME_END; i++) {
       char *pcMime;
-
+	
       pcMime = (char *)resMimeGetTypeStr(i);
       if (pcMime) {
-	xmlStrPrintf(mpucT,BUFFER_LENGTH,
-	    "insert into mimetypes(mime,name) values (%i,\"%s\");",
-	    i, BAD_CAST pcMime);
-	PrintFormatLog(4, "Database add MIME: %s\n", mpucT);
-
-	rc = sqlite3_exec(pdbContext,(const char *)mpucT,NULL,NULL,&zErr);
-	if (rc != SQLITE_OK) {
-	  if (zErr) {
-	    PrintFormatLog(1, "SQL error: %s\n", zErr);
-	    sqlite3_free(zErr);
-	    fResult = FALSE;
-	  }
-	}
+	xmlStrPrintf(mpucT,BUFFER_LENGTH, "insert into mimetypes(mime,name) values (%i,\"%s\");", i, BAD_CAST pcMime);
+	pucSql = xmlStrcat(pucSql,mpucT);
       }
     }
+
+    rc = sqlite3_exec(pdbContext, (const char *)pucSql, NULL, NULL, &zErr);
+    if (rc == SQLITE_OK) {
+    }
+    else if (zErr) {
+      PrintFormatLog(1, "SQL error 'mimetypes': %s\n", zErr);
+      sqlite3_free(zErr);
+      fResult = FALSE;
+    }
+    xmlFree(pucSql);
   }
-
-  xmlStrPrintf(mpucT,BUFFER_LENGTH,
-      "create table if not exists meta(i INTEGER PRIMARY KEY, timestamp INTEGER, key text, value text);");
-
-  rc = sqlite3_exec(pdbContext, (const char *)mpucT, NULL, NULL, &zErr);
-  if (rc != SQLITE_OK) {
-    if (zErr) {
-      PrintFormatLog(1, "SQL error: %s\n", zErr);
+  
+  if (TableExists(prnArgDb,BAD_CAST"queries") == FALSE) {
+    pucSql = "create table queries(query text);"
+      "insert into queries(query) values (\"SELECT * FROM meta;\");"
+      "insert into queries(query) values (\"SELECT DISTINCT name FROM directory;\");"
+      "insert into queries(query) values (\"SELECT sum(size)/(1024*1024*1024) AS GB FROM directory;\");"
+      "insert into queries(query) values (\"SELECT path || '/' || name AS File,(size / 1048576) AS MB,mtime2 AS MTime FROM directory WHERE (size > 1048576) ORDER BY MB DESC;\");"
+      "insert into queries(query) values (\"SELECT count() AS Count, name AS Name FROM directory GROUP BY name ORDER BY Count DESC;\");";
+    rc = sqlite3_exec(pdbContext, (const char *)pucSql, NULL, NULL, &zErr);
+    if (rc == SQLITE_OK) {
+    }
+    else if (zErr) {
+      PrintFormatLog(1, "SQL error 'queries': %s\n", zErr);
       sqlite3_free(zErr);
       fResult = FALSE;
     }
   }
 
-  if (TableExists(prnArgDb,BAD_CAST"queries") == FALSE) {
-    xmlStrPrintf(mpucT,BUFFER_LENGTH, "create table queries(query text);");
-
-    rc = sqlite3_exec(pdbContext, (const char *)mpucT, NULL, NULL, &zErr);
-    if (rc != SQLITE_OK) {
-      if (zErr) {
-	PrintFormatLog(1, "SQL error: %s\n", zErr);
-	sqlite3_free(zErr);
-	fResult = FALSE;
-      }
-    }
-    rc = sqlite3_exec(pdbContext, (const char *)"insert into queries(query) values (\"SELECT * FROM meta;\");", NULL, NULL, &zErr);
-    rc = sqlite3_exec(pdbContext, (const char *)"insert into queries(query) values (\"SELECT DISTINCT name FROM directory;\");", NULL, NULL, &zErr);
-    rc = sqlite3_exec(pdbContext, (const char *)"insert into queries(query) values (\"SELECT sum(size)/(1024*1024*1024) AS GB FROM directory;\");", NULL, NULL, &zErr);
-    rc = sqlite3_exec(pdbContext, (const char *)"insert into queries(query) values (\"SELECT path || '\' || name AS File,(size / 1048576) AS MB,mtime2 AS MTime FROM directory WHERE (size > 1048576) ORDER BY MB DESC;\");", NULL, NULL, &zErr);
-    rc = sqlite3_exec(pdbContext, (const char *)"insert into queries(query) values (\"SELECT count() AS Count, name AS Name FROM directory GROUP BY name ORDER BY Count DESC;\");", NULL, NULL, &zErr);
-
-    /*!\todo error handling */
-  }
-
-  dbInsertMetaLog(prnArgDb,NULL,NULL);
-
   return fResult;
-}
-/* end of dbParseDirCreateTables() */
+} /* end of dbParseDirCreateTables() */
 
 
 /*!
@@ -576,12 +580,12 @@ dbInsertMetaLog(resNodePtr prnArgDb, xmlChar *pucArgKey, xmlChar *pucValue)
     (long int)system_zeit_1, pucArgKey, pucValue );
 
   rc = sqlite3_exec((sqlite3 *)resNodeGetHandleIO(prnArgDb), (const char *)mpucOut, NULL, NULL, &zErr);
-  if (rc != SQLITE_OK) {
-    if (zErr) {
-      PrintFormatLog(1, "SQL error: %s -> %s", mpucOut, zErr);
-      sqlite3_free(zErr);
-      return FALSE;
-    }
+  if (rc == SQLITE_OK) {
+  }
+  else if (zErr) {
+    PrintFormatLog(1, "SQL error: %s -> %s", mpucOut, zErr);
+    sqlite3_free(zErr);
+    return FALSE;
   }
   return TRUE;
 }

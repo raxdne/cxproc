@@ -45,7 +45,7 @@ static const char* resMimeTypeStr[] = {
   /* MIME_APPLICATION_VND_OPENXMLFORMATS_OFFICEDOCUMENT_PRESENTATIONML_PRESENTATION */ "application/vnd.openxmlformats-officedocument.presentationml.presentation",
   /* MIME_APPLICATION_VND_OPENXMLFORMATS_OFFICEDOCUMENT_SPREADSHEETML_SHEET */ "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
   /* MIME_APPLICATION_VND_OPENXMLFORMATS_OFFICEDOCUMENT_WORDPROCESSINGML_DOCUMENT */ "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-  /* MIME_APPLICATION_VND_MS_VISIO_DRAWING_MAIN_XML_2013 */ "application/vnd.ms-visio.drawing.main+xml; version=\"2013\"",
+  /* MIME_APPLICATION_VND_MS_VISIO_DRAWING_MAIN_XML_2013 */ "application/vnd.ms-visio.drawing.main+xml",
   /* MIME_APPLICATION_VND_MICROSOFT_PORTABLE_EXECUTABLE */ "application/vnd.microsoft.portable-executable",
   /*
     Open Office https://www.openoffice.org/framework/documentation/mimetypes/mimetypes.html
