@@ -1751,8 +1751,8 @@ cxpProcessMakeNode(xmlNodePtr pndArg,cxpContextPtr pccArg)
 	  if (pucT) {
 	    /*!\todo apply text substitutions */
 	    xmlFree(pucT);
-	    cxpViewNodeResult(pndChild, pccHere);
 	  }
+	  cxpViewNodeResult(pndChild, pccHere);
 	}
 	else if (IS_NODE_SYSTEM(pndChild)) {
 	  if (cxpProcessSystemNode(pndChild, pccHere) == FALSE) { /* change of local resource node possible */

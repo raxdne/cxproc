@@ -1183,6 +1183,7 @@ pieTextBlocksTest(void)
     }
     else if ((pndT = SplitStringToDateNodes(BAD_CAST"2016/2017")) != NULL) {
       printf("Error 4 SplitStringToDateNodes()\n");
+      xmlFreeNode(pndT);
     }
     else {
       n_ok++;

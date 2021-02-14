@@ -759,7 +759,7 @@ cxpTest(cxpContextPtr pccArg)
       n_ok++;
       printf("OK\n");
     }
-    domPutDocString(stderr, BAD_CAST "RDF ", pdocT);
+    //domPutDocString(stderr, BAD_CAST "RDF ", pdocT);
     xmlFreeDoc(pdocT);
     xmlFreeNode(pndRoot);
   }

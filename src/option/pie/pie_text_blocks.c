@@ -52,7 +52,7 @@
 #define RE_FIG "^[ \\t]*(Fig|Abb)\\.[ \\t]*([^ \\t]+)[ \\t]*(.+)*$"
 #define RE_SCRIPT "script=\\\"([^\\\"]+)\\\""
 
-#define RE_DATE_YEAR   "[1290]{2}[0-9]{2}"
+#define RE_DATE_YEAR   "[12][90][0-9]{2}"
 #define RE_DATE_EASTER "\\@e([\\-+][0-9]+)*"
 #define RE_DATE_WEEK   "\\*+w[0-5]*[0-9](mon|tue|wed|thu|fri|sat|sun)"
 #define RE_DATE_MONTH  "[01][0-9]"
@@ -60,9 +60,9 @@
 #define RE_DATE_HOUR   "[\t ]+[012]*[0-9][\\.:][0-5][0-9](-[012]*[0-9][\\.:][0-5][0-9])*"
 
 #define RE_DATE_ISO_TIME "T[012][0-9]:*[0-5][0-9]:*[0-5][0-9]((\\+|" STR_UTF8_MINUS ")[0-9]{2}:*[0-9]{2}|Z|[A-Z]{3})"
-#define RE_DATE_MODS   "[,+:#.x][0-9]+"
+#define RE_DATE_MODS   "[\\,\\+\\:\\#\\.x][0-9]+"
 #define RE_DATE_TIME   "[\t ]+[012]*[0-9].[0-5][0-9](-[0-9]{1,2}.[0-5][0-9])*"
-#define RE_DATE_GERMAN "[0123]*[0-9]\.[01]*[0-9]\.[1290]{2}[0-9]{2}"
+#define RE_DATE_GERMAN RE_DATE_DAY "\." RE_DATE_MONTH "\." RE_DATE_YEAR
 
 #define RE_DATE "\\b("							\
   "(" RE_DATE_YEAR "-" RE_DATE_MONTH "-" RE_DATE_DAY "(" RE_DATE_ISO_TIME "|" RE_DATE_HOUR ")*" ")" \

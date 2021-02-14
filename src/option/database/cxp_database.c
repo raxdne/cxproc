@@ -252,9 +252,10 @@ xmlChar *
 dbProcessDbNodeToPlain(xmlNodePtr pndArgDb, cxpContextPtr pccArg)
 {
   xmlChar* pucResult = NULL;
-  resNodePtr prnDb = NULL;
 
   if (pndArgDb) {
+    resNodePtr prnDb = NULL;
+    
     prnDb = dbResNodeDatabaseOpenNew(pndArgDb,pccArg);
     if (prnDb) {
       xmlChar *pucQueryResult = NULL;
@@ -303,7 +304,7 @@ dbProcessDbNodeToPlain(xmlNodePtr pndArgDb, cxpContextPtr pccArg)
 	  pndQuery = pndQuery->next;
 	}
       }
-      resNodeClose(prnDb);
+      resNodeFree(prnDb);
     }
   }
   return pucResult;
@@ -409,7 +410,7 @@ dbResNodeDatabaseOpenNew(xmlNodePtr pndArg, cxpContextPtr pccArg)
   xmlChar *pucNameDb;
   BOOL_T fWrite;
   BOOL_T fAppend;
-  resNodePtr prnResult;
+  resNodePtr prnResult = NULL;
 
   /*!\todo allow INSERT and UPDATE queries with values from an input DOM */
 
@@ -421,8 +422,8 @@ dbResNodeDatabaseOpenNew(xmlNodePtr pndArg, cxpContextPtr pccArg)
   fAppend = domGetPropFlag(pndArg, BAD_CAST"append", fWrite);
 
   if (STR_IS_EMPTY(pucNameDb) || resPathIsInMemory(pucNameDb)) {
-    prnResult = resNodeInMemoryNew();
     /*!\bug in-memory database not usable (test/sql "test-db-8-in-memory.xml") */
+    // prnResult = resNodeInMemoryNew();
   }
   else {
     prnResult = resNodeConcatNew(cxpCtxtLocationGetStr(pccArg), pucNameDb);
@@ -626,7 +627,7 @@ dbProcessDbNode(xmlNodePtr pndArg, cxpContextPtr pccArg)
 	}
       }
       else if (pndArg->children != NULL && pndArg->children == pndArg->last && pndArg->children->type == XML_TEXT_NODE) { /* single text node */
-	pucQuery = pndArg->children->content;
+	pucQuery = xmlStrdup(pndArg->children->content);
 	if (STR_IS_NOT_EMPTY(pucQuery)) {
 	  dbInsert(prnDb, pucQuery);
 	}
