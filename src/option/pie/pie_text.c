@@ -259,6 +259,8 @@ pieProcessPieNode(xmlNodePtr pndArgPie, cxpContextPtr pccArg)
     /*! \todo add error logs to DOM */
     //pndError = xmlNewChild(pndPieRoot, NULL, NAME_ERROR, NULL);
 
+    RecognizeInlines(pndPieRoot);
+
     if (domGetPropFlag(pndArgPie, BAD_CAST "script", TRUE)) {
       cxpCtxtLogPrint(pccArg, 2, "Recognize scripts");
       RecognizeScripts(pndPieRoot);
@@ -291,7 +293,6 @@ pieProcessPieNode(xmlNodePtr pndArgPie, cxpContextPtr pccArg)
     /* replace all subst nodes in tree by its result */
     cxpSubstReplaceNodes(pndBlock, pccArg);
 
-    RecognizeInlines(pndPieRoot);
     RecognizeDates(pndPieRoot);
 
     if (domGetPropFlag(pndArgPie, BAD_CAST "todo", TRUE)) {

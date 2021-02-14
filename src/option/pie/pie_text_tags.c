@@ -414,7 +414,7 @@ RecognizeHashtags(xmlNodePtr pndArg, pcre2_code* preArgHashTag, pcre2_code* preA
       }
     }
   }
-  else if (pndArg == NULL || IS_NODE_META(pndArg) || IS_NODE_PIE_PRE(pndArg) || IS_NODE_PIE_DATE(pndArg) || IS_NODE_PIE_LINK(pndArg)) {
+  else if (pndArg == NULL || IS_NODE_META(pndArg) || IS_NODE_PIE_PRE(pndArg) || IS_NODE_PIE_TT(pndArg) || IS_NODE_PIE_DATE(pndArg) || IS_NODE_PIE_LINK(pndArg)) {
     /* skip */
   }
   else if (IS_NODE_PIE_ETAG(pndArg) || IS_NODE_PIE_HTAG(pndArg) || IS_NODE_PIE_TTAG(pndArg)) {
@@ -704,7 +704,7 @@ RecognizeNodeTags(xmlNodePtr pndTags, xmlNodePtr pndArg, pcre2_code* preArg)
 {
   BOOL_T fResult = TRUE;
 
-  if (IS_NODE_META(pndArg) || IS_NODE_PIE_PRE(pndArg) || IS_NODE_PIE_LINK(pndArg) || IS_NODE_PIE_DATE(pndArg)) {
+  if (IS_NODE_META(pndArg) || IS_NODE_PIE_PRE(pndArg) || IS_NODE_PIE_TT(pndArg) || IS_NODE_PIE_LINK(pndArg) || IS_NODE_PIE_DATE(pndArg)) {
     /* skip */
   }
   else if (IS_NODE_PIE_ETAG(pndArg) || IS_NODE_PIE_HTAG(pndArg) || IS_NODE_PIE_TTAG(pndArg)) {
@@ -890,7 +890,7 @@ ProcessTags(xmlDocPtr pdocPie, xmlChar* pucAttrTags)
 xmlNodePtr
 RecognizeGlobalTags(xmlNodePtr pndTags, xmlNodePtr pndArg)
 {
-  if (IS_NODE_META(pndArg) || IS_NODE_PIE_PRE(pndArg) || IS_NODE_PIE_LINK(pndArg)) {
+  if (IS_NODE_META(pndArg) || IS_NODE_PIE_PRE(pndArg) || IS_NODE_PIE_TT(pndArg) || IS_NODE_PIE_LINK(pndArg)) {
     /* skip */
   }
   else if (xmlHasProp(pndArg,BAD_CAST"hidden") != NULL) {

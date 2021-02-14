@@ -104,6 +104,7 @@ dbProcessDbNodeToDoc(xmlNodePtr pndArgDb, cxpContextPtr pccArg)
 	  }
 	}
       }
+      resNodeClose(prnDb);
       resNodeFree(prnDb);
     }
   }
@@ -251,9 +252,10 @@ xmlChar *
 dbProcessDbNodeToPlain(xmlNodePtr pndArgDb, cxpContextPtr pccArg)
 {
   xmlChar* pucResult = NULL;
-  resNodePtr prnDb = NULL;
 
   if (pndArgDb) {
+    resNodePtr prnDb = NULL;
+    
     prnDb = dbResNodeDatabaseOpenNew(pndArgDb,pccArg);
     if (prnDb) {
       xmlChar *pucQueryResult = NULL;
@@ -318,37 +320,37 @@ dbParseDirTraverse(resNodePtr prnArgDb, resNodePtr prnArgContext, int iDepthArg,
 {
   BOOL_T fResult = TRUE;
 
-  if (resNodeIsReadable(prnArgContext) == FALSE) {
-    cxpCtxtLogPrint(pccArg, 2, "Context '%s' not readable", resNodeGetNameNormalized(prnArgContext));
-    fResult = FALSE;
-  }
-  else if (resNodeIsHidden(prnArgContext) && (iOptions & FS_PARSE_HIDDEN) == 0) {
-    /* ignore hidden context */
+  if (resNodeIsHidden(prnArgContext) && (iOptions & FS_PARSE_HIDDEN) == 0) {
+    dbInsertMetaLog(prnArgDb, BAD_CAST"log/ignore+hidden", resNodeGetNameNormalized(prnArgContext));
   }
   else if (resNodeIsDir(prnArgContext)) {
+    xmlChar* pucStatement;
+    resNodePtr prnT;
 
-    if (resNodeListParse(prnArgContext, 1, re_match)) { /*! read Resource Node as list of childs */
-      xmlChar *pucStatement;
-      resNodePtr prnT;
-
-      pucStatement = resNodeToSql(prnArgContext, 1);
-      dbInsert(prnArgDb, pucStatement);
-      xmlFree(pucStatement);
-
+    if (resNodeIsReadable(prnArgContext) == FALSE) {
+      dbInsertMetaLog(prnArgDb, BAD_CAST"error/read", resNodeGetNameNormalized(prnArgContext));
+    }
+    else if (resNodeListParse(prnArgContext, 1, re_match)) { /*! read Resource Node as list of childs */
       for (prnT = resNodeGetChild(prnArgContext); iDepthArg > 0 && prnT != NULL && fResult; prnT = resNodeGetNext(prnT)) {
 	fResult &= dbParseDirTraverse(prnArgDb, prnT, iDepthArg - 1, iLevelVerboseArg, iOptions, re_match, pccArg);
       }
-
       resNodeFree(resNodeGetChild(prnArgContext)); /* release the context list of current directory */
     }
     else {
-      cxpCtxtLogPrint(pccArg, 1, "Error resNodeListParse()");
-      fResult = FALSE;
+      dbInsertMetaLog(prnArgDb, BAD_CAST"error/parse+list", resNodeGetNameNormalized(prnArgContext));
     }
+
+    pucStatement = resNodeToSql(prnArgContext, 1);
+    dbInsert(prnArgDb, pucStatement);
+    xmlFree(pucStatement);
   }
+#ifdef HAVE_LIBARCHIVE
   else if (resNodeIsArchive(prnArgContext)) {
 
-    if (resNodeListParse(prnArgContext, 1, re_match)) { /*! read Resource Node as list of childs */
+    if (resNodeIsReadable(prnArgContext) == FALSE) {
+      dbInsertMetaLog(prnArgDb, BAD_CAST"error/read", resNodeGetNameNormalized(prnArgContext));
+    }
+    else if (resNodeListParse(prnArgContext, 1, re_match)) { /*! read Resource Node as list of childs */
       xmlChar *pucStatement;
 
       pucStatement = resNodeListToSQL(prnArgContext, iOptions);
@@ -358,10 +360,10 @@ dbParseDirTraverse(resNodePtr prnArgDb, resNodePtr prnArgContext, int iDepthArg,
       resNodeFree(resNodeGetChild(prnArgContext)); /* release the context list of current directory */
     }
     else {
-      cxpCtxtLogPrint(pccArg, 1, "Error resNodeListParse()");
-      fResult = FALSE;
+      dbInsertMetaLog(prnArgDb, BAD_CAST"error/parse+list", resNodeGetNameNormalized(prnArgContext));
     }
   }
+#endif
 #ifdef HAVE_PIE
   else if (resNodeGetMimeType(prnArgContext) == MIME_APPLICATION_PIE_XML_INDEX) {
     /* ignore index files */
@@ -380,9 +382,11 @@ dbParseDirTraverse(resNodePtr prnArgDb, resNodePtr prnArgContext, int iDepthArg,
 
       if (iLevelVerboseArg > 1) {
 	resNodeResetMimeType(prnArgContext);
+#if 0
 	if (iLevelVerboseArg > 2) {
 	  resNodeSetOwner(prnArgContext);
 	}
+#endif
       }
 
       pucStatement = resNodeToSql(prnArgContext, 1);
@@ -390,14 +394,12 @@ dbParseDirTraverse(resNodePtr prnArgDb, resNodePtr prnArgContext, int iDepthArg,
       xmlFree(pucStatement);
     }
     else {
-      cxpCtxtLogPrint(pccArg, 1, "Error resNodeListParse()");
-      fResult = FALSE;
+      dbInsertMetaLog(prnArgDb, BAD_CAST"error/read", resNodeGetNameNormalized(prnArgContext));
     }
   }
 
   return fResult;
-}
-/* end of dbParseDirTraverse() */
+} /* end of dbParseDirTraverse() */
 
 
 /*!\return an allocated resource node according to attributes of pndArg
@@ -408,7 +410,7 @@ dbResNodeDatabaseOpenNew(xmlNodePtr pndArg, cxpContextPtr pccArg)
   xmlChar *pucNameDb;
   BOOL_T fWrite;
   BOOL_T fAppend;
-  resNodePtr prnResult;
+  resNodePtr prnResult = NULL;
 
   /*!\todo allow INSERT and UPDATE queries with values from an input DOM */
 
@@ -420,8 +422,8 @@ dbResNodeDatabaseOpenNew(xmlNodePtr pndArg, cxpContextPtr pccArg)
   fAppend = domGetPropFlag(pndArg, BAD_CAST"append", fWrite);
 
   if (STR_IS_EMPTY(pucNameDb) || resPathIsInMemory(pucNameDb)) {
-    prnResult = resNodeInMemoryNew();
     /*!\bug in-memory database not usable (test/sql "test-db-8-in-memory.xml") */
+    // prnResult = resNodeInMemoryNew();
   }
   else {
     prnResult = resNodeConcatNew(cxpCtxtLocationGetStr(pccArg), pucNameDb);
@@ -506,7 +508,7 @@ dbProcessDirNode(resNodePtr prnArgDb, xmlNodePtr pndArgDir, cxpContextPtr pccArg
 
     if (re_match == NULL) {
       /* regexp error handling */
-      cxpCtxtLogPrint(pccArg,1, "File matching regexp '%s' error: '%i'", &pucAttrMatch[erroffset], errornumber);
+      dbInsertMetaLog(prnArgDb, BAD_CAST "error/regexp", pucAttrMatch);
       return NULL;
     }
   }
@@ -546,12 +548,10 @@ dbProcessDirNode(resNodePtr prnArgDb, xmlNodePtr pndArgDir, cxpContextPtr pccArg
 
       prnT = resNodeConcatNew(cxpCtxtLocationGetStr(pccArg),pucPath);
       if (cxpCtxtAccessIsPermitted(pccArg,prnT) == FALSE) {
-	cxpCtxtLogPrint(pccArg,2,"Access to path '%s' denied",resNodeGetNameNormalized(prnT));
-	dbInsertMetaLog(prnArgDb, BAD_CAST "error/access", pucPath);
+	dbInsertMetaLog(prnArgDb, BAD_CAST "error/access", resNodeGetNameNormalized(prnT));
       }
       else if (resNodeReadStatus(prnT) == FALSE) {
-	cxpCtxtLogPrint(pccArg,2,"Directory or file '%s' does not exist",resNodeGetNameNormalized(prnT));
-	  dbInsertMetaLog(prnArgDb, BAD_CAST "error/exists", pucPath);
+	dbInsertMetaLog(prnArgDb, BAD_CAST "error/exists", resNodeGetNameNormalized(prnT));
       }
       else if (prnArgDb != NULL
 	  && dbParseDirTraverse(prnArgDb, prnT, iDepth, iLevelVerbose, iOptions, re_match, pccArg)) {
@@ -561,8 +561,7 @@ dbProcessDirNode(resNodePtr prnArgDb, xmlNodePtr pndArgDir, cxpContextPtr pccArg
       resNodeFree(prnT);
     }
     else {
-      cxpCtxtLogPrint(pccArg,2, "File entry '%s' neither file nor directory", pucPath);
-      dbInsertMetaLog(prnArgDb, BAD_CAST "error", BAD_CAST "unknown");
+      dbInsertMetaLog(prnArgDb, BAD_CAST "error/type+unknown", pucPath);
     }
 
     if (pucPath) {
@@ -600,10 +599,10 @@ dbProcessDbNode(xmlNodePtr pndArg, cxpContextPtr pccArg)
       
       if (domGetFirstChild(pndArg, NAME_DIR) != NULL) { /* dir and file nodes will be parsed */
 	dbParseDirCreateTables(prnDb);
+	dbInsertMetaLog(prnDb, NULL, NULL);
 	for (pndChild = pndArg->children; pndChild; pndChild = pndChild->next) {
 	  dbProcessDirNode(prnDb, pndChild, pccArg);
 	}
-	dbInsertMetaLog(prnDb, NULL, NULL);
       }
       else if (domGetFirstChild(pndArg, NAME_QUERY)) { /* SQL statements to insert data */
 	for (pndChild = pndArg->children; pndChild; pndChild = pndChild->next) {
@@ -628,7 +627,7 @@ dbProcessDbNode(xmlNodePtr pndArg, cxpContextPtr pccArg)
 	}
       }
       else if (pndArg->children != NULL && pndArg->children == pndArg->last && pndArg->children->type == XML_TEXT_NODE) { /* single text node */
-	pucQuery = pndArg->children->content;
+	pucQuery = xmlStrdup(pndArg->children->content);
 	if (STR_IS_NOT_EMPTY(pucQuery)) {
 	  dbInsert(prnDb, pucQuery);
 	}
@@ -676,6 +675,7 @@ dbProcessDbNode(xmlNodePtr pndArg, cxpContextPtr pccArg)
       }
     }
     resNodeClose(prnDb);
+    resNodeFree(prnDb);
   }  
   return fResult;
 } /* end of dbProcessDbNode() */

@@ -18,7 +18,6 @@ REQ: shell environment
     </xsl:thread>
 
 REQ: parser for source codes C, LaTeX etc
-
 - detect TODO|BUG|TEST etc in comments of procedure context
 
 REQ: Dialog for log messages and confirmations (á la ‚dialog‘ utility, s. Gtkdialog, GTK2-window)
@@ -42,6 +41,8 @@ REQ: additional Backends
   - MongoDB <http://en.wikipedia.org/wiki/MongoDB>
   -	MySQL/MariaDB
 
+REQ: use environment variable `LANG` for localization of calendar, articles etc
+
 ## Security
 
 TEST: check security #v13 ++
@@ -50,7 +51,6 @@ TEST: check security #v13 ++
 
 Limitations or Sandbox
 - use Unicode functions to avoid MAX_PATH on Windows
-
 - prevent system() in cgi_mode (or readonly_mode)
 - Docker
 
@@ -162,7 +162,7 @@ REQ: append XML attributes to text markup
 
 decoding of RFC1738 URL with Umlaute to UTF-8
 
-TODO: change markup #v13
+TODO: change markup #v14
 
     <pre></pre>
     <script display="yes"></script>
@@ -172,6 +172,9 @@ TODO: change markup #v13
 TEST: sunrise sunset with Shanghai, Berlin, Boston
 
 REQ: calculate different time zone values
+
+REQ: handle timezone in date node
+- TODO: code refactoring using libc database (s. https://en.wikipedia.org/wiki/Tz_database)
 
 ### sqlite
 

@@ -82,7 +82,7 @@ dog's back.
           <link href="http://www.demo.org/test/">TEST</link>
         </h>
         <p>text only <date>2020-03-09</date> <htag>@may</htag></p>
-        <p>text only <date>2020-03-09Z12:00:00</date> timezone <date>2020-03-09</date> date</p>
+        <p>text only <date>2020-03-09T12:00:00Z</date> timezone <date>2020-03-09 16:15:00</date> date</p>
         <p>
           <link href="tel:+0123456789">tel:+0123456789</link>
           <htag>@james</htag>

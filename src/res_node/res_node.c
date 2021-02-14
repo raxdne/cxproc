@@ -2297,6 +2297,20 @@ resNodeIsDatabase(resNodePtr prnArg)
 } /* end of resNodeIsDatabase() */
 
 
+/*! \return TRUE if prnArg is a processable picture file
+*/
+BOOL_T
+resNodeIsPicture(resNodePtr prnArg)
+{
+  BOOL_T fResult = FALSE;
+
+  if (prnArg) {
+    fResult = resMimeIsPicture(resNodeGetMimeType(prnArg));
+  }
+  return fResult;
+} /* end of resNodeIsPicture() */
+
+
 /*! \return TRUE if prnArg is a processable archive file
 */
 BOOL_T
@@ -3109,6 +3123,9 @@ resNodeToDOM(resNodePtr prnArg, int iArgOptions)
     else if (iArgOptions & RN_INFO_CONTENT && resNodeIsLink(prnArg)) {
       /*!\todo add link target content */
     }
+    else if (resNodeIsPicture(prnArg)) {
+      resNodeContentToDOM(pndT, prnArg);
+    }
     else if (resNodeIsFile(prnArg)) {
 
       if ((iArgOptions & RN_INFO_CONTENT)
@@ -3296,12 +3313,7 @@ resNodeToSql(resNodePtr prnArg, int iArgOptions)
   xmlChar *pucResult = NULL;
 
   if (resNodeReadStatus(prnArg) && ! resNodeIsHidden(prnArg)) {
-    xmlChar *pucT;
 
-    if ((pucT = resNodeGetNameBase(prnArg)) == NULL) {
-      pucT = BAD_CAST".";
-    }
-	
     pucResult = BAD_CAST xmlMalloc((BUFFER_LENGTH + 1) * sizeof(xmlChar));
 
     if (pucResult) {
@@ -3345,46 +3357,92 @@ resNodeToSql(resNodePtr prnArg, int iArgOptions)
 	      (long int)system_zeit_1, BAD_CAST"error/context", resNodeGetNameNormalized(prnArg));
 	}
       }
-      else if (resNodeIsDir(prnArg)) {
-	xmlStrPrintf(pucResult, BUFFER_LENGTH,
-	    "insert into directory (depth,type,name,owner,size,rsize,path,mime,mtime,mtime2,r,w,x,h)"
-	    " values (%i,%i,\"%s\",\"%s\",%li,%li,\"%s\",%i,%li,\"%s\",%c,%c,%c,%c)",
-	    resPathGetDepth(resNodeGetNameNormalized(prnArg)),
-	    resNodeGetType(prnArg),
-	    pucT,
-	    (resNodeGetOwner(prnArg) != NULL ? resNodeGetOwner(prnArg) : BAD_CAST""),
-	    resNodeGetSize(prnArg),
-	    (long)(resNodeGetRecursiveSize(prnArg) / SIZE_MEGA),
-	    resNodeGetNameBaseDir(prnArg),
-	    resNodeGetMimeType(prnArg),
-	    (long)resNodeGetMtime(prnArg),
-	    resNodeGetMtimeStr(prnArg),
-	    (resNodeIsReadable(prnArg) ? '1' : '0'),
-	    (resNodeIsWriteable(prnArg) ? '1' : '0'),
-	    (resNodeIsExecuteable(prnArg) ? '1' : '0'),
-	    (resNodeIsHidden(prnArg) ? '1' : '0')
-	);
-      }
       else {
-	xmlStrPrintf(pucResult, BUFFER_LENGTH,
-	    "insert into directory (depth,type,name,owner,ext,object,size,rsize,path,mime,mtime,mtime2,r,w,x,h)"
-	    " values (%i,%i,\"%s\",\"%s\",\"%s\",\"%s\",%li,0,\"%s\",%i,%li,\"%s\",%c,%c,%c,%c)",
-	    resPathGetDepth(resNodeGetNameNormalized(prnArg)),
-	    resNodeGetType(prnArg),
-	    pucT,
-	    (resNodeGetOwner(prnArg) != NULL ? resNodeGetOwner(prnArg) : BAD_CAST""),
-	    (resNodeGetExtension(prnArg) != NULL ? resNodeGetExtension(prnArg) : BAD_CAST""),
-	    (resNodeGetNameObject(prnArg) != NULL ? resNodeGetNameObject(prnArg) : BAD_CAST""),
-	    resNodeGetSize(prnArg),
-	    resNodeGetNameBaseDir(prnArg),
-	    resNodeGetMimeType(prnArg),
-	    (long)resNodeGetMtime(prnArg),
-	    resNodeGetMtimeStr(prnArg),
+	xmlChar *pucT;
+	xmlChar *pucSqlDecl;
+	xmlChar *pucSqlValue;
+
+	pucSqlDecl = xmlStrdup("insert into directory (");
+	pucSqlValue = xmlStrdup("values (");
+
+	pucSqlDecl = xmlStrcat(pucSqlDecl,BAD_CAST"depth,type,");
+	xmlStrPrintf(pucResult, BUFFER_LENGTH, "%i,%i,", resPathGetDepth(resNodeGetNameNormalized(prnArg)), resNodeGetType(prnArg));
+	pucSqlValue = xmlStrcat(pucSqlValue,pucResult);
+		     
+	pucSqlDecl = xmlStrcat(pucSqlDecl,BAD_CAST"name,");
+	pucSqlValue = xmlStrcat(pucSqlValue,BAD_CAST"\"");
+	if ((pucT = resNodeGetNameBase(prnArg))) {
+	  pucSqlValue = xmlStrcat(pucSqlValue,pucT);
+	}
+	pucSqlValue = xmlStrcat(pucSqlValue,BAD_CAST"\",");
+
+#if 0
+	pucSqlDecl = xmlStrcat(pucSqlDecl,BAD_CAST"owner,");
+	pucSqlValue = xmlStrcat(pucSqlValue,BAD_CAST"\"");
+	if ((pucT = resNodeGetOwner(prnArg))) {
+	  pucSqlValue = xmlStrcat(pucSqlValue,pucT);
+	}
+	pucSqlValue = xmlStrcat(pucSqlValue,BAD_CAST"\",");
+#endif
+	
+	pucSqlDecl = xmlStrcat(pucSqlDecl,BAD_CAST"size,");
+	xmlStrPrintf(pucResult, BUFFER_LENGTH, "%li,", resNodeGetSize(prnArg));
+	pucSqlValue = xmlStrcat(pucSqlValue,pucResult);
+		     
+	if (resNodeIsDir(prnArg)) {
+	  pucSqlDecl = xmlStrcat(pucSqlDecl,BAD_CAST"rsize,");
+	  xmlStrPrintf(pucResult, BUFFER_LENGTH, "%li,", (long)(resNodeGetRecursiveSize(prnArg) / SIZE_MEGA));
+	  pucSqlValue = xmlStrcat(pucSqlValue,pucResult);
+	}
+	else {
+	  pucSqlDecl = xmlStrcat(pucSqlDecl,BAD_CAST"ext,");
+	  pucSqlValue = xmlStrcat(pucSqlValue,BAD_CAST"\"");
+	  if ((pucT = resNodeGetExtension(prnArg))) {
+	    pucSqlValue = xmlStrcat(pucSqlValue,pucT);
+	  }
+	  pucSqlValue = xmlStrcat(pucSqlValue,BAD_CAST"\",");
+
+	  pucSqlDecl = xmlStrcat(pucSqlDecl,BAD_CAST"object,");
+	  pucSqlValue = xmlStrcat(pucSqlValue,BAD_CAST"\"");
+	  if ((pucT = resNodeGetNameObject(prnArg))) {
+	    pucSqlValue = xmlStrcat(pucSqlValue,pucT);
+	  }
+	  pucSqlValue = xmlStrcat(pucSqlValue,BAD_CAST"\",");
+	}
+      
+	pucSqlDecl = xmlStrcat(pucSqlDecl,BAD_CAST"path,");
+	pucSqlValue = xmlStrcat(pucSqlValue,BAD_CAST"\"");
+	if ((pucT = resNodeGetNameBaseDir(prnArg))) {
+	  pucSqlValue = xmlStrcat(pucSqlValue,pucT);
+	}
+	pucSqlValue = xmlStrcat(pucSqlValue,BAD_CAST"\",");
+
+	pucSqlDecl = xmlStrcat(pucSqlDecl,BAD_CAST"mime,mtime,");
+	xmlStrPrintf(pucResult, BUFFER_LENGTH, "%i,%li,", (int)resNodeGetMimeType(prnArg), (long)(resNodeGetMtime(prnArg)));
+	pucSqlValue = xmlStrcat(pucSqlValue,pucResult);
+		     
+	pucSqlDecl = xmlStrcat(pucSqlDecl,BAD_CAST"mtime2,");
+	pucSqlValue = xmlStrcat(pucSqlValue,BAD_CAST"\"");
+	if ((pucT = resNodeGetMtimeStr(prnArg))) {
+	  pucSqlValue = xmlStrcat(pucSqlValue,pucT);
+	}
+	pucSqlValue = xmlStrcat(pucSqlValue,BAD_CAST"\",");
+
+	pucSqlDecl = xmlStrcat(pucSqlDecl,BAD_CAST"r,w,x,h");
+	xmlStrPrintf(pucResult, BUFFER_LENGTH, "%c,%c,%c,%c",
 	    (resNodeIsReadable(prnArg) ? '1' : '0'),
 	    (resNodeIsWriteable(prnArg) ? '1' : '0'),
 	    (resNodeIsExecuteable(prnArg) ? '1' : '0'),
-	    (resNodeIsHidden(prnArg) ? '1' : '0')
-	);
+	    (resNodeIsHidden(prnArg) ? '1' : '0'));
+	pucSqlValue = xmlStrcat(pucSqlValue,pucResult);
+	
+	pucSqlDecl = xmlStrcat(pucSqlDecl,BAD_CAST") ");
+	pucSqlValue = xmlStrcat(pucSqlValue,BAD_CAST")");
+
+	xmlFree(pucResult);
+	pucResult = pucSqlDecl;
+	pucResult = xmlStrcat(pucResult,pucSqlValue);
+	xmlFree(pucSqlValue);
       }
     }
   }
@@ -3397,6 +3455,8 @@ resNodeToSql(resNodePtr prnArg, int iArgOptions)
 
   \param prnArg a pointer to a resource node
   \return TRUE if an according filesystem entry exists
+
+  \deprecated because of portability and performance issues
 */
 BOOL_T
 resNodeSetOwner(resNodePtr prnArg)
@@ -3552,6 +3612,7 @@ resNodeUpdate(resNodePtr prnArg, int iArgOptions, const pcre2_code *re_match, co
 	resNodeResetMimeType(prnArg);
       }
 
+#if 0
       if (iArgOptions & RN_INFO_META
 	&& (resNodeIsFile(prnArg) || resNodeIsDir(prnArg) || resNodeIsFileInArchive(prnArg) || resNodeIsDirInArchive(prnArg))) {
 #ifdef _MSC_VER
@@ -3561,7 +3622,8 @@ resNodeUpdate(resNodePtr prnArg, int iArgOptions, const pcre2_code *re_match, co
 #endif
 	/*\todo use resNodeSetProp() */
       }
-
+#endif
+      
       if (iArgOptions & RN_INFO_CONTENT) {
 	if (resNodeIsURL(prnArg)) {
 	  if (resNodeGetContent(prnArg, 1024) != NULL && resNodeIsMemory(prnArg)) { /* content fetched from URL */
@@ -3905,6 +3967,8 @@ _resNodeGetFileCrc(resNodePtr prnArg)
 
 
 /*! \return a pointer to the owner string of resource node
+
+\deprecated s. resNodeSetOwner()
 */
 xmlChar *
 resNodeGetOwner(resNodePtr prnArg)

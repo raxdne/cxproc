@@ -174,8 +174,8 @@ PrintCalendarElement(pieCalendarElementPtr pceArg);
 extern BOOL_T
 ScanCalendarElementDate(pieCalendarElementPtr pceArgResult);
 
-extern xmlChar *
-ScanTimeString( xmlChar *pucArgGcal, pieCalendarElementPtr pceArg);
+extern BOOL_T
+ScanCalendarElementTime(pieCalendarElementPtr pceArg);
 
 extern xmlChar *
 EndOfDate(xmlChar *pucArg);

@@ -20,17 +20,6 @@
  */
 
 
-/*!
- */
-void
-ceScramble(pieCalendarElementPtr pceArg)
-{
-  if (pceArg) {
-    memset(pceArg,0xff,sizeof(pieCalendarElementType));
-  }
-}
-
-
 /*! 
  */
 int
@@ -219,6 +208,53 @@ ceTest(void)
   }
 
   if (RUNTEST) {
+    int h, m, s;
+    xmlChar *pucT;
+      
+    i++;
+    printf("TEST %i in '%s:%i': ScanTimeTripeString()",i,__FILE__,__LINE__);
+
+    if ((pucT = ScanTimeTripeString(NULL, NULL, NULL, NULL)) != NULL) {
+      printf("ERROR\n");
+    }
+    else if ((pucT = ScanTimeTripeString(BAD_CAST"1.14", &h, &m, &s)) == NULL
+	     || h != 1 || m != 14 || s != 00) {
+      printf("ERROR\n");
+    }
+    else if ((pucT = ScanTimeTripeString(BAD_CAST" 04:44:44", &h, &m, &s)) == NULL
+	     || h != 4 || m != 44 || s != 44) {
+      printf("ERROR\n");
+    }
+    else if ((pucT = ScanTimeTripeString(BAD_CAST"T055555", &h, &m, &s)) == NULL
+	     || h != 5 || m != 55 || s != 55) {
+      printf("ERROR\n");
+    }
+    else if ((pucT = ScanTimeTripeString(BAD_CAST"T056655", &h, &m, &s)) != NULL) {
+      printf("ERROR\n");
+    }
+    else if ((pucT = ScanTimeTripeString(BAD_CAST"T02:24:24Z", &h, &m, &s)) == NULL
+	     || h != 2 || m != 24 || s != 24) {
+      printf("ERROR\n");
+    }
+    else if ((pucT = ScanTimeTripeString(BAD_CAST" 03:33:00-5.55", &h, &m, &s)) == NULL
+	     || h != 3 || m != 33 || s != 00) {
+      printf("ERROR\n");
+    }
+    else if ((pucT = ScanTimeTripeString(pucT, &h, &m, &s)) == NULL
+	     || h != 5 || m != 55 || s != 00) {
+      printf("ERROR\n");
+    }
+    else if ((pucT = ScanTimeTripeString(pucT, &h, &m, &s)) != NULL
+	     || h != -1 || m != -1 || s != -1) {
+      printf("ERROR\n");
+    }
+    else {
+      n_ok++;
+      printf("OK\n");
+    }
+  }
+
+  if (RUNTEST) {
     int m,d;
     long int liEasterAbs;
 
@@ -262,7 +298,10 @@ ceTest(void)
     i++;
     printf("TEST %i in '%s:%i': scan a calendar element = ",i,__FILE__,__LINE__);
 
-    if ((pceT = CalendarElementNew(BAD_CAST"209")) == NULL || ScanCalendarElementDate(pceT) == TRUE) {
+    if ((pceT = CalendarElementNew(BAD_CAST"209")) == NULL) {
+      printf("ERROR\n");
+    }
+    else if (ScanCalendarElementDate(pceT) == TRUE) {
       printf("ERROR\n");
     }
     else if (pceT->eTypeDate != DATE_ERROR) {
@@ -281,7 +320,10 @@ ceTest(void)
     i++;
     printf("TEST %i in '%s:%i': scan a calendar element = ",i,__FILE__,__LINE__);
 
-    if ((pceT = CalendarElementNew(BAD_CAST"2009")) == NULL || ScanCalendarElementDate(pceT) == FALSE) {
+    if ((pceT = CalendarElementNew(BAD_CAST"2009")) == NULL) {
+      printf("ERROR\n");
+    }
+    else if (ScanCalendarElementDate(pceT) == FALSE) {
       printf("ERROR\n");
     }
     else if (pceT->eTypeDate != DATE_YEAR) {
@@ -303,7 +345,10 @@ ceTest(void)
     i++;
     printf("TEST %i in '%s:%i': scan a calendar element = ",i,__FILE__,__LINE__);
 
-    if ((pceT = CalendarElementNew(BAD_CAST"200903")) == NULL || ScanCalendarElementDate(pceT) == FALSE) {
+    if ((pceT = CalendarElementNew(BAD_CAST"200903")) == NULL) {
+      printf("ERROR\n");
+    }
+    else if (ScanCalendarElementDate(pceT) == FALSE) {
       printf("ERROR\n");
     }
     else if (pceT->eTypeDate != DATE_MONTH) {
@@ -326,7 +371,10 @@ ceTest(void)
     i++;
     printf("TEST %i in '%s:%i': scan a calendar element = ",i,__FILE__,__LINE__);
 
-    if ((pceT = CalendarElementNew(BAD_CAST"200917")) == NULL || ScanCalendarElementDate(pceT) == TRUE) {
+    if ((pceT = CalendarElementNew(BAD_CAST"200917")) == NULL) {
+      printf("ERROR\n");
+    }
+    else if (ScanCalendarElementDate(pceT) == TRUE) {
       printf("ERROR\n");
     }
     else if (pceT->eTypeDate != DATE_ERROR) {
@@ -348,7 +396,10 @@ ceTest(void)
     i++;
     printf("TEST %i in '%s:%i': scan a calendar element = ",i,__FILE__,__LINE__);
 
-    if ((pceT = CalendarElementNew(BAD_CAST"20091011")) == NULL || ScanCalendarElementDate(pceT) == FALSE) {
+    if ((pceT = CalendarElementNew(BAD_CAST"20091011")) == NULL) {
+      printf("ERROR\n");
+    }
+    else if (ScanCalendarElementDate(pceT) == FALSE) {
       printf("ERROR\n");
     }
     else if (pceT->eTypeDate != DATE_DAY) {
@@ -373,7 +424,10 @@ ceTest(void)
     i++;
     printf("TEST %i in '%s:%i': scan a calendar element = ",i,__FILE__,__LINE__);
 
-    if ((pceT = CalendarElementNew(BAD_CAST"200910119")) == NULL || ScanCalendarElementDate(pceT) == TRUE) {
+    if ((pceT = CalendarElementNew(BAD_CAST"200910119")) == NULL) {
+      printf("ERROR\n");
+    }
+    else if (ScanCalendarElementDate(pceT) == TRUE) {
       printf("ERROR\n");
     }
     else if (pceT->eTypeDate != DATE_ERROR) {
@@ -395,7 +449,10 @@ ceTest(void)
     i++;
     printf("TEST %i in '%s:%i': scan a calendar element = ",i,__FILE__,__LINE__);
 
-    if ((pceT = CalendarElementNew(BAD_CAST"1311186519")) == NULL || ScanCalendarElementDate(pceT) == FALSE) {
+    if ((pceT = CalendarElementNew(BAD_CAST"1311186519")) == NULL) {
+      printf("ERROR\n");
+    }
+    else if (ScanCalendarElementDate(pceT) == FALSE) {
       printf("ERROR\n");
     }
     else if (pceT->eTypeDate != DATE_SYSTEM) {
@@ -417,7 +474,10 @@ ceTest(void)
     i++;
     printf("TEST %i in '%s:%i': scan a calendar element = ",i,__FILE__,__LINE__);
 
-    if ((pceT = CalendarElementNew(BAD_CAST"1253131866347")) == NULL || ScanCalendarElementDate(pceT) == FALSE) {
+    if ((pceT = CalendarElementNew(BAD_CAST"1253131866347")) == NULL) {
+      printf("ERROR\n");
+    }
+    else if (ScanCalendarElementDate(pceT) == FALSE) {
       printf("ERROR\n");
     }
     else if (pceT->eTypeDate != DATE_SYSTEM_MSEC) {
@@ -439,7 +499,10 @@ ceTest(void)
     i++;
     printf("TEST %i in '%s:%i': scan a calendar element = ",i,__FILE__,__LINE__);
 
-    if ((pceT = CalendarElementNew(BAD_CAST"2009-10-11")) == NULL || ScanCalendarElementDate(pceT) == FALSE) {
+    if ((pceT = CalendarElementNew(BAD_CAST"2009-10-11")) == NULL) {
+      printf("ERROR\n");
+    }
+    else if (ScanCalendarElementDate(pceT) == FALSE) {
       printf("ERROR\n");
     }
     else if (pceT->eTypeDate != DATE_ISO) {
@@ -461,7 +524,10 @@ ceTest(void)
     i++;
     printf("TEST %i in '%s:%i': scan a calendar element = ",i,__FILE__,__LINE__);
 
-    if ((pceT = CalendarElementNew(BAD_CAST"11.10.2009")) == NULL || ScanCalendarElementDate(pceT) == FALSE) {
+    if ((pceT = CalendarElementNew(BAD_CAST"11.10.2009")) == NULL) {
+      printf("ERROR\n");
+    }
+    else if (ScanCalendarElementDate(pceT) == FALSE) {
       printf("ERROR\n");
     }
     else if (pceT->eTypeDate != DATE_GERMAN) {
@@ -483,7 +549,10 @@ ceTest(void)
     i++;
     printf("TEST %i in '%s:%i': scan a calendar element = ",i,__FILE__,__LINE__);
 
-    if ((pceT = CalendarElementNew(BAD_CAST"01.2.2009")) == NULL || ScanCalendarElementDate(pceT) == FALSE) {
+    if ((pceT = CalendarElementNew(BAD_CAST"01.2.2009")) == NULL) {
+      printf("ERROR\n");
+    }
+    else if (ScanCalendarElementDate(pceT) == FALSE) {
       printf("ERROR\n");
     }
     else if (pceT->eTypeDate != DATE_GERMAN) {
@@ -505,7 +574,10 @@ ceTest(void)
     i++;
     printf("TEST %i in '%s:%i': scan a calendar element = ",i,__FILE__,__LINE__);
 
-    if ((pceT = CalendarElementNew(BAD_CAST"1.03.2009")) == NULL || ScanCalendarElementDate(pceT) == FALSE) {
+    if ((pceT = CalendarElementNew(BAD_CAST"1.03.2009")) == NULL) {
+      printf("ERROR\n");
+    }
+    else if (ScanCalendarElementDate(pceT) == FALSE) {
       printf("ERROR\n");
     }
     else if (pceT->eTypeDate != DATE_GERMAN) {
@@ -527,7 +599,10 @@ ceTest(void)
     i++;
     printf("TEST %i in '%s:%i': scan a calendar element = ",i,__FILE__,__LINE__);
 
-    if ((pceT = CalendarElementNew(BAD_CAST"1.4.2009")) == NULL || ScanCalendarElementDate(pceT) == FALSE) {
+    if ((pceT = CalendarElementNew(BAD_CAST"1.4.2009")) == NULL) {
+      printf("ERROR\n");
+    }
+    else if (ScanCalendarElementDate(pceT) == FALSE) {
       printf("ERROR\n");
     }
     else if (pceT->eTypeDate != DATE_GERMAN) {
@@ -549,7 +624,10 @@ ceTest(void)
     i++;
     printf("TEST %i in '%s:%i': scan a calendar element = ",i,__FILE__,__LINE__);
 
-    if ((pceT = CalendarElementNew(BAD_CAST"30.2.2009")) == NULL || ScanCalendarElementDate(pceT) == TRUE) {
+    if ((pceT = CalendarElementNew(BAD_CAST"30.2.2009")) == NULL) {
+      printf("ERROR\n");
+    }
+    else if (ScanCalendarElementDate(pceT) == TRUE) {
       printf("ERROR\n");
     }
     else if (pceT->eTypeDate != DATE_ERROR) {
@@ -571,7 +649,10 @@ ceTest(void)
     i++;
     printf("TEST %i in '%s:%i': scan a calendar element = ",i,__FILE__,__LINE__);
 
-    if ((pceT = CalendarElementNew(BAD_CAST"33.13.2009")) == NULL || ScanCalendarElementDate(pceT) == TRUE) {
+    if ((pceT = CalendarElementNew(BAD_CAST"33.13.2009")) == NULL) {
+      printf("ERROR\n");
+    }
+    else if (ScanCalendarElementDate(pceT) == TRUE) {
       printf("ERROR\n");
     }
     else if (pceT->eTypeDate != DATE_ERROR) {
@@ -593,7 +674,10 @@ ceTest(void)
     i++;
     printf("TEST %i in '%s:%i': scan a calendar element = ",i,__FILE__,__LINE__);
 
-    if ((pceT = CalendarElementNew(BAD_CAST"2009*w33")) == NULL || ScanCalendarElementDate(pceT) == FALSE) {
+    if ((pceT = CalendarElementNew(BAD_CAST"2009*w33")) == NULL) {
+      printf("ERROR\n");
+    }
+    else if (ScanCalendarElementDate(pceT) == FALSE) {
       printf("ERROR\n");
     }
     else if (pceT->eTypeDate != DATE_WEEK) {
@@ -615,7 +699,10 @@ ceTest(void)
     i++;
     printf("TEST %i in '%s:%i': scan a calendar element = ",i,__FILE__,__LINE__);
 
-    if ((pceT = CalendarElementNew(BAD_CAST"2009*w3wed")) == NULL || ScanCalendarElementDate(pceT) == FALSE) {
+    if ((pceT = CalendarElementNew(BAD_CAST"2009*w3wed")) == NULL) {
+      printf("ERROR\n");
+    }
+    else if (ScanCalendarElementDate(pceT) == FALSE) {
       printf("ERROR\n");
     }
     else if (pceT->eTypeDate != DATE_WEEK) {
@@ -637,7 +724,10 @@ ceTest(void)
     i++;
     printf("TEST %i in '%s:%i': scan a calendar element = ",i,__FILE__,__LINE__);
 
-    if ((pceT = CalendarElementNew(BAD_CAST"2009*w34tue")) == NULL || ScanCalendarElementDate(pceT) == FALSE) {
+    if ((pceT = CalendarElementNew(BAD_CAST"2009*w34tue")) == NULL) {
+      printf("ERROR\n");
+    }
+    else if (ScanCalendarElementDate(pceT) == FALSE) {
       printf("ERROR\n");
     }
     else if (pceT->eTypeDate != DATE_WEEK) {
@@ -659,7 +749,10 @@ ceTest(void)
     i++;
     printf("TEST %i in '%s:%i': scan a calendar element = ",i,__FILE__,__LINE__);
 
-    if ((pceT = CalendarElementNew(BAD_CAST"2009*w55tue")) == NULL || ScanCalendarElementDate(pceT) == TRUE) {
+    if ((pceT = CalendarElementNew(BAD_CAST"2009*w55tue")) == NULL) {
+      printf("ERROR\n");
+    }
+    else if (ScanCalendarElementDate(pceT) == TRUE) {
       printf("ERROR\n");
     }
     else if (pceT->eTypeDate != DATE_ERROR) {
@@ -681,7 +774,10 @@ ceTest(void)
     i++;
     printf("TEST %i in '%s:%i': scan a calendar element = ",i,__FILE__,__LINE__);
 
-    if ((pceT = CalendarElementNew(BAD_CAST"20090911.3x10")) == NULL || ScanCalendarElementDate(pceT) == FALSE) {
+    if ((pceT = CalendarElementNew(BAD_CAST"20090911.3x10")) == NULL) {
+      printf("ERROR\n");
+    }
+    else if (ScanCalendarElementDate(pceT) == FALSE) {
       printf("ERROR\n");
     }
     else if (xmlStrEqual(pceT->pucSep, BAD_CAST".3x10") == FALSE) {
@@ -714,7 +810,10 @@ ceTest(void)
     i++;
     printf("TEST %i in '%s:%i': scan a calendar element = ",i,__FILE__,__LINE__);
 
-    if ((pceT = CalendarElementNew(BAD_CAST"2009*w34tue.7x3")) == NULL || ScanCalendarElementDate(pceT) == FALSE) {
+    if ((pceT = CalendarElementNew(BAD_CAST"2009*w34tue.7x3")) == NULL) {
+      printf("ERROR\n");
+    }
+    else if (ScanCalendarElementDate(pceT) == FALSE) {
       printf("ERROR\n");
     }
     else if (xmlStrEqual(pceT->pucSep, BAD_CAST".7x3") == FALSE) {
@@ -747,7 +846,10 @@ ceTest(void)
     i++;
     printf("TEST %i in '%s:%i': scan a calendar element = ",i,__FILE__,__LINE__);
 
-    if ((pceT = CalendarElementNew(BAD_CAST"2009*w34tue:30.4")) == NULL || ScanCalendarElementDate(pceT) == FALSE) {
+    if ((pceT = CalendarElementNew(BAD_CAST"2009*w34tue:30.4")) == NULL) {
+      printf("ERROR\n");
+    }
+    else if (ScanCalendarElementDate(pceT) == FALSE) {
       printf("ERROR\n");
     }
     else if (xmlStrEqual(pceT->pucSep, BAD_CAST":30.4") == FALSE) {
@@ -780,7 +882,10 @@ ceTest(void)
     i++;
     printf("TEST %i in '%s:%i': scan a calendar element = ", i, __FILE__, __LINE__);
 
-    if ((pceT = CalendarElementNew(BAD_CAST"20140301#20140401")) == NULL || ScanCalendarElementDate(pceT) == FALSE) {
+    if ((pceT = CalendarElementNew(BAD_CAST"20140301#20140401")) == NULL) {
+      printf("ERROR\n");
+    }
+    else if (ScanCalendarElementDate(pceT) == FALSE) {
       printf("ERROR\n");
     }
     else if (xmlStrEqual(pceT->pucSep, BAD_CAST"#20140401") == FALSE) {
@@ -813,7 +918,10 @@ ceTest(void)
     i++;
     printf("TEST %i in '%s:%i': scan a calendar element = ",i,__FILE__,__LINE__);
 
-    if ((pceT = CalendarElementNew(BAD_CAST"2012*w39tue#w41wed")) == NULL || ScanCalendarElementDate(pceT) == FALSE) {
+    if ((pceT = CalendarElementNew(BAD_CAST"2012*w39tue#w41wed")) == NULL) {
+      printf("ERROR\n");
+    }
+    else if (ScanCalendarElementDate(pceT) == FALSE) {
       printf("ERROR\n");
     }
     else if (xmlStrEqual(pceT->pucSep, BAD_CAST"#w41wed") == FALSE) {
@@ -846,7 +954,10 @@ ceTest(void)
     i++;
     printf("TEST %i in '%s:%i': scan a calendar element = ",i,__FILE__,__LINE__);
 
-    if ((pceT = CalendarElementNew(BAD_CAST"20140301,20140401")) == NULL || ScanCalendarElementDate(pceT) == FALSE) {
+    if ((pceT = CalendarElementNew(BAD_CAST"20140301,20140401")) == NULL) {
+      printf("ERROR\n");
+    }
+    else if (ScanCalendarElementDate(pceT) == FALSE) {
       printf("ERROR\n");
     }
     else if (xmlStrEqual(pceT->pucSep, BAD_CAST",20140401") == FALSE) {
@@ -879,7 +990,10 @@ ceTest(void)
     i++;
     printf("TEST %i in '%s:%i': scan a calendar element = ",i,__FILE__,__LINE__);
 
-    if ((pceT = CalendarElementNew(BAD_CAST"20140301+14")) == NULL || ScanCalendarElementDate(pceT) == FALSE) {
+    if ((pceT = CalendarElementNew(BAD_CAST"20140301+14")) == NULL) {
+      printf("ERROR\n");
+    }
+    else if (ScanCalendarElementDate(pceT) == FALSE) {
       printf("ERROR\n");
     }
     else if (pceT->eTypeDate != DATE_DAY) {
@@ -908,7 +1022,10 @@ ceTest(void)
     i++;
     printf("TEST %i in '%s:%i': scan a calendar element = ", i, __FILE__, __LINE__);
 
-    if ((pceT = CalendarElementNew(BAD_CAST"20140301-14")) == NULL || ScanCalendarElementDate(pceT) == FALSE) {
+    if ((pceT = CalendarElementNew(BAD_CAST"20140301-14")) == NULL) {
+      printf("ERROR\n");
+    }
+    else if (ScanCalendarElementDate(pceT) == FALSE) {
       printf("ERROR\n");
     }
     else if (pceT->eTypeDate != DATE_DAY) {
@@ -938,7 +1055,10 @@ ceTest(void)
     i++;
     printf("TEST %i in '%s:%i': scan a calendar element = ",i,__FILE__,__LINE__);
 
-    if ((pceT = CalendarElementNew(BAD_CAST"2009@e")) == NULL || ScanCalendarElementDate(pceT) == FALSE) {
+    if ((pceT = CalendarElementNew(BAD_CAST"2009@e")) == NULL) {
+      printf("ERROR\n");
+    }
+    else if (ScanCalendarElementDate(pceT) == FALSE) {
       printf("ERROR\n");
     }
     else if (pceT->eTypeDate != DATE_EASTER) {
@@ -967,7 +1087,10 @@ ceTest(void)
     i++;
     printf("TEST %i in '%s:%i': scan a calendar element = ", i, __FILE__, __LINE__);
 
-    if ((pceT = CalendarElementNew(BAD_CAST"2009@e+17")) == NULL || ScanCalendarElementDate(pceT) == FALSE) {
+    if ((pceT = CalendarElementNew(BAD_CAST"2009@e+17")) == NULL) {
+      printf("ERROR\n");
+    }
+    else if (ScanCalendarElementDate(pceT) == FALSE) {
       printf("ERROR\n");
     }
     else if (pceT->eTypeDate != DATE_DAY) {
@@ -997,7 +1120,10 @@ ceTest(void)
     i++;
     printf("TEST %i in '%s:%i': scan a calendar element = ",i,__FILE__,__LINE__);
 
-    if ((pceT = CalendarElementNew(BAD_CAST"00000000")) == NULL || ScanCalendarElementDate(pceT) == FALSE) {
+    if ((pceT = CalendarElementNew(BAD_CAST"00000000")) == NULL) {
+      printf("ERROR\n");
+    }
+    else if (ScanCalendarElementDate(pceT) == FALSE) {
       printf("ERROR\n");
     }
     else if (pceT->eTypeDate != DATE_DAY) {
@@ -1014,137 +1140,187 @@ ceTest(void)
     CalendarElementFree(pceT);
   }
 
-#if 0
-  if (RUNTEST) {
-    pieCalendarElementType ceT;
-
-    i++;
-    ceScramble(&ceT);
-    printf("TEST %i in '%s:%i': ScanTimeString ",i,__FILE__,__LINE__);
-    pucSep = ScanTimeString(BAD_CAST"  TEST",&ceT);
-    if (pucSep == NULL
-	&& ceT.iHourA == -1 && ceT.iMinuteA == -1 && ceT.iSecondA == -1
-	&& ceT.iHourB == -1 && ceT.iMinuteB == -1 && ceT.iSecondB == -1) {
-      n_ok++;
-      printf("OK\n");
-    }
-    else {
-      printf("ERROR\n");
-    }
-  }
-
-  if (RUNTEST) {
-    pieCalendarElementType ceT;
-
-    i++;
-    ceScramble(&ceT);
-    printf("TEST %i in '%s:%i': ScanTimeString ",i,__FILE__,__LINE__);
-    pucSep = ScanTimeString(BAD_CAST" 11.33.21 ABC",&ceT);
-    if (pucSep != NULL
-	&& ceT.iHourA == 11 && ceT.iMinuteA == 33 && ceT.iSecondA == 21
-	&& ceT.iHourB == -1 && ceT.iMinuteB == -1 && ceT.iSecondB == -1) {
-      n_ok++;
-      printf("OK\n");
-    }
-    else {
-      printf("ERROR\n");
-    }
-  }
-
-  if (RUNTEST) {
-    pieCalendarElementType ceT;
-
-    i++;
-    ceScramble(&ceT);
-    printf("TEST %i in '%s:%i': ScanTimeString ",i,__FILE__,__LINE__);
-    pucSep = ScanTimeString(BAD_CAST"10.14 Essen",&ceT);
-    if (pucSep != NULL
-	&& ceT.iHourA == 10 && ceT.iMinuteA == 14 && ceT.iSecondA == 0
-	&& ceT.iHourB == -1 && ceT.iMinuteB == -1 && ceT.iSecondB == -1) {
-      n_ok++;
-      printf("OK\n");
-    }
-    else {
-      printf("ERROR\n");
-    }
-  }
-
-  if (RUNTEST) {
-    pieCalendarElementType ceT;
-
-    i++;
-    ceScramble(&ceT);
-    printf("TEST %i in '%s:%i': ScanTimeString ",i,__FILE__,__LINE__);
-    pucSep = ScanTimeString(BAD_CAST" 18.33-23.55 DDDD",&ceT);
-    if (pucSep != NULL
-	&& ceT.iHourA == 18 && ceT.iMinuteA == 33 && ceT.iSecondA == 0
-	&& ceT.iHourB == 23 && ceT.iMinuteB == 55 && ceT.iSecondB == 0) {
-      n_ok++;
-      printf("OK\n");
-    }
-    else {
-      printf("ERROR\n");
-    }
-  }
-
-  if (RUNTEST) {
-    pieCalendarElementType ceT;
-
-    i++;
-    ceScramble(&ceT);
-    printf("TEST %i in '%s:%i': ScanTimeString ",i,__FILE__,__LINE__);
-    pucSep = ScanTimeString(ScanCalendarElementDate(BAD_CAST" 11.12.2013 10.11 HaHa",&ceT),&ceT);
-    if (pucSep != NULL
-	&& ceT.iYear == 2013
-	&& ceT.iMonth == 12 && ceT.iDay== 11      && ceT.iWeek == -1 && ceT.iDayWeek==-1
-	&& ceT.iHourA == 10 && ceT.iMinuteA == 11 && ceT.iSecondA == 0
-	&& ceT.iHourB == -1 && ceT.iMinuteB == -1 && ceT.iSecondB == -1) {
-      n_ok++;
-      printf("OK\n");
-    }
-    else {
-      printf("ERROR\n");
-    }
-  }
-
-  if (RUNTEST) {
-    pieCalendarElementType ceT;
-
-    i++;
-    ceScramble(&ceT);
-    printf("TEST %i in '%s:%i': ScanTimeString ",i,__FILE__,__LINE__);
-    pucSep = ScanTimeString(ScanCalendarElementDate(BAD_CAST"20091011,17,1122,33 11.11-13.00 Test",&ceT),&ceT);
-    if (pucSep != NULL
-	&& ceT.iYear == 2013
-	&& ceT.iMonth == 12 && ceT.iDay== 11      && ceT.iWeek == -1 && ceT.iDayWeek==-1
-	&& ceT.iHourA == 10 && ceT.iMinuteA == 11 && ceT.iSecondA == 0
-	&& ceT.iHourB == -1 && ceT.iMinuteB == -1 && ceT.iSecondB == -1) {
-      n_ok++;
-      printf("OK\n");
-    }
-    else {
-      printf("ERROR\n");
-    }
-  }
-#endif
 
   if (RUNTEST) {
     pieCalendarElementPtr pceT;
-    xmlChar *pucSep;
+
+    i++;
+    printf("TEST %i in '%s:%i': ScanCalendarElementTime ",i,__FILE__,__LINE__);
+
+    if ((pceT = CalendarElementNew(BAD_CAST"  TEST")) == NULL) {
+      printf("ERROR\n");
+    }
+    else if (ScanCalendarElementDate(pceT) == TRUE) {
+      printf("ERROR\n");
+    }
+    else if (ScanCalendarElementTime(pceT) == TRUE) {
+      printf("ERROR\n");
+    }
+    else if (pceT->iHourA == -1 && pceT->iMinuteA == -1 && pceT->iSecondA == -1
+	     && pceT->iHourB == -1 && pceT->iMinuteB == -1 && pceT->iSecondB == -1) {
+      n_ok++;
+      printf("OK\n");
+    }
+    else {
+      printf("ERROR\n");
+    }
+    CalendarElementFree(pceT);
+  }
+
+  if (RUNTEST) {
+    pieCalendarElementPtr pceT;
+
+    i++;
+    printf("TEST %i in '%s:%i': ScanCalendarElementTime ",i,__FILE__,__LINE__);
+
+    if ((pceT = CalendarElementNew(BAD_CAST" 11.73.21 ABC")) == NULL) {
+      printf("ERROR\n");
+    }
+    else if (ScanCalendarElementDate(pceT) == TRUE) {
+      printf("ERROR\n");
+    }
+    else if (ScanCalendarElementTime(pceT) == TRUE) {
+      printf("ERROR\n");
+    }
+    else if (pceT->iHourA == -1 && pceT->iMinuteA == -1 && pceT->iSecondA == -1
+	     && pceT->iHourB == -1 && pceT->iMinuteB == -1 && pceT->iSecondB == -1) {
+      n_ok++;
+      printf("OK\n");
+    }
+    else {
+      printf("ERROR\n");
+    }
+    CalendarElementFree(pceT);
+  }
+
+  if (RUNTEST) {
+    pieCalendarElementPtr pceT;
+
+    i++;
+    printf("TEST %i in '%s:%i': ScanCalendarElementTime ",i,__FILE__,__LINE__);
+
+    if ((pceT = CalendarElementNew(BAD_CAST"10.14 Essen")) == NULL) {
+      printf("ERROR\n");
+    }
+    else if (ScanCalendarElementDate(pceT) == TRUE) {
+      printf("ERROR\n");
+    }
+    else if (ScanCalendarElementTime(pceT) == FALSE) {
+      printf("ERROR\n");
+    }
+    else if (pceT->iHourA == 10 && pceT->iMinuteA == 14 && pceT->iSecondA == 0
+	     && pceT->iHourB == -1 && pceT->iMinuteB == -1 && pceT->iSecondB == -1) {
+      n_ok++;
+      printf("OK\n");
+    }
+    else {
+      printf("ERROR\n");
+    }
+    CalendarElementFree(pceT);
+  }
+
+  if (RUNTEST) {
+    pieCalendarElementPtr pceT;
+
+    i++;
+    printf("TEST %i in '%s:%i': ScanCalendarElementTime ",i,__FILE__,__LINE__);
+
+    if ((pceT = CalendarElementNew(BAD_CAST" 18.33-23.55 DDDD")) == NULL) {
+      printf("ERROR\n");
+    }
+    else if (ScanCalendarElementDate(pceT) == TRUE) {
+      printf("ERROR\n");
+    }
+    else if (ScanCalendarElementTime(pceT) == FALSE) {
+      printf("ERROR\n");
+    }
+    else if (pceT->iHourA == 18 && pceT->iMinuteA == 33 && pceT->iSecondA == 0
+	     && pceT->iHourB == 23 && pceT->iMinuteB == 55 && pceT->iSecondB == 0) {
+      n_ok++;
+      printf("OK\n");
+    }
+    else {
+      printf("ERROR\n");
+    }
+    CalendarElementFree(pceT);
+  }
+
+  if (RUNTEST) {
+    pieCalendarElementPtr pceT;
+
+    i++;
+    printf("TEST %i in '%s:%i': ScanCalendarElementTime ",i,__FILE__,__LINE__);
+    
+    if ((pceT = CalendarElementNew(BAD_CAST" 11.12.2013 10.11 HaHa")) == NULL) {
+      printf("ERROR\n");
+    }
+    else if (ScanCalendarElementDate(pceT) == FALSE) {
+      printf("ERROR\n");
+    }
+    else if (ScanCalendarElementTime(pceT) == FALSE) {
+      printf("ERROR\n");
+    }
+    else if (pceT->iYear == 2013
+	     && pceT->iMonth == 12 && pceT->iDay== 11      && pceT->iWeek == -1 && pceT->iDayWeek==-1
+	     && pceT->iHourA == 10 && pceT->iMinuteA == 11 && pceT->iSecondA == 0
+	     && pceT->iHourB == -1 && pceT->iMinuteB == -1 && pceT->iSecondB == -1) {
+      n_ok++;
+      printf("OK\n");
+    }
+    else {
+      printf("ERROR\n");
+    }
+    CalendarElementFree(pceT);
+  }
+
+
+  if (SKIPTEST) {
+    pieCalendarElementPtr pceT;
+
+    i++;
+    printf("TEST %i in '%s:%i': ScanCalendarElementTime ", i, __FILE__, __LINE__);
+    
+    if ((pceT = CalendarElementNew(BAD_CAST"\t20091011,17,1122,33 11.11-13.00 Test")) == NULL) {
+      printf("ERROR\n");
+    }
+    else if (ScanCalendarElementDate(pceT) == FALSE) {
+      printf("ERROR\n");
+    }
+    else if (ScanCalendarElementTime(pceT) == FALSE) {
+      printf("ERROR\n");
+    }
+    else if (pceT->iYear == 2013
+	     && pceT->iMonth == 12 && pceT->iDay == 11 && pceT->iWeek == -1 && pceT->iDayWeek == -1
+	     && pceT->iHourA == 10 && pceT->iMinuteA == 11 && pceT->iSecondA == 0
+	     && pceT->iHourB == -1 && pceT->iMinuteB == -1 && pceT->iSecondB == -1) {
+      n_ok++;
+      printf("OK\n");
+    }
+    else {
+    }
+    CalendarElementFree(pceT);
+  }
+
+
+  if (RUNTEST) {
+    pieCalendarElementPtr pceT;
 
     i++;
     printf("TEST %i in '%s:%i': scan a calendar element = ", i, __FILE__, __LINE__);
 
-    if ((pceT = CalendarElementNew(BAD_CAST"2013-12-11T10:11:00+05:45 ISO")) == NULL || ScanCalendarElementDate(pceT) == FALSE) {
+    if ((pceT = CalendarElementNew(BAD_CAST"2013-12-11T10:11:00+05:45 ISO")) == NULL) {
+      printf("ERROR\n");
+    }
+    else if (ScanCalendarElementDate(pceT) == FALSE) {
       printf("ERROR\n");
     }
     else if (pceT->eTypeDate != DATE_ISO) {
       printf("ERROR\n");
     }
-    else if ((pucSep = ScanTimeString(NULL, pceT)) == NULL) {
+    else if (ScanCalendarElementTime(pceT) == FALSE) {
       printf("ERROR\n");
     }
-    else if (xmlStrEqual(pucSep, BAD_CAST" ISO") == FALSE) {
+    else if (xmlStrEqual(pceT->pucSep, BAD_CAST" ISO") == FALSE) {
       printf("ERROR\n");
     }
     else if (pceT->iYear != 2013
@@ -1164,28 +1340,30 @@ ceTest(void)
 
   if (RUNTEST) {
     pieCalendarElementPtr pceT;
-    xmlChar *pucSep;
 
     i++;
     printf("TEST %i in '%s:%i': scan a calendar element = ", i, __FILE__, __LINE__);
 
-    if ((pceT = CalendarElementNew(BAD_CAST"2013-12-11T10:11:00CST ISO")) == NULL || ScanCalendarElementDate(pceT) == FALSE) {
+    if ((pceT = CalendarElementNew(BAD_CAST"2013-12-11T10:11:00CST ISO")) == NULL) {
+      printf("ERROR\n");
+    }
+    else if (ScanCalendarElementDate(pceT) == FALSE) {
       printf("ERROR\n");
     }
     else if (pceT->eTypeDate != DATE_ISO) {
       printf("ERROR\n");
     }
-    else if ((pucSep = ScanTimeString(NULL, pceT)) == NULL) {
+    else if (ScanCalendarElementTime(pceT) == FALSE) {
       printf("ERROR\n");
     }
-    else if (xmlStrEqual(pucSep, BAD_CAST" ISO") == FALSE) {
+    else if (xmlStrEqual(pceT->pucSep, BAD_CAST" ISO") == FALSE) {
       printf("ERROR\n");
     }
     else if (pceT->iYear != 2013
       || pceT->iMonth != 12 || pceT->iDay != 11 || pceT->iWeek != -1 || pceT->iDayWeek != -1
       || pceT->iHourA != 10 || pceT->iMinuteA != 11 || pceT->iSecondA != 0
       || pceT->iHourB != -1 || pceT->iMinuteB != -1 || pceT->iSecondB != -1
-      || pceT->iTimezoneOffset == 360) {
+      || pceT->iTimezoneOffset != -360) {
       printf("ERROR\n");
     }
     else {
