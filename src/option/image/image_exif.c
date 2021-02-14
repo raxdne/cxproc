@@ -43,23 +43,17 @@ s. http://libexif.cvs.sourceforge.net/viewvc/libexif/libexif/contrib/examples/ph
 BOOL_T
 imgParseFileExif(xmlNodePtr pndArg, resNodePtr prnArg)
 {
-  ExifData *pExifDataFile;
+  BOOL_T fResult = FALSE;
+  ExifData *pExifDataFile = NULL;
 
   /*! Read an image file.
   */
-  if (resNodeIsFile(prnArg)) {
-    PrintFormatLog(3,"Read Exif info from file '%s'",resNodeGetNameNormalized(prnArg));
+  if (resNodeIsFile(prnArg) == FALSE) {
+    PrintFormatLog(1,"Permission at IMAGE file '%s' denied",resNodeGetNameNormalized(prnArg));
   }
-  else {
-    PrintFormatLog(3,"Permission at IMAGE file '%s' denied",resNodeGetNameNormalized(prnArg));
-    return FALSE;
-  }
-
-  /* Load an ExifData object from an EXIF file */
-  pExifDataFile = exif_data_new_from_file((const char*)resNodeGetNameNormalizedNative(prnArg));
-  if (!pExifDataFile) {
-    PrintFormatLog(3,"No Exif data found");
-    return FALSE;
+  /*!\todo test exif-enabled picture formats */
+  else if ((pExifDataFile = exif_data_new_from_file((const char*)resNodeGetNameNormalizedNative(prnArg))) == NULL) {
+    PrintFormatLog(1,"No Exif data in '%s' found",resNodeGetNameNormalized(prnArg));
   }
   else {
     int i;
@@ -69,6 +63,8 @@ imgParseFileExif(xmlNodePtr pndArg, resNodePtr prnArg)
     ExifEntry *pExifEntry;
     int iX = 0;
     int iY = 0;
+
+    PrintFormatLog(2,"Read Exif info from file '%s'",resNodeGetNameNormalized(prnArg));
 
     pndExif = xmlNewChild(pndArg, NULL, BAD_CAST"exif", NULL);
 
@@ -218,14 +214,14 @@ imgParseFileExif(xmlNodePtr pndArg, resNodePtr prnArg)
         }
       }      
     }
-
+    fResult = TRUE;
+    
     /* Free the EXIF data */
     exif_data_unref(pExifDataFile);
   }
 
-  return TRUE;
-}
-/* end of imgParseFileExif() */
+  return fResult;
+} /* end of imgParseFileExif() */
 
 
 #ifdef TESTCODE

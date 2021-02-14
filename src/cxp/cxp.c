@@ -1751,8 +1751,8 @@ cxpProcessMakeNode(xmlNodePtr pndArg,cxpContextPtr pccArg)
 	  if (pucT) {
 	    /*!\todo apply text substitutions */
 	    xmlFree(pucT);
-	    cxpViewNodeResult(pndChild, pccHere);
 	  }
+	  cxpViewNodeResult(pndChild, pccHere);
 	}
 	else if (IS_NODE_SYSTEM(pndChild)) {
 	  if (cxpProcessSystemNode(pndChild, pccHere) == FALSE) { /* change of local resource node possible */
@@ -1802,6 +1802,8 @@ cxpProcessMakeNode(xmlNodePtr pndArg,cxpContextPtr pccArg)
 
 \param pndArg a xmlNodePtr to append data
 \param pccArg the resource node
+
+\deprecated replaced by UpdateXslVariables()
 
 \return
 */
@@ -2056,6 +2058,8 @@ cxpCtxtSearchSet(cxpContextPtr pccArg, resNodePtr prnArg)
 
 
 /*! update value of xsl:variable node, if a string value is required then append it as new text child
+
+\deprecated ???
 */
 BOOL_T
 UpdateXslVariable(xmlNodePtr pndArg, char *pcValue, cxpContextPtr pccArg)
@@ -2167,17 +2171,50 @@ UpdateXslVariables(xmlDocPtr pdocResult, xmlNodePtr pndArgCxpXsl, cxpContextPtr 
 	    if ((pucAttrName = domGetPropValuePtr(pndXslGlobal, BAD_CAST "name")) != NULL
 		&& xmlStrEqual(pucAttrName, pucName)) {
 	      /* according xsl:variable in stylesheet DOM found */
+	      xmlNodePtr pndNew = NULL;
 
-	      xmlNodePtr pndNew;
+	      if ((pndNew = xmlCopyNode(pndCurrent,1)) != NULL) {
+		cxpSubstPtr pcxpSubstT = NULL;
 
-	      pndNew = xmlCopyNode(pndCurrent,1);
-	      domUnsetNs(pndNew);
-	      //xmlSetTreeDoc(pndNew,pndRoot->doc);
-	      cxpCtxtLogPrint(pccArg, 4, "Replacing VARIABLE '%s'", pucAttrName);
-	      domSetNsRecursive(pndNew,pndRoot->ns); /*!\bug child nodes of pndNew may be nodes in different namespace */
-	      xmlReplaceNode(pndXslGlobal, pndNew);
-	      xmlFreeNode(pndXslGlobal);
-	      fResult = TRUE;
+		if ((pcxpSubstT = cxpSubstDetect(pndNew,pccArg)) != NULL) {
+		  xmlChar *pucValue;
+		  
+		  if ((pucValue = cxpSubstGetPtr(pcxpSubstT)) != NULL) {
+		    
+		    cxpCtxtLogPrint(pccArg, 1, "Substitute VARIABLE '%s' by value '%s'", pucAttrName, pucValue);
+
+		    if (xmlHasProp(pndNew, BAD_CAST "select")) {
+		      xmlSetProp(pndNew, BAD_CAST "select", pucValue);
+		    }
+		    else if (xmlNodeIsText(pndNew->children)) {
+		      xmlNodeSetContent(pndNew->children, pucValue);
+		    }
+		    else {
+		      xmlAddChild(pndNew,xmlNewText(pucValue));
+		    }
+		  }
+		  else {
+		    cxpCtxtLogPrint(pccArg, 1, "Substitution VARIABLE '%s' failed (no new value found)", pucAttrName, pucValue);
+		  }
+		  cxpSubstFree(pcxpSubstT);
+		}
+		else {
+		  cxpCtxtLogPrint(pccArg, 1, "Replacing VARIABLE '%s' by copy from cxp", pucAttrName);
+		}
+		
+		domUnsetNs(pndNew);
+		//xmlSetTreeDoc(pndNew,pndRoot->doc);
+		domSetNsRecursive(pndNew,pndRoot->ns); /*!\bug child nodes of pndNew may be nodes in different namespace */
+		xmlReplaceNode(pndXslGlobal, pndNew);
+		xmlFreeNode(pndXslGlobal);
+	      
+		fResult = TRUE;
+
+	      }
+	      else {
+		cxpCtxtLogPrint(pccArg, 1, "Substitution VARIABLE '%s' failed (no copy)", pucAttrName);
+	      }
+	      
 	      break;
 	    }
 	    else {
@@ -3506,7 +3543,7 @@ cxpProcessInfoNode(xmlNodePtr pndInfo, cxpContextPtr pccArg)
 
     nodeOption = xmlNewChild(nodeProgram, NULL, BAD_CAST"option", NULL);
     xmlSetProp(nodeOption,BAD_CAST "name",BAD_CAST"libexif");
-    xmlSetProp(nodeOption,BAD_CAST "ns",BAD_CAST"http://libexif.sourceforge.net/");
+    xmlSetProp(nodeOption,BAD_CAST "ns",BAD_CAST"https://github.com/libexif");
 #ifdef HAVE_LIBEXIF
     xmlSetProp(nodeOption,BAD_CAST "select", BAD_CAST "yes");
     xmlSetProp(nodeOption,BAD_CAST "version",BAD_CAST "0.6.21");

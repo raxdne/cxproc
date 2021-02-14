@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cxp:make xmlns:cxp="http://www.tenbusch.info/cxproc" log="1" dir="pwd">
+  <cxp:description>Exifmover 0.3 (p) 2013..2015 A. Tenbusch
+
+  moves all files in a directory into subdirectories according to file
+  meta information (EXIF) or modification time
+
+  exifmover.cxp [/home/abc/Pictures]
+
+</cxp:description>
+  <cxp:subst string="%SOURCE%" argv="2" dir="dialog" default="."/>
+  <cxp:subst string="%TARGET%" argv="3" default="%SOURCE%"/>
+  <cxp:system dialog="Search for files in '%SOURCE%' ..."/>
+  <cxp:xml name="-">		<!--  eval="yes" -->
+    <cxp:dir imatch=".+\..+" verbosity="4">
+      <cxp:dir name="%SOURCE%" depth="1"/>
+    </cxp:dir>
+    <cxp:xsl name="exifmover.xsl">
+      <cxp:variable name="str_dir" select="'%SOURCE%'"/>
+      <cxp:variable name="str_dir_target" select="'%TARGET%'"/>
+    </cxp:xsl>
+  </cxp:xml>
+  <cxp:system dialog="Continue with any key!"/>
+</cxp:make>

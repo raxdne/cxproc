@@ -749,7 +749,7 @@ OpenSqlite(resNodePtr prnArg)
     }
   }
   else {
-    PrintFormatLog(1,"Open Database '%s' in readonly mode", resNodeGetNameNormalized(prnArg));
+    PrintFormatLog(1,"Open Database '%s' in readonly mode", pucFilename);
     sqlite3_open_v2((char *)pucFilename,
       (sqlite3 **)  &(prnArg->handleIO),
       SQLITE_OPEN_READONLY,

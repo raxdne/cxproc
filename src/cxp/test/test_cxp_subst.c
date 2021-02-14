@@ -107,8 +107,8 @@ cxpSubstTest(cxpContextPtr pccArg)
     else if (xmlStrEqual(pT->pucName,BAD_CAST"ABC") == FALSE) {
       printf("Error pucName\n");
     }
-    else if (cxpSubstGetPtr(pT) != pT->pucTo || xmlStrEqual(pT->pucTo,BAD_CAST"XYZ") == FALSE) {
-      printf("Error pucTo\n");
+    else if (cxpSubstGetPtr(pT) != pT->pucDefault || xmlStrEqual(pT->pucDefault,BAD_CAST"XYZ") == FALSE) {
+      printf("Error pucDefault\n");
     }
     else {
       n_ok++;
