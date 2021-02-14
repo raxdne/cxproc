@@ -263,10 +263,6 @@ dbInsert(resNodePtr prnArgDb, xmlChar *pucArgQuery)
   int iQuery;
   BOOL_T fResult = TRUE;
 
-#ifdef DEBUG
-  PrintFormatLog(4,"dbInsert(prnArgDb=%0x,pucArgQuery='%s')",prnArgDb,pucArgQuery);
-#endif
-
   pdbContext = (sqlite3 *)resNodeGetHandleIO(prnArgDb);
   pucQuery = dbTextReadStatement(pucArgQuery);
   for (iQuery=0; pucQuery; iQuery++) {
@@ -290,17 +286,15 @@ dbInsert(resNodePtr prnArgDb, xmlChar *pucArgQuery)
 	  break;
 	}
 	else {
-	  PrintFormatLog(1,"SQLite error at query %i",iRow);
-	  //xmlNewChild(pndTable, NULL, BAD_CAST"error", BAD_CAST"SQL");
+	  dbInsertMetaLog(prnArgDb, BAD_CAST"error/query", pucQuery);
 	  fResult = FALSE;
 	  break;
 	}
       }
     }
     else {
-      PrintFormatLog(1,"SQL prepare error");
+      dbInsertMetaLog(prnArgDb, BAD_CAST"error/query+prepare", pucQuery);
       fResult = FALSE;
-      //xmlNewChild(pndTable, NULL, BAD_CAST"error", BAD_CAST"SQL");
     }
     sqlite3_finalize(pStmt);
 
@@ -486,7 +480,9 @@ dbParseDirCreateTables(resNodePtr prnArgDb)
       "w INTEGER, "
       "x INTEGER, "
       "h INTEGER, "
+#if 0
       "owner text, "
+#endif
       "name text, "
       "ext text, "
       "object text, "

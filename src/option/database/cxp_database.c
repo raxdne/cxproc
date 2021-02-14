@@ -319,35 +319,37 @@ dbParseDirTraverse(resNodePtr prnArgDb, resNodePtr prnArgContext, int iDepthArg,
 {
   BOOL_T fResult = TRUE;
 
-  if (resNodeIsReadable(prnArgContext) == FALSE) {
-    dbInsertMetaLog(prnArgDb, BAD_CAST"error/read", resNodeGetNameNormalized(prnArgContext));
-  }
-  else if (resNodeIsHidden(prnArgContext) && (iOptions & FS_PARSE_HIDDEN) == 0) {
-    /* ignore hidden context */
+  if (resNodeIsHidden(prnArgContext) && (iOptions & FS_PARSE_HIDDEN) == 0) {
+    dbInsertMetaLog(prnArgDb, BAD_CAST"log/ignore+hidden", resNodeGetNameNormalized(prnArgContext));
   }
   else if (resNodeIsDir(prnArgContext)) {
+    xmlChar* pucStatement;
+    resNodePtr prnT;
 
-    if (resNodeListParse(prnArgContext, 1, re_match)) { /*! read Resource Node as list of childs */
-      xmlChar *pucStatement;
-      resNodePtr prnT;
-
-      pucStatement = resNodeToSql(prnArgContext, 1);
-      dbInsert(prnArgDb, pucStatement);
-      xmlFree(pucStatement);
-
+    if (resNodeIsReadable(prnArgContext) == FALSE) {
+      dbInsertMetaLog(prnArgDb, BAD_CAST"error/read", resNodeGetNameNormalized(prnArgContext));
+    }
+    else if (resNodeListParse(prnArgContext, 1, re_match)) { /*! read Resource Node as list of childs */
       for (prnT = resNodeGetChild(prnArgContext); iDepthArg > 0 && prnT != NULL && fResult; prnT = resNodeGetNext(prnT)) {
 	fResult &= dbParseDirTraverse(prnArgDb, prnT, iDepthArg - 1, iLevelVerboseArg, iOptions, re_match, pccArg);
       }
-
       resNodeFree(resNodeGetChild(prnArgContext)); /* release the context list of current directory */
     }
     else {
       dbInsertMetaLog(prnArgDb, BAD_CAST"error/parse+list", resNodeGetNameNormalized(prnArgContext));
     }
+
+    pucStatement = resNodeToSql(prnArgContext, 1);
+    dbInsert(prnArgDb, pucStatement);
+    xmlFree(pucStatement);
   }
+#ifdef HAVE_LIBARCHIVE
   else if (resNodeIsArchive(prnArgContext)) {
 
-    if (resNodeListParse(prnArgContext, 1, re_match)) { /*! read Resource Node as list of childs */
+    if (resNodeIsReadable(prnArgContext) == FALSE) {
+      dbInsertMetaLog(prnArgDb, BAD_CAST"error/read", resNodeGetNameNormalized(prnArgContext));
+    }
+    else if (resNodeListParse(prnArgContext, 1, re_match)) { /*! read Resource Node as list of childs */
       xmlChar *pucStatement;
 
       pucStatement = resNodeListToSQL(prnArgContext, iOptions);
@@ -360,6 +362,7 @@ dbParseDirTraverse(resNodePtr prnArgDb, resNodePtr prnArgContext, int iDepthArg,
       dbInsertMetaLog(prnArgDb, BAD_CAST"error/parse+list", resNodeGetNameNormalized(prnArgContext));
     }
   }
+#endif
 #ifdef HAVE_PIE
   else if (resNodeGetMimeType(prnArgContext) == MIME_APPLICATION_PIE_XML_INDEX) {
     /* ignore index files */
@@ -395,8 +398,7 @@ dbParseDirTraverse(resNodePtr prnArgDb, resNodePtr prnArgContext, int iDepthArg,
   }
 
   return fResult;
-}
-/* end of dbParseDirTraverse() */
+} /* end of dbParseDirTraverse() */
 
 
 /*!\return an allocated resource node according to attributes of pndArg
@@ -505,7 +507,7 @@ dbProcessDirNode(resNodePtr prnArgDb, xmlNodePtr pndArgDir, cxpContextPtr pccArg
 
     if (re_match == NULL) {
       /* regexp error handling */
-      cxpCtxtLogPrint(pccArg,1, "File matching regexp '%s' error: '%i'", &pucAttrMatch[erroffset], errornumber);
+      dbInsertMetaLog(prnArgDb, BAD_CAST "error/regexp", pucAttrMatch);
       return NULL;
     }
   }
@@ -545,12 +547,10 @@ dbProcessDirNode(resNodePtr prnArgDb, xmlNodePtr pndArgDir, cxpContextPtr pccArg
 
       prnT = resNodeConcatNew(cxpCtxtLocationGetStr(pccArg),pucPath);
       if (cxpCtxtAccessIsPermitted(pccArg,prnT) == FALSE) {
-	cxpCtxtLogPrint(pccArg,2,"Access to path '%s' denied",resNodeGetNameNormalized(prnT));
-	dbInsertMetaLog(prnArgDb, BAD_CAST "error/access", pucPath);
+	dbInsertMetaLog(prnArgDb, BAD_CAST "error/access", resNodeGetNameNormalized(prnT));
       }
       else if (resNodeReadStatus(prnT) == FALSE) {
-	cxpCtxtLogPrint(pccArg,2,"Directory or file '%s' does not exist",resNodeGetNameNormalized(prnT));
-	  dbInsertMetaLog(prnArgDb, BAD_CAST "error/exists", pucPath);
+	dbInsertMetaLog(prnArgDb, BAD_CAST "error/exists", resNodeGetNameNormalized(prnT));
       }
       else if (prnArgDb != NULL
 	  && dbParseDirTraverse(prnArgDb, prnT, iDepth, iLevelVerbose, iOptions, re_match, pccArg)) {
@@ -560,8 +560,7 @@ dbProcessDirNode(resNodePtr prnArgDb, xmlNodePtr pndArgDir, cxpContextPtr pccArg
       resNodeFree(prnT);
     }
     else {
-      cxpCtxtLogPrint(pccArg,2, "File entry '%s' neither file nor directory", pucPath);
-      dbInsertMetaLog(prnArgDb, BAD_CAST "error", BAD_CAST "unknown");
+      dbInsertMetaLog(prnArgDb, BAD_CAST "error/type+unknown", pucPath);
     }
 
     if (pucPath) {
