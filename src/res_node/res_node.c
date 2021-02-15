@@ -3362,8 +3362,8 @@ resNodeToSql(resNodePtr prnArg, int iArgOptions)
 	xmlChar *pucSqlDecl;
 	xmlChar *pucSqlValue;
 
-	pucSqlDecl = xmlStrdup("insert into directory (");
-	pucSqlValue = xmlStrdup("values (");
+	pucSqlDecl = xmlStrdup(BAD_CAST"insert into directory (");
+	pucSqlValue = xmlStrdup(BAD_CAST"values (");
 
 	pucSqlDecl = xmlStrcat(pucSqlDecl,BAD_CAST"depth,type,");
 	xmlStrPrintf(pucResult, BUFFER_LENGTH, "%i,%i,", resPathGetDepth(resNodeGetNameNormalized(prnArg)), resNodeGetType(prnArg));
