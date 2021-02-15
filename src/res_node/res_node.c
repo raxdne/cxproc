@@ -2729,16 +2729,16 @@ resNodeContentToDOM(xmlNodePtr pndArg, resNodePtr prnArg)
 	  }
 	  pndTags = xmlNewChild(pndMeta, NULL, NAME_PIE_TAGLIST, NULL);
 
+	  RecognizeInlines(pndPie);
+	  RecognizeScripts(pndPie);
+	  RecognizeFigures(pndPie);
+	  RecognizeUrls(pndPie);
+	  RecognizeDates(pndPie, iMimeType);
+	  RecognizeTasks(pndPie);
 	  RecognizeHashtags(pndPie,NULL, NULL);
 	  RecognizeGlobalTags(pndTags, pndPie);
 	  CleanListTag(pndTags, FALSE);
 	  //domPutNodeString(stderr, BAD_CAST "resNodeContentToDOM(): ", pndPie);
-	  RecognizeUrls(pndPie);
-	  RecognizeScripts(pndPie);
-	  RecognizeTasks(pndPie);
-	  RecognizeInlines(pndPie);
-	  RecognizeDates(pndPie);
-	  RecognizeFigures(pndPie);
 	  xmlAddChild(pndArg, pndPie);
 	}
       }

@@ -1146,7 +1146,7 @@ pieTextBlocksTest(void)
     if ((pndPie = xmlNewNode(NULL, NAME_PIE_PIE)) == NULL) {
       printf("Error xmlNewNode()\n");
     }
-    else if ((pndT = SplitStringToDateNodes(NULL)) != NULL || (pndT = SplitStringToDateNodes(BAD_CAST"")) != NULL) {
+    else if ((pndT = SplitStringToDateNodes(NULL,MIME_TEXT_PLAIN)) != NULL || (pndT = SplitStringToDateNodes(BAD_CAST"",MIME_TEXT_PLAIN)) != NULL) {
       printf("Error SplitStringToDateNodes()\n");
     }
     else {
@@ -1169,19 +1169,19 @@ pieTextBlocksTest(void)
     if ((pndPie = xmlNewNode(NULL, NAME_PIE_PIE)) == NULL) {
       printf("Error xmlNewNode()\n");
     }
-    else if ((pndT = SplitStringToDateNodes(BAD_CAST"TODO: 20160301 done")) == NULL || xmlAddChild(pndPie, pndT) == NULL) {
+    else if ((pndT = SplitStringToDateNodes(BAD_CAST"TODO: 20160301 done",MIME_TEXT_PLAIN)) == NULL || xmlAddChild(pndPie, pndT) == NULL) {
       printf("Error 1 SplitStringToDateNodes()\n");
     }
-    else if ((pndT = SplitStringToDateNodes(BAD_CAST"20160301,20160303 and 20160304")) == NULL || xmlAddChild(pndPie, pndT) == NULL) {
+    else if ((pndT = SplitStringToDateNodes(BAD_CAST"20160301,20160303 and 20160304",MIME_TEXT_PLAIN)) == NULL || xmlAddChild(pndPie, pndT) == NULL) {
       printf("Error 2 SplitStringToDateNodes()\n");
     }
-    else if ((pndT = SplitStringToDateNodes(BAD_CAST"2016-03-01;2016-03-03 and 2016-03-04")) == NULL || xmlAddChild(pndPie, pndT) == NULL) {
+    else if ((pndT = SplitStringToDateNodes(BAD_CAST"2016-03-01;2016-03-03 and 2016-03-04",MIME_TEXT_PLAIN)) == NULL || xmlAddChild(pndPie, pndT) == NULL) {
       printf("Error 3 SplitStringToDateNodes()\n");
     }
-    else if ((pndT = SplitStringToDateNodes(BAD_CAST"20160307+11")) == NULL || xmlAddChild(pndPie, pndT) == NULL) {
+    else if ((pndT = SplitStringToDateNodes(BAD_CAST"20160307+11",MIME_TEXT_PLAIN)) == NULL || xmlAddChild(pndPie, pndT) == NULL) {
       printf("Error 3 SplitStringToDateNodes()\n");
     }
-    else if ((pndT = SplitStringToDateNodes(BAD_CAST"2016/2017")) != NULL) {
+    else if ((pndT = SplitStringToDateNodes(BAD_CAST"2016/2017",MIME_TEXT_PLAIN)) != NULL) {
       printf("Error 4 SplitStringToDateNodes()\n");
       xmlFreeNode(pndT);
     }
