@@ -2186,7 +2186,7 @@ SplitStringToDateNodes(const xmlChar *pucArg, RN_MIME_TYPE eMimeTypeArg)
 	    while (*(pucArg + ovector[1]) == (xmlChar)' ') ovector[1]++;
 	    if (*(pucArg + ovector[1]) == (xmlChar)'+') {
 	      ovector[1]++;
-	      xmlSetProp(pndIn,BAD_CAST"holyday",BAD_CAST"yes");
+	      xmlSetProp(pndIn,BAD_CAST"holiday",BAD_CAST"yes");
 	      while (*(pucArg + ovector[1]) == (xmlChar)' ') ovector[1]++;
 	    }
 	  }
