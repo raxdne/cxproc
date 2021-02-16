@@ -304,16 +304,21 @@ pieProcessPieNode(xmlNodePtr pndArgPie, cxpContextPtr pccArg)
     }
 
     //xmlSetProp(pndArgPie, BAD_CAST "xpath",BAD_CAST "/*/*[1]/*[1]/*[1]/*");
+    domSetPropFileXpath(pndPieRoot,BAD_CAST"fxpath",NULL);
 
     pucAttr = domGetPropValuePtr(pndArgPie, BAD_CAST "xpath"); /*  */
     if (STR_IS_NOT_EMPTY(pucAttr) && xmlStrEqual(pucAttr,BAD_CAST"/*") == FALSE) {
       xmlDocPtr pdocResultXPath;
       xmlChar *pucXPath;
 
+#if 1
+      pucXPath = xmlStrdup(pucAttr);
+#else
       pucXPath = xmlStrdup(BAD_CAST"/descendant-or-self::*[@fxpath = '");
       pucXPath = xmlStrcat(pucXPath,pucAttr);
       pucXPath = xmlStrcat(pucXPath,BAD_CAST"']");
-
+#endif
+      
       cxpCtxtLogPrint(pccArg, 2, "Locator XPath for '%s'", pucXPath);
       if ((pdocResultXPath = domGetXPathDoc(pdocResult, pucXPath)) != NULL) {
 	xmlFreeDoc(pdocResult);
@@ -408,6 +413,7 @@ ImportNodeCxp(xmlNodePtr pndArgImport, cxpContextPtr pccArg)
 	    xmlUnlinkNode(pndPieProcRoot);
 	    xmlNodeSetName(pndPieProcRoot, NAME_PIE_BLOCK);
 	    xmlSetNs(pndPieProcRoot,NULL);
+	    //domSetPropFileXpath(pndPieProcRoot,BAD_CAST"fxpath",NULL);
 	    xmlReplaceNode(pndArgImport, pndPieProcRoot);
 	    xmlFreeNode(pndArgImport);
 	    TraverseImportNodes(pndPieProcRoot, pccArg); /* parse result recursively */
@@ -445,6 +451,7 @@ ImportNodeCxp(xmlNodePtr pndArgImport, cxpContextPtr pccArg)
       //xmlSetProp(pndBlock, BAD_CAST "context", resNodeGetURI(prnInput));
 
       if (ParsePlainBuffer(pndBlock, pucContent, GetModeByAttr(pndArgImport))) {
+	//domSetPropFileXpath(pndBlock,BAD_CAST"fxpath",NULL);
 	TraverseImportNodes(pndBlock, pccArg); /* parse result recursively */
       }
       else {
@@ -661,6 +668,7 @@ ImportNodeFile(xmlNodePtr pndArgImport, cxpContextPtr pccArg)
 	if (STR_IS_NOT_EMPTY(pucContent)) {
 	  if (ParsePlainBuffer(pndBlock, pucContent, m)) {
 	    SetPropLocators(pndBlock, resNodeGetNameRelative(cxpCtxtRootGet(pccInput), prnInput), NULL);
+	    //domSetPropFileXpath(pndBlock,BAD_CAST"fxpath",NULL);
 	    TraverseImportNodes(pndBlock, pccInput); /* parse result recursively */
 	  }
 	  else {
@@ -736,6 +744,7 @@ ImportNodeFile(xmlNodePtr pndArgImport, cxpContextPtr pccArg)
 	  }
 	  xmlFreeDoc(pdocPie);
 	  SetPropLocators(pndBlock, resNodeGetNameRelative(cxpCtxtRootGet(pccInput), prnInput), NULL);
+	  //domSetPropFileXpath(pndBlock,BAD_CAST"fxpath",NULL);
 	  TraverseImportNodes(pndBlock, pccInput); /* parse result recursively */
 	}
 	else {
@@ -813,6 +822,7 @@ ImportNodeContent(xmlNodePtr pndArgImport, cxpContextPtr pccArg)
       TraverseImportNodes(pndBlock, pccArg); /* parse result recursively */
       if (domGetPropFlag(pndArgImport, BAD_CAST "locator", fLocator)
 	  && pndArgImport->doc != NULL && (prnDoc = resNodeDirNew(BAD_CAST pndArgImport->doc->URL)) != NULL) {
+	//domSetPropFileXpath(pndBlock,BAD_CAST"fxpath",NULL);
 	SetPropLocators(pndBlock, resNodeGetNameRelative(cxpCtxtRootGet(pccArg), prnDoc), NULL);
 	resNodeFree(prnDoc);
       }
@@ -938,6 +948,7 @@ ProcessImportNode(xmlNodePtr pndArgImport, cxpContextPtr pccArg)
     else {
       xmlAddChild(pndArgImport, xmlNewComment(BAD_CAST"unknown content type"));
     }
+    //domSetPropFileXpath(pndArgImport,BAD_CAST"fxpath",NULL);
 
     cxpCtxtFree(pccDoc);
     if (pccHere != pccArg) {

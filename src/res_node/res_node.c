@@ -2735,6 +2735,7 @@ resNodeContentToDOM(xmlNodePtr pndArg, resNodePtr prnArg)
 	  RecognizeUrls(pndPie);
 	  RecognizeDates(pndPie, iMimeType);
 	  RecognizeTasks(pndPie);
+	  domSetPropFileXpath(pndPie,BAD_CAST"fxpath",NULL);
 	  RecognizeHashtags(pndPie,NULL, NULL);
 	  RecognizeGlobalTags(pndTags, pndPie);
 	  CleanListTag(pndTags, FALSE);
