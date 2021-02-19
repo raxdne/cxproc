@@ -311,12 +311,22 @@ pieProcessPieNode(xmlNodePtr pndArgPie, cxpContextPtr pccArg)
       
       cxpCtxtLogPrint(pccArg, 2, "Locator XPath for '%s'", pucAttr);
       if ((pdocResultXPath = domGetXPathDoc(pdocResult, pucAttr)) != NULL) {
+	xmlChar* pucRegExpTag = NULL;
+
+	/* collect all "regexp-tag" in current DOM and add result to sub-DOM pdocResultXPath */
+	if ((pndPieRoot = xmlDocGetRootElement(pdocResultXPath)) != NULL
+	  && (pucRegExpTag = GetBlockTagRegExpStr(xmlDocGetRootElement(pdocResult), NULL, TRUE)) != NULL) {
+	  xmlAddChild(pndPieRoot, xmlNewPI(BAD_CAST"regexp-tag", pucRegExpTag));
+	  xmlFree(pucRegExpTag);
+	}
+
 	xmlFreeDoc(pdocResult);
 	pdocResult = pdocResultXPath;
-	pndPieRoot = xmlDocGetRootElement(pdocResult);
       }
     }
 
+    /*!\todo update meta element */
+    
     if (domGetPropFlag(pndArgPie, BAD_CAST "tags", TRUE)) {
       cxpCtxtLogPrint(pccArg, 2, "Recognize tags");
       ProcessTags(pdocResult, NULL);

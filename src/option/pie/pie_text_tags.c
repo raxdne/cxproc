@@ -66,9 +66,6 @@ AppendListTag(xmlNodePtr pndTags, xmlChar* pucArg);
 static BOOL_T
 RecognizeNodeTags(xmlNodePtr pndTags, xmlNodePtr pndArg, pcre2_code* preArg);
 
-static xmlChar*
-GetBlockTagRegExpStr(xmlNodePtr pndArg);
-
 
 /*! update legacy markup in pucArg
 
@@ -378,7 +375,7 @@ RecognizeHashtags(xmlNodePtr pndArg, pcre2_code* preArgHashTag, pcre2_code* preA
   else if (IS_NODE_PIE_PIE(pndArg) || IS_NODE_PIE_BLOCK(pndArg)) {
     xmlChar* pucRegExpTag = NULL;
 
-    if ((pucRegExpTag = GetBlockTagRegExpStr(pndArg)) != NULL) {
+    if ((pucRegExpTag = GetBlockTagRegExpStr(pndArg,NULL,FALSE)) != NULL) {
       /* there is a local regexp string for tags */
       pcre2_code* preBlock = NULL;
 
@@ -482,24 +479,27 @@ RecognizeHashtags(xmlNodePtr pndArg, pcre2_code* preArgHashTag, pcre2_code* preA
 /*! \return a pointer to the non-empty value of processing instruction node "regexp-tag"
 */
 xmlChar*
-GetBlockTagRegExpStr(xmlNodePtr pndArg)
+GetBlockTagRegExpStr(xmlNodePtr pndArg, xmlChar *pucArg, BOOL_T fArgRecursion)
 {
-  xmlChar* pucResult = NULL;
+  xmlChar* pucResult = pucArg;
 
-  if (IS_NODE_PIE_PIE(pndArg) || IS_NODE_PIE_BLOCK(pndArg)) {
+  if (IS_NODE(pndArg,NULL)) {
     xmlNodePtr pndI;
     xmlChar* pucT = NULL;
     
     for (pndI = pndArg->children; pndI != NULL; pndI = pndI->next) {
       if (pndI->type == XML_PI_NODE && xmlStrEqual(pndI->name, BAD_CAST"regexp-tag") && (pucT = domNodeGetContentPtr(pndI)) != NULL) {
 	if (pucResult) {
-	  /*!\todo check regexp */
 	  pucResult = xmlStrcat(pucResult,BAD_CAST"|");
 	  pucResult = xmlStrcat(pucResult,pucT);
 	}
 	else {
 	  pucResult = xmlStrdup(pucT);
 	}
+	/*!\todo check regexp */
+      }
+      else if (fArgRecursion) {
+	pucResult = GetBlockTagRegExpStr(pndI, pucResult, fArgRecursion);
       }
     }
   }
@@ -873,11 +873,7 @@ ProcessTags(xmlDocPtr pdocPie, xmlChar* pucAttrTags)
 #endif
 
     RecognizeGlobalTags(pndTags, pndRoot);
-#if 0
-    CleanListTag(pndTags, (GetBlockTagRegExpStr(pndRoot) == NULL));
-#else
     CleanListTag(pndTags, FALSE);
-#endif
     pndResult = pndTags;
   }
 
