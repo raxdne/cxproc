@@ -1120,6 +1120,8 @@ IsImportCircular(xmlNodePtr pndArg, resNodePtr prnArg)
 } /* end of IsImportCircular() */
 
 
+#ifdef LEGACY
+
 /*! translates UNC paths into URL notation first
 */
 xmlChar *
@@ -1373,6 +1375,8 @@ SplitTupelToLinkNodes(const xmlChar *pucArg)
   return pndResult;
 }
 /* end of SplitTupelToLinkNodes() */
+
+#endif
 
 
 /*! splits an UTF-8 string into a list of text and link element nodes (s. "Test/TestGood.txt")
@@ -1773,10 +1777,12 @@ RecognizeUrls(xmlNodePtr pndArg)
 	 pndChild= (pndChild != NULL) ? pndChild->next : NULL) {
 
       if (xmlNodeIsText(pndChild)) { /* pndChild is a text node */
-	xmlChar *pucRelease;
+	xmlChar *pucRelease = pndChild->content;
 	xmlNodePtr pndReplace;
 
+#ifdef LEGACY
 	pucRelease = TranslateUncToUrl(pndChild->content);
+#endif
 
 	if ((pndReplace = SplitStringToAutoLinkNodes(pucRelease))) {
 	  RecognizeUrls(pndReplace);
@@ -1837,7 +1843,9 @@ RecognizeUrls(xmlNodePtr pndArg)
 	    pndChild = NULL;
 	  }
 	}
+#ifdef LEGACY
 	xmlFree(pucRelease);
+#endif
       }
       else {
 	RecognizeUrls(pndChild);

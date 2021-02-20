@@ -143,6 +143,8 @@ pieTextBlocksTest(void)
     }
   }
 
+#ifdef LEGACY
+
   if (RUNTEST) {
     xmlChar *pucResult;
     xmlChar *pucData = BAD_CAST "d:\\abc\\def\\ghi";
@@ -161,30 +163,6 @@ pieTextBlocksTest(void)
       printf("OK\n");
     }
     xmlFree(pucResult);
-  }
-
-
-  if (RUNTEST) {
-    xmlChar *pucData = BAD_CAST "TODO: Phillips Entsafter &amp; R\xC3\xBChrger\xC3\xA4t @ebay";
-    xmlNodePtr pndT;
-    xmlNodePtr pndTT = NULL;
-
-    i++;
-    printf("TEST %i in '%s:%i': detect todo markup = ", i, __FILE__, __LINE__);
-
-    if ((pndT = xmlNewNode(NULL, NAME_PIE_PAR)) == NULL || (xmlAddChild(pndT, xmlNewText(pucData))) == NULL) {
-      printf("Error xmlNewTextChild\n");
-    }
-    else if ((pndTT = TaskNodeNew(pndT)) == NULL || IS_NODE_PIE_TASK(pndTT) == FALSE || IS_NODE_PIE_HEADER(pndTT->children) == FALSE) {
-      printf("Error TaskNodeNew\n");
-    }
-    else {
-      n_ok++;
-      printf("OK\n");
-    }
-    //domPutNodeString(stderr, BAD_CAST "todo result", pndTT);
-    xmlFreeNode(pndTT);
-    xmlFreeNode(pndT);
   }
 
   if (RUNTEST) {
@@ -227,6 +205,32 @@ pieTextBlocksTest(void)
     xmlFree(pucResult);
   }
 
+
+#endif
+  
+
+  if (RUNTEST) {
+    xmlChar *pucData = BAD_CAST "TODO: Phillips Entsafter &amp; R\xC3\xBChrger\xC3\xA4t @ebay";
+    xmlNodePtr pndT;
+    xmlNodePtr pndTT = NULL;
+
+    i++;
+    printf("TEST %i in '%s:%i': detect todo markup = ", i, __FILE__, __LINE__);
+
+    if ((pndT = xmlNewNode(NULL, NAME_PIE_PAR)) == NULL || (xmlAddChild(pndT, xmlNewText(pucData))) == NULL) {
+      printf("Error xmlNewTextChild\n");
+    }
+    else if ((pndTT = TaskNodeNew(pndT)) == NULL || IS_NODE_PIE_TASK(pndTT) == FALSE || IS_NODE_PIE_HEADER(pndTT->children) == FALSE) {
+      printf("Error TaskNodeNew\n");
+    }
+    else {
+      n_ok++;
+      printf("OK\n");
+    }
+    //domPutNodeString(stderr, BAD_CAST "todo result", pndTT);
+    xmlFreeNode(pndTT);
+    xmlFreeNode(pndT);
+  }
 
   if (RUNTEST) {
     xmlNodePtr pndPie;
@@ -309,6 +313,8 @@ pieTextBlocksTest(void)
   }
 
 
+#ifdef LEGACY
+
   if (RUNTEST) {
     xmlNodePtr pndPie;
 
@@ -345,6 +351,8 @@ pieTextBlocksTest(void)
     xmlFreeNode(pndPie);
   }
 
+#endif
+  
 
   if (RUNTEST) {
     xmlNodePtr pndPie;

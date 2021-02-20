@@ -271,7 +271,7 @@ cxpSubstDetect(xmlNodePtr pndArgSubst, cxpContextPtr pccArg)
       /*!\todo use text node content also */
 
 #ifdef HAVE_JS
-      if ((pcxpSubstResult->pucScriptResult = _scriptProcessScriptAttribute(pndArgSubst,pccArg)) != NULL) {
+      if ((pcxpSubstResult->pucScriptResult = scriptProcessScriptAttribute(pndArgSubst,pccArg)) != NULL) {
 	/* this is a substitution with script result */
 	if (pcxpSubstResult->eEncoding == rfc1738) {
 	  pucTT = pcxpSubstResult->pucScriptResult;
@@ -774,66 +774,6 @@ cxpSubstGetPtr(cxpSubstPtr pcxpSubstArg)
   return pucResult;
 }
 /* end of cxpSubstGetPtr() */
-
-
-/*! \return a pointer to path value if successful or NULL
- \deprecated to be removed
-*/
-xmlChar *
-_cxpSubstGetNowPtr(cxpSubstPtr pcxpSubstArg)
-{
-  xmlChar *pucResult = NULL;
-
-  if ((pcxpSubstArg != NULL)
-    &&
-    ((pucResult = pcxpSubstArg->pucNow))) {
-    /* OK */
-  }
-  return pucResult;
-}
-/* end of cxpSubstGetNowPtr() */
-
-
-/*! \return a pointer to path value if successful or NULL
- \deprecated to be removed
-*/
-xmlChar *
-_cxpSubstGetScriptResultPtr(cxpSubstPtr pcxpSubstArg)
-{
-  xmlChar *pucResult = NULL;
-
-#ifdef HAVE_JS
-  if ((pcxpSubstArg != NULL)
-      &&
-      ((pucResult = pcxpSubstArg->pucScriptResult))) {
-    /* OK */
-  }
-#endif
-  return pucResult;
-}
-/* end of cxpSubstGetScriptPtr() */
-
-
-/*! \return a pointer to path value if successful or NULL
-
- \deprecated to be removed
-*/
-xmlChar *
-_cxpSubstGetPathPtr(cxpSubstPtr pcxpSubstArg)
-{
-  xmlChar *pucResult = NULL;
-
-  if ((pcxpSubstArg != NULL)
-    &&
-    ((pucResult = pcxpSubstArg->pucFile)
-    || (pucResult = pcxpSubstArg->pucDir)
-    || (pucResult = pcxpSubstArg->pucFilename)
-    || (pucResult = pcxpSubstArg->pucType))) {
-    /* OK */
-  }
-  return pucResult;
-}
-/* end of cxpSubstGetPathPtr() */
 
 
 /*! prints all data of pcxpSubstArg.

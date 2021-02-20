@@ -1345,50 +1345,6 @@ resNodeTest(void)
 
   if (RUNTEST) {
     resNodePtr prnT = NULL;
-
-    i++;
-    xmlStrPrintf(mucTestLabel,BUFFER_LENGTH,"\nTEST %i in '%s:%i': _resNodeSetNameAncestor() = ",i,__FILE__,__LINE__);
-    fputs((const char *)mucTestLabel,stderr);
-    mucTestResult[0] = '\0';
-
-
-    if ((prnT = resNodeDirNew(BAD_CAST"AAA")) == NULL) {
-      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error 1\n");
-    }
-    else if (resNodeReset(prnT,NULL) == FALSE) {
-      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error 2\n");
-    }
-    else if (_resNodeSetNameAncestor(prnT,NULL)) {
-      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error 3\n");
-    }
-    else if (resNodeReset(prnT,NULL) == FALSE) {
-      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error 4\n");
-    }
-    else if (_resNodeSetNameAncestor(NULL,BAD_CAST TEMPPREFIX)) {
-      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error 5\n");
-    }
-    else if (resNodeReset(prnT,NULL) == FALSE) {
-      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error 6\n");
-    }
-    else if (_resNodeSetNameAncestor(prnT,BAD_CAST TEMPPREFIX) == FALSE) {
-      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error 7\n");
-    }
-    else {
-      n_ok++;
-    }
-
-    if (xmlStrlen(mucTestResult) > 0) {
-      pucModuleTestReport = xmlStrcat(pucModuleTestReport,mucTestLabel);
-      pucModuleTestReport = xmlStrcat(pucModuleTestReport,mucTestResult);
-    }
-    
-
-    resNodeFree(prnT);
-  }
-
-
-  if (RUNTEST) {
-    resNodePtr prnT = NULL;
     xmlChar* pucT;
 
     i++;

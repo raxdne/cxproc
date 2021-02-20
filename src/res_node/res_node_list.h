@@ -48,9 +48,6 @@ extern resNodePtr
 resNodeListFindChild(resNodePtr prnArg, xmlChar *pucName);
 
 extern resNodePtr
-resNodeListFind(resNodePtr prnArg, xmlChar *pucArgPath, xmlChar *pucPattern);
-
-extern resNodePtr
 resNodeListFindPath(resNodePtr prnArg, xmlChar *pucArgPath, int iArgOptions);
 
 extern resNodePtr

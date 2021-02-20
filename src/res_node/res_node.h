@@ -421,12 +421,6 @@ resNodeSetNameBase(resNodePtr prnArg, xmlChar *pucArgPath);
 extern BOOL_T
 resNodeSetNameBaseDir(resNodePtr prnArg, xmlChar *pucArgPath);
 
-extern BOOL_T
-_resNodeSetNameAncestor(resNodePtr prnArg, xmlChar *pucArgPath);
-
-extern xmlChar *
-_resNodeGetNameDescendant(resNodePtr prnArg);
-
 extern void
 resNodeFree(resNodePtr prnArg);
 
@@ -588,9 +582,6 @@ resNodeSetRecursion(resNodePtr prnArg, BOOL_T fArgFlag);
 
 extern BOOL_T
 resNodeSetWrite(resNodePtr prnArg, BOOL_T fArgFlag);
-
-extern unsigned long
-_resNodeGetFileCrc(resNodePtr prnArg);
 
 extern BOOL_T
 resNodeSetToParent(resNodePtr prnArg);

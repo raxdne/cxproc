@@ -54,9 +54,6 @@ SplitStringToTagNodes2(const xmlChar* pucArg, pcre2_code* preArg, const xmlChar*
 static xmlNodePtr
 SplitStringToTagNodes(const xmlChar* pucArg, pcre2_code* preArgHashTag, pcre2_code* preArgBlockTag);
 
-static xmlChar*
-StringUpdateMarkupNew(xmlChar* pucArg, int* piArg);
-
 static BOOL_T
 TagStrIsCovered(xmlChar* pucArgTag, xmlChar* pucArgTagNeedle);
 
@@ -66,6 +63,11 @@ AppendListTag(xmlNodePtr pndTags, xmlChar* pucArg);
 static BOOL_T
 RecognizeNodeTags(xmlNodePtr pndTags, xmlNodePtr pndArg, pcre2_code* preArg);
 
+
+#ifdef LEGACY
+
+static xmlChar*
+StringUpdateMarkupNew(xmlChar* pucArg, int* piArg);
 
 /*! update legacy markup in pucArg
 
@@ -159,6 +161,8 @@ StringUpdateMarkupNew(xmlChar* pucArg, int* piArg)
   return pucResult;
 } /* end of StringUpdateMarkupNew() */
 
+#endif
+
 
 /*! add a new 'tag' element to pndArg if not yet exists
 */
@@ -218,7 +222,7 @@ SplitStringToTagNodes2(const xmlChar* pucArg, pcre2_code* preArg, const xmlChar*
     rc = pcre2_match(
       preArg,        /* result of pcre2_compile() */
       (PCRE2_SPTR8)pucArg,  /* the subject string */
-      xmlStrlen(pucArg),             /* the length of the subject string */
+      ducOrigin,             /* the length of the subject string */
       0,              /* start at offset 0 in the subject */
       0,              /* default options */
       match_data,        /* vector of integers for substring information */
@@ -429,7 +433,7 @@ RecognizeHashtags(xmlNodePtr pndArg, pcre2_code* preArgHashTag, pcre2_code* preA
 #ifdef LEGACY
 	  && (pucT = StringUpdateMarkupNew(pndChild->content, &iWeight)) != NULL
 #else
-	  && (pucT = xmlStrdup(pndChild->content)) != NULL
+	  && (pucT = pndChild->content) != NULL
 #endif
 	  ) { /* pndChild is a text node */
 	xmlNodePtr pndReplace;
@@ -452,9 +456,12 @@ RecognizeHashtags(xmlNodePtr pndArg, pcre2_code* preArgHashTag, pcre2_code* preA
 	    pndChild = NULL;
 	  }
 	}
+#ifdef LEGACY
 	else {
 	  xmlNodeSetContent(pndChild,pucT); /* set updated string as content */
 	}
+	xmlFree(pucT);
+#endif
 
 	if (iWeight > 0 && iWeight < 3) {
 	  if (IS_NODE_PIE_LINK(pndArg)) {
@@ -464,8 +471,6 @@ RecognizeHashtags(xmlNodePtr pndArg, pcre2_code* preArgHashTag, pcre2_code* preA
 	    xmlSetProp(pndArg, BAD_CAST"impact", BAD_CAST((iWeight < 2) ? "1" : "2"));
 	  }
 	}
-
-	xmlFree(pucT);
       }
       else {
 	fResult = RecognizeHashtags(pndChild, preArgHashTag, preArgBlockTag);
