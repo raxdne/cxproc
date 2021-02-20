@@ -43,6 +43,8 @@ REQ: additional Backends
 
 REQ: use environment variable `LANG` for localization of calendar, articles etc
 
+TODO: cleanup use of cxpXslParamProcess(), params required? (script, XSL)
+
 ## Security
 
 TEST: check security #v13 ++
@@ -67,7 +69,7 @@ TODO: gprof and valgrind/cachegrind (KCachegrind) #v13
 
 DONE: Binary without Microsoft Runtime DLL (at all requiered libs??)
 
-TODO: statically linked binaries for ARMv7, x64_linux, x64_windows  #v13
+TODO: statically linked binaries for ARMv7, x64_linux, x64_windows (using `vcpkg`) #v13
 
 TODO: provide a Flatpack
 
@@ -77,7 +79,7 @@ TODO: MacOS binaries
 
 ## XML
 
-TODO: Update of RELAX NG schemas (translation by [trang](http://www.thaiopensource.com/relaxng/trang-manual.html) ) #v13 ++
+TODO: Update of RELAX NG schemas (translation by [trang](http://www.thaiopensource.com/relaxng/trang-manual.html) ) #v14
 
 ## Testing
 
@@ -88,7 +90,9 @@ Test with text files from Gutenberg Project <https://www.gutenberg.org/>
 
 ## Deployment
 
-TODO: CMake packaging (deb, rpm, tar.gz, zip, 7zip, NSI) #v13
+DONE: CMake packaging (tar.gz, zip) #v13
+
+TODO: CMake packaging (deb, rpm, NSI) #v14
 
 ## Scripting
 
@@ -166,6 +170,8 @@ TODO: change markup #v14
 
     <pre></pre>
     <script display="yes"></script>
+
+REQ: add a default XSL reference `pie2html.xsl` to DOM ?
 
 #### pie_timezone
 
