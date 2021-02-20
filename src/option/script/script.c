@@ -374,9 +374,7 @@ getXmlBody(xmlChar *pucSource, int *piA, int *piB)
 /* end of getXmlBody() */
 
 
-/*! process the code of script attribute
-
-\deprecated only in cxp:subst required?
+/*! process the code of script attribute, used in cxp:subst 
 
 \param pndArg
 \param pccArg
@@ -384,7 +382,7 @@ getXmlBody(xmlChar *pucSource, int *piA, int *piB)
 \return pointer to script result string or NULL in case of error
  */
 xmlChar *
-_scriptProcessScriptAttribute(xmlNodePtr pndArg, cxpContextPtr pccArg)
+scriptProcessScriptAttribute(xmlNodePtr pndArg, cxpContextPtr pccArg)
 {
   xmlChar *pucResult = NULL;
   xmlChar *pucAttrScript;
@@ -402,7 +400,7 @@ _scriptProcessScriptAttribute(xmlNodePtr pndArg, cxpContextPtr pccArg)
   }
   return pucResult;
 }
-/* end of _scriptProcessScriptAttribute() */
+/* end of scriptProcessScriptAttribute() */
 
 
 /*! process the code of script node

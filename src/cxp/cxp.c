@@ -1127,7 +1127,7 @@ cxpIsNs(xmlNodePtr pndArg)
 } /* end of cxpIsNs() */
 
 
-/*! \return TRUE if pndArg is a node in cxp namespace
+/*! \return pointer to existing or freshly allocated XML namespace
 */
 xmlNsPtr
 cxpGetNs(void)

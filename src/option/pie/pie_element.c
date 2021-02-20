@@ -409,25 +409,6 @@ pieElementGetStrlen(pieTextElementPtr ppeArg)
 } /* end of pieElementGetStrlen() */
 
 
-/*! \deprecated
-*/
-BOOL_T
-pieElementReplace(pieTextElementPtr ppeArg, xmlChar *pucArgA, xmlChar *pucArgB)
-{
-  BOOL_T fResult = FALSE;
-  xmlChar *pucT;
-
-  pucT = ReplaceStr(ppeArg->pucContent, pucArgA, pucArgB);
-  if (pucT) {
-    xmlFree(ppeArg->pucContent);
-    ppeArg->pucContent = pucT;
-    ppeArg->iLength = xmlStrlen(ppeArg->pucContent);
-    fResult = TRUE;
-  }
-  return fResult;
-}
-/* end of pieElementReplace() */
-
 /*! 
 */
 BOOL_T
@@ -1738,26 +1719,7 @@ pieElementReplaceCharNumerics(pieTextElementPtr ppeArg)
     }
   }
   return TRUE;
-} /* end of pieElementEncodeEntities() */
-
-
-/*! wrapper code for xmlEncodeEntitiesReentrant() substitutions with accurate UTF-8/XML strings
-
-\deprecated not required
-*/
-BOOL_T
-pieElementEncodeEntities(pieTextElementPtr ppeArg)
-{
-  if (ppeArg != NULL && STR_IS_NOT_EMPTY(ppeArg->pucContent)) {
-    xmlChar* pucT;
-
-    if ((pucT = StringEncodeXmlDefaultEntitiesNew(ppeArg->pucContent))) {
-      xmlFree(ppeArg->pucContent);
-      ppeArg->pucContent = pucT;
-    }
-  }
-  return TRUE;
-} /* end of pieElementEncodeEntities() */
+} /* end of pieElementReplaceCharNumerics() */
 
 
 /*!

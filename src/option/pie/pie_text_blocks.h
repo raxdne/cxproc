@@ -55,7 +55,7 @@ extern xmlNodePtr
 RecognizeTasks(xmlNodePtr pndArg);
 
 extern xmlNodePtr
-RecognizeDates(xmlNodePtr pndArg);
+RecognizeDates(xmlNodePtr pndArg, RN_MIME_TYPE eMimeTypeArg);
 
 extern xmlNodePtr
 RecognizeInlines(xmlNodePtr pndArg);

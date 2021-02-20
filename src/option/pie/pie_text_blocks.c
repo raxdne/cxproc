@@ -52,7 +52,7 @@
 #define RE_FIG "^[ \\t]*(Fig|Abb)\\.[ \\t]*([^ \\t]+)[ \\t]*(.+)*$"
 #define RE_SCRIPT "script=\\\"([^\\\"]+)\\\""
 
-#define RE_DATE_YEAR   "[12][90][0-9]{2}"
+#define RE_DATE_YEAR   "([12][90][0-9]{2}|0{4})"
 #define RE_DATE_EASTER "\\@e([\\-+][0-9]+)*"
 #define RE_DATE_WEEK   "\\*+w[0-5]*[0-9](mon|tue|wed|thu|fri|sat|sun)"
 #define RE_DATE_MONTH  "[01][0-9]"
@@ -111,7 +111,7 @@ static xmlChar*
 StringGetEndOfHeaderMarker(xmlChar* pucArg);
 
 static xmlNodePtr
-SplitStringToDateNodes(const xmlChar *pucArg);
+SplitStringToDateNodes(const xmlChar *pucArg, RN_MIME_TYPE eMimeTypeArg);
 
 static xmlNodePtr
 SplitStringToInlineNodes(const xmlChar *pucArg);
@@ -1120,6 +1120,8 @@ IsImportCircular(xmlNodePtr pndArg, resNodePtr prnArg)
 } /* end of IsImportCircular() */
 
 
+#ifdef LEGACY
+
 /*! translates UNC paths into URL notation first
 */
 xmlChar *
@@ -1373,6 +1375,8 @@ SplitTupelToLinkNodes(const xmlChar *pucArg)
   return pndResult;
 }
 /* end of SplitTupelToLinkNodes() */
+
+#endif
 
 
 /*! splits an UTF-8 string into a list of text and link element nodes (s. "Test/TestGood.txt")
@@ -1773,10 +1777,12 @@ RecognizeUrls(xmlNodePtr pndArg)
 	 pndChild= (pndChild != NULL) ? pndChild->next : NULL) {
 
       if (xmlNodeIsText(pndChild)) { /* pndChild is a text node */
-	xmlChar *pucRelease;
+	xmlChar *pucRelease = pndChild->content;
 	xmlNodePtr pndReplace;
 
+#ifdef LEGACY
 	pucRelease = TranslateUncToUrl(pndChild->content);
+#endif
 
 	if ((pndReplace = SplitStringToAutoLinkNodes(pucRelease))) {
 	  RecognizeUrls(pndReplace);
@@ -1837,7 +1843,9 @@ RecognizeUrls(xmlNodePtr pndArg)
 	    pndChild = NULL;
 	  }
 	}
+#ifdef LEGACY
 	xmlFree(pucRelease);
+#endif
       }
       else {
 	RecognizeUrls(pndChild);
@@ -2124,7 +2132,7 @@ SplitStringToInlineNodes(const xmlChar *pucArg)
 /*! splits an UTF-8 string into a list of text and date element nodes
 */
 xmlNodePtr
-SplitStringToDateNodes(const xmlChar *pucArg)
+SplitStringToDateNodes(const xmlChar *pucArg, RN_MIME_TYPE eMimeTypeArg)
 {
   size_t ducOrigin;
   xmlNodePtr pndResult = NULL;
@@ -2170,12 +2178,28 @@ SplitStringToDateNodes(const xmlChar *pucArg)
 	    xmlFree(pucT);
 	  }
 
-	  pndIn = xmlNewTextChild(pndResult, NULL, NAME_PIE_DATE, pucDate);
+	  if (eMimeTypeArg == MIME_TEXT_PLAIN_CALENDAR) {
+	    pndIn = xmlNewChild(pndResult, NULL, NAME_PIE_DATE, NULL);
+	    xmlSetProp(pndIn,BAD_CAST"ref",pucDate);
+	  }
+	  else {
+	    pndIn = xmlNewTextChild(pndResult, NULL, NAME_PIE_DATE, pucDate);
+	  }
 	}
 
 	if (ducOrigin > ovector[1]) {
 	  /* the content ends with text, recursion */
-	  pndPostfix = SplitStringToDateNodes(pucArg + ovector[1]);
+
+	  if (eMimeTypeArg == MIME_TEXT_PLAIN_CALENDAR) {
+	    while (*(pucArg + ovector[1]) == (xmlChar)' ') ovector[1]++;
+	    if (*(pucArg + ovector[1]) == (xmlChar)'+') {
+	      ovector[1]++;
+	      xmlSetProp(pndIn,BAD_CAST"holiday",BAD_CAST"yes");
+	      while (*(pucArg + ovector[1]) == (xmlChar)' ') ovector[1]++;
+	    }
+	  }
+
+	  pndPostfix = SplitStringToDateNodes(pucArg + ovector[1], eMimeTypeArg);
 	  if (pndPostfix) {
 	    xmlNodePtr pndT = pndPostfix->children;
 	    domUnlinkNodeList(pndT);
@@ -2358,7 +2382,7 @@ RecognizeInlines(xmlNodePtr pndArg)
 /*! derive a sequence of text and Date nodes from node
 */
 xmlNodePtr
-RecognizeDates(xmlNodePtr pndArg)
+RecognizeDates(xmlNodePtr pndArg, RN_MIME_TYPE eMimeTypeArg)
 {
   xmlNodePtr pndResult = NULL;
 
@@ -2374,7 +2398,7 @@ RecognizeDates(xmlNodePtr pndArg)
       /* pndChild is a text node */
       xmlNodePtr pndReplace;
 
-      pndReplace = SplitStringToDateNodes(pndArg->content);
+      pndReplace = SplitStringToDateNodes(pndArg->content, eMimeTypeArg);
       if (pndReplace) {
 	/* there is a result list */
 	if (domReplaceNodeList(pndArg, pndReplace->children) == pndArg) {
@@ -2385,9 +2409,19 @@ RecognizeDates(xmlNodePtr pndArg)
       }
     }
     else if (IS_ENODE(pndArg) && (pndArg->ns==NULL || pndArg->ns==pnsPie)) {
+      xmlChar* pucExt;
       xmlNodePtr pndChild;
+      RN_MIME_TYPE eMimeTypeHere = eMimeTypeArg;
 
-      for (pndChild = pndArg->children; pndChild; pndChild = RecognizeDates(pndChild));
+      if (IS_NODE_PIE_BLOCK(pndArg)
+	&& (pndArg->ns == NULL || pndArg->ns == pnsPie)
+	&& ((pucExt = resPathGetExtension(domGetPropValuePtr(pndArg, BAD_CAST"name"))) != NULL
+	  || (pucExt = resPathGetExtension(domGetPropValuePtr(pndArg, BAD_CAST"context"))) != NULL)) {
+	eMimeTypeHere = resMimeGetTypeFromExt(pucExt);
+	xmlFree(pucExt);
+      }
+
+      for (pndChild = pndArg->children; pndChild; pndChild = RecognizeDates(pndChild, eMimeTypeHere));
     }
   }
   return pndResult;

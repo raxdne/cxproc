@@ -1786,75 +1786,6 @@ resNodeSetNameBaseDir(resNodePtr prnArg, xmlChar* pucArgPath)
 } /* end of resNodeSetNameBaseDir() */
 
 
-/*! Sets pucNameAncestor of an existing resource node to pucArgPath and keep prnArg->pucNameAncestorDir etc.
-
-  \deprecated 
-
-  \param prnArg a pointer to a resource node
-  \param pucArgPath pointer to an absolute ancestor path
-  \return TRUE if existing resource node is set to new value (without encoding errors)
- */
-BOOL_T
-_resNodeSetNameAncestor(resNodePtr prnArg, xmlChar *pucArgPath)
-{
-  BOOL_T fResult = FALSE;
-
-  if (prnArg != NULL && STR_IS_NOT_EMPTY(pucArgPath) && resPathIsAbsolute(pucArgPath)) {
-    xmlChar *pucPath;
-
-    pucPath = resNodeGetNameNormalized(prnArg);
-    if (pucPath == NULL) {
-      prnArg->pucNameAncestor = xmlStrdup(pucArgPath);
-    }
-    else if (xmlStrstr(pucPath,pucArgPath) == pucPath) {
-      prnArg->pucNameAncestor = xmlStrdup(pucArgPath);
-    }
-    else if (resPathIsAbsolute(pucPath)) {
-      xmlChar *pucT0;
-      xmlChar *pucT1;
-
-      for (pucT0=pucT1=pucPath; *pucT1; pucT1++) {
-	if (issep(*pucT1)) {
-	  prnArg->pucNameAncestor = xmlStrndup(pucT0, (int)(pucT1 - pucT0 + 1));
-	  break;
-	}
-      }
-    }
-    fResult = (prnArg->pucNameAncestor != NULL);
-  }
-  return fResult;
-} /* end of _resNodeSetNameAncestor() */
-
-
-/*! 
-
-  \deprecated 
-
-  \param prnArg a pointer to a resource node
-  \return pointer to name of descendant in path
- */
-xmlChar *
-_resNodeGetNameDescendant(resNodePtr prnArg)
-{
-  if (prnArg != NULL && prnArg->pucNameAncestor != NULL) {
-    int iLength;
-    xmlChar *pucResult = NULL;
-
-    iLength = xmlStrlen(prnArg->pucNameAncestor);
-    if (iLength > 0 && iLength < xmlStrlen(prnArg->pucNameNormalized)
-      && xmlStrstr(prnArg->pucNameNormalized,prnArg->pucNameAncestor) == prnArg->pucNameNormalized) {
-
-      pucResult = &(prnArg->pucNameNormalized[iLength]);
-      while (STR_IS_NOT_EMPTY(pucResult) && issep(*pucResult)) {
-	pucResult++;
-      }
-      return pucResult;
-    }
-  }
-  return NULL;
-} /* end of _resNodeGetNameDescendant() */
-
-
 /*! Resets all values depending on pucNameNormalized.
 
   \param prnArg a pointer to a resource node
@@ -2270,17 +2201,6 @@ resNodeIsSqlite(resNodePtr prnArg)
   }
   return fResult;
 } /* end of resNodeIsSqlite() */
-
-
-/*! \return TRUE if prnArg is a sqlite database file
-  \deprecated 
-
- */
-BOOL_T
-_resNodeIsCached(resNodePtr prnArg)
-{
-  return (prnArg->pContent != NULL || prnArg->pdocContent != NULL);
-} /* end of resNodeIsCached() */
 
 
 /*! \return TRUE if prnArg is a processable database file
@@ -2729,16 +2649,16 @@ resNodeContentToDOM(xmlNodePtr pndArg, resNodePtr prnArg)
 	  }
 	  pndTags = xmlNewChild(pndMeta, NULL, NAME_PIE_TAGLIST, NULL);
 
+	  RecognizeInlines(pndPie);
+	  RecognizeScripts(pndPie);
+	  RecognizeFigures(pndPie);
+	  RecognizeUrls(pndPie);
+	  RecognizeDates(pndPie, iMimeType);
+	  RecognizeTasks(pndPie);
 	  RecognizeHashtags(pndPie,NULL, NULL);
 	  RecognizeGlobalTags(pndTags, pndPie);
 	  CleanListTag(pndTags, FALSE);
 	  //domPutNodeString(stderr, BAD_CAST "resNodeContentToDOM(): ", pndPie);
-	  RecognizeUrls(pndPie);
-	  RecognizeScripts(pndPie);
-	  RecognizeTasks(pndPie);
-	  RecognizeInlines(pndPie);
-	  RecognizeDates(pndPie);
-	  RecognizeFigures(pndPie);
 	  xmlAddChild(pndArg, pndPie);
 	}
       }
@@ -3362,8 +3282,8 @@ resNodeToSql(resNodePtr prnArg, int iArgOptions)
 	xmlChar *pucSqlDecl;
 	xmlChar *pucSqlValue;
 
-	pucSqlDecl = xmlStrdup("insert into directory (");
-	pucSqlValue = xmlStrdup("values (");
+	pucSqlDecl = xmlStrdup(BAD_CAST"insert into directory (");
+	pucSqlValue = xmlStrdup(BAD_CAST"values (");
 
 	pucSqlDecl = xmlStrcat(pucSqlDecl,BAD_CAST"depth,type,");
 	xmlStrPrintf(pucResult, BUFFER_LENGTH, "%i,%i,", resPathGetDepth(resNodeGetNameNormalized(prnArg)), resNodeGetType(prnArg));
@@ -3940,6 +3860,8 @@ resNodeGetExtension(resNodePtr prnArg)
 } /* end of resNodeGetExtension() */
 
 
+#if 0
+
 /* calculate the CRC32 of a file, because to encrypt a file, we need known the CRC32 of the file before 
   \deprecated not used yet
 
@@ -3964,6 +3886,8 @@ _resNodeGetFileCrc(resNodePtr prnArg)
   }
   return ulResult;
 } /* end of _resNodeGetFileCrc() */
+
+#endif
 
 
 /*! \return a pointer to the owner string of resource node

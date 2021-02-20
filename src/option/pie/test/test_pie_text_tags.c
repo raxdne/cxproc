@@ -33,6 +33,8 @@ pieTextTagsTest(void)
 
   ProcessTags(NULL,NULL);
   
+#ifdef LEGACY
+
   if (RUNTEST) {
     int w;
     xmlChar* pucT;
@@ -68,7 +70,8 @@ pieTextTagsTest(void)
     xmlFree(pucTT);
     xmlFree(pucT);
   }
-
+#endif
+  
 
 #if 0
   if (RUNTEST) {

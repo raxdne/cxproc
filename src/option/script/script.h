@@ -24,7 +24,7 @@ extern BOOL_T
 scriptInit(cxpContextPtr pccArg);
 
 extern xmlChar *
-_scriptProcessScriptAttribute(xmlNodePtr pndArg, cxpContextPtr pccArg);
+scriptProcessScriptAttribute(xmlNodePtr pndArg, cxpContextPtr pccArg);
 
 extern xmlChar *
 scriptProcessScriptNode(xmlNodePtr pndArg, cxpContextPtr pccArg);
