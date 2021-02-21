@@ -86,15 +86,6 @@ extern xmlChar *
 cxpSubstGetPtr(cxpSubstPtr pcxpSubstArg);
 
 extern xmlChar *
-_cxpSubstGetNowPtr(cxpSubstPtr pcxpSubstArg);
-
-extern xmlChar *
-_cxpSubstGetScriptResultPtr(cxpSubstPtr pcxpSubstArg);
-
-extern xmlChar *
-_cxpSubstGetPathPtr(cxpSubstPtr pcxpSubstArg);
-
-extern xmlChar *
 _cxpSubstGetDefaultPtr(cxpSubstPtr pcxpSubstArg);
 
 extern xmlChar *

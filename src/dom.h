@@ -61,9 +61,6 @@ domSetPropFileLocator(xmlNodePtr pndArg, xmlChar *pucArg);
 extern void
 domSetPropFileXpath(xmlNodePtr pndArg, xmlChar *pucArgName, xmlChar *pucArgPrefix);
 
-extern xmlChar *
-domNodeGetXpathStr(xmlNodePtr pndArg);
-
 extern int
 domPutNodeString(FILE *out, xmlChar *pucArgMessage, xmlNodePtr pndArg);
 

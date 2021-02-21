@@ -445,10 +445,10 @@ arcTest(void)
       printf("Error 2 x resNodeListParse() ...\n");
     }
     else if ((prnFound = resNodeListFindPath(prnT, BAD_CAST"sub/", (RN_FIND_DIR | RN_FIND_IN_SUBDIR | RN_FIND_IN_ARCHIVE))) == NULL) {
-      printf("Error resNodeListFind() ...\n");
+      printf("Error resNodeListFindPath() ...\n");
     }
     else if ((prnFound = resNodeListFindPath(prnT, BAD_CAST "sub/plain.txt", (RN_FIND_FILE | RN_FIND_IN_SUBDIR | RN_FIND_IN_ARCHIVE))) == NULL) {
-      printf("Error resNodeListFind() ...\n");
+      printf("Error resNodeListFindPath() ...\n");
     }
     else if ((j = resNodeGetChildCount(prnT, rn_type_dir_in_archive)) != 1) {
       printf("Error resNodeListParse() = %i\n", j);

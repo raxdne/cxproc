@@ -34,6 +34,9 @@ CleanListTag(xmlNodePtr pndArg, BOOL_T fArgMerge);
 extern xmlNodePtr
 RecognizeGlobalTags(xmlNodePtr pndTags, xmlNodePtr pndArg);
 
+extern xmlChar*
+GetBlockTagRegExpStr(xmlNodePtr pndArg, xmlChar *pucArg, BOOL_T fArgRecursion);
+
 
 #ifdef TESTCODE
 extern int

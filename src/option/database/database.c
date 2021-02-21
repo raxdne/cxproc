@@ -458,7 +458,7 @@ dbParseDirCreateTables(resNodePtr prnArgDb)
   pdbContext = (sqlite3 *)resNodeGetHandleIO(prnArgDb);
 
   if (TableExists(prnArgDb,BAD_CAST"meta") == FALSE) {
-    pucSql = "create table meta(i INTEGER PRIMARY KEY, timestamp INTEGER, key text, value text);";
+    pucSql = BAD_CAST"create table meta(i INTEGER PRIMARY KEY, timestamp INTEGER, key text, value text);";
     rc = sqlite3_exec(pdbContext, (const char *)pucSql, NULL, NULL, &zErr);
     if (rc == SQLITE_OK) {
     }
@@ -468,10 +468,10 @@ dbParseDirCreateTables(resNodePtr prnArgDb)
       fResult = FALSE;
     }
   }
-  dbInsertMetaLog(prnArgDb,"log/create",NULL);
+  dbInsertMetaLog(prnArgDb, BAD_CAST"log/create",NULL);
 
   if (TableExists(prnArgDb,BAD_CAST"directory") == FALSE) {
-    pucSql = "create table directory("
+    pucSql = BAD_CAST"create table directory("
       "i INTEGER PRIMARY KEY, "
       "depth INTEGER, "
       "type INTEGER, "
@@ -503,7 +503,7 @@ dbParseDirCreateTables(resNodePtr prnArgDb)
   }
 
   if (TableExists(prnArgDb,BAD_CAST"mimetypes") == FALSE) {
-    pucSql = xmlStrdup("create table mimetypes(mime INTEGER, name text);");
+    pucSql = xmlStrdup(BAD_CAST"create table mimetypes(mime INTEGER, name text);");
     for (i=MIME_UNKNOWN; i < MIME_END; i++) {
       char *pcMime;
 	
@@ -526,7 +526,7 @@ dbParseDirCreateTables(resNodePtr prnArgDb)
   }
   
   if (TableExists(prnArgDb,BAD_CAST"queries") == FALSE) {
-    pucSql = "create table queries(query text);"
+    pucSql = BAD_CAST"create table queries(query text);"
       "insert into queries(query) values (\"SELECT * FROM meta;\");"
       "insert into queries(query) values (\"SELECT DISTINCT name FROM directory;\");"
       "insert into queries(query) values (\"SELECT sum(size)/(1024*1024*1024) AS GB FROM directory;\");"

@@ -143,6 +143,8 @@ pieTextBlocksTest(void)
     }
   }
 
+#ifdef LEGACY
+
   if (RUNTEST) {
     xmlChar *pucResult;
     xmlChar *pucData = BAD_CAST "d:\\abc\\def\\ghi";
@@ -161,30 +163,6 @@ pieTextBlocksTest(void)
       printf("OK\n");
     }
     xmlFree(pucResult);
-  }
-
-
-  if (RUNTEST) {
-    xmlChar *pucData = BAD_CAST "TODO: Phillips Entsafter &amp; R\xC3\xBChrger\xC3\xA4t @ebay";
-    xmlNodePtr pndT;
-    xmlNodePtr pndTT = NULL;
-
-    i++;
-    printf("TEST %i in '%s:%i': detect todo markup = ", i, __FILE__, __LINE__);
-
-    if ((pndT = xmlNewNode(NULL, NAME_PIE_PAR)) == NULL || (xmlAddChild(pndT, xmlNewText(pucData))) == NULL) {
-      printf("Error xmlNewTextChild\n");
-    }
-    else if ((pndTT = TaskNodeNew(pndT)) == NULL || IS_NODE_PIE_TASK(pndTT) == FALSE || IS_NODE_PIE_HEADER(pndTT->children) == FALSE) {
-      printf("Error TaskNodeNew\n");
-    }
-    else {
-      n_ok++;
-      printf("OK\n");
-    }
-    //domPutNodeString(stderr, BAD_CAST "todo result", pndTT);
-    xmlFreeNode(pndTT);
-    xmlFreeNode(pndT);
   }
 
   if (RUNTEST) {
@@ -227,6 +205,32 @@ pieTextBlocksTest(void)
     xmlFree(pucResult);
   }
 
+
+#endif
+  
+
+  if (RUNTEST) {
+    xmlChar *pucData = BAD_CAST "TODO: Phillips Entsafter &amp; R\xC3\xBChrger\xC3\xA4t @ebay";
+    xmlNodePtr pndT;
+    xmlNodePtr pndTT = NULL;
+
+    i++;
+    printf("TEST %i in '%s:%i': detect todo markup = ", i, __FILE__, __LINE__);
+
+    if ((pndT = xmlNewNode(NULL, NAME_PIE_PAR)) == NULL || (xmlAddChild(pndT, xmlNewText(pucData))) == NULL) {
+      printf("Error xmlNewTextChild\n");
+    }
+    else if ((pndTT = TaskNodeNew(pndT)) == NULL || IS_NODE_PIE_TASK(pndTT) == FALSE || IS_NODE_PIE_HEADER(pndTT->children) == FALSE) {
+      printf("Error TaskNodeNew\n");
+    }
+    else {
+      n_ok++;
+      printf("OK\n");
+    }
+    //domPutNodeString(stderr, BAD_CAST "todo result", pndTT);
+    xmlFreeNode(pndTT);
+    xmlFreeNode(pndT);
+  }
 
   if (RUNTEST) {
     xmlNodePtr pndPie;
@@ -309,6 +313,8 @@ pieTextBlocksTest(void)
   }
 
 
+#ifdef LEGACY
+
   if (RUNTEST) {
     xmlNodePtr pndPie;
 
@@ -345,6 +351,8 @@ pieTextBlocksTest(void)
     xmlFreeNode(pndPie);
   }
 
+#endif
+  
 
   if (RUNTEST) {
     xmlNodePtr pndPie;
@@ -1146,7 +1154,7 @@ pieTextBlocksTest(void)
     if ((pndPie = xmlNewNode(NULL, NAME_PIE_PIE)) == NULL) {
       printf("Error xmlNewNode()\n");
     }
-    else if ((pndT = SplitStringToDateNodes(NULL)) != NULL || (pndT = SplitStringToDateNodes(BAD_CAST"")) != NULL) {
+    else if ((pndT = SplitStringToDateNodes(NULL,MIME_TEXT_PLAIN)) != NULL || (pndT = SplitStringToDateNodes(BAD_CAST"",MIME_TEXT_PLAIN)) != NULL) {
       printf("Error SplitStringToDateNodes()\n");
     }
     else {
@@ -1169,19 +1177,19 @@ pieTextBlocksTest(void)
     if ((pndPie = xmlNewNode(NULL, NAME_PIE_PIE)) == NULL) {
       printf("Error xmlNewNode()\n");
     }
-    else if ((pndT = SplitStringToDateNodes(BAD_CAST"TODO: 20160301 done")) == NULL || xmlAddChild(pndPie, pndT) == NULL) {
+    else if ((pndT = SplitStringToDateNodes(BAD_CAST"TODO: 20160301 done",MIME_TEXT_PLAIN)) == NULL || xmlAddChild(pndPie, pndT) == NULL) {
       printf("Error 1 SplitStringToDateNodes()\n");
     }
-    else if ((pndT = SplitStringToDateNodes(BAD_CAST"20160301,20160303 and 20160304")) == NULL || xmlAddChild(pndPie, pndT) == NULL) {
+    else if ((pndT = SplitStringToDateNodes(BAD_CAST"20160301,20160303 and 20160304",MIME_TEXT_PLAIN)) == NULL || xmlAddChild(pndPie, pndT) == NULL) {
       printf("Error 2 SplitStringToDateNodes()\n");
     }
-    else if ((pndT = SplitStringToDateNodes(BAD_CAST"2016-03-01;2016-03-03 and 2016-03-04")) == NULL || xmlAddChild(pndPie, pndT) == NULL) {
+    else if ((pndT = SplitStringToDateNodes(BAD_CAST"2016-03-01;2016-03-03 and 2016-03-04",MIME_TEXT_PLAIN)) == NULL || xmlAddChild(pndPie, pndT) == NULL) {
       printf("Error 3 SplitStringToDateNodes()\n");
     }
-    else if ((pndT = SplitStringToDateNodes(BAD_CAST"20160307+11")) == NULL || xmlAddChild(pndPie, pndT) == NULL) {
+    else if ((pndT = SplitStringToDateNodes(BAD_CAST"20160307+11",MIME_TEXT_PLAIN)) == NULL || xmlAddChild(pndPie, pndT) == NULL) {
       printf("Error 3 SplitStringToDateNodes()\n");
     }
-    else if ((pndT = SplitStringToDateNodes(BAD_CAST"2016/2017")) != NULL) {
+    else if ((pndT = SplitStringToDateNodes(BAD_CAST"2016/2017",MIME_TEXT_PLAIN)) != NULL) {
       printf("Error 4 SplitStringToDateNodes()\n");
       xmlFreeNode(pndT);
     }

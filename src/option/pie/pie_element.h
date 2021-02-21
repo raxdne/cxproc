@@ -111,16 +111,10 @@ extern void
 pieElementReset(pieTextElementPtr ppeArg);
 
 extern BOOL_T
-pieElementReplace(pieTextElementPtr ppeArg, xmlChar *pucArgA, xmlChar *pucArgB);
-
-extern BOOL_T
 pieElementReplaceCharMarkup(pieTextElementPtr ppeArg);
 
 extern BOOL_T
 pieElementReplaceCharNumerics(pieTextElementPtr ppeArg);
-
-extern BOOL_T
-pieElementEncodeEntities(pieTextElementPtr ppeArg);
 
 extern BOOL_T
 pieElementHasNext(pieTextElementPtr ppeArg);

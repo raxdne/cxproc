@@ -220,66 +220,6 @@ resNodeListFindChild(resNodePtr prnArg, xmlChar *pucName)
 } /* end of resNodeListFindChild() */
 
 
-/*! find resNode using pattern matching
-
-\deprecated succeeded by resNodeListFindPath()
-
-\todo use as iterator to find all Resource Nodes
-
-\param prnArg -- tree of resNodes
-\param pucArgPath
-\param *pucPattern -- pointer to path matching pattern
-\return pointer to next found resNode or NULL if failed
-*/
-resNodePtr
-resNodeListFind(resNodePtr prnArg, xmlChar *pucArgPath, xmlChar *pucPattern)
-{
-  resNodePtr prnResult = NULL;
-
-  if (prnArg != NULL && STR_IS_NOT_EMPTY(pucPattern)) {
-      resNodePtr prnI;
-
-    /*!\todo find resNode using pattern matching */
-
-    /*!\todo include next occurance, return a list of resNodePtr??? */
-
-    /*! compare siblings */
-    prnI = prnArg;
-    do {
-      if (resPathIsEquivalent(resNodeGetNameBase(prnI), pucPattern)
-	&& (pucArgPath == NULL || resPathIsMatchingEnd(resNodeGetNameBaseDir(prnI), pucArgPath))) {
-	prnResult = prnI;
-      }
-      else {
-	prnResult = resNodeListFind(resNodeGetChild(prnI), pucArgPath, pucPattern);
-      }
-    } while (prnResult == NULL && (prnI = resNodeGetNext(prnI)) != NULL);
-
-
-#if 0
-    resNodePtr prnChildFirst;
-
-    if (resPathIsEquivalent(resNodeGetNameBase(prnArg), pucPattern)
-	&& (pucArgPath == NULL || resPathIsMatchingEnd(resNodeGetNameBaseDir(prnArg), pucArgPath))) {
-      prnResult = prnArg;
-    }
-
-    if (prnResult == NULL && (prnChildFirst = resNodeGetChild(prnArg)) != NULL) {
-      resNodePtr prnNext;
-
-      prnResult = resNodeListFind(prnChildFirst, pucArgPath, pucPattern);
-
-      for (prnNext = resNodeGetNext(prnChildFirst); prnResult == NULL && prnNext != NULL; prnNext = resNodeGetNext(prnNext)) {
-	prnResult = resNodeListFind(prnNext, pucArgPath, pucPattern);
-      }
-    }
-#endif
-  }
-
-  return prnResult;
-} /* end of resNodeListFind() */
-
-
 /*! finds first self or descendant node according to pucArgPath, list directories and archives on-demand only!
 
 \param prnArg start context
