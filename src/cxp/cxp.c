@@ -119,10 +119,10 @@ static BOOL_T
 ValidateSchema(const xmlDocPtr pdocArgXml, const xmlChar *pucArg, cxpContextPtr pccArg);
 
 static xmlDocPtr
-cxpXslTransformToDom(const xmlDocPtr pdocArgXml, const xmlDocPtr pdocArgXsl, char **ppchArgParam, cxpContextPtr pccArg);
+cxpXslTransformToDom(const xmlDocPtr pdocArgXml, const xmlDocPtr pdocArgXsl, cxpContextPtr pccArg);
 
 static xmlChar *
-cxpXslTransformToText(const xmlDocPtr pdocArgXml, const xmlDocPtr pdocArgXsl, char **ppchArgParam, cxpContextPtr pccArg);
+cxpXslTransformToText(const xmlDocPtr pdocArgXml, const xmlDocPtr pdocArgXsl, cxpContextPtr pccArg);
 
 static xmlNodePtr
 cxpProcessXmlNodeEmbedded(xmlNodePtr pndArg, cxpContextPtr pccArg);
@@ -2135,7 +2135,6 @@ cxpProcessTransformations(const xmlDocPtr pdocArgXml, const xmlNodePtr pndArgPar
 	    break;
 	  }
 	  else if (pdocResult) {
-	    char **ppchParam = NULL;
 	    xmlChar *pucNameFileXsl = NULL;
 	    xmlDocPtr pdocXsl;
 
@@ -2157,7 +2156,7 @@ cxpProcessTransformations(const xmlDocPtr pdocArgXml, const xmlNodePtr pndArgPar
 	      || xmlStrEqual(domGetXslOutputMethod(pdocXsl), BAD_CAST"html")) {
 	      xmlDocPtr pdocT;	/* preliminary result DOM */
 
-	      pdocT = cxpXslTransformToDom(pdocResult, pdocXsl, ppchParam, pccHere);
+	      pdocT = cxpXslTransformToDom(pdocResult, pdocXsl, pccHere);
 	      if (pdocT != NULL && pdocT != pdocResult) {
 		xmlFreeDoc(pdocResult);
 		pdocResult = pdocT; /* new result DOM */
@@ -2170,7 +2169,7 @@ cxpProcessTransformations(const xmlDocPtr pdocArgXml, const xmlNodePtr pndArgPar
 	    }
 	    else if (xmlStrEqual(domGetXslOutputMethod(pdocXsl), BAD_CAST"text")) {
 	      /*!\todo test on following XSL nodes */
-	      pucResult = cxpXslTransformToText(pdocResult, pdocXsl, ppchParam, pccHere);
+	      pucResult = cxpXslTransformToText(pdocResult, pdocXsl, pccHere);
 	      xmlFreeDoc(pdocResult);
 	      pdocResult = NULL; /* loop ends when pdocResult is NULL */
 	    }
@@ -2345,7 +2344,6 @@ cxpXslRetrieve(const xmlNodePtr pndArgXsl, cxpContextPtr pccArg)
 
   \param pdocArgXml pointer to DOM to transform
   \param pdocArgXsl pointer to DOM of XSL
-  \param ppchArgParam pointer to XSL parameter array
   \param pccArg pointer to current resource node
 
   \return pdocArgXml if no transformations are done, else a new created xmlDocPtr
@@ -2354,7 +2352,7 @@ cxpXslRetrieve(const xmlNodePtr pndArgXsl, cxpContextPtr pccArg)
   \todo define result DOM encoding
 */
 xmlDocPtr
-cxpXslTransformToDom(const xmlDocPtr pdocArgXml, const xmlDocPtr pdocArgXsl, char **ppchArgParam, cxpContextPtr pccArg)
+cxpXslTransformToDom(const xmlDocPtr pdocArgXml, const xmlDocPtr pdocArgXsl, cxpContextPtr pccArg)
 {
   xmlDocPtr pdocResult = pdocArgXml;
   xmlDocPtr pdocXslCopy;
@@ -2377,7 +2375,7 @@ cxpXslTransformToDom(const xmlDocPtr pdocArgXml, const xmlDocPtr pdocArgXsl, cha
       /*!\bug xsltParseStylesheetDoc() doesnt set pxslT->omitXmlDeclaration correct */
       xmlDocPtr pdocT;
 
-      pdocT = xsltApplyStylesheet(pxslT, pdocArgXml, (const char **)ppchArgParam);
+      pdocT = xsltApplyStylesheet(pxslT, pdocArgXml, NULL);
       if (pdocT == NULL) {
 	cxpCtxtLogPrint(pccArg,1,"No result with this Stylesheet");
       }
@@ -2412,7 +2410,6 @@ cxpXslTransformToDom(const xmlDocPtr pdocArgXml, const xmlDocPtr pdocArgXsl, cha
 
   \param pdocArgXml pointer to DOM to transform
   \param pdocArgXsl pointer to DOM of XSL
-  \param ppchArgParam pointer to XSL parameter array
   \param pccArg pointer to current resource node
 
   \return pointer to result string
@@ -2420,7 +2417,7 @@ cxpXslTransformToDom(const xmlDocPtr pdocArgXml, const xmlDocPtr pdocArgXsl, cha
   \todo use DOM caching for XSL
 */
 xmlChar *
-cxpXslTransformToText(const xmlDocPtr pdocArgXml, const xmlDocPtr pdocArgXsl, char **ppchArgParam, cxpContextPtr pccArg)
+cxpXslTransformToText(const xmlDocPtr pdocArgXml, const xmlDocPtr pdocArgXsl, cxpContextPtr pccArg)
 {
   int l;
   xmlDocPtr pdocXslCopy;
@@ -2450,7 +2447,7 @@ cxpXslTransformToText(const xmlDocPtr pdocArgXml, const xmlDocPtr pdocArgXsl, ch
 
   /* apply the stylesheet, check the result
    */
-  pdocT = xsltApplyStylesheet(pxslT, pdocArgXml, (const char **)ppchArgParam);
+  pdocT = xsltApplyStylesheet(pxslT, pdocArgXml, NULL);
   if (pdocT) {
     /* dump the result into a buffer */
     xsltSaveResultToString(&pucResult,&l,pdocT,pxslT);

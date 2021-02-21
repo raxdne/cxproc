@@ -971,7 +971,7 @@ cxpTest(cxpContextPtr pccArg)
     pdocXml = xmlReadFile(TESTPREFIX "xml/config.cxp",NULL,0);
     pdocXsl = xmlReadFile(TESTPREFIX "xsl/TestValidate.xsl",NULL,0);
 
-    if ((pdocT = cxpXslTransformToDom(pdocXml, pdocXsl, NULL, pccArg)) == NULL) {
+    if ((pdocT = cxpXslTransformToDom(pdocXml, pdocXsl, pccArg)) == NULL) {
       printf("Error cxpXslTransformToDom()\n");
     }
     else {
