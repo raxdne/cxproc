@@ -40,9 +40,6 @@ domDocFromNodeNew(xmlNodePtr pndArg);
 extern RN_MIME_TYPE
 domMimeType(xmlDocPtr pdocArg);
 
-extern xmlNodePtr
-domGetFollowingNode(xmlNodePtr pndArg, xmlChar *pucName);
-
 extern xmlXPathObjectPtr
 domGetXPathNodeset(xmlDocPtr pdocArg, xmlChar *pucArg);
 
@@ -61,13 +58,13 @@ domSetPropFileLocator(xmlNodePtr pndArg, xmlChar *pucArg);
 extern void
 domSetPropFileXpath(xmlNodePtr pndArg, xmlChar *pucArgName, xmlChar *pucArgPrefix);
 
+#ifdef DEBUG
 extern int
 domPutNodeString(FILE *out, xmlChar *pucArgMessage, xmlNodePtr pndArg);
 
 extern int
 domPutDocString(FILE *out, xmlChar *pucArgMessage, xmlDocPtr pdocArg);
 
-#ifdef DEBUG
 extern BOOL_T
 domPutNodeGraphvizString(char *pchNameFile, xmlNodePtr pndArg, int iArgDepth);
 
@@ -124,9 +121,6 @@ extern void
 domUnsetNs(xmlNodePtr pndArg);
 
 extern BOOL_T
-_domTransferNsTo(xmlNodePtr pndArg, xmlDocPtr pdocArg);
-
-extern BOOL_T
 domNodesAreEqual(xmlNodePtr pndA, xmlNodePtr pndB);
 
 extern xmlNodePtr
@@ -140,9 +134,6 @@ domSetPropEat(xmlNodePtr pndArg, xmlChar *pucArg, xmlChar *pucValue);
 
 extern void
 domIncrProp(xmlNodePtr pndArg, xmlChar *pucArg, int iValue);
-
-extern void
-domIncrPropRecursive(xmlNodePtr pndArg, xmlChar *pucArg, int iArg);
 
 extern xmlChar *
 domGetXslOutputMethod(xmlDocPtr pdocArg);
@@ -171,9 +162,6 @@ domChangeURL(xmlDocPtr pdocArg, resNodePtr pccArg);
 
 extern BOOL_T
 domDocIsHtml(xmlDocPtr pdocArg);
-
-extern BOOL_T
-isEmptyTextNode(xmlNodePtr pndArg);
 
 extern xmlNodePtr
 domNodeGrepNew(xmlNodePtr pndArg, xmlChar *pucArgGrep);

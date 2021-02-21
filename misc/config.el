@@ -322,15 +322,12 @@
 (global-set-key [C-f9]  (lambda ()
 			""
 			(interactive)
-			(grep
-			 (concat grep-command
-				 " '\\b"
-				 (current-word)
-				 "\\b' "
-				 (buffer-name)
-				 ))
+			(vc-git-grep
+			 (concat "\\b" (current-word) "\\b")
+			 "\\*.\\*"
+			 prefix)
 			)
-)
+		)
 
 (global-set-key [S-f9]  (lambda ()
 			""
@@ -346,13 +343,12 @@
 			      )
 			(set-text-properties 0 (length name) nil name)
 
-			(grep
-			 (concat grep-command
-				 " \"" name "\" "
-				 " -r " prefix
-				 ))
-			;(other-window 1)
-			;(search-forward-regexp pattern-line)
+			(vc-git-grep
+			 name
+			 "\\*.\\*"
+			 prefix)
+					;(other-window 1)
+					;(search-forward-regexp pattern-line)
 			)
 )
 

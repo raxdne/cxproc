@@ -563,7 +563,7 @@ pieTextTest(cxpContextPtr pccArg)
     xmlChar *pucHeader;
 
     i++;
-    printf("TEST %i in '%s:%i': domGetFollowingNode() = ",i,__FILE__,__LINE__);
+    printf("TEST %i in '%s:%i': pieGetParentHeaderStr() = ",i,__FILE__,__LINE__);
 
     if ((pdocT = xmlParseFile(TESTPREFIX "option/pie/text/test-pie-14.pie")) == NULL) {
       printf("Error 1 xmlParseFile()\n");

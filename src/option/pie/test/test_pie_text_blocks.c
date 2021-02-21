@@ -1034,7 +1034,7 @@ pieTextBlocksTest(void)
     }
 
     pieElementFree(ppeT);
-    domPutNodeString(stderr, BAD_CAST "import node", pndTT);
+    //domPutNodeString(stderr, BAD_CAST "import node", pndTT);
     xmlFreeNode(pndTT);
   }
 
@@ -1099,7 +1099,7 @@ pieTextBlocksTest(void)
     }
 
     pieElementFree(ppeT);
-    domPutNodeString(stderr, BAD_CAST "import node", pndTT);
+    //domPutNodeString(stderr, BAD_CAST "import node", pndTT);
     xmlFreeNode(pndTT);
   }
 

@@ -575,10 +575,14 @@ cxpCtxtLogPrintDoc(cxpContextPtr pccArg, int level, const char *pucArgLabel, xml
     else if (pdocArg != NULL && pdocArg->URL != NULL) {
       cxpCtxtLogPrint(pccArg,level, (const char *)pdocArg->URL);
     }
+#ifdef DEBUG
     domPutDocString(stderr,NULL,pdocArg); /*!\todo use pccArg->fhLog for output */
+#endif
   }
   else {
+#ifdef DEBUG
     domPutDocString(stderr,BAD_CAST pucArgLabel,pdocArg);
+#endif
   }
 } /* end of cxpCtxtLogPrintDoc() */
 
