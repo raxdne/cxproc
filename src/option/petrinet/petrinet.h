@@ -52,6 +52,9 @@
 extern xmlNsPtr
 pkgGetNs(void);
 
+extern void
+pkgCleanup(void);
+
 extern xmlDocPtr
 pnetProcessNode(xmlNodePtr pndArg, cxpContextPtr pccArg);
 

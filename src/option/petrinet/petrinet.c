@@ -276,6 +276,15 @@ pkgGetNs(void)
 } /* end of pkgGetNs() */
 
 
+/*! exit procedure for this module
+*/
+void
+pkgCleanup(void)
+{
+  xmlFreeNs(pnsPkg);
+} /* end of pkgCleanup() */
+
+
 /*! process the required  files
  */
 xmlDocPtr

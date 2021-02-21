@@ -54,6 +54,10 @@
 #include <archive/cxp_archive.h>
 #endif
 
+#ifdef HAVE_PETRINET
+#include <petrinet/petrinet.h>
+#endif
+
 #ifdef HAVE_PIE
 #include <pie/pie_text.h>
 #include <pie/pie_calendar.h>
@@ -109,6 +113,9 @@ main(int argc, char *argv[], char *envp[])
       || atexit(xmlMemoryDump) != 0
       || atexit(domCleanup) != 0
       || atexit(cxpCleanup) != 0
+#ifdef HAVE_PETRINET
+      || atexit(pkgCleanup) != 0
+#endif
 #ifdef HAVE_PIE
       || atexit(pieTextCleanup) != 0
 #endif
