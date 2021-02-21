@@ -2285,7 +2285,7 @@ CleanUpTree(xmlNodePtr pndArg)
       || IS_NODE_PIE_TH(pndArg)
       || IS_NODE_PIE_TR(pndArg)
 #ifdef HAVE_PETRINET
-      || IS_NODE_PKG2_STELLE(pndArg)
+      || IS_NODE_PKG2_STATE(pndArg)
       || IS_NODE_PKG2_TRANSITION(pndArg)
       || IS_NODE_PKG2_REQUIREMENT(pndArg)
 #endif

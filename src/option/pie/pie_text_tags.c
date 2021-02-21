@@ -791,7 +791,7 @@ RecognizeNodeTags(xmlNodePtr pndTags, xmlNodePtr pndArg, pcre2_code* preArg)
 	|| IS_NODE_PIE_TASK(pndChild)
 	|| IS_NODE_PIE_FIG(pndChild)
 #ifdef HAVE_PETRINET
-	|| IS_NODE_PKG2_STELLE(pndChild)
+	|| IS_NODE_PKG2_STATE(pndChild)
 	|| IS_NODE_PKG2_TRANSITION(pndChild)
 	|| IS_NODE_PKG2_REQUIREMENT(pndChild)
 #endif

@@ -946,7 +946,7 @@ cxpSubstInChildNodes(xmlNodePtr pndArgTop, xmlNodePtr pndArgSubst, cxpContextPtr
       }
 #endif
 #ifdef HAVE_PETRINET
-      else if (IS_NODE_PKG2_STELLE(pndChild)
+      else if (IS_NODE_PKG2_STATE(pndChild)
 	|| IS_NODE_PKG2_TRANSITION(pndChild)
 	|| IS_NODE_PKG2_REQUIREMENT(pndChild)
 	) {

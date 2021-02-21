@@ -737,7 +737,7 @@ domSetPropFileLocator(xmlNodePtr pndArg, xmlChar *pucArg)
 	|| IS_NODE_PIE_TARGET(pndChild)
 	|| IS_NODE_PIE_PRE(pndChild)
 #ifdef HAVE_PETRINET
-	|| IS_NODE_PKG2_STELLE(pndChild)
+	|| IS_NODE_PKG2_STATE(pndChild)
 	|| IS_NODE_PKG2_TRANSITION(pndChild)
 	|| IS_NODE_PKG2_REQUIREMENT(pndChild)
 #endif

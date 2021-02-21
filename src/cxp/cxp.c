@@ -3471,7 +3471,7 @@ cxpProcessInfoNode(xmlNodePtr pndInfo, cxpContextPtr pccArg)
     nodeOption = xmlNewChild(nodeProgram,NULL,BAD_CAST"module",NULL);
     xmlSetProp(nodeOption,BAD_CAST "name",BAD_CAST"petrinet");
 #ifdef HAVE_PETRINET
-    xmlSetProp(nodeOption, BAD_CAST "ns", BAD_CAST CXP_PETRINET_URL);
+    xmlSetProp(nodeOption, BAD_CAST "ns", BAD_CAST PKG2_NAMESPACE_URL);
     xmlSetProp(nodeOption,BAD_CAST "select",BAD_CAST "yes");
 #else
     xmlSetProp(nodeOption,BAD_CAST "select",BAD_CAST "no");
