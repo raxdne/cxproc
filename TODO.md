@@ -3,8 +3,6 @@
 
 ## Documentation
 
-TODO: build presentation from `doc/*.*` using <impress.js>
-
 TODO: update descriptions in Doxygen format #v13
 
 ## Features
@@ -43,7 +41,9 @@ REQ: additional Backends
 
 REQ: use environment variable `LANG` for localization of calendar, articles etc
 
-TODO: cleanup use of cxpXslParamProcess(), params required? (script, XSL)
+DONE: cleanup use of cxpXslParamProcess(), params required? (script, XSL)
+
+TODO: cleanup AJAX code (not required on server side)
 
 ## Security
 

@@ -66,7 +66,7 @@ string(STRIP "${GIT_BRANCH}" GIT_BRANCH)
 
 set(PROJECT_VERSION_MAJOR "1")
 set(PROJECT_VERSION_MINOR "3")
-set(PROJECT_VERSION_PATCH "")
+set(PROJECT_VERSION_PATCH "2")
 
 # https://vicrucann.github.io/tutorials/quick-cmake-doxygen/
 # check if Doxygen is installed
@@ -857,8 +857,8 @@ IF (CXPROC_EXPERIMENTAL)
   add_definitions(-DEXPERIMENTAL)
 ENDIF (CXPROC_EXPERIMENTAL)
 
-SET(CXPROC_AJAX ON CACHE BOOL "Compile AJAX code")
-
+SET(CXPROC_AJAX OFF CACHE BOOL "Compile AJAX code")
+MARK_AS_ADVANCED(CXPROC_AJAX)
 IF (CXPROC_AJAX)
   add_definitions(-DWITH_AJAX)
 ENDIF (CXPROC_AJAX)

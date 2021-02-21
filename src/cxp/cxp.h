@@ -18,8 +18,6 @@
   Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 */
 
-#define WITH_AJAX 1
-
 #include "dom.h"
 
 #include "cxp_dtd.h"
@@ -50,12 +48,6 @@ cxpCleanup(void);
 extern BOOL_T
 cxpProcessTransformations(const xmlDocPtr pdocArgXml, const xmlNodePtr pndArgParent, xmlDocPtr *ppdocArgResult, xmlChar **ppucArgResult, cxpContextPtr pccArg);
 
-extern xmlChar **
-cxpXslParamProcess(xmlNodePtr pndArg, cxpContextPtr pccArg);
-
-extern void
-cxpXslParamFree(char ** ppchArg);
-
 extern xmlDocPtr
 cxpXslRetrieve(const xmlNodePtr pndArgXsl, cxpContextPtr pccArg);
 
@@ -64,6 +56,9 @@ cxpProcessMakeNode(xmlNodePtr pndArg, cxpContextPtr pccArg);
 
 extern xmlDocPtr
 cxpProcessXmlNode(xmlNodePtr pndArg, cxpContextPtr pccArg);
+
+extern xmlChar *
+cxpProcessPlainNode(xmlNodePtr pndArg, cxpContextPtr pccArg);
 
 extern BOOL_T
 cxpProcessCopyNode(xmlNodePtr pndArgCopy, cxpContextPtr pccArg);
@@ -79,9 +74,6 @@ cxpResNodeResolveNew(cxpContextPtr pccArg, xmlNodePtr pndArg, xmlChar *pucArg, i
 
 extern resNodePtr
 cxpAttributeLocatorResNodeNew(cxpContextPtr pccArg, xmlNodePtr pndArg, xmlChar *pucArg);
-
-extern xmlChar *
-cxpProcessPlainNode(xmlNodePtr pndArg, cxpContextPtr pccArg);
 
 #ifdef TESTCODE
 extern int
