@@ -1960,7 +1960,7 @@ SubstituteFormatStr(xmlNodePtr pndContext, xmlChar *fmt)
       }
 #endif
       else if (puc1[1] == 'B') {
-	if (isdigit(puc1[2]) && isdigit(puc1[3]) && isdigit(puc1[4]) && isdigit(puc1[5]) && isspace(puc1[6])) {
+	if (isdigit(puc1[2]) && isdigit(puc1[3]) && isdigit(puc1[4]) && isdigit(puc1[5]) && ! isdigit(puc1[6])) {
 	  /* difference in years */
 	  if (puc1 - puc0 > 0) {
 	    pucResult = xmlStrncat(pucResult, puc0, (int)(puc1 - puc0));
@@ -1975,7 +1975,12 @@ SubstituteFormatStr(xmlNodePtr pndContext, xmlChar *fmt)
 	    pucResult = pucValue;
 	  }
 	  puc1 += 6;
-	  puc0 = puc1 + 1;
+	  for (puc0 = puc1; *puc0 == ' '; puc0++) ; /* trailing spaces */
+	  if (*puc0 == '.') {
+	  }
+	  else {
+	    puc0 = puc1;
+	  }
 	}
       }
       else if (puc1[1] == 'D') {
