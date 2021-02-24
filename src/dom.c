@@ -172,6 +172,29 @@ IncrementWeightProp(xmlNodePtr pndArg, int iArg)
 } /* end of IncrementWeightProp() */
 
 
+/*!
+ */
+BOOL_T
+IncrementWeightPropRecursive(xmlNodePtr pndArg)
+{
+  BOOL_T fResult = FALSE;
+
+  if (pndArg) {
+    xmlNodePtr pndT;
+
+    IncrementWeightProp(pndArg, 1);
+
+    for (pndT = pndArg->children; pndT; pndT = pndT->next) {
+      IncrementWeightPropRecursive(pndT);
+    }
+
+    fResult = TRUE;
+  }
+
+  return fResult;
+} /* end of IncrementWeightPropRecursive() */
+
+
 /*! \return TRUE if a node according to XPath 'pucArg' in pdocArg was found
 \param pdocArg source DOM
 \param pucArg pointer to XPath string
@@ -196,8 +219,19 @@ domWeightXPathInDoc(xmlDocPtr pdocArg, xmlChar *pucArg)
 	  for (i=0; i < nodeset->nodeNr; i++) {
 	    xmlNodePtr pndT;
 
-	    for (pndT=nodeset->nodeTab[i]; pndT; pndT=pndT->parent) {
-	      IncrementWeightProp(pndT, 1);
+	    if (IS_NODE_PIE_SECTION(nodeset->nodeTab[i])) {
+	      /* weight the tree of this section when element matches */
+	      IncrementWeightPropRecursive(nodeset->nodeTab[i]);
+	      /* weight all ancestors of this section */
+	      for (pndT=nodeset->nodeTab[i]->parent; pndT; pndT=pndT->parent) {
+		IncrementWeightProp(pndT, 1);
+	      }
+	    }
+	    else {
+	      /* weight all ancestors and this element */
+	      for (pndT=nodeset->nodeTab[i]; pndT; pndT=pndT->parent) {
+		IncrementWeightProp(pndT, 1);
+	      }
 	    }
 	  }
 	  fResult = TRUE;
@@ -207,7 +241,7 @@ domWeightXPathInDoc(xmlDocPtr pdocArg, xmlChar *pucArg)
     }
   }
   return fResult;
-} /* end of domGetXPathNodeset() */
+} /* end of domWeightXPathInDoc() */
 
 
 /*! \return a new DOM according to XPath 'pucArg' in pdocArg
