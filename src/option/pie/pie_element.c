@@ -1845,8 +1845,6 @@ pieElementToDOM(pieTextElementPtr ppeT)
 	  pucC[j] = (xmlChar)'\0';
 
 	  for (i=0, pchT = strtok((char*)pucC, delimiter); pchT != NULL; i++) {
-	    char* pcName = "name";
-
 	    switch (i) {
 	    case 0:
 	      StringRemovePairQuotes(BAD_CAST pchT);
@@ -1855,14 +1853,9 @@ pieElementToDOM(pieTextElementPtr ppeT)
 	      }
 	      break;
 	    case 1:
-	      if (STR_IS_NOT_EMPTY(pchT)) {
-		pcName = pchT;
-	      }
-	      break;
-	    case 2:
 	      StringRemovePairQuotes(BAD_CAST pchT);
 	      if (STR_IS_NOT_EMPTY(pchT)) {
-		xmlSetProp(pndResult, BAD_CAST pcName, BAD_CAST pchT);
+		xmlSetProp(pndResult, BAD_CAST "to", BAD_CAST pchT);
 	      }
 	      break;
 	    default:

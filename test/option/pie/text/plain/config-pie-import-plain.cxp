@@ -66,7 +66,10 @@
   <cxp:system message="**** test-pie-import-plain-007: parsing of embedded dates"/>
   <cxp:xml name="result/test-pie-import-plain-007.pie">
     <cxp:pie url="yes" figure="no" hidden="no" date="yes" import="yes">
-      <import name="test-pie-import-plain-007.txt"/>
+      <import name="test-pie-import-plain-007.txt">
+	<subst string="2007" to="2017"/>
+	<subst string="valid" to="VALID"/>
+      </import>
     </cxp:pie>
   </cxp:xml>
   <cxp:system message="**** test-pie-import-plain-008: import from plain text node"/>
@@ -88,13 +91,19 @@ fksjhfksh ökäöläröwer
   </cxp:xml>
   <cxp:xml name="result/test-pie-import-plain-008-002.pie">
     <cxp:pie>
+      
 * ABC
 
 ** DDD
 
+#subst("DDD","CCC")
+
+@DDD #DDD
+
 *** EEE
 
 fksjhfksh ökäöläröwer
+
     </cxp:pie>
   </cxp:xml>
   <cxp:system message="**** test-pie-import-plain-009: handling of empty text file"/>
