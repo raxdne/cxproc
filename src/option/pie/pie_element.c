@@ -1830,7 +1830,8 @@ pieElementToDOM(pieTextElementPtr ppeT)
 	  int i;
 	  int j;
 	  char* pchT;
-	  char delimiter[] = ",;=";
+	  xmlChar* pucT;
+	  xmlChar* pucAttrName = NULL;
 
 	  for (i=j=0; ! isend(pucC[i]); i++) { /* clean content string */
 	    switch (pucC[i]) {
@@ -1844,24 +1845,44 @@ pieElementToDOM(pieTextElementPtr ppeT)
 	  }
 	  pucC[j] = (xmlChar)'\0';
 
-	  for (i=0, pchT = strtok((char*)pucC, delimiter); pchT != NULL; i++) {
-	    switch (i) {
-	    case 0:
-	      StringRemovePairQuotes(BAD_CAST pchT);
-	      if (STR_IS_NOT_EMPTY(pchT)) {
-		xmlSetProp(pndResult, BAD_CAST "string", BAD_CAST pchT);
+	  for (i=0; ! isend(pucC[i]); i++) {
+
+	    if (pucC[i] == ',') {
+
+	      pucT = xmlStrndup(BAD_CAST pucC,i);
+	      StringRemovePairQuotes(pucT);
+	      if (STR_IS_NOT_EMPTY(pucT)) {
+		xmlSetProp(pndResult, BAD_CAST "string", pucT);
 	      }
-	      break;
-	    case 1:
-	      StringRemovePairQuotes(BAD_CAST pchT);
-	      if (STR_IS_NOT_EMPTY(pchT)) {
-		xmlSetProp(pndResult, BAD_CAST "to", BAD_CAST pchT);
+	      xmlFree(pucT);
+
+	      if ((pucT = xmlStrchr(BAD_CAST &pucC[i + 1], '=')) != NULL) {
+		if ((pucAttrName = xmlStrndup(BAD_CAST &pucC[i + 1], pucT - &pucC[i + 1])) != NULL) {
+		  StringRemovePairQuotes(pucAttrName);
+		}
+		i = pucT - pucC;
 	      }
-	      break;
-	    default:
+	      else {
+		pucAttrName = xmlStrdup(BAD_CAST "to");
+	      }
+
+	      if ((pucT = xmlStrdup(BAD_CAST &pucC[i + 1])) != NULL) {
+		StringRemovePairQuotes(pucT);
+		if (STR_IS_NOT_EMPTY(pucT)) {
+		  xmlSetProp(pndResult, pucAttrName, pucT);
+		}
+		xmlFree(pucT);
+	      }
+	      else {
+	      }
+
+	      xmlFree(pucAttrName);
 	      break;
 	    }
-	    pchT = strtok(NULL, delimiter);
+	  }
+
+	  if (ppeT->iDepthHidden > 0) {
+	    xmlSetProp(pndResult, BAD_CAST "valid", BAD_CAST"no");
 	  }
 	}
       }

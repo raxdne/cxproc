@@ -102,8 +102,13 @@ fksjhfksh ökäöläröwer
 
 *** EEE
 
+#subst("%NOW%", now="%Y%m%dT%H:%M:%S")
+
+[DDD](http://www.DDD.org/)
+
 fksjhfksh ökäöläröwer
 
+Timestamp %NOW%
     </cxp:pie>
   </cxp:xml>
   <cxp:system message="**** test-pie-import-plain-009: handling of empty text file"/>
