@@ -6,6 +6,7 @@
 # rsync -avC ~/cxproc-build/cxproc/ developer@cubietruck-dev:cxproc-build/cxproc/
 
 #ARCH=x64-linux-static
+#ARCH=arm-linux-static
 ARCH=$(uname -i)"-"$(uname -o | tr '[:upper:]' '[:lower:]' | tr '[:punct:]' '-')
 
 PREFIX=../$ARCH
@@ -42,7 +43,11 @@ test -d $DIR_WWW/test || mkdir -p $DIR_WWW/test
 # git clone https://github.com/microsoft/vcpkg.git
 # cd vcpkg
 # echo -e "set(VCPKG_TARGET_ARCHITECTURE x64)\nset(VCPKG_CRT_LINKAGE dynamic)\nset(VCPKG_LIBRARY_LINKAGE static)\nset(VCPKG_ENV_PASSTHROUGH PATH)\nset(VCPKG_CMAKE_SYSTEM_NAME Linux)\n" > triplets/community/x64-linux-static.cmake
+# echo -e "set(VCPKG_TARGET_ARCHITECTURE arm)\nset(VCPKG_CRT_LINKAGE dynamic)\nset(VCPKG_LIBRARY_LINKAGE static)\nset(VCPKG_ENV_PASSTHROUGH PATH)\nset(VCPKG_CMAKE_SYSTEM_NAME Linux)\n" > triplets/community/arm-linux-static.cmake
 # ./bootstrap-vcpkg.sh
 # ./vcpkg integrate install
 # ./vcpkg help triplet
 # ./vcpkg --triplet $ARCH --x-install-root=.. install zlib liblzma pcre2 libxml2 libxslt libexif sqlite3 duktape
+
+# https://stackoverflow.com/questions/58777810/how-to-integrate-vcpkg-in-linux-with-cross-build-toolchain-as-well-as-sysroot
+
