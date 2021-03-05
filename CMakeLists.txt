@@ -1527,7 +1527,7 @@ IF (CXPROC_PIE)
     WORKING_DIRECTORY ${CXPROC_TEST_DIR}/option/pie/text/xml
     COMMAND ${CXPROC_PREFIX}/bin/cxproc config-pie-import-xml.cxp)
 
-  add_test(NAME calendar
+  add_test(NAME calendar-cxp
     WORKING_DIRECTORY ${CXPROC_TEST_DIR}/option/pie/calendar
     COMMAND ${CXPROC_PREFIX}/bin/cxproc config.cxp)
 
@@ -1539,7 +1539,7 @@ IF (CXPROC_PIE)
     WORKING_DIRECTORY ${CXPROC_PREFIX}
     COMMAND ${CXPROC_PREFIX}/bin/cxproc 2012)
 
-  set_property(TEST pie-code pie-cxp-import-cxp calendar cli-conf-year cli-year
+  set_property(TEST pie-code pie-cxp-import-cxp calendar-cxp cli-conf-year cli-year
     APPEND PROPERTY ENVIRONMENT CXP_PATH=${PROJECT_SOURCE_DIR}//
     )
   

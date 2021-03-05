@@ -3254,6 +3254,7 @@ cxpProcessInfoNode(xmlNodePtr pndInfo, cxpContextPtr pccArg)
     xmlSetProp(nodeOption,BAD_CAST "select",BAD_CAST "no");
 #endif
 
+#if 0
     nodeOption = xmlNewChild(nodeProgram, NULL, BAD_CAST"module", NULL);
     xmlSetProp(nodeOption,BAD_CAST "name",BAD_CAST"admesh");
     xmlSetProp(nodeOption,BAD_CAST "ns",BAD_CAST"http://www.varlog.com/");
@@ -3262,6 +3263,7 @@ cxpProcessInfoNode(xmlNodePtr pndInfo, cxpContextPtr pccArg)
     //xmlSetProp(nodeOption,BAD_CAST "version",BAD_CAST SQLITE_VERSION);
 #else
     xmlSetProp(nodeOption,BAD_CAST "select", BAD_CAST "no");
+#endif
 #endif
 
     nodeOption = xmlNewChild(nodeProgram, NULL, BAD_CAST"module", NULL);

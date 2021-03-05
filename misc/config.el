@@ -338,7 +338,9 @@
 				  (progn
 				    (kill-ring-save (region-beginning) (region-end))
 				    (current-kill 0))
-				(current-word)
+				(if (current-word)
+				    (current-word)
+				  (current-kill 0 t))
 				)
 			      )
 			(set-text-properties 0 (length name) nil name)

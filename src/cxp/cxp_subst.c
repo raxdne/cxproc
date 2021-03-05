@@ -252,10 +252,10 @@ cxpSubstDetect(xmlNodePtr pndArgSubst, cxpContextPtr pccArg)
       else if ((pucT = domGetPropValuePtr(pndArgSubst, BAD_CAST "select"))) {
 	pcxpSubstResult->pucDefault = xmlStrdup(pucT);
       }
-      else if (pndArgSubst->children != NULL && pndArgSubst->children == pndArgSubst->last && xmlNodeIsText(pndArgSubst->children)
-	  && (pucT = xmlNodeGetContent(pndArgSubst->children)) != NULL) {
+      else if (pndArgSubst->children != NULL && pndArgSubst->children == pndArgSubst->last
+	       && xmlNodeIsText(pndArgSubst->children) && STR_IS_NOT_EMPTY(pndArgSubst->children->content)) {
 	/* detect a possible default value */
-	pcxpSubstResult->pucDefault = xmlStrdup(pucT);
+	pcxpSubstResult->pucDefault = xmlStrdup(pndArgSubst->children->content);
       }
       
       if (((pucT = domGetPropValuePtr(pndArgSubst, BAD_CAST "to")) != NULL

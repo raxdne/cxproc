@@ -173,6 +173,10 @@ TODO: change markup #v14
 
 REQ: add a default XSL reference `pie2html.xsl` to DOM ?
 
+REQ: add meta element to every block element
+
+REQ: define regexp for tags as node attribute `<pie tags="(ABC|XYZ)">` or  `<import tags="(ABC|XYZ)">`
+
 #### pie_timezone
 
 TEST: sunrise sunset with Shanghai, Berlin, Boston

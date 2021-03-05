@@ -956,7 +956,7 @@ cxpTest(cxpContextPtr pccArg)
     else {
       xmlFreeDoc(pdocXsl);
     }
-    xmlFreeNode(pndVariable);
+    xmlFreeNode(pndXsl);
   }
 
 

@@ -264,7 +264,7 @@ dbProcessDbNodeToPlain(xmlNodePtr pndArgDb, cxpContextPtr pccArg)
       if (pndQuery != NULL && pndQuery == pndArgDb->last
 	  && pndQuery->type == XML_TEXT_NODE && STR_IS_NOT_EMPTY(pndQuery->content)) { /* single text node */
 	pucQueryResult = dbProcessQueryNodeToPlain(prnDb, pndQuery, (DB_PROC_ENTRIES|DB_PROC_LINES), pccArg);
-	if (STR_IS_NOT_EMPTY(pucQueryResult)) {
+	if (pucQueryResult) {
 	  if (pucResult) {
 	    /*! concatenate query result strings */
 	    pucResult = xmlStrcat(pucResult, BAD_CAST "\n");
@@ -283,7 +283,7 @@ dbProcessDbNodeToPlain(xmlNodePtr pndArgDb, cxpContextPtr pccArg)
 	while (pndQuery) {
 	  if (IS_VALID_NODE(pndQuery) && IS_NODE_QUERY(pndQuery)) {
 	    pucQueryResult = dbProcessQueryNodeToPlain(prnDb, pndQuery, (DB_PROC_ENTRIES|DB_PROC_LINES), pccArg);
-	    if (STR_IS_NOT_EMPTY(pucQueryResult)) {
+	    if (pucQueryResult) {
 	      if (pucResult) {
 		/*! concatenate query result strings */
 		pucResult = xmlStrcat(pucResult, BAD_CAST "\n");
@@ -293,9 +293,6 @@ dbProcessDbNodeToPlain(xmlNodePtr pndArgDb, cxpContextPtr pccArg)
 	      else {
 		pucResult = pucQueryResult;
 	      }
-	    }
-	    else {
-	      xmlFree(pucQueryResult);
 	    }
 	  }
 	  else {
