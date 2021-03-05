@@ -1381,9 +1381,7 @@ SplitTupelToLinkNodes(const xmlChar *pucArg)
 
 /*! splits an UTF-8 string into a list of text and link element nodes (s. "Test/TestGood.txt")
 
-  https://en.wikipedia.org/wiki/Internationalized_Resource_Identifier
-
-  \todo process optional link title
+\return node tree containing all URL as link elements
 */
 xmlNodePtr
 SplitTupelToLinkNodesMd(const xmlChar *pucArg)
@@ -1414,6 +1412,7 @@ SplitTupelToLinkNodesMd(const xmlChar *pucArg)
 	 the regexp match, assemble node list with a common dummy
 	 element node
        */
+      xmlChar *pucUrl = NULL;
       PCRE2_SIZE *ovector;
       int i = 0;
 
@@ -1458,47 +1457,20 @@ SplitTupelToLinkNodesMd(const xmlChar *pucArg)
       }
 
       i++;
-      if (ovector[i*2+1] - ovector[i*2] > 0) {
-	xmlChar *pucUrl = NULL;
-
-	/*! \todo Percent-encode non-ASCII chars (s. https://en.wikipedia.org/wiki/Percent-encoding) */
-#if 1
-	pucUrl = xmlStrndup(&pucArg[ovector[i*2]], (int)(ovector[i*2+1] - ovector[i*2]));
-#else
-	xmlChar *pucT;
-
-	pucT = xmlStrndup(&pucArg[ovector[i*2]], ovector[i*2+1] - ovector[i*2]);
-	if (pucT) {
-	  if ((pucUrl = EncodeRFC1738(pucT))) {
-	    PrintFormatLog(3, "URL '%s' (%i..%i) in '%s'", pucUrl, ovector[i*2], ovector[i*2+1], pucArg);
-	  }
-	  else {
-	    PrintFormatLog(1, "EncodeRFC1738 error");
-	    pucUrl = NULL;
-	  }
-	  xmlFree(pucT);
-	}
-#endif
+      if (ovector[i*2+1] - ovector[i*2] > 0
+	  && (pucUrl = xmlStrndup(&pucArg[ovector[i*2]], (int)(ovector[i*2+1] - ovector[i*2]))) != NULL) {
 
 	if (IS_NODE_PIE_IMG(pndLink)) {
 	  xmlSetProp(pndLink, BAD_CAST "src", pucUrl);
+	}
+	else if (StringBeginsWith((char *)pucUrl,"id:")) {
+	  xmlSetProp(pndLink, BAD_CAST "id", &pucUrl[3]);
 	}
 	else {
 	  xmlSetProp(pndLink, BAD_CAST "href", pucUrl);
 	}
 	xmlFree(pucUrl);
       }
-
-#if 0
-      i++;
-      if (ovector[i*2+1] - ovector[i*2] > 0) {
-	pucUrlDisplay = xmlStrndup(&pucArg[ovector[i*2]], ovector[i*2+1] - ovector[i*2]);
-	PrintFormatLog(3, "URL title '%s' (%i..%i) in '%s'", pucUrlDisplay, ovector[i*2], ovector[i*2+1], pucArg);
-      }
-      else {
-	pucUrlDisplay = GetLinkDisplayNameNew(pucUrl);
-      }
-#endif
 
       if (xmlStrlen(&pucArg[ovector[1]]) > 0) {
 	PrintFormatLog(3, "URL post '%s' (%i..%i) in '%s'", &pucArg[ovector[1]], ovector[1], ovector[1] + xmlStrlen(&pucArg[ovector[1]]), pucArg);
@@ -2038,40 +2010,6 @@ SplitStringToInlineNodes(const xmlChar *pucArg)
 
 
     if (rc > -1) {
-#if 0
-      PCRE2_SIZE iLength = BUFFER_LENGTH;
-
-      PCRE2_SIZE *piLength = &iLength;
-
-      PCRE2_UCHAR **listptr;
-
-      if (pcre2_substring_list_get(match_data, &listptr, &piLength) > -1) {
-	int i;
-	char *pcT;
-
-	for (i=0; listptr[i]; i++) {
-	  puts((const char *)listptr[i]);
-	}
-      }
-      //pcre2_substring_list_free(listptr);
-#elif 0
-      PCRE2_SIZE l = BUFFER_LENGTH;
-      int i = 3;
-
-      if (pcre2_substring_length_bynumber(match_data, i, &l) > -1 && l > 0) {
-	xmlChar *pucContent;
-
-	l++;
-	pucContent = BAD_CAST xmlMalloc(sizeof(xmlChar) * l);
-
-	if (pcre2_substring_copy_bynumber(match_data, i, pucContent, &l) > -1) {
-	  PrintFormatLog(1, "Inline '%s' in '%s'", pucContent, pucArg);
-	}
-	else {
-	  PrintFormatLog(1, "Inline copy error in '%s'", pucArg);
-	}
-      }
-#else
       PCRE2_SIZE *ovector;
 
       ovector = pcre2_get_ovector_pointer(match_data);
@@ -2120,7 +2058,6 @@ SplitStringToInlineNodes(const xmlChar *pucArg)
 	}
 	xmlFree(pucIn);
       }
-#endif
     }
     pcre2_match_data_free(match_data);   /* Release memory used for the match */
   }
@@ -2285,7 +2222,7 @@ CleanUpTree(xmlNodePtr pndArg)
       || IS_NODE_PIE_TH(pndArg)
       || IS_NODE_PIE_TR(pndArg)
 #ifdef HAVE_PETRINET
-      || IS_NODE_PKG2_STELLE(pndArg)
+      || IS_NODE_PKG2_STATE(pndArg)
       || IS_NODE_PKG2_TRANSITION(pndArg)
       || IS_NODE_PKG2_REQUIREMENT(pndArg)
 #endif

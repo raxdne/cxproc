@@ -99,79 +99,11 @@ domGetNextNode(xmlNodePtr pndArg, xmlChar *pucNameElement)
 /* End of domGetNextNode() */
 
 
-/*!
-  XPath axis "following"
+/*! \return a pointer to xmlXPathObject according to XPath 'pucArg' in pdocArg was found
+\param pdocArg source DOM
+\param pucArg pointer to XPath string
 
-  problem if root element matches
-*/
-xmlNodePtr
-domGetFollowingNode(xmlNodePtr pndArg, xmlChar *pucName)
-{
-  if (pucName != NULL && pndArg != NULL && pndArg->type == XML_ELEMENT_NODE) {
-    xmlNodePtr pndTest;
-    xmlNodePtr pndResult = NULL;
-
-    /* recursive processing of all childs
-     */
-    for (pndTest = pndArg->children; pndTest != NULL; pndTest = pndTest->next) {
-      if (pndTest->type == XML_ELEMENT_NODE) {
-	if (xmlStrEqual(pndTest->name,pucName)) {
-	  return pndTest;
-	}
-	pndResult = domGetFollowingNode(pndTest,pucName);
-	if (pndResult) {
-	  return pndResult;
-	}
-      }
-    }
-
-    /* recursive processing of all following siblings
-     */
-    for (pndTest = pndArg->next; pndTest != NULL; pndTest = pndTest->next) {
-      if (pndTest->type == XML_ELEMENT_NODE) {
-	if (xmlStrEqual(pndTest->name,pucName)) {
-	  return pndTest;
-	}
-	pndResult = domGetFollowingNode(pndTest,pucName);
-	if (pndResult) {
-	  return pndResult;
-	}
-      }
-    }
-
-    /* recursive processing of all ancestor nodes
-     */
-    if (IS_ROOT(pndArg)) {
-      return pndArg;
-    }
-    else {
-      for (pndTest = pndArg->parent; pndTest != NULL; pndTest = pndTest->parent) {
-
-	if (IS_ROOT(pndTest)) {
-	  /* pndTest is root element of current DOM */
-	  return pndTest;
-	}
-
-	if (pndTest->next != NULL) {
-	  if (pndTest->type == XML_ELEMENT_NODE) {
-	    if (xmlStrEqual(pndTest->next->name,pucName)) {
-	      return pndTest->next;
-	    }
-	    pndResult = domGetFollowingNode(pndTest->next,pucName);
-	    if (pndResult) {
-	      return pndResult;
-	    }
-	  }
-	}
-      }
-    }
-  }
-  return NULL;
-} /* end of domGetFollowingNode() */
-
-
-/* http://xmlsoft.org/tutorial/apd.html "D. Code for XPath Example"
-
+ http://xmlsoft.org/tutorial/apd.html "D. Code for XPath Example"
 */
 xmlXPathObjectPtr
 domGetXPathNodeset(xmlDocPtr pdocArg, xmlChar *pucArg)
@@ -205,6 +137,8 @@ domGetXPathNodeset(xmlDocPtr pdocArg, xmlChar *pucArg)
 
 
 /*! increments value of property "w" by iArg numerically
+\param pndArg node for attribute
+\param iArg default integer value
 */
 int
 IncrementWeightProp(xmlNodePtr pndArg, int iArg)
@@ -238,8 +172,32 @@ IncrementWeightProp(xmlNodePtr pndArg, int iArg)
 } /* end of IncrementWeightProp() */
 
 
-/*
+/*!
+ */
+BOOL_T
+IncrementWeightPropRecursive(xmlNodePtr pndArg)
+{
+  BOOL_T fResult = FALSE;
 
+  if (pndArg) {
+    xmlNodePtr pndT;
+
+    IncrementWeightProp(pndArg, 1);
+
+    for (pndT = pndArg->children; pndT; pndT = pndT->next) {
+      IncrementWeightPropRecursive(pndT);
+    }
+
+    fResult = TRUE;
+  }
+
+  return fResult;
+} /* end of IncrementWeightPropRecursive() */
+
+
+/*! \return TRUE if a node according to XPath 'pucArg' in pdocArg was found
+\param pdocArg source DOM
+\param pucArg pointer to XPath string
 */
 BOOL_T
 domWeightXPathInDoc(xmlDocPtr pdocArg, xmlChar *pucArg)
@@ -261,8 +219,19 @@ domWeightXPathInDoc(xmlDocPtr pdocArg, xmlChar *pucArg)
 	  for (i=0; i < nodeset->nodeNr; i++) {
 	    xmlNodePtr pndT;
 
-	    for (pndT=nodeset->nodeTab[i]; pndT; pndT=pndT->parent) {
-	      IncrementWeightProp(pndT, 1);
+	    if (IS_NODE_PIE_SECTION(nodeset->nodeTab[i])) {
+	      /* weight the tree of this section when element matches */
+	      IncrementWeightPropRecursive(nodeset->nodeTab[i]);
+	      /* weight all ancestors of this section */
+	      for (pndT=nodeset->nodeTab[i]->parent; pndT; pndT=pndT->parent) {
+		IncrementWeightProp(pndT, 1);
+	      }
+	    }
+	    else {
+	      /* weight all ancestors and this element */
+	      for (pndT=nodeset->nodeTab[i]; pndT; pndT=pndT->parent) {
+		IncrementWeightProp(pndT, 1);
+	      }
 	    }
 	  }
 	  fResult = TRUE;
@@ -272,11 +241,12 @@ domWeightXPathInDoc(xmlDocPtr pdocArg, xmlChar *pucArg)
     }
   }
   return fResult;
-} /* end of domGetXPathNodeset() */
+} /* end of domWeightXPathInDoc() */
 
 
-/* 
-
+/*! \return a new DOM according to XPath 'pucArg' in pdocArg
+\param pdocArg source DOM
+\param pucArg pointer to XPath string
 */
 xmlDocPtr
 domGetXPathDoc(xmlDocPtr pdocArg, xmlChar *pucArg)
@@ -358,40 +328,6 @@ domSetNsRecursive(xmlNodePtr pndArg, xmlNsPtr ns)
 
   return fResult;
 } /* end of domSetNsRecursive() */
-
-
-/*!
- */
-BOOL_T
-_domTransferNsTo(xmlNodePtr pndArg, xmlDocPtr pdocArg)
-{
-  BOOL_T fResult = FALSE;
-
-  if (pndArg) {
-    xmlNsPtr *ppList = NULL;
-
-    if ((ppList = xmlGetNsList(pdocArg, xmlDocGetRootElement(pdocArg)))) {
-      xmlNsPtr pNsI = NULL;
-
-      for (pNsI = *ppList; pNsI; pNsI = pNsI->next) {
-#if 1
-	/* s. code in tree.c:xmlNewReconciliedNs() */
-	xmlNsPtr pNsT = NULL;
-
-	pNsT = xmlNewNs(pndArg, pNsI->href, pNsI->prefix);
-#else
-	xmlChar* pucT;
-
-	pucT = xmlStrdup(BAD_CAST "xmlns:");
-	pucT = xmlStrcat(pucT, pNsI->prefix);
-	xmlSetProp(pndArg, pucT, pNsI->href);
-#endif
-      }
-      fResult = TRUE;
-    }
-  }
-  return fResult;
-} /* end of domTransferNsTo() */
 
 
 /*!
@@ -737,7 +673,7 @@ domSetPropFileLocator(xmlNodePtr pndArg, xmlChar *pucArg)
 	|| IS_NODE_PIE_TARGET(pndChild)
 	|| IS_NODE_PIE_PRE(pndChild)
 #ifdef HAVE_PETRINET
-	|| IS_NODE_PKG2_STELLE(pndChild)
+	|| IS_NODE_PKG2_STATE(pndChild)
 	|| IS_NODE_PKG2_TRANSITION(pndChild)
 	|| IS_NODE_PKG2_REQUIREMENT(pndChild)
 #endif
@@ -851,9 +787,8 @@ domDocFromNodeNew(xmlNodePtr pndArg)
 /* end of domDocFromNodeNew() */
 
 
-/*! Detect and sets the DOM MIME type of this context.
-
-  \param prnArg the context
+/*! \return MIME type of this DOM
+  \param pdocArg source DOM
  */
 RN_MIME_TYPE
 domMimeType(xmlDocPtr pdocArg)
@@ -884,9 +819,24 @@ domMimeType(xmlDocPtr pdocArg)
     }
   }
   return eTypeResult;
-}
-/* end of domMimeType() */
+} /* end of domMimeType() */
 
+
+/*! \return TRUE if DOM pdocArg is HTML
+ */
+BOOL_T
+domDocIsHtml(xmlDocPtr pdocArg)
+{
+  xmlNodePtr pndRoot;
+
+  return (pdocArg != NULL && (pndRoot = xmlDocGetRootElement(pdocArg)) != NULL
+      && xmlStrcasecmp(pndRoot->name,BAD_CAST "html") == 0 && pndRoot->children != NULL
+      && (domGetFirstChild(pndRoot,BAD_CAST "head") != NULL || domGetFirstChild(pndRoot,BAD_CAST "body") != NULL));
+}
+/* end of domDocIsHtml() */
+
+
+#ifdef DEBUG
 
 /*! 
 */
@@ -945,8 +895,6 @@ domPutDocString(FILE *out, xmlChar *pucArgMessage, xmlDocPtr pdocArg)
   return iResult;
 } /* end of domPutDocString() */
 
-
-#ifdef DEBUG
 
 /*! 
 */
@@ -1053,11 +1001,11 @@ domPutNodeGraphvizStringRecursive(FILE *out, xmlNodePtr pndArg, int iArgDepth)
   return;
 }
 /* end of domPutNodeGraphvizStringRecursive() */
+
 #endif
 
 
-/*! compare two node with all childrens
-
+/*! \return TRUE if two node with all childrens are equal
 \param pndA first candidate
 \param pndB second candidate
 */
@@ -1102,8 +1050,7 @@ domNodesAreEqual(xmlNodePtr pndA, xmlNodePtr pndB)
     }
   }
   return TRUE;
-}
-/* end of domNodesAreEqual() */
+} /* end of domNodesAreEqual() */
 
 
 /*! derived from xmlReplaceNode()
@@ -1213,39 +1160,6 @@ domReplaceNodeList(xmlNodePtr old, xmlNodePtr cur)
 /* end of domReplaceNodeList() */
 
 
-/*
-*/
-BOOL_T
-isValidNodeType(xmlNodePtr pndArg)
-{
-  return (pndArg != NULL && (pndArg->type == XML_ELEMENT_NODE || pndArg->type == XML_ATTRIBUTE_NODE || pndArg->type == XML_TEXT_NODE || pndArg->type == XML_CDATA_SECTION_NODE || pndArg->type == XML_ENTITY_REF_NODE || pndArg->type == XML_ENTITY_NODE || pndArg->type == XML_PI_NODE || pndArg->type == XML_COMMENT_NODE || pndArg->type == XML_DOCUMENT_NODE || pndArg->type == XML_DOCUMENT_TYPE_NODE || pndArg->type == XML_DOCUMENT_FRAG_NODE || pndArg->type == XML_NOTATION_NODE || pndArg->type == XML_HTML_DOCUMENT_NODE || pndArg->type == XML_DTD_NODE || pndArg->type == XML_ELEMENT_DECL || pndArg->type == XML_ATTRIBUTE_DECL || pndArg->type == XML_ENTITY_DECL || pndArg->type == XML_NAMESPACE_DECL || pndArg->type == XML_XINCLUDE_START || pndArg->type == XML_XINCLUDE_END));
-}
-
-
-/* returns TRUE if pndArg is a text node with content == NULL or containing only characters ' ','\n', '\r' or '\t' 
-*/
-BOOL_T
-isEmptyTextNode(xmlNodePtr pndArg)
-{
-  BOOL_T fResult = FALSE;
-
-  if (pndArg != NULL && pndArg->type == XML_TEXT_NODE) {
-
-    if (pndArg->content) {
-      xmlChar *pucT = NULL;
-
-      for (pucT = pndArg->content; *pucT == (xmlChar)'\n' || *pucT == (xmlChar)'\r' || *pucT == (xmlChar)'\t' || *pucT == (xmlChar)' '; pucT++) { }
-
-      fResult = (pucT != pndArg->content);
-    }
-    else {
-      fResult = TRUE;
-    }
-  }
-  return fResult;
-}
-
-
 /* derived from from xmlUnlinkNode() in libxml2-2.6.26/tree.c */
 /**
  * domUnlinkNodeList:
@@ -1259,7 +1173,6 @@ void
 domUnlinkNodeList(xmlNodePtr cur) {
 
   if (cur) {
-    assert(isValidNodeType(cur));
 
     if (cur->type == XML_ELEMENT_NODE && cur == xmlDocGetRootElement(cur->doc)) {
       xmlUnlinkNode(cur); 	/* unlink root node */
@@ -1304,27 +1217,6 @@ domUnlinkNodeList(xmlNodePtr cur) {
     }
   }
 } /* end of domUnlinkNodeList() */
-
-
-/*! increments value of named property by iArg numerically
- */
-void
-domIncrPropRecursive(xmlNodePtr pndArg, xmlChar *pucArg, int iArg)
-{
-  if ((pndArg != NULL) && (pndArg->type == XML_ELEMENT_NODE) && STR_IS_NOT_EMPTY(pucArg)) {
-    xmlNodePtr pndT;
-
-    if (IS_NODE_PIE_TTAG(pndArg) || IS_NODE_PIE_LINK(pndArg) || IS_NODE_PIE_DATE(pndArg) || IS_NODE_PIE_META(pndArg)) {
-      /* to be ignored */
-    }
-    else {
-      domIncrProp(pndArg, pucArg, iArg);
-      for (pndT = pndArg->children; pndT; pndT = pndT->next) {
-	domIncrPropRecursive(pndT, pucArg, iArg);
-      }
-    }
-  }
-} /* end of domIncrPropRecursive() */
 
 
 /*! increments value of named property by iArg numerically
@@ -1697,19 +1589,6 @@ domChangeURL(xmlDocPtr pdocArg, resNodePtr prnArg)
 }
 /* end of domChangeURL() */
 
-
-/*! return TRUE if DOM pdocArg is HTML
- */
-BOOL_T
-domDocIsHtml(xmlDocPtr pdocArg)
-{
-  xmlNodePtr pndRoot;
-
-  return (pdocArg != NULL && (pndRoot = xmlDocGetRootElement(pdocArg)) != NULL
-      && xmlStrcasecmp(pndRoot->name,BAD_CAST "html") == 0 && pndRoot->children != NULL
-      && (domGetFirstChild(pndRoot,BAD_CAST "head") != NULL || domGetFirstChild(pndRoot,BAD_CAST "body") != NULL));
-}
-/* end of domDocIsHtml() */
 
 
 #ifdef TESTCODE

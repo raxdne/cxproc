@@ -409,8 +409,11 @@ StringRemovePairQuotes(xmlChar *pucArg)
 
     for (pucA = pucArg; isspace(*pucA); pucA++);
 
+    for (pucB = pucArg + xmlStrlen(pucArg) - 1; pucB > pucA && isspace(*pucB); pucB--) {
+      *pucB = (xmlChar)'\0';
+    }
+
     if (*pucA == (xmlChar)'\'' || *pucA == (xmlChar)'\"') {
-      for (pucB = pucArg + xmlStrlen(pucArg) - 1; pucB > pucArg && isspace(*pucB); pucB--);
       if (*pucB == *pucA) {
 	/* there is a pair of apostrophs in pucArg */
 	if (pucB - pucA > 1) {
@@ -422,6 +425,12 @@ StringRemovePairQuotes(xmlChar *pucArg)
 	}
 	fResult = TRUE;
       }
+    }
+    else if (pucB - pucA > 1) {
+      memmove(pucArg, pucA, pucB - pucA + 2);
+    }
+    else {
+      pucArg[0] = (xmlChar)'\0';
     }
   }
   return fResult;

@@ -956,50 +956,7 @@ cxpTest(cxpContextPtr pccArg)
     else {
       xmlFreeDoc(pdocXsl);
     }
-    xmlFreeNode(pndVariable);
-  }
-
-
-  if (SKIPTEST) {
-    xmlChar *pucT = NULL;
-    xmlDocPtr pdocXsl = NULL;
-    xsltStylesheetPtr pxslT = NULL;
-    cxpContextPtr pccT;
-    char *param[] = { "str_path_1", "'/rst.txt'", "str_path_2", "'uvw.txt'", "str_path_3", "'xyz.txt'", "pattern", "'htag = 'muller''", "int_a", "123", "flag", "false()", NULL };
-
-    i++;
-    printf("TEST %i in '%s:%i': ChangeXslParam() = ", i, __FILE__, __LINE__);
-
-    pccT = cxpCtxtDup(pccArg);
-
-    pdocXsl = xmlReadFile(TESTPREFIX "xsl/TestVariableChange.xsl", NULL, 0);
-
-    if (ChangeXslParam(NULL, NULL, NULL)) {
-      printf("Error 1 ChangeXslParam()\n");
-    }
-    else if (ChangeXslParam(pdocXsl, NULL, pccT)) {
-      printf("Error 2 ChangeXslParam()\n");
-    }
-    else if (ChangeXslParam(pdocXsl, param, pccT) == FALSE) {
-      printf("Error 3 ChangeXslParam()\n");
-    }
-    else if ((pxslT = xsltParseStylesheetDoc(pdocXsl)) == NULL) {
-      printf("ERROR 'Cant parse this Stylesheet'\n");
-    }
-    else {
-      n_ok++;
-      printf("OK\n");
-    }
-    //cxpCtxtLogPrintDoc(pccArg, 1, "XML result", pdocXsl);
-
-    cxpCtxtFree(pccT);
-    xmlFree(pucT);
-    if (pxslT) {
-      xsltFreeStylesheet(pxslT);  /* xsltFreeStylesheet() releases the DOM also */
-    }
-    else {
-      xmlFreeDoc(pdocXsl);
-    }
+    xmlFreeNode(pndXsl);
   }
 
 
@@ -1014,7 +971,7 @@ cxpTest(cxpContextPtr pccArg)
     pdocXml = xmlReadFile(TESTPREFIX "xml/config.cxp",NULL,0);
     pdocXsl = xmlReadFile(TESTPREFIX "xsl/TestValidate.xsl",NULL,0);
 
-    if ((pdocT = cxpXslTransformToDom(pdocXml, pdocXsl, NULL, pccArg)) == NULL) {
+    if ((pdocT = cxpXslTransformToDom(pdocXml, pdocXsl, pccArg)) == NULL) {
       printf("Error cxpXslTransformToDom()\n");
     }
     else {

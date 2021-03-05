@@ -872,7 +872,7 @@ TraverseImportNodes(xmlNodePtr pndArg, cxpContextPtr pccArg)
 	|| IS_NODE_PIE_SECTION(pndArgChildren)
 	|| IS_NODE_PIE_TASK(pndArgChildren)
 #ifdef HAVE_PETRINET
-	|| IS_NODE_PKG2_STELLE(pndArgChildren)
+	|| IS_NODE_PKG2_STATE(pndArgChildren)
 	|| IS_NODE_PKG2_TRANSITION(pndArgChildren)
 	|| IS_NODE_PKG2_REQUIREMENT(pndArgChildren)
 #endif

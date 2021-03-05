@@ -75,12 +75,6 @@ petrinet
   private name macros
 */
 
-#define NAME_STATE      BAD_CAST  "stelle"
-
-#define NAME_TRANSITION BAD_CAST  "transition"
-
-#define NAME_EDGE       BAD_CAST  "relation"
-
 #define KNOTS_MAX 128
 
 #define EDGES_MAX (128 * 2)
@@ -172,6 +166,8 @@ typedef struct {
   knot_t *target;		/*!< pointer to target states */
 } petrinet_t;
 
+
+xmlNsPtr pnsPkg = NULL; /*!\todo use defined namespace "pkg" */
 
 /****************************************************************************
 
@@ -268,6 +264,27 @@ pnetPrintPath(petrinet_t *ppnArg, cxpContextPtr pccArg);
 */
 
 
+/*! \return pointer to existing or freshly allocated XML namespace
+*/
+xmlNsPtr
+pkgGetNs(void)
+{
+  if (pnsPkg == NULL) {
+    pnsPkg = xmlNewNs(NULL, BAD_CAST PKG2_NAMESPACE_URL, BAD_CAST"pkg");
+  }
+  return pnsPkg;
+} /* end of pkgGetNs() */
+
+
+/*! exit procedure for this module
+*/
+void
+pkgCleanup(void)
+{
+  xmlFreeNs(pnsPkg);
+} /* end of pkgCleanup() */
+
+
 /*! process the required  files
  */
 xmlDocPtr
@@ -314,7 +331,7 @@ pnetProcessNode(xmlNodePtr pndArg, cxpContextPtr pccArg)
 		ppnNew->n_max = 30;
 	      }
 
-	      if (IS_NODE(pndArg, NAME_PATHTABLE)) {
+	      if (IS_NODE(pndArg, NAME_PKG2_PATHTABLE)) {
 		xmlChar *pucAttrTarget;
 
 		/* target knot required */
@@ -328,10 +345,10 @@ pnetProcessNode(xmlNodePtr pndArg, cxpContextPtr pccArg)
 		  }
 		}
 		else {
-		  cxpCtxtLogPrint(pccArg, 1, "Cant set target STELLE");
+		  cxpCtxtLogPrint(pccArg, 1, "Cant set target STATE");
 		}
 	      }
-	      else if (IS_NODE(pndArg, NAME_PATHNET)) {
+	      else if (IS_NODE(pndArg, NAME_PKG2_PATHNET)) {
 		if (xmlStrEqual(domGetPropValuePtr(pndArg, BAD_CAST"type"), BAD_CAST"xml")) {
 		  pdocResult = pnetProcessPathnet(ppnNew, TRUE, pccArg);
 		}
@@ -344,7 +361,7 @@ pnetProcessNode(xmlNodePtr pndArg, cxpContextPtr pccArg)
 	      }
 	    }
 	    else {
-	      cxpCtxtLogPrint(pccArg, 1, "Cant set start STELLE");
+	      cxpCtxtLogPrint(pccArg, 1, "Cant set start STATE");
 	    }
 	    pnetFree(ppnNew);
 	  }
@@ -452,7 +469,7 @@ pnetPrintPath(petrinet_t *ppnArg, cxpContextPtr pccArg)
 
     for (i=0; i <= ppnArg->l_path; i++) {
       assert(ppnArg->path[i] != NULL);
-      cxpCtxtLogPrint(pccArg, 1," (%s '%s')", statep(ppnArg->path[i]) ? NAME_STATE : NAME_TRANSITION, ppnArg->path[i]->pucId);
+      cxpCtxtLogPrint(pccArg, 1," (%s '%s')", statep(ppnArg->path[i]) ? NAME_PKG2_STATE : NAME_PKG2_TRANSITION, ppnArg->path[i]->pucId);
     }
   }
 }
@@ -521,7 +538,7 @@ pnetInitKnots(petrinet_t *ppnArg, xmlNode *pndArg, cxpContextPtr pccArg)
       if (pndT->type != XML_ELEMENT_NODE) {
 	/* skip */
       }
-      else if (IS_NODE(pndT, NAME_STATE)) {
+      else if (IS_NODE(pndT, NAME_PKG2_STATE)) {
 	int i = ppnArg->n_s;
 
 	assert(i > -1);
@@ -529,10 +546,10 @@ pnetInitKnots(petrinet_t *ppnArg, xmlNode *pndArg, cxpContextPtr pccArg)
 	ppnArg->s[i].type = state;
 	ppnArg->s[i].pucId = domGetPropValuePtr(pndT, BAD_CAST  "id");
 	ppnArg->s[i].pndSource = pndT;
-	cxpCtxtLogPrint(pccArg, 4,"'%s' '%s'", NAME_STATE, ppnArg->s[i].pucId);
+	cxpCtxtLogPrint(pccArg, 4,"'%s' '%s'", NAME_PKG2_STATE, ppnArg->s[i].pucId);
 	ppnArg->n_s++;
       }
-      else if (IS_NODE(pndT, NAME_TRANSITION)) {
+      else if (IS_NODE(pndT, NAME_PKG2_TRANSITION)) {
 	int i = ppnArg->n_t;
 	
 	assert(i > -1);
@@ -540,7 +557,7 @@ pnetInitKnots(petrinet_t *ppnArg, xmlNode *pndArg, cxpContextPtr pccArg)
 	ppnArg->t[i].type = transition;
 	ppnArg->t[i].pucId = domGetPropValuePtr(pndT, BAD_CAST  "id");
 	ppnArg->t[i].pndSource = pndT;
-	cxpCtxtLogPrint(pccArg, 4,"'%s' '%s'", NAME_TRANSITION, ppnArg->t[i].pucId);
+	cxpCtxtLogPrint(pccArg, 4,"'%s' '%s'", NAME_PKG2_TRANSITION, ppnArg->t[i].pucId);
 	ppnArg->n_t++;
       }
       else {
@@ -567,11 +584,11 @@ pnetPrintKnots(petrinet_t *ppnArg, cxpContextPtr pccArg)
     int i;
 
     for (i=0; i < ppnArg->n_s; i++) {
-      cxpCtxtLogPrint(pccArg, 1,"s%i '%s' '%s'", i, NAME_STATE, ppnArg->s[i].pucId);
+      cxpCtxtLogPrint(pccArg, 1,"s%i '%s' '%s'", i, NAME_PKG2_STATE, ppnArg->s[i].pucId);
     }
 
     for (i=0; i < ppnArg->n_t; i++) {
-      cxpCtxtLogPrint(pccArg, 1,"t%i '%s' '%s'", i, NAME_TRANSITION, ppnArg->t[i].pucId);
+      cxpCtxtLogPrint(pccArg, 1,"t%i '%s' '%s'", i, NAME_PKG2_TRANSITION, ppnArg->t[i].pucId);
     }
   }
 }
@@ -633,7 +650,7 @@ pnetNewEdges(petrinet_t *ppnArg, cxpContextPtr pccArg)
       tail = pnetInitEdges(ppnArg, ppnArg->edge, ppnArg->pndRoot,pccArg);
       tail->from = NULL;
       ppnArg->n_e = (index_t)(tail - ppnArg->edge);
-      cxpCtxtLogPrint(pccArg, 2,"Valid '%s' nodes: %i", NAME_EDGE, ppnArg->n_e);
+      cxpCtxtLogPrint(pccArg, 2,"Valid '%s' nodes: %i", NAME_PKG2_EDGE, ppnArg->n_e);
       
       fResult = TRUE;
     }
@@ -659,8 +676,8 @@ pnetInitEdges(petrinet_t *ppnArg, edge_t *pEdgeArg, xmlNode * pndArg, cxpContext
 
     for (pndT = pndArg; pndT; pndT = pndT->next) {
 
-      if (IS_NODE(pndT,NAME_EDGE)) {
-	/* pndT is a relation node */
+      if (IS_NODE(pndT,NAME_PKG2_EDGE)) {
+	/* pndT is a edge node */
 	index_t a;
 	index_t b;
 	xmlChar *pucAttrFrom;
@@ -676,17 +693,17 @@ pnetInitEdges(petrinet_t *ppnArg, edge_t *pEdgeArg, xmlNode * pndArg, cxpContext
 	  if (a == ERROR_INDEX) {
 	    /* it was a wrong assumtion,
 	     OR there is no attribute 'from'
-	     OR there is no valid stelle with id 'pucAttrFrom'
+	     OR there is no valid state with id 'pucAttrFrom'
 	     */
 	    a = pnetGetTransitionIndexForId(ppnArg, pucAttrFrom);
 	    if (a == ERROR_INDEX) {
-	      /* ignore invalid relations */
+	      /* ignore invalid edges */
 	      cxpCtxtLogPrint(pccArg, 1,"Edge invalid '%s' -> '%s'", pucAttrFrom, pucAttrTo);
 	    }
 	    else {
 	      b = pnetGetStateIndexForId(ppnArg, pucAttrTo);
 	      if (b != ERROR_INDEX) {
-		/* b is a valid stelle, a is a valid transition */
+		/* b is a valid state, a is a valid transition */
 		ppnArg->e[b][a] |= 2;
 
 		pEdgeArg->from  = &(ppnArg->t[a]);
@@ -700,7 +717,7 @@ pnetInitEdges(petrinet_t *ppnArg, edge_t *pEdgeArg, xmlNode * pndArg, cxpContext
 	    b = pnetGetTransitionIndexForId(ppnArg, pucAttrTo);
 
 	    if (b != ERROR_INDEX) {
-	      /* a is a valid stelle, b is a valid transition */
+	      /* a is a valid state, b is a valid transition */
 	      ppnArg->e[a][b] |= 1;
 
 	      pEdgeArg->from  = &(ppnArg->s[a]);
@@ -708,7 +725,7 @@ pnetInitEdges(petrinet_t *ppnArg, edge_t *pEdgeArg, xmlNode * pndArg, cxpContext
 	      pEdgeArg++;
 	    }
 	    else {
-	      /* ignore invalid relations */
+	      /* ignore invalid edges */
 	      cxpCtxtLogPrint(pccArg, 1,"Edge invalid '%s' -> '%s'", pucAttrFrom, pucAttrTo);
 	    }
 	  }
@@ -737,7 +754,7 @@ pnetPrintEdges(petrinet_t *ppnArg, cxpContextPtr pccArg)
 
     for (i=0; i < ppnArg->n_e; i++) {
       cxpCtxtLogPrint(pccArg, 1,"e%i '%s' '%s' -> '%s'",
-		      i, NAME_EDGE, KNOTID(ppnArg->edge[i].from), KNOTID(ppnArg->edge[i].to));
+		      i, NAME_PKG2_EDGE, KNOTID(ppnArg->edge[i].from), KNOTID(ppnArg->edge[i].to));
     }
   }
 }
@@ -1115,7 +1132,7 @@ pnetSearchPathForward(petrinet_t *ppnArg)
     index_t i;
     knot_t *l_knot;
 
-    /*! \bug bidrectional relation is also a path */
+    /*! \bug bidrectional edge is also a path */
 
     /*   assert(statep(ppnArg->start) || transitionp(ppnArg->start)); */
     /*   assert(statep(ppnArg->target) || transitionp(ppnArg->target)); */
@@ -1126,7 +1143,7 @@ pnetSearchPathForward(petrinet_t *ppnArg)
     l_knot = ppnArg->path[ppnArg->l_path]; /* ptr to last knot */
 
 #ifdef DEBUG_SEARCH
-    fprintf(stderr,"%i %s '%s': last\n", ppnArg->l_path, statep(l_knot) ? NAME_STATE : NAME_TRANSITION, l_knot->pucId);
+    fprintf(stderr,"%i %s '%s': last\n", ppnArg->l_path, statep(l_knot) ? NAME_PKG2_STATE : NAME_PKG2_TRANSITION, l_knot->pucId);
 #endif
     
     if (ppnArg->l_max != ERROR_INDEX && ppnArg->l_path >= ppnArg->l_max) {
@@ -1165,7 +1182,7 @@ pnetSearchPathForward(petrinet_t *ppnArg)
 	  ppnArg->l_path++;
 	  ppnArg->path[ppnArg->l_path] = &(ppnArg->t[i]); /* enclose the pointer into path */
 #ifdef DEBUG_SEARCH
-	  fprintf(stderr,"%i %s '%s': added + recursion\n", ppnArg->l_path, statep(ppnArg->path[ppnArg->l_path]) ? NAME_STATE : NAME_TRANSITION, ppnArg->path[ppnArg->l_path]->pucId);
+	  fprintf(stderr,"%i %s '%s': added + recursion\n", ppnArg->l_path, statep(ppnArg->path[ppnArg->l_path]) ? NAME_PKG2_STATE : NAME_PKG2_TRANSITION, ppnArg->path[ppnArg->l_path]->pucId);
 #endif
 	  fResult = pnetSearchPathForward(ppnArg);	/* search recursive next knot for path[] */
 	  break;
@@ -1189,12 +1206,12 @@ pnetSearchPathForward(petrinet_t *ppnArg)
 	      ppnArg->n_paths++;   /* count this path and */
 	      fResult = TRUE;    /* leave the recursion */
 #ifdef DEBUG_SEARCH
-	      fprintf(stderr,"%i %s '%s': its a circle\n", ppnArg->l_path, statep(s_ptr) ? NAME_STATE : NAME_TRANSITION, s_ptr->pucId);
+	      fprintf(stderr,"%i %s '%s': its a circle\n", ppnArg->l_path, statep(s_ptr) ? NAME_PKG2_STATE : NAME_PKG2_TRANSITION, s_ptr->pucId);
 #endif
 	      break;
 	    }
 #ifdef DEBUG_SEARCH
-	    fprintf(stderr,"%i %s '%s': included already\n", ppnArg->l_path, statep(s_ptr) ? NAME_STATE : NAME_TRANSITION, s_ptr->pucId);
+	    fprintf(stderr,"%i %s '%s': included already\n", ppnArg->l_path, statep(s_ptr) ? NAME_PKG2_STATE : NAME_PKG2_TRANSITION, s_ptr->pucId);
 #endif
 	  }
 	  else {
@@ -1206,12 +1223,12 @@ pnetSearchPathForward(petrinet_t *ppnArg)
 	      ppnArg->n_paths++;   /* count this path and */
 	      fResult = TRUE;    /* leave the recusion */
 #ifdef DEBUG_SEARCH
-	      fprintf(stderr,"%i %s '%s': ready\n", ppnArg->l_path, statep(s_ptr) ? NAME_STATE : NAME_TRANSITION, s_ptr->pucId);
+	      fprintf(stderr,"%i %s '%s': ready\n", ppnArg->l_path, statep(s_ptr) ? NAME_PKG2_STATE : NAME_PKG2_TRANSITION, s_ptr->pucId);
 #endif
 	      break;
 	    }
 #ifdef DEBUG_SEARCH
-	    fprintf(stderr,"%i %s '%s': added + recursion\n", ppnArg->l_path, statep(s_ptr) ? NAME_STATE : NAME_TRANSITION, s_ptr->pucId);
+	    fprintf(stderr,"%i %s '%s': added + recursion\n", ppnArg->l_path, statep(s_ptr) ? NAME_PKG2_STATE : NAME_PKG2_TRANSITION, s_ptr->pucId);
 #endif
 	    fResult = pnetSearchPathForward(ppnArg);	/* search recursive next knot for path[] */
 	    break;
@@ -1253,14 +1270,14 @@ pnetSearchBranchBackward(petrinet_t *ppnArg)
     else {
       ol_knot = ppnArg->path[ppnArg->l_path]; /* ptr to old last knot */
 #ifdef DEBUG_SEARCH
-      fprintf(stderr,"%i %s '%s': old last\n", ppnArg->l_path, statep(ol_knot) ? NAME_STATE : NAME_TRANSITION, ol_knot->pucId);
+      fprintf(stderr,"%i %s '%s': old last\n", ppnArg->l_path, statep(ol_knot) ? NAME_PKG2_STATE : NAME_PKG2_TRANSITION, ol_knot->pucId);
 #endif
 
       ppnArg->l_path--; /* one step backward */
 
       l_knot = ppnArg->path[ppnArg->l_path]; /* ptr to last knot */
 #ifdef DEBUG_SEARCH
-      fprintf(stderr,"%i %s '%s': one step backward\n", ppnArg->l_path, statep(l_knot) ? NAME_STATE : NAME_TRANSITION, l_knot->pucId);
+      fprintf(stderr,"%i %s '%s': one step backward\n", ppnArg->l_path, statep(l_knot) ? NAME_PKG2_STATE : NAME_PKG2_TRANSITION, l_knot->pucId);
 #endif
 
       if (statep(l_knot)) {
@@ -1279,7 +1296,7 @@ pnetSearchBranchBackward(petrinet_t *ppnArg)
 	    ppnArg->path[ppnArg->l_path] = &(ppnArg->t[i]);
 	    fResult = TRUE;		/* leave backward recursion */
 #ifdef DEBUG_SEARCH
-	    fprintf(stderr,"%i %s '%s': removed + added + recursion\n", ppnArg->l_path, statep(ppnArg->path[ppnArg->l_path]) ? NAME_STATE : NAME_TRANSITION, ppnArg->path[ppnArg->l_path]->pucId);
+	    fprintf(stderr,"%i %s '%s': removed + added + recursion\n", ppnArg->l_path, statep(ppnArg->path[ppnArg->l_path]) ? NAME_PKG2_STATE : NAME_PKG2_TRANSITION, ppnArg->path[ppnArg->l_path]->pucId);
 #endif
 	    return fResult;
 	  }
@@ -1300,7 +1317,7 @@ pnetSearchBranchBackward(petrinet_t *ppnArg)
 	    ppnArg->path[ppnArg->l_path] = &(ppnArg->s[i]);
 	    fResult = TRUE;
 #ifdef DEBUG_SEARCH
-	    fprintf(stderr,"%i %s '%s': next\n", ppnArg->l_path, statep(ppnArg->path[ppnArg->l_path]) ? NAME_STATE : NAME_TRANSITION, ppnArg->path[ppnArg->l_path]->pucId);
+	    fprintf(stderr,"%i %s '%s': next\n", ppnArg->l_path, statep(ppnArg->path[ppnArg->l_path]) ? NAME_PKG2_STATE : NAME_PKG2_TRANSITION, ppnArg->path[ppnArg->l_path]->pucId);
 #endif
 	    return fResult;
 	  }
@@ -1529,7 +1546,7 @@ pnetProcessPathnet(petrinet_t *ppnArg, BOOL_T flagXml, cxpContextPtr pccArg)
 		  ppnArg->n_paths, KNOTID(ppnArg->start), KNOTID(ppnArg->target));
 	    }
 	    else {
-	      cxpCtxtLogPrint(pccArg, 1, "Cant set target STELLE");
+	      cxpCtxtLogPrint(pccArg, 1, "Cant set target STATE");
 	      //pnetFree(ppnArg);
 	      break;
 	    }
@@ -1559,7 +1576,7 @@ pnetProcessPathnet(petrinet_t *ppnArg, BOOL_T flagXml, cxpContextPtr pccArg)
 		  ppnArg->n_paths, KNOTID(ppnArg->start), KNOTID(ppnArg->target));
 	    }
 	    else {
-	      cxpCtxtLogPrint(pccArg, 1, "Cant set start STELLE");
+	      cxpCtxtLogPrint(pccArg, 1, "Cant set start STATE");
 	      //pnetFree(ppnArg);
 	      break;
 	    }
@@ -1597,7 +1614,7 @@ pnetProcessPathnet(petrinet_t *ppnArg, BOOL_T flagXml, cxpContextPtr pccArg)
 
     for (k=ppnArg->s; KNOTID(k); k++) {
       if (k->fMarker == FALSE) {
-	cxpCtxtLogPrint(pccArg, 3,"Filter STELLE '%s'",KNOTID(k));
+	cxpCtxtLogPrint(pccArg, 3,"Filter STATE '%s'",KNOTID(k));
 	if (flagXml) {
 	  xmlSetProp(k->pndSource,BAD_CAST"valid",BAD_CAST"no");
 	}
@@ -1630,7 +1647,7 @@ pnetProcessPathnet(petrinet_t *ppnArg, BOOL_T flagXml, cxpContextPtr pccArg)
       assert(ppnArg->edge[i].to != NULL);
 
       if  (ppnArg->edge[i].fMarker == FALSE || ppnArg->edge[i].from->fMarker == FALSE || ppnArg->edge[i].to->fMarker == FALSE) {
-	cxpCtxtLogPrint(pccArg, 3,"Filter relation '%s' -> '%s'", KNOTID(ppnArg->edge[i].from), KNOTID(ppnArg->edge[i].to));
+	cxpCtxtLogPrint(pccArg, 3,"Filter edge '%s' -> '%s'", KNOTID(ppnArg->edge[i].from), KNOTID(ppnArg->edge[i].to));
 	if (flagXml) {
 	  xmlSetProp(ppnArg->edge[i].pndSource,BAD_CAST"valid",BAD_CAST"no");
 	}
@@ -1726,10 +1743,10 @@ pnetProcessPathtable(petrinet_t *ppnArg, cxpContextPtr pccArg)
       /* create rest of templates
        */
       pndXslTemplate = xmlNewChild(pndXslStylesheet, pnsXsl, BAD_CAST "template", NULL);
-      xmlSetProp(pndXslTemplate, BAD_CAST "match", NAME_STATE);
+      xmlSetProp(pndXslTemplate, BAD_CAST "match", NAME_PKG2_STATE);
 
       pndKnot = xmlNewChild(pndXslTemplate, NULL, BAD_CAST "element", NULL);
-      xmlSetProp(pndKnot, BAD_CAST "name", NAME_STATE);
+      xmlSetProp(pndKnot, BAD_CAST "name", NAME_PKG2_STATE);
       pndT = xmlNewChild(pndKnot, pnsXsl, BAD_CAST "copy-of", NULL);
       xmlSetProp(pndT, BAD_CAST "select", BAD_CAST "@id");
       pndT = xmlNewChild(pndKnot, pnsXsl, BAD_CAST "copy-of", NULL);
@@ -1738,10 +1755,10 @@ pnetProcessPathtable(petrinet_t *ppnArg, cxpContextPtr pccArg)
       xmlSetProp(pndT, BAD_CAST "select", BAD_CAST "abstract");
 
       pndXslTemplate = xmlNewChild(pndXslStylesheet, pnsXsl, BAD_CAST "template", NULL);
-      xmlSetProp(pndXslTemplate, BAD_CAST "match", NAME_TRANSITION);
+      xmlSetProp(pndXslTemplate, BAD_CAST "match", NAME_PKG2_TRANSITION);
 
       pndKnot = xmlNewChild(pndXslTemplate, NULL, BAD_CAST "element", NULL);
-      xmlSetProp(pndKnot, BAD_CAST "name", NAME_TRANSITION);
+      xmlSetProp(pndKnot, BAD_CAST "name", NAME_PKG2_TRANSITION);
 #if 1
       pndT = xmlNewChild(pndKnot, pnsXsl, BAD_CAST "copy-of", NULL);
       xmlSetProp(pndT, BAD_CAST "select", BAD_CAST "@id");
@@ -1764,10 +1781,10 @@ pnetProcessPathtable(petrinet_t *ppnArg, cxpContextPtr pccArg)
       xmlSetProp(pndT, BAD_CAST "select", BAD_CAST "../h");
 
       pndXslTemplate = xmlNewChild(pndXslStylesheet, pnsXsl, BAD_CAST "template", NULL);
-      xmlSetProp(pndXslTemplate, BAD_CAST "match", NAME_EDGE);
+      xmlSetProp(pndXslTemplate, BAD_CAST "match", NAME_PKG2_EDGE);
 
       pndKnot = xmlNewChild(pndXslTemplate, NULL, BAD_CAST "element", NULL);
-      xmlSetProp(pndKnot, BAD_CAST "name", NAME_EDGE);
+      xmlSetProp(pndKnot, BAD_CAST "name", NAME_PKG2_EDGE);
 
       pndT = xmlNewChild(pndKnot, pnsXsl, BAD_CAST "copy-of", NULL);
       xmlSetProp(pndT, BAD_CAST "select", BAD_CAST "abstract");
@@ -1805,7 +1822,7 @@ pnetParsePathXml(petrinet_t *ppnArg, xmlNodePtr pndParent, xmlNsPtr pnsXsl, cxpC
       for (i=0; i <= ppnArg->l_path; i++) {
 	k = ppnArg->path[i];
 
-	/* of this RELATION */
+	/* of this EDGE */
 	if (i>0) {
 	  e = pnetGetEdgePtrFromPtr(ppnArg,ppnArg->path[i-1],k);
 	  if (e) {
@@ -1903,7 +1920,7 @@ pnetParsePathXmlSource(petrinet_t *ppnArg, xmlNodePtr pndParent, xmlNsPtr pnsXsl
     for (i=0; i <= ppnArg->l_path; i++) {
       k = ppnArg->path[i];
 
-      /* of this RELATION */
+      /* of this EDGE */
       if (i>0) {
 	e = pnetGetEdgePtrFromPtr(ppnArg,ppnArg->path[i-1],k);
 	if (e) {

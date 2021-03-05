@@ -18,24 +18,42 @@
   Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 */
 
-#define CXP_PETRINET_URL (BAD_CAST "http://pkg2.tenbusch.info/")
+#define PKG2_NAMESPACE_URL      "http://pkg2.tenbusch.info/"
 
 #define NAME_PKG2_TRANSITION BAD_CAST "transition"
 
-#define NAME_PKG2_STELLE BAD_CAST "stelle"
+#define NAME_PKG2_STATE BAD_CAST "stelle"
+
+#define NAME_PKG2_EDGE BAD_CAST "relation"
 
 #define NAME_PKG2_REQUIREMENT BAD_CAST "requirement"
 
+#define NAME_PKG2_PATHTABLE BAD_CAST "pathtable"
+
+#define NAME_PKG2_PATHNET BAD_CAST "pathnet"
+
 #define IS_NODE_PKG2_TRANSITION(NODE) (IS_NODE(NODE,NAME_PKG2_TRANSITION))
 
-#define IS_NODE_PKG2_STELLE(NODE) (IS_NODE(NODE,NAME_PKG2_STELLE))
+#define IS_NODE_PKG2_STATE(NODE) (IS_NODE(NODE,NAME_PKG2_STATE))
+
+#define IS_NODE_PKG2_EDGE(NODE) (IS_NODE(NODE,NAME_PKG2_EDGE))
 
 #define IS_NODE_PKG2_REQUIREMENT(NODE) (IS_NODE(NODE,NAME_PKG2_REQUIREMENT))
+
+#define IS_NODE_PKG2_PATHTABLE(NODE) (IS_NODE(NODE,NAME_PKG2_PATHTABLE))
+
+#define IS_NODE_PKG2_PATHNET(NODE) (IS_NODE(NODE,NAME_PKG2_PATHNET))
 
 /****************************************************************************
 
    Declaration of public functions (prototypes)
 */
+
+extern xmlNsPtr
+pkgGetNs(void);
+
+extern void
+pkgCleanup(void);
 
 extern xmlDocPtr
 pnetProcessNode(xmlNodePtr pndArg, cxpContextPtr pccArg);

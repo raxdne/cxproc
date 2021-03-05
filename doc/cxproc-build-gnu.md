@@ -67,3 +67,10 @@ GUI
 ## Doxygen
 
     doxygen misc/Doxyfile
+
+## Cross-compiling
+
+https://askubuntu.com/questions/250696/how-to-cross-compile-for-arm
+
+	sudo apt-get install gcc-arm-linux-gnueabihf g++-arm-linux-gnueabihf
+	

@@ -861,6 +861,8 @@ AddDateAttributes(pieCalendarElementPtr pceArg)
 	xmlChar mpucT[BUFFER_LENGTH];
 	long int iDayAbsolute = 0;
 
+	iDayAbsoluteMax = GetDayAbsolute(1970, 1, 1, -1, -1);
+	
 	if (pceT->iMonth > 0) {
 	  if (pceT->iDay > 0) {
 	    iDayAbsolute = GetDayAbsolute(pceT->iYear, pceT->iMonth, pceT->iDay, -1, -1);
@@ -880,7 +882,7 @@ AddDateAttributes(pieCalendarElementPtr pceArg)
 	else {
 	}
 	  
-	if (iDayAbsolute > 0 && (iDayAbsolute - GetToday()) > (iDayAbsoluteMax - GetToday())) {
+	if (iDayAbsolute > 0 && (iDayAbsolute > iDayAbsoluteMax)) {
 	  iDayAbsoluteMax = iDayAbsolute;
 	}
 
@@ -1403,9 +1405,10 @@ CalendarFree(pieCalendarPtr pCalendarArg)
 
     CalendarElementFree(pceRelease);
   }
-
   xmlMemFree(pCalendarArg->pmiYear);
 
+  xmlFreeDoc(pCalendarArg->pdocCalendar);
+  
   xmlFree(pCalendarArg);
 }
 /* end of CalendarFree() */
@@ -1585,6 +1588,7 @@ calProcessCalendarNode(xmlNodePtr pndArg, cxpContextPtr pccArg)
       && RegisterDateNodes(pCalendarResult, NULL)
       && ParseDates(pCalendarResult)
       && AddYears(pCalendarResult)) {
+      
       CalendarUpdate(pCalendarResult);
       CalendarSetToday(pCalendarResult);
       if (domGetPropFlag(pndArg, BAD_CAST"subst", TRUE)) {
@@ -1598,8 +1602,8 @@ calProcessCalendarNode(xmlNodePtr pndArg, cxpContextPtr pccArg)
 #endif
       pdocResult = pCalendarResult->pdocCalendar;
       pCalendarResult->pdocCalendar = NULL;
-      CalendarFree(pCalendarResult);
     }
+    CalendarFree(pCalendarResult);
   }
   return pdocResult;
 } /* end of calProcessCalendarNode() */
@@ -1628,8 +1632,9 @@ calProcessDoc(xmlDocPtr pdocArg, cxpContextPtr pccArg)
 #endif
     pdocResult = pCalendarResult->pdocCalendar;
     pCalendarResult->pdocCalendar = NULL;
-    CalendarFree(pCalendarResult);
   }
+  CalendarFree(pCalendarResult);
+  
   return pdocResult;
 } /* end of calProcessDoc() */
 
@@ -1960,7 +1965,7 @@ SubstituteFormatStr(xmlNodePtr pndContext, xmlChar *fmt)
       }
 #endif
       else if (puc1[1] == 'B') {
-	if (isdigit(puc1[2]) && isdigit(puc1[3]) && isdigit(puc1[4]) && isdigit(puc1[5]) && isspace(puc1[6])) {
+	if (isdigit(puc1[2]) && isdigit(puc1[3]) && isdigit(puc1[4]) && isdigit(puc1[5]) && ! isdigit(puc1[6])) {
 	  /* difference in years */
 	  if (puc1 - puc0 > 0) {
 	    pucResult = xmlStrncat(pucResult, puc0, (int)(puc1 - puc0));
@@ -1975,7 +1980,12 @@ SubstituteFormatStr(xmlNodePtr pndContext, xmlChar *fmt)
 	    pucResult = pucValue;
 	  }
 	  puc1 += 6;
-	  puc0 = puc1 + 1;
+	  for (puc0 = puc1; *puc0 == ' '; puc0++) ; /* trailing spaces */
+	  if (*puc0 == '.') {
+	  }
+	  else {
+	    puc0 = puc1;
+	  }
 	}
       }
       else if (puc1[1] == 'D') {

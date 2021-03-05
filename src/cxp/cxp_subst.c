@@ -252,10 +252,10 @@ cxpSubstDetect(xmlNodePtr pndArgSubst, cxpContextPtr pccArg)
       else if ((pucT = domGetPropValuePtr(pndArgSubst, BAD_CAST "select"))) {
 	pcxpSubstResult->pucDefault = xmlStrdup(pucT);
       }
-      else if (pndArgSubst->children != NULL && pndArgSubst->children == pndArgSubst->last && xmlNodeIsText(pndArgSubst->children)
-	  && (pucT = xmlNodeGetContent(pndArgSubst->children)) != NULL) {
+      else if (pndArgSubst->children != NULL && pndArgSubst->children == pndArgSubst->last
+	       && xmlNodeIsText(pndArgSubst->children) && STR_IS_NOT_EMPTY(pndArgSubst->children->content)) {
 	/* detect a possible default value */
-	pcxpSubstResult->pucDefault = xmlStrdup(pucT);
+	pcxpSubstResult->pucDefault = xmlStrdup(pndArgSubst->children->content);
       }
       
       if (((pucT = domGetPropValuePtr(pndArgSubst, BAD_CAST "to")) != NULL
@@ -934,19 +934,24 @@ cxpSubstInChildNodes(xmlNodePtr pndArgTop, xmlNodePtr pndArgSubst, cxpContextPtr
       pndNextChild = pndChild->next;
 
       if (IS_NODE_SUBST(pndChild)) {
-	fResult |= cxpSubstInChildNodes(pndChild, pndChild, pccArg);
+	fResult |= cxpSubstInChildNodes(pndArgTop, pndChild, pccArg);
       }
 #ifdef HAVE_PIE
       else if (IS_NODE_PIE_BLOCK(pndChild)
 	|| IS_NODE_PIE_SECTION(pndChild)
 	|| IS_NODE_PIE_LIST(pndChild)
 	|| IS_NODE_PIE_TASK(pndChild)
+	|| IS_NODE_PIE_PAR(pndChild)
+	|| IS_NODE_PIE_HTAG(pndChild)
+	|| IS_NODE_PIE_ETAG(pndChild)
+	|| IS_NODE_PIE_LINK(pndChild)
+	/*!\bug complete list of elements */
 	) {
 	fResult |= cxpSubstInChildNodes(pndChild, NULL, pccArg);
       }
 #endif
 #ifdef HAVE_PETRINET
-      else if (IS_NODE_PKG2_STELLE(pndChild)
+      else if (IS_NODE_PKG2_STATE(pndChild)
 	|| IS_NODE_PKG2_TRANSITION(pndChild)
 	|| IS_NODE_PKG2_REQUIREMENT(pndChild)
 	) {

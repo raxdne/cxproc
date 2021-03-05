@@ -118,17 +118,11 @@ ValidateCxpTree(xmlNodePtr pndArg, cxpContextPtr pccArg);
 static BOOL_T
 ValidateSchema(const xmlDocPtr pdocArgXml, const xmlChar *pucArg, cxpContextPtr pccArg);
 
-static BOOL_T
-ChangeXslParam(xmlDocPtr pdocResult, char **param, cxpContextPtr pccArg);
-
-static BOOL_T
-UpdateXslVariable(xmlNodePtr pndArg, char *pcValue, cxpContextPtr pccArg);
-
 static xmlDocPtr
-cxpXslTransformToDom(const xmlDocPtr pdocArgXml, const xmlDocPtr pdocArgXsl, char **ppchArgParam, cxpContextPtr pccArg);
+cxpXslTransformToDom(const xmlDocPtr pdocArgXml, const xmlDocPtr pdocArgXsl, cxpContextPtr pccArg);
 
 static xmlChar *
-cxpXslTransformToText(const xmlDocPtr pdocArgXml, const xmlDocPtr pdocArgXsl, char **ppchArgParam, cxpContextPtr pccArg);
+cxpXslTransformToText(const xmlDocPtr pdocArgXml, const xmlDocPtr pdocArgXsl, cxpContextPtr pccArg);
 
 static xmlNodePtr
 cxpProcessXmlNodeEmbedded(xmlNodePtr pndArg, cxpContextPtr pccArg);
@@ -1798,139 +1792,7 @@ cxpProcessMakeNode(xmlNodePtr pndArg,cxpContextPtr pccArg)
 /* end of cxpProcessMakeNode() */
 
 
-/*! apply all sibling PARAM elements, non recursive!!
-
-\param pndArg a xmlNodePtr to append data
-\param pccArg the resource node
-
-\deprecated replaced by UpdateXslVariables()
-
-\return
-*/
-xmlChar **
-cxpXslParamProcess(xmlNodePtr pndArg, cxpContextPtr pccArg)
-{
-  cxpContextPtr pccHere = pccArg;
-  xmlChar **ppucResult = NULL;
-  size_t ciNodeVariable;
-
-  if (pndArg == NULL) {
-    return ppucResult;
-  }
-
-  //pccHere = cxpCtxtFromAttr(pccArg,pndArg);
-
-  if (domGetPropFlag(pndArg, BAD_CAST "appendcgi", FALSE)) {
-#ifdef HAVE_CGI
-    /* CGI environment */
-    index_t i;
-
-    cxpCtxtLogPrint(pccArg, 2, "Appending %i CGI values", cxpCtxtCgiGetCount(pccArg));
-
-    for (i = 0; i < cxpCtxtCgiGetCount(pccArg); i++) {
-      xmlNodePtr pndVariable;
-      pndVariable = xmlNewChild(pndArg, NULL, BAD_CAST"variable", NULL);
-      domSetPropEat(pndVariable, BAD_CAST "name", cxpCtxtCgiGetName(pccArg, i));
-      domSetPropEat(pndVariable, BAD_CAST "select", cxpCtxtCgiGetValue(pccArg, i));
-    }
-#else
-  cxpCtxtLogPrint(pccArg, 2, "Can append CGI values in CGI mode only");
-#endif
-  }
-
-  ciNodeVariable = domNumberOf(pndArg->children, BAD_CAST "variable", 0);
-  if (ciNodeVariable > 0) {
-    xmlNodePtr pndChildParam;
-    xmlNodePtr pndPlain;
-    xmlNodePtr pndXml;
-    xmlChar *pucAttrSelect;
-    index_t i;
-
-    ppucResult = (xmlChar **)xmlMemMalloc((ciNodeVariable * 2 + 1) * sizeof(xmlChar *));
-    ppucResult[0] = NULL;		/* end markup */
-    for (i=0,pndChildParam=pndArg->children; ppucResult!=NULL && pndChildParam!=NULL; pndChildParam=pndChildParam->next) {
-      /* all PARAM siblings */
-      if (IS_NODE_VARIABLE(pndChildParam)) {
-	/* this is an PARAM */
-	xmlChar *pucName = domGetPropValuePtr(pndChildParam,BAD_CAST "name");
-	xmlChar *pucSelect = NULL;
-	xmlChar *pucSelectTest = NULL;
-	cxpSubstPtr pcxpSubstT;
-
-	if (STR_IS_NOT_EMPTY(pucName)) {
-	  if ((pndPlain = domGetFirstChild(pndChildParam,NAME_PLAIN))) {
-	    /* there are child nodes (cxp:plain only!!), read as value */
-	    cxpCtxtLogPrint(pccArg,3,"VARIABLE '%s' from plain",pucName);
-	    pucSelect = cxpProcessPlainNode(pndPlain,pccHere);
-	  }
-	  else if ((pndXml = domGetFirstChild(pndChildParam,NAME_XML))) {
-	    /* there are child nodes, read as value */
-	    xmlDocPtr pdocT;
-	    cxpCtxtLogPrint(pccArg,3,"VARIABLE '%s' from XML",pucName);
-	    pdocT = cxpProcessXmlNode(pndXml,pccHere);
-	    if (pdocT) {
-	      int iLength = 0;
-	      cxpCtxtLogPrint(pccArg,2,"Replacing");
-	      xmlDocDumpMemory(pdocT,&pucSelect,&iLength);
-	      xmlFreeDoc(pdocT);
-	    }
-	  }
-	  else if ((pucAttrSelect = domGetPropValuePtr(pndChildParam,BAD_CAST "select"))) {
-	    /* use attribute value */
-	    cxpCtxtLogPrint(pccArg,3,"VARIABLE '%s' from attribute 'select'",pucName);
-	    pucSelect = xmlStrdup(pucAttrSelect);
-	  }
-	  else if ((pucSelectTest = domNodeGetContentPtr(pndChildParam))) {
-	    /* use text node */
-	    cxpCtxtLogPrint(pccArg,3,"VARIABLE '%s' from content",pucName);
-	    pucSelect = xmlStrdup(pucSelectTest);
-	  }
-	  else if ((pcxpSubstT = cxpSubstDetect(pndChildParam,pccArg))) {
-	    if ((pucSelectTest = cxpSubstGetPtr(pcxpSubstT))) {
-	      /* use attribute value */
-	      cxpCtxtLogPrint(pccArg,3,"VARIABLE value '%s' from attribute",pucSelectTest);
-	      pucSelect = xmlStrdup(pucSelectTest);
-	    }
-	    cxpSubstFree(pcxpSubstT);
-	  }
-
-	  if (pucSelect) {
-	    ppucResult[i] = xmlStrdup(pucName);
-	    i++;
-	    ppucResult[i] = pucSelect;
-	    i++;
-	  }
-	  else {
-	    cxpCtxtLogPrint(pccArg,1,"Ignoring empty VARIABLE '%s'",pucName);
-	  }
-	}
-      }
-      ppucResult[i] = NULL;		/* end markup */
-    }
-  }
-  return ppucResult;
-}
-/* end of cxpXslParamProcess() */
-
-
-/*! release all entries in param array
-*/
-void
-cxpXslParamFree(char **ppchArg)
-{
-  if (ppchArg) {
-    int i;
-    for (i=0; ppchArg[i]; i++) {
-      xmlFree(ppchArg[i]);
-    }
-    xmlMemFree(ppchArg);
-  }
-  return;
-}
-/* end of cxpXslParamFree() */
-
-
-/*! cxp Ctxt Search Set
+/*! get current cxpContext's search node
 
 \param pccArg -- pointer to context
 \param prnArg -- new resNode to set as location
@@ -1957,7 +1819,7 @@ cxpCtxtSearchGet(cxpContextPtr pccArg)
 } /* end of cxpCtxtSearchGet() */
 
 
-/*! cxp Ctxt Search Set
+/*! set new cxpContext's search node
 
 search path is not a single context, because of symbolic path '...//'
 and multiple directories (like env PATH). Reading of files and
@@ -2055,87 +1917,6 @@ cxpCtxtSearchSet(cxpContextPtr pccArg, resNodePtr prnArg)
 
   return fResult;
 } /* end of cxpCtxtSearchSet() */
-
-
-/*! update value of xsl:variable node, if a string value is required then append it as new text child
-
-\deprecated ???
-*/
-BOOL_T
-UpdateXslVariable(xmlNodePtr pndArg, char *pcValue, cxpContextPtr pccArg)
-{
-  BOOL_T fResult = FALSE;
-
-  if (pndArg != NULL && STR_IS_NOT_EMPTY(pcValue)) {
-    xmlChar *pucAttrSelect;
-
-    if ((pucAttrSelect = domGetPropValuePtr(pndArg, BAD_CAST "select")) == NULL || pucAttrSelect[0]==(xmlChar)'\'') {
-      /* it's a string variable */
-      xmlChar *pucValueNew = NULL;
-      
-      if ((pucValueNew = xmlStrdup(BAD_CAST pcValue)) != NULL) {
-	xmlNodePtr pndRelease;
-
-	pndRelease = pndArg->children;
-	pndArg->children = NULL;
-	pndArg->last = NULL;
-	xmlFreeNodeList(pndRelease);
-
-	xmlUnsetProp(pndArg, BAD_CAST "select");
-	StringRemovePairQuotes(pucValueNew);
-	fResult = (xmlAddChild(pndArg,xmlNewText(pucValueNew)) != NULL);
-	xmlFree(pucValueNew);
-      }
-    }
-    else {
-      xmlSetProp(pndArg, BAD_CAST "select", BAD_CAST pcValue);
-      fResult = TRUE;
-    }
-  }
-  return fResult;
-} /* end of UpdateXslVariable() */
-
-
-/*! global XSL variables only (between RootElement and first xsl:template element)
-*/
-BOOL_T
-ChangeXslParam(xmlDocPtr pdocResult, char **param, cxpContextPtr pccArg)
-{
-  BOOL_T fResult = FALSE;
-
-  if (pdocResult != NULL && param != NULL && param[0] != NULL) {
-    index_t i;
-
-    for (i=0; param[i]; i+=2) {	/* all name/value pairs */
-      xmlNodePtr pndRoot = xmlDocGetRootElement(pdocResult);
-      xmlNodePtr pndCurrent;
-      
-      for (pndCurrent = pndRoot->children;
-	   pndCurrent != NULL && IS_NODE_XSL_TEMPLATE(pndCurrent) == FALSE;
-	   pndCurrent = pndCurrent->next) {
-	
-	/* exit when the first xsl:template element is reached */
-	
-	if (IS_NODE_XSL_VARIABLE(pndCurrent)) {
-	  xmlChar *pucAttrName;
-
-	  if ((pucAttrName = domGetPropValuePtr(pndCurrent, BAD_CAST "name")) != NULL
-	    && xmlStrEqual(pucAttrName, BAD_CAST param[i])) {
-	    /* according xsl:variable found */
-	    cxpCtxtLogPrint(pccArg, 3, "Updating VARIABLE '%s' with value '%s'", param[i], param[i+1]);
-	    fResult = UpdateXslVariable(pndCurrent, param[i+1], pccArg);
-	    break;
-	  }
-	  else {
-	    /*!\todo handle child tree of xsl:variable */
-	    cxpCtxtLogPrint(pccArg, 4, "Skipping VARIABLE '%s'", pucAttrName);
-	  }
-	}
-      }
-    }
-  }
-  return fResult;
-} /* end of ChangeXslParam() */
 
 
 /*! global XSL variables only (between RootElement and first xsl:template element)
@@ -2354,7 +2135,6 @@ cxpProcessTransformations(const xmlDocPtr pdocArgXml, const xmlNodePtr pndArgPar
 	    break;
 	  }
 	  else if (pdocResult) {
-	    char **ppchParam = NULL;
 	    xmlChar *pucNameFileXsl = NULL;
 	    xmlDocPtr pdocXsl;
 
@@ -2366,16 +2146,8 @@ cxpProcessTransformations(const xmlDocPtr pdocArgXml, const xmlNodePtr pndArgPar
 	      break;
 	    }
 
-#if 1
 	    UpdateXslVariables(pdocXsl, pndChild, pccHere); /* update values of listed variables in stylesheet DOM */
-#else
-	    ppchParam = (char **)cxpXslParamProcess(pndChild, pccHere);
-	    if (ppchParam) {
-	      /*!\todo handle ppchParam[] as Global Vars ? (but see comment at libxslt/variables.c:947) */
-	      ChangeXslParam(pdocXsl, ppchParam, pccArg);
-	    }
-#endif
-	    
+
 	    //cxpCtxtLogPrintDoc(pccArg,1,NULL,pdocArgXml);
 	    //cxpCtxtLogPrintDoc(pccArg,1,NULL,pdocXsl);
 	    //xmlSaveFormatFileEnc("t-1.xsl",pdocXsl, "UTF-8", 1);
@@ -2384,7 +2156,7 @@ cxpProcessTransformations(const xmlDocPtr pdocArgXml, const xmlNodePtr pndArgPar
 	      || xmlStrEqual(domGetXslOutputMethod(pdocXsl), BAD_CAST"html")) {
 	      xmlDocPtr pdocT;	/* preliminary result DOM */
 
-	      pdocT = cxpXslTransformToDom(pdocResult, pdocXsl, ppchParam, pccHere);
+	      pdocT = cxpXslTransformToDom(pdocResult, pdocXsl, pccHere);
 	      if (pdocT != NULL && pdocT != pdocResult) {
 		xmlFreeDoc(pdocResult);
 		pdocResult = pdocT; /* new result DOM */
@@ -2397,7 +2169,7 @@ cxpProcessTransformations(const xmlDocPtr pdocArgXml, const xmlNodePtr pndArgPar
 	    }
 	    else if (xmlStrEqual(domGetXslOutputMethod(pdocXsl), BAD_CAST"text")) {
 	      /*!\todo test on following XSL nodes */
-	      pucResult = cxpXslTransformToText(pdocResult, pdocXsl, ppchParam, pccHere);
+	      pucResult = cxpXslTransformToText(pdocResult, pdocXsl, pccHere);
 	      xmlFreeDoc(pdocResult);
 	      pdocResult = NULL; /* loop ends when pdocResult is NULL */
 	    }
@@ -2406,8 +2178,6 @@ cxpProcessTransformations(const xmlDocPtr pdocArgXml, const xmlNodePtr pndArgPar
 	      pdocResult = NULL;
 	      cxpCtxtLogPrint(pccArg, 1, "No <xsl:output> defined");
 	    }
-
-	    cxpXslParamFree(ppchParam);
 	    xmlFreeDoc(pdocXsl);
 	  }
 	  else {
@@ -2574,7 +2344,6 @@ cxpXslRetrieve(const xmlNodePtr pndArgXsl, cxpContextPtr pccArg)
 
   \param pdocArgXml pointer to DOM to transform
   \param pdocArgXsl pointer to DOM of XSL
-  \param ppchArgParam pointer to XSL parameter array
   \param pccArg pointer to current resource node
 
   \return pdocArgXml if no transformations are done, else a new created xmlDocPtr
@@ -2583,7 +2352,7 @@ cxpXslRetrieve(const xmlNodePtr pndArgXsl, cxpContextPtr pccArg)
   \todo define result DOM encoding
 */
 xmlDocPtr
-cxpXslTransformToDom(const xmlDocPtr pdocArgXml, const xmlDocPtr pdocArgXsl, char **ppchArgParam, cxpContextPtr pccArg)
+cxpXslTransformToDom(const xmlDocPtr pdocArgXml, const xmlDocPtr pdocArgXsl, cxpContextPtr pccArg)
 {
   xmlDocPtr pdocResult = pdocArgXml;
   xmlDocPtr pdocXslCopy;
@@ -2606,7 +2375,7 @@ cxpXslTransformToDom(const xmlDocPtr pdocArgXml, const xmlDocPtr pdocArgXsl, cha
       /*!\bug xsltParseStylesheetDoc() doesnt set pxslT->omitXmlDeclaration correct */
       xmlDocPtr pdocT;
 
-      pdocT = xsltApplyStylesheet(pxslT, pdocArgXml, (const char **)ppchArgParam);
+      pdocT = xsltApplyStylesheet(pxslT, pdocArgXml, NULL);
       if (pdocT == NULL) {
 	cxpCtxtLogPrint(pccArg,1,"No result with this Stylesheet");
       }
@@ -2641,7 +2410,6 @@ cxpXslTransformToDom(const xmlDocPtr pdocArgXml, const xmlDocPtr pdocArgXsl, cha
 
   \param pdocArgXml pointer to DOM to transform
   \param pdocArgXsl pointer to DOM of XSL
-  \param ppchArgParam pointer to XSL parameter array
   \param pccArg pointer to current resource node
 
   \return pointer to result string
@@ -2649,7 +2417,7 @@ cxpXslTransformToDom(const xmlDocPtr pdocArgXml, const xmlDocPtr pdocArgXsl, cha
   \todo use DOM caching for XSL
 */
 xmlChar *
-cxpXslTransformToText(const xmlDocPtr pdocArgXml, const xmlDocPtr pdocArgXsl, char **ppchArgParam, cxpContextPtr pccArg)
+cxpXslTransformToText(const xmlDocPtr pdocArgXml, const xmlDocPtr pdocArgXsl, cxpContextPtr pccArg)
 {
   int l;
   xmlDocPtr pdocXslCopy;
@@ -2679,7 +2447,7 @@ cxpXslTransformToText(const xmlDocPtr pdocArgXml, const xmlDocPtr pdocArgXsl, ch
 
   /* apply the stylesheet, check the result
    */
-  pdocT = xsltApplyStylesheet(pxslT, pdocArgXml, (const char **)ppchArgParam);
+  pdocT = xsltApplyStylesheet(pxslT, pdocArgXml, NULL);
   if (pdocT) {
     /* dump the result into a buffer */
     xsltSaveResultToString(&pucResult,&l,pdocT,pxslT);
@@ -3471,7 +3239,7 @@ cxpProcessInfoNode(xmlNodePtr pndInfo, cxpContextPtr pccArg)
     nodeOption = xmlNewChild(nodeProgram,NULL,BAD_CAST"module",NULL);
     xmlSetProp(nodeOption,BAD_CAST "name",BAD_CAST"petrinet");
 #ifdef HAVE_PETRINET
-    xmlSetProp(nodeOption, BAD_CAST "ns", BAD_CAST CXP_PETRINET_URL);
+    xmlSetProp(nodeOption, BAD_CAST "ns", BAD_CAST PKG2_NAMESPACE_URL);
     xmlSetProp(nodeOption,BAD_CAST "select",BAD_CAST "yes");
 #else
     xmlSetProp(nodeOption,BAD_CAST "select",BAD_CAST "no");
@@ -3486,6 +3254,7 @@ cxpProcessInfoNode(xmlNodePtr pndInfo, cxpContextPtr pccArg)
     xmlSetProp(nodeOption,BAD_CAST "select",BAD_CAST "no");
 #endif
 
+#if 0
     nodeOption = xmlNewChild(nodeProgram, NULL, BAD_CAST"module", NULL);
     xmlSetProp(nodeOption,BAD_CAST "name",BAD_CAST"admesh");
     xmlSetProp(nodeOption,BAD_CAST "ns",BAD_CAST"http://www.varlog.com/");
@@ -3494,6 +3263,7 @@ cxpProcessInfoNode(xmlNodePtr pndInfo, cxpContextPtr pccArg)
     //xmlSetProp(nodeOption,BAD_CAST "version",BAD_CAST SQLITE_VERSION);
 #else
     xmlSetProp(nodeOption,BAD_CAST "select", BAD_CAST "no");
+#endif
 #endif
 
     nodeOption = xmlNewChild(nodeProgram, NULL, BAD_CAST"module", NULL);

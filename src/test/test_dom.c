@@ -61,41 +61,6 @@ domTest(void)
 
 
   if (RUNTEST) {
-    xmlNodePtr pndTest;
-
-    i++;
-    printf("TEST %i in '%s:%i': isEmptyTextNode() = ",i,__FILE__,__LINE__);
-
-    pndTest = xmlNewText(BAD_CAST"\t\n\n");
-    if (pndTest != NULL && isEmptyTextNode(pndTest) == TRUE && isEmptyTextNode(NULL) == FALSE) {
-      n_ok++;
-      printf("OK\n");
-    }
-    else {
-      printf("Error\n");
-    }
-    xmlFreeNode(pndTest);
-  }
-
-  if (RUNTEST) {
-    xmlNodePtr pndTest;
-
-    i++;
-    printf("TEST %i in '%s:%i': isValidNodeType() = ",i,__FILE__,__LINE__);
-
-    pndTest = xmlNewText(BAD_CAST"\t\n\n");
-    if (pndTest != NULL && isValidNodeType(pndTest) == TRUE && isValidNodeType(NULL) == FALSE) {
-      n_ok++;
-      printf("OK\n");
-    }
-    else {
-      printf("Error\n");
-    }
-    xmlFreeNode(pndTest);
-  }
-
-
-  if (RUNTEST) {
     xmlDocPtr pdocTest;
     xmlNodePtr pndTest;
 
@@ -408,7 +373,7 @@ domTest(void)
     xmlNodePtr pndT;
 
     i++;
-    printf("TEST %i in '%s:%i': domGetFollowingNode() = ", i, __FILE__, __LINE__);
+    printf("TEST %i in '%s:%i': domUnlinkNodeList() = ", i, __FILE__, __LINE__);
 
     pdocTest = xmlParseFile(TESTPREFIX "option/pie/text/test-pie-14.pie");
     pndRoot = xmlDocGetRootElement(pdocTest);
@@ -460,28 +425,6 @@ domTest(void)
     }
     xmlFreeNode(pndCur);
     xmlFreeNode(pndOld);
-    xmlFreeDoc(pdocTest);
-  }
-
-  if (RUNTEST) {
-    xmlDocPtr pdocTest;
-    xmlNodePtr pndRoot;
-
-    i++;
-    printf("TEST %i in '%s:%i': domGetFollowingNode() = ", i, __FILE__, __LINE__);
-
-    pdocTest = xmlParseFile(TESTPREFIX "option/pie/text/test-pie-14.pie");
-    pndRoot = xmlDocGetRootElement(pdocTest);
-
-    if (domGetFollowingNode(NULL, NAME_PIE_HEADER) == NULL && domGetFollowingNode(pndRoot, NULL) == NULL
-      && domGetFollowingNode(pndRoot, NAME_PIE_HEADER) != NULL && IS_ROOT(domGetFollowingNode(pndRoot, BAD_CAST"hhhh"))) {
-      n_ok++;
-      printf("OK\n");
-    }
-    else {
-      printf("Error\n");
-    }
-
     xmlFreeDoc(pdocTest);
   }
 

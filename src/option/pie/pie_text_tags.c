@@ -415,7 +415,7 @@ RecognizeHashtags(xmlNodePtr pndArg, pcre2_code* preArgHashTag, pcre2_code* preA
       }
     }
   }
-  else if (pndArg == NULL || IS_NODE_META(pndArg) || IS_NODE_PIE_PRE(pndArg) || IS_NODE_PIE_TT(pndArg) || IS_NODE_PIE_DATE(pndArg) || IS_NODE_PIE_LINK(pndArg)) {
+  else if (pndArg == NULL || IS_NODE_META(pndArg) || IS_NODE_PIE_PRE(pndArg) || IS_NODE_PIE_TT(pndArg) || IS_NODE_PIE_DATE(pndArg)) {
     /* skip */
   }
   else if (IS_NODE_PIE_ETAG(pndArg) || IS_NODE_PIE_HTAG(pndArg) || IS_NODE_PIE_TTAG(pndArg)) {
@@ -791,7 +791,7 @@ RecognizeNodeTags(xmlNodePtr pndTags, xmlNodePtr pndArg, pcre2_code* preArg)
 	|| IS_NODE_PIE_TASK(pndChild)
 	|| IS_NODE_PIE_FIG(pndChild)
 #ifdef HAVE_PETRINET
-	|| IS_NODE_PKG2_STELLE(pndChild)
+	|| IS_NODE_PKG2_STATE(pndChild)
 	|| IS_NODE_PKG2_TRANSITION(pndChild)
 	|| IS_NODE_PKG2_REQUIREMENT(pndChild)
 #endif
