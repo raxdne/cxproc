@@ -412,7 +412,7 @@ utilsTest(void)
     xmlChar *pucTestC = xmlStrdup(BAD_CAST"'abCüöä'kKkk\"");
     xmlChar *pucTestD = xmlStrdup(BAD_CAST"'abCüöäkKkk'");
     xmlChar *pucTestE = xmlStrdup(BAD_CAST"  abCüöäkKkk \t   ");
-    xmlChar *pucTestF = xmlStrdup(BAD_CAST"   \t   ");
+    xmlChar *pucTestF = xmlStrdup(BAD_CAST"   A   ");
 
     i++;
     printf("TEST %i in '%s:%i':  = ", i, __FILE__, __LINE__);
@@ -438,7 +438,7 @@ utilsTest(void)
     else if (StringRemovePairQuotes(pucTestE) == TRUE || xmlStrEqual(pucTestE, BAD_CAST"abCüöäkKkk") == FALSE) {
       printf("ERROR 7\n");
     }
-    else if (StringRemovePairQuotes(pucTestF) == TRUE || xmlStrlen(pucTestF) > 0) {
+    else if (StringRemovePairQuotes(pucTestF) == TRUE || xmlStrlen(pucTestF) != 1) {
       printf("ERROR 8\n");
     }
     else {

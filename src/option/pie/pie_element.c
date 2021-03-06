@@ -383,14 +383,18 @@ pieElementWeight(pieTextElementPtr ppeArg)
     int i;
     xmlChar *pucT;
 
-    for (pucT = ppeArg->pucContent, i = xmlStrlen(pucT)-1; pucT[i] == (xmlChar)'+'; pucT[i--] = (xmlChar)'\0') {
-      ppeArg->iWeight++;
-    }
+    for (pucT = ppeArg->pucContent, i = xmlStrlen(pucT)-1; pucT[i] == (xmlChar)' '; i--) ;
 
-    if (ppeArg->iWeight > 1) {
-      for (; pucT[i] == (xmlChar)' '; pucT[i--] = (xmlChar)'\0'); /* skip all trailing spaces */
-    }
+    for ( ppeArg->iWeight = 0; pucT[i] == (xmlChar)'+'; ppeArg->iWeight++, i--) ;
 
+    if (ppeArg->iWeight > 0 && pucT[i] == (xmlChar)' ') {
+      for ( ; i > 0 && pucT[i-1] == (xmlChar)' '; i--) ;
+      pucT[i] = (xmlChar)'\0'; 	/* cut all trailing spaces */
+    }
+    else {
+      ppeArg->iWeight = 0; 	/* because of missing spaces to content */
+    }
+    
     iResult = ppeArg->iWeight;
   }
   return iResult;

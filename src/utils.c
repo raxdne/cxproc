@@ -409,11 +409,18 @@ StringRemovePairQuotes(xmlChar *pucArg)
 
     for (pucA = pucArg; isspace(*pucA); pucA++);
 
-    for (pucB = pucArg + xmlStrlen(pucArg) - 1; pucB > pucA && isspace(*pucB); pucB--) {
-      *pucB = (xmlChar)'\0';
-    }
+    for (pucB = pucArg + xmlStrlen(pucArg) - 1; pucB > pucA && isspace(*pucB); pucB--) ;
 
-    if (*pucA == (xmlChar)'\'' || *pucA == (xmlChar)'\"') {
+    if (isend(*pucA)) {
+      /* only spaces, string is empty */
+      pucArg[0] = (xmlChar)'\0';
+    }
+    else if (pucA == pucB) {
+      /* string is one char only */
+      pucArg[0] = *pucA;
+      pucArg[1] = (xmlChar)'\0';
+    }
+    else if (*pucA == (xmlChar)'\'' || *pucA == (xmlChar)'\"') {
       if (*pucB == *pucA) {
 	/* there is a pair of apostrophs in pucArg */
 	if (pucB - pucA > 1) {
@@ -421,16 +428,22 @@ StringRemovePairQuotes(xmlChar *pucArg)
 	  pucArg[pucB - pucA - 1] = (xmlChar)'\0';
 	}
 	else {
+	  /* the quotes are neighbours, string empty */
 	  pucArg[0] = (xmlChar)'\0';
 	}
 	fResult = TRUE;
       }
     }
     else if (pucB - pucA > 1) {
-      memmove(pucArg, pucA, pucB - pucA + 2);
-    }
-    else {
-      pucArg[0] = (xmlChar)'\0';
+      /* there is no pair of quotes, but eliminate the leading and trailing spaces */
+      if (pucA > pucArg) {
+	memmove(pucArg, pucA, pucB - pucA + 2);
+	pucArg[pucB - pucA + 1] = (xmlChar)'\0';
+      }
+      else {
+	/* terminate pucArg before trailing spaces */
+	pucB[1] = (xmlChar)'\0';
+      }
     }
   }
   return fResult;

@@ -137,7 +137,7 @@ Authentification
 
 REST Principles
 
-## option
+## Options
 
 ### pie
 
@@ -193,6 +193,20 @@ REQ: transparent SQL to XML access  `xmlRead("sql:///tmp/abc.db3:SELECT * FROM t
 ### plain
 
 REQ: HTML to UTF-8 Plain text Renderer `<cxp:plain><cxp:html name="abc.html"/></cxp:plain>` like "w3m -dump"
+
+## Examples
+
+### exifmover
+
+TEST: on Linux and Windows
+
+### DiskUsage
+
+TEST: on Linux and Windows
+
+### myclean.cxp
+
+TEST: on Linux and Windows
 
 ## Misc
 

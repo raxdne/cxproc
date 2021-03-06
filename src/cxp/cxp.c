@@ -596,6 +596,7 @@ cxpResNodeResolveNew(cxpContextPtr pccArg, xmlNodePtr pndArg, xmlChar *pucArg, i
     xmlChar *pucRootPath = NULL;
     xmlChar *pucParentPath = NULL;
     xmlChar *pucAttrName = NULL;
+    resNodePtr prnParent = NULL;
 
     if (pndArg != NULL) {
       pucAttrName = domGetPropValuePtr(pndArg, BAD_CAST "name");
@@ -647,21 +648,18 @@ cxpResNodeResolveNew(cxpContextPtr pccArg, xmlNodePtr pndArg, xmlChar *pucArg, i
 
 #ifdef HAVE_PIE
     if ((pucParentPath = pieGetAncestorContextStr(pndArg)) != NULL) {
-#ifdef HAVE_CGI
-#elif 0
-      if (resPathIsAbsolute(pucShortcut)) {
+      if ((prnParent = resNodeDirNew(pucParentPath)) != NULL) {
+	if ((iArgOptions & CXP_O_READ) && resNodeReadStatus(prnParent)) { /* find a readable ressource */
+	  if (resNodeIsFile(prnParent)) { /*  */
+	    resNodeSetToParent(prnParent);
+	  }
+	}
+	else {
+	  resNodeFree(prnParent);
+	  prnParent = NULL;
+	}
       }
-      else if (resPathIsAbsolute(pucParentPath)) {
-	pucShortcut = resPathConcat(pucParentPath, pucShortcut);
-      }
-      else {
-	xmlChar *pucT;
-
-	pucT = resPathConcat(pucLocation, pucParentPath);
-	pucShortcut = resPathConcat(pucT, pucShortcut);
-	xmlFree(pucT);
-      }
-#endif
+      xmlFree(pucParentPath);
     }
 #endif
 
@@ -709,12 +707,15 @@ cxpResNodeResolveNew(cxpContextPtr pccArg, xmlNodePtr pndArg, xmlChar *pucArg, i
 
       /*\todo use context attribute too */
 
-      if (STR_IS_NOT_EMPTY(pucParentPath)) {
-	if (resPathIsDescendant(pucParentPath, pucShortcut)) {
+      if (prnParent) {
+	if (resPathIsDescendant(resNodeGetNameNormalized(prnParent), pucShortcut)) {
+	  resNodeFree(prnParent);
 	  prnResult = resNodeDirNew(pucShortcut);
 	}
 	else {
-	  prnResult = resNodeConcatNew(pucParentPath, pucShortcut);
+	  resNodeConcat(prnParent, pucShortcut);
+	  prnResult = prnParent;
+	  prnParent = NULL;
 	}
       }
 
@@ -862,7 +863,6 @@ cxpResNodeResolveNew(cxpContextPtr pccArg, xmlNodePtr pndArg, xmlChar *pucArg, i
       }
     }
     xmlFree(pucDocUrlDir);
-    xmlFree(pucParentPath);
   }
   return prnResult;
 } /* end of cxpResNodeResolveNew() */
