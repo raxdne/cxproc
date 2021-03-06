@@ -149,6 +149,7 @@ StringUpdateMarkupNew(xmlChar* pucArg, int* piArg)
       pucResult = xmlStrdup(pucArg);
     }
 
+#if 0
     if ((pucT = BAD_CAST StringEndsWith((char*)pucResult, "+++")) != NULL) {
       if (piArg) *piArg = 1;
       pucT[0] = (xmlChar)'\0';
@@ -157,6 +158,7 @@ StringUpdateMarkupNew(xmlChar* pucArg, int* piArg)
       if (piArg) *piArg = 2;
       pucT[0] = (xmlChar)'\0';
     }
+#endif
   }
   return pucResult;
 } /* end of StringUpdateMarkupNew() */
