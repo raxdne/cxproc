@@ -1,11 +1,11 @@
-<?xml version="1.0" encoding="ISO-8859-1"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <cxp:make xmlns:cxp="http://www.tenbusch.info/cxproc" log="0" dir="pwd">
   <cxp:subst string="%TAGTIME%" now="%Y-%m-%dT%H:%M:%S"/>
   <cxp:subst string="%DIR%" argv="2" dir="pwd"/>
   <cxp:system message="List Directory '%DIR%' at %TAGTIME% ..."/>
   <cxp:plain name="-">
     <cxp:xml>
-      <cxp:dir verbosity="2" index="skip">
+      <cxp:dir verbosity="2">
         <cxp:dir name="%DIR%"/>
       </cxp:dir>
     </cxp:xml>

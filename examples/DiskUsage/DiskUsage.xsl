@@ -26,7 +26,7 @@
 
   <xsl:output method="text"/>
 
-  <xsl:variable name="depth" select="2"/>
+  <xsl:variable name="depth" select="-1"/>
 
   <xsl:variable name="separator" select="'/'"/>
 
