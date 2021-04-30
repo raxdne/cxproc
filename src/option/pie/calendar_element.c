@@ -1105,12 +1105,14 @@ ScanDateIteration(pieCalendarElementPtr pceArg)
 	  pceArg->iAnchor = GetDayAbsolute(pceArg->iYear, 1, 1, -1, -1);
 	  pceArg->iStep = 1;
 	  pceArg->iCount = GetDayAbsolute(pceArg->iYear+1, 1, 1, -1, -1) - pceArg->iAnchor - 1;
+	  fResult = TRUE;
 	}
 	else {
 	  /*! valid year, valid week and valid days of week */
 	  pceArg->iAnchor = GetDayAbsolute(pceArg->iYear, 1, 1, -1, -1) + (7 + pceArg->iDayWeek - GetDayOfWeek(1,1,pceArg->iYear));
 	  pceArg->iStep = 7;
 	  pceArg->iCount = 53;
+	  fResult = TRUE;
 	}
       }
       else {
@@ -1123,6 +1125,7 @@ ScanDateIteration(pieCalendarElementPtr pceArg)
 	  pceArg->iAnchor = GetDayAbsolute(pceArg->iYear, -1, -1, pceArg->iWeek, 0);
 	  pceArg->iStep = -1;
 	  pceArg->iCount = 6;
+	  fResult = TRUE;
 	}
 	else {
 	  /*! valid year, valid week and valid day of week */
@@ -1148,6 +1151,7 @@ ScanDateIteration(pieCalendarElementPtr pceArg)
         pceArg->iAnchor = GetDayAbsolute(pceArg->iYear, 1, 1, -1, -1);
         pceArg->iStep = 1;
         pceArg->iCount = GetDayAbsolute(pceArg->iYear+1, 1, 1, -1, -1) - pceArg->iAnchor - 1;
+	fResult = TRUE;
       }
       else {
 	/*! valid year, all months and valid days of month */
@@ -1163,6 +1167,7 @@ ScanDateIteration(pieCalendarElementPtr pceArg)
         pceArg->iAnchor = GetDayAbsolute(pceArg->iYear, pceArg->iMonth, 1, -1, -1);
         pceArg->iStep = 1;
         pceArg->iCount = GetDayAbsolute(pceArg->iYear, pceArg->iMonth+1, 1, -1, -1) - pceArg->iAnchor - 1;
+	fResult = TRUE;
       }
       else {
 	/*! valid year and valid month and valid day of month */
