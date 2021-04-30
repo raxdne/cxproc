@@ -215,7 +215,7 @@ pieElementGetMode(pieTextElementPtr ppeArg)
 BOOL_T
 pieElementIsImport(pieTextElementPtr ppeArg)
 {
-  return (ppeArg != NULL && ppeArg->eType == import);
+  return (ppeArg != NULL && ppeArg->iDepthHidden < 1 && ppeArg->eType == import);
 }
 /* end of pieElementIsImport() */
 
@@ -225,7 +225,7 @@ pieElementIsImport(pieTextElementPtr ppeArg)
 BOOL_T
 pieElementIsSubst(pieTextElementPtr ppeArg)
 {
-  return (ppeArg != NULL && ppeArg->eType == subst);
+  return (ppeArg != NULL && ppeArg->iDepthHidden < 1 && ppeArg->eType == subst);
 }
 /* end of pieElementIsSubst() */
 
@@ -324,7 +324,7 @@ pieElementIsListItem(pieTextElementPtr ppeArg)
 BOOL_T
 pieElementIsRuler(pieTextElementPtr ppeArg)
 {
-  return (ppeArg != NULL && ppeArg->eType == ruler);
+  return (ppeArg != NULL && ppeArg->iDepthHidden < 1 && ppeArg->eType == ruler);
 }
 /* end of pieElementIsRuler() */
 
