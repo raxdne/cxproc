@@ -780,39 +780,6 @@ pieElementTest(void)
 #endif
 
   if (RUNTEST) {
-    pieTextElementPtr ppeT;
-
-    i++;
-    printf("TEST %i in '%s:%i': pieElementReplaceCharMarkup() = ", i, __FILE__, __LINE__);
-
-    if ((ppeT = pieElementNew(BAD_CAST"<=> A=> B<= C <-> D->E<- F --- -- G >>H<< I >J<", RMODE_LINE, LANG_DEFAULT)) == NULL
-      || pieElementHasNext(ppeT) == FALSE || pieElementParse(ppeT) == FALSE) {
-      printf("Error pieElementNew()\n");
-    }
-    else if (pieElementReplaceCharMarkup(ppeT) == FALSE
-      || xmlStrEqual(pieElementGetBeginPtr(ppeT), BAD_CAST
-	STR_UTF8_LEFT_RIGHT_SINGLE_ARROW " A"
-	STR_UTF8_RIGHTWARDS_SINGLE_ARROW " B"
-	STR_UTF8_LEFTWARDS_SINGLE_ARROW " C "
-	STR_UTF8_LEFT_RIGHT_ARROW " D"
-	STR_UTF8_RIGHTWARDS_ARROW "E"
-	STR_UTF8_LEFTWARDS_ARROW " F "
-	STR_UTF8_EM_DASH " "
-	STR_UTF8_EN_DASH " G "
-	STR_UTF8_LEFT_DOUBLE_QUOTATION_MARK "H"
-	STR_UTF8_RIGHT_DOUBLE_QUOTATION_MARK " I "
-	">J<"
-      ) == FALSE) {
-      printf("Error pieElementReplaceCharMarkup()\n");
-    }
-    else {
-      n_ok++;
-      printf("OK\n");
-    }
-    pieElementFree(ppeT);
-  }
-
-  if (RUNTEST) {
     xmlChar* pucContent;
     pieTextElementPtr ppeT;
     index_t k = 0;
@@ -828,7 +795,7 @@ pieElementTest(void)
 	ppeT = pieElementNew(pucContent, RMODE_LINE, LANG_DEFAULT);
 	for (k=0; pieElementHasNext(ppeT); k++) {
 	  pieElementParse(ppeT);
-	  pieElementReplaceCharMarkup(ppeT);
+	  //pieElementReplaceCharMarkup(ppeT);
 	}
 	pieElementFree(ppeT);
 	xmlFree(pucContent);

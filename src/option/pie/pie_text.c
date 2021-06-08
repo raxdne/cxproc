@@ -295,6 +295,8 @@ pieProcessPieNode(xmlNodePtr pndArgPie, cxpContextPtr pccArg)
 
     RecognizeDates(pndPieRoot,MIME_TEXT_PLAIN);
 
+    RecognizeSymbols(pndPieRoot);
+
     if (domGetPropFlag(pndArgPie, BAD_CAST "todo", TRUE)) {
       cxpCtxtLogPrint(pccArg, 2, "Recognize tasks markup");
       RecognizeTasks(pndPieRoot);

@@ -2654,6 +2654,7 @@ resNodeContentToDOM(xmlNodePtr pndArg, resNodePtr prnArg)
 	  RecognizeFigures(pndPie);
 	  RecognizeUrls(pndPie);
 	  RecognizeDates(pndPie, iMimeType);
+	  RecognizeSymbols(pndPie);
 	  RecognizeTasks(pndPie);
 	  RecognizeHashtags(pndPie,NULL, NULL);
 	  RecognizeGlobalTags(pndTags, pndPie);

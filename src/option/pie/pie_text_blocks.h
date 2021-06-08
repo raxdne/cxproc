@@ -48,6 +48,9 @@ ParsePlainBuffer(xmlNodePtr pndArgTop, xmlChar *pucArg, rmode_t eArgMode);
 extern xmlNodePtr
 SplitStringToScriptNode(const xmlChar *pucArg);
 
+extern xmlNodePtr
+RecognizeSymbols(xmlNodePtr pndArg);
+
 extern BOOL_T
 RecognizeScripts(xmlNodePtr pndArg);
 
