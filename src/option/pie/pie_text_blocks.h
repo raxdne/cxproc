@@ -28,9 +28,8 @@
 #define CXP_PIE_URL (BAD_CAST "http://www.tenbusch.info/pie")
 
 typedef enum {
-  LANG_DEFAULT,
+  LANG_DEFAULT, 		/* == "en" */
   LANG_DE,
-  LANG_EN,
   LANG_FR
 } lang_t;
 

@@ -2300,7 +2300,7 @@ StringDecodeCharMarkupNew(xmlChar *pucArg, lang_t eLangArg)
 	  case LANG_FR: //  STR_UTF8_RIGHT_POINTING_DOUBLE_ANGLE_QUOTATIONMARK
 	    iCode = 0x00BB;
 	    break;
-	  default:		/* is LANG_EN, STR_UTF8_RIGHT_DOUBLE_QUOTATION_MARK */
+	  default:		/* is LANG_DEFAULT, STR_UTF8_RIGHT_DOUBLE_QUOTATION_MARK */
 	    iCode = 0x201D;
 	  }
 	}
@@ -2318,7 +2318,7 @@ StringDecodeCharMarkupNew(xmlChar *pucArg, lang_t eLangArg)
 	  case LANG_FR: // STR_UTF8_LEFT_POINTING_DOUBLE_ANGLE_QUOTATIONMARK
 	    iCode = 0x00AB;
 	    break;
-	  default:		/* is LANG_EN, STR_UTF8_LEFT_DOUBLE_QUOTATION_MARK */
+	  default:		/* is LANG_DEFAULT, STR_UTF8_LEFT_DOUBLE_QUOTATION_MARK */
 	    iCode = 0x201C;
 	  }
 	}

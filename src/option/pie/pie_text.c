@@ -85,7 +85,7 @@ static void
 SetPropBlockLocators(xmlNodePtr pndArg, xmlChar* pucArgFileName, xmlChar* pucArgPrefix);
 
 static lang_t
-GetPieNodeLang(xmlNodePtr pndArg);
+GetPieNodeLang(xmlNodePtr pndArg, cxpContextPtr pccArg);
 
 
 /*! exit procedure for this module
@@ -181,22 +181,26 @@ NodeHasSingleText(xmlNodePtr pndArg)
 
 /*!
 \param pndArg node
-\return enum value of attribute "lang" or LANG_DEFAULT
+\return enum value of attribute "lang" or environment variable or LANG_DEFAULT
 */
 lang_t
-GetPieNodeLang(xmlNodePtr pndArg)
+GetPieNodeLang(xmlNodePtr pndArg, cxpContextPtr pccArg)
 {
   lang_t eLangResult = LANG_DEFAULT;
-  xmlChar *pucAttr;
+  xmlChar *pucT = NULL;
 
-  if ((pucAttr = domGetPropValuePtr(pndArg, BAD_CAST "lang")) == NULL) {
+  if ((pucT = domGetPropValuePtr(pndArg, BAD_CAST "lang")) == NULL
+      && (pucT = cxpCtxtEnvGetValueByName(pccArg, BAD_CAST "CXP_LANG")) == NULL
+      && (pucT = cxpCtxtEnvGetValueByName(pccArg, BAD_CAST "LANG")) == NULL) {
+    /* neither node attribute nor environment variable defined */
   }
-  else if (xmlStrEqual(pucAttr, BAD_CAST"de")) {
+  else if (xmlStrEqual(pucT, BAD_CAST"de")) {
     eLangResult = LANG_DE;
   }
-  else if (xmlStrEqual(pucAttr, BAD_CAST"fr")) {
+  else if (xmlStrEqual(pucT, BAD_CAST"fr")) {
     eLangResult = LANG_FR;
   }
+  xmlFree(pucT);
   
   return eLangResult;
 } /* End of GetPieNodeLang() */
@@ -321,7 +325,7 @@ pieProcessPieNode(xmlNodePtr pndArgPie, cxpContextPtr pccArg)
 
     RecognizeDates(pndPieRoot,MIME_TEXT_PLAIN);
 
-    RecognizeSymbols(pndPieRoot, GetPieNodeLang(pndArgPie));
+    RecognizeSymbols(pndPieRoot, GetPieNodeLang(pndArgPie, pccArg));
 
     if (domGetPropFlag(pndArgPie, BAD_CAST "todo", TRUE)) {
       cxpCtxtLogPrint(pccArg, 2, "Recognize tasks markup");
