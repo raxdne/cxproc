@@ -21,8 +21,6 @@
 
 /*!\todo sunrise/sunset as <subst string="%SS" now="sunrise"/> depending on XML context calendar/year/month/day and calendar/@timezone */
 
-/*!\bug sunrise="67:20" sunset="75:07" */
-
 /*!\bug test-calendar-003-002: calendar from Freemind map */
 
 /*!\todo display of database entries with one date formatted column */
@@ -1916,7 +1914,6 @@ SubstituteFormatStr(xmlNodePtr pndContext, xmlChar *fmt)
 	  puc0 = puc1 + 1;
 	}
       }
-#if 0
       else if (puc1[1] == 'M') {
 	/* multiple char formats */
 	if (puc1[2] == 'O' && puc1[3] == 'O' && puc1[4] == 'N') {
@@ -1963,7 +1960,6 @@ SubstituteFormatStr(xmlNodePtr pndContext, xmlChar *fmt)
 	  puc0 = puc1 + 1;
 	}
       }
-#endif
       else if (puc1[1] == 'B') {
 	if (isdigit(puc1[2]) && isdigit(puc1[3]) && isdigit(puc1[4]) && isdigit(puc1[5]) && ! isdigit(puc1[6])) {
 	  /* difference in years */
@@ -2304,31 +2300,29 @@ AddTreeYear(pieCalendarPtr pCalendarArg, int year)
 	  xmlStrPrintf(buffer, BUFFER_LENGTH, "%i", iDayAbsolute);
 	  xmlSetProp(pndDay, BAD_CAST "abs", buffer);
 
-#ifdef EXPERIMENTAL
 	  if (pCalendarArg->fCoordinate) {
 	    double dHourUTCSunrise;
 	    double dHourUTCSunset;
 	    int iMinute;
 
-	    /*\bug non-sense values  sunrise="67:20" sunset="75:07" */
-
 	    sun_rise_set(t.tm_year + 1900, t.tm_mon + 1, t.tm_mday,
-	      pCalendarArg->dLongitude, pCalendarArg->dLatitude,
-	      &dHourUTCSunrise, &dHourUTCSunset);
+			 pCalendarArg->dLongitude, pCalendarArg->dLatitude,
+			 &dHourUTCSunrise,
+			 &dHourUTCSunset);
 
 	    // Sunrise
-	    dHourUTCSunrise += pCalendarArg->iTimezoneOffset; // FIXME
+	    dHourUTCSunrise += pCalendarArg->iTimezoneOffset / 60.0f;
 	    if (t.tm_isdst) {
-	      dHourUTCSunrise += 1.0;
+	      dHourUTCSunrise += 1.0f;
 	    }
 	    iMinute = RoundToInt(dHourUTCSunrise * 60.0);
 	    xmlStrPrintf(buffer, BUFFER_LENGTH, "%i:%02i", iMinute / 60, iMinute % 60);
 	    xmlSetProp(pndDay, BAD_CAST "sunrise", buffer);
 
 	    // Sunset
-	    dHourUTCSunset += pCalendarArg->iTimezoneOffset; // FIXME
+	    dHourUTCSunset += pCalendarArg->iTimezoneOffset / 60.0f;
 	    if (t.tm_isdst) {
-	      dHourUTCSunset += 1.0;
+	      dHourUTCSunset += 1.0f;
 	    }
 	    iMinute = RoundToInt(dHourUTCSunset * 60.0);
 	    xmlStrPrintf(buffer, BUFFER_LENGTH, "%i:%02i", iMinute / 60, iMinute % 60);
@@ -2341,7 +2335,6 @@ AddTreeYear(pieCalendarPtr pCalendarArg, int year)
 
 	    xmlSetProp(pndDay, BAD_CAST "dst", BAD_CAST(t.tm_isdst ? "yes" : "no"));
 	  }
-#endif
 
 	  /*
 		add the time difference from today in days

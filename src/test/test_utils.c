@@ -487,16 +487,20 @@ utilsTest(void)
     double longit;
 
     i++;
-    printf("TEST %i in '%s:%i': GetPositionISO6709() ",i,__FILE__,__LINE__);
-    if (GetPositionISO6709("993911.2+1909029.3/",&latit,&longit) != 0
-	&& GetPositionISO6709("473911.2+00929.3/",&latit,&longit)==0
-	&& GetPositionISO6709("+4739+00929/",&latit,&longit)==0 && fabs(latit - 47.65) < 0.001 && fabs(longit - 9.483) < 0.001
-	&& GetPositionISO6709("+3112+12130/",&latit,&longit)==0 && fabs(latit - 31.2) < 0.001 && fabs(longit - 121.5) < 0.001) {
-      n_ok++;
-      printf("OK\n");
+    printf("TEST %i in '%s:%i': ",i,__FILE__,__LINE__);
+
+    if (GetPositionISO6709("993911.2+1909029.3/",&latit,&longit) == 0) {
+      printf("ERROR GetPositionISO6709(): range invalid\n");
+    }
+    else if (GetPositionISO6709("+4851+00221",&latit,&longit) != 0 || fabs(latit - 48.850) > 0.001 || fabs(longit - 2.350) > 0.001) {
+      printf("ERROR GetPositionISO6709(): format %.3f %.3f\n", latit, longit);
+    }
+    else if (GetPositionISO6709("+4851-00221",&latit,&longit) != 0 || fabs(latit - 48.850) > 0.001 || fabs(longit + 2.350) > 0.001) {
+      printf("ERROR GetPositionISO6709(): format %.3f %.3f\n", latit, longit);
     }
     else {
-      printf("ERROR\n");
+      n_ok++;
+      printf("OK\n");
     }
   }
 

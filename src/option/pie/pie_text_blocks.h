@@ -27,6 +27,13 @@
 
 #define CXP_PIE_URL (BAD_CAST "http://www.tenbusch.info/pie")
 
+typedef enum {
+  LANG_DEFAULT, 		/* == "en" */
+  LANG_DE,
+  LANG_FR
+} lang_t;
+
+
 extern BOOL_T
 CompileRegExpDefaults(void);
 
@@ -47,6 +54,9 @@ ParsePlainBuffer(xmlNodePtr pndArgTop, xmlChar *pucArg, rmode_t eArgMode);
 
 extern xmlNodePtr
 SplitStringToScriptNode(const xmlChar *pucArg);
+
+extern xmlNodePtr
+RecognizeSymbols(xmlNodePtr pndArg, lang_t eLangArg);
 
 extern BOOL_T
 RecognizeScripts(xmlNodePtr pndArg);

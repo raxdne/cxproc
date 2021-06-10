@@ -84,6 +84,9 @@ ImportNodeStdin(xmlNodePtr pndArgImport, cxpContextPtr pccArg);
 static void
 SetPropBlockLocators(xmlNodePtr pndArg, xmlChar* pucArgFileName, xmlChar* pucArgPrefix);
 
+static lang_t
+GetPieNodeLang(xmlNodePtr pndArg, cxpContextPtr pccArg);
+
 
 /*! exit procedure for this module
 */
@@ -174,6 +177,33 @@ NodeHasSingleText(xmlNodePtr pndArg)
   return (pndArg != NULL && pndArg->children != NULL && pndArg->children == pndArg->last && pndArg->children->type == XML_TEXT_NODE);
 }
 /* End of NodeHasSingleText() */
+
+
+/*!
+\param pndArg node
+\return enum value of attribute "lang" or environment variable or LANG_DEFAULT
+*/
+lang_t
+GetPieNodeLang(xmlNodePtr pndArg, cxpContextPtr pccArg)
+{
+  lang_t eLangResult = LANG_DEFAULT;
+  xmlChar *pucT = NULL;
+
+  if ((pucT = domGetPropValuePtr(pndArg, BAD_CAST "lang")) == NULL
+      && (pucT = cxpCtxtEnvGetValueByName(pccArg, BAD_CAST "CXP_LANG")) == NULL
+      && (pucT = cxpCtxtEnvGetValueByName(pccArg, BAD_CAST "LANG")) == NULL) {
+    /* neither node attribute nor environment variable defined */
+  }
+  else if (xmlStrEqual(pucT, BAD_CAST"de")) {
+    eLangResult = LANG_DE;
+  }
+  else if (xmlStrEqual(pucT, BAD_CAST"fr")) {
+    eLangResult = LANG_FR;
+  }
+  xmlFree(pucT);
+  
+  return eLangResult;
+} /* End of GetPieNodeLang() */
 
 
 /*! process the PIE child instructions of pndArgPie
@@ -294,6 +324,8 @@ pieProcessPieNode(xmlNodePtr pndArgPie, cxpContextPtr pccArg)
     cxpSubstReplaceNodes(pndBlock, pccArg);
 
     RecognizeDates(pndPieRoot,MIME_TEXT_PLAIN);
+
+    RecognizeSymbols(pndPieRoot, GetPieNodeLang(pndArgPie, pccArg));
 
     if (domGetPropFlag(pndArgPie, BAD_CAST "todo", TRUE)) {
       cxpCtxtLogPrint(pccArg, 2, "Recognize tasks markup");

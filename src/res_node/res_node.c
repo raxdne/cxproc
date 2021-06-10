@@ -2654,6 +2654,7 @@ resNodeContentToDOM(xmlNodePtr pndArg, resNodePtr prnArg)
 	  RecognizeFigures(pndPie);
 	  RecognizeUrls(pndPie);
 	  RecognizeDates(pndPie, iMimeType);
+	  RecognizeSymbols(pndPie, LANG_DEFAULT);
 	  RecognizeTasks(pndPie);
 	  RecognizeHashtags(pndPie,NULL, NULL);
 	  RecognizeGlobalTags(pndTags, pndPie);
@@ -2707,7 +2708,9 @@ resNodeContentToDOM(xmlNodePtr pndArg, resNodePtr prnArg)
     case MIME_APPLICATION_VND_OASIS_OPENDOCUMENT_TEXT:
 #endif
 #endif
-   case MIME_APPLICATION_XSPF_XML:
+    case MIME_APPLICATION_VND_GARMIN_FITX:
+    case MIME_APPLICATION_VND_GARMIN_TCX:
+    case MIME_APPLICATION_XSPF_XML:
     case MIME_TEXT_HTML:
     case MIME_TEXT_XML:
     case MIME_TEXT_XSL:
