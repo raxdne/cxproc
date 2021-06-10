@@ -571,7 +571,7 @@ ParsePlainBuffer(xmlNodePtr pndArgTop, xmlChar* pucArg, rmode_t eArgMode)
     }
     SetTypeAttr(pndBlock, eArgMode);
 
-    if ((ppeT = pieElementNew(pucArg, eArgMode, LANG_DEFAULT))) {
+    if ((ppeT = pieElementNew(pucArg, eArgMode))) {
       /*\todo iMax = domGetPropValuePtr(pndArgImport, BAD_CAST "max"); */
       iMax = 512 * 1024;
     }
@@ -2375,7 +2375,7 @@ StringDecodeCharMarkupNew(xmlChar *pucArg, lang_t eLangArg)
 /*! 
 */
 xmlNodePtr
-RecognizeSymbols(xmlNodePtr pndArg)
+RecognizeSymbols(xmlNodePtr pndArg, lang_t eLangArg)
 {
   xmlNodePtr pndResult = NULL;
 
@@ -2393,7 +2393,7 @@ RecognizeSymbols(xmlNodePtr pndArg)
       xmlChar* pucTT = NULL;
 
       if ((pucT = StringDecodeNumericCharsNew(pndArg->content)) != NULL
-	  && (pucTT = StringDecodeCharMarkupNew(pucT, LANG_DE)) != NULL) {
+	  && (pucTT = StringDecodeCharMarkupNew(pucT, eLangArg)) != NULL) {
 
 	xmlNodeSetContent(pndArg,pucTT);
       }
@@ -2403,7 +2403,7 @@ RecognizeSymbols(xmlNodePtr pndArg)
     else if (IS_ENODE(pndArg) && (pndArg->ns==NULL || pndArg->ns==pnsPie)) {
       xmlNodePtr pndChild;
 
-      for (pndChild = pndArg->children; pndChild; pndChild = RecognizeSymbols(pndChild));
+      for (pndChild = pndArg->children; pndChild; pndChild = RecognizeSymbols(pndChild, eLangArg));
     }
   }
   return pndResult;

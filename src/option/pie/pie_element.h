@@ -33,15 +33,6 @@ typedef enum {
 
 
 typedef enum {
-  LANG_DEFAULT,
-  LANG_DE,
-  LANG_EN,
-  LANG_FR
-} lang_t;
-
-#define LANG_DEFAULT LANG_DEFAULT
-
-typedef enum {
   undefined,
   import,
   subst,
@@ -73,7 +64,6 @@ typedef struct {
   pieTextElementType eType;
   rmode_t eMode;
   rmode_t eModeBefore;
-  lang_t eLang;
   xmlChar *pucSep;		/*!< separator string */
   pcre2_code *re_read;	/*!< regular expression for filtered reading */
   BOOL_T fMatchRegExp;	/*!< flag for include or exclude elements matching regexp */
@@ -84,7 +74,7 @@ typedef pieTextElement *pieTextElementPtr;
 
 
 extern pieTextElementPtr
-pieElementNew(xmlChar *pucArg, rmode_t eModeArg, lang_t eLangArg);
+pieElementNew(xmlChar *pucArg, rmode_t eModeArg);
 
 extern xmlChar *
 pieElementSetSep(pieTextElementPtr ppeArg, xmlChar *pucArg);

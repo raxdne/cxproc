@@ -84,7 +84,7 @@ pieElementTest(void)
     i++;
     printf("TEST %i in '%s:%i': reads empty text = ",i,__FILE__,__LINE__);
 
-    if ((ppeT = pieElementNew(BAD_CAST "\t\r\n", RMODE_PAR, LANG_DEFAULT)) == NULL) {
+    if ((ppeT = pieElementNew(BAD_CAST "\t\r\n", RMODE_PAR)) == NULL) {
       printf("Error pieElementNew()");
     }
     else if (pieElementHasNext(ppeT) == FALSE) {
@@ -112,7 +112,7 @@ pieElementTest(void)
 
     pucT = BAD_CAST "   |http://www.xyz.com/this-ressouce-is-name/|| dakd\xC3\xB6lakd\xC3\xB6 AAA || bbb cc_do d_review\n\nxyz |href|title|\n\n";
 
-    if ((ppeT = pieElementNew(pucT, RMODE_PAR, LANG_DEFAULT)) == NULL) {
+    if ((ppeT = pieElementNew(pucT, RMODE_PAR)) == NULL) {
       printf("Error _pieElementUpdateMarkup()\n");
     }
     else if (pieElementHasNext(ppeT) == FALSE) {
@@ -143,7 +143,7 @@ pieElementTest(void)
     i++;
     printf("TEST %i in '%s:%i': parse plain text = ", i, __FILE__, __LINE__);
 
-    ppeT = pieElementNew(BAD_CAST"* ABC\n \nDEF\n\n- HIJ\nKLM\n\n--OPQ\n\n", RMODE_PAR, LANG_DEFAULT);
+    ppeT = pieElementNew(BAD_CAST"* ABC\n \nDEF\n\n- HIJ\nKLM\n\n--OPQ\n\n", RMODE_PAR);
 
     if (pieElementHasNext(ppeT) == FALSE || pieElementParse(ppeT) == FALSE
       || pieElementIsHeader(ppeT) == FALSE || pieElementGetDepth(ppeT) != 1 || pieElementGetStrlen(ppeT) != 3) {
@@ -377,7 +377,7 @@ pieElementTest(void)
     i++;
     printf("TEST %i in '%s:%i': Markdown par ends at empty line = ", i, __FILE__, __LINE__);
 
-    ppeT = pieElementNew(BAD_CAST"ABCDE\nFGHI\n \t  \r\nJKLM\n", RMODE_MD, LANG_DEFAULT);
+    ppeT = pieElementNew(BAD_CAST"ABCDE\nFGHI\n \t  \r\nJKLM\n", RMODE_MD);
 
     if (pieElementHasNext(ppeT) == FALSE || pieElementParse(ppeT) == FALSE
       || pieElementIsPar(ppeT) == FALSE || pieElementGetDepth(ppeT) != 0 || pieElementGetStrlen(ppeT) != 10) {
@@ -405,7 +405,7 @@ pieElementTest(void)
     i++;
     printf("TEST %i in '%s:%i': Markdown par ends at trailing space chars = ", i, __FILE__, __LINE__);
 
-    ppeT = pieElementNew(BAD_CAST"JKLM\nZZZ   \nYY\nX\n\r\r\n", RMODE_MD, LANG_DEFAULT);
+    ppeT = pieElementNew(BAD_CAST"JKLM\nZZZ   \nYY\nX\n\r\r\n", RMODE_MD);
 
     if (pieElementHasNext(ppeT) == FALSE || pieElementParse(ppeT) == FALSE
       || pieElementIsPar(ppeT) == FALSE || pieElementGetDepth(ppeT) != 0 || pieElementGetStrlen(ppeT) != 11) {
@@ -433,7 +433,7 @@ pieElementTest(void)
     i++;
     printf("TEST %i in '%s:%i': Markdown blockquote = ", i, __FILE__, __LINE__);
 
-    ppeT = pieElementNew(BAD_CAST"LLL\n> JJJJ\n> KKK\nMMM NN\n", RMODE_MD, LANG_DEFAULT);
+    ppeT = pieElementNew(BAD_CAST"LLL\n> JJJJ\n> KKK\nMMM NN\n", RMODE_MD);
 
     if (pieElementHasNext(ppeT) == FALSE || pieElementParse(ppeT) == FALSE
       || pieElementIsPar(ppeT) == FALSE || pieElementGetDepth(ppeT) != 0 || pieElementGetStrlen(ppeT) != 3) {
@@ -461,7 +461,7 @@ pieElementTest(void)
     i++;
     printf("TEST %i in '%s:%i': Markdown (pre-formatted) codeblock = ", i, __FILE__, __LINE__);
 
-    ppeT = pieElementNew(BAD_CAST"MMM NN  \n\tDDD\n\t#EEEE#\n    FF FF\n\n\n", RMODE_MD, LANG_DEFAULT);
+    ppeT = pieElementNew(BAD_CAST"MMM NN  \n\tDDD\n\t#EEEE#\n    FF FF\n\n\n", RMODE_MD);
 
     if (pieElementHasNext(ppeT) == FALSE || pieElementParse(ppeT) == FALSE
       || pieElementIsPar(ppeT) == FALSE || pieElementGetDepth(ppeT) != 0 || pieElementGetStrlen(ppeT) != 8) {
@@ -485,7 +485,7 @@ pieElementTest(void)
     i++;
     printf("TEST %i in '%s:%i': Markdown (pre-formatted) codeblock = ", i, __FILE__, __LINE__);
 
-    ppeT = pieElementNew(BAD_CAST"\n``` script\nMMM NN  \nDDD\n#EEEE#\nFF FF\n```\n\n", RMODE_MD, LANG_DEFAULT);
+    ppeT = pieElementNew(BAD_CAST"\n``` script\nMMM NN  \nDDD\n#EEEE#\nFF FF\n```\n\n", RMODE_MD);
 
     if (pieElementHasNext(ppeT) == FALSE) {
       printf("Error %i pieElementHasNext()", 0);
@@ -508,7 +508,7 @@ pieElementTest(void)
     i++;
     printf("TEST %i in '%s:%i': Markdown (pre-formatted) codeblock = ", i, __FILE__, __LINE__);
 
-    ppeT = pieElementNew(BAD_CAST"\n~~~ \nMMM NN  \nDDD\n#EEEE#\nFF FF\n~~~\n\n", RMODE_MD, LANG_DEFAULT);
+    ppeT = pieElementNew(BAD_CAST"\n~~~ \nMMM NN  \nDDD\n#EEEE#\nFF FF\n~~~\n\n", RMODE_MD);
 
     if (pieElementHasNext(ppeT) == FALSE) {
       printf("Error %i pieElementHasNext()", 0);
@@ -531,7 +531,7 @@ pieElementTest(void)
     i++;
     printf("TEST %i in '%s:%i': Markdown header mix = ", i, __FILE__, __LINE__);
 
-    ppeT = pieElementNew(BAD_CAST"BBB\n# CCC\nFFFFF\nDDD\n-----\nHHHH\n", RMODE_MD, LANG_DEFAULT);
+    ppeT = pieElementNew(BAD_CAST"BBB\n# CCC\nFFFFF\nDDD\n-----\nHHHH\n", RMODE_MD);
 
     if (pieElementHasNext(ppeT) == FALSE || pieElementParse(ppeT) == FALSE
       || pieElementIsPar(ppeT) == FALSE || pieElementGetDepth(ppeT) != 0 || pieElementGetStrlen(ppeT) != 3) {
@@ -563,7 +563,7 @@ pieElementTest(void)
     i++;
     printf("TEST %i in '%s:%i': Markdown header mix = ", i, __FILE__, __LINE__);
 
-    ppeT = pieElementNew(BAD_CAST"ABCDE\n=====\n#FGHI#\n##NOPQ\n", RMODE_MD, LANG_DEFAULT);
+    ppeT = pieElementNew(BAD_CAST"ABCDE\n=====\n#FGHI#\n##NOPQ\n", RMODE_MD);
 
     if (pieElementHasNext(ppeT) == FALSE || pieElementParse(ppeT) == FALSE
       || pieElementIsHeader(ppeT) == FALSE || pieElementGetDepth(ppeT) != 1 || pieElementGetStrlen(ppeT) != 5) {
@@ -591,7 +591,7 @@ pieElementTest(void)
     i++;
     printf("TEST %i in '%s:%i': Markdown header mix = ", i, __FILE__, __LINE__);
 
-    ppeT = pieElementNew(BAD_CAST"ABCDE\n=====\n#FGHI#\n##NOPQ\n", RMODE_MD, LANG_DEFAULT);
+    ppeT = pieElementNew(BAD_CAST"ABCDE\n=====\n#FGHI#\n##NOPQ\n", RMODE_MD);
 
     if (pieElementHasNext(ppeT) == FALSE || pieElementParse(ppeT) == FALSE
       || pieElementIsHeader(ppeT) == FALSE || pieElementGetDepth(ppeT) != 1 || pieElementGetStrlen(ppeT) != 5) {
@@ -619,7 +619,7 @@ pieElementTest(void)
     i++;
     printf("TEST %i in '%s:%i': Markdown Lists = ", i, __FILE__, __LINE__);
 
-    ppeT = pieElementNew(BAD_CAST"item\n- a \n*\taa\n+  aa\n\n", RMODE_MD, LANG_DEFAULT);
+    ppeT = pieElementNew(BAD_CAST"item\n- a \n*\taa\n+  aa\n\n", RMODE_MD);
 
     if (pieElementHasNext(ppeT) == FALSE || pieElementParse(ppeT) == FALSE
       || pieElementIsPar(ppeT) == FALSE || pieElementGetDepth(ppeT) != 0 || pieElementGetStrlen(ppeT) != 4) {
@@ -651,7 +651,7 @@ pieElementTest(void)
     i++;
     printf("TEST %i in '%s:%i': Markdown nested Lists = ", i, __FILE__, __LINE__);
 
-    ppeT = pieElementNew(BAD_CAST"item\n- a \n  *\taa\n    +  aa\n\n", RMODE_MD, LANG_DEFAULT);
+    ppeT = pieElementNew(BAD_CAST"item\n- a \n  *\taa\n    +  aa\n\n", RMODE_MD);
 
     if (pieElementHasNext(ppeT) == FALSE || pieElementParse(ppeT) == FALSE
       || pieElementIsPar(ppeT) == FALSE || pieElementGetDepth(ppeT) != 0 || pieElementGetStrlen(ppeT) != 4) {
@@ -683,7 +683,7 @@ pieElementTest(void)
     i++;
     printf("TEST %i in '%s:%i': Markdown enumerated Lists = ", i, __FILE__, __LINE__);
 
-    ppeT = pieElementNew(BAD_CAST"enum\n1. A\n 1. B\n  1. C  \nDDD", RMODE_MD, LANG_DEFAULT);
+    ppeT = pieElementNew(BAD_CAST"enum\n1. A\n 1. B\n  1. C  \nDDD", RMODE_MD);
 
     if (pieElementHasNext(ppeT) == FALSE || pieElementParse(ppeT) == FALSE
       || pieElementIsPar(ppeT) == FALSE || pieElementGetDepth(ppeT) != 0 || pieElementGetStrlen(ppeT) != 4) {
@@ -715,7 +715,7 @@ pieElementTest(void)
     i++;
     printf("TEST %i in '%s:%i': Markdown enumerated Lists = ", i, __FILE__, __LINE__);
 
-    ppeT = pieElementNew(BAD_CAST"enum\n2) A\n 3) B\n  4) C  \nDDD", RMODE_MD, LANG_DEFAULT);
+    ppeT = pieElementNew(BAD_CAST"enum\n2) A\n 3) B\n  4) C  \nDDD", RMODE_MD);
 
     if (pieElementHasNext(ppeT) == FALSE || pieElementParse(ppeT) == FALSE
       || pieElementIsPar(ppeT) == FALSE || pieElementGetDepth(ppeT) != 0 || pieElementGetStrlen(ppeT) != 4) {
@@ -747,7 +747,7 @@ pieElementTest(void)
     i++;
     printf("TEST %i in '%s:%i': Markdown enumerated Lists = ", i, __FILE__, __LINE__);
 
-    ppeT = pieElementNew(BAD_CAST"\n* * * *\n____\n----\nRQST\n-----\nabcd\n", RMODE_MD, LANG_DEFAULT);
+    ppeT = pieElementNew(BAD_CAST"\n* * * *\n____\n----\nRQST\n-----\nabcd\n", RMODE_MD);
 
     if (pieElementHasNext(ppeT) == FALSE || pieElementParse(ppeT) == FALSE
       || pieElementGetDepth(ppeT) != 0 || pieElementGetStrlen(ppeT) != 0) {
@@ -792,7 +792,7 @@ pieElementTest(void)
     if (prnT) {
       pucContent = plainGetContextTextEat(prnT, 16);
       if (pucContent) {
-	ppeT = pieElementNew(pucContent, RMODE_LINE, LANG_DEFAULT);
+	ppeT = pieElementNew(pucContent, RMODE_LINE);
 	for (k=0; pieElementHasNext(ppeT); k++) {
 	  pieElementParse(ppeT);
 	  //pieElementReplaceCharMarkup(ppeT);

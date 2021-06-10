@@ -380,7 +380,7 @@ pieTextBlocksTest(void)
 
     //domPutNodeString(stderr, BAD_CAST"import result", pndPie);
 
-    if ((ppeT = pieElementNew(pucContent, RMODE_PAR, LANG_DEFAULT)) == NULL) {
+    if ((ppeT = pieElementNew(pucContent, RMODE_PAR)) == NULL) {
     }
     else if (pieElementHasNext(ppeT) == FALSE) {
     }
@@ -434,7 +434,7 @@ pieTextBlocksTest(void)
     pndPie = xmlNewNode(NULL, NAME_PIE_PIE);
     pndBlock = xmlNewChild(pndPie, NULL, NAME_PIE_BLOCK, NULL);
 
-    if ((ppeT = pieElementNew(pucContent, RMODE_PAR, LANG_DEFAULT)) == NULL) {
+    if ((ppeT = pieElementNew(pucContent, RMODE_PAR)) == NULL) {
       printf("Error pieElementNew()\n");
     }
     else if (pieElementHasNext(ppeT) == FALSE) {
@@ -925,16 +925,16 @@ pieTextBlocksTest(void)
     i++;
     printf("TEST %i in '%s:%i': StringDecodeCharMarkupNew() = ", i, __FILE__, __LINE__);
 
-    if ((pucT = StringDecodeCharMarkupNew(NULL, LANG_DEFAULT)) != NULL) {
+    if ((pucT = StringDecodeCharMarkupNew(NULL, 0)) != NULL) {
       printf("Error 1 StringDecodeCharMarkupNew()\n");
     }
-    else if ((pucT = StringDecodeCharMarkupNew("", LANG_DEFAULT)) != NULL) {
+    else if ((pucT = StringDecodeCharMarkupNew("", 0)) != NULL) {
       printf("Error 1b StringDecodeCharMarkupNew()\n");
     }
-    else if ((pucT = StringDecodeCharMarkupNew(BAD_CAST"<=> A=&gt; B<= C <-> D-&gt;E<- F --- -- G &gt;&gt;H<< I >J<", LANG_DEFAULT)) == NULL) {
+    else if ((pucT = StringDecodeCharMarkupNew(BAD_CAST"<=> A=&gt; B<= C <-> D-&gt;E<- F --- -- G &gt;&gt;H<< I >J<", 0)) == NULL) {
       printf("Error 2 StringDecodeCharMarkupNew()\n");
     }
-    else if ((pucTT = StringDecodeCharMarkupNew(BAD_CAST"&lt;=> A=> B<= C &lt;-> D->E<- F --- -- G >>H&lt;&lt; I >J<", LANG_DEFAULT)) == NULL) {
+    else if ((pucTT = StringDecodeCharMarkupNew(BAD_CAST"&lt;=> A=> B<= C &lt;-> D->E<- F --- -- G >>H&lt;&lt; I >J<", 0)) == NULL) {
       printf("Error 3 StringDecodeCharMarkupNew()\n");
     }
     else if (xmlStrEqual(pucT, pucTT) == FALSE) {
@@ -1032,7 +1032,7 @@ pieTextBlocksTest(void)
 
     puts((const char *)pucT);
 
-    ppeT = pieElementNew(pucT, RMODE_MD, LANG_DEFAULT);
+    ppeT = pieElementNew(pucT, RMODE_MD);
 
     /*! loop for reading pie text elements */
     for (k=0; pieElementHasNext(ppeT); k++) {
@@ -1101,7 +1101,7 @@ pieTextBlocksTest(void)
       "# Images\n"
       ;
 
-    ppeT = pieElementNew(pucT, RMODE_MD, LANG_DEFAULT);
+    ppeT = pieElementNew(pucT, RMODE_MD);
 
     /*! loop for reading pie text elements */
     for (k=0; pieElementHasNext(ppeT); k++) {

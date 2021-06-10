@@ -84,6 +84,9 @@ ImportNodeStdin(xmlNodePtr pndArgImport, cxpContextPtr pccArg);
 static void
 SetPropBlockLocators(xmlNodePtr pndArg, xmlChar* pucArgFileName, xmlChar* pucArgPrefix);
 
+static lang_t
+GetPieNodeLang(xmlNodePtr pndArg);
+
 
 /*! exit procedure for this module
 */
@@ -174,6 +177,29 @@ NodeHasSingleText(xmlNodePtr pndArg)
   return (pndArg != NULL && pndArg->children != NULL && pndArg->children == pndArg->last && pndArg->children->type == XML_TEXT_NODE);
 }
 /* End of NodeHasSingleText() */
+
+
+/*!
+\param pndArg node
+\return enum value of attribute "lang" or LANG_DEFAULT
+*/
+lang_t
+GetPieNodeLang(xmlNodePtr pndArg)
+{
+  lang_t eLangResult = LANG_DEFAULT;
+  xmlChar *pucAttr;
+
+  if ((pucAttr = domGetPropValuePtr(pndArg, BAD_CAST "lang")) == NULL) {
+  }
+  else if (xmlStrEqual(pucAttr, BAD_CAST"de")) {
+    eLangResult = LANG_DE;
+  }
+  else if (xmlStrEqual(pucAttr, BAD_CAST"fr")) {
+    eLangResult = LANG_FR;
+  }
+  
+  return eLangResult;
+} /* End of GetPieNodeLang() */
 
 
 /*! process the PIE child instructions of pndArgPie
@@ -295,7 +321,7 @@ pieProcessPieNode(xmlNodePtr pndArgPie, cxpContextPtr pccArg)
 
     RecognizeDates(pndPieRoot,MIME_TEXT_PLAIN);
 
-    RecognizeSymbols(pndPieRoot);
+    RecognizeSymbols(pndPieRoot, GetPieNodeLang(pndArgPie));
 
     if (domGetPropFlag(pndArgPie, BAD_CAST "todo", TRUE)) {
       cxpCtxtLogPrint(pccArg, 2, "Recognize tasks markup");

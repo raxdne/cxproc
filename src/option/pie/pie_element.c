@@ -82,7 +82,7 @@ MdStrCountTrailingSpaces(xmlChar *pucArg);
 /*! constructor for pieTextElement
 */
 pieTextElementPtr
-pieElementNew(xmlChar *pucArg, rmode_t eModeArg, lang_t eLangArg)
+pieElementNew(xmlChar *pucArg, rmode_t eModeArg)
 {
   pieTextElementPtr ppeResult = NULL;
 
@@ -93,7 +93,6 @@ pieElementNew(xmlChar *pucArg, rmode_t eModeArg, lang_t eLangArg)
       pieElementReset(ppeResult);
       ppeResult->pucSource = pucArg;
       ppeResult->iSourceLength = xmlStrlen(ppeResult->pucSource);
-      ppeResult->eLang = eLangArg;
       ppeResult->eModeBefore = ppeResult->eMode = eModeArg;
       ppeResult->fMatchRegExp = TRUE;
     }
