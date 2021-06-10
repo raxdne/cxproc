@@ -82,7 +82,7 @@ MdStrCountTrailingSpaces(xmlChar *pucArg);
 /*! constructor for pieTextElement
 */
 pieTextElementPtr
-pieElementNew(xmlChar *pucArg, rmode_t eModeArg, lang_t eLangArg)
+pieElementNew(xmlChar *pucArg, rmode_t eModeArg)
 {
   pieTextElementPtr ppeResult = NULL;
 
@@ -93,7 +93,6 @@ pieElementNew(xmlChar *pucArg, rmode_t eModeArg, lang_t eLangArg)
       pieElementReset(ppeResult);
       ppeResult->pucSource = pucArg;
       ppeResult->iSourceLength = xmlStrlen(ppeResult->pucSource);
-      ppeResult->eLang = eLangArg;
       ppeResult->eModeBefore = ppeResult->eMode = eModeArg;
       ppeResult->fMatchRegExp = TRUE;
     }
@@ -1584,146 +1583,6 @@ DuplicateNextLine(char *pchArg, index_t *piArg)
   }
   return pucResult;
 } /* end of DuplicateNextLine() */
-
-
-/*! substitutions with accurate UTF-8/XML strings
-
-https://en.wikipedia.org/wiki/UTF-8
-https://www.duden.de/sprachwissen/rechtschreibregeln/anfuehrungszeichen
-*/
-BOOL_T
-pieElementReplaceCharMarkup(pieTextElementPtr ppeArg)
-{
-  if (ppeArg != NULL && STR_IS_NOT_EMPTY(ppeArg->pucContent)) {
-    int i, k, l;
-    xmlChar* pucResult;
-    xmlChar* pucC = ppeArg->pucContent; /* shortcut only */
-
-    pucResult = BAD_CAST xmlMalloc((size_t) ppeArg->iLength * 2);
-
-    for (k=i=0; pucC[i]; ) {
-      int iCode;
-
-      iCode = -1;
-      l = 0;
-
-      if (pucC[i] == (xmlChar)'<') {
-	l++;
-	if (pucC[i+l] == (xmlChar)'=') {
-	  l++;
-	  if (pucC[i+l] == (xmlChar)'>') { // STR_UTF8_LEFT_RIGHT_SINGLE_ARROW
-	    l++;
-	    iCode = 0x21D4;
-	  }
-	  else { // STR_UTF8_LEFTWARDS_SINGLE_ARROW
-	    iCode = 0x21D0;
-	  }
-	}
-	else if (pucC[i+l] == (xmlChar)'-') {
-	  l++;
-	  if (pucC[i+l] == (xmlChar)'>') { // STR_UTF8_LEFT_RIGHT_ARROW
-	    l++;
-	    iCode = 0x2194;
-	  }
-	  else { // STR_UTF8_LEFTWARDS_ARROW
-	    iCode = 0x2190;
-	  }
-	}
-	else if (pucC[i+l] == (xmlChar)'<') {
-	  l++;
-	  switch (ppeArg->eLang) {
-	  case LANG_DE: // STR_UTF8_LEFT_DOUBLE_QUOTATION_MARK
-	    iCode = 0x201C;
-	    break;
-	  case LANG_FR: //  STR_UTF8_RIGHT_POINTING_DOUBLE_ANGLE_QUOTATIONMARK
-	    iCode = 0x00BB;
-	    break;
-	  default:		/* is LANG_EN, STR_UTF8_RIGHT_DOUBLE_QUOTATION_MARK */
-	    iCode = 0x201D;
-	  }
-	}
-      }
-      else if (pucC[i] == (xmlChar)'>') {
-	l++;
-	if (pucC[i+l] == (xmlChar)'>') {
-	  l++;
-	  switch (ppeArg->eLang) {
-	  case LANG_DE: // STR_UTF8_DOUBLE_LOW_9_QUOTATION_MARK
-	    iCode = 0x201E;
-	    break;
-	  case LANG_FR: // STR_UTF8_LEFT_POINTING_DOUBLE_ANGLE_QUOTATIONMARK
-	    iCode = 0x00AB;
-	    break;
-	  default:		/* is LANG_EN, STR_UTF8_LEFT_DOUBLE_QUOTATION_MARK */
-	    iCode = 0x201C;
-	  }
-	}
-      }
-      else if (pucC[i] == (xmlChar)'=') {
-	l++;
-	if (pucC[i+l] == (xmlChar)'>') { // STR_UTF8_RIGHTWARDS_SINGLE_ARROW
-	  l++;
-	  iCode = 0x21D2;
-	}
-      }
-      else if (pucC[i] == (xmlChar)'-') {
-	l++;
-	if (pucC[i+l] == (xmlChar)'>') { // STR_UTF8_RIGHTWARDS_ARROW
-	  l++;
-	  iCode = 0x2192;
-	}
-	else if (pucC[i+l] == (xmlChar)'-') {
-	  l++;
-	  if (pucC[i+l] == (xmlChar)'-') { // STR_UTF8_EM_DASH
-	    l++;
-	    iCode = 0x2014;
-	  }
-	  else { // STR_UTF8_EN_DASH
-	    iCode = 0x2013;
-	  }
-	}
-      }
-
-      if (iCode > -1 && l > 0) {
-	/* numeric character reference detected */
-	int j;
-
-	j = xmlCopyCharMultiByte(&pucResult[k], iCode);
-	assert(j > 0 && j < 8);
-	//assert(j <= l);
-
-	k += j;
-	i += l;
-      }
-      else {
-	pucResult[k] = pucC[i];
-	k++;
-	i++;
-      }
-    }
-    pucResult[k] = (xmlChar)'\0';
-    xmlFree(ppeArg->pucContent);
-    ppeArg->pucContent = pucResult;
-  }
-  return TRUE;
-} /* end of pieElementReplaceCharMarkup() */
-
-
-/*! wrapper code for StringDecodeNumericCharsNew()
-*/
-BOOL_T
-pieElementReplaceCharNumerics(pieTextElementPtr ppeArg)
-{
-  if (ppeArg != NULL && STR_IS_NOT_EMPTY(ppeArg->pucContent)) {
-    xmlChar* pucT;
-
-    if ((pucT = StringDecodeNumericCharsNew(ppeArg->pucContent))) {
-      xmlFree(ppeArg->pucContent);
-      ppeArg->pucContent = pucT;
-    }
-  }
-  return TRUE;
-} /* end of pieElementReplaceCharNumerics() */
 
 
 /*!

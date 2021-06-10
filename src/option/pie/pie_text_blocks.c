@@ -23,6 +23,7 @@
 /* 
  */
 #include <libxml/tree.h>
+#include <libxml/parserInternals.h>
 
 /* 
  */
@@ -45,7 +46,7 @@
    s. https://www.regular-expressions.info/
 */
 #define RE_UNC "(?:\\b[a-z]:\\\\|\\\\\\\\[a-zäÄöÖüÜß0-9_.$\\-]+\\\\[a-zäÄöÖüÜß0-9_.$\\-]+)\\\\*(?:[^\\\\/:*?\"<>|\\r\\n]+\\\\)*[^\\\\/:*?\"<>|\\r\\n]*"
-#define RE_URL "(tel|onenote|file|http|https|ftp|ftps|mailto)(://+|%%3A%%2F%%2F|:|%%3A)([a-zäÄöÖüÜß0-9\\.\\-\\&\\#\\;\\:\\,\\+\\_%%\\~\\?\\!=\\@]+|[a-zäÄöÖüÜß0-9\\.\\-]+@)([/a-zäÄöÖüÜß0-9\\(\\)\\.\\-\\&\\#\\;\\,\\+\\:\\_%%\\~\\*\\?\\!=\\@])*"
+#define RE_URL "(tel|onenote|file|http|https|ftp|ftps|mailto)(://+|%%3A%%2F%%2F|:|%%3A)([a-zäÄöÖüÜß0-9\\.\\-\\&\\#\\;\\:\\,\\+\\_%%\\~\\?\\!=\\@]+|[a-zäÄöÖüÜß0-9\\.\\-]+@)([/a-zäÄöÖüÜß0-9\\(\\)\\.\\-\\&\\#\\;\\,\\+\\:\\_%%\\~\\*\\?\\!=\\@]+)*"
 #define RE_LINK "([^\\|]*)\\| *([^\\|]+) *\\|([^\\|]*)\\|"
 #define RE_LINK_MD "!*\\[([^\\]]+)\\]\\(([^\\)]+)\\)"
 #define RE_LINK_MD_AUTO "(<|&lt;|\\xE2\\x80\\x99)([^<> \\t]+)(>|&gt;|\\xE2\\x80\\x98)"
@@ -106,6 +107,9 @@ AddTableCellsEmpty(xmlNodePtr pndArg);
 
 static int
 CompressTable(xmlNodePtr pndArg);
+
+static xmlChar *
+StringDecodeCharMarkupNew(xmlChar *pucArg, lang_t eLangArg);
 
 static xmlChar*
 StringGetEndOfHeaderMarker(xmlChar* pucArg);
@@ -549,7 +553,7 @@ ParsePlainBuffer(xmlNodePtr pndArgTop, xmlChar* pucArg, rmode_t eArgMode)
 
   if (STR_IS_NOT_EMPTY(pucArg)) {
     index_t k;
-    index_t iMax;
+    index_t iMax = -1;
     pieTextElementPtr ppeT = NULL;
     xmlNodePtr pndParent; /*! */
     xmlNodePtr pndBlock; /*! */
@@ -567,14 +571,9 @@ ParsePlainBuffer(xmlNodePtr pndArgTop, xmlChar* pucArg, rmode_t eArgMode)
     }
     SetTypeAttr(pndBlock, eArgMode);
 
-    /* encode all XML entities in 'pucArg' */
-    if ((pucText = StringDecodeNumericCharsNew(pucArg))) {
-      ppeT = pieElementNew(pucText, eArgMode, LANG_DEFAULT);
+    if ((ppeT = pieElementNew(pucArg, eArgMode))) {
       /*\todo iMax = domGetPropValuePtr(pndArgImport, BAD_CAST "max"); */
       iMax = 512 * 1024;
-    }
-    else { /*  */
-      iMax = -1;
     }
 
     /*!\todo handling of date-leading formats */
@@ -611,12 +610,7 @@ ParsePlainBuffer(xmlNodePtr pndArgTop, xmlChar* pucArg, rmode_t eArgMode)
 	}
       }
       else {
-	pieElementReplaceCharNumerics(ppeT);
 	pieElementParse(ppeT);
-
-	if (pieElementGetMode(ppeT) != RMODE_PRE && pieElementGetMode(ppeT) != RMODE_MD && ! pieElementIsPre(ppeT)) {
-	  pieElementReplaceCharMarkup(ppeT);
-	}
 
 	if ((pndNew = pieElementToDOM(ppeT))) {
 	  xmlNodePtr pndList = NULL;
@@ -2251,6 +2245,171 @@ CleanUpTree(xmlNodePtr pndArg)
 } /* end of CleanUpTree() */
 
 
+/*! substitutions with accurate UTF-8/XML strings
+
+https://en.wikipedia.org/wiki/UTF-8
+https://www.duden.de/sprachwissen/rechtschreibregeln/anfuehrungszeichen
+
+*/
+xmlChar *
+StringDecodeCharMarkupNew(xmlChar *pucArg, lang_t eLangArg)
+{
+  xmlChar* pucResult = NULL;
+  
+  if (STR_IS_NOT_EMPTY(pucArg)) {
+    int i, k, l;
+
+    pucResult = BAD_CAST xmlMalloc(xmlStrlen(pucArg) * 2);
+
+    for (k=i=0; pucArg[i]; ) {
+      int iCode;
+
+      iCode = -1;
+      l = 0;
+
+      if ((pucArg[i + l] == (xmlChar)'<' && (++l))
+	|| (pucArg[i + l] == (xmlChar)'&' && pucArg[i + l + 1] == (xmlChar)'l' && pucArg[i + l + 2] == (xmlChar)'t' && pucArg[i + l + 3] == (xmlChar)';' && (l += 4))) {
+
+	if (pucArg[i + l] == (xmlChar)'=' && (++l)) {
+
+	  if ((pucArg[i + l] == (xmlChar)'>' && (++l))
+	    || (pucArg[i + l] == (xmlChar)'&' && pucArg[i + l + 1] == (xmlChar)'g' && pucArg[i + l + 2] == (xmlChar)'t' && pucArg[i + l + 3] == (xmlChar)';' && (l += 4))) { // STR_UTF8_LEFT_RIGHT_SINGLE_ARROW
+	    iCode = 0x21D4;
+	  }
+	  else { // STR_UTF8_LEFTWARDS_SINGLE_ARROW
+	    iCode = 0x21D0;
+	  }
+	}
+	else if (pucArg[i + l] == (xmlChar)'-' && (++l)) {
+
+	  if ((pucArg[i + l] == (xmlChar)'>' && (++l))
+	    || (pucArg[i + l] == (xmlChar)'&' && pucArg[i + l + 1] == (xmlChar)'g' && pucArg[i + l + 2] == (xmlChar)'t' && pucArg[i + l + 3] == (xmlChar)';' && (l += 4))) { // STR_UTF8_LEFT_RIGHT_ARROW
+	    iCode = 0x2194;
+	  }
+	  else { // STR_UTF8_LEFTWARDS_ARROW
+	    iCode = 0x2190;
+	  }
+	}
+	else if ((pucArg[i + l] == (xmlChar)'<' && (++l)) 
+	|| (pucArg[i + l] == (xmlChar)'&' && pucArg[i + l + 1] == (xmlChar)'l' && pucArg[i + l + 2] == (xmlChar)'t' && pucArg[i + l + 3] == (xmlChar)';' && (l += 4))) {
+
+	  switch (eLangArg) {
+	  case LANG_DE: // STR_UTF8_LEFT_DOUBLE_QUOTATION_MARK
+	    iCode = 0x201C;
+	    break;
+	  case LANG_FR: //  STR_UTF8_RIGHT_POINTING_DOUBLE_ANGLE_QUOTATIONMARK
+	    iCode = 0x00BB;
+	    break;
+	  default:		/* is LANG_DEFAULT, STR_UTF8_RIGHT_DOUBLE_QUOTATION_MARK */
+	    iCode = 0x201D;
+	  }
+	}
+      }
+      else if ((pucArg[i + l] == (xmlChar)'>' && (++l))
+	|| (pucArg[i + l] == (xmlChar)'&' && pucArg[i + l + 1] == (xmlChar)'g' && pucArg[i + l + 2] == (xmlChar)'t' && pucArg[i + l + 3] == (xmlChar)';' && (l += 4))) {
+
+	if ((pucArg[i + l] == (xmlChar)'>' && (++l))
+	  || (pucArg[i + l] == (xmlChar)'&' && pucArg[i + l + 1] == (xmlChar)'g' && pucArg[i + l + 2] == (xmlChar)'t' && pucArg[i + l + 3] == (xmlChar)';' && (l += 4))) {
+
+	  switch (eLangArg) {
+	  case LANG_DE: // STR_UTF8_DOUBLE_LOW_9_QUOTATION_MARK
+	    iCode = 0x201E;
+	    break;
+	  case LANG_FR: // STR_UTF8_LEFT_POINTING_DOUBLE_ANGLE_QUOTATIONMARK
+	    iCode = 0x00AB;
+	    break;
+	  default:		/* is LANG_DEFAULT, STR_UTF8_LEFT_DOUBLE_QUOTATION_MARK */
+	    iCode = 0x201C;
+	  }
+	}
+      }
+      else if (pucArg[i + l] == (xmlChar)'=' && (++l)) {
+
+	if ((pucArg[i + l] == (xmlChar)'>' && (++l))
+	  || (pucArg[i + l] == (xmlChar)'&' && pucArg[i + l + 1] == (xmlChar)'g' && pucArg[i + l + 2] == (xmlChar)'t' && pucArg[i + l + 3] == (xmlChar)';' && (l += 4))) { // STR_UTF8_RIGHTWARDS_SINGLE_ARROW
+
+	  iCode = 0x21D2;
+	}
+      }
+      else if (pucArg[i + l] == (xmlChar)'-' && (++l)) {
+
+	if ((pucArg[i + l] == (xmlChar)'>' && (++l))
+	  || (pucArg[i + l] == (xmlChar)'&' && pucArg[i + l + 1] == (xmlChar)'g' && pucArg[i + l + 2] == (xmlChar)'t' && pucArg[i + l + 3] == (xmlChar)';' && (l += 4))) { // STR_UTF8_RIGHTWARDS_ARROW
+
+	  iCode = 0x2192;
+	}
+	else if (pucArg[i + l] == (xmlChar)'-' && (++l)) {
+
+	  if (pucArg[i + l] == (xmlChar)'-' && (++l)) { // STR_UTF8_EM_DASH
+	    iCode = 0x2014;
+	  }
+	  else { // STR_UTF8_EN_DASH
+	    iCode = 0x2013;
+	  }
+	}
+      }
+
+      if (iCode > -1 && l > 0) {
+	/* numeric character reference detected */
+	int j;
+
+	j = xmlCopyCharMultiByte(&pucResult[k], iCode);
+	assert(j > 0 && j < 8);
+	//assert(j <= l);
+
+	k += j;
+	i += l;
+      }
+      else {
+	pucResult[k] = pucArg[i];
+	k++;
+	i++;
+      }
+    }
+    pucResult[k] = (xmlChar)'\0';
+  }
+  return pucResult;
+} /* end of StringDecodeCharMarkupNew() */
+
+
+/*! 
+*/
+xmlNodePtr
+RecognizeSymbols(xmlNodePtr pndArg, lang_t eLangArg)
+{
+  xmlNodePtr pndResult = NULL;
+
+  if (pndArg) {
+    pndResult = pndArg->next;
+    if (IS_NODE_META(pndArg) || IS_NODE_PIE_PRE(pndArg) || IS_NODE_PIE_LINK(pndArg) || IS_NODE_PIE_DATE(pndArg) || IS_NODE_SCRIPT(pndArg)) {
+      /* skip */
+    }
+    else if (IS_NODE_PIE_ETAG(pndArg) || IS_NODE_PIE_HTAG(pndArg) || IS_NODE_PIE_TTAG(pndArg) || IS_NODE_PIE_DATE(pndArg)) {
+      /* skip existing tag elements */
+    }
+    else if (xmlNodeIsText(pndArg)) {
+      /* pndChild is a text node */
+      xmlChar* pucT = NULL;
+      xmlChar* pucTT = NULL;
+
+      if ((pucT = StringDecodeNumericCharsNew(pndArg->content)) != NULL
+	  && (pucTT = StringDecodeCharMarkupNew(pucT, eLangArg)) != NULL) {
+
+	xmlNodeSetContent(pndArg,pucTT);
+      }
+      xmlFree(pucTT);
+      xmlFree(pucT);
+    }
+    else if (IS_ENODE(pndArg) && (pndArg->ns==NULL || pndArg->ns==pnsPie)) {
+      xmlNodePtr pndChild;
+
+      for (pndChild = pndArg->children; pndChild; pndChild = RecognizeSymbols(pndChild, eLangArg));
+    }
+  }
+  return pndResult;
+} /* End of RecognizeSymbols() */
+
+
 /*! derive a sequence of text and Date nodes from node
 
 https://spec.commonmark.org/0.29/#inlines
@@ -2262,7 +2421,7 @@ RecognizeInlines(xmlNodePtr pndArg)
 
   if (pndArg) {
     pndResult = pndArg->next;
-    if (IS_NODE_META(pndArg) || IS_NODE_PIE_PRE(pndArg) || IS_NODE_PIE_DATE(pndArg) || IS_NODE_SCRIPT(pndArg)) {
+    if (IS_NODE_META(pndArg) || IS_NODE_PIE_PRE(pndArg) || IS_NODE_PIE_LINK(pndArg) || IS_NODE_PIE_DATE(pndArg) || IS_NODE_SCRIPT(pndArg)) {
       /* skip */
     }
     else if (IS_NODE_PIE_ETAG(pndArg) || IS_NODE_PIE_HTAG(pndArg) || IS_NODE_PIE_TTAG(pndArg) || IS_NODE_PIE_DATE(pndArg)) {
@@ -2271,30 +2430,6 @@ RecognizeInlines(xmlNodePtr pndArg)
     else if (xmlNodeIsText(pndArg)) {
       /* pndChild is a text node */
       xmlNodePtr pndReplace;
-
-#if 0
-      /*! use some Unicode chars in text nodes
-      */
-      if (xmlStrcasestr(pndArg->content, BAD_CAST STR_PIE_OK)) {
-	if (IS_NODE_PIE_HEADER(pndArg->parent) && IS_ENODE(pndArg->parent->parent)) {
-	  xmlSetProp(pndArg->parent->parent, BAD_CAST"state", BAD_CAST"done");
-	  xmlNewTextChild(pndArg->parent->parent, NULL, NAME_PIE_TTAG, BAD_CAST"#done");
-	}
-	else if (IS_ENODE(pndArg->parent)) {
-	  xmlSetProp(pndArg->parent, BAD_CAST"state", BAD_CAST"done");
-	  xmlNewTextChild(pndArg->parent, NULL, NAME_PIE_TTAG, BAD_CAST"#done");
-	}
-      }
-      
-      if (xmlStrcasestr(pndArg->content, BAD_CAST STR_PIE_CANCEL)) {
-	if (IS_NODE_PIE_HEADER(pndArg->parent) && IS_ENODE(pndArg->parent->parent)) {
-	  xmlSetProp(pndArg->parent->parent, BAD_CAST"hidden", BAD_CAST"1");
-	}
-	else if (IS_ENODE(pndArg->parent)) {
-	  xmlSetProp(pndArg->parent, BAD_CAST"hidden", BAD_CAST"1");
-	}
-      }
-#endif
 
       pndReplace = SplitStringToInlineNodes(pndArg->content);
       if (pndReplace) {

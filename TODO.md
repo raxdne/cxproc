@@ -39,7 +39,7 @@ REQ: additional Backends
   - MongoDB <http://en.wikipedia.org/wiki/MongoDB>
   -	MySQL/MariaDB
 
-REQ: use environment variable `LANG` for localization of calendar, articles etc
+REQ: use environment variable `LANG` for localization of calendar, articles etc ✔
 
 DONE: cleanup use of cxpXslParamProcess(), params required? (script, XSL)
 

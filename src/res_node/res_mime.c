@@ -74,6 +74,12 @@ static const char* resMimeTypeStr[] = {
   /* MIME_APPLICATION_VND_PTC_CAD_CONFIGURATION */ "application/vnd.ptc.cad.configuration",
   /* MIME_APPLICATION_VND_PTC_CAD_XYZ */ "application/vnd.ptc.cad.XYZ",
   /*
+    GARMIN formats
+  */
+  /* MIME_APPLICATION_VND_GARMIN_FIT */  "application/vnd.garmin.fit",
+  /* MIME_APPLICATION_VND_GARMIN_FITX */ "application/vnd.garmin.fit+xml",
+  /* MIME_APPLICATION_VND_GARMIN_TCX */  "application/vnd.garmin.tcx+xml",
+  /*
     Application formats
   */
   /* MIME_APPLICATION_CAD_2D */ "application/cad+2d",
@@ -229,6 +235,8 @@ resMimeIsXml(int iMimeType)
       || iMimeType ==  MIME_APPLICATION_VND_OASIS_OPENDOCUMENT_TEXT
 #endif
 #endif
+      || iMimeType == MIME_APPLICATION_VND_GARMIN_FITX
+      || iMimeType == MIME_APPLICATION_VND_GARMIN_TCX
       || iMimeType == MIME_APPLICATION_XSPF_XML
       || iMimeType == MIME_TEXT_XML
       || iMimeType == MIME_TEXT_XSL);
@@ -523,6 +531,15 @@ resMimeGetTypeFromExt(const xmlChar *pucArg)
     || xmlStrcasecmp(pucArg, BAD_CAST"mfg") == 0
     || xmlStrcasecmp(pucArg, BAD_CAST"gph") == 0) {
     eMimeTypeResult = MIME_APPLICATION_VND_PTC_CAD_3D;
+  }
+  else if (xmlStrcasecmp(pucArg, BAD_CAST"fit") == 0) {
+    eMimeTypeResult = MIME_APPLICATION_VND_GARMIN_FIT;
+  }
+  else if (xmlStrcasecmp(pucArg, BAD_CAST"fitx") == 0) {
+    eMimeTypeResult = MIME_APPLICATION_VND_GARMIN_FITX;
+  }
+  else if (xmlStrcasecmp(pucArg, BAD_CAST"tcx") == 0) {
+    eMimeTypeResult = MIME_APPLICATION_VND_GARMIN_TCX;
   }
   else if (xmlStrcasecmp(pucArg, BAD_CAST"drw") == 0
     || xmlStrcasecmp(pucArg, BAD_CAST"lay") == 0
