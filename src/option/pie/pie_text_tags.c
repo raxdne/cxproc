@@ -380,10 +380,10 @@ RecognizeHashtags(xmlNodePtr pndArg, pcre2_code* preArgHashTag, pcre2_code* preA
   }
   else if (IS_NODE_PIE_PIE(pndArg) || IS_NODE_PIE_BLOCK(pndArg)) {
     xmlChar* pucRegExpTag = NULL;
+    pcre2_code* preBlock = NULL;
 
-    if ((pucRegExpTag = GetBlockTagRegExpStr(pndArg,NULL,FALSE)) != NULL) {
+    if ((pucRegExpTag = GetBlockTagRegExpStr(pndArg, NULL, FALSE)) != NULL) {
       /* there is a local regexp string for tags */
-      pcre2_code* preBlock = NULL;
 
       /*!\todo avoid multiple recursion if preArgBlockTag == NULL */
 
@@ -397,24 +397,21 @@ RecognizeHashtags(xmlNodePtr pndArg, pcre2_code* preArgHashTag, pcre2_code* preA
 	&errornumber,          /* for error number */
 	&erroroffset,          /* for error offset */
 	NULL);                 /* use default compile context */
+    }
 
+    for (pndChild = pndArg->children; fResult && pndChild != NULL; pndChild = pndChild->next) {
+      fResult = RecognizeHashtags(pndChild, preArgHashTag, preBlock);
+    }
+
+    if (pucRegExpTag) {
       if (preBlock) {
-	for (pndChild = pndArg->children; fResult && pndChild != NULL; pndChild = pndChild->next) {
-	  fResult = RecognizeHashtags(pndChild, preArgHashTag, preBlock);
-	}
 	pcre2_code_free(preBlock);
       }
       else {
 	/* regexp error handling */
 	PrintFormatLog(1, "hashtag regexp '%s' error: '%i'", pucRegExpTag, errornumber);
-	fResult = FALSE;
       }
       xmlFree(pucRegExpTag);
-    }
-    else {
-      for (pndChild = pndArg->children; fResult && pndChild != NULL; pndChild = pndChild->next) {
-	fResult = RecognizeHashtags(pndChild, preArgHashTag, preArgBlockTag);
-      }
     }
   }
   else if (pndArg == NULL || IS_NODE_META(pndArg) || IS_NODE_PIE_PRE(pndArg) || IS_NODE_PIE_TT(pndArg) || IS_NODE_PIE_DATE(pndArg)) {
