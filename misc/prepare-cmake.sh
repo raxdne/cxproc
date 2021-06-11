@@ -51,3 +51,5 @@ test -d $DIR_WWW/test || mkdir -p $DIR_WWW/test
 
 # https://stackoverflow.com/questions/58777810/how-to-integrate-vcpkg-in-linux-with-cross-build-toolchain-as-well-as-sysroot
 
+# https://git-scm.com/docs/gitsubmodules
+# git submodule add git@github.com:zserge/jsmn.git third-party/option/jsmn

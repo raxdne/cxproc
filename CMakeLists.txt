@@ -357,14 +357,19 @@ ENDIF ()
 #
 # JSON
 #
-OPTION(CXPROC_JSON "Include JSON code" OFF)
-MARK_AS_ADVANCED(CXPROC_JSON)
+find_path(JSMN_INCLUDE_DIR NAMES jsmn.h
+  HINTS "${PROJECT_SOURCE_DIR}/third-party/option/jsmn"
+  ) 
 
-IF (CXPROC_JSON)
-  add_definitions(-DHAVE_JSON)
-  SET(CXPROC_HEADERS ${CXPROC_HEADERS} ${CXPROC_SRC_DIR}/option/json/json.h)
-  SET(CXPROC_SOURCES ${CXPROC_SOURCES} ${CXPROC_SRC_DIR}/option/json/json.c)
-ENDIF (CXPROC_JSON)
+IF (JSMN_INCLUDE_DIR)
+  OPTION(CXPROC_JSON "Include JSON code" OFF)
+  MARK_AS_ADVANCED(CXPROC_JSON)
+
+  IF (CXPROC_JSON)
+    SET(CXPROC_HEADERS ${CXPROC_HEADERS} ${CXPROC_SRC_DIR}/option/json/json.h)
+    SET(CXPROC_SOURCES ${CXPROC_SOURCES} ${CXPROC_SRC_DIR}/option/json/json.c)
+  ENDIF (CXPROC_JSON)
+ENDIF ()
 
 ################################################################################
 #
@@ -720,6 +725,17 @@ ADD_EXECUTABLE(test-cgi
 ###############################################################################
 ## dependencies ###############################################################
 ###############################################################################
+
+################################################################################
+#
+# JSON
+#
+
+IF (CXPROC_JSON)
+  target_compile_definitions(cxproc      PUBLIC HAVE_JSON)
+  target_compile_definitions(cxproc-cgi  PUBLIC HAVE_JSON)
+  target_compile_definitions(cxproc-test PUBLIC HAVE_JSON)
+ENDIF (CXPROC_JSON)
 
 ################################################################################
 #
