@@ -43,7 +43,7 @@ REQ: use environment variable `LANG` for localization of calendar, articles etc 
 
 DONE: cleanup use of cxpXslParamProcess(), params required? (script, XSL)
 
-TODO: cleanup AJAX code (not required on server side)
+DONE: cleanup AJAX code (not required on server side)
 
 ## Security
 

@@ -857,12 +857,6 @@ IF (CXPROC_EXPERIMENTAL)
   add_definitions(-DEXPERIMENTAL)
 ENDIF (CXPROC_EXPERIMENTAL)
 
-SET(CXPROC_AJAX OFF CACHE BOOL "Compile AJAX code")
-MARK_AS_ADVANCED(CXPROC_AJAX)
-IF (CXPROC_AJAX)
-  add_definitions(-DWITH_AJAX)
-ENDIF (CXPROC_AJAX)
-
 add_definitions(-DCXP_VER_FILE_VERSION_STR="${GIT_TAG}" -DCXP_VER_FILE_BRANCH_STR="${GIT_BRANCH}")
 
 IF(MSVC)
@@ -1736,7 +1730,6 @@ include(CPack)
   MESSAGE(STATUS "  Compile cxproc code for legacy  ... : ${CXPROC_LEGACY}")
   MESSAGE(STATUS "  Compile cxproc experimental code .. : ${CXPROC_EXPERIMENTAL}")
   MESSAGE(STATUS "  Compile cxproc MARKDOWN code ...... : ${CXPROC_MARKDOWN}")
-  MESSAGE(STATUS "  Compile cxproc AJAX code .......... : ${CXPROC_AJAX}")
 #  MESSAGE(STATUS "  Compile cxproc with profile ....... : ${CXPROC_PROFILE}")
   
 if (CXPROC_DOC)
