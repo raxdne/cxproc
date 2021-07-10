@@ -337,7 +337,7 @@ cxpCtxtCgiParse(cxpContextPtr pccArg)
 
     /* detect output type of XSL */
 
-    if ((prnCgiXsl = cxpResNodeResolveNew(pccArg, NULL, mpucNameFile, CXP_O_SEARCH)) != NULL) {
+    if ((prnCgiXsl = cxpResNodeResolveNew(pccArg, NULL, mpucNameFile, CXP_O_READ | CXP_O_SEARCH)) != NULL) {
       xmlDocPtr pdocXsl;
 
       pdocXsl = resNodeReadDoc(prnCgiXsl);
