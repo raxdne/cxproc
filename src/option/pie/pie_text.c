@@ -345,10 +345,10 @@ pieProcessPieNode(xmlNodePtr pndArgPie, cxpContextPtr pccArg)
       if ((pdocResultXPath = domGetXPathDoc(pdocResult, pucAttr)) != NULL) {
 	xmlChar* pucRegExpTag = NULL;
 
-	/* collect all "regexp-tag" in current DOM and add result to sub-DOM pdocResultXPath */
+	/* collect all NAME_PIE_PI_TAG in current DOM and add result to sub-DOM pdocResultXPath */
 	if ((pndPieRoot = xmlDocGetRootElement(pdocResultXPath)) != NULL
 	  && (pucRegExpTag = GetBlockTagRegExpStr(xmlDocGetRootElement(pdocResult), NULL, TRUE)) != NULL) {
-	  xmlAddChild(pndPieRoot, xmlNewPI(BAD_CAST"regexp-tag", pucRegExpTag));
+	  xmlAddChild(pndPieRoot, xmlNewPI(NAME_PIE_PI_TAG, pucRegExpTag));
 	  xmlFree(pucRegExpTag);
 	}
 

@@ -177,6 +177,10 @@ REQ: add meta element to every block element
 
 REQ: define regexp for tags as node attribute `<pie tags="(ABC|XYZ)">` or  `<import tags="(ABC|XYZ)">`
 
+BUG: Tag recognition fails (end of local regexp)
+
+- regexp error handling?? ✔
+
 #### pie_timezone
 
 TEST: sunrise sunset with Shanghai, Berlin, Boston
