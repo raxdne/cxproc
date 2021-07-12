@@ -357,14 +357,19 @@ ENDIF ()
 #
 # JSON
 #
-OPTION(CXPROC_JSON "Include JSON code" OFF)
-MARK_AS_ADVANCED(CXPROC_JSON)
+find_path(JSMN_INCLUDE_DIR NAMES jsmn.h
+  HINTS "${PROJECT_SOURCE_DIR}/third-party/option/jsmn"
+  ) 
 
-IF (CXPROC_JSON)
-  add_definitions(-DHAVE_JSON)
-  SET(CXPROC_HEADERS ${CXPROC_HEADERS} ${CXPROC_SRC_DIR}/option/json/json.h)
-  SET(CXPROC_SOURCES ${CXPROC_SOURCES} ${CXPROC_SRC_DIR}/option/json/json.c)
-ENDIF (CXPROC_JSON)
+IF (JSMN_INCLUDE_DIR)
+  OPTION(CXPROC_JSON "Include JSON code" OFF)
+  MARK_AS_ADVANCED(CXPROC_JSON)
+
+  IF (CXPROC_JSON)
+    SET(CXPROC_HEADERS ${CXPROC_HEADERS} ${CXPROC_SRC_DIR}/option/json/json.h)
+    SET(CXPROC_SOURCES ${CXPROC_SOURCES} ${CXPROC_SRC_DIR}/option/json/json.c)
+  ENDIF (CXPROC_JSON)
+ENDIF ()
 
 ################################################################################
 #
@@ -723,6 +728,17 @@ ADD_EXECUTABLE(test-cgi
 
 ################################################################################
 #
+# JSON
+#
+
+IF (CXPROC_JSON)
+  target_compile_definitions(cxproc      PUBLIC HAVE_JSON)
+  target_compile_definitions(cxproc-cgi  PUBLIC HAVE_JSON)
+  target_compile_definitions(cxproc-test PUBLIC HAVE_JSON)
+ENDIF (CXPROC_JSON)
+
+################################################################################
+#
 # local libiconv
 #
 
@@ -856,12 +872,6 @@ MARK_AS_ADVANCED(CXPROC_EXPERIMENTAL)
 IF (CXPROC_EXPERIMENTAL)
   add_definitions(-DEXPERIMENTAL)
 ENDIF (CXPROC_EXPERIMENTAL)
-
-SET(CXPROC_AJAX OFF CACHE BOOL "Compile AJAX code")
-MARK_AS_ADVANCED(CXPROC_AJAX)
-IF (CXPROC_AJAX)
-  add_definitions(-DWITH_AJAX)
-ENDIF (CXPROC_AJAX)
 
 add_definitions(-DCXP_VER_FILE_VERSION_STR="${GIT_TAG}" -DCXP_VER_FILE_BRANCH_STR="${GIT_BRANCH}")
 
@@ -1736,7 +1746,6 @@ include(CPack)
   MESSAGE(STATUS "  Compile cxproc code for legacy  ... : ${CXPROC_LEGACY}")
   MESSAGE(STATUS "  Compile cxproc experimental code .. : ${CXPROC_EXPERIMENTAL}")
   MESSAGE(STATUS "  Compile cxproc MARKDOWN code ...... : ${CXPROC_MARKDOWN}")
-  MESSAGE(STATUS "  Compile cxproc AJAX code .......... : ${CXPROC_AJAX}")
 #  MESSAGE(STATUS "  Compile cxproc with profile ....... : ${CXPROC_PROFILE}")
   
 if (CXPROC_DOC)

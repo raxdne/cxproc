@@ -21,9 +21,7 @@
 
 #include <libxml/tree.h>
 
-#ifdef HAVE_JSON
 #include "jsmn/jsmn.h"
-#endif
 
 #include "basics.h"
 #include "utils.h"
@@ -31,7 +29,8 @@
 #include <cxp/cxp.h>
 #include <cxp/cxp_dir.h>
 #include "dom.h"
-#include "calendar_element.h"
+#include <pie/pie_text.h>
+#include <pie/pie_calendar.h>
 #include "plain_text.h"
 #include <json/json.h>
 
@@ -39,7 +38,6 @@
 static int
 jsonTransform(xmlNodePtr pndArgJson, const char *js, jsmntok_t *t, size_t count);
 
-#include "jsmn/jsmn.c"
 
 /*! process the JSON child instructions of pndMakePie
  */
@@ -136,7 +134,7 @@ jsonProcessJsonNode(xmlNodePtr pndArgJson, cxpContextPtr pccArg)
 /* end of jsonProcessJsonNode() */
 
 
-/*! process the JSON child instructions of pndMakePie
+/*! 
  *
  * s. https://tools.ietf.org/html/rfc4627
  * s. https://en.wikipedia.org/wiki/JSON

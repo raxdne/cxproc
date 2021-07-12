@@ -164,7 +164,6 @@ cxpCtxtCgiParse(cxpContextPtr pccArg)
   xmlChar *pucNameNormalizedFile = NULL;
   xmlChar mpucNameFile[BUFFER_LENGTH];
   xmlChar *pucCgiCxp = NULL;
-  xmlChar *pucCgiAjax = NULL;
   xmlChar *pucCgiEncoding = NULL;
   xmlChar *pucCgiDir = NULL;
   xmlChar *pucCgiFile = NULL;
@@ -217,8 +216,6 @@ cxpCtxtCgiParse(cxpContextPtr pccArg)
 
   pucCgiEncoding = cxpCtxtCgiGetValueByName(pccArg,BAD_CAST"encoding");
 
-  pucCgiAjax = cxpCtxtCgiGetValueByName(pccArg,BAD_CAST"ajax");
-
   pucCgiXsl = cxpCtxtCgiGetValueByName(pccArg,BAD_CAST"xsl");
 
   pucCgiXpath = cxpCtxtCgiGetValueByName(pccArg,BAD_CAST"xpath");
@@ -254,18 +251,7 @@ cxpCtxtCgiParse(cxpContextPtr pccArg)
   }
 
 #ifdef HAVE_CGI
-  if (pucCgiAjax != NULL && xmlStrlen(pucCgiAjax) > 0) {
-    /*!\bug security risk? */
-    if (pucCgiXsl) {
-      xmlFree(pucCgiXsl);
-      pucCgiXsl = NULL;
-    }
-    if (pucCgiCxp) {
-      xmlFree(pucCgiCxp);
-      pucCgiCxp = NULL;
-    }
-  }
-  else if (pucCgiCxp != NULL && xmlStrlen(pucCgiCxp) > 0) {
+  if (pucCgiCxp != NULL && xmlStrlen(pucCgiCxp) > 0) {
     /*
     for security reasons add prefix "Cgi" to filename
     */
@@ -316,48 +302,7 @@ cxpCtxtCgiParse(cxpContextPtr pccArg)
     }
   }
 
-  if (pucCgiAjax) {
-    /*
-    deliver the result as plain text via AJAX
-    */
-    xmlChar *pucRelease;
-    xmlNodePtr pndT;
-    xmlDocPtr pdocT;
-
-#if WITH_AJAX
-    pucRelease = xmlStrdup(BAD_CAST"<make log='3'><plain name='-'>");
-    pucRelease = xmlStrcat(pucRelease, pucCgiAjax);
-    pucRelease = xmlStrcat(pucRelease, BAD_CAST"</plain>");
-    pucRelease = xmlStrcat(pucRelease, BAD_CAST"<plain name='-'>OK</plain></make>");
-    cxpCtxtLogPrint(pccArg, 3, "Parse AJAX '%s'", pucRelease);
-
-    pdocT = xmlParseMemory((const char *)pucRelease, xmlStrlen(pucRelease));
-    if (pdocT) {
-      xmlNodePtr pndCopy;
-
-      pndT = xmlDocGetRootElement(pdocT);
-      if (pndT) {
-	pndCopy = xmlCopyNode(pndT->children, 1);
-	if (pndCopy) {
-	  xmlAddChild(pndMake, pndCopy);
-	}
-	else {
-	  cxpCtxtLogPrint(pccArg, 1, "No usable children");
-	}
-      }
-      xmlFreeDoc(pdocT);
-
-      cxpCtxtLogPrintDoc(pccArg, 4, "cxpParseCgi()", pccArg->pdocContextNode);
-    }
-    else {
-      cxpCtxtLogPrint(pccArg, 1, "Cant parse AJAX '%s'", pucRelease);
-    }
-    xmlFree(pucRelease);
-#else
-    cxpCtxtLogPrint(pccArg, 1, "Compiled without AJAX, ignoring");
-#endif
-  }
-  else if (prnPathTranslated) {
+  if (prnPathTranslated) {
     /* deliver the file content via CXP configuration */
     pndXml = xmlNewChild(pndMake, NULL, NAME_XML, NULL);
     xmlSetProp(pndXml, BAD_CAST "name", resNodeGetNameNormalized(prnPathTranslated));
@@ -392,7 +337,7 @@ cxpCtxtCgiParse(cxpContextPtr pccArg)
 
     /* detect output type of XSL */
 
-    if ((prnCgiXsl = cxpResNodeResolveNew(pccArg, NULL, mpucNameFile, CXP_O_SEARCH)) != NULL) {
+    if ((prnCgiXsl = cxpResNodeResolveNew(pccArg, NULL, mpucNameFile, CXP_O_READ | CXP_O_SEARCH)) != NULL) {
       xmlDocPtr pdocXsl;
 
       pdocXsl = resNodeReadDoc(prnCgiXsl);
@@ -576,7 +521,6 @@ cxpCtxtCgiParse(cxpContextPtr pccArg)
   /*
   release the allocated CGI values
   */
-  xmlFree(pucCgiAjax);
   xmlFree(pucCgiCxp);
   xmlFree(pucCgiXsl);
   xmlFree(pucCgiXpath);

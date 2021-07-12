@@ -591,7 +591,7 @@ ParsePlainBuffer(xmlNodePtr pndArgTop, xmlChar* pucArg, rmode_t eArgMode)
       }
       else if (pieElementIsMetaTags(ppeT)) {
 	if ((pucT = pieElementGetBeginPtr(ppeT)) != NULL) {
-	  pndNew = xmlNewPI(BAD_CAST"regexp-tag", &pucT[6]);
+	  pndNew = xmlNewPI(NAME_PIE_PI_TAG, &pucT[6]);
 	  /*! insert all PI nodes at the begin of block */
 	  if (pndBlock->children) {
 	    pndNew->parent = pndBlock;

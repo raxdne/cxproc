@@ -25,6 +25,8 @@
    definition of element names (s. pie.dtd)
 */
 
+#define NAME_PIE_PI_TAG BAD_CAST "regexp-tag"
+
 #define NAME_PIE_DIR BAD_CAST "dir"
 
 #define NAME_PIE_FILE BAD_CAST "file"

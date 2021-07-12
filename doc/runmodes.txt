@@ -17,12 +17,3 @@ URL like
 http://localhost:8181/cxproc/exe?file=doc/modules.txt&type=text-plain&cxp=PieUiDefault
 #end_of_pre
 
-**** AJAX
-
-special in CGI
-
-encoded URL
-
-#begin_of_pre
-#end_of_pre
-

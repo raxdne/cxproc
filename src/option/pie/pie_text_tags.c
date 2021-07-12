@@ -41,8 +41,8 @@
 /* multibyte characters */
 #define UTF8_UMLAUT "\xC3\xA4" "\xC3\x84" "\xC3\xB6" "\xC3\x96" "\xC3\xBC" "\xC3\x9C" "\xC3\x9F"
 
-/* core regexp for hashtags, can be extended by a XML processing instruction 'regexp-tag' */
-#define RE_HASHTAG "[#@][A-Za-z0-9_" UTF8_UMLAUT "]+"
+/* core regexp for hashtags, can be extended by a XML processing instruction NAME_PIE_PI_TAG */
+#define RE_HASHTAG "[#@][A-Za-z0-9_\-" UTF8_UMLAUT "]+"
 
 
 static xmlNodePtr
@@ -380,16 +380,17 @@ RecognizeHashtags(xmlNodePtr pndArg, pcre2_code* preArgHashTag, pcre2_code* preA
   }
   else if (IS_NODE_PIE_PIE(pndArg) || IS_NODE_PIE_BLOCK(pndArg)) {
     xmlChar* pucRegExpTag = NULL;
+    pcre2_code* preBlock = NULL;
 
-    if ((pucRegExpTag = GetBlockTagRegExpStr(pndArg,NULL,FALSE)) != NULL) {
+    if ((pucRegExpTag = GetBlockTagRegExpStr(pndArg, NULL, FALSE)) != NULL) {
       /* there is a local regexp string for tags */
-      pcre2_code* preBlock = NULL;
 
       /*!\todo avoid multiple recursion if preArgBlockTag == NULL */
 
       /*!\todo check string to avoid regular expression injection */
 
       PrintFormatLog(2, "Initialize tag regexp '%s' for current block", pucRegExpTag);
+      
       preBlock = pcre2_compile(
 	(PCRE2_SPTR8)pucRegExpTag, /* the pattern */
 	PCRE2_ZERO_TERMINATED, /* indicates pattern is zero-terminated */
@@ -398,23 +399,24 @@ RecognizeHashtags(xmlNodePtr pndArg, pcre2_code* preArgHashTag, pcre2_code* preA
 	&erroroffset,          /* for error offset */
 	NULL);                 /* use default compile context */
 
-      if (preBlock) {
-	for (pndChild = pndArg->children; fResult && pndChild != NULL; pndChild = pndChild->next) {
-	  fResult = RecognizeHashtags(pndChild, preArgHashTag, preBlock);
-	}
-	pcre2_code_free(preBlock);
+      if (preBlock == NULL) {
+	PCRE2_UCHAR buffer[256];
+	
+	pcre2_get_error_message(errornumber, buffer, sizeof(buffer));
+	PrintFormatLog(1,"PCRE2 compilation failed at offset %d: %s", (int)erroroffset, buffer);
       }
-      else {
-	/* regexp error handling */
-	PrintFormatLog(1, "hashtag regexp '%s' error: '%i'", pucRegExpTag, errornumber);
-	fResult = FALSE;
-      }
-      xmlFree(pucRegExpTag);
     }
-    else {
-      for (pndChild = pndArg->children; fResult && pndChild != NULL; pndChild = pndChild->next) {
-	fResult = RecognizeHashtags(pndChild, preArgHashTag, preArgBlockTag);
-      }
+
+    for (pndChild = pndArg->children; fResult && pndChild != NULL; pndChild = pndChild->next) {
+      fResult = RecognizeHashtags(pndChild, preArgHashTag, preBlock);
+    }
+
+    if (preBlock) {
+      pcre2_code_free(preBlock);
+    }
+    
+    if (pucRegExpTag) {
+      xmlFree(pucRegExpTag);
     }
   }
   else if (pndArg == NULL || IS_NODE_META(pndArg) || IS_NODE_PIE_PRE(pndArg) || IS_NODE_PIE_TT(pndArg) || IS_NODE_PIE_DATE(pndArg)) {
@@ -483,7 +485,7 @@ RecognizeHashtags(xmlNodePtr pndArg, pcre2_code* preArgHashTag, pcre2_code* preA
 } /* End of RecognizeHashtags() */
 
 
-/*! \return a pointer to the non-empty value of processing instruction node "regexp-tag"
+/*! \return a pointer to the non-empty value of processing instruction node NAME_PIE_PI_TAG
 */
 xmlChar*
 GetBlockTagRegExpStr(xmlNodePtr pndArg, xmlChar *pucArg, BOOL_T fArgRecursion)
@@ -495,7 +497,7 @@ GetBlockTagRegExpStr(xmlNodePtr pndArg, xmlChar *pucArg, BOOL_T fArgRecursion)
     xmlChar* pucT = NULL;
     
     for (pndI = pndArg->children; pndI != NULL; pndI = pndI->next) {
-      if (pndI->type == XML_PI_NODE && xmlStrEqual(pndI->name, BAD_CAST"regexp-tag") && (pucT = domNodeGetContentPtr(pndI)) != NULL) {
+      if (pndI->type == XML_PI_NODE && xmlStrEqual(pndI->name, NAME_PIE_PI_TAG) && (pucT = domNodeGetContentPtr(pndI)) != NULL) {
 	if (pucResult) {
 	  pucResult = xmlStrcat(pucResult,BAD_CAST"|");
 	  pucResult = xmlStrcat(pucResult,pucT);

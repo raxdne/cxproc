@@ -43,7 +43,7 @@ REQ: use environment variable `LANG` for localization of calendar, articles etc 
 
 DONE: cleanup use of cxpXslParamProcess(), params required? (script, XSL)
 
-TODO: cleanup AJAX code (not required on server side)
+DONE: cleanup AJAX code (not required on server side)
 
 ## Security
 
@@ -176,6 +176,10 @@ REQ: add a default XSL reference `pie2html.xsl` to DOM ?
 REQ: add meta element to every block element
 
 REQ: define regexp for tags as node attribute `<pie tags="(ABC|XYZ)">` or  `<import tags="(ABC|XYZ)">`
+
+BUG: Tag recognition fails (end of local regexp)
+
+- regexp error handling?? ✔
 
 #### pie_timezone
 
