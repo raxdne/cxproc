@@ -294,13 +294,13 @@ cxpCtxtCliParse(cxpContextPtr pccArg)
 
     if ((pucLevelDirVerbosity = cxpCtxtEnvGetValueByName(pccArg,BAD_CAST "CXP_DIR_VERBOSITY")) != NULL
 	&& (xmlStrEqual(pucLevelDirVerbosity, BAD_CAST "1")
+	    || xmlStrEqual(pucLevelDirVerbosity, BAD_CAST "2")
 	    || xmlStrEqual(pucLevelDirVerbosity, BAD_CAST "3")
-	    || xmlStrEqual(pucLevelDirVerbosity, BAD_CAST "4")
 	    || xmlStrEqual(pucLevelDirVerbosity, BAD_CAST "5"))) {
       /* OK */
     }
     else {
-      pucLevelDirVerbosity = xmlStrdup(BAD_CAST "3");
+      pucLevelDirVerbosity = xmlStrdup(BAD_CAST "4");
     }
 
     /*! build internal DOM

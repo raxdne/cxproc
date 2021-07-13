@@ -42,7 +42,7 @@
 #define UTF8_UMLAUT "\xC3\xA4" "\xC3\x84" "\xC3\xB6" "\xC3\x96" "\xC3\xBC" "\xC3\x9C" "\xC3\x9F"
 
 /* core regexp for hashtags, can be extended by a XML processing instruction NAME_PIE_PI_TAG */
-#define RE_HASHTAG "[#@][A-Za-z0-9_\-" UTF8_UMLAUT "]+"
+#define RE_HASHTAG "[#@][A-Za-z0-9_\\-" UTF8_UMLAUT "]+"
 
 
 static xmlNodePtr
@@ -499,7 +499,9 @@ GetBlockTagRegExpStr(xmlNodePtr pndArg, xmlChar *pucArg, BOOL_T fArgRecursion)
     for (pndI = pndArg->children; pndI != NULL; pndI = pndI->next) {
       if (pndI->type == XML_PI_NODE && xmlStrEqual(pndI->name, NAME_PIE_PI_TAG) && (pucT = domNodeGetContentPtr(pndI)) != NULL) {
 	if (pucResult) {
-	  pucResult = xmlStrcat(pucResult,BAD_CAST"|");
+	  if (pucT[0] != (xmlChar)'|') {
+	    pucResult = xmlStrcat(pucResult,BAD_CAST"|");
+	  }
 	  pucResult = xmlStrcat(pucResult,pucT);
 	}
 	else {
