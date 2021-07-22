@@ -379,10 +379,12 @@ RecognizeHashtags(xmlNodePtr pndArg, pcre2_code* preArgHashTag, pcre2_code* preA
     }
   }
   else if (IS_NODE_PIE_PIE(pndArg) || IS_NODE_PIE_BLOCK(pndArg)) {
+    xmlChar* pucTT = NULL;
     xmlChar* pucRegExpTag = NULL;
     pcre2_code* preBlock = NULL;
 
-    if ((pucRegExpTag = GetBlockTagRegExpStr(pndArg, NULL, FALSE)) != NULL) {
+    if ((pucRegExpTag = GetBlockTagRegExpStr(pndArg, NULL, FALSE)) != NULL
+	&& (pucTT = StringDecodeNumericCharsNew(pucRegExpTag)) != NULL) {
       /* there is a local regexp string for tags */
 
       /*!\todo avoid multiple recursion if preArgBlockTag == NULL */
@@ -392,7 +394,7 @@ RecognizeHashtags(xmlNodePtr pndArg, pcre2_code* preArgHashTag, pcre2_code* preA
       PrintFormatLog(2, "Initialize tag regexp '%s' for current block", pucRegExpTag);
       
       preBlock = pcre2_compile(
-	(PCRE2_SPTR8)pucRegExpTag, /* the pattern */
+	(PCRE2_SPTR8)pucTT, /* the pattern */
 	PCRE2_ZERO_TERMINATED, /* indicates pattern is zero-terminated */
 	PCRE2_UTF|PCRE2_CASELESS,        /* default options */
 	&errornumber,          /* for error number */
@@ -405,6 +407,8 @@ RecognizeHashtags(xmlNodePtr pndArg, pcre2_code* preArgHashTag, pcre2_code* preA
 	pcre2_get_error_message(errornumber, buffer, sizeof(buffer));
 	PrintFormatLog(1,"PCRE2 compilation failed at offset %d: %s", (int)erroroffset, buffer);
       }
+      
+      xmlFree(pucTT);
     }
 
     for (pndChild = pndArg->children; fResult && pndChild != NULL; pndChild = pndChild->next) {

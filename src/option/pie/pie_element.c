@@ -386,9 +386,9 @@ pieElementWeight(pieTextElementPtr ppeArg)
 
     for ( ppeArg->iWeight = 0; pucT[i] == (xmlChar)'+'; ppeArg->iWeight++, i--) ;
 
-    if (ppeArg->iWeight > 0 && pucT[i] == (xmlChar)' ') {
+    if (ppeArg->iWeight > 1) {
       for ( ; i > 0 && pucT[i-1] == (xmlChar)' '; i--) ;
-      pucT[i] = (xmlChar)'\0'; 	/* cut all trailing spaces */
+      pucT[i+1] = (xmlChar)'\0'; 	/* cut all trailing spaces */
     }
     else {
       ppeArg->iWeight = 0; 	/* because of missing spaces to content */
