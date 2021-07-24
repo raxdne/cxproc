@@ -56,8 +56,9 @@ typedef struct {
   index_t iBegin;		/*!< */
   xmlChar *pucContent;		/*!< pointer to begin of element content string */
   index_t iDepthHidden;		/*!< hidden level */
+  BOOL_T fDone;			/*!< done flag */
   BOOL_T fValid;		/*!< marker flag */
-  BOOL_T fEnum;		/*!<  flag */
+  BOOL_T fEnum;			/*!<  flag */
   index_t iDepth;		/*!< */
   index_t iLength;
   index_t iWeight;

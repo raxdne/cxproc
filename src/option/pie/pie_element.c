@@ -41,6 +41,9 @@
 #define IS_CONTACT_CHAR_START(C) (C==(xmlChar)'|')
 #define IS_CONTACT_CHAR_SEP(C)   (C==(xmlChar)' ' || C==(xmlChar)',' || C==(xmlChar)';' || C==(xmlChar)'\t')
 
+/* multibyte characters */
+#define UTF8_CANCEL (BAD_CAST "\xe2\x9c\x98")
+#define UTF8_DONE (BAD_CAST "\xe2\x9c\x94")
 
 static xmlChar *
 DuplicateNextLine(char *pchArg, index_t *piArg);
@@ -116,6 +119,7 @@ pieElementReset(pieTextElementPtr ppeArg)
     ppeArg->iWeight = 0;
     ppeArg->iDepth = 0;
     ppeArg->iDepthHidden = 0;
+    ppeArg->fDone = FALSE;
     ppeArg->fEnum = FALSE;
     ppeArg->fValid = TRUE;
     ppeArg->eType = undefined;	     /* default: no special mode */
@@ -1477,18 +1481,24 @@ pieElementParse(pieTextElementPtr ppeArg)
 
     while (isspace(*pucA)) pucA++; /* skip leading spaces */
 
-    if (*pucA== (xmlChar)';') {
-      if (pieElementGetMode(ppeArg) == RMODE_TABLE) {
-	/* dont use ';' as "hidden" in CSV mode */
-      }
-      else {
-	for (; *pucA== (xmlChar)';'; pucA++) {
-	  ppeArg->iDepthHidden++;
-	}
-	while (isspace(*pucA)) pucA++; /* skip following spaces */
-      }
+    if (pieElementGetMode(ppeArg) == RMODE_TABLE) {
+      /* dont use ';' as "hidden" in CSV mode */
     }
-
+    else if (*pucA== (xmlChar)';') {
+      for (; *pucA== (xmlChar)';'; pucA++) {
+	ppeArg->iDepthHidden++;
+      }
+      while (isspace(*pucA)) pucA++; /* skip following spaces */
+    }
+#ifdef EXPERIMENTAL
+    else if (xmlStrstr(pucA, UTF8_CANCEL)) {
+      ppeArg->iDepthHidden++;
+    }
+    else if (xmlStrstr(pucA, UTF8_DONE)) {
+      ppeArg->fDone = TRUE;
+    }
+#endif
+    
     switch (*pucA) {
     case '#':
       if (StringBeginsWith((char *)pucA, "#import")) { /* starts with import instruction */
@@ -1755,14 +1765,8 @@ pieElementToDOM(pieTextElementPtr ppeT)
 	  xmlNodePtr pndH = NULL;
 
 	  pndH = xmlNewNode(NULL, NAME_PIE_HEADER);
-	  if (ppeT->iWeight > 1) {
-	    xmlSetProp(pndResult, BAD_CAST"impact", BAD_CAST((ppeT->iWeight > 2) ? "1" : "2"));
-	  }
 	  xmlAddChild(pndH, xmlNewText(pucC));
 	  xmlAddChild(pndResult, pndH);
-	  if (ppeT->iDepthHidden > 0) {
-	    xmlSetProp(pndH, BAD_CAST "hidden", BAD_CAST"1");
-	  }
 	}
       }
       else {
@@ -1829,17 +1833,25 @@ pieElementToDOM(pieTextElementPtr ppeT)
 	else {
 	  //pndResult = xmlNewPI(BAD_CAST"error", BAD_CAST"encoding");
 	}
+      }
 
-	if (pndResult != NULL && ppeT->iDepthHidden > 0) {
+      if (pndResult) {
+#ifdef EXPERIMENTAL
+	if (ppeT->fDone) {
+	  xmlSetProp(pndResult, BAD_CAST "state", BAD_CAST"done");
+	}
+#endif
+	
+	if (ppeT->iDepthHidden > 0) {
 	  xmlChar mpucHidden[BUFFER_LENGTH];
 
 	  xmlStrPrintf(mpucHidden, BUFFER_LENGTH, "%i", ppeT->iDepthHidden);
 	  xmlSetProp(pndResult, BAD_CAST "hidden", mpucHidden);
 	}
-      }
 
-      if (ppeT->iWeight > 1) {
-	xmlSetProp(pndResult, BAD_CAST"impact", BAD_CAST((ppeT->iWeight > 2) ? "1" : "2"));
+	if (ppeT->iWeight > 1) {
+	  xmlSetProp(pndResult, BAD_CAST"impact", BAD_CAST((ppeT->iWeight > 2) ? "1" : "2"));
+	}
       }
     }
     /*\todo AddChildLogNew(pndHeader,pucC); */
