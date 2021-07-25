@@ -540,7 +540,7 @@ GetParentElement(pieTextElementPtr ppeArg, xmlNodePtr pndArgParent)
 /*! Append the parsed plain text to the given pndArgTop
 
 \param pndArgTop parent node to append import result nodes OR NULL if pndArgImport must be replaced by result
-\param pucArg
+\param pucArg pointer to an UTF-8 encoded buffer (not XML-conformant!)
 
 \return pointer to result node "block" or NULL in case of errors
 */
@@ -1445,7 +1445,8 @@ SplitTupelToLinkNodesMd(const xmlChar *pucArg)
 	}
 	else {
 	  PrintFormatLog(3, "URL display text '%s' (%i..%i) in '%s'", pucUrlDisplay, ovector[i*2], ovector[i*2+1], pucArg);
-	  pndLink = xmlNewChild(pndResult, NULL, NAME_PIE_LINK, pucUrlDisplay);
+	  pndLink = xmlNewChild(pndResult, NULL, NAME_PIE_LINK, NULL);
+	  xmlAddChild(pndLink, xmlNewText(pucUrlDisplay));
 	}
 	xmlFree(pucUrlDisplay);
       }

@@ -291,7 +291,7 @@ pieTextBlocksTest(void)
     else if ((pndPie = SplitTupelToLinkNodesMd(BAD_CAST"AAAA ||b| abc")) != NULL) {
       printf("Error 3 splitting URL\n");
     }
-    else if ((pndPie = SplitTupelToLinkNodesMd(BAD_CAST "pre URL [ABC](http://www.abc.de) and ![ABC](abc.png) post URL")) == NULL) {
+    else if ((pndPie = SplitTupelToLinkNodesMd(BAD_CAST "pre URL [ABC &amp; DEF](http://www.abc.de) and ![ABC > DEF](abc.png) post URL")) == NULL) {
       printf("Error 4 splitting URL\n");
     }
     else if (pndPie->children == NULL
