@@ -925,16 +925,16 @@ pieTextBlocksTest(void)
     i++;
     printf("TEST %i in '%s:%i': StringDecodeCharMarkupNew() = ", i, __FILE__, __LINE__);
 
-    if ((pucT = StringDecodeCharMarkupNew(NULL, 0)) != NULL) {
+    if ((pucT = StringDecodeCharMarkupNew(NULL, (lang_t) 0)) != NULL) {
       printf("Error 1 StringDecodeCharMarkupNew()\n");
     }
-    else if ((pucT = StringDecodeCharMarkupNew("", 0)) != NULL) {
+    else if ((pucT = StringDecodeCharMarkupNew(BAD_CAST"", (lang_t) 0)) != NULL) {
       printf("Error 1b StringDecodeCharMarkupNew()\n");
     }
-    else if ((pucT = StringDecodeCharMarkupNew(BAD_CAST"<=> A=&gt; B<= C <-> D-&gt;E<- F --- -- G &gt;&gt;H<< I >J<", 0)) == NULL) {
+    else if ((pucT = StringDecodeCharMarkupNew(BAD_CAST"<=> A=&gt; B<= C <-> D-&gt;E<- F --- -- G &gt;&gt;H<< I >J<", (lang_t) 0)) == NULL) {
       printf("Error 2 StringDecodeCharMarkupNew()\n");
     }
-    else if ((pucTT = StringDecodeCharMarkupNew(BAD_CAST"&lt;=> A=> B<= C &lt;-> D->E<- F --- -- G >>H&lt;&lt; I >J<", 0)) == NULL) {
+    else if ((pucTT = StringDecodeCharMarkupNew(BAD_CAST"&lt;=> A=> B<= C &lt;-> D->E<- F --- -- G >>H&lt;&lt; I >J<", (lang_t) 0)) == NULL) {
       printf("Error 3 StringDecodeCharMarkupNew()\n");
     }
     else if (xmlStrEqual(pucT, pucTT) == FALSE) {

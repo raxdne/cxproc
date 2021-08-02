@@ -93,7 +93,7 @@ pcreTest(void)
     pcre2_code* preT = NULL;
     pcre2_match_data *match_data = NULL;
     PCRE2_UCHAR buffer[256];
-    xmlChar* pucT = "A1B2C3D4E5F";
+    xmlChar* pucT = BAD_CAST "A1B2C3D4E5F";
 
     i++;
     printf("TEST %i in '%s:%i': libpcre2() = ", i, __FILE__, __LINE__);

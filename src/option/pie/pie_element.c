@@ -41,10 +41,6 @@
 #define IS_CONTACT_CHAR_START(C) (C==(xmlChar)'|')
 #define IS_CONTACT_CHAR_SEP(C)   (C==(xmlChar)' ' || C==(xmlChar)',' || C==(xmlChar)';' || C==(xmlChar)'\t')
 
-/* multibyte characters */
-#define UTF8_CANCEL (BAD_CAST "\xe2\x9c\x98")
-#define UTF8_DONE (BAD_CAST "\xe2\x9c\x94")
-
 static xmlChar *
 DuplicateNextLine(char *pchArg, index_t *piArg);
 
@@ -1491,10 +1487,10 @@ pieElementParse(pieTextElementPtr ppeArg)
       while (isspace(*pucA)) pucA++; /* skip following spaces */
     }
 #ifdef EXPERIMENTAL
-    else if (xmlStrstr(pucA, UTF8_CANCEL)) {
+    else if (xmlStrstr(pucA, BAD_CAST STR_PIE_CANCEL)) {
       ppeArg->iDepthHidden++;
     }
-    else if (xmlStrstr(pucA, UTF8_DONE)) {
+    else if (xmlStrstr(pucA, BAD_CAST STR_PIE_OK)) {
       ppeArg->fDone = TRUE;
     }
 #endif
@@ -1729,7 +1725,7 @@ pieElementToDOM(pieTextElementPtr ppeT)
 	      }
 	      xmlFree(pucT);
 
-	      if ((pucT = xmlStrchr(BAD_CAST &pucC[i + 1], '=')) != NULL) {
+	      if ((pucT = BAD_CAST xmlStrchr(BAD_CAST &pucC[i + 1], (xmlChar)'=')) != NULL) {
 		if ((pucAttrName = xmlStrndup(BAD_CAST &pucC[i + 1], pucT - &pucC[i + 1])) != NULL) {
 		  StringRemovePairQuotes(pucAttrName);
 		}

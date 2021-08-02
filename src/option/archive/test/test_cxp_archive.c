@@ -184,7 +184,7 @@ cxpArcTest(cxpContextPtr pccArg)
     xmlSetProp(pndT, BAD_CAST"name", BAD_CAST"abc.xml");
     pndT = xmlNewChild(pndTestDir, NULL, NAME_FILE, NULL);
     xmlSetProp(pndT, BAD_CAST"name", BAD_CAST"def.txt");
-    domPutNodeString(stderr, BAD_CAST "dirProcessFileNode(): ", pndTestDir);
+    //domPutNodeString(stderr, BAD_CAST "dirProcessFileNode(): ", pndTestDir);
 
     if ((prnArchive = resNodeDirNew(BAD_CAST TEMPPREFIX "ddd.zip")) == NULL) {
       printf("Error resNodeDirNew()\n");
