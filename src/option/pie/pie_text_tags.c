@@ -423,7 +423,7 @@ RecognizeHashtags(xmlNodePtr pndArg, pcre2_code* preArgHashTag, pcre2_code* preA
       xmlFree(pucRegExpTag);
     }
   }
-  else if (pndArg == NULL || IS_NODE_META(pndArg) || IS_NODE_PIE_PRE(pndArg) || IS_NODE_PIE_TT(pndArg) || IS_NODE_PIE_DATE(pndArg)) {
+  else if (pndArg == NULL || IS_NODE_META(pndArg) || IS_NODE_PIE_PRE(pndArg) || IS_NODE_PIE_TT(pndArg) || IS_NODE_PIE_DATE(pndArg) || IS_NODE_PIE_LINK(pndArg)) {
     /* skip */
   }
   else if (IS_NODE_PIE_ETAG(pndArg) || IS_NODE_PIE_HTAG(pndArg) || IS_NODE_PIE_TTAG(pndArg)) {
