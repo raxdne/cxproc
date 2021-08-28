@@ -380,21 +380,24 @@ pieElementWeight(pieTextElementPtr ppeArg)
 
   if (ppeArg != NULL && STR_IS_NOT_EMPTY(ppeArg->pucContent)) {
     int i;
+    int iCountImpact;
     xmlChar *pucT;
 
-    for (pucT = ppeArg->pucContent, i = xmlStrlen(pucT)-1; pucT[i] == (xmlChar)' '; i--) ;
+    for (pucT = ppeArg->pucContent, i = xmlStrlen(pucT)-1; isspace(pucT[i]); i--) ;
 
-    for ( ppeArg->iWeight = 0; pucT[i] == (xmlChar)'+'; ppeArg->iWeight++, i--) ;
+    for (iCountImpact = 0; isimpact(pucT[i]); iCountImpact++, i--) ;
 
-    if (ppeArg->iWeight > 1) {
-      for ( ; i > 0 && pucT[i-1] == (xmlChar)' '; i--) ;
-      pucT[i+1] = (xmlChar)'\0'; 	/* cut all trailing spaces */
+    if (iCountImpact > 1) {
+      int j;
+      
+      for ( j=i; j>0 && isspace(pucT[j]); j--) ;
+      
+      if (i > j) {
+	/* there are spaces between trailing impact chars and element content */
+	pucT[j+1] = (xmlChar)'\0'; 	/* cut all trailing spaces */
+	iResult = ppeArg->iWeight = iCountImpact;
+      }
     }
-    else {
-      ppeArg->iWeight = 0; 	/* because of missing spaces to content */
-    }
-    
-    iResult = ppeArg->iWeight;
   }
   return iResult;
 } /* end of pieElementWeight() */

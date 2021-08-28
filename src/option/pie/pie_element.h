@@ -23,6 +23,8 @@
 #include <pcre2.h>
 #endif
 
+#define isimpact(C) (C == (xmlChar)'+')
+
 typedef enum {
   RMODE_MD,     /*! markdown-formatted content */
   RMODE_PAR,    /*! paragraph content */
