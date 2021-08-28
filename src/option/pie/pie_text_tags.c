@@ -175,7 +175,6 @@ AddTagNodeNew(xmlNodePtr pndArg, const xmlChar* pucArg)
 
   if (pndArg != NULL && STR_IS_NOT_EMPTY(pucArg)) {
     xmlNodePtr pndT;
-    //xmlChar* pucT;
 
     /* find an existing htag node with same content */
     for (pndT = pndArg->children; pndT; pndT = pndT->next) {
@@ -191,16 +190,6 @@ AddTagNodeNew(xmlNodePtr pndArg, const xmlChar* pucArg)
     else {
       domIncrProp(pndT, BAD_CAST"count", 1);
     }
-
-#if 0
-    /*! check if there are German Umlaute in pucArg
-     */
-    if ((pucT = StringReplaceUmlauteNew(pucArg)) != NULL) {
-      pndResult = AddTagNodeNew(pndArg, pucT);
-      xmlFree(pucT);
-    }
-#endif
-    
   }
   return pndResult;
 } /* End of AddTagNodeNew() */
@@ -543,7 +532,8 @@ InheritHashtags(xmlDocPtr pdocArg)
 	if (nodeset->nodeNr > 0) {
 	  for (i=0; i < nodeset->nodeNr; i++) {
 	    xmlNodePtr pndT;
-#if 0
+	    
+#ifdef EXPERIMENTAL
 	    if (domGetPropValuePtr(nodeset->nodeTab[i], BAD_CAST"impact") == NULL) {
 	      /* try to find this attribute at a ancestor node */
 	      for (pndT=nodeset->nodeTab[i]->parent; pndT; pndT=pndT->parent) {
@@ -556,12 +546,31 @@ InheritHashtags(xmlDocPtr pdocArg)
 	      }
 	    }
 #endif
+	    
 	    if (IS_NODE_PIE_HEADER(nodeset->nodeTab[i]) || IS_NODE_PIE_LINK(nodeset->nodeTab[i]) || IS_NODE_PIE_TH(nodeset->nodeTab[i]) || IS_NODE_PIE_TD(nodeset->nodeTab[i])) {
+
+	      /* append tags to parent node */
 	      for (pndT=nodeset->nodeTab[i]->children; pndT; pndT=pndT->next) {
 		if ((IS_NODE_PIE_HTAG(pndT) || IS_NODE_PIE_ETAG(pndT)) && pndT->children != NULL) {
 		  AddTagNodeNew(nodeset->nodeTab[i]->parent, pndT->children->content);
 		}
 	      }
+
+	      if (IS_NODE_PIE_HEADER(nodeset->nodeTab[i]) && IS_NODE_PIE_SECTION(nodeset->nodeTab[i]->parent)) {
+		/* append all tags of this 'section/h' to all 'task' sibling nodes */
+		for (pndT=nodeset->nodeTab[i]->children; pndT; pndT=pndT->next) {
+		  if ((IS_NODE_PIE_HTAG(pndT) || IS_NODE_PIE_ETAG(pndT)) && pndT->children != NULL) {
+		    xmlNodePtr pndTT;
+
+		    for (pndTT=nodeset->nodeTab[i]->parent->children; pndTT; pndTT=pndTT->next) {
+		      if (IS_NODE_PIE_TASK(pndTT)) {
+			AddTagNodeNew(pndTT, pndT->children->content);
+		      }
+		    }
+		  }
+		}
+	      }
+
 	    }
 	    else if (IS_NODE_PIE_PAR(nodeset->nodeTab[i])) {
 	      if (IS_NODE_PIE_LIST(nodeset->nodeTab[i]->parent)) {
