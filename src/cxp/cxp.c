@@ -40,6 +40,10 @@
 #include <zlib.h>
 #endif
 
+#ifdef HAVE_LIBCURL
+#include <curl.h>
+#endif
+
 #ifdef HAVE_PCRE2
 #include <pcre2.h>
 #endif
@@ -3299,6 +3303,16 @@ cxpProcessInfoNode(xmlNodePtr pndInfo, cxpContextPtr pccArg)
 
 #else
     xmlSetProp(nodeOption,BAD_CAST "select", BAD_CAST "no");
+#endif
+
+    nodeOption = xmlNewChild(nodeProgram, NULL, BAD_CAST"option", NULL);
+    xmlSetProp(nodeOption, BAD_CAST "name", BAD_CAST"libcurl");
+    xmlSetProp(nodeOption, BAD_CAST "ns", BAD_CAST"https://curl.se/");
+#ifdef HAVE_LIBCURL
+    xmlSetProp(nodeOption, BAD_CAST "select", BAD_CAST "yes");
+    xmlSetProp(nodeOption, BAD_CAST "version", BAD_CAST curl_version());
+#else
+    xmlSetProp(nodeOption, BAD_CAST "select", BAD_CAST "no");
 #endif
 
     nodeOption = xmlNewChild(nodeProgram, NULL, BAD_CAST"option", NULL);

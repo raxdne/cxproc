@@ -918,6 +918,7 @@ resNodeReadContent(resNodePtr prnArg, int iArgMax)
 
 	res = curl_easy_getinfo((CURL *) resNodeGetHandleIO(prnArg),CURLINFO_CONTENT_TYPE,&pcType);
 	if (res == CURLE_OK && STR_IS_NOT_EMPTY(pcType)) {
+	  PrintFormatLog(3, "URL Content Type is '%s'", pcType);
 	  prnArg->eMimeType = resMimeGetType(pcType);
 	}
       }

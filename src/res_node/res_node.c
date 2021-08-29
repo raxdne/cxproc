@@ -2698,6 +2698,7 @@ resNodeContentToDOM(xmlNodePtr pndArg, resNodePtr prnArg)
 #endif
 
     case MIME_APPLICATION_CXP_XML:
+    case MIME_APPLICATION_RDF_XML:
     case MIME_APPLICATION_MM_XML:
     case MIME_APPLICATION_XMMAP_XML:
 #ifdef HAVE_ZLIB
