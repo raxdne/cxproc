@@ -44,9 +44,6 @@ main(int argc, char *argv[], char *envp[])
 {
   int e = EXIT_FAILURE;
   int i;
-  xmlChar *pucT;
-  xmlDocPtr pdocT = NULL;
-  xmlNodePtr pndT = NULL;
 
   SetLogLevel(1);
 
@@ -113,33 +110,29 @@ main(int argc, char *argv[], char *envp[])
     }
 
     if (prnNew) {
+      xmlDocPtr pdocResult;
       resNodePtr prnT;
 
-      /*!\todo append separate result DOM to a common result DOM? */
+      /*! append separate result DOMs to result DOM */
       
-      for (prnT=prnNew; prnT; prnT = resNodeGetNext(prnT)) {
-	xmlNodePtr pndT;
+      pdocResult = xmlNewDoc(BAD_CAST "1.0");
+      if (pdocResult) {
+	xmlNodePtr pndRootNew;
+      
+	pndRootNew = xmlNewNode(NULL, BAD_CAST"dir");
+	if (pndRootNew) {
+	  xmlDocSetRootElement(pdocResult,pndRootNew);
+	
+	  for (prnT=prnNew; prnT; prnT = resNodeGetNext(prnT)) {
+	    xmlNodePtr pndT;
 
-	if (resNodeReadStatus(prnT) && (pndT = resNodeToDOM(prnT, RN_INFO_MAX)) != NULL) {
-	  xmlBufferPtr buffer;
-
-	  buffer = xmlBufferCreate();
-	  if (buffer) {
-	    int iLength = 0;
-
-	    iLength = xmlNodeDump(buffer, pndT->doc, pndT, 0, 1);
-	    if (iLength > 0) {
-	      xmlChar* pucT;
-
-	      pucT = xmlBufferDetach(buffer);
-	      fputs((const char*)pucT, stdout);
-	      xmlFree(pucT);
-	      e = EXIT_SUCCESS;
+	    if (resNodeReadStatus(prnT) && (pndT = resNodeToDOM(prnT, RN_INFO_MAX)) != NULL) {
+	      xmlAddChild(pndRootNew,pndT);
 	    }
-	    xmlBufferFree(buffer);
 	  }
-	  xmlFreeNode(pndT);
 	}
+	xmlSaveFormatFileEnc("-", pdocResult, "UTF-8", 1);
+	xmlFreeDoc(pdocResult);
       }
       resNodeListFree(prnNew);
     }
