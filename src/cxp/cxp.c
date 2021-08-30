@@ -94,7 +94,7 @@
 #include <image/image.h>
 #endif
 #ifdef HAVE_JSON
-#include <json/json.h>
+#include <json/cxp_json.h>
 #endif
 #ifdef HAVE_JS
 #include <script/script.h>

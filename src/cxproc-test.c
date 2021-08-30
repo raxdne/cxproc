@@ -84,7 +84,7 @@
 #include <script/script.h>
 #endif
 #ifdef HAVE_JSON
-#include <json/json.h>
+#include <json/cxp_json.h>
 #endif
 #ifdef HAVE_LIBARCHIVE
 #include <archive/cxp_archive.h>
@@ -354,7 +354,8 @@ main(int argc, char** argv, char** envp)
 #endif
 
 #ifdef HAVE_JSON
-	iErrorCode += jsonTest(pccTest);
+	iErrorCode += jsonTest();
+	iErrorCode += jsonCxpTest(pccTest);
 #endif
 
 #ifdef HAVE_JS

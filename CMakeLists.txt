@@ -378,8 +378,10 @@ IF (JSMN_INCLUDE_DIR)
   MARK_AS_ADVANCED(CXPROC_JSON)
 
   IF (CXPROC_JSON)
-    SET(CXPROC_HEADERS ${CXPROC_HEADERS} ${CXPROC_SRC_DIR}/option/json/json.h)
-    SET(CXPROC_SOURCES ${CXPROC_SOURCES} ${CXPROC_SRC_DIR}/option/json/json.c)
+    SET(CXPROC_HEADERS ${CXPROC_HEADERS} ${CXPROC_SRC_DIR}/option/json/cxp_json.h ${CXPROC_SRC_DIR}/option/json/json.h)
+    SET(CXPROC_SOURCES ${CXPROC_SOURCES} ${CXPROC_SRC_DIR}/option/json/cxp_json.c ${CXPROC_SRC_DIR}/option/json/json.c)
+    SET(FILEX_HEADERS ${FILEX_HEADERS} ${CXPROC_SRC_DIR}/option/json/json.h)
+    SET(FILEX_SOURCES ${FILEX_SOURCES} ${CXPROC_SRC_DIR}/option/json/json.c)
   ENDIF (CXPROC_JSON)
 ENDIF ()
 
@@ -744,6 +746,7 @@ ADD_EXECUTABLE(test-cgi
 #
 
 IF (CXPROC_JSON)
+  target_compile_definitions(filex       PUBLIC HAVE_JSON)
   target_compile_definitions(cxproc      PUBLIC HAVE_JSON)
   target_compile_definitions(cxproc-cgi  PUBLIC HAVE_JSON)
   target_compile_definitions(cxproc-test PUBLIC HAVE_JSON)

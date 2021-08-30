@@ -50,6 +50,7 @@ Development environment
 ## Git
 
     git clone https://github.com/raxdne/cxproc.git
+    git submodule update --remote
 
 ## CMake
 

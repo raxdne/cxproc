@@ -43,6 +43,9 @@
 
 #include "dom.h"
 
+#ifdef HAVE_JSON
+#include <json/json.h>
+#endif
 #ifdef HAVE_LIBSQLITE3
 #include <database/database.h>
 #endif
