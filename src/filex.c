@@ -126,19 +126,46 @@ main(int argc, char *argv[], char *envp[])
 	  for (prnT=prnNew; prnT; prnT = resNodeGetNext(prnT)) {
 	    xmlNodePtr pndT;
 
-	    if (resNodeReadStatus(prnT) && (pndT = resNodeToDOM(prnT, RN_INFO_MAX)) != NULL) {
-	      xmlAddChild(pndRootNew,pndT);
+	    if (resNodeUpdate(prnT, RN_INFO_META | RN_INFO_STRUCT, NULL, NULL)) {
+
+	      if (resNodeIsArchive(prnT)) {
+		resNodePtr prnTT;
+
+		prnTT = resNodeGetLastDescendant(prnT);
+		if (resNodeIsDirInArchive(prnTT)) {
+		  if (resNodeUpdate(prnTT, RN_INFO_META | RN_INFO_STRUCT, NULL, NULL)) {
+		    xmlAddChild(pndRootNew, resNodeToDOM(prnTT, RN_INFO_META | RN_INFO_STRUCT));
+		  }
+		}
+		else if (resNodeIsFileInArchive(prnTT)) {
+		  if (resNodeIsArchive(prnTT)) {
+		    if (resNodeUpdate(prnTT, RN_INFO_META | RN_INFO_STRUCT, NULL, NULL)) {
+		      xmlAddChild(pndRootNew, resNodeToDOM(prnTT, RN_INFO_META | RN_INFO_STRUCT));
+		    }
+		  }
+		  else {
+		    xmlAddChild(pndRootNew, resNodeToDOM(prnTT, RN_INFO_MAX));
+		  }
+		}
+		else {
+		  xmlAddChild(pndRootNew, resNodeToDOM(prnT, RN_INFO_META | RN_INFO_STRUCT));
+		}
+	      }
+	      else if (resNodeIsDir(prnT)) {
+		xmlAddChild(pndRootNew, resNodeToDOM(prnT, RN_INFO_META | RN_INFO_STRUCT));
+	      }
+	      else if (resNodeIsFile(prnT)) {
+		xmlAddChild(pndRootNew, resNodeToDOM(prnT, RN_INFO_MAX));
+	      }
 	    }
 	  }
+	  e = EXIT_SUCCESS;
 	}
 	xmlSaveFormatFileEnc("-", pdocResult, "UTF-8", 1);
 	xmlFreeDoc(pdocResult);
       }
       resNodeListFree(prnNew);
     }
-  }
-  else {
-    e = EXIT_SUCCESS;
   }
 
   exit(e);

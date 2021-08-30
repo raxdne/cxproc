@@ -301,6 +301,8 @@ arcAppendEntries(resNodePtr prnArgArchive, const pcre2_code* re_match, BOOL_T fA
 
   /*!\bug test permission to this directory first */
 
+  /*!\todo handle archive in archive recursively */
+
   if (resNodeReadStatus(prnArgArchive) && resNodeIsArchive(prnArgArchive) && resNodeOpen(prnArgArchive, "ra")) {
     PrintFormatLog(4, "Begin of '%s'", resNodeGetNameNormalized(prnArgArchive));
     while (fResult == FALSE) {

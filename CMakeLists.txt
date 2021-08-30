@@ -1662,6 +1662,8 @@ add_test(NAME filex-empty
   WORKING_DIRECTORY ${CXPROC_PREFIX}
   COMMAND ${CXPROC_PREFIX}/bin/filex)
 
+set_tests_properties(filex-empty PROPERTIES WILL_FAIL TRUE)
+
 add_test(NAME filex-dir
   WORKING_DIRECTORY ${CXPROC_PREFIX}
   COMMAND ${CXPROC_PREFIX}/bin/filex ${CXPROC_TEST_DIR})
