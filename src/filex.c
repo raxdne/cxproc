@@ -44,9 +44,6 @@ main(int argc, char *argv[], char *envp[])
 {
   int e = EXIT_FAILURE;
   int i;
-  xmlChar *pucT;
-  xmlDocPtr pdocT = NULL;
-  xmlNodePtr pndT = NULL;
 
   SetLogLevel(1);
 
@@ -113,39 +110,62 @@ main(int argc, char *argv[], char *envp[])
     }
 
     if (prnNew) {
+      xmlDocPtr pdocResult;
       resNodePtr prnT;
 
-      /*!\todo append separate result DOM to a common result DOM? */
+      /*! append separate result DOMs to result DOM */
       
-      for (prnT=prnNew; prnT; prnT = resNodeGetNext(prnT)) {
-	xmlNodePtr pndT;
+      pdocResult = xmlNewDoc(BAD_CAST "1.0");
+      if (pdocResult) {
+	xmlNodePtr pndRootNew;
+      
+	pndRootNew = xmlNewNode(NULL, BAD_CAST"dir");
+	if (pndRootNew) {
+	  xmlDocSetRootElement(pdocResult,pndRootNew);
+	
+	  for (prnT=prnNew; prnT; prnT = resNodeGetNext(prnT)) {
+	    xmlNodePtr pndT;
 
-	if (resNodeReadStatus(prnT) && (pndT = resNodeToDOM(prnT, RN_INFO_MAX)) != NULL) {
-	  xmlBufferPtr buffer;
+	    if (resNodeUpdate(prnT, RN_INFO_META | RN_INFO_STRUCT, NULL, NULL)) {
 
-	  buffer = xmlBufferCreate();
-	  if (buffer) {
-	    int iLength = 0;
+	      if (resNodeIsArchive(prnT)) {
+		resNodePtr prnTT;
 
-	    iLength = xmlNodeDump(buffer, pndT->doc, pndT, 0, 1);
-	    if (iLength > 0) {
-	      xmlChar* pucT;
-
-	      pucT = xmlBufferDetach(buffer);
-	      fputs((const char*)pucT, stdout);
-	      xmlFree(pucT);
-	      e = EXIT_SUCCESS;
+		prnTT = resNodeGetLastDescendant(prnT);
+		if (resNodeIsDirInArchive(prnTT)) {
+		  if (resNodeUpdate(prnTT, RN_INFO_META | RN_INFO_STRUCT, NULL, NULL)) {
+		    xmlAddChild(pndRootNew, resNodeToDOM(prnTT, RN_INFO_META | RN_INFO_STRUCT));
+		  }
+		}
+		else if (resNodeIsFileInArchive(prnTT)) {
+		  if (resNodeIsArchive(prnTT)) {
+		    if (resNodeUpdate(prnTT, RN_INFO_META | RN_INFO_STRUCT, NULL, NULL)) {
+		      xmlAddChild(pndRootNew, resNodeToDOM(prnTT, RN_INFO_META | RN_INFO_STRUCT));
+		    }
+		  }
+		  else {
+		    xmlAddChild(pndRootNew, resNodeToDOM(prnTT, RN_INFO_MAX));
+		  }
+		}
+		else {
+		  xmlAddChild(pndRootNew, resNodeToDOM(prnT, RN_INFO_META | RN_INFO_STRUCT));
+		}
+	      }
+	      else if (resNodeIsDir(prnT)) {
+		xmlAddChild(pndRootNew, resNodeToDOM(prnT, RN_INFO_META | RN_INFO_STRUCT));
+	      }
+	      else if (resNodeIsFile(prnT)) {
+		xmlAddChild(pndRootNew, resNodeToDOM(prnT, RN_INFO_MAX));
+	      }
 	    }
-	    xmlBufferFree(buffer);
 	  }
-	  xmlFreeNode(pndT);
+	  e = EXIT_SUCCESS;
 	}
+	xmlSaveFormatFileEnc("-", pdocResult, "UTF-8", 1);
+	xmlFreeDoc(pdocResult);
       }
       resNodeListFree(prnNew);
     }
-  }
-  else {
-    e = EXIT_SUCCESS;
   }
 
   exit(e);

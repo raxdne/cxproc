@@ -1283,13 +1283,13 @@ resNodeTest(void)
     else if (resNodeIsDir(prnT) == FALSE) {
       xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error 2\n");
     }
-    else if (resNodeIsRecursive(prnT)) {
+    else if (resNodeIsRecursive(prnT) == FALSE) {
       xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error 3\n");
     }
-    else if (resNodeSetRecursion(prnT,TRUE) == FALSE) {
+    else if (resNodeSetRecursion(prnT,FALSE) == TRUE) {
       xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error 4\n");
     }
-    else if (resNodeIsRecursive(prnT) == FALSE) {
+    else if (resNodeIsRecursive(prnT) == TRUE) {
       xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error 5\n");
     }
     else if (resNodeGetNameBase(prnT) == NULL) {

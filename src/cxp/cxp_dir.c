@@ -44,9 +44,6 @@
 #ifdef HAVE_RP
 #include <rp/rp.h>
 #endif
-#ifdef HAVE_JSON
-#include <json/json.h>
-#endif
 #ifdef HAVE_LIBARCHIVE
 #include <archive/archive.h>
 #endif

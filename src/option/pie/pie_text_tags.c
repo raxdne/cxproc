@@ -42,7 +42,7 @@
 #define UTF8_UMLAUT "\xC3\xA4" "\xC3\x84" "\xC3\xB6" "\xC3\x96" "\xC3\xBC" "\xC3\x9C" "\xC3\x9F"
 
 /* core regexp for hashtags, can be extended by a XML processing instruction NAME_PIE_PI_TAG */
-#define RE_HASHTAG "[#@][A-Za-z0-9_\-" UTF8_UMLAUT "]+"
+#define RE_HASHTAG "[#@][A-Za-z0-9_\\-" UTF8_UMLAUT "]+"
 
 
 static xmlNodePtr
@@ -175,7 +175,6 @@ AddTagNodeNew(xmlNodePtr pndArg, const xmlChar* pucArg)
 
   if (pndArg != NULL && STR_IS_NOT_EMPTY(pucArg)) {
     xmlNodePtr pndT;
-    //xmlChar* pucT;
 
     /* find an existing htag node with same content */
     for (pndT = pndArg->children; pndT; pndT = pndT->next) {
@@ -191,16 +190,6 @@ AddTagNodeNew(xmlNodePtr pndArg, const xmlChar* pucArg)
     else {
       domIncrProp(pndT, BAD_CAST"count", 1);
     }
-
-#if 0
-    /*! check if there are German Umlaute in pucArg
-     */
-    if ((pucT = StringReplaceUmlauteNew(pucArg)) != NULL) {
-      pndResult = AddTagNodeNew(pndArg, pucT);
-      xmlFree(pucT);
-    }
-#endif
-    
   }
   return pndResult;
 } /* End of AddTagNodeNew() */
@@ -379,10 +368,12 @@ RecognizeHashtags(xmlNodePtr pndArg, pcre2_code* preArgHashTag, pcre2_code* preA
     }
   }
   else if (IS_NODE_PIE_PIE(pndArg) || IS_NODE_PIE_BLOCK(pndArg)) {
+    xmlChar* pucTT = NULL;
     xmlChar* pucRegExpTag = NULL;
     pcre2_code* preBlock = NULL;
 
-    if ((pucRegExpTag = GetBlockTagRegExpStr(pndArg, NULL, FALSE)) != NULL) {
+    if ((pucRegExpTag = GetBlockTagRegExpStr(pndArg, NULL, FALSE)) != NULL
+	&& (pucTT = StringDecodeNumericCharsNew(pucRegExpTag)) != NULL) {
       /* there is a local regexp string for tags */
 
       /*!\todo avoid multiple recursion if preArgBlockTag == NULL */
@@ -392,7 +383,7 @@ RecognizeHashtags(xmlNodePtr pndArg, pcre2_code* preArgHashTag, pcre2_code* preA
       PrintFormatLog(2, "Initialize tag regexp '%s' for current block", pucRegExpTag);
       
       preBlock = pcre2_compile(
-	(PCRE2_SPTR8)pucRegExpTag, /* the pattern */
+	(PCRE2_SPTR8)pucTT, /* the pattern */
 	PCRE2_ZERO_TERMINATED, /* indicates pattern is zero-terminated */
 	PCRE2_UTF|PCRE2_CASELESS,        /* default options */
 	&errornumber,          /* for error number */
@@ -405,6 +396,8 @@ RecognizeHashtags(xmlNodePtr pndArg, pcre2_code* preArgHashTag, pcre2_code* preA
 	pcre2_get_error_message(errornumber, buffer, sizeof(buffer));
 	PrintFormatLog(1,"PCRE2 compilation failed at offset %d: %s", (int)erroroffset, buffer);
       }
+      
+      xmlFree(pucTT);
     }
 
     for (pndChild = pndArg->children; fResult && pndChild != NULL; pndChild = pndChild->next) {
@@ -419,7 +412,7 @@ RecognizeHashtags(xmlNodePtr pndArg, pcre2_code* preArgHashTag, pcre2_code* preA
       xmlFree(pucRegExpTag);
     }
   }
-  else if (pndArg == NULL || IS_NODE_META(pndArg) || IS_NODE_PIE_PRE(pndArg) || IS_NODE_PIE_TT(pndArg) || IS_NODE_PIE_DATE(pndArg)) {
+  else if (pndArg == NULL || IS_NODE_META(pndArg) || IS_NODE_PIE_PRE(pndArg) || IS_NODE_PIE_TT(pndArg) || IS_NODE_PIE_DATE(pndArg) || IS_NODE_PIE_LINK(pndArg)) {
     /* skip */
   }
   else if (IS_NODE_PIE_ETAG(pndArg) || IS_NODE_PIE_HTAG(pndArg) || IS_NODE_PIE_TTAG(pndArg)) {
@@ -499,7 +492,9 @@ GetBlockTagRegExpStr(xmlNodePtr pndArg, xmlChar *pucArg, BOOL_T fArgRecursion)
     for (pndI = pndArg->children; pndI != NULL; pndI = pndI->next) {
       if (pndI->type == XML_PI_NODE && xmlStrEqual(pndI->name, NAME_PIE_PI_TAG) && (pucT = domNodeGetContentPtr(pndI)) != NULL) {
 	if (pucResult) {
-	  pucResult = xmlStrcat(pucResult,BAD_CAST"|");
+	  if (pucT[0] != (xmlChar)'|') {
+	    pucResult = xmlStrcat(pucResult,BAD_CAST"|");
+	  }
 	  pucResult = xmlStrcat(pucResult,pucT);
 	}
 	else {
@@ -537,7 +532,8 @@ InheritHashtags(xmlDocPtr pdocArg)
 	if (nodeset->nodeNr > 0) {
 	  for (i=0; i < nodeset->nodeNr; i++) {
 	    xmlNodePtr pndT;
-#if 0
+	    
+#ifdef EXPERIMENTAL
 	    if (domGetPropValuePtr(nodeset->nodeTab[i], BAD_CAST"impact") == NULL) {
 	      /* try to find this attribute at a ancestor node */
 	      for (pndT=nodeset->nodeTab[i]->parent; pndT; pndT=pndT->parent) {
@@ -550,12 +546,31 @@ InheritHashtags(xmlDocPtr pdocArg)
 	      }
 	    }
 #endif
+	    
 	    if (IS_NODE_PIE_HEADER(nodeset->nodeTab[i]) || IS_NODE_PIE_LINK(nodeset->nodeTab[i]) || IS_NODE_PIE_TH(nodeset->nodeTab[i]) || IS_NODE_PIE_TD(nodeset->nodeTab[i])) {
+
+	      /* append tags to parent node */
 	      for (pndT=nodeset->nodeTab[i]->children; pndT; pndT=pndT->next) {
 		if ((IS_NODE_PIE_HTAG(pndT) || IS_NODE_PIE_ETAG(pndT)) && pndT->children != NULL) {
 		  AddTagNodeNew(nodeset->nodeTab[i]->parent, pndT->children->content);
 		}
 	      }
+
+	      if (IS_NODE_PIE_HEADER(nodeset->nodeTab[i]) && IS_NODE_PIE_SECTION(nodeset->nodeTab[i]->parent)) {
+		/* append all tags of this 'section/h' to all 'task' sibling nodes */
+		for (pndT=nodeset->nodeTab[i]->children; pndT; pndT=pndT->next) {
+		  if ((IS_NODE_PIE_HTAG(pndT) || IS_NODE_PIE_ETAG(pndT)) && pndT->children != NULL) {
+		    xmlNodePtr pndTT;
+
+		    for (pndTT=nodeset->nodeTab[i]->parent->children; pndTT; pndTT=pndTT->next) {
+		      if (IS_NODE_PIE_TASK(pndTT)) {
+			AddTagNodeNew(pndTT, pndT->children->content);
+		      }
+		    }
+		  }
+		}
+	      }
+
 	    }
 	    else if (IS_NODE_PIE_PAR(nodeset->nodeTab[i])) {
 	      if (IS_NODE_PIE_LIST(nodeset->nodeTab[i]->parent)) {

@@ -63,7 +63,7 @@
 #define RE_DATE_ISO_TIME "T[012][0-9]:*[0-5][0-9]:*[0-5][0-9]((\\+|" STR_UTF8_MINUS ")[0-9]{2}:*[0-9]{2}|Z|[A-Z]{3})"
 #define RE_DATE_MODS   "[\\,\\+\\:\\#\\.x][0-9]+"
 #define RE_DATE_TIME   "[\t ]+[012]*[0-9].[0-5][0-9](-[0-9]{1,2}.[0-5][0-9])*"
-#define RE_DATE_GERMAN RE_DATE_DAY "\." RE_DATE_MONTH "\." RE_DATE_YEAR
+#define RE_DATE_GERMAN RE_DATE_DAY "\\." RE_DATE_MONTH "\\." RE_DATE_YEAR
 
 #define RE_DATE "\\b("							\
   "(" RE_DATE_YEAR "-" RE_DATE_MONTH "-" RE_DATE_DAY "(" RE_DATE_ISO_TIME "|" RE_DATE_HOUR ")*" ")" \
@@ -540,7 +540,7 @@ GetParentElement(pieTextElementPtr ppeArg, xmlNodePtr pndArgParent)
 /*! Append the parsed plain text to the given pndArgTop
 
 \param pndArgTop parent node to append import result nodes OR NULL if pndArgImport must be replaced by result
-\param pucArg
+\param pucArg pointer to an UTF-8 encoded buffer (not XML-conformant!)
 
 \return pointer to result node "block" or NULL in case of errors
 */
@@ -1445,7 +1445,8 @@ SplitTupelToLinkNodesMd(const xmlChar *pucArg)
 	}
 	else {
 	  PrintFormatLog(3, "URL display text '%s' (%i..%i) in '%s'", pucUrlDisplay, ovector[i*2], ovector[i*2+1], pucArg);
-	  pndLink = xmlNewChild(pndResult, NULL, NAME_PIE_LINK, pucUrlDisplay);
+	  pndLink = xmlNewChild(pndResult, NULL, NAME_PIE_LINK, NULL);
+	  xmlAddChild(pndLink, xmlNewText(pucUrlDisplay));
 	}
 	xmlFree(pucUrlDisplay);
       }
@@ -2381,7 +2382,7 @@ RecognizeSymbols(xmlNodePtr pndArg, lang_t eLangArg)
 
   if (pndArg) {
     pndResult = pndArg->next;
-    if (IS_NODE_META(pndArg) || IS_NODE_PIE_PRE(pndArg) || IS_NODE_PIE_LINK(pndArg) || IS_NODE_PIE_DATE(pndArg) || IS_NODE_SCRIPT(pndArg)) {
+    if (IS_NODE_META(pndArg) || IS_NODE_PIE_PRE(pndArg) || IS_NODE_PIE_TT(pndArg) || IS_NODE_PIE_LINK(pndArg) || IS_NODE_PIE_DATE(pndArg) || IS_NODE_SCRIPT(pndArg)) {
       /* skip */
     }
     else if (IS_NODE_PIE_ETAG(pndArg) || IS_NODE_PIE_HTAG(pndArg) || IS_NODE_PIE_TTAG(pndArg) || IS_NODE_PIE_DATE(pndArg)) {

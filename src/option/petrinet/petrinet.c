@@ -18,46 +18,6 @@
   Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 */
 
-/*!\todo refactoring
-
-petrinet
-    pnet
-	Free
-	GetEdgeIndexFromId
-	GetEdgePtrFromId
-	GetEdgePtrFromPtr
-	GetKnotDistance
-	GetStateIndexForId
-	GetStatePtrForId
-	GetTransitionIndexForId
-	GetTransitionPtrForId
-	InitEdges
-	InitKnots
-	IsEdge
-	IsMemberState
-	IsMemberTransition
-	New
-	NewEdges
-	NewKnots
-	NewStates
-	NewTransitions
-	ParsePathXml
-	ParsePathXmlSource
-	petrinetPathnet_out_flag
-	ProcessNode
-	ProcessPathnet
-	ProcessPathtable
-	ProcessPathtableSource
-	SearchBranchBackward
-	SearchPathForward
-	SetMarker
-	SetPathLength
-	SetPathMarker
-	SetStart
-	SetTarget
-	SetValidOut
-*/
-
 #include <libxml/parser.h>
 #include <libxml/tree.h>
 
@@ -1392,33 +1352,6 @@ pnetSetPathMarker(petrinet_t *ppnArg, BOOL_T f)
 /* End of pnetSetPathMarker() */
 
 
-#if 0
-/*! set all knots in paths between state  on f
-*/
-BOOL_T
-petrinetPathnet_out_flag(petrinet_t *ppnArg, BOOL_T f, cxpContextPtr pccArg)
-{
-
-  if (ppnArg->start && ppnArg->target) {
-
-    pnetSetMarker(ppnArg,!f);
-
-    do {
-      if (pnetSearchPathForward(ppnArg)) {
-	pnetSetPathMarker(ppnArg,f);
-      }
-    } while (pnetSearchBranchBackward(ppnArg));
-
-    cxpCtxtLogPrint(pccArg, 1,"%i path between '%s' and '%s' found",
-	    ppnArg->n_paths, KNOTID(ppnArg->start), KNOTID(ppnArg->target));
-  }
-
-  return (ppnArg->nPaths > 0);
-}
-/* End of petrinetPathnet_out_flag() */
-#endif
-
-
 void
 pnetSetMarker(petrinet_t *ppnArg, BOOL_T f)
 {
@@ -1445,40 +1378,6 @@ pnetSetMarker(petrinet_t *ppnArg, BOOL_T f)
   }
 }
 /* End of pnetSetMarker() */
-
-
-#if 0
-/*! sets all VALID in DOM according to fMarker flags in petrinet
-*/
-BOOL_T
-pnetSetValidOut(petrinet_t *ppnArg)
-{
-  knot_t *k;
-  index_t i;
-
-  assert(ppnArg);
-
-  for (k=ppnArg->s; KNOTID(k); k++) {
-    if (!k->fMarker) {
-      xmlSetProp(k->node, BAD_CAST "VALID", BAD_CAST "no");
-    }
-  }
-
-  for (k=ppnArg->t; KNOTID(k); k++) {
-    if (!k->fMarker) {
-      xmlSetProp(k->node, BAD_CAST "VALID", BAD_CAST "no");
-    }
-  }
-
-  for (i=0; i < ppnArg->n_e; i++) {
-    if (!ppnArg->edge[i].fMarker) {
-      xmlSetProp(ppnArg->edge[i].node, BAD_CAST "VALID", BAD_CAST "no");
-    }
-  }
-  return TRUE;
-}
-/* end of pnetSetValidOut() */
-#endif
 
 
 /*! compiles a filter XSL of pathnet

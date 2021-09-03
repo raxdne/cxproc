@@ -73,6 +73,52 @@ pieTextTagsTest(void)
 #endif
   
 
+  if (RUNTEST) {
+    xmlNodePtr pndPie = NULL;
+    xmlNodePtr pndT = NULL;
+    xmlNodePtr pndTest;
+    xmlNodePtr pndResult;
+    xmlNodePtr pndBlock;
+    xmlChar *pucT = NULL;
+
+    i++;
+    printf("TEST %i in '%s:%i': GetBlockTagRegExpStr() = ", i, __FILE__, __LINE__);
+
+    pndPie = xmlNewNode(NULL, NAME_PIE_PIE);
+
+    pndBlock = xmlNewChild(pndPie, NULL, NAME_PIE_BLOCK, NULL);
+    xmlAddChild(pndBlock, xmlNewPI(NAME_PIE_PI_TAG, BAD_CAST"ABC|DEF|HIJ"));
+  
+    pndTest = xmlNewChild(pndBlock, NULL, NAME_PIE_SECTION, NULL);
+    pndTest = xmlNewChild(pndTest, NULL, NAME_PIE_HEADER, BAD_CAST"header");
+
+    pndBlock = xmlNewChild(pndBlock, NULL, NAME_PIE_BLOCK, NULL);
+    xmlAddChild(pndBlock, xmlNewPI(NAME_PIE_PI_TAG, BAD_CAST"(KLM|NOP|QRS)"));
+  
+    pndTest = xmlNewChild(pndBlock, NULL, NAME_PIE_SECTION, NULL);
+    pndTest = xmlNewChild(pndTest, NULL, NAME_PIE_HEADER, BAD_CAST"header");
+    xmlAddChild(pndBlock, xmlNewPI(NAME_PIE_PI_TAG, BAD_CAST"|UVW|XYZ"));
+
+    if (GetBlockTagRegExpStr(NULL, NULL, FALSE) != NULL) {
+      printf("Error 1 GetBlockTagRegExpStr()\n");
+    }
+    else if ((pucT = GetBlockTagRegExpStr(pndPie, NULL, TRUE)) == NULL) {
+      printf("Error 2 GetBlockTagRegExpStr()\n");
+    }
+    else if (xmlStrEqual(pucT, BAD_CAST"ABC|DEF|HIJ|(KLM|NOP|QRS)|UVW|XYZ") == FALSE) {
+      printf("Error 4 GetBlockTagRegExpStr(): '%s'\n",pucT);
+    }
+    else {
+      n_ok++;
+      printf("OK\n");
+    }
+    
+    //domPutNodeString(stderr, BAD_CAST"GetBlockTagRegExpStr() result", pndPie);
+    xmlFree(pucT);
+    xmlFreeNode(pndPie);
+  }
+
+
 #if 0
   if (RUNTEST) {
     xmlNodePtr pndPie;

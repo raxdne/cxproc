@@ -18,13 +18,13 @@
   Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 */
 
-extern xmlNodePtr
-jsonParseFile(xmlNodePtr pndParent, resNodePtr prnArg);
+#include <json/json.h>
 
-extern BOOL_T
-jsonParseBuffer(xmlNodePtr pndParent, xmlChar *pucArg);
+extern xmlDocPtr
+jsonProcessJsonNode(xmlNodePtr pndArgJson, cxpContextPtr pccArg);
 
 #ifdef TESTCODE
 extern int
-jsonTest(void);
+jsonCxpTest(cxpContextPtr pccArg);
 #endif
+

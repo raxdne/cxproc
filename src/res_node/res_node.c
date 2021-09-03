@@ -43,6 +43,9 @@
 
 #include "dom.h"
 
+#ifdef HAVE_JSON
+#include <json/json.h>
+#endif
 #ifdef HAVE_LIBSQLITE3
 #include <database/database.h>
 #endif
@@ -1099,7 +1102,7 @@ resNodeDirNew(xmlChar *pucArgPath)
 	eType = rn_type_file;
       }
 
-      fRecursion = resPathIsDirRecursive(pucPath);
+      fRecursion = resPathIsDirRecursive(pucArgPath);
     }
 
     if (STR_IS_EMPTY(pucPath)) {
@@ -2698,6 +2701,7 @@ resNodeContentToDOM(xmlNodePtr pndArg, resNodePtr prnArg)
 #endif
 
     case MIME_APPLICATION_CXP_XML:
+    case MIME_APPLICATION_RDF_XML:
     case MIME_APPLICATION_MM_XML:
     case MIME_APPLICATION_XMMAP_XML:
 #ifdef HAVE_ZLIB
@@ -3014,24 +3018,35 @@ resNodeToDOM(resNodePtr prnArg, int iArgOptions)
       }
     }
 
-    if (resNodeIsArchive(prnArg)) {
-      resNodeContentToDOM(pndT, prnArg);
+    if (resNodeIsDir(prnArg)) {
+      for (prnEntry = resNodeGetChild(prnArg); prnEntry; prnEntry = resNodeGetNext(prnEntry)) {
+	xmlAddChild(pndT, resNodeToDOM(prnEntry, iArgOptions));
+      }
+    }
+    else if (resNodeIsArchive(prnArg)) {
+      xmlNodePtr pndArchive;
+
+      pndArchive = xmlNewChild(pndT, NULL, BAD_CAST"archive", NULL);
+      if (pndArchive) {
+	for (prnEntry = resNodeGetChild(prnArg); prnEntry; prnEntry = resNodeGetNext(prnEntry)) {
+	  xmlAddChild(pndArchive, resNodeToDOM(prnEntry, iArgOptions));
+	}
+      }
     }
     else if (resNodeIsDirInArchive(prnArg)) {
       for (prnEntry = resNodeGetChild(prnArg); prnEntry; prnEntry = resNodeGetNext(prnEntry)) {
 	xmlAddChild(pndT, resNodeToDOM(prnEntry, iArgOptions));
       }
     }
-    else if (resNodeIsDir(prnArg)) {
-      for (prnEntry = resNodeGetChild(prnArg); prnEntry; prnEntry = resNodeGetNext(prnEntry)) {
-	resNodeSetRecursion(prnEntry, resNodeIsRecursive(prnArg));
-	xmlAddChild(pndT, resNodeToDOM(prnEntry, iArgOptions));
+    else if (resNodeIsFileInArchive(prnArg)) {
+      if (iArgOptions & RN_INFO_CONTENT && (resNodeGetContentPtr(prnArg) || resNodeUpdate(prnArg, RN_INFO_CONTENT, NULL, NULL))) {
+	resNodeContentToDOM(pndT, prnArg);
       }
-    }
-    else if (iArgOptions & RN_INFO_CONTENT && resNodeIsFileInArchive(prnArg)) {
-      if (resNodeGetContentPtr(prnArg) == NULL) {
+      else if (resNodeGetChild(prnArg)) {
+	for (prnEntry = resNodeGetChild(prnArg); prnEntry; prnEntry = resNodeGetNext(prnEntry)) {
+	  xmlAddChild(pndT, resNodeToDOM(prnEntry, iArgOptions));
+	}
       }
-      resNodeContentToDOM(pndT, prnArg);
     }
     else if (iArgOptions & RN_INFO_CONTENT && resNodeIsURL(prnArg)) {
       if (resNodeGetChild(prnArg)) { /* there are updated childs of this URL already */
@@ -3547,6 +3562,43 @@ resNodeUpdate(resNodePtr prnArg, int iArgOptions, const pcre2_code *re_match, co
       }
 #endif
       
+      if (iArgOptions & RN_INFO_STRUCT && resNodeReadStatus(prnArg)) {
+	if (resNodeIsArchive(prnArg)) {
+	  /*  */
+#ifdef HAVE_LIBARCHIVE
+	  if (resNodeGetChild(prnArg)) {
+	    /* there is a listing already */
+	  }
+	  else {
+	    fResult = arcAppendEntries(prnArg, re_match, FALSE);
+	  }
+#endif
+	}
+	else if (resNodeIsDir(prnArg)) {
+	  /*  */
+	  if (resNodeGetChild(prnArg)) {
+	    /* there is a listing already */
+	  }
+	  else {
+	    /* append a non-recursive list of directory */
+	    resNodeDirAppendEntries(prnArg, re_match);
+	  }
+
+	  if (resNodeIsRecursive(prnArg)) {
+	    for (prnEntry = resNodeGetChild(prnArg); prnEntry; prnEntry = resNodeGetNext(prnEntry)) {
+	      if (resNodeIsArchive(prnEntry)) {
+		/*  */
+		resNodeUpdate(prnEntry, iArgOptions, re_match, re_grep);
+	      }
+	      else if (resNodeIsDir(prnEntry)) {
+		resNodeSetRecursion(prnEntry, TRUE);
+		resNodeUpdate(prnEntry, iArgOptions, re_match, re_grep);
+	      }
+	    }
+	  }
+	}
+      }
+      
       if (iArgOptions & RN_INFO_CONTENT) {
 	if (resNodeIsURL(prnArg)) {
 	  if (resNodeGetContent(prnArg, 1024) != NULL && resNodeIsMemory(prnArg)) { /* content fetched from URL */
@@ -3563,18 +3615,6 @@ resNodeUpdate(resNodePtr prnArg, int iArgOptions, const pcre2_code *re_match, co
 	    fResult = FALSE;
 	  }
 	}
-	else if (resNodeIsDir(prnArg)) {
-	  if (resNodeReadStatus(prnArg)) {
-	    /*  */
-	  }
-
-	  for (prnEntry = resNodeGetChild(prnArg); prnEntry; prnEntry = resNodeGetNext(prnEntry)) {
-	    if (resNodeIsDir(prnEntry) && resNodeIsRecursive(prnArg)) {
-	      resNodeSetRecursion(prnEntry, resNodeIsRecursive(prnArg));
-	    }
-	    resNodeUpdate(prnEntry, iArgOptions, re_match, re_grep);
-	  }
-	}
 #ifdef HAVE_LIBSQLITE3
 	else if (resNodeIsDatabase(prnArg)) {
 	  /*! database is without child nodes */
@@ -3582,9 +3622,6 @@ resNodeUpdate(resNodePtr prnArg, int iArgOptions, const pcre2_code *re_match, co
 	}
 #endif
 #ifdef HAVE_LIBARCHIVE
-	else if (resNodeIsArchive(prnArg)) {
-	  fResult = arcAppendEntries(prnArg, re_match, TRUE);
-	}
 	else if (resNodeIsFileInArchive(prnArg)) {
 	  fResult = arcAppendEntries(resNodeGetAncestorArchive(prnArg), re_match, TRUE);
 	  /*\todo avoid redundant parsing */
@@ -4588,7 +4625,7 @@ resNodeDirAppendEntries(resNodePtr prnArgDir, const pcre2_code *re_match)
 	      }
 
 	      if (rc < 0) {
-		//PrintFormatLog(4, "%s ignore '%s'", NAME_FILE, pcNameBase);
+		PrintFormatLog(4, "%s ignore '%s'", NAME_FILE, pucName);
 	      }
 	      else {
 		resNodeAddChildNew(prnArgDir, pucName);

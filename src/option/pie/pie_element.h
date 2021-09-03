@@ -23,6 +23,8 @@
 #include <pcre2.h>
 #endif
 
+#define isimpact(C) (C == (xmlChar)'+')
+
 typedef enum {
   RMODE_MD,     /*! markdown-formatted content */
   RMODE_PAR,    /*! paragraph content */
@@ -56,8 +58,9 @@ typedef struct {
   index_t iBegin;		/*!< */
   xmlChar *pucContent;		/*!< pointer to begin of element content string */
   index_t iDepthHidden;		/*!< hidden level */
+  BOOL_T fDone;			/*!< done flag */
   BOOL_T fValid;		/*!< marker flag */
-  BOOL_T fEnum;		/*!<  flag */
+  BOOL_T fEnum;			/*!<  flag */
   index_t iDepth;		/*!< */
   index_t iLength;
   index_t iWeight;

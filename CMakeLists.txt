@@ -236,8 +236,20 @@ find_path(LibArchive_INCLUDE_DIR NAMES archive.h
 
 IF (LibArchive_INCLUDE_DIR)
   find_library(LibArchive_LIBRARIES NAMES libarchive archive archive_static
-    HINTS "${CXPROC_PREFIX}/lib"
-    )
+    HINTS "${CXPROC_PREFIX}/lib")
+
+  find_library(CRYPTO_LIBRARY NAMES libcrypto
+    HINTS "${CXPROC_PREFIX}/lib")
+
+  find_library(LZ4_LIBRARY NAMES liblz4 lz4
+    HINTS "${CXPROC_PREFIX}/lib")
+
+  find_library(LZO2_LIBRARY NAMES liblzo2 lzo2
+    HINTS "${CXPROC_PREFIX}/lib")
+
+  find_library(ZSTD_LIBRARY NAMES libzstd zstd_static
+    HINTS "${CXPROC_PREFIX}/lib")
+
   IF (LibArchive_LIBRARIES)
     SET(LibArchive_FOUND ON)
   ELSE(LibArchive_LIBRARIES)
@@ -366,8 +378,10 @@ IF (JSMN_INCLUDE_DIR)
   MARK_AS_ADVANCED(CXPROC_JSON)
 
   IF (CXPROC_JSON)
-    SET(CXPROC_HEADERS ${CXPROC_HEADERS} ${CXPROC_SRC_DIR}/option/json/json.h)
-    SET(CXPROC_SOURCES ${CXPROC_SOURCES} ${CXPROC_SRC_DIR}/option/json/json.c)
+    SET(CXPROC_HEADERS ${CXPROC_HEADERS} ${CXPROC_SRC_DIR}/option/json/cxp_json.h ${CXPROC_SRC_DIR}/option/json/json.h)
+    SET(CXPROC_SOURCES ${CXPROC_SOURCES} ${CXPROC_SRC_DIR}/option/json/cxp_json.c ${CXPROC_SRC_DIR}/option/json/json.c)
+    SET(FILEX_HEADERS ${FILEX_HEADERS} ${CXPROC_SRC_DIR}/option/json/json.h)
+    SET(FILEX_SOURCES ${FILEX_SOURCES} ${CXPROC_SRC_DIR}/option/json/json.c)
   ENDIF (CXPROC_JSON)
 ENDIF ()
 
@@ -732,6 +746,7 @@ ADD_EXECUTABLE(test-cgi
 #
 
 IF (CXPROC_JSON)
+  target_compile_definitions(filex       PUBLIC HAVE_JSON)
   target_compile_definitions(cxproc      PUBLIC HAVE_JSON)
   target_compile_definitions(cxproc-cgi  PUBLIC HAVE_JSON)
   target_compile_definitions(cxproc-test PUBLIC HAVE_JSON)
@@ -1042,11 +1057,20 @@ IF (CXPROC_LZMA)
   #  target_link_libraries(cxproc-httpd ${LIBLZMA_LIBRARIES})
   #ENDIF ()
 ENDIF (CXPROC_LZMA)
+
 IF (CXPROC_ARCHIVE)
-  target_link_libraries(filex ${LibArchive_LIBRARIES})
-  target_link_libraries(cxproc ${LibArchive_LIBRARIES})
-  target_link_libraries(cxproc-test ${LibArchive_LIBRARIES})
-  target_link_libraries(cxproc-cgi ${LibArchive_LIBRARIES})
+  IF(MSVC)
+    # additional libraries with VC++
+    target_link_libraries(filex ${LibArchive_LIBRARIES} ${LIBBZ2_LIBRARIES} ${CRYPTO_LIBRARY} ${LZ4_LIBRARY} ${ZSTD_LIBRARY} ${LZO2_LIBRARY})
+    target_link_libraries(cxproc ${LibArchive_LIBRARIES} ${LIBBZ2_LIBRARIES} ${CRYPTO_LIBRARY} ${LZ4_LIBRARY} ${ZSTD_LIBRARY} ${LZO2_LIBRARY})
+    target_link_libraries(cxproc-test ${LibArchive_LIBRARIES} ${LIBBZ2_LIBRARIES} ${CRYPTO_LIBRARY} ${LZ4_LIBRARY} ${ZSTD_LIBRARY} ${LZO2_LIBRARY})
+    target_link_libraries(cxproc-cgi ${LibArchive_LIBRARIES} ${LIBBZ2_LIBRARIES} ${CRYPTO_LIBRARY} ${LZ4_LIBRARY} ${ZSTD_LIBRARY} ${LZO2_LIBRARY})
+  ELSE(MSVC)
+    target_link_libraries(filex ${LibArchive_LIBRARIES})
+    target_link_libraries(cxproc ${LibArchive_LIBRARIES})
+    target_link_libraries(cxproc-test ${LibArchive_LIBRARIES})
+    target_link_libraries(cxproc-cgi ${LibArchive_LIBRARIES})
+  ENDIF(MSVC)
   #IF (LIBMICROHTTPD_FOUND)
   #  target_link_libraries(cxproc-httpd ${LibArchive_LIBRARIES})
   #ENDIF ()
@@ -1070,6 +1094,8 @@ IF (LIBCURL_INCLUDE_DIR)
   ELSE(LIBCURL_LIBRARIES)
     FIND_PACKAGE( LIBCURL )
   ENDIF (LIBCURL_LIBRARIES)
+ELSE(LIBCURL_INCLUDE_DIR)
+  FIND_PACKAGE( LIBCURL )
 ENDIF (LIBCURL_INCLUDE_DIR)
 
 IF (LIBCURL_FOUND)
@@ -1093,7 +1119,11 @@ IF (CXPROC_CURL)
   #  target_link_libraries(cxproc-httpd ${LIBCURL_LIBRARIES})
   #ENDIF ()
   IF(MSVC)
-    # no additional libraries with VC++
+    # additional libraries with VC++
+    target_link_libraries(filex crypt32 wldap32)
+    target_link_libraries(cxproc crypt32 wldap32)
+    target_link_libraries(cxproc-test crypt32 wldap32)
+    target_link_libraries(cxproc-cgi  crypt32 wldap32)
   ELSE(MSVC)
     target_link_libraries(filex ssl crypto)
     target_link_libraries(cxproc ssl crypto)
@@ -1631,6 +1661,8 @@ ENDIF(MSVC)
 add_test(NAME filex-empty
   WORKING_DIRECTORY ${CXPROC_PREFIX}
   COMMAND ${CXPROC_PREFIX}/bin/filex)
+
+set_tests_properties(filex-empty PROPERTIES WILL_FAIL TRUE)
 
 add_test(NAME filex-dir
   WORKING_DIRECTORY ${CXPROC_PREFIX}
