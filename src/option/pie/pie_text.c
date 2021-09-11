@@ -378,7 +378,13 @@ pieProcessPieNode(xmlNodePtr pndArgPie, cxpContextPtr pccArg)
       /*\todo check XPAth format of pucTT */
       cxpCtxtLogPrint(pccArg, 2, "Filter XPath for '%s'", pucTT);
       if (domWeightXPathInDoc(pdocResult, pucTT)) {
+	/* some matching nodes found, remove others */
 	CleanUpTree(pndPieRoot);
+      }
+      else {
+	/* no matching nodes found */
+	xmlFreeDoc(pdocResult);
+	pdocResult = NULL;
       }
       xmlFree(pucTT);
     }
