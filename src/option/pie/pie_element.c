@@ -38,8 +38,10 @@
 #include <pie/pie_element.h>
 #include <pie/calendar_element.h>
 
+#ifdef LEGACY
 #define IS_CONTACT_CHAR_START(C) (C==(xmlChar)'|')
 #define IS_CONTACT_CHAR_SEP(C)   (C==(xmlChar)' ' || C==(xmlChar)',' || C==(xmlChar)';' || C==(xmlChar)'\t')
+#endif
 
 static xmlChar *
 DuplicateNextLine(char *pchArg, index_t *piArg);
@@ -380,23 +382,65 @@ pieElementWeight(pieTextElementPtr ppeArg)
 
   if (ppeArg != NULL && STR_IS_NOT_EMPTY(ppeArg->pucContent)) {
     int i;
+    int k = xmlStrlen(BAD_CAST STR_PIE_OK);
+    int l = 0;
     int iCountImpact;
     xmlChar *pucT;
 
     for (pucT = ppeArg->pucContent, i = xmlStrlen(pucT)-1; isspace(pucT[i]); i--) ;
 
+    // "abc +++ \xE2\x9C\x94 \0"
+    //                  ^i
+      
+#ifdef EXPERIMENTAL
+
+    // "abc +++ \xE2\x9C\x94 \0"
+    //          ^i-k+1
+      
+    if (i > k && xmlStrncmp(&pucT[i-k+1],BAD_CAST STR_PIE_OK, k) == 0) {
+      /* string ends with a marker */
+      for (i -= k; isspace(pucT[i]); i--) ;
+      l = i;
+
+      // "abc +++ \xE2\x9C\x94 \0"
+      //        ^i
+      //        ^l
+    }
+#endif
+    
     for (iCountImpact = 0; isimpact(pucT[i]); iCountImpact++, i--) ;
 
+    // "abc +++ \xE2\x9C\x94 \0"
+    //     ^i
+    //        ^l
+    
     if (iCountImpact > 1) {
       int j;
       
+      iResult = ppeArg->iWeight = iCountImpact;
+      
       for ( j=i; j>0 && isspace(pucT[j]); j--) ;
       
+      // "abc +++ \xE2\x9C\x94 \0"
+      //     ^i
+      //    ^j
+      //        ^l
+    
+#ifdef EXPERIMENTAL
+      if (l > 0) {
+	/* shift trailing chars over impact markup */
+	memmove((void *)&pucT[i], (void *)&pucT[l+1], xmlStrlen(&pucT[l]));
+      }
+      else {
+	/* cut impact markup and all trailing spaces */
+	pucT[i] = (xmlChar)'\0';
+      }
+#else
       if (i > j) {
 	/* there are spaces between trailing impact chars and element content */
 	pucT[j+1] = (xmlChar)'\0'; 	/* cut all trailing spaces */
-	iResult = ppeArg->iWeight = iCountImpact;
       }
+#endif
     }
   }
   return iResult;
