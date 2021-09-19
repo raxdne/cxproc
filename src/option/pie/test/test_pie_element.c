@@ -779,6 +779,55 @@ pieElementTest(void)
 
 #endif
 
+  
+  if (RUNTEST) {
+    pieTextElementPtr ppeT;
+
+    i++;
+    printf("TEST %i in '%s:%i': pieElementWeight() = ", i, __FILE__, __LINE__);
+
+    if ((ppeT = pieElementNew(BAD_CAST"\n\n", RMODE_PAR)) == NULL) {
+      printf("Error %i pieElementNew()", 0);
+    }
+    else if (pieElementHasNext(ppeT) == FALSE || pieElementParse(ppeT) == FALSE || pieElementIsPar(ppeT) == TRUE || pieElementWeight(ppeT) != -1 || xmlStrlen(ppeT->pucContent) != 0) {
+      printf("Error %i pieElementWeight()", 0);
+    }
+    else {
+      n_ok++;
+      printf("OK\n");
+    }
+
+    pieElementFree(ppeT);
+  }
+
+  
+  if (RUNTEST) {
+    pieTextElementPtr ppeT;
+
+    i++;
+    printf("TEST %i in '%s:%i': pieElementWeight() = ", i, __FILE__, __LINE__);
+
+    if ((ppeT = pieElementNew(BAD_CAST"Abc def++\n\n*** HHHH   +++   \n\nKKKK\n\n", RMODE_PAR)) == NULL) {
+      printf("Error %i pieElementNew()", 0);
+    }
+    else if (pieElementHasNext(ppeT) == FALSE || pieElementParse(ppeT) == FALSE || pieElementIsPar(ppeT) == FALSE || pieElementWeight(ppeT) != 2 || xmlStrlen(ppeT->pucContent) != 7) {
+      printf("Error %i pieElementWeight()", 0);
+    }
+    else if (pieElementHasNext(ppeT) == FALSE || pieElementParse(ppeT) == FALSE || pieElementIsHeader(ppeT) == FALSE || pieElementWeight(ppeT) != 3 || xmlStrlen(ppeT->pucContent) != 7) {
+      printf("Error %i pieElementWeight()", 0);
+    }
+    else if (pieElementHasNext(ppeT) == FALSE || pieElementParse(ppeT) == FALSE || pieElementIsPar(ppeT) == FALSE || pieElementWeight(ppeT) != 0 || xmlStrlen(ppeT->pucContent) != 4) {
+      printf("Error %i pieElementWeight()", 0);
+    }
+    else {
+      n_ok++;
+      printf("OK\n");
+    }
+
+    pieElementFree(ppeT);
+  }
+
+
   if (RUNTEST) {
     xmlChar* pucContent;
     pieTextElementPtr ppeT;

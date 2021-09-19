@@ -374,31 +374,44 @@ pieElementGetDepth(pieTextElementPtr ppeArg)
 
 
 /*! detect trailing weight markup
+* \return -1 in case of error, the current value or the detected value
 */
 int
 pieElementWeight(pieTextElementPtr ppeArg)
 {
   int iResult = -1;
 
-  if (ppeArg != NULL && STR_IS_NOT_EMPTY(ppeArg->pucContent)) {
+  if (ppeArg == NULL) {
+  }
+  else if (ppeArg->iWeight > 0) {
+    iResult = ppeArg->iWeight;
+  }
+  else if (STR_IS_NOT_EMPTY(ppeArg->pucContent)) {
+
     int i;
     int k = xmlStrlen(BAD_CAST STR_PIE_OK);
     int l = 0;
     int iCountImpact;
     xmlChar *pucT;
 
+    iResult = 0;
+
     for (pucT = ppeArg->pucContent, i = xmlStrlen(pucT)-1; isspace(pucT[i]); i--) ;
 
     // "abc +++ \xE2\x9C\x94 \0"
     //                  ^i
       
+    // "def++ \0"
+    //      ^i
+      
 #ifdef EXPERIMENTAL
 
-    // "abc +++ \xE2\x9C\x94 \0"
-    //          ^i-k+1
-      
     if (i > k && xmlStrncmp(&pucT[i-k+1],BAD_CAST STR_PIE_OK, k) == 0) {
       /* string ends with a marker */
+
+      // "abc +++ \xE2\x9C\x94 \0"
+      //          ^i-k+1
+      
       for (i -= k; isspace(pucT[i]); i--) ;
       l = i;
 
@@ -414,6 +427,9 @@ pieElementWeight(pieTextElementPtr ppeArg)
     //     ^i
     //        ^l
     
+    // "def++ \0"
+    //    ^i
+    
     if (iCountImpact > 1) {
       int j;
       
@@ -426,6 +442,10 @@ pieElementWeight(pieTextElementPtr ppeArg)
       //    ^j
       //        ^l
     
+      // "def++ \0"
+      //    ^i
+      //    ^j
+
 #ifdef EXPERIMENTAL
       if (l > 0) {
 	/* shift trailing chars over impact markup */
@@ -433,7 +453,7 @@ pieElementWeight(pieTextElementPtr ppeArg)
       }
       else {
 	/* cut impact markup and all trailing spaces */
-	pucT[i] = (xmlChar)'\0';
+	pucT[i+1] = (xmlChar)'\0';
       }
 #else
       if (i > j) {
