@@ -66,7 +66,7 @@ string(STRIP "${GIT_BRANCH}" GIT_BRANCH)
 
 set(PROJECT_VERSION_MAJOR "1")
 set(PROJECT_VERSION_MINOR "3")
-set(PROJECT_VERSION_PATCH "3")
+set(PROJECT_VERSION_PATCH "4-beta")
 
 # https://vicrucann.github.io/tutorials/quick-cmake-doxygen/
 # check if Doxygen is installed
