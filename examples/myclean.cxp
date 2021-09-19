@@ -2,9 +2,9 @@
 <cxp:make xmlns:cxp="http://www.tenbusch.info/cxproc" log="2" dir="pwd">
   <cxp:description>
 
- Move temporary files into a trash directory with 
+ Move temporary files into a trash directory named by current date.
 
-</cxp:description>
+  </cxp:description>
   <cxp:subst string="%TEMP%" env="LOCALAPPDATA" default="/tmp"/>
   <cxp:subst string="%PREFIX%" env="HOME" default="%TEMP%"/>
   <cxp:subst string="%TRASH%" now="%PREFIX%/Trash/%Y%m%d-%H%M%S/"/>
@@ -18,26 +18,34 @@
     </cxp:xml>
     <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.0">
       <xsl:output method="xml"/>
-      <xsl:template match="/|pie">
-        <cxp:make log="3">
-          <xsl:apply-templates select="*"/>
+      <xsl:variable name="str_trash_path">%TRASH%</xsl:variable>
+      <xsl:template match="/pie">
+        <cxp:make log="1">
+          <xsl:apply-templates />
         </cxp:make>
       </xsl:template>
       <xsl:template match="dir">
-        <!-- not(@error) and  -->
         <xsl:choose>
-          <xsl:when test="@error"/>
-          <xsl:when test="@hidden='yes'"/>
+          <xsl:when test="@error">
+	    <!-- ignore directories with an error -->
+	  </xsl:when>
+          <xsl:when test="@hidden='yes'">
+	    <!-- ignore hidden directories -->
+	  </xsl:when>
+          <xsl:when test="@write='no'">
+	    <!-- ignore write-protected directories -->
+	  </xsl:when>
           <xsl:otherwise>
-            <xsl:apply-templates select="*"/>
+            <xsl:apply-templates />
           </xsl:otherwise>
         </xsl:choose>
       </xsl:template>
       <xsl:template match="file">
         <!--  -->
         <xsl:choose>
-          <xsl:when test="@error"/>
-          <xsl:when test="parent::dir[@write='no']"/>
+          <xsl:when test="@error">
+	    <!-- ignore files with an error -->
+	  </xsl:when>
           <xsl:when test="not(@name) or @name=''"/>
           <xsl:otherwise>
             <xsl:variable name="str_path">
@@ -50,12 +58,14 @@
               <xsl:value-of select="@name"/>
             </xsl:variable>
             <cxp:system message="{concat('',$str_path)}"/>
-            <cxp:copy from="{concat('',$str_path)}" to="{concat('%TRASH%',$str_path)}" delete="yes"/>
+            <cxp:copy from="{concat('',$str_path)}" to="{concat($str_trash_path,$str_path)}" delete="yes"/>
           </xsl:otherwise>
         </xsl:choose>
       </xsl:template>
-      <xsl:template match="*"/>
+      <xsl:template match="*">
+	<!-- ignore other elements -->
+      </xsl:template>
     </xsl:stylesheet>
   </cxp:xml>
-  <cxp:system pause="yes" message="Weiter mit Taste!"/>
+  <cxp:system pause="yes" message="Press any key to finish!"/>
 </cxp:make>
