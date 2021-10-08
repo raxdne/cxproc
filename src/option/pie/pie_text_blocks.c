@@ -48,7 +48,7 @@
 #define RE_UNC "(?:\\b[a-z]:\\\\|\\\\\\\\[a-zäÄöÖüÜß0-9_.$\\-]+\\\\[a-zäÄöÖüÜß0-9_.$\\-]+)\\\\*(?:[^\\\\/:*?\"<>|\\r\\n]+\\\\)*[^\\\\/:*?\"<>|\\r\\n]*"
 #define RE_URL "(tel|onenote|file|http|https|ftp|ftps|mailto)(://+|%%3A%%2F%%2F|:|%%3A)([a-zäÄöÖüÜß0-9\\.\\-\\&\\#\\;\\:\\,\\+\\_%%\\~\\?\\!=\\@]+|[a-zäÄöÖüÜß0-9\\.\\-]+@)([/a-zäÄöÖüÜß0-9\\(\\)\\.\\-\\&\\#\\;\\,\\+\\:\\_%%\\~\\*\\?\\!=\\@]+)*"
 #define RE_LINK "([^\\|]*)\\| *([^\\|]+) *\\|([^\\|]*)\\|"
-#define RE_LINK_MD "!*\\[([^\\]]+)\\]\\(([^\\)]+)\\)"
+#define RE_LINK_MD "!*\\[([^\\]]*)\\]\\(([^\\)]+)\\)"
 #define RE_LINK_MD_AUTO "(<|&lt;|\\xE2\\x80\\x99)([^<> \\t]+)(>|&gt;|\\xE2\\x80\\x98)"
 #define RE_FIG "^[ \\t]*(Fig|Abb)\\.[ \\t]*([^ \\t]+)[ \\t]*(.+)*$"
 #define RE_SCRIPT "script=\\\"([^\\\"]+)\\\""
@@ -1385,6 +1385,8 @@ SplitTupelToLinkNodesMd(const xmlChar *pucArg)
 
   if (pucArg != NULL && (ducOrigin = xmlStrlen(pucArg)) > 0) {
     int rc;
+    xmlChar* pucT = NULL;
+    xmlChar* pucUrlDisplay = NULL;
     pcre2_match_data *match_data_link;
     xmlNodePtr pndLink = NULL;
     xmlNodePtr pndPostfix;
@@ -1435,20 +1437,23 @@ SplitTupelToLinkNodesMd(const xmlChar *pucArg)
 
       i++;
       if (ovector[i*2+1] - ovector[i*2] > 0) {
-	xmlChar *pucUrlDisplay = NULL;
-
-	pucUrlDisplay = xmlStrndup(&pucArg[ovector[i*2]], (int)(ovector[i*2+1] - ovector[i*2]));
-	if (pucArg[ovector[0]] == '!') {
-	  PrintFormatLog(3, "Image display text '%s' (%i..%i) in '%s'", pucUrlDisplay, ovector[i*2], ovector[i*2+1], pucArg);
-	  pndLink = xmlNewChild(pndResult, NULL, NAME_PIE_IMG, NULL);
-	  xmlSetProp(pndLink, BAD_CAST "title", pucUrlDisplay);
+	if ((pucUrlDisplay = xmlStrndup(&pucArg[ovector[i*2]], (int)(ovector[i*2+1] - ovector[i*2]))) != NULL) {
+	  DecodeRFC1738((char *)pucUrlDisplay);
+	  if (pucArg[ovector[0]] == '!') {
+	    PrintFormatLog(3, "Image display text '%s' (%i..%i) in '%s'", pucUrlDisplay, ovector[i*2], ovector[i*2+1], pucArg);
+	    pndLink = xmlNewChild(pndResult, NULL, NAME_PIE_IMG, NULL);
+	    xmlSetProp(pndLink, BAD_CAST "title", pucUrlDisplay);
+	  }
+	  else {
+	    PrintFormatLog(3, "URL display text '%s' (%i..%i) in '%s'", pucUrlDisplay, ovector[i * 2], ovector[i * 2 + 1], pucArg);
+	    pndLink = xmlNewChild(pndResult, NULL, NAME_PIE_LINK, NULL);
+	    xmlAddChild(pndLink, xmlNewText(pucUrlDisplay));
+	  }
 	}
-	else {
-	  PrintFormatLog(3, "URL display text '%s' (%i..%i) in '%s'", pucUrlDisplay, ovector[i*2], ovector[i*2+1], pucArg);
-	  pndLink = xmlNewChild(pndResult, NULL, NAME_PIE_LINK, NULL);
-	  xmlAddChild(pndLink, xmlNewText(pucUrlDisplay));
-	}
-	xmlFree(pucUrlDisplay);
+      }
+      else {
+	/* empty value */
+	pndLink = xmlNewChild(pndResult, NULL, NAME_PIE_LINK, NULL);
       }
 
       i++;
@@ -1459,7 +1464,15 @@ SplitTupelToLinkNodesMd(const xmlChar *pucArg)
 	  xmlSetProp(pndLink, BAD_CAST "src", pucUrl);
 	}
 	else if (StringBeginsWith((char *)pucUrl,"id:")) {
-	  xmlSetProp(pndLink, BAD_CAST "id", &pucUrl[3]);
+	  /* definition of an anchor */
+	  if (xmlStrlen(&pucUrl[3]) > 0) {
+	    xmlSetProp(pndLink, BAD_CAST "id", &pucUrl[3]);
+	  }
+	  else {
+	    pucT = EncodeRFC1738(pucUrlDisplay);
+	    xmlSetProp(pndLink, BAD_CAST "id", pucT);
+	    xmlFree(pucT);
+	  }
 	}
 	else {
 	  xmlSetProp(pndLink, BAD_CAST "href", pucUrl);
@@ -1478,11 +1491,12 @@ SplitTupelToLinkNodesMd(const xmlChar *pucArg)
 	  xmlFreeNode(pndPostfix);
 	}
 	else {
-	  xmlChar *pucT = xmlStrdup(&pucArg[ovector[1]]);
+	  pucT = xmlStrdup(&pucArg[ovector[1]]);
 	  xmlAddChild(pndResult, xmlNewText(pucT));
 	  xmlFree(pucT);
 	}
       }
+      xmlFree(pucUrlDisplay);
     }
 
     pcre2_match_data_free(match_data_link);   /* Release memory used for the match */
