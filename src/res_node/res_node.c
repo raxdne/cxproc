@@ -2660,6 +2660,7 @@ resNodeContentToDOM(xmlNodePtr pndArg, resNodePtr prnArg)
 	  RecognizeSymbols(pndPie, LANG_DEFAULT);
 	  RecognizeTasks(pndPie);
 	  RecognizeHashtags(pndPie,NULL, NULL);
+	  InheritHashtags(pndPie, pndPie);
 	  RecognizeGlobalTags(pndTags, pndPie);
 	  CleanListTag(pndTags, FALSE);
 	  //domPutNodeString(stderr, BAD_CAST "resNodeContentToDOM(): ", pndPie);
