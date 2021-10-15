@@ -102,42 +102,6 @@ pieElementTest(void)
   }
 
   if (RUNTEST) {
-    BOOL_T fResult = TRUE;
-    xmlChar *pucT;
-    xmlChar *pucTT = NULL;
-    pieTextElementPtr ppeT;
-
-    i++;
-    printf("TEST %i in '%s:%i': reads plain text = ", i, __FILE__, __LINE__);
-
-    pucT = BAD_CAST "   |http://www.xyz.com/this-ressouce-is-name/|| dakd\xC3\xB6lakd\xC3\xB6 AAA || bbb cc_do d_review\n\nxyz |href|title|\n\n";
-
-    if ((ppeT = pieElementNew(pucT, RMODE_PAR)) == NULL) {
-      printf("Error _pieElementUpdateMarkup()\n");
-    }
-    else if (pieElementHasNext(ppeT) == FALSE) {
-    }
-    else if (_pieElementUpdateMarkup(ppeT) == FALSE) {
-    }
-    else if (pieElementHasNext(ppeT) == FALSE) {
-    }
-    else if (_pieElementUpdateMarkup(ppeT) == FALSE) {
-    }
-    else if ((pucTT = pieElementToPlain(ppeT)) == NULL) {
-    }
-    else if (pieElementHasNext(ppeT) == TRUE) {
-    }
-    else {
-      n_ok++;
-      printf("OK\n");
-    }
-    //puts((const char *)pucTT);
-    xmlFree(pucTT);
-    pieElementFree(ppeT);
-  }
-
-
-  if (RUNTEST) {
     pieTextElementPtr ppeT;
 
     i++;

@@ -91,6 +91,12 @@ StringUpdateMarkupNew(xmlChar* pucArg, int* piArg)
 	/* count separators backwards */
 	k++;
       }
+      else if (pucArg[j] == (xmlChar)'.' || pucArg[j] == (xmlChar)',' || pucArg[j] == (xmlChar)';' || pucArg[j] == (xmlChar)':'
+	|| pucArg[j] == (xmlChar)'?' || pucArg[j] == (xmlChar)'!'
+	|| pucArg[j] == (xmlChar)'-' || pucArg[j] == (xmlChar)'_') {
+	k = 0; /* to be ignored */
+	break;
+      }
       else if (k > 0) {
 	if (isspace(pucArg[j])) {
 	}
@@ -544,6 +550,7 @@ InheritHashtags(xmlNodePtr pndArgTop, xmlNodePtr pndArg)
 	  }
 	}
       }
+#if 0
       else if (IS_NODE_PIE_LINK(pndChild)) {
 
 	/* append tags to parent node */
@@ -553,6 +560,7 @@ InheritHashtags(xmlNodePtr pndArgTop, xmlNodePtr pndArg)
 	  }
 	}
       }
+#endif
       else if (IS_NODE_PIE_HEADER(pndChild) && IS_NODE_PIE_SECTION(pndChild->parent)) {
 
 	/* append all tags of this 'section/h' to all 'task' sibling nodes */
@@ -567,7 +575,7 @@ InheritHashtags(xmlNodePtr pndArgTop, xmlNodePtr pndArg)
 	    }
 	  }
 	}
-	fResult = InheritHashtags(pndArgTop, pndChild);
+	//fResult = InheritHashtags(pndArgTop, pndChild);
       }
       else if (IS_NODE_PIE_HEADER(pndChild) || IS_NODE_PIE_LINK(pndChild)
 	|| IS_NODE_PIE_TH(pndChild) || IS_NODE_PIE_TD(pndChild)) {
@@ -578,7 +586,7 @@ InheritHashtags(xmlNodePtr pndArgTop, xmlNodePtr pndArg)
 	    AddTagNodeNew(pndChild->parent, pndT->children->content);
 	  }
 	}
-	fResult = InheritHashtags(pndArgTop, pndChild);
+	//fResult = InheritHashtags(pndArgTop, pndChild);
       }
       else if (IS_NODE_PIE_PAR(pndChild) && IS_NODE_PIE_LIST(pndChild->parent)) {
 	/* append this tags to parent element 'list' */
@@ -589,7 +597,7 @@ InheritHashtags(xmlNodePtr pndArgTop, xmlNodePtr pndArg)
 	  else {
 	  }
 	}
-	    fResult = InheritHashtags(pndArgTop, pndChild);
+	fResult = InheritHashtags(pndArgTop, pndChild);
       }
       else if (IS_NODE_PIE_PAR(pndChild)) {
 	for (pndT = pndChild->children; pndT; pndT = pndT->next) {
@@ -599,7 +607,7 @@ InheritHashtags(xmlNodePtr pndArgTop, xmlNodePtr pndArg)
 	  else {
 	  }
 	}
-	    fResult = InheritHashtags(pndArgTop, pndChild);
+	fResult = InheritHashtags(pndArgTop, pndChild);
       }
       else {
 	fResult = InheritHashtags(pndArgTop, pndChild);

@@ -109,9 +109,6 @@ pieElementHasNext(pieTextElementPtr ppeArg);
 extern BOOL_T
 pieElementParse(pieTextElementPtr ppeArg);
 
-extern BOOL_T
-_pieElementUpdateMarkup(pieTextElementPtr ppeArg);
-
 extern int
 pieElementGetDepth(pieTextElementPtr ppeArg);
 
