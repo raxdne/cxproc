@@ -22,7 +22,13 @@
 #include <pie/pie_dtd.h>
 #include <pie/calendar_element.h>
 #include <pie/pie_element.h>
+#ifdef PIE_STANDALONE
+#define YYY_RN_MIME_TYPE int
+#else
+
 #include "plain_text.h"
+#endif
+
 #include <pie/pie_text_tags.h>
 
 #define CXP_PIE_URL (BAD_CAST "http://www.tenbusch.info/pie")
@@ -97,11 +103,20 @@ TransformToTable(xmlNodePtr pndArgParent, xmlNodePtr pndArg, xmlChar *pucPattern
 extern xmlNodePtr
 FindElementNodeLast(xmlNodePtr pndArg);
 
+#ifdef PIE_STANDALONE
+
+#else
+
 extern BOOL_T
 IsImportCircularStr(xmlNodePtr pndArg, xmlChar *pucArgURI);
 
 extern BOOL_T
 IsImportCircular(xmlNodePtr pndArg, resNodePtr prnArg);
+
+extern rmode_t
+GetModeByMimeType(RN_MIME_TYPE tArg);
+
+#endif
 
 extern BOOL_T
 IsImportFromAttr(xmlNodePtr pndArg);
@@ -114,9 +129,6 @@ GetModeByAttr(xmlNodePtr pndArgImport);
 
 extern rmode_t 
 GetModeByExtension(xmlChar *pucArgExt);
-
-extern rmode_t
-GetModeByMimeType(RN_MIME_TYPE tArg);
 
 #ifdef TESTCODE
 extern int

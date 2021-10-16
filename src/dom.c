@@ -1564,6 +1564,9 @@ domNodeGrepNew(xmlNodePtr pndArg, xmlChar *pucArgGrep)
 #endif
 
 
+#ifdef PIE_STANDALONE
+#else
+
 /*! change the URL of DOM pdocArg to URI of pccArg
 
 \param pdocArg pointer to DOM
@@ -1589,6 +1592,7 @@ domChangeURL(xmlDocPtr pdocArg, resNodePtr prnArg)
 }
 /* end of domChangeURL() */
 
+#endif
 
 
 #ifdef TESTCODE

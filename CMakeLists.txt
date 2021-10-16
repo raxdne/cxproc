@@ -146,6 +146,18 @@ SET(FILEX_SOURCES
   ${CXPROC_SRC_DIR}/utils.c
 )
 
+SET(PIETEXTX_HEADERS
+  ${CXPROC_SRC_DIR}/version.h
+  ${CXPROC_SRC_DIR}/basics.h
+  ${CXPROC_SRC_DIR}/utils.h
+  ${CXPROC_SRC_DIR}/dom.h
+  )
+
+SET(PIETEXTX_SOURCES
+  ${CXPROC_SRC_DIR}/utils.c
+  ${CXPROC_SRC_DIR}/dom.c
+  )
+
 SET(CXPROC_HEADERS
   ${CXPROC_SRC_DIR}/version.h
 #  ${CXPROC_SRC_DIR}/git_revision.h
@@ -197,6 +209,7 @@ SET(CXPROC_SOURCES
 
 IF(MSVC)
   SET(FILEX_SOURCES ${FILEX_SOURCES} ${CXPROC_SRC_DIR}/version.rc)
+  SET(PIETEXTX_SOURCES ${PIETEXTX_SOURCES} ${CXPROC_SRC_DIR}/version.rc)
   SET(CXPROC_SOURCES ${CXPROC_SOURCES} ${CXPROC_SRC_DIR}/version.rc)
 ENDIF(MSVC)
 
@@ -453,7 +466,7 @@ IF (CXPROC_PIE)
     ${CXPROC_SRC_DIR}/option/vcf/vcf.c
     )
 
-  SET(FILEX_SOURCES ${FILEX_SOURCES} 
+  SET(FILEX_HEADERS ${FILEX_HEADERS} 
     ${CXPROC_SRC_DIR}/option/pie/pie_element.h
     ${CXPROC_SRC_DIR}/option/pie/pie_text_tags.h
     ${CXPROC_SRC_DIR}/option/pie/pie_text_blocks.h
@@ -470,6 +483,19 @@ IF (CXPROC_PIE)
     ${CXPROC_SRC_DIR}/option/pie/pie_timezone.c
     ${CXPROC_SRC_DIR}/option/ics/ics.c
     ${CXPROC_SRC_DIR}/option/vcf/vcf.c
+    )
+
+  SET(PIETEXTX_HEADERS ${PIETEXTX_HEADERS} 
+    ${CXPROC_SRC_DIR}/option/pie/pie_element.h
+    ${CXPROC_SRC_DIR}/option/pie/pie_text_tags.h
+    ${CXPROC_SRC_DIR}/option/pie/pie_text_blocks.h
+    ${CXPROC_SRC_DIR}/option/pie/pie_dtd.h
+    )
+  
+  SET(PIETEXTX_SOURCES ${PIETEXTX_SOURCES}
+    ${CXPROC_SRC_DIR}/option/pie/pie_element.c
+    ${CXPROC_SRC_DIR}/option/pie/pie_text_tags.c
+    ${CXPROC_SRC_DIR}/option/pie/pie_text_blocks.c
     )
 
   OPTION(CXPROC_MARKDOWN "Compile MARKDOWN code" ON)
@@ -696,6 +722,12 @@ ADD_EXECUTABLE(filex
  ${CXPROC_SRC_DIR}/filex.c
  ${FILEX_SOURCES} ${FILEX_HEADERS})
 
+ADD_EXECUTABLE(pietextx
+  ${CXPROC_SRC_DIR}/pietextx.c
+  ${PIETEXTX_SOURCES} ${PIETEXTX_HEADERS})
+
+target_compile_definitions(pietextx PUBLIC PIE_STANDALONE)
+
 ADD_EXECUTABLE(cxproc
  ${CXPROC_SRC_DIR}/cxproc.c
  ${CXPROC_SOURCES} ${CXPROC_HEADERS})
@@ -823,6 +855,7 @@ IF (${LIBXML2_LIBRARIES} MATCHES ".+static.*\\.lib$" OR ${LIBXML2_LIBRARIES} MAT
   add_definitions(-DLIBXML_STATIC)
   IF(MSVC)
     target_link_libraries(filex ws2_32.lib)
+    target_link_libraries(pietextx ws2_32.lib)
     target_link_libraries(cxproc ws2_32.lib)
     target_link_libraries(cxproc-test ws2_32.lib)
     target_link_libraries(cxproc-cgi ws2_32.lib)
@@ -937,6 +970,7 @@ ENDIF (CXPROC_CXX)
 
 IF (CXPROC_PCRE2)
   target_link_libraries(filex ${LIBPCRE2_LIBRARIES})
+  target_link_libraries(pietextx ${LIBPCRE2_LIBRARIES})
   target_link_libraries(cxproc ${LIBPCRE2_LIBRARIES})
   target_link_libraries(cxproc-test ${LIBPCRE2_LIBRARIES})
   target_link_libraries(cxproc-cgi ${LIBPCRE2_LIBRARIES})
@@ -987,6 +1021,7 @@ ENDIF (CXPROC_SQLITE3)
 
 IF (CXPROC_LIBZ)
   target_link_libraries(filex ${ZLIB_LIBRARIES})
+  target_link_libraries(pietextx ${ZLIB_LIBRARIES})
   target_link_libraries(cxproc ${ZLIB_LIBRARIES})
   target_link_libraries(cxproc-test ${ZLIB_LIBRARIES})
   target_link_libraries(cxproc-cgi  ${ZLIB_LIBRARIES})
@@ -1050,6 +1085,7 @@ IF (CXPROC_LZMA)
     add_definitions(-DLIBLZMA_STATIC)
   ENDIF ()
   target_link_libraries(filex ${LIBLZMA_LIBRARIES})
+  target_link_libraries(pietextx ${LIBLZMA_LIBRARIES})
   target_link_libraries(cxproc ${LIBLZMA_LIBRARIES})
   target_link_libraries(cxproc-test ${LIBLZMA_LIBRARIES})
   target_link_libraries(cxproc-cgi  ${LIBLZMA_LIBRARIES})
@@ -1221,6 +1257,7 @@ ENDIF (CXPROC_LIBEXIF)
 #
 
 target_link_libraries(filex ${LIBICONV_LIBRARY} ${LIBCHARSET_LIBRARY} ${LIBXML2_LIBRARIES})
+target_link_libraries(pietextx ${LIBICONV_LIBRARY} ${LIBCHARSET_LIBRARY} ${LIBXML2_LIBRARIES})
 target_link_libraries(cxproc ${LIBICONV_LIBRARY} ${LIBCHARSET_LIBRARY} ${LIBXML2_LIBRARIES} ${LIBXSLT_LIBRARIES})
 target_link_libraries(cxproc-test ${LIBICONV_LIBRARY} ${LIBCHARSET_LIBRARY} ${LIBXML2_LIBRARIES} ${LIBXSLT_LIBRARIES})
 target_link_libraries(cxproc-cgi ${LIBICONV_LIBRARY} ${LIBCHARSET_LIBRARY} ${LIBXML2_LIBRARIES} ${LIBXSLT_LIBRARIES})
@@ -1268,6 +1305,7 @@ ENDIF(MSVC)
 IF(MSVC)
 ELSE(MSVC)
   target_link_libraries(filex -ldl -lm)
+  target_link_libraries(pietextx -ldl -lm)
   target_link_libraries(cxproc -ldl -lm)
   target_link_libraries(cxproc-test -ldl -lm)
   target_link_libraries(cxproc-cgi -ldl -lm)
@@ -1286,6 +1324,19 @@ ELSE(MSVC)
 ENDIF(MSVC)
 
 set_target_properties(filex
+    PROPERTIES
+    ARCHIVE_OUTPUT_DIRECTORY "${CXPROC_PREFIX}/lib"
+    LIBRARY_OUTPUT_DIRECTORY "${CXPROC_PREFIX}/lib"
+    RUNTIME_OUTPUT_DIRECTORY "${CXPROC_PREFIX}/bin"
+    ARCHIVE_OUTPUT_DIRECTORY_DEBUG "${CXPROC_PREFIX}/lib"
+    LIBRARY_OUTPUT_DIRECTORY_DEBUG "${CXPROC_PREFIX}/lib"
+    RUNTIME_OUTPUT_DIRECTORY_DEBUG "${CXPROC_PREFIX}/bin"
+    ARCHIVE_OUTPUT_DIRECTORY_RELEASE "${CXPROC_PREFIX}/lib"
+    LIBRARY_OUTPUT_DIRECTORY_RELEASE "${CXPROC_PREFIX}/lib"
+    RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CXPROC_PREFIX}/bin"
+)
+
+set_target_properties(pietextx
     PROPERTIES
     ARCHIVE_OUTPUT_DIRECTORY "${CXPROC_PREFIX}/lib"
     LIBRARY_OUTPUT_DIRECTORY "${CXPROC_PREFIX}/lib"
@@ -1723,7 +1774,7 @@ set(CPACK_BINARY_NUGET "OFF")
 set(CPACK_BINARY_WIX "OFF")
 set(CPACK_BINARY_ZIP "ON")
 
-INSTALL(TARGETS filex cxproc RUNTIME DESTINATION bin)
+INSTALL(TARGETS filex pietextx cxproc RUNTIME DESTINATION bin)
 INSTALL(TARGETS cxproc-cgi test-cgi RUNTIME DESTINATION www/cgi-bin)
 INSTALL(DIRECTORY xml/schema DESTINATION .)
 INSTALL(DIRECTORY doc DESTINATION .)
