@@ -92,7 +92,7 @@ SetLogLevelStr(xmlChar *pucArg)
 xmlChar *
 ReadUTF8ToBufferNew(FILE* argin) 
 {
-  char* pucResult = NULL;
+  xmlChar* pucResult = NULL;
 
   if (argin != NULL) {
     size_t b;

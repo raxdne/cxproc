@@ -85,18 +85,18 @@ main() {
     xmlNodePtr pndPie;
     
     if ((pndPie = xmlNewDocNode(pdocPie, NULL, NAME_PIE_PIE, NULL)) != NULL) {
-      char *pcContent;
+      xmlChar *pucContent;
 	
       xmlDocSetRootElement(pdocPie,pndPie);
 
-      if ((pcContent = ReadUTF8ToBufferNew(stdin)) != NULL) {
+      if ((pucContent = ReadUTF8ToBufferNew(stdin)) != NULL) {
 #ifdef HAVE_PIE
-	AppendBufferToDoc(pndPie,BAD_CAST pcContent);
+	AppendBufferToDoc(pndPie,BAD_CAST pucContent);
 #else
 	xmlSetProp(pndPie, BAD_CAST "error", BAD_CAST"pie");
-	//fputs(pcContent,stdout);
+	//fputs(pucContent,stdout);
 #endif
-	xmlFree(pcContent);
+	xmlFree(pucContent);
       }
       else {
 	//xmlSetProp(pnd, BAD_CAST "error", BAD_CAST"parse");

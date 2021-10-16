@@ -92,8 +92,7 @@ StringUpdateMarkupNew(xmlChar* pucArg, int* piArg)
 	k++;
       }
       else if (pucArg[j] == (xmlChar)'.' || pucArg[j] == (xmlChar)',' || pucArg[j] == (xmlChar)';' || pucArg[j] == (xmlChar)':'
-	|| pucArg[j] == (xmlChar)'?' || pucArg[j] == (xmlChar)'!'
-	|| pucArg[j] == (xmlChar)'-' || pucArg[j] == (xmlChar)'_') {
+	|| pucArg[j] == (xmlChar)'?' || pucArg[j] == (xmlChar)'!') {
 	k = 0; /* to be ignored */
 	break;
       }
