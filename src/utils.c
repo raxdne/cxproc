@@ -85,6 +85,37 @@ SetLogLevelStr(xmlChar *pucArg)
 /* end of SetLogLevelStr() */
 
 
+/*! reads blockwise content from input stream 'argin'
+  \todo UTF8Check() encoding of input should be UTF-8
+  \return pointer to a dynamically allocated buffer or NULL in case of errors
+*/
+xmlChar *
+ReadUTF8ToBufferNew(FILE* argin) 
+{
+  char* pucResult = NULL;
+
+  if (argin != NULL) {
+    size_t b;
+    size_t l;
+
+    for (b = 0, l = BUFFER_LENGTH; (pucResult = BAD_CAST xmlRealloc((void *)pucResult, l)) != NULL; b += BUFFER_LENGTH, l += BUFFER_LENGTH) {
+      size_t k;
+
+      PrintFormatLog(4, "%i Byte allocated", l);
+
+      if ((k = fread(&pucResult[b], 1, BUFFER_LENGTH, argin)) < BUFFER_LENGTH) {
+	/* end of input reached */
+	l = b + k;
+	pucResult[l] = '\0';
+	PrintFormatLog(2, "%i Byte read", l);
+	break;
+      }
+    }
+  }
+  return pucResult;
+} /* end of ReadUTF8ToBufferNew() */
+
+
 /*! \return TRUE if pchArg was converted to lowercases successfully
   Stops at the string end or line end of pchArg, works properly when pchArg contains ASCII chars only!
 */

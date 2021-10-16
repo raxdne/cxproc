@@ -19,20 +19,16 @@
 
 */
 
-			     
-/* 
+/*! buffer to XML DOM (blocks, tags, tasks, URLs, tables ...) encoding? */
 
-   buffer to XML DOM (blocks, tags, tasks, URLs, tables ...) encoding?
+/*!\todo file to stdout "-f input.txt -o output.pie" "" */
 
-   file to stdout "-f input.txt -o output.pie" ""
+/*!\todo pipe stdin/stdout (UTF-8 only) */
 
-   pipe stdin/stdout (UTF-8 only)
+/*!\todo tcl package */
 
-   tcl package
+/*!\todo python package */
 
-   python package
-
- */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -41,8 +37,10 @@
 #include <basics.h>
 #include <utils.h>
 #include <dom.h>
-#include <pie/pie_dtd.h>
+
+#ifdef HAVE_PIE
 #include <pie/pie_text_blocks.h>
+#endif
 
 
 /*\return new DOM for zero-terminated buffer */
@@ -54,6 +52,7 @@ AppendBufferToDoc(xmlNodePtr pndArg, xmlChar *pucArg) {
   }
   else if (pucArg == NULL) {
   }
+#ifdef HAVE_PIE
   else if (ParsePlainBuffer(pndArg, pucArg, RMODE_PAR)) {
     RecognizeInlines(pndArg);
     //RecognizeScripts(pndArg);
@@ -67,6 +66,7 @@ AppendBufferToDoc(xmlNodePtr pndArg, xmlChar *pucArg) {
     //RecognizeGlobalTags(pndTags, pndArg);
     //CleanListTag(pndTags, FALSE);	    
   }
+#endif
   else {
     xmlSetProp(pndArg, BAD_CAST "error", BAD_CAST"parse");
   }
@@ -75,36 +75,11 @@ AppendBufferToDoc(xmlNodePtr pndArg, xmlChar *pucArg) {
 }
 
 
-/*  */
-char *
-ReadToBuffer(FILE *argin) {
-  char *pcResult = NULL;
-
-  if (argin != NULL) {
-    size_t b;
-    size_t l;
-
-    for (b = 0, l = BUFFER_LENGTH; (pcResult = (char *) xmlRealloc(pcResult,l)) != NULL; b += BUFFER_LENGTH, l += BUFFER_LENGTH) {
-      size_t k;
-	
-      fprintf(stderr,"! %lu Byte allocated\n",l);
-
-      if ((k = fread(&pcResult[b],1,BUFFER_LENGTH, argin)) < BUFFER_LENGTH) {
-	/* end of input reached */
-	l = b + k;
-	pcResult[l] = '\0';
-	fprintf(stderr,"! %lu Byte read\n",l);
-	break;
-      }
-    }
-  } 
-  return pcResult;
-}
-
-
 int
 main() {
   xmlDocPtr pdocPie;
+
+  SetLogLevel(3);
 
   if ((pdocPie = xmlNewDoc(BAD_CAST "1.0")) != NULL) {
     xmlNodePtr pndPie;
@@ -114,9 +89,13 @@ main() {
 	
       xmlDocSetRootElement(pdocPie,pndPie);
 
-      if ((pcContent = ReadToBuffer(stdin)) != NULL) {
-	//puts(pcContent);
+      if ((pcContent = ReadUTF8ToBufferNew(stdin)) != NULL) {
+#ifdef HAVE_PIE
 	AppendBufferToDoc(pndPie,BAD_CAST pcContent);
+#else
+	xmlSetProp(pndPie, BAD_CAST "error", BAD_CAST"pie");
+	//fputs(pcContent,stdout);
+#endif
 	xmlFree(pcContent);
       }
       else {

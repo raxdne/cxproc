@@ -2091,7 +2091,7 @@ SplitStringToDateNodes(const xmlChar *pucArg, RN_MIME_TYPE eMimeTypeArg)
   if (pucArg != NULL && (ducOrigin = xmlStrlen(pucArg)) > 0) {
     int rc;
     pcre2_match_data *match_data;
-    xmlNodePtr pndIn;
+    xmlNodePtr pndIn = NULL;
     xmlNodePtr pndPostfix;
 
     match_data = pcre2_match_data_create_from_pattern(re_date, NULL);
@@ -2138,7 +2138,7 @@ SplitStringToDateNodes(const xmlChar *pucArg, RN_MIME_TYPE eMimeTypeArg)
 	  }
 	}
 
-	if (ducOrigin > ovector[1]) {
+	if (pndIn != NULL && ducOrigin > ovector[1]) {
 	  /* the content ends with text, recursion */
 
 	  if (eMimeTypeArg == MIME_TEXT_PLAIN_CALENDAR) {
@@ -2279,7 +2279,7 @@ StringDecodeCharMarkupNew(xmlChar *pucArg, lang_t eLangArg)
   if (STR_IS_NOT_EMPTY(pucArg)) {
     int i, k, l;
 
-    pucResult = BAD_CAST xmlMalloc(xmlStrlen(pucArg) * 2);
+    pucResult = BAD_CAST xmlMalloc(((size_t)xmlStrlen(pucArg) * (size_t)2));
 
     for (k=i=0; pucArg[i]; ) {
       int iCode;
