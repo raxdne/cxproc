@@ -72,6 +72,9 @@ resNodeReadDoc(resNodePtr prnArg);
 extern int
 resNodeGetUsageCount(resNodePtr prnArg);
 
+extern void
+resNodeChangeDomURL(xmlDocPtr pdocArg, resNodePtr pccArg);
+
 #ifdef TESTCODE
 extern int
 resNodeTestInOut(void);

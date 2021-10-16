@@ -22,10 +22,9 @@
 #include <pie/pie_dtd.h>
 #include <pie/calendar_element.h>
 #include <pie/pie_element.h>
-#ifdef PIE_STANDALONE
-#define YYY_RN_MIME_TYPE int
-#else
 
+#ifdef PIE_STANDALONE
+#else
 #include "plain_text.h"
 #endif
 

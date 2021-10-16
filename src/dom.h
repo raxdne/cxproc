@@ -157,9 +157,6 @@ domValidateTree(xmlNodePtr pndArg);
 extern xmlNodePtr
 domAddNodeToError(xmlDocPtr pdocArg, xmlNodePtr pndArg);
 
-extern void
-domChangeURL(xmlDocPtr pdocArg, resNodePtr pccArg);
-
 extern BOOL_T
 domDocIsHtml(xmlDocPtr pdocArg);
 

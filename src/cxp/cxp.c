@@ -2302,7 +2302,7 @@ cxpXslRetrieve(const xmlNodePtr pndArgXsl, cxpContextPtr pccArg)
 	      prnContext = resNodeConcatNew(cxpCtxtLocationGetStr(pccArg),pucAttrContext);
 	      if (prnContext != NULL && resNodeIsReadable(prnContext)) {
 		/* relocate the DOM URI to */
-		domChangeURL(pdocResult,prnContext);
+		resNodeChangeDomURL(pdocResult,prnContext);
 	      }
 	      resNodeFree(prnContext);
 	    }

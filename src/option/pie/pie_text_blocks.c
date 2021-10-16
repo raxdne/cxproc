@@ -1053,7 +1053,7 @@ FindElementNodeLast(xmlNodePtr pndArg)
 
 
 #ifdef PIE_STANDALONE
-
+  /* import in standalone mode not required */
 #else
 
 /*! return TRUE if 
@@ -2886,13 +2886,12 @@ GetModeByAttr(xmlNodePtr pndArgImport)
 {
   rmode_t eResultMode = RMODE_PAR;
 
-#ifdef PIE_STANDALONE
-  
-#else
   if (IS_NODE_PIE_IMPORT(pndArgImport) || IS_NODE_PIE_BLOCK(pndArgImport)) {
     xmlChar *pucAttrType;
     
     if ((pucAttrType = domGetPropValuePtr(pndArgImport, BAD_CAST "type")) == NULL) {
+#ifdef PIE_STANDALONE
+#else
       xmlChar *pucAttrName;
       xmlChar *pucAttrNameExt;
       /* no type is defined */
@@ -2903,6 +2902,7 @@ GetModeByAttr(xmlNodePtr pndArgImport)
 	eResultMode = GetModeByExtension(pucAttrNameExt);
 	xmlFree(pucAttrNameExt);
       }
+#endif
     }
     else if (xmlStrEqual(pucAttrType, BAD_CAST "line") || xmlStrEqual(pucAttrType, BAD_CAST "cal")) {
       eResultMode = RMODE_LINE;
@@ -2930,7 +2930,6 @@ GetModeByAttr(xmlNodePtr pndArgImport)
       PrintFormatLog(2, "No valid import format '%s'", pucAttrType);
     }
   }
-#endif
   
   return eResultMode;
 } /* end of GetModeByAttr() */

@@ -274,7 +274,7 @@ cxpCtxtTest(cxpContextPtr pccArg)
     xmlDocSetRootElement(pdocTest,pndXml);
 
     prnT = resNodeConcatNew(BAD_CAST TESTPREFIX,BAD_CAST "xsl/test-xsl-4.xml");
-    domChangeURL(pdocTest,prnT);
+    resNodeChangeDomURL(pdocTest,prnT);
 
     pccT = cxpCtxtFromAttr(pccArg,pndXml);
     if (resPathIsEquivalent(resNodeGetNameNormalized(cxpCtxtLocationGet(pccT)), BAD_CAST TESTPREFIX)) {
