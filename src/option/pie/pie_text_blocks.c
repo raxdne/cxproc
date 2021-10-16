@@ -1052,6 +1052,10 @@ FindElementNodeLast(xmlNodePtr pndArg)
 /* end of FindElementNodeLast() */
 
 
+#ifdef PIE_STANDALONE
+  /* import in standalone mode not required */
+#else
+
 /*! return TRUE if 
  */
 BOOL_T
@@ -1113,6 +1117,7 @@ IsImportCircular(xmlNodePtr pndArg, resNodePtr prnArg)
   return FALSE;
 } /* end of IsImportCircular() */
 
+#endif
 
 #ifdef LEGACY
 
@@ -2496,10 +2501,13 @@ RecognizeDates(xmlNodePtr pndArg, RN_MIME_TYPE eMimeTypeArg)
       }
     }
     else if (IS_ENODE(pndArg) && (pndArg->ns==NULL || pndArg->ns==pnsPie)) {
+
       xmlChar* pucExt;
       xmlNodePtr pndChild;
       RN_MIME_TYPE eMimeTypeHere = eMimeTypeArg;
 
+#ifdef PIE_STANDALONE
+#else
       if (IS_NODE_PIE_BLOCK(pndArg)
 	&& (pndArg->ns == NULL || pndArg->ns == pnsPie)
 	&& ((pucExt = resPathGetExtension(domGetPropValuePtr(pndArg, BAD_CAST"name"))) != NULL
@@ -2507,7 +2515,8 @@ RecognizeDates(xmlNodePtr pndArg, RN_MIME_TYPE eMimeTypeArg)
 	eMimeTypeHere = resMimeGetTypeFromExt(pucExt);
 	xmlFree(pucExt);
       }
-
+#endif
+      
       for (pndChild = pndArg->children; pndChild; pndChild = RecognizeDates(pndChild, eMimeTypeHere));
     }
   }
@@ -2881,6 +2890,8 @@ GetModeByAttr(xmlNodePtr pndArgImport)
     xmlChar *pucAttrType;
     
     if ((pucAttrType = domGetPropValuePtr(pndArgImport, BAD_CAST "type")) == NULL) {
+#ifdef PIE_STANDALONE
+#else
       xmlChar *pucAttrName;
       xmlChar *pucAttrNameExt;
       /* no type is defined */
@@ -2891,6 +2902,7 @@ GetModeByAttr(xmlNodePtr pndArgImport)
 	eResultMode = GetModeByExtension(pucAttrNameExt);
 	xmlFree(pucAttrNameExt);
       }
+#endif
     }
     else if (xmlStrEqual(pucAttrType, BAD_CAST "line") || xmlStrEqual(pucAttrType, BAD_CAST "cal")) {
       eResultMode = RMODE_LINE;
@@ -2918,7 +2930,7 @@ GetModeByAttr(xmlNodePtr pndArgImport)
       PrintFormatLog(2, "No valid import format '%s'", pucAttrType);
     }
   }
-
+  
   return eResultMode;
 } /* end of GetModeByAttr() */
 

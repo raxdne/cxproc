@@ -1564,33 +1564,6 @@ domNodeGrepNew(xmlNodePtr pndArg, xmlChar *pucArgGrep)
 #endif
 
 
-/*! change the URL of DOM pdocArg to URI of pccArg
-
-\param pdocArg pointer to DOM
-\param pccArg the filesystem context
-
- */
-void
-domChangeURL(xmlDocPtr pdocArg, resNodePtr prnArg)
-{
-#ifdef DEBUG
-  PrintFormatLog(3,"domChangeURL(pdocArg=%0x,prnArg=%0x) to '%s'",pdocArg,prnArg,resNodeGetURI(prnArg));
-#endif
-
-  if (pdocArg != NULL && prnArg != NULL) {
-    xmlChar *pucUri;
-
-    pucUri = resNodeGetURI(prnArg);
-    if (pucUri) {
-      xmlFree((void *) pdocArg->URL);
-      pdocArg->URL = xmlStrdup(pucUri);
-    }
-  }
-}
-/* end of domChangeURL() */
-
-
-
 #ifdef TESTCODE
 #include "test/test_dom.c"
 #endif

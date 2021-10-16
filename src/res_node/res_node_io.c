@@ -1289,7 +1289,7 @@ resNodeReadDoc(resNodePtr prnArg)
     /* there is a cached DOM */
     pdocResult = xmlCopyDoc(pdocResult, 1);
     /* found in cache, set file context to DOM */
-    domChangeURL(pdocResult, prnArg);
+    resNodeChangeDomURL(pdocResult, prnArg);
   }
 #endif
 #ifdef HAVE_ZLIB
@@ -1347,7 +1347,7 @@ resNodeReadDoc(resNodePtr prnArg)
 
     if (pdocResult) {
       // set file context to DOM
-      domChangeURL(pdocResult,prnArg);
+      resNodeChangeDomURL(pdocResult,prnArg);
     }
     else {
       PrintFormatLog(1,"Cant parse file '%s'", resNodeGetNameNormalized(prnArg));
@@ -1440,6 +1440,32 @@ resNodeGetBlockSize(resNodePtr prnArg)
   }
   return 0;
 } /* end of resNodeGetBlockSize() */
+
+
+/*! change the URL of DOM pdocArg to URI of pccArg
+
+\param pdocArg pointer to DOM
+\param pccArg the filesystem context
+
+ */
+void
+resNodeChangeDomURL(xmlDocPtr pdocArg, resNodePtr prnArg)
+{
+#ifdef DEBUG
+  PrintFormatLog(3,"resNodeChangeDomURL(pdocArg=%0x,prnArg=%0x) to '%s'",pdocArg,prnArg,resNodeGetURI(prnArg));
+#endif
+
+  if (pdocArg != NULL && prnArg != NULL) {
+    xmlChar *pucUri;
+
+    pucUri = resNodeGetURI(prnArg);
+    if (pucUri) {
+      xmlFree((void *) pdocArg->URL);
+      pdocArg->URL = xmlStrdup(pucUri);
+    }
+  }
+}
+/* end of resNodeChangeDomURL() */
 
 
 #ifdef TESTCODE

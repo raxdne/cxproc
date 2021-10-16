@@ -342,33 +342,6 @@ domTest(void)
 
   if (RUNTEST) {
     xmlDocPtr pdocTest;
-    resNodePtr prnT = NULL;
-
-    i++;
-    printf("TEST %i in '%s:%i': domChangeURL() = ", i, __FILE__, __LINE__);
-
-    prnT = resNodeDirNew(BAD_CAST TESTPREFIX "xml/");
-    pdocTest = xmlParseFile(TESTPREFIX "xsl/TestValidate.xsl");
-    if (pdocTest) {
-      domChangeURL(pdocTest, prnT);
-      if (xmlStrEqual(pdocTest->URL, resNodeGetURI(prnT))) {
-	n_ok++;
-	printf("OK\n");
-      }
-      else {
-	printf("Error\n");
-      }
-    }
-    else {
-      printf("Error\n");
-    }
-
-    xmlFreeDoc(pdocTest);
-    resNodeFree(prnT);
-  }
-
-  if (RUNTEST) {
-    xmlDocPtr pdocTest;
     xmlNodePtr pndRoot;
     xmlNodePtr pndT;
 
@@ -550,7 +523,7 @@ domTest(void)
     pndRoot = xmlNewNode(NULL,NAME_XML);
     pndXslNew = xmlNewChild(pndRoot,NULL,BAD_CAST "stylesheet",NULL);
     if (pndXslNew) {
-      /*\todo domChangeURL(pdocResult,cxpCtxtLocationGet(pccArg)); ?? */
+      /*\todo resNodeChangeDomURL(pdocResult,cxpCtxtLocationGet(pccArg)); ?? */
 
       /* create local namespace for XSL */
       pnsXsl = xmlNewNs(pndXslNew,XSLT_NAMESPACE,BAD_CAST "xsl");

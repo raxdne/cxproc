@@ -1657,7 +1657,7 @@ pieElementToDOM(pieTextElementPtr ppeT)
 	  for (i=0, pchT = strtok((char*)pucC, delimiter); pchT != NULL; i++) {
 	    switch (i) {
 	    case 0:
-	      resPathRemoveQuotes(BAD_CAST pchT);
+	      //	      resPathRemoveQuotes(BAD_CAST pchT);
 	      if (STR_IS_NOT_EMPTY(pchT)) {
 		xmlSetProp(pndResult, BAD_CAST "name", BAD_CAST pchT);
 	      }

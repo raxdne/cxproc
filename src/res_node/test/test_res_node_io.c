@@ -563,6 +563,33 @@ resNodeTestInOut(void)
   }
 
 
+  if (RUNTEST) {
+    xmlDocPtr pdocTest;
+    resNodePtr prnT = NULL;
+
+    i++;
+    printf("TEST %i in '%s:%i': resNodeChangeDomURL() = ", i, __FILE__, __LINE__);
+
+    prnT = resNodeDirNew(BAD_CAST TESTPREFIX "xml/");
+    pdocTest = xmlParseFile(TESTPREFIX "xsl/TestValidate.xsl");
+    if (pdocTest) {
+      resNodeChangeDomURL(pdocTest, prnT);
+      if (xmlStrEqual(pdocTest->URL, resNodeGetURI(prnT))) {
+	n_ok++;
+	printf("OK\n");
+      }
+      else {
+	printf("Error\n");
+      }
+    }
+    else {
+      printf("Error\n");
+    }
+
+    xmlFreeDoc(pdocTest);
+    resNodeFree(prnT);
+  }
+
   printf("\nResult in '%s': %i/%i OK\n\n",__FILE__,n_ok,i);
 
   return (i - n_ok);
