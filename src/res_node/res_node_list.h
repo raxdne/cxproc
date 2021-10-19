@@ -68,6 +68,9 @@ resNodeListToXml(resNodePtr prnArg, int iLevelVerboseArg);
 extern xmlChar *
 resNodeListToPlain(resNodePtr prnArg, int iLevelVerboseArg);
 
+extern BOOL_T
+resNodeListDump(FILE *argout, resNodePtr prnArg, xmlChar *(*pfArg)(resNodePtr, int));
+
 extern xmlChar*
 resNodeListToPlainTree(resNodePtr prnArg, xmlChar* pucArgPrefix, int iArgOptions);
 

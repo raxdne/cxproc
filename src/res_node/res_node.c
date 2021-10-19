@@ -3247,7 +3247,7 @@ resNodeToJSON(resNodePtr prnArg, int iArgOptions)
 \return TRUE if prnArg is initialized
 */
 xmlChar *
-resNodeToSql(resNodePtr prnArg, int iArgOptions)
+resNodeToSQL(resNodePtr prnArg, int iArgOptions)
 {
   xmlChar *pucResult = NULL;
 
@@ -3381,13 +3381,14 @@ resNodeToSql(resNodePtr prnArg, int iArgOptions)
 	xmlFree(pucResult);
 	pucResult = pucSqlDecl;
 	pucResult = xmlStrcat(pucResult,pucSqlValue);
+	pucResult = xmlStrcat(pucResult,BAD_CAST";\n");
 	xmlFree(pucSqlValue);
       }
     }
   }
 
   return pucResult;
-} /* end of resNodeToSql() */
+} /* end of resNodeToSQL() */
 
 
 /*! Detects and sets owner of the resource node.
@@ -4766,6 +4767,71 @@ resNodeDirAppendEntries(resNodePtr prnArgDir, const pcre2_code *re_match)
 } /* end of resNodeDirAppendEntries() */
 
 #endif
+
+
+/*! Read and sets the file MIME type of this context.
+
+  \param prnArg the context
+ */
+xmlChar*
+resNodeDatabaseSchemaStr(void)
+{
+  int i;
+  xmlChar* pucResult = NULL;
+  xmlChar mpucT[BUFFER_LENGTH];
+
+  pucResult = xmlStrdup(BAD_CAST
+    "CREATE TABLE IF NOT EXISTS directory ("
+    "i INTEGER PRIMARY KEY, "
+    "depth INTEGER, "
+    "type INTEGER, "
+    "mime INTEGER, "
+    "r INTEGER, "
+    "w INTEGER, "
+    "x INTEGER, "
+    "h INTEGER, "
+#if 0
+    "owner text, "
+#endif
+    "name text, "
+    "ext text, "
+    "object text, "
+    "size INTEGER, "
+    "rsize INTEGER, "
+    "path text, "
+    "mtime INTEGER, "
+    "mtime2 text"
+    ");\n\n");
+
+  pucResult = xmlStrcat(pucResult, BAD_CAST
+    "CREATE TABLE IF NOT EXISTS meta (i INTEGER PRIMARY KEY, timestamp INTEGER, key text, value text);\n\n");
+
+  pucResult = xmlStrcat(pucResult, BAD_CAST
+    "CREATE TABLE IF NOT EXISTS mimetypes(mime INTEGER, name text);\n\n");
+
+  for (i = MIME_UNKNOWN; i < MIME_END; i++) {
+    char* pcMime;
+
+    pcMime = (char*)resMimeGetTypeStr(i);
+    if (pcMime) {
+      xmlStrPrintf(mpucT, BUFFER_LENGTH, "insert into mimetypes(mime,name) values (%i,\"%s\");\n", i, BAD_CAST pcMime);
+      pucResult = xmlStrcat(pucResult, mpucT);
+    }
+  }
+  pucResult = xmlStrcat(pucResult, BAD_CAST "\n\n");
+
+  pucResult = xmlStrcat(pucResult, BAD_CAST
+    "CREATE TABLE IF NOT EXISTS queries (query text);\n"
+    "\n"
+    "insert into queries(query) values (\"SELECT * FROM meta;\");\n"
+    "insert into queries(query) values (\"SELECT DISTINCT name FROM directory;\");\n"
+    "insert into queries(query) values (\"SELECT sum(size)/(1024*1024*1024) AS GB FROM directory;\");\n"
+    "insert into queries(query) values (\"SELECT path || '/' || name AS File,(size / 1048576) AS MB,mtime2 AS MTime FROM directory WHERE (size > 1048576) ORDER BY MB DESC;\");\n"
+    "insert into queries(query) values (\"SELECT count() AS Count, name AS Name FROM directory GROUP BY name ORDER BY Count DESC;\");\n"
+    "\n");
+
+  return pucResult;
+} /* end of resNodeDatabaseSchemaStr() */
 
 
 #ifdef TESTCODE

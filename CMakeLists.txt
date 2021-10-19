@@ -146,6 +146,28 @@ SET(FILEX_SOURCES
   ${CXPROC_SRC_DIR}/utils.c
 )
 
+SET(DIR2SQLITE_HEADERS
+  ${CXPROC_SRC_DIR}/version.h
+  ${CXPROC_SRC_DIR}/basics.h
+  ${CXPROC_SRC_DIR}/dom.h
+  ${CXPROC_SRC_DIR}/res_node/res_node.h
+  ${CXPROC_SRC_DIR}/res_node/res_node_list.h
+  ${CXPROC_SRC_DIR}/res_node/res_node_io.h
+  ${CXPROC_SRC_DIR}/res_node/res_path.h
+  ${CXPROC_SRC_DIR}/res_node/res_mime.h
+  ${CXPROC_SRC_DIR}/utils.h
+  )
+
+SET(DIR2SQLITE_SOURCES
+  ${CXPROC_SRC_DIR}/dom.c
+  ${CXPROC_SRC_DIR}/res_node/res_node.c
+  ${CXPROC_SRC_DIR}/res_node/res_node_list.c
+  ${CXPROC_SRC_DIR}/res_node/res_node_io.c
+  ${CXPROC_SRC_DIR}/res_node/res_path.c
+  ${CXPROC_SRC_DIR}/res_node/res_mime.c
+  ${CXPROC_SRC_DIR}/utils.c
+  )
+
 SET(PIETEXTX_HEADERS
   ${CXPROC_SRC_DIR}/version.h
   ${CXPROC_SRC_DIR}/basics.h
@@ -209,6 +231,7 @@ SET(CXPROC_SOURCES
 
 IF(MSVC)
   SET(FILEX_SOURCES ${FILEX_SOURCES} ${CXPROC_SRC_DIR}/version.rc)
+  SET(DIR2SQLITE_SOURCES ${DIR2SQLITE_SOURCES} ${CXPROC_SRC_DIR}/version.rc)
   SET(PIETEXTX_SOURCES ${PIETEXTX_SOURCES} ${CXPROC_SRC_DIR}/version.rc)
   SET(CXPROC_SOURCES ${CXPROC_SOURCES} ${CXPROC_SRC_DIR}/version.rc)
 ENDIF(MSVC)
@@ -281,6 +304,8 @@ IF (CXPROC_ARCHIVE)
   INCLUDE_DIRECTORIES(${LibArchive_INCLUDE_DIR})
   SET(FILEX_HEADERS ${FILEX_HEADERS} ${CXPROC_SRC_DIR}/option/archive/archive.h)
   SET(FILEX_SOURCES ${FILEX_SOURCES} ${CXPROC_SRC_DIR}/option/archive/archive.c)
+  SET(DIR2SQLITE_HEADERS ${DIR2SQLITE_HEADERS} ${CXPROC_SRC_DIR}/option/archive/archive.h)
+  SET(DIR2SQLITE_SOURCES ${DIR2SQLITE_SOURCES} ${CXPROC_SRC_DIR}/option/archive/archive.c)
   SET(CXPROC_HEADERS ${CXPROC_HEADERS} ${CXPROC_SRC_DIR}/option/archive/cxp_archive.h)
   SET(CXPROC_SOURCES ${CXPROC_SOURCES} ${CXPROC_SRC_DIR}/option/archive/cxp_archive.c ${CXPROC_SRC_DIR}/option/archive/archive.c)
   add_definitions(-DHAVE_LIBARCHIVE)
@@ -327,11 +352,9 @@ IF (CXPROC_SQLITE3)
   SET(CXPROC_SOURCES ${CXPROC_SOURCES} ${CXPROC_SRC_DIR}/option/database/database.c ${CXPROC_SRC_DIR}/option/database/cxp_database.c)
   SET(FILEX_HEADERS ${FILEX_HEADERS} ${CXPROC_SRC_DIR}/option/database/database.h)
   SET(FILEX_SOURCES ${FILEX_SOURCES} ${CXPROC_SRC_DIR}/option/database/database.c)
-  add_definitions(-DHAVE_LIBSQLITE3)
   IF (SQLITE3_SOURCE_FILE)
     SET(CXPROC_SOURCES ${CXPROC_SOURCES} ${SQLITE3_SOURCE_FILE})
     SET(FILEX_SOURCES ${FILEX_SOURCES} ${SQLITE3_SOURCE_FILE})
-    add_definitions(-DSQLITE_THREADSAFE=0 -DSQLITE_OMIT_LOAD_EXTENSION)
   ENDIF ()
 ENDIF (CXPROC_SQLITE3)
 
@@ -367,7 +390,6 @@ ENDIF (LIBID3TAG_FOUND)
 
 IF (CXPROC_LIBID3TAG)
   INCLUDE_DIRECTORIES(${LIBID3TAG_INCLUDE_DIR})
-  add_definitions(-DHAVE_LIBID3TAG)
 ENDIF (CXPROC_LIBID3TAG)
 
 IF (CXPROC_LIBID3TAG OR CXPROC_LIBVORBIS)
@@ -441,7 +463,6 @@ ENDIF ()
 #
 
 IF (CXPROC_PIE)
-  add_definitions(-DHAVE_PIE)
   SET(CXPROC_HEADERS ${CXPROC_HEADERS} 
     ${CXPROC_SRC_DIR}/option/pie/pie_calendar.h
     ${CXPROC_SRC_DIR}/option/pie/pie_element.h
@@ -613,7 +634,6 @@ ENDIF (LIBLZMA_FOUND)
 #OPTION(CXPROC_RP "Include RP code" OFF)
 
 IF (CXPROC_RP)
-  add_definitions(-DHAVE_RP)
   SET(CXPROC_HEADERS ${CXPROC_HEADERS} ${CXPROC_SRC_DIR}/rp.h)
   SET(CXPROC_SOURCES ${CXPROC_SOURCES} ${CXPROC_SRC_DIR}/rp.c)
 ENDIF (CXPROC_RP)
@@ -647,7 +667,6 @@ IF (DUKTAPE_FOUND)
 ENDIF (DUKTAPE_FOUND)
 
 IF (CXPROC_DUKTAPE)
-  add_definitions(-DHAVE_JS)
   SET(CXPROC_HEADERS ${CXPROC_HEADERS} ${CXPROC_SRC_DIR}/option/script/script.h)
   SET(CXPROC_SOURCES ${CXPROC_SOURCES} ${CXPROC_SRC_DIR}/option/script/script.c)
   IF (DUKTAPE_SOURCE_FILE)
@@ -687,7 +706,6 @@ ENDIF (LIBEXIF_FOUND)
 
 IF (CXPROC_LIBEXIF)
   INCLUDE_DIRECTORIES(${LIBEXIF_INCLUDE_DIR})
-  add_definitions(-DHAVE_LIBEXIF)
 ENDIF (CXPROC_LIBEXIF)
 
 IF (CXPROC_LIBEXIF)
@@ -707,10 +725,6 @@ SET(CXPROC_LIBMAGICK OFF)
 
 IF (CXPROC_LIBMAGICK)
   INCLUDE_DIRECTORIES(${LIBMAGICK_INCLUDE_DIR})
-  add_definitions(-DHAVE_LIBMAGICK)
-ENDIF (CXPROC_LIBMAGICK)
-
-IF (CXPROC_LIBMAGICK)
   SET(CXPROC_HEADERS ${CXPROC_HEADERS} ${CXPROC_SRC_DIR}/option/image/image.h)
   SET(CXPROC_SOURCES ${CXPROC_SOURCES} ${CXPROC_SRC_DIR}/option/image/image.c)
 ENDIF ()
@@ -718,9 +732,14 @@ ENDIF ()
 ################################################################################
 # The data is just added to the executable, because in some IDEs (QtCreator) 
 # files are invisible when they are not explicitly part of the project.
+
 ADD_EXECUTABLE(filex
  ${CXPROC_SRC_DIR}/filex.c
  ${FILEX_SOURCES} ${FILEX_HEADERS})
+
+ADD_EXECUTABLE(dir2sqlite
+ ${CXPROC_SRC_DIR}/dir2sqlite.c
+ ${DIR2SQLITE_SOURCES} ${DIR2SQLITE_HEADERS})
 
 ADD_EXECUTABLE(pietextx
   ${CXPROC_SRC_DIR}/pietextx.c
@@ -774,6 +793,19 @@ ADD_EXECUTABLE(test-cgi
 
 ################################################################################
 #
+# 
+#
+
+IF (CXPROC_PIE)
+  target_compile_definitions(filex       PUBLIC HAVE_PIE)
+  target_compile_definitions(pietextx    PUBLIC HAVE_PIE)
+  target_compile_definitions(cxproc      PUBLIC HAVE_PIE)
+  target_compile_definitions(cxproc-cgi  PUBLIC HAVE_PIE)
+  target_compile_definitions(cxproc-test PUBLIC HAVE_PIE)
+ENDIF ()
+
+################################################################################
+#
 # JSON
 #
 
@@ -783,6 +815,31 @@ IF (CXPROC_JSON)
   target_compile_definitions(cxproc-cgi  PUBLIC HAVE_JSON)
   target_compile_definitions(cxproc-test PUBLIC HAVE_JSON)
 ENDIF (CXPROC_JSON)
+
+################################################################################
+#
+# RP
+#
+
+IF (CXPROC_RP)
+  target_compile_definitions(filex       PUBLIC HAVE_RP)
+  target_compile_definitions(cxproc      PUBLIC HAVE_RP)
+  target_compile_definitions(cxproc-cgi  PUBLIC HAVE_RP)
+  target_compile_definitions(cxproc-test PUBLIC HAVE_RP)
+ENDIF (CXPROC_RP)
+
+################################################################################
+#
+# local imagemagick
+#
+
+IF (CXPROC_LIBMAGICK)
+  target_compile_definitions(filex       PUBLIC HAVE_MAGICK)
+  target_compile_definitions(cxproc      PUBLIC HAVE_MAGICK)
+  target_compile_definitions(cxproc-cgi  PUBLIC HAVE_MAGICK)
+  target_compile_definitions(cxproc-test PUBLIC HAVE_MAGICK)
+ENDIF (CXPROC_LIBMAGICK)
+
 
 ################################################################################
 #
@@ -855,6 +912,7 @@ IF (${LIBXML2_LIBRARIES} MATCHES ".+static.*\\.lib$" OR ${LIBXML2_LIBRARIES} MAT
   add_definitions(-DLIBXML_STATIC)
   IF(MSVC)
     target_link_libraries(filex ws2_32.lib)
+    target_link_libraries(dir2sqlite ws2_32.lib)
     target_link_libraries(pietextx ws2_32.lib)
     target_link_libraries(cxproc ws2_32.lib)
     target_link_libraries(cxproc-test ws2_32.lib)
@@ -970,6 +1028,7 @@ ENDIF (CXPROC_CXX)
 
 IF (CXPROC_PCRE2)
   target_link_libraries(filex ${LIBPCRE2_LIBRARIES})
+  target_link_libraries(dir2sqlite ${LIBPCRE2_LIBRARIES})
   target_link_libraries(pietextx ${LIBPCRE2_LIBRARIES})
   target_link_libraries(cxproc ${LIBPCRE2_LIBRARIES})
   target_link_libraries(cxproc-test ${LIBPCRE2_LIBRARIES})
@@ -985,6 +1044,9 @@ ENDIF ()
 #
 
 IF (CXPROC_DUKTAPE)
+  target_compile_definitions(cxproc      PUBLIC HAVE_JS)
+  target_compile_definitions(cxproc-cgi  PUBLIC HAVE_JS)
+  target_compile_definitions(cxproc-test PUBLIC HAVE_JS)
   IF (DUKTAPE_SOURCE_FILE)
   ELSE (DUKTAPE_SOURCE_FILE)
     target_link_libraries(cxproc ${DUKTAPE_LIBRARIES})
@@ -1002,9 +1064,17 @@ ENDIF (CXPROC_DUKTAPE)
 #
 
 IF (CXPROC_SQLITE3)
+  target_compile_definitions(filex       PUBLIC HAVE_LIBSQLITE3)
+  #target_compile_definitions(dir2sqlite  PUBLIC HAVE_LIBSQLITE3)
+  target_compile_definitions(cxproc      PUBLIC HAVE_LIBSQLITE3)
+  target_compile_definitions(cxproc-cgi  PUBLIC HAVE_LIBSQLITE3)
+  target_compile_definitions(cxproc-test PUBLIC HAVE_LIBSQLITE3)
+
   IF (SQLITE3_SOURCE_FILE)
+    add_definitions(-DSQLITE_THREADSAFE=0 -DSQLITE_OMIT_LOAD_EXTENSION)
   ELSE (SQLITE3_SOURCE_FILE)
     target_link_libraries(filex ${SQLITE3_LIBRARIES})
+    #target_link_libraries(dir2sqlite ${SQLITE3_LIBRARIES})
     target_link_libraries(cxproc ${SQLITE3_LIBRARIES})
     target_link_libraries(cxproc-test ${SQLITE3_LIBRARIES})
     target_link_libraries(cxproc-cgi  ${SQLITE3_LIBRARIES})
@@ -1021,6 +1091,7 @@ ENDIF (CXPROC_SQLITE3)
 
 IF (CXPROC_LIBZ)
   target_link_libraries(filex ${ZLIB_LIBRARIES})
+  target_link_libraries(dir2sqlite ${ZLIB_LIBRARIES})
   target_link_libraries(pietextx ${ZLIB_LIBRARIES})
   target_link_libraries(cxproc ${ZLIB_LIBRARIES})
   target_link_libraries(cxproc-test ${ZLIB_LIBRARIES})
@@ -1085,6 +1156,7 @@ IF (CXPROC_LZMA)
     add_definitions(-DLIBLZMA_STATIC)
   ENDIF ()
   target_link_libraries(filex ${LIBLZMA_LIBRARIES})
+  target_link_libraries(dir2sqlite ${LIBLZMA_LIBRARIES})
   target_link_libraries(pietextx ${LIBLZMA_LIBRARIES})
   target_link_libraries(cxproc ${LIBLZMA_LIBRARIES})
   target_link_libraries(cxproc-test ${LIBLZMA_LIBRARIES})
@@ -1098,11 +1170,13 @@ IF (CXPROC_ARCHIVE)
   IF(MSVC)
     # additional libraries with VC++
     target_link_libraries(filex ${LibArchive_LIBRARIES} ${LIBBZ2_LIBRARIES} ${CRYPTO_LIBRARY} ${LZ4_LIBRARY} ${ZSTD_LIBRARY} ${LZO2_LIBRARY})
+    target_link_libraries(dir2sqlite ${LibArchive_LIBRARIES} ${LIBBZ2_LIBRARIES} ${CRYPTO_LIBRARY} ${LZ4_LIBRARY} ${ZSTD_LIBRARY} ${LZO2_LIBRARY})
     target_link_libraries(cxproc ${LibArchive_LIBRARIES} ${LIBBZ2_LIBRARIES} ${CRYPTO_LIBRARY} ${LZ4_LIBRARY} ${ZSTD_LIBRARY} ${LZO2_LIBRARY})
     target_link_libraries(cxproc-test ${LibArchive_LIBRARIES} ${LIBBZ2_LIBRARIES} ${CRYPTO_LIBRARY} ${LZ4_LIBRARY} ${ZSTD_LIBRARY} ${LZO2_LIBRARY})
     target_link_libraries(cxproc-cgi ${LibArchive_LIBRARIES} ${LIBBZ2_LIBRARIES} ${CRYPTO_LIBRARY} ${LZ4_LIBRARY} ${ZSTD_LIBRARY} ${LZO2_LIBRARY})
   ELSE(MSVC)
     target_link_libraries(filex ${LibArchive_LIBRARIES})
+    target_link_libraries(dir2sqlite ${LibArchive_LIBRARIES})
     target_link_libraries(cxproc ${LibArchive_LIBRARIES})
     target_link_libraries(cxproc-test ${LibArchive_LIBRARIES})
     target_link_libraries(cxproc-cgi ${LibArchive_LIBRARIES})
@@ -1148,6 +1222,7 @@ IF (CXPROC_CURL)
     add_definitions(-DLIBCURL_STATIC)
   ENDIF ()
   target_link_libraries(filex ${LIBCURL_LIBRARIES})
+  target_link_libraries(dir2sqlite ${LIBCURL_LIBRARIES})
   target_link_libraries(cxproc ${LIBCURL_LIBRARIES})
   target_link_libraries(cxproc-test ${LIBCURL_LIBRARIES})
   target_link_libraries(cxproc-cgi  ${LIBCURL_LIBRARIES})
@@ -1157,11 +1232,13 @@ IF (CXPROC_CURL)
   IF(MSVC)
     # additional libraries with VC++
     target_link_libraries(filex crypt32 wldap32)
+    target_link_libraries(dir2sqlite crypt32 wldap32)
     target_link_libraries(cxproc crypt32 wldap32)
     target_link_libraries(cxproc-test crypt32 wldap32)
     target_link_libraries(cxproc-cgi  crypt32 wldap32)
   ELSE(MSVC)
     target_link_libraries(filex ssl crypto)
+    target_link_libraries(dir2sqlite ssl crypto)
     target_link_libraries(cxproc ssl crypto)
     target_link_libraries(cxproc-test ssl crypto)
     target_link_libraries(cxproc-cgi  ssl crypto)
@@ -1227,6 +1304,11 @@ ENDIF (CXPROC_PTHREAD)
 #
 
 IF (CXPROC_LIBID3TAG)
+  target_compile_definitions(filex       PUBLIC HAVE_LIBID3TAG)
+  target_compile_definitions(cxproc      PUBLIC HAVE_LIBID3TAG)
+  target_compile_definitions(cxproc-cgi  PUBLIC HAVE_LIBID3TAG)
+  target_compile_definitions(cxproc-test PUBLIC HAVE_LIBID3TAG)
+
   target_link_libraries(filex ${LIBID3TAG_LIBRARIES})
   target_link_libraries(cxproc ${LIBID3TAG_LIBRARIES})
   target_link_libraries(cxproc-test ${LIBID3TAG_LIBRARIES})
@@ -1242,6 +1324,11 @@ ENDIF (CXPROC_LIBID3TAG)
 #
 
 IF (CXPROC_LIBEXIF)
+  target_compile_definitions(filex       PUBLIC HAVE_EXIF)
+  target_compile_definitions(cxproc      PUBLIC HAVE_EXIF)
+  target_compile_definitions(cxproc-cgi  PUBLIC HAVE_EXIF)
+  target_compile_definitions(cxproc-test PUBLIC HAVE_EXIF)
+
   target_link_libraries(filex ${LIBEXIF_LIBRARY})
   target_link_libraries(cxproc ${LIBEXIF_LIBRARY})
   target_link_libraries(cxproc-test ${LIBEXIF_LIBRARY})
@@ -1257,6 +1344,7 @@ ENDIF (CXPROC_LIBEXIF)
 #
 
 target_link_libraries(filex ${LIBICONV_LIBRARY} ${LIBCHARSET_LIBRARY} ${LIBXML2_LIBRARIES})
+target_link_libraries(dir2sqlite ${LIBICONV_LIBRARY} ${LIBCHARSET_LIBRARY} ${LIBXML2_LIBRARIES})
 target_link_libraries(pietextx ${LIBICONV_LIBRARY} ${LIBCHARSET_LIBRARY} ${LIBXML2_LIBRARIES})
 target_link_libraries(cxproc ${LIBICONV_LIBRARY} ${LIBCHARSET_LIBRARY} ${LIBXML2_LIBRARIES} ${LIBXSLT_LIBRARIES})
 target_link_libraries(cxproc-test ${LIBICONV_LIBRARY} ${LIBCHARSET_LIBRARY} ${LIBXML2_LIBRARIES} ${LIBXSLT_LIBRARIES})
@@ -1305,6 +1393,7 @@ ENDIF(MSVC)
 IF(MSVC)
 ELSE(MSVC)
   target_link_libraries(filex -ldl -lm)
+  target_link_libraries(dir2sqlite -ldl -lm)
   target_link_libraries(pietextx -ldl -lm)
   target_link_libraries(cxproc -ldl -lm)
   target_link_libraries(cxproc-test -ldl -lm)
@@ -1314,6 +1403,7 @@ ELSE(MSVC)
   #ENDIF ()
   IF (CXPROC_LIBZ)
     target_link_libraries(filex -lz)
+    target_link_libraries(dir2sqlite -lz)
     target_link_libraries(cxproc -lz)
     target_link_libraries(cxproc-test -lz)
     target_link_libraries(cxproc-cgi -lz)
@@ -1324,6 +1414,19 @@ ELSE(MSVC)
 ENDIF(MSVC)
 
 set_target_properties(filex
+    PROPERTIES
+    ARCHIVE_OUTPUT_DIRECTORY "${CXPROC_PREFIX}/lib"
+    LIBRARY_OUTPUT_DIRECTORY "${CXPROC_PREFIX}/lib"
+    RUNTIME_OUTPUT_DIRECTORY "${CXPROC_PREFIX}/bin"
+    ARCHIVE_OUTPUT_DIRECTORY_DEBUG "${CXPROC_PREFIX}/lib"
+    LIBRARY_OUTPUT_DIRECTORY_DEBUG "${CXPROC_PREFIX}/lib"
+    RUNTIME_OUTPUT_DIRECTORY_DEBUG "${CXPROC_PREFIX}/bin"
+    ARCHIVE_OUTPUT_DIRECTORY_RELEASE "${CXPROC_PREFIX}/lib"
+    LIBRARY_OUTPUT_DIRECTORY_RELEASE "${CXPROC_PREFIX}/lib"
+    RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CXPROC_PREFIX}/bin"
+)
+
+set_target_properties(dir2sqlite
     PROPERTIES
     ARCHIVE_OUTPUT_DIRECTORY "${CXPROC_PREFIX}/lib"
     LIBRARY_OUTPUT_DIRECTORY "${CXPROC_PREFIX}/lib"
@@ -1774,7 +1877,7 @@ set(CPACK_BINARY_NUGET "OFF")
 set(CPACK_BINARY_WIX "OFF")
 set(CPACK_BINARY_ZIP "ON")
 
-INSTALL(TARGETS filex pietextx cxproc RUNTIME DESTINATION bin)
+INSTALL(TARGETS filex dir2sqlite pietextx cxproc RUNTIME DESTINATION bin)
 INSTALL(TARGETS cxproc-cgi test-cgi RUNTIME DESTINATION www/cgi-bin)
 INSTALL(DIRECTORY xml/schema DESTINATION .)
 INSTALL(DIRECTORY doc DESTINATION .)

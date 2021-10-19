@@ -25,10 +25,11 @@
 
 /*!\todo pipe stdin/stdout (UTF-8 only) */
 
+/*!\todo find -type f -iname '*.txt' | pietxtx -r */
+
 /*!\todo tcl package */
 
 /*!\todo python package */
-
 
 #include <stdio.h>
 #include <stdlib.h>

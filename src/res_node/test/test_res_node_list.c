@@ -588,8 +588,8 @@ resNodeTestList(void)
     else if ((pucJSON = resNodeToJSON(prnT, RN_INFO_MAX)) == NULL) {
       printf("Error resNodeToJSON() = %i\n", j);
     }
-    else if ((pucSql = resNodeToSql(prnT, RN_INFO_MAX)) == NULL) {
-      printf("Error resNodeToSql() = %i\n", j);
+    else if ((pucSql = resNodeToSQL(prnT, RN_INFO_MAX)) == NULL) {
+      printf("Error resNodeToSQL() = %i\n", j);
     }
     else {
       n_ok++;

@@ -337,7 +337,7 @@ dbParseDirTraverse(resNodePtr prnArgDb, resNodePtr prnArgContext, int iDepthArg,
       dbInsertMetaLog(prnArgDb, BAD_CAST"error/parse+list", resNodeGetNameNormalized(prnArgContext));
     }
 
-    pucStatement = resNodeToSql(prnArgContext, 1);
+    pucStatement = resNodeToSQL(prnArgContext, 1);
     dbInsert(prnArgDb, pucStatement);
     xmlFree(pucStatement);
   }
@@ -386,7 +386,7 @@ dbParseDirTraverse(resNodePtr prnArgDb, resNodePtr prnArgContext, int iDepthArg,
 #endif
       }
 
-      pucStatement = resNodeToSql(prnArgContext, 1);
+      pucStatement = resNodeToSQL(prnArgContext, 1);
       dbInsert(prnArgDb, pucStatement);
       xmlFree(pucStatement);
     }

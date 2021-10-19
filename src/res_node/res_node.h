@@ -602,7 +602,7 @@ extern xmlChar *
 resNodeToJSON(resNodePtr prnArg, int iArgOptions);
 
 extern xmlChar *
-resNodeToSql(resNodePtr prnArg, int iArgOptions);
+resNodeToSQL(resNodePtr prnArg, int iArgOptions);
 
 extern xmlChar *
 resNodeSetProp(resNodePtr prnArg, xmlChar *pucArgKey, xmlChar *pucArgValue);
@@ -612,6 +612,9 @@ resNodeGetProp(resNodePtr prnArg, xmlChar *pucArgKey);
 
 extern BOOL_T
 resNodeContentToDOM(xmlNodePtr pndArg, resNodePtr prnArg);
+
+extern xmlChar*
+resNodeDatabaseSchemaStr(void);
 
 #ifdef TESTCODE
 extern int

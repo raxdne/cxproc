@@ -167,6 +167,9 @@ main(int argc, char *argv[], char *envp[])
       resNodeListFree(prnNew);
     }
   }
+  else {
+    /*!\todo read paths from stdin (e.g. output of find) */
+  }
 
   exit(e);
 }

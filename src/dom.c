@@ -896,6 +896,8 @@ domPutDocString(FILE *out, xmlChar *pucArgMessage, xmlDocPtr pdocArg)
 } /* end of domPutDocString() */
 
 
+#if 0
+
 /*! 
 */
 BOOL_T
@@ -1003,6 +1005,9 @@ domPutNodeGraphvizStringRecursive(FILE *out, xmlNodePtr pndArg, int iArgDepth)
 /* end of domPutNodeGraphvizStringRecursive() */
 
 #endif
+
+#endif
+
 
 
 /*! \return TRUE if two node with all childrens are equal

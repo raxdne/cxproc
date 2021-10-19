@@ -614,7 +614,7 @@ resNodeListToSQL(resNodePtr prnArg, int iArgOptions)
     resNodePtr prnChild;
     xmlChar *pucT;
 
-    pucT = resNodeToSql(prnT,iArgOptions);
+    pucT = resNodeToSQL(prnT,iArgOptions);
     pucResult = xmlStrcat(pucResult, pucT);
     pucResult = xmlStrcat(pucResult, BAD_CAST";");
     xmlFree(pucT);
@@ -761,6 +761,89 @@ resNodeListToPlain(resNodePtr prnArg, int iArgOptions)
   }
   return pucResult;
 } /* end of resNodeListToPlain() */
+
+
+/*! dump a resNode to 'argout' using 'pfArg'
+
+\todo handle links and archives
+
+\param argout -- output stream
+\param prnArg -- resNode to dump
+\param pfArg -- pointer to format function
+
+\return TRUE if successful, FALSE in case of errors
+*/
+BOOL_T
+resNodeListDump(FILE *argout, resNodePtr prnArg, xmlChar *(*pfArg)(resNodePtr, int))
+{
+  BOOL_T fResult = FALSE;
+  xmlChar *pucT;
+
+  if (resNodeReadStatus(prnArg) == FALSE) {
+    /* error */
+  }
+  else if (resNodeIsDir(prnArg)) {
+    resNodePtr prnRelease;
+
+    if (resNodeDirAppendEntries(prnArg, NULL)) {
+      resNodePtr prnEntry;
+    
+      for (prnEntry = resNodeGetChild(prnArg); prnEntry; prnEntry = resNodeGetNext(prnEntry)) {
+	resNodeListDump(argout,prnEntry,pfArg);
+      }
+    }
+    prnRelease = resNodeGetChild(prnArg);
+    resNodeListUnlinkDescendants(prnArg);
+    resNodeListFree(prnRelease);      
+
+    if ((pucT = (*pfArg)(prnArg, RN_INFO_META))) {
+      fputs((const char*)pucT, argout);
+      xmlFree(pucT);
+    }
+
+    fflush(argout);
+    fResult = TRUE;
+  }
+  
+#if 0
+  
+#ifdef HAVE_LIBARCHIVE
+  else if (resNodeIsArchive(prnArg)) {
+    fResult = arcAppendEntries(prnArg, NULL, FALSE);
+  }
+  else if (resNodeIsFileInArchive(prnArg)) {
+    /*  */
+  }
+#endif
+  else if (resNodeIsURL(prnArg)) {
+    /*  */
+    fResult = TRUE;
+  }
+  else if (resNodeIsLink(prnArg)) {
+    /*  */
+    //  fResult = (resNodeResolveLinkChildNew(prnArg) != NULL);
+  }
+#endif
+  
+  else if (resNodeIsFile(prnArg)) {
+    /*  */
+      
+    if (resNodeReadStatus(prnArg) == FALSE) {
+      PrintFormatLog(1, "%s\n", resNodeGetErrorMsg(prnArg));
+    }
+    else if ((pucT = (pfArg)(prnArg, RN_INFO_META)) == NULL) {
+    }
+    else {
+      fputs((const char*)pucT, argout);
+      xmlFree(pucT);
+    }
+    fResult = TRUE;
+  }
+  else {
+  }
+
+  return fResult;
+} /* end of resNodeListDump() */
 
 
 /*! Resource Node List To a plain tree view
