@@ -785,10 +785,17 @@ resNodeListDump(FILE *argout, resNodePtr prnArg, xmlChar *(*pfArg)(resNodePtr, i
   else if (resNodeIsDir(prnArg)) {
     resNodePtr prnRelease;
 
+#ifdef DEBUG
+    fputc('/',stderr);
+#endif
+    
     if (resNodeDirAppendEntries(prnArg, NULL)) {
       resNodePtr prnEntry;
     
       for (prnEntry = resNodeGetChild(prnArg); prnEntry; prnEntry = resNodeGetNext(prnEntry)) {
+#ifdef DEBUG
+	fputc('.',stderr);
+#endif
 	resNodeListDump(argout,prnEntry,pfArg);
       }
     }

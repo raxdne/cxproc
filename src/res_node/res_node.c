@@ -3298,91 +3298,75 @@ resNodeToSQL(resNodePtr prnArg, int iArgOptions)
       }
       else {
 	xmlChar *pucT;
-	xmlChar *pucSqlDecl;
-	xmlChar *pucSqlValue;
+	xmlChar *pucSqlValues;
 
-	pucSqlDecl = xmlStrdup(BAD_CAST"insert into directory (");
-	pucSqlValue = xmlStrdup(BAD_CAST"values (");
+	pucSqlValues = xmlStrdup(BAD_CAST"INSERT INTO 'directory' VALUES (");
 
-	pucSqlDecl = xmlStrcat(pucSqlDecl,BAD_CAST"depth,type,");
 	xmlStrPrintf(pucResult, BUFFER_LENGTH, "%i,%i,", resPathGetDepth(resNodeGetNameNormalized(prnArg)), resNodeGetType(prnArg));
-	pucSqlValue = xmlStrcat(pucSqlValue,pucResult);
+	pucSqlValues = xmlStrcat(pucSqlValues,pucResult);
 		     
-	pucSqlDecl = xmlStrcat(pucSqlDecl,BAD_CAST"name,");
-	pucSqlValue = xmlStrcat(pucSqlValue,BAD_CAST"\"");
+	pucSqlValues = xmlStrcat(pucSqlValues,BAD_CAST"\"");
 	if ((pucT = resNodeGetNameBase(prnArg))) {
-	  pucSqlValue = xmlStrcat(pucSqlValue,pucT);
+	  pucSqlValues = xmlStrcat(pucSqlValues,pucT);
 	}
-	pucSqlValue = xmlStrcat(pucSqlValue,BAD_CAST"\",");
+	pucSqlValues = xmlStrcat(pucSqlValues,BAD_CAST"\",");
 
 #if 0
-	pucSqlDecl = xmlStrcat(pucSqlDecl,BAD_CAST"owner,");
-	pucSqlValue = xmlStrcat(pucSqlValue,BAD_CAST"\"");
+	pucSqlValues = xmlStrcat(pucSqlValues,BAD_CAST"\"");
 	if ((pucT = resNodeGetOwner(prnArg))) {
-	  pucSqlValue = xmlStrcat(pucSqlValue,pucT);
+	  pucSqlValues = xmlStrcat(pucSqlValues,pucT);
 	}
-	pucSqlValue = xmlStrcat(pucSqlValue,BAD_CAST"\",");
+	pucSqlValues = xmlStrcat(pucSqlValues,BAD_CAST"\",");
 #endif
 	
-	pucSqlDecl = xmlStrcat(pucSqlDecl,BAD_CAST"size,");
 	xmlStrPrintf(pucResult, BUFFER_LENGTH, "%li,", resNodeGetSize(prnArg));
-	pucSqlValue = xmlStrcat(pucSqlValue,pucResult);
+	pucSqlValues = xmlStrcat(pucSqlValues,pucResult);
 		     
 	if (resNodeIsDir(prnArg)) {
-	  pucSqlDecl = xmlStrcat(pucSqlDecl,BAD_CAST"rsize,");
-	  xmlStrPrintf(pucResult, BUFFER_LENGTH, "%li,", (long)(resNodeGetRecursiveSize(prnArg) / SIZE_MEGA));
-	  pucSqlValue = xmlStrcat(pucSqlValue,pucResult);
+	  xmlStrPrintf(pucResult, BUFFER_LENGTH, "%li,\"\",\"\",", (long)(resNodeGetRecursiveSize(prnArg) / SIZE_MEGA));
+	  pucSqlValues = xmlStrcat(pucSqlValues,pucResult);
 	}
 	else {
-	  pucSqlDecl = xmlStrcat(pucSqlDecl,BAD_CAST"ext,");
-	  pucSqlValue = xmlStrcat(pucSqlValue,BAD_CAST"\"");
+	  pucSqlValues = xmlStrcat(pucSqlValues,BAD_CAST"0,\"");
 	  if ((pucT = resNodeGetExtension(prnArg))) {
-	    pucSqlValue = xmlStrcat(pucSqlValue,pucT);
+	    pucSqlValues = xmlStrcat(pucSqlValues,pucT);
 	  }
-	  pucSqlValue = xmlStrcat(pucSqlValue,BAD_CAST"\",");
+	  pucSqlValues = xmlStrcat(pucSqlValues,BAD_CAST"\",");
 
-	  pucSqlDecl = xmlStrcat(pucSqlDecl,BAD_CAST"object,");
-	  pucSqlValue = xmlStrcat(pucSqlValue,BAD_CAST"\"");
+	  pucSqlValues = xmlStrcat(pucSqlValues,BAD_CAST"\"");
 	  if ((pucT = resNodeGetNameObject(prnArg))) {
-	    pucSqlValue = xmlStrcat(pucSqlValue,pucT);
+	    pucSqlValues = xmlStrcat(pucSqlValues,pucT);
 	  }
-	  pucSqlValue = xmlStrcat(pucSqlValue,BAD_CAST"\",");
+	  pucSqlValues = xmlStrcat(pucSqlValues,BAD_CAST"\",");
 	}
       
-	pucSqlDecl = xmlStrcat(pucSqlDecl,BAD_CAST"path,");
-	pucSqlValue = xmlStrcat(pucSqlValue,BAD_CAST"\"");
+	pucSqlValues = xmlStrcat(pucSqlValues,BAD_CAST"\"");
 	if ((pucT = resNodeGetNameBaseDir(prnArg))) {
-	  pucSqlValue = xmlStrcat(pucSqlValue,pucT);
+	  pucSqlValues = xmlStrcat(pucSqlValues,pucT);
 	}
-	pucSqlValue = xmlStrcat(pucSqlValue,BAD_CAST"\",");
+	pucSqlValues = xmlStrcat(pucSqlValues,BAD_CAST"\",");
 
-	pucSqlDecl = xmlStrcat(pucSqlDecl,BAD_CAST"mime,mtime,");
 	xmlStrPrintf(pucResult, BUFFER_LENGTH, "%i,%li,", (int)resNodeGetMimeType(prnArg), (long)(resNodeGetMtime(prnArg)));
-	pucSqlValue = xmlStrcat(pucSqlValue,pucResult);
+	pucSqlValues = xmlStrcat(pucSqlValues,pucResult);
 		     
-	pucSqlDecl = xmlStrcat(pucSqlDecl,BAD_CAST"mtime2,");
-	pucSqlValue = xmlStrcat(pucSqlValue,BAD_CAST"\"");
+	pucSqlValues = xmlStrcat(pucSqlValues,BAD_CAST"\"");
 	if ((pucT = resNodeGetMtimeStr(prnArg))) {
-	  pucSqlValue = xmlStrcat(pucSqlValue,pucT);
+	  pucSqlValues = xmlStrcat(pucSqlValues,pucT);
 	}
-	pucSqlValue = xmlStrcat(pucSqlValue,BAD_CAST"\",");
+	pucSqlValues = xmlStrcat(pucSqlValues,BAD_CAST"\",");
 
-	pucSqlDecl = xmlStrcat(pucSqlDecl,BAD_CAST"r,w,x,h");
 	xmlStrPrintf(pucResult, BUFFER_LENGTH, "%c,%c,%c,%c",
 	    (resNodeIsReadable(prnArg) ? '1' : '0'),
 	    (resNodeIsWriteable(prnArg) ? '1' : '0'),
 	    (resNodeIsExecuteable(prnArg) ? '1' : '0'),
 	    (resNodeIsHidden(prnArg) ? '1' : '0'));
-	pucSqlValue = xmlStrcat(pucSqlValue,pucResult);
+	pucSqlValues = xmlStrcat(pucSqlValues,pucResult);
 	
-	pucSqlDecl = xmlStrcat(pucSqlDecl,BAD_CAST") ");
-	pucSqlValue = xmlStrcat(pucSqlValue,BAD_CAST")");
+	pucSqlValues = xmlStrcat(pucSqlValues,BAD_CAST")");
 
 	xmlFree(pucResult);
-	pucResult = pucSqlDecl;
-	pucResult = xmlStrcat(pucResult,pucSqlValue);
+	pucResult = pucSqlValues;
 	pucResult = xmlStrcat(pucResult,BAD_CAST";\n");
-	xmlFree(pucSqlValue);
       }
     }
   }
@@ -4781,53 +4765,54 @@ resNodeDatabaseSchemaStr(void)
   xmlChar mpucT[BUFFER_LENGTH];
 
   pucResult = xmlStrdup(BAD_CAST
-    "CREATE TABLE IF NOT EXISTS directory ("
-    "i INTEGER PRIMARY KEY, "
+    "PRAGMA journal_mode = OFF;\n"
+    "\n"
+    "CREATE TABLE IF NOT EXISTS 'directory' ("
     "depth INTEGER, "
     "type INTEGER, "
-    "mime INTEGER, "
-    "r INTEGER, "
-    "w INTEGER, "
-    "x INTEGER, "
-    "h INTEGER, "
+    "name text, "
 #if 0
     "owner text, "
 #endif
-    "name text, "
-    "ext text, "
-    "object text, "
     "size INTEGER, "
     "rsize INTEGER, "
+    "ext text, "
+    "object text, "
     "path text, "
+    "mime INTEGER, "
     "mtime INTEGER, "
-    "mtime2 text"
+    "mtime2 text, "
+    "r INTEGER, "
+    "w INTEGER, "
+    "x INTEGER, "
+    "h INTEGER "
     ");\n\n");
 
   pucResult = xmlStrcat(pucResult, BAD_CAST
-    "CREATE TABLE IF NOT EXISTS meta (i INTEGER PRIMARY KEY, timestamp INTEGER, key text, value text);\n\n");
+    "CREATE TABLE IF NOT EXISTS 'meta' (i INTEGER PRIMARY KEY, timestamp INTEGER, key text, value text);\n\n");
 
   pucResult = xmlStrcat(pucResult, BAD_CAST
-    "CREATE TABLE IF NOT EXISTS mimetypes(mime INTEGER, name text);\n\n");
+    "CREATE TABLE IF NOT EXISTS 'mimetypes' (mime INTEGER, name text);\n\n");
 
   for (i = MIME_UNKNOWN; i < MIME_END; i++) {
     char* pcMime;
 
     pcMime = (char*)resMimeGetTypeStr(i);
     if (pcMime) {
-      xmlStrPrintf(mpucT, BUFFER_LENGTH, "insert into mimetypes(mime,name) values (%i,\"%s\");\n", i, BAD_CAST pcMime);
+      xmlStrPrintf(mpucT, BUFFER_LENGTH, "INSERT INTO 'mimetypes' VALUES (%i,\"%s\");\n", i, BAD_CAST pcMime);
       pucResult = xmlStrcat(pucResult, mpucT);
     }
   }
   pucResult = xmlStrcat(pucResult, BAD_CAST "\n\n");
 
   pucResult = xmlStrcat(pucResult, BAD_CAST
-    "CREATE TABLE IF NOT EXISTS queries (query text);\n"
+    "CREATE TABLE IF NOT EXISTS 'queries' (query text);\n"
     "\n"
-    "insert into queries(query) values (\"SELECT * FROM meta;\");\n"
-    "insert into queries(query) values (\"SELECT DISTINCT name FROM directory;\");\n"
-    "insert into queries(query) values (\"SELECT sum(size)/(1024*1024*1024) AS GB FROM directory;\");\n"
-    "insert into queries(query) values (\"SELECT path || '/' || name AS File,(size / 1048576) AS MB,mtime2 AS MTime FROM directory WHERE (size > 1048576) ORDER BY MB DESC;\");\n"
-    "insert into queries(query) values (\"SELECT count() AS Count, name AS Name FROM directory GROUP BY name ORDER BY Count DESC;\");\n"
+    "INSERT INTO 'queries' VALUES (\"SELECT * FROM meta;\");\n"
+    "INSERT INTO 'queries' VALUES (\"SELECT DISTINCT name FROM directory;\");\n"
+    "INSERT INTO 'queries' VALUES (\"SELECT sum(size)/(1024*1024*1024) AS GB FROM directory;\");\n"
+    "INSERT INTO 'queries' VALUES (\"SELECT path || '/' || name AS File,(size / 1048576) AS MB,mtime2 AS MTime FROM directory WHERE (size > 1048576) ORDER BY MB DESC;\");\n"
+    "INSERT INTO 'queries' VALUES (\"SELECT count() AS Count, name AS Name FROM directory GROUP BY name ORDER BY Count DESC;\");\n"
     "\n");
 
   return pucResult;
