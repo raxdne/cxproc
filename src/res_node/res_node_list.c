@@ -616,7 +616,6 @@ resNodeListToSQL(resNodePtr prnArg, int iArgOptions)
 
     pucT = resNodeToSQL(prnT,iArgOptions);
     pucResult = xmlStrcat(pucResult, pucT);
-    pucResult = xmlStrcat(pucResult, BAD_CAST";");
     xmlFree(pucT);
 
     if ((prnChild = resNodeGetChild(prnT))) {
@@ -774,15 +773,34 @@ resNodeListToPlain(resNodePtr prnArg, int iArgOptions)
 \return TRUE if successful, FALSE in case of errors
 */
 BOOL_T
-resNodeListDump(FILE *argout, resNodePtr prnArg, xmlChar *(*pfArg)(resNodePtr, int))
+resNodeListDumpRecursively(FILE *argout, resNodePtr prnArg, xmlChar *(*pfArg)(resNodePtr, int))
 {
   BOOL_T fResult = FALSE;
   xmlChar *pucT;
 
-  if (resNodeReadStatus(prnArg) == FALSE) {
-    /* error */
+#ifdef HAVE_LIBARCHIVE
+  if (resNodeIsDirInArchive(prnArg)) {
+    resNodePtr prnEntry;
+
+#ifdef DEBUG
+    fputc('/',stderr);
+#endif
+    
+    for (prnEntry = resNodeGetChild(prnArg); prnEntry; prnEntry = resNodeGetNext(prnEntry)) {
+      resNodeListDumpRecursively(argout,prnEntry,pfArg);
+    }
+
+    if ((pucT = (*pfArg)(prnArg, RN_INFO_META))) {
+      fputs((const char*)pucT, argout);
+      xmlFree(pucT);
+    }
+
+    fflush(argout);
+    fResult = TRUE;
   }
-  else if (resNodeIsDir(prnArg)) {
+  else 
+#endif
+  if (resNodeIsDir(prnArg)) {
     resNodePtr prnRelease;
 
 #ifdef DEBUG
@@ -793,10 +811,7 @@ resNodeListDump(FILE *argout, resNodePtr prnArg, xmlChar *(*pfArg)(resNodePtr, i
       resNodePtr prnEntry;
     
       for (prnEntry = resNodeGetChild(prnArg); prnEntry; prnEntry = resNodeGetNext(prnEntry)) {
-#ifdef DEBUG
-	fputc('.',stderr);
-#endif
-	resNodeListDump(argout,prnEntry,pfArg);
+	resNodeListDumpRecursively(argout,prnEntry,pfArg);
       }
     }
     prnRelease = resNodeGetChild(prnArg);
@@ -811,17 +826,37 @@ resNodeListDump(FILE *argout, resNodePtr prnArg, xmlChar *(*pfArg)(resNodePtr, i
     fflush(argout);
     fResult = TRUE;
   }
-  
-#if 0
-  
 #ifdef HAVE_LIBARCHIVE
   else if (resNodeIsArchive(prnArg)) {
-    fResult = arcAppendEntries(prnArg, NULL, FALSE);
-  }
-  else if (resNodeIsFileInArchive(prnArg)) {
-    /*  */
+    resNodePtr prnRelease;
+
+#ifdef DEBUG
+    fputc('.',stderr);
+#endif
+
+    if (arcAppendEntries(prnArg, NULL, FALSE)) {
+      resNodePtr prnEntry;
+    
+      for (prnEntry = resNodeGetChild(prnArg); prnEntry; prnEntry = resNodeGetNext(prnEntry)) {
+	resNodeListDumpRecursively(argout,prnEntry,pfArg);
+      }
+    }
+    
+    prnRelease = resNodeGetChild(prnArg);
+    resNodeListUnlinkDescendants(prnArg);
+    resNodeListFree(prnRelease);      
+
+    if ((pucT = (*pfArg)(prnArg, RN_INFO_META))) {
+      fputs((const char*)pucT, argout);
+      xmlFree(pucT);
+    }
+
+    fflush(argout);
+    fResult = TRUE;
   }
 #endif
+
+#if 0
   else if (resNodeIsURL(prnArg)) {
     /*  */
     fResult = TRUE;
@@ -835,10 +870,11 @@ resNodeListDump(FILE *argout, resNodePtr prnArg, xmlChar *(*pfArg)(resNodePtr, i
   else if (resNodeIsFile(prnArg)) {
     /*  */
       
-    if (resNodeReadStatus(prnArg) == FALSE) {
-      PrintFormatLog(1, "%s\n", resNodeGetErrorMsg(prnArg));
-    }
-    else if ((pucT = (pfArg)(prnArg, RN_INFO_META)) == NULL) {
+#ifdef DEBUG
+    fputc('.',stderr);
+#endif
+    
+    if ((pucT = (pfArg)(prnArg, RN_INFO_META)) == NULL) {
     }
     else {
       fputs((const char*)pucT, argout);
@@ -850,7 +886,7 @@ resNodeListDump(FILE *argout, resNodePtr prnArg, xmlChar *(*pfArg)(resNodePtr, i
   }
 
   return fResult;
-} /* end of resNodeListDump() */
+} /* end of resNodeListDumpRecursively() */
 
 
 /*! Resource Node List To a plain tree view

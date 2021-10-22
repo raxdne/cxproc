@@ -42,6 +42,7 @@
 #endif
 
 #include "dom.h"
+#include <cxp/cxp_dtd.h>
 
 #ifdef HAVE_JSON
 #include <json/json.h>
@@ -3251,48 +3252,44 @@ resNodeToSQL(resNodePtr prnArg, int iArgOptions)
 {
   xmlChar *pucResult = NULL;
 
-  if (resNodeReadStatus(prnArg) && ! resNodeIsHidden(prnArg)) {
-
+  if (prnArg != NULL) {
     pucResult = BAD_CAST xmlMalloc((BUFFER_LENGTH + 1) * sizeof(xmlChar));
-
     if (pucResult) {
-      if (resNodeIsError(prnArg)) {
+      if (resNodeReadStatus(prnArg) == FALSE || resNodeIsError(prnArg)) {
 	time_t system_zeit_1;
 
 	/* add readable time */
 	time(&system_zeit_1);
 
-	//PrintFormatLog(2,"Database log '%s': '%s'", pucArgKey, pucValue);
-
 	switch (resNodeGetError(prnArg)) {
 	case rn_error_stat:
 	  xmlStrPrintf(pucResult, BUFFER_LENGTH,
-	      "insert into meta (timestamp,key,value) values (%li,\"%s\",\"%s\")",
+	      "INSERT INTO 'meta' VALUES (%li,\"%s\",\"%s\");\n",
 	      (long int)system_zeit_1, BAD_CAST"error/stat", resNodeGetNameNormalized(prnArg));
 	  break;
 	case rn_error_name:
 	  xmlStrPrintf(pucResult, BUFFER_LENGTH,
-	      "insert into meta (timestamp,key,value) values (%li,\"%s\",\"%s\")",
+	      "INSERT INTO 'meta' VALUES (%li,\"%s\",\"%s\");\n",
 	      (long int)system_zeit_1, BAD_CAST"error/name", resNodeGetNameNormalized(prnArg));
 	  break;
 	case rn_error_owner:
 	  xmlStrPrintf(pucResult, BUFFER_LENGTH,
-	      "insert into meta (timestamp,key,value) values (%li,\"%s\",\"%s\")",
+	      "INSERT INTO 'meta' VALUES (%li,\"%s\",\"%s\");\n",
 	      (long int)system_zeit_1, BAD_CAST"error/owner", resNodeGetNameNormalized(prnArg));
 	  break;
 	case rn_error_memory:
 	  xmlStrPrintf(pucResult, BUFFER_LENGTH,
-	      "insert into meta (timestamp,key,value) values (%li,\"%s\",\"%s\")",
+	      "INSERT INTO 'meta' VALUES (%li,\"%s\",\"%s\");\n",
 	      (long int)system_zeit_1, BAD_CAST"error/memory", resNodeGetNameNormalized(prnArg));
 	  break;
 	case rn_error_max_path:
 	  xmlStrPrintf(pucResult, BUFFER_LENGTH,
-	      "insert into meta (timestamp,key,value) values (%li,\"%s\",\"%s\")",
+	      "INSERT INTO 'meta' VALUES (%li,\"%s\",\"%s\");\n",
 	      (long int)system_zeit_1, BAD_CAST"error/maxpath", resNodeGetNameNormalized(prnArg));
 	  break;
 	default:
 	  xmlStrPrintf(pucResult, BUFFER_LENGTH,
-	      "insert into meta (timestamp,key,value) values (%li,\"%s\",\"%s\")",
+	      "INSERT INTO 'meta' VALUES (%li,\"%s\",\"%s\");\n",
 	      (long int)system_zeit_1, BAD_CAST"error/context", resNodeGetNameNormalized(prnArg));
 	}
       }
@@ -3370,7 +3367,6 @@ resNodeToSQL(resNodePtr prnArg, int iArgOptions)
       }
     }
   }
-
   return pucResult;
 } /* end of resNodeToSQL() */
 
@@ -3653,7 +3649,7 @@ resNodeReadStatus(resNodePtr prnArg)
       /* this resource node was stat'd already */
       fResult = prnArg->fExist;
     }
-    else if (resNodeIsFileInArchive(prnArg)) {
+    else if (resNodeIsDirInArchive(prnArg) || resNodeIsFileInArchive(prnArg)) {
       fResult = (resNodeGetAncestorArchive(prnArg) != NULL); /* stat archive */
     }
     else if (resNodeIsError(prnArg) == FALSE) {
@@ -4789,7 +4785,7 @@ resNodeDatabaseSchemaStr(void)
     ");\n\n");
 
   pucResult = xmlStrcat(pucResult, BAD_CAST
-    "CREATE TABLE IF NOT EXISTS 'meta' (i INTEGER PRIMARY KEY, timestamp INTEGER, key text, value text);\n\n");
+    "CREATE TABLE IF NOT EXISTS 'meta' (timestamp INTEGER, key text, value text);\n\n");
 
   pucResult = xmlStrcat(pucResult, BAD_CAST
     "CREATE TABLE IF NOT EXISTS 'mimetypes' (mime INTEGER, name text);\n\n");
