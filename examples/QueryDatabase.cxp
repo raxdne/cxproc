@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cxp:make xmlns:cxp="http://www.tenbusch.info/cxproc" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" log="4">
+  <cxp:description>Query Sqlite</cxp:description>
+  <cxp:subst string="%DB%" argv="2" cgi="db"/>
+  <cxp:subst string="%PATTERN%" argv="3" cgi="pattern" default="python"/>
+  <cxp:subst string="%TAGTIME%" now="%Y-%m-%dT%H:%M:%S"/>
+  <cxp:system message="Query pattern '%PATTERN%' in '%DB%'"/>
+  <cxp:xhtml name="-">
+    <html>
+      <cxp:include name="CgiPiejQHead.xhtml" search="yes"/>
+      <body>
+	<script type="text/javascript">$(document).ready(function() { $("#resultTable").tablesorter(); } );</script> 
+        <div id="ui">
+          <cxp:xhtml>
+	    <cxp:xml>
+	      <cxp:db name="%DB%">
+		<cxp:query>SELECT path,name,ext,size,mtime2 FROM directory WHERE path LIKE '%%PATTERN%%' or name LIKE '%%PATTERN%%' ORDER BY path;</cxp:query>
+	      </cxp:db>
+	    </cxp:xml>
+	    <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.0">
+	      <xsl:output method="html"/>
+	      
+	      <xsl:template match="/">
+		<xsl:element name="html">
+		  <xsl:element name="body">
+		    <xsl:element name="h2">
+		      <xsl:text>&quot;%DB%&quot;</xsl:text>
+		    </xsl:element>
+		    <xsl:apply-templates select="//table"/>
+		  </xsl:element>
+		</xsl:element>
+	      </xsl:template>
+
+	      <xsl:template match="table">
+		<xsl:element name="form">
+		  <xsl:element name="p">
+		    <xsl:element name="input">
+		      <xsl:attribute name="type">hidden</xsl:attribute>
+		      <xsl:attribute name="name">db</xsl:attribute>
+		      <xsl:attribute name="value">%DB%</xsl:attribute>
+		    </xsl:element>
+		    <xsl:element name="input">
+		      <xsl:attribute name="type">text</xsl:attribute>
+		      <xsl:attribute name="size">31</xsl:attribute>
+		      <xsl:attribute name="maxlength">31</xsl:attribute>
+		      <xsl:attribute name="id">pattern</xsl:attribute>
+		      <xsl:attribute name="name">pattern</xsl:attribute>
+		      <xsl:attribute name="value">%PATTERN%</xsl:attribute>
+		    </xsl:element>
+		  </xsl:element>
+		  <xsl:element name="table">
+		    <xsl:attribute name="id">resultTable</xsl:attribute>
+		    <xsl:attribute name="class">tablesorter</xsl:attribute>
+		    <xsl:element name="thead">
+		      <xsl:element name="tr">
+			<xsl:element name="th">
+			  <xsl:text>Size</xsl:text>
+			</xsl:element>
+			<xsl:element name="th">
+			  <xsl:text>Path</xsl:text>
+			</xsl:element>
+			<xsl:element name="th">
+			  <xsl:text>Type</xsl:text>
+			</xsl:element>
+			<xsl:element name="th">
+			  <xsl:text>Owner</xsl:text>
+			</xsl:element>
+			<xsl:element name="th">
+			  <xsl:text>Time</xsl:text>
+			</xsl:element>
+			<xsl:element name="th">
+			  <xsl:text>URL</xsl:text>
+			</xsl:element>
+		      </xsl:element>
+		      <xsl:element name="tbody">
+			<xsl:apply-templates select="entry[position() &lt; 5000]">
+			  <!-- <xsl:sort select="path"/> -->
+			</xsl:apply-templates>
+		      </xsl:element>
+		    </xsl:element>
+		  </xsl:element>
+		</xsl:element>
+	      </xsl:template>
+
+	      <xsl:template match="entry">
+		<xsl:element name="tr">
+		  <xsl:element name="td">
+		    <xsl:attribute name="align">
+		      <xsl:text>right</xsl:text>
+		    </xsl:attribute>
+		    <xsl:value-of select="size"/>
+		  </xsl:element>
+		  <xsl:element name="td">
+		    <xsl:element name="a">
+		      <xsl:attribute name="href">
+			<xsl:value-of select="concat('',path,'/',name)"/>
+		      </xsl:attribute>
+		      <xsl:value-of select="concat(path,'\',name)"/>
+		    </xsl:element>
+		  </xsl:element>
+		  <xsl:element name="td">
+		    <xsl:value-of select="ext"/>
+		  </xsl:element>
+		  <xsl:element name="td">
+		    <xsl:value-of select="owner"/>
+		  </xsl:element>
+		  <xsl:element name="td">
+		    <xsl:value-of select="mtime2"/>
+		  </xsl:element>
+		  <xsl:element name="td">
+		    <xsl:element name="button">
+		      <xsl:attribute name="type">submit</xsl:attribute>
+		      <xsl:attribute name="name">pattern</xsl:attribute>
+		      <xsl:attribute name="value">
+			<xsl:value-of select="path"/>
+		      </xsl:attribute>
+		    </xsl:element>
+		  </xsl:element>
+		</xsl:element>
+	      </xsl:template>
+
+	    </xsl:stylesheet>
+
+	  </cxp:xhtml>
+	  <p style="text-align:right">%TAGTIME%</p>
+	</div>
+      </body>
+    </html>
+  </cxp:xhtml>
+</cxp:make>

@@ -300,6 +300,7 @@ cxpCtxtCgiParse(cxpContextPtr pccArg)
     xmlSetProp(pndXml, BAD_CAST "name", resNodeGetNameNormalized(prnPathTranslated));
     xmlSetProp(pndXml, BAD_CAST "schema", BAD_CAST "cxp.rng");
     xmlSetProp(pndXml, BAD_CAST "eval", BAD_CAST "yes");
+    xmlSetProp(pndMake, BAD_CAST "dir", resNodeGetNameBaseDir(prnPathTranslated));
   }
   else if (pucCgiCxp) {
     /* deliver the file content via CXP configuration */
@@ -547,14 +548,14 @@ BOOL_T
 cxpCtxtCgiProcess(cxpContextPtr pccArg)
 {
   BOOL_T fResult = FALSE;
-  xmlChar *pucT;
+  xmlNodePtr pndRoot;
 
-#ifdef DEBUG
-  cxpCtxtLogPrint(pccArg,2, "cxpCtxtCgiProcess(cxpContextPtr pccArg)");
-#endif
-
-  cxpProcessMakeNode(xmlDocGetRootElement(pccArg->pdocContextNode), pccArg);
-
+  if (pccArg != NULL 
+    && pccArg->pdocContextNode != NULL
+    && (pndRoot = xmlDocGetRootElement(pccArg->pdocContextNode)) != NULL) {
+      cxpProcessMakeNode(pndRoot, pccArg);
+      fResult = TRUE;
+  }
   return fResult;
 } /* end of cxpCtxtCgiProcess() */
 

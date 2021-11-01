@@ -1908,7 +1908,7 @@ set(CPACK_SOURCE_IGNORE_FILES
 )
 
 set(CPACK_DEBIAN_PACKAGE_MAINTAINER "raxdne")
-set(CPACK_DEBIAN_PACKAGE_DEPENDS "libxml2" "libxslt")
+set(CPACK_DEBIAN_PACKAGE_DEPENDS "libxml2" "libxslt" "libpcre2")
 
 include(CPack)
 

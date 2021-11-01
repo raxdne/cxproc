@@ -2365,7 +2365,7 @@ cxpXslTransformToDom(const xmlDocPtr pdocArgXml, const xmlDocPtr pdocArgXsl, cxp
   assert(pdocArgXml != NULL);
   assert(pdocArgXsl != NULL);
 
-#ifdef DEBUG
+#if 0
   cxpCtxtLogPrintDoc(pccArg, 4, "cxpXslTransformToDom() XML:", pdocArgXml);
   cxpCtxtLogPrintDoc(pccArg, 4, "cxpXslTransformToDom() XSL:", pdocArgXsl);
 #endif
@@ -2432,7 +2432,7 @@ cxpXslTransformToText(const xmlDocPtr pdocArgXml, const xmlDocPtr pdocArgXsl, cx
   assert(pdocArgXml != NULL);
   assert(pdocArgXsl != NULL);
 
-#ifdef DEBUG
+#if 0
   cxpCtxtLogPrintDoc(pccArg, 4, "cxpXslTransformToDom() XML:", pdocArgXml);
   cxpCtxtLogPrintDoc(pccArg, 4, "cxpXslTransformToDom() XSL:", pdocArgXsl);
 #endif
