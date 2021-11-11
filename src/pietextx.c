@@ -1,7 +1,7 @@
 /*
   cxproc - Configurable Xml PROCessor
 
-  Copyright (C) 2006..2020 by Alexander Tenbusch
+  Copyright (C) 2006..2021 by Alexander Tenbusch
 
   This program is free software; you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -22,10 +22,6 @@
 /*! buffer to XML DOM (blocks, tags, tasks, URLs, tables ...) encoding? */
 
 /*!\todo file to stdout "-f input.txt -o output.pie" "" */
-
-/*!\todo pipe stdin/stdout (UTF-8 only) */
-
-/*!\todo find -type f -iname '*.txt' | pietxtx -r */
 
 /*!\todo tcl package */
 
@@ -77,12 +73,17 @@ AppendBufferToDoc(xmlNodePtr pndArg, xmlChar *pucArg) {
 
 
 int
-main() {
-  xmlDocPtr pdocPie;
+main(int argc, char *argv[], char *envp[]) {
+  xmlDocPtr pdocPie = NULL;
 
-  SetLogLevel(3);
+  SetLogLevel(1);
 
-  if ((pdocPie = xmlNewDoc(BAD_CAST "1.0")) != NULL) {
+  if (argc > 1 && strcmp(argv[1],"-?") == 0) {
+    fprintf(stderr,"'%s' - write parsed plain text a XML\n\n",argv[0]);
+    fprintf(stderr,"'%s < abc.txt' - parse plain text input and write XML to stdout\n\n",argv[0]);
+    fprintf(stderr,"'find -type f -iname '*.txt' | %s -f ' - output of find command, parse plain text files and write XML to stdout\n\n",argv[0]);
+  }
+  else if ((pdocPie = xmlNewDoc(BAD_CAST "1.0")) != NULL) {
     xmlNodePtr pndPie;
     
     if ((pndPie = xmlNewDocNode(pdocPie, NULL, NAME_PIE_PIE, NULL)) != NULL) {
@@ -90,19 +91,77 @@ main() {
 	
       xmlDocSetRootElement(pdocPie,pndPie);
 
-      if ((pucContent = ReadUTF8ToBufferNew(stdin)) != NULL) {
+      if (argc < 2) { /* no program arguments, stdio to stdout */
+	if ((pucContent = ReadUTF8ToBufferNew(stdin)) != NULL) {
 #ifdef HAVE_PIE
-	AppendBufferToDoc(pndPie,BAD_CAST pucContent);
+	  AppendBufferToDoc(pndPie,pucContent);
 #else
-	xmlSetProp(pndPie, BAD_CAST "error", BAD_CAST"pie");
-	//fputs(pucContent,stdout);
+	  xmlAddChild(pndPie, xmlNewPI(BAD_CAST "error", BAD_CAST"pie"));
 #endif
-	xmlFree(pucContent);
+	  xmlFree(pucContent);
+	}
+	else {
+	  xmlAddChild(pndPie, xmlNewPI(BAD_CAST "error", BAD_CAST"read"));
+	}
       }
-      else {
-	//xmlSetProp(pnd, BAD_CAST "error", BAD_CAST"parse");
+      else if (argc < 3 && strcmp(argv[1],"-f") == 0) { /* read paths from stdin */
+	int i;
+	char mcLine[BUFFER_LENGTH];
+
+	for ( ; fgets(mcLine,BUFFER_LENGTH,stdin) == mcLine ; ) {
+	  FILE *pfLine = NULL;
+    
+	  for (i=strlen(mcLine); i > 0 && (mcLine[i] == '\0' || mcLine[i] == '\n' || mcLine[i] == '\r'); i--) {
+	    mcLine[i] = '\0';
+	  }
+	  PrintFormatLog(3,"%s",mcLine);
+    
+	  if ((pfLine = fopen(mcLine,"r")) == NULL) {
+	    xmlAddChild(pndPie, xmlNewPI(BAD_CAST "error", BAD_CAST"open"));
+	  }
+	  else {
+	    if ((pucContent = ReadUTF8ToBufferNew(pfLine)) != NULL) {
+#ifdef HAVE_PIE
+	      AppendBufferToDoc(pndPie,BAD_CAST pucContent);
+#else
+	      xmlAddChild(pndPie, xmlNewPI(BAD_CAST "error", BAD_CAST"pie"));
+#endif
+	      xmlFree(pucContent);
+	    }
+	    else {
+	      xmlAddChild(pndPie, xmlNewPI(BAD_CAST "error", BAD_CAST"read"));
+	    }
+	    fclose(pfLine);
+	  }
+	}
       }
-      
+      else { /* use program arguments as paths */
+	int i;
+
+	for (i = 1; i < argc; i++) {
+	  FILE *pfArgv = NULL;
+
+	  PrintFormatLog(4, "%s\n", argv[i]);
+
+	  if ((pfArgv = fopen(argv[i],"r")) == NULL) {
+	    xmlAddChild(pndPie, xmlNewPI(BAD_CAST "error", BAD_CAST"open"));
+	  }
+	  else {
+	    if ((pucContent = ReadUTF8ToBufferNew(pfArgv)) != NULL) {
+#ifdef HAVE_PIE
+	      AppendBufferToDoc(pndPie,BAD_CAST pucContent);
+#else
+	      xmlAddChild(pndPie, xmlNewPI(BAD_CAST "error", BAD_CAST"pie"));
+#endif
+	      xmlFree(pucContent);
+	    }
+	    else {
+	      xmlAddChild(pndPie, xmlNewPI(BAD_CAST "error", BAD_CAST"read"));
+	    }
+	    fclose(pfArgv);
+	  }
+	}
+      }
       xmlDocFormatDump(stdout, pdocPie, 1);
     }
   }
