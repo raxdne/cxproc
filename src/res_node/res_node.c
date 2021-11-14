@@ -222,10 +222,15 @@ resNodeRootNew(resNodePtr prnRoot, xmlChar *pucArgPath)
       }
     }
 
-    if (prnResult != NULL && resPathIsDescendant(prnRoot->pucNameNormalized,prnResult->pucNameNormalized) == FALSE) {
-      resNodeSetError(prnResult,rn_error_path,"Path '%s' is out of root resource node",prnResult->pucNameNormalized);
-      resNodeFree(prnResult);
-      prnResult = NULL;
+    if (prnResult != NULL) {
+      if (resPathIsDescendant(prnRoot->pucNameNormalized,prnResult->pucNameNormalized) == FALSE) {
+	resNodeSetError(prnResult,rn_error_path,"Path '%s' is out of root resource node",prnResult->pucNameNormalized);
+	resNodeFree(prnResult);
+	prnResult = NULL;
+      }
+      else {
+	resNodeSetRecursion(prnResult,resPathIsDirRecursive(pucArgPath));
+      }
     }
   }
   else { /* no root resource node exists */

@@ -406,7 +406,7 @@ cxpCtxtCgiParse(cxpContextPtr pccArg)
       xmlSetProp(pndXml, BAD_CAST "name", BAD_CAST "-");
       pndDir = xmlNewChild(pndXml, NULL, NAME_DIR, NULL);
       xmlSetProp(pndDir, BAD_CAST "verbosity", BAD_CAST "3");
-      xmlSetProp(pndDir, BAD_CAST "depth", BAD_CAST "1");
+      xmlSetProp(pndDir, BAD_CAST "depth", BAD_CAST (resNodeIsRecursive(prnDir) ? "99" : "1"));
       xmlSetProp(pndDir, BAD_CAST "urlencode", BAD_CAST "yes");
       pndDir = xmlNewChild(pndDir, NULL, NAME_DIR, NULL);
       xmlSetProp(pndDir, BAD_CAST "name", resNodeGetNameNormalized(prnDir));
