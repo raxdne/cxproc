@@ -1011,8 +1011,6 @@ cxpSubstReplaceNodes(xmlNodePtr pndArg, cxpContextPtr pccArg)
     pcxpSubstT = cxpSubstDetect(pndArg, pccArg);
     if (pcxpSubstT) {
       xmlChar *pucT;
-
-      assert(cxpSubstGetNamePtr(pcxpSubstT) == NULL);
       
       if ((pucT = cxpSubstGetPtr(pcxpSubstT)) != NULL) { /* replace this subst node by result */
 	xmlNodePtr pndReplace;

@@ -795,6 +795,7 @@ CalendarUpdate(pieCalendarPtr pCalendarArg)
 	    xmlChar *pucHeader;
 
 	    xmlNewTextChild(pndNew,NULL,NAME_PIE_DATE,pceT->pucDate);
+	    xmlAddChild(pndNew, xmlNewText(BAD_CAST " "));
 	    xmlAddChild(pndNew, xmlNewText(pucText));
 	    if ((pucHeader = pieGetParentHeaderStr(pndCurrent))) {
 	      domSetPropEat(pndNew, BAD_CAST "hstr", pucHeader);
