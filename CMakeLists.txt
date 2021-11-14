@@ -760,7 +760,7 @@ target_compile_definitions(cxproc-test PUBLIC
   BUILDPREFIX="${CXPROC_PREFIX}/"
   TESTPREFIX="${CXPROC_TEST_DIR}/"
   TEMPPREFIX="${CXPROC_TEMP_DIR}/"
-  HTTPPREFIX="http://localhost:8189/")
+  HTTPPREFIX="http://localhost:8183/")
 
 ADD_EXECUTABLE(cxproc-cgi
  ${CXPROC_SRC_DIR}/cxproc-cgi.c

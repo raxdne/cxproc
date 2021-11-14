@@ -946,7 +946,7 @@ cxpTest(cxpContextPtr pccArg)
       n_ok++;
       printf("OK\n");
     }
-    cxpCtxtLogPrintDoc(pccArg, 1, "XML result", pdocXsl);
+    //cxpCtxtLogPrintDoc(pccArg, 1, "XML result", pdocXsl);
 
     cxpCtxtFree(pccT);
     xmlFree(pucT);

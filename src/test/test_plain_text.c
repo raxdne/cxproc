@@ -67,13 +67,13 @@ plainTextTest(void)
     i++;
     printf("TEST %i in '%s:%i': reads plain text http content = ",i,__FILE__,__LINE__);
 
-    if ((prnT = resNodeDirNew(BAD_CAST HTTPPREFIX "Test/Documents/TestContent.txt")) == NULL) {
+    if ((prnT = resNodeDirNew(BAD_CAST HTTPPREFIX "Test/Documents/TestMarkupUnicode.txt")) == NULL) {
       printf("Error resNodeDirNew()\n");
     }
     else if ((pucContent = plainGetContextTextEat(prnT, -1)) == NULL) {
       printf("Error plainGetContextTextEat()\n");
     }
-    else if ((iLength = xmlStrlen(BAD_CAST pucContent)) != 219) {
+    else if ((iLength = xmlStrlen(BAD_CAST pucContent)) != 1416) {
       printf("Error xmlStrlen(): %i\n", iLength);
     }
     else {
