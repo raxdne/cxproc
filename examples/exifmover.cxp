@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cxp:make xmlns:cxp="http://www.tenbusch.info/cxproc" log="1" dir="pwd">
+  <cxp:description>Exifmover 0.4 (p) 2013..2021 A. Tenbusch
+
+  creates script text to move all files in a directory into subdirectories according to file
+  meta information (EXIF) or modification time
+
+  exifmover.cxp [/home/abc/Pictures]
+
+</cxp:description>
+<cxp:subst string="%SOURCE%" argv="2" dir="dialog" default="."/>
+<cxp:subst string="%TARGET%" argv="3" default="%SOURCE%"/>
+<cxp:system dialog="Search for files in '%SOURCE%' ..."/>
+<cxp:plain name="-">
+  <cxp:xml>
+    <cxp:dir imatch=".+\..+" verbosity="4">
+      <cxp:dir name="%SOURCE%" depth="1"/>
+    </cxp:dir>
+  </cxp:xml>
+  <xsl:stylesheet xmlns:cxp="http://www.tenbusch.info/cxproc" xmlns:exif="http://www.w3.org/2003/12/exif/ns" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.0">
+    <!-- -->
+    <xsl:variable name="str_dir" select="'%SOURCE%'"/>
+    <xsl:variable name="str_dir_target" select="'%TARGET%'"/>
+    <xsl:output method="text"/>
+
+    <xsl:template match="/">
+      <xsl:apply-templates select="//file[starts-with(@type,'image/') or starts-with(@type,'video/')]"/>
+      <xsl:text>echo pipe this output to a shell
+</xsl:text>
+    </xsl:template>
+
+    <xsl:template match="file[@size &gt; 0]">
+      <xsl:variable name="str_name" select="@name"/>
+      <xsl:variable name="str_destination">
+	<xsl:choose>
+          <xsl:when test="exif/date">
+            <!-- there are EXIF information -->
+            <xsl:value-of select="concat($str_dir_target,'/',exif/model,'/',translate(substring-before(exif/date,' '),':','/'),'/')"/>
+          </xsl:when>
+          <xsl:when test="image/*[contains(name(),'DateTime')][1]/@value">
+            <!-- there are EXIF information -->
+            <xsl:value-of select="concat($str_dir_target,'/',translate(substring-before(image/*[contains(name(),'DateTime')][1]/@value,' '),':','/'),'/')"/>
+          </xsl:when>
+          <xsl:otherwise>
+            <!-- use file modification time by default -->
+            <xsl:value-of select="concat($str_dir_target,'/',translate(substring-before(@mtime2,'T'),'-','/'),'/')"/>
+          </xsl:otherwise>
+	</xsl:choose>
+      </xsl:variable>
+	<xsl:value-of select="concat('mkdir -p ',$str_destination)"/>
+      <xsl:text>
+</xsl:text>
+	<xsl:value-of select="concat('mv ',$str_dir,'/',$str_name,' ',$str_destination)"/>
+      <xsl:text>
+</xsl:text>
+    </xsl:template>
+
+    <xsl:template match="*"/>
+  </xsl:stylesheet>
+</cxp:plain>
+</cxp:make>
