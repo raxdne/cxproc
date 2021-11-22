@@ -1324,10 +1324,10 @@ ENDIF (CXPROC_LIBID3TAG)
 #
 
 IF (CXPROC_LIBEXIF)
-  target_compile_definitions(filex       PUBLIC HAVE_EXIF)
-  target_compile_definitions(cxproc      PUBLIC HAVE_EXIF)
-  target_compile_definitions(cxproc-cgi  PUBLIC HAVE_EXIF)
-  target_compile_definitions(cxproc-test PUBLIC HAVE_EXIF)
+  target_compile_definitions(filex       PUBLIC HAVE_LIBEXIF)
+  target_compile_definitions(cxproc      PUBLIC HAVE_LIBEXIF)
+  target_compile_definitions(cxproc-cgi  PUBLIC HAVE_LIBEXIF)
+  target_compile_definitions(cxproc-test PUBLIC HAVE_LIBEXIF)
 
   target_link_libraries(filex ${LIBEXIF_LIBRARY})
   target_link_libraries(cxproc ${LIBEXIF_LIBRARY})

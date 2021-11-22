@@ -267,6 +267,17 @@ resMimeIsPicture(int iMimeType)
 } /* end of resMimeIsPicture() */
 
 
+/*! \return TRUE if iMimeType is a video format
+*/
+BOOL_T
+resMimeIsVideo(int iMimeType)
+{
+  return (iMimeType == MIME_VIDEO_MP4
+	  || iMimeType == MIME_VIDEO_AVI
+	  );
+} /* end of resMimeIsVideo() */
+
+
 /*! \return TRUE if iMimeType is an archive format
 */
 BOOL_T

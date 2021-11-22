@@ -2240,6 +2240,34 @@ resNodeIsPicture(resNodePtr prnArg)
 } /* end of resNodeIsPicture() */
 
 
+/*! \return TRUE if prnArg is a processable shortcut file
+*/
+BOOL_T
+resNodeIsShortcut(resNodePtr prnArg)
+{
+  BOOL_T fResult = FALSE;
+
+  if (resNodeIsFile(prnArg)) {
+    fResult = resPathIsEquivalent(resNodeGetNameBase(prnArg), BAD_CAST"shortcuts.pie");
+  }
+  return fResult;
+} /* end of resNodeIsShortcut() */
+
+
+/*! \return TRUE if prnArg is a processable video file
+*/
+BOOL_T
+resNodeIsVideo(resNodePtr prnArg)
+{
+  BOOL_T fResult = FALSE;
+
+  if (prnArg) {
+    fResult = resMimeIsVideo(resNodeGetMimeType(prnArg));
+  }
+  return fResult;
+} /* end of resNodeIsVideo() */
+
+
 /*! \return TRUE if prnArg is a processable archive file
 */
 BOOL_T
@@ -3068,8 +3096,14 @@ resNodeToDOM(resNodePtr prnArg, int iArgOptions)
     else if (iArgOptions & RN_INFO_CONTENT && resNodeIsLink(prnArg)) {
       /*!\todo add link target content */
     }
+    else if (iArgOptions & RN_INFO_META && resNodeIsShortcut(prnArg)) {
+      resNodeContentToDOM(pndT, prnArg);
+    }
     else if (resNodeIsPicture(prnArg)) {
       resNodeContentToDOM(pndT, prnArg);
+    }
+    else if (resNodeIsVideo(prnArg)) {
+      //resNodeContentToDOM(pndT, prnArg);
     }
     else if (resNodeIsFile(prnArg)) {
 

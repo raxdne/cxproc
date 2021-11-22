@@ -186,6 +186,9 @@ extern BOOL_T
 resMimeIsPicture(int iMimeType);
 
 extern BOOL_T
+resMimeIsVideo(int iMimeType);
+
+extern BOOL_T
 resMimeIsArchive(int iMimeType);
 
 extern BOOL_T
