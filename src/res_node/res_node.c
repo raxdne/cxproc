@@ -3103,7 +3103,8 @@ resNodeToDOM(resNodePtr prnArg, int iArgOptions)
     else if (iArgOptions & RN_INFO_CONTENT && resNodeIsLink(prnArg)) {
       /*!\todo add link target content */
     }
-    else if (iArgOptions & RN_INFO_META && resNodeIsShortcut(prnArg)) {
+    else if (iArgOptions & RN_INFO_META && (resNodeIsShortcut(prnArg) || resNodeGetMimeType(prnArg) == MIME_APPLICATION_CXP_XML)) {
+      /*! required for shortcuts, titles and icons */
       resNodeContentToDOM(pndT, prnArg);
     }
     else if (resNodeIsPicture(prnArg)) {

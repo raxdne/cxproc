@@ -155,6 +155,7 @@ cxpCtxtCgiParse(cxpContextPtr pccArg)
   resNodePtr prnExecutable;
   resNodePtr prnFile = NULL;
   resNodePtr prnDir = NULL;
+  resNodePtr prnFound = NULL;
   resNodePtr prnContent = NULL;
   resNodePtr prnPathTranslated = NULL;
   xmlChar mpucNameFile[BUFFER_LENGTH];
@@ -214,6 +215,9 @@ cxpCtxtCgiParse(cxpContextPtr pccArg)
   pucCgiXpath = cxpCtxtCgiGetValueByName(pccArg,BAD_CAST"xpath");
 
   if ((pucCgiPath = cxpCtxtCgiGetValueByName(pccArg, BAD_CAST"search")) != NULL) {
+    /*!
+      search for this file name in CXP_ROOT
+    */
     if ((prnFile = resNodeRootNew(cxpCtxtRootGet(pccArg), pucCgiPath)) != NULL && resNodeReadStatus(prnFile) && resNodeIsFile(prnFile)) {
     }
     else if (resNodeReadStatus(prnFile) && resNodeIsDir(prnFile)) {
@@ -229,11 +233,22 @@ cxpCtxtCgiParse(cxpContextPtr pccArg)
     else {
     }
   }
+  else if ((pucCgiPath = cxpCtxtCgiGetValueByName(pccArg, BAD_CAST"spath")) != NULL) {
+    /*!
+      search for this file name in CXP_PATH
+    */
+    prnFound = resNodeListFindPath(cxpCtxtSearchGet(pccArg), pucCgiPath, (RN_FIND_FILE | RN_FIND_IN_SUBDIR));
+    if (resNodeReadStatus(prnFound) == FALSE) {
+      cxpCtxtLogPrint(pccArg, 1, "File '%s' not found", pucCgiPath);
+      resNodeFree(prnFound);
+      prnFound = NULL;
+    }
+  }
   else if ((pucCgiPath = cxpCtxtCgiGetValueByName(pccArg, BAD_CAST"path")) != NULL
     || (pucCgiPath = cxpCtxtCgiGetValueByName(pccArg, BAD_CAST"dir")) != NULL
     || (pucCgiPath = cxpCtxtCgiGetValueByName(pccArg, BAD_CAST"file")) != NULL) {
     /*!
-    map pucCgiPath either to pucCgiDir OR pucCgiFile
+      map pucCgiPath either to pucCgiDir OR pucCgiFile
     */
     resNodePtr prnTest = NULL;
 
@@ -301,6 +316,12 @@ cxpCtxtCgiParse(cxpContextPtr pccArg)
     xmlSetProp(pndXml, BAD_CAST "schema", BAD_CAST "cxp.rng");
     xmlSetProp(pndXml, BAD_CAST "eval", BAD_CAST "yes");
     xmlSetProp(pndMake, BAD_CAST "dir", resNodeGetNameBaseDir(prnPathTranslated));
+  }
+  else if (prnFound) {
+    /* deliver the plain file content via CXP configuration */
+    pndPlain = xmlNewChild(pndMake, NULL, NAME_FILECOPY, NULL);
+    xmlSetProp(pndPlain, BAD_CAST "from", resNodeGetNameNormalized(prnFound));
+    xmlSetProp(pndPlain, BAD_CAST "to", BAD_CAST"-");
   }
   else if (pucCgiCxp) {
     /* deliver the file content via CXP configuration */
@@ -523,6 +544,7 @@ cxpCtxtCgiParse(cxpContextPtr pccArg)
   release the allocated resNode's
   */
   resNodeFree(prnPathTranslated);
+  resNodeFree(prnFound);
   resNodeFree(prnDir);
   resNodeFree(prnFile);
   /*
