@@ -2872,6 +2872,10 @@ resNodeContentToDOM(xmlNodePtr pndArg, resNodePtr prnArg)
     case MIME_IMAGE_JPEG:
     case MIME_IMAGE_PNG:
     case MIME_IMAGE_TIFF:
+#ifdef EXPERIMENTAL
+    case MIME_UNKNOWN:
+    case MIME_UNDEFINED:
+#endif
 #ifdef HAVE_LIBEXIF
       /* get image information details via libexif */
       imgParseFileExif(pndArg, prnArg);
@@ -2879,6 +2883,7 @@ resNodeContentToDOM(xmlNodePtr pndArg, resNodePtr prnArg)
 #elif defined HAVE_LIBMAGICK	
       //imgParseFile(pndArg, prnArg);
 #endif
+      xmlFree(resNodeEatContentPtr(prnArg));
       break;
 
 #if 0
@@ -2896,7 +2901,9 @@ resNodeContentToDOM(xmlNodePtr pndArg, resNodePtr prnArg)
 #endif
       
     default: /* no addtitional file information details */
-#if 0
+#if 1
+      PrintFormatLog(1, "No file information details '%s' %i", resNodeGetNameNormalized(prnArg),iMimeType);
+#else
       {
 	xmlChar *pucContent;
 

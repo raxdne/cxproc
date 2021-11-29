@@ -24,7 +24,7 @@
     <xsl:output method="text"/>
 
     <xsl:template match="/">
-      <xsl:apply-templates select="//file[starts-with(@type,'image/') or starts-with(@type,'video/')]"/>
+      <xsl:apply-templates select="//file[starts-with(@type,'image/') or exif or starts-with(@type,'video/')]"/>
       <xsl:text>echo pipe this output to a shell
 </xsl:text>
     </xsl:template>
@@ -47,10 +47,18 @@
           </xsl:otherwise>
 	</xsl:choose>
       </xsl:variable>
-	<xsl:value-of select="concat('mkdir -p ',$str_destination)"/>
+	<xsl:value-of select="concat('mkdir -p &quot;',$str_destination,'&quot;')"/>
       <xsl:text>
 </xsl:text>
-	<xsl:value-of select="concat('mv ',$str_dir,'/',$str_name,' ',$str_destination)"/>
+      <xsl:choose>
+        <xsl:when test="@type = 'type/unknown' and exif/date">
+          <!-- type is unknown but there are EXIF information -->
+	  <xsl:value-of select="concat('mv &quot;',$str_dir,'/',$str_name,'&quot; &quot;',$str_destination,'/',substring-before(@name,'.'),'.JPG','&quot;')"/>
+        </xsl:when>
+        <xsl:otherwise>
+	  <xsl:value-of select="concat('mv &quot;',$str_dir,'/',$str_name,'&quot; &quot;',$str_destination,'&quot;')"/>
+	</xsl:otherwise>
+      </xsl:choose>
       <xsl:text>
 </xsl:text>
     </xsl:template>
