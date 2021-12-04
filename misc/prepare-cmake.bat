@@ -4,7 +4,9 @@ REM
 
 for /f "delims=" %%i in ("%0") do set CXPBASE=%%~dpi
 
-SET STATIC=1
+REM SET CXPBASE=C:\UserData\Develop\cxproc-build\a\b
+
+SET STATIC=0
 SET FLAG64=1
 
 REM VC++ Environment
@@ -23,11 +25,15 @@ IF "%STATIC%" == "1" (
 IF "0" == "1" (
   pushd C:\UserData\Develop\vcpkg
   REM bootstrap-vcpkg.bat -win64 -disableMetrics
+  REM git pull
   .\vcpkg integrate install
 
   .\vcpkg --triplet %ARCH% --x-install-root=%CXPBASE%..\.. install curl zlib liblzma libarchive pcre2 libxml2 libxslt libexif sqlite3 duktape
 
   REM imagemagick libgif libjpeg libpng libtiff
+  
+  REM TODO: install library tools like 'sqliteshell', 'xsltproc' etc
+
   popd
 )
 

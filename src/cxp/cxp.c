@@ -41,7 +41,7 @@
 #endif
 
 #ifdef HAVE_LIBCURL
-#include <curl.h>
+#include <curl/curl.h>
 #endif
 
 #ifdef HAVE_PCRE2
