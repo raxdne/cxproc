@@ -364,6 +364,7 @@ cxpCtxtCliParse(cxpContextPtr pccArg)
 	 */
 	cxpCtxtCliPrintHelp(pccArg);
       }
+#ifdef HAVE_PIE
       else if (atoi((char*)pucArgvFirst) > 1900) {
 	/*
 	  argv[1] is a valid year number, calendar
@@ -417,6 +418,7 @@ cxpCtxtCliParse(cxpContextPtr pccArg)
 	  }
 	}
       }
+#endif
       else if (xmlStrEqual(pucArgvFirst, BAD_CAST"-e")) {
 	/*! print program environment
 	 */
