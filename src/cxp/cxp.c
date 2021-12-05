@@ -3136,9 +3136,7 @@ cxpInfoProgram(xmlNodePtr pndArg, cxpContextPtr pccArg)
 #endif
       );
 
-#ifdef __TIMESTAMP__
-    xmlSetProp(nodeOption, BAD_CAST "date", BAD_CAST __TIMESTAMP__);
-#endif
+    xmlSetProp(nodeOption, BAD_CAST "date", BAD_CAST CXP_TIMESTAMP_BUILD);
 
     xmlSetProp(nodeOption, BAD_CAST "lang",
 #ifdef __cplusplus
