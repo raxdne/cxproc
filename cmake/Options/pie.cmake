@@ -77,6 +77,70 @@ IF (CXPROC_PIE)
   target_compile_definitions(cxproc-test PUBLIC HAVE_PIE)
 
   OPTION(CXPROC_MARKDOWN "Compile MARKDOWN code" ON)
+
+IF (CXPROC_TESTS)
+  add_test(NAME pie-code
+    WORKING_DIRECTORY ${CXPROC_PREFIX}
+    COMMAND ${CXPROC_PREFIX}/bin/cxproc-test -t pie)
+
+  add_test(NAME pie-cxp-import-circular
+    WORKING_DIRECTORY ${CXPROC_TEST_DIR}/option/pie/text/circular
+    COMMAND ${CXPROC_PREFIX}/bin/cxproc config-circular.cxp)
+
+  add_test(NAME pie-cxp-import-csv
+    WORKING_DIRECTORY ${CXPROC_TEST_DIR}/option/pie/text/csv
+    COMMAND ${CXPROC_PREFIX}/bin/cxproc config-pie-import-csv.cxp)
+
+  add_test(NAME pie-cxp-import-cxp
+    WORKING_DIRECTORY ${CXPROC_TEST_DIR}/option/pie/text/cxp
+    COMMAND ${CXPROC_PREFIX}/bin/cxproc config-pie-import-cxp.cxp)
+
+  add_test(NAME pie-cxp-import-line
+    WORKING_DIRECTORY ${CXPROC_TEST_DIR}/option/pie/text/line
+    COMMAND ${CXPROC_PREFIX}/bin/cxproc config-pie-import-line.cxp)
+
+  add_test(NAME pie-cxp-import-log
+    WORKING_DIRECTORY ${CXPROC_TEST_DIR}/option/pie/text/log
+    COMMAND ${CXPROC_PREFIX}/bin/cxproc config-pie-import-log.cxp)
+
+  add_test(NAME pie-cxp-import-plain
+    WORKING_DIRECTORY ${CXPROC_TEST_DIR}/option/pie/text/plain
+    COMMAND ${CXPROC_PREFIX}/bin/cxproc config-pie-import-plain.cxp)
+
+  add_test(NAME pie-cxp-import-script
+    WORKING_DIRECTORY ${CXPROC_TEST_DIR}/option/pie/text/script
+    COMMAND ${CXPROC_PREFIX}/bin/cxproc config-pie-import-script.cxp)
+
+  add_test(NAME pie-cxp-import-xml
+    WORKING_DIRECTORY ${CXPROC_TEST_DIR}/option/pie/text/xml
+    COMMAND ${CXPROC_PREFIX}/bin/cxproc config-pie-import-xml.cxp)
+
+  add_test(NAME calendar-cxp
+    WORKING_DIRECTORY ${CXPROC_TEST_DIR}/option/pie/calendar
+    COMMAND ${CXPROC_PREFIX}/bin/cxproc config.cxp)
+
+  add_test(NAME cli-conf-year
+    WORKING_DIRECTORY ${CXPROC_PREFIX}
+    COMMAND ${CXPROC_PREFIX}/bin/cxproc -t 2012)
+
+  add_test(NAME cli-year
+    WORKING_DIRECTORY ${CXPROC_PREFIX}
+    COMMAND ${CXPROC_PREFIX}/bin/cxproc 2012)
+
+  set_property(TEST pie-code pie-cxp-import-cxp calendar-cxp cli-conf-year cli-year
+    APPEND PROPERTY ENVIRONMENT CXP_PATH=${PROJECT_SOURCE_DIR}//
+    )
+  
+  add_test(NAME ics-code
+    WORKING_DIRECTORY ${CXPROC_PREFIX}
+    COMMAND ${CXPROC_PREFIX}/bin/cxproc-test -t ics)
+
+  add_test(NAME vcf-code
+    WORKING_DIRECTORY ${CXPROC_PREFIX}
+    COMMAND ${CXPROC_PREFIX}/bin/cxproc-test -t vcf)
+
+ENDIF (CXPROC_TESTS)
+
 ELSE ()
   SET(CXPROC_MARKDOWN OFF)
 ENDIF (CXPROC_PIE)

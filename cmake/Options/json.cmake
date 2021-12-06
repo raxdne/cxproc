@@ -37,9 +37,13 @@ IF (JSMN_INCLUDE_DIR)
   target_compile_definitions(cxproc-cgi  PUBLIC HAVE_JSON)
   target_compile_definitions(cxproc-test PUBLIC HAVE_JSON)
 
+IF(CXPROC_TESTS)
+  
   add_test(NAME json-cxp
     WORKING_DIRECTORY ${CXPROC_TEST_DIR}/option/json
     COMMAND ${CXPROC_PREFIX}/bin/cxproc config.cxp)
+ENDIF(CXPROC_TESTS)
+  
 ENDIF ()
 
 

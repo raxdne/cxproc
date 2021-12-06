@@ -48,7 +48,12 @@ IF (CXPROC_DUKTAPE)
     #ENDIF ()
   ENDIF ()
 
+IF(CXPROC_TESTS)
+  
   add_test(NAME script-cxp
     WORKING_DIRECTORY ${CXPROC_TEST_DIR}/option/script
     COMMAND ${CXPROC_PREFIX}/bin/cxproc config.cxp)
+
+ENDIF(CXPROC_TESTS)
+  
 ENDIF ()

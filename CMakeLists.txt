@@ -38,6 +38,9 @@ FIND_PATH(CXPROC_SRCLIB_DIR
   PATHS "third-party")
 
 SET(CXPROC_PREFIX "${PROJECT_BINARY_DIR}/.." CACHE PATH "Prefix")
+SET(CXPROC_TEMP_DIR "${CXPROC_PREFIX}/tmp")
+# working directory for tests
+SET(CXPROC_TEST_DIR "${PROJECT_SOURCE_DIR}/test")
 
 INCLUDE_DIRECTORIES("${PROJECT_SOURCE_DIR}/third-party"
   "${PROJECT_SOURCE_DIR}/third-party/option"
@@ -372,6 +375,8 @@ IF (LIBLZMA_LIBRARIES)
 ENDIF (LIBLZMA_LIBRARIES)
 
 ###############################################################################
+
+include(tests)
 
 include(archive)
 include(audio)
@@ -796,6 +801,19 @@ set_target_properties(dir2sqlite
     RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CXPROC_PREFIX}/bin"
 )
 
+set_target_properties(pietextx
+    PROPERTIES
+    ARCHIVE_OUTPUT_DIRECTORY "${CXPROC_PREFIX}/lib"
+    LIBRARY_OUTPUT_DIRECTORY "${CXPROC_PREFIX}/lib"
+    RUNTIME_OUTPUT_DIRECTORY "${CXPROC_PREFIX}/bin"
+    ARCHIVE_OUTPUT_DIRECTORY_DEBUG "${CXPROC_PREFIX}/lib"
+    LIBRARY_OUTPUT_DIRECTORY_DEBUG "${CXPROC_PREFIX}/lib"
+    RUNTIME_OUTPUT_DIRECTORY_DEBUG "${CXPROC_PREFIX}/bin"
+    ARCHIVE_OUTPUT_DIRECTORY_RELEASE "${CXPROC_PREFIX}/lib"
+    LIBRARY_OUTPUT_DIRECTORY_RELEASE "${CXPROC_PREFIX}/lib"
+    RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CXPROC_PREFIX}/bin"
+)
+
 set_target_properties(cxproc
     PROPERTIES
     ARCHIVE_OUTPUT_DIRECTORY "${CXPROC_PREFIX}/lib"
@@ -864,8 +882,6 @@ set_target_properties(test-cgi
 #ENDIF ()
 
 ###############################################################################
-
-include(tests)
 
 include(package)
 include(CPack)

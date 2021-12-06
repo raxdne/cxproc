@@ -188,7 +188,7 @@ main(int argc, char** argv, char** envp)
 
     cxpCtxtCacheEnable(pccTest, FALSE);
 
-    resNodeUnlinkRecursivelyStr(BAD_CAST TEMPPREFIX);
+    // !!! DANGER !!! resNodeUnlinkRecursivelyStr(BAD_CAST TEMPPREFIX); has deleted 2 home directories 2021-12-05 :-(
     if (resNodeMakeDirectoryStr(BAD_CAST TEMPPREFIX, MODE_DIR_CREATE)
         && resNodeTestDirStr(BAD_CAST TEMPPREFIX)) {
 

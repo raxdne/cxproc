@@ -21,6 +21,8 @@ IF (CXPROC_PETRINET)
 
   add_definitions(-DHAVE_PETRINET)
 
+IF(CXPROC_TESTS)
+  
   add_test(NAME petrinet-code
     WORKING_DIRECTORY ${CXPROC_PREFIX}
     COMMAND ${CXPROC_PREFIX}/bin/cxproc-test -t petrinet)
@@ -31,6 +33,8 @@ IF (CXPROC_PETRINET)
 
   set_tests_properties(petrinet-cxp PROPERTIES
     ENVIRONMENT "CXP_PATH=${PROJECT_SOURCE_DIR}//")
+
+ENDIF (CXPROC_TESTS)
 
 ENDIF (CXPROC_PETRINET)
 
