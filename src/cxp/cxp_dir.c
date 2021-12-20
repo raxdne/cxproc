@@ -230,6 +230,7 @@ dirProcessDirNode(xmlNodePtr pndArgDir, resNodePtr prnArgContext, cxpContextPtr 
   int opt_match_pcre = PCRE2_UTF;
 #endif
   BOOL_T fLocator;
+  BOOL_T fDirChilds = (domNodeHasChild(pndArgDir,NAME_DIR) || domNodeHasChild(pndArgDir,NAME_FILE));
   
 #ifdef HAVE_CGI
   fLocator = TRUE;
@@ -347,7 +348,7 @@ dirProcessDirNode(xmlNodePtr pndArgDir, resNodePtr prnArgContext, cxpContextPtr 
   domSetPropEat(pndMeta, BAD_CAST "ctime", GetNowFormatStr(BAD_CAST "%s"));
   domSetPropEat(pndMeta,BAD_CAST "ctime2", GetDateIsoString(0));
 
-  for (pndEntry = ((pndArgDir->children) ? pndArgDir->children : pndArgDir); pndEntry; pndEntry = pndEntry->next) {
+  for (pndEntry = (fDirChilds ? pndArgDir->children : pndArgDir); pndEntry; pndEntry = (fDirChilds ? pndEntry->next : NULL)) {
     int iVerbosityChild = iVerbosity;
     int iDepthChild;
     resNodePtr prnT;

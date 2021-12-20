@@ -604,14 +604,8 @@ cxpResNodeResolveNew(cxpContextPtr pccArg, xmlNodePtr pndArg, xmlChar *pucArg, i
 
     if (pndArg != NULL) {
       pucAttrName = domGetPropValuePtr(pndArg, BAD_CAST "name");
-      if (pucAttrName == NULL) { /* no attribute 'name' */
-      }
-      else if (STR_IS_EMPTY(pucAttrName) || xmlStrEqual(pucAttrName, BAD_CAST".")) { /* valid but empty attribute 'name' */
-#ifdef HAVE_CGI
-	pucAttrName = resNodeGetNameNormalized(cxpCtxtRootGet(pccArg));
-#else
-	/*\todo TBD */
-#endif	
+      if (pucAttrName == NULL || STR_IS_EMPTY(pucAttrName) || xmlStrEqual(pucAttrName, BAD_CAST".")) { /* valid but empty attribute 'name' */
+	pucAttrName = resNodeGetNameNormalized(cxpCtxtLocationGet(pccArg));
       }
       else if (iArgOptions == CXP_O_NONE) {
 	/* no special focus */

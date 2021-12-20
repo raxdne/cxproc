@@ -1346,6 +1346,27 @@ domNodeHasAncestor(xmlNodePtr pndArg, xmlChar* pucArg)
 } /* end of domNodeHasAncestor() */
 
 
+/*! \return TRUE if 'pndArg' has an child node with name 'pucArg'
+ */
+BOOL_T
+domNodeHasChild(xmlNodePtr pndArg, xmlChar* pucArg)
+{
+  BOOL_T fResult = FALSE;
+
+  if (pndArg != NULL && STR_IS_NOT_EMPTY(pucArg)) {
+    xmlNodePtr pndT;
+
+    /* check node childs */
+    for (pndT = pndArg->children; fResult == FALSE && pndT != NULL; pndT = pndT->next) {
+      if (IS_NODE(pndT, pucArg)) {
+	fResult = TRUE;
+      }
+    }
+  }
+  return fResult;
+} /* end of domNodeHasChild() */
+
+
 /*! returns TRUE if there is an overlapping between pndArgA and pndArgB
 */
 BOOL_T
