@@ -86,7 +86,7 @@ main(int argc, char *argv[], char *envp[]) {
   else if ((pdocPie = xmlNewDoc(BAD_CAST "1.0")) != NULL) {
     xmlNodePtr pndPie;
     
-    if ((pndPie = xmlNewDocNode(pdocPie, NULL, "pie", NULL)) != NULL) {
+    if ((pndPie = xmlNewDocNode(pdocPie, NULL, BAD_CAST"pie", NULL)) != NULL) {
       xmlChar *pucContent;
 	
       xmlDocSetRootElement(pdocPie,pndPie);

@@ -2618,6 +2618,10 @@ resNodeContentToDOM(xmlNodePtr pndArg, resNodePtr prnArg)
     iMimeType = resNodeGetMimeType(prnArg);
     switch (iMimeType) {
 
+    case MIME_EMPTY:
+      /* no file content */
+    break;
+
 #ifdef HAVE_PIE
     case MIME_APPLICATION_PIE_XML:
     case MIME_TEXT_PLAIN:
@@ -2986,7 +2990,7 @@ resNodeToDOM(resNodePtr prnArg, int iArgOptions)
       }
     }
 
-    if (resNodeGetMimeType(prnArg) != rn_type_undef) {
+    if (resNodeGetMimeType(prnArg) != MIME_UNDEFINED) {
       xmlSetProp(pndT, BAD_CAST "type", BAD_CAST resNodeGetMimeTypeStr(prnArg));
     }
 
@@ -4457,7 +4461,10 @@ resNodeGetMimeType(resNodePtr prnArg)
   RN_MIME_TYPE eResult = MIME_UNDEFINED;
   
   if (prnArg) {
-    if (prnArg->eMimeType == MIME_UNDEFINED) {
+    if (resNodeGetSize(prnArg) < 1) {
+      eResult = MIME_EMPTY;
+    }
+    else if (prnArg->eMimeType == MIME_UNDEFINED) {
 #if 1
       resNodeResetMimeType(prnArg);
       eResult = prnArg->eMimeType;

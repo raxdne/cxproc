@@ -24,6 +24,7 @@
 typedef enum {
   MIME_UNDEFINED,
   MIME_UNKNOWN,
+  MIME_EMPTY,
   /*
     Microsoft Office
   */

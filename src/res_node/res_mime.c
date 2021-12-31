@@ -26,8 +26,9 @@
 
 /* s. http://en.wikipedia.org/wiki/List_of_file_formats_%28alphabetical%29 */
 static const char* resMimeTypeStr[] = {
-  /* MIME_UNDDEFINED */ "type/undefined",
+  /* MIME_UNDEFINED */ "type/undefined",
   /* MIME_UNKNOWN */ "type/unknown",
+  /* MIME_EMPTY */ "type/empty",
   /*
     Microsoft Office
   */
