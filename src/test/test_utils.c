@@ -236,13 +236,13 @@ utilsTest(void)
     if (StringBeginsWith(NULL,NULL) == TRUE) {
       printf("ERROR 1\n");
     }
-    else if (StringBeginsWith("","") == TRUE) {
+    else if (StringBeginsWith((char *)"","") == TRUE) {
       printf("ERROR 2\n");
     }
-    else if (StringBeginsWith("Abc def ","Ab") == FALSE) {
+    else if (StringBeginsWith((char *)"Abc def ","Ab") == FALSE) {
       printf("ERROR 3\n");
     }
-    else if (StringBeginsWith(" AAA Abc def ","Ab") == TRUE) {
+    else if (StringBeginsWith((char *)" AAA Abc def ","Ab") == TRUE) {
       printf("ERROR 4\n");
     }
     else {
@@ -260,13 +260,13 @@ utilsTest(void)
     if (StringEndsWith(NULL,NULL) != NULL) {
       printf("ERROR 1\n");
     }
-    else if (StringEndsWith("","") != NULL) {
+    else if (StringEndsWith((char *)"","") != NULL) {
       printf("ERROR 2\n");
     }
-    else if (StringEndsWith("Abc def ","Ab") != NULL) {
+    else if (StringEndsWith((char *)"Abc def ","Ab") != NULL) {
       printf("ERROR 3\n");
     }
-    else if (StringEndsWith(" AAA Abc def"," def") == NULL) {
+    else if (StringEndsWith((char *)" AAA Abc def"," def") == NULL) {
       printf("ERROR 4\n");
     }
     else {

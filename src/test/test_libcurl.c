@@ -65,6 +65,8 @@ curlTest(void)
   n_ok=0;
   i=0;
 
+#ifdef HAVE_LIBCURL
+
   if (RUNTEST) {
     /* TEST:
      */
@@ -245,6 +247,8 @@ curlTest(void)
     curl_free(path);
     curl_url_cleanup(h); /* free url handle */
   }
+
+#endif
 
   return (i - n_ok);
 }

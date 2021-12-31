@@ -30,6 +30,8 @@ pcreTest(void)
   n_ok=0;
   i=0;
 
+#ifdef HAVE_PCRE2
+
   if (RUNTEST) {
     int errornumber = 0;
     size_t erroroffset;
@@ -125,6 +127,7 @@ pcreTest(void)
     pcre2_code_free(preT);
   }
 
+#endif
   
   return (i - n_ok);
 }
