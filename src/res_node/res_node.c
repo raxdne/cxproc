@@ -3796,6 +3796,9 @@ resNodeReadStatus(resNodePtr prnArg)
 
 	    prnArg->fExist = TRUE;
 	    prnArg->liSize = (long int)s.st_size;
+	    if (prnArg->liSize == 0) {
+	      prnArg->eMimeType = MIME_EMPTY;
+	    }
 	    prnArg->tMtime = s.st_mtime;
 
 #ifdef _MSC_VER
@@ -4461,10 +4464,7 @@ resNodeGetMimeType(resNodePtr prnArg)
   RN_MIME_TYPE eResult = MIME_UNDEFINED;
   
   if (prnArg) {
-    if (resNodeGetSize(prnArg) < 1) {
-      eResult = MIME_EMPTY;
-    }
-    else if (prnArg->eMimeType == MIME_UNDEFINED) {
+    if (prnArg->eMimeType == MIME_UNDEFINED) {
 #if 1
       resNodeResetMimeType(prnArg);
       eResult = prnArg->eMimeType;
