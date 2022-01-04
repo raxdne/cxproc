@@ -192,6 +192,18 @@ pieTextBlocksCleanup(void)
 /* end of pieTextBlocksCleanup() */
 
 
+/*! \return pointer to existing or freshly allocated XML namespace
+*/
+xmlNsPtr
+pieGetNs(void)
+{
+  if (pnsPie == NULL) {
+    pnsPie = xmlNewNs(NULL, BAD_CAST CXP_PIE_URL, BAD_CAST"pie");
+  }
+  return pnsPie;
+} /* end of pieGetNs() */
+
+
 /*! init procedure for this module
 
 \return TRUE if successful
@@ -392,9 +404,7 @@ CompileRegExpDefaults(void)
     }
   }
 
-  if (pnsPie == NULL) {
-    pnsPie = xmlNewNs(NULL, BAD_CAST CXP_PIE_URL, BAD_CAST"pie");
-  }
+  pieGetNs();
 
   return fResult;
 }

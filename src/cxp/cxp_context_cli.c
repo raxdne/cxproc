@@ -576,7 +576,7 @@ cxpCtxtCliParse(cxpContextPtr pccArg)
 	xmlSetProp(pndXml, BAD_CAST "name", BAD_CAST "-");
 	xmlSetProp(pndXml, BAD_CAST "schema", BAD_CAST "pie.rng");
 
-	pndPie = xmlNewChild(pndXml, NULL, NAME_PIE, NULL);
+	pndPie = xmlNewChild(pndXml, pieGetNs(), NAME_PIE, NULL);
 	xmlSetProp(pndPie, BAD_CAST "url", BAD_CAST "yes");
 	xmlSetProp(pndPie, BAD_CAST "figure", BAD_CAST "yes");
 	/* there is no file context when reading from stdin */
@@ -671,6 +671,29 @@ cxpCtxtCliParse(cxpContextPtr pccArg)
 	      cxpCtxtLogPrint(pccArg, 2, "Search later for '%s'", resNodeGetNameBase(prnContent));
 	    }
 	  }
+#ifdef HAVE_PIE
+	  else if (iMimeType == MIME_APPLICATION_PIE_XML || iMimeType == MIME_TEXT_PLAIN || iMimeType == MIME_TEXT_MARKDOWN) {
+	    /*
+	      argv[1] is a name of a pie file, existing or not!
+	    */
+	    //xmlNodePtr pndPie = NULL;
+	    xmlNodePtr pndImport = NULL;
+
+	    pndXml = xmlNewChild(pndMake, NULL, NAME_XML, NULL);
+	    xmlSetProp(pndXml, BAD_CAST "name", BAD_CAST "-");
+
+	    pndPie = xmlNewChild(pndXml, pieGetNs(), NAME_PIE, NULL);
+	    pndImport = xmlNewChild(pndPie, NULL, NAME_PIE_IMPORT, NULL);
+	    if (resNodeIsFile(prnContent) && resNodeIsExist(prnContent)) {
+	      xmlSetProp(pndImport, BAD_CAST "name", resNodeGetNameNormalized(prnContent));
+	    }
+	    else {
+	      xmlSetProp(pndImport, BAD_CAST "name", resNodeGetNameBase(prnContent));
+	      xmlSetProp(pndImport, BAD_CAST "search", BAD_CAST "yes");
+	      cxpCtxtLogPrint(pccArg, 2, "Search later for '%s'", resNodeGetNameBase(prnContent));
+	    }
+	  }
+#endif
 #ifdef HAVE_LIBARCHIVE
 	  else if (iMimeType == MIME_APPLICATION_ZIP
 		   || iMimeType == MIME_APPLICATION_X_TAR

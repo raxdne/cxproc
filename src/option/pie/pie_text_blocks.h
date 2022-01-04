@@ -39,6 +39,9 @@ typedef enum {
 } lang_t;
 
 
+extern xmlNsPtr
+pieGetNs(void);
+
 extern BOOL_T
 CompileRegExpDefaults(void);
 

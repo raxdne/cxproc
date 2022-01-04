@@ -375,7 +375,7 @@ RecognizeHashtags(xmlNodePtr pndArg, pcre2_code* preArgHashTag, pcre2_code* preA
   else if (IS_NODE_PIE_PIE(pndArg) || IS_NODE_PIE_BLOCK(pndArg)) {
     xmlChar* pucTT = NULL;
     xmlChar* pucRegExpTag = NULL;
-    pcre2_code* preBlock = NULL;
+    pcre2_code* preBlock = preArgBlockTag;
 
     if ((pucRegExpTag = GetBlockTagRegExpStr(pndArg, NULL, FALSE)) != NULL
 	&& (pucTT = StringDecodeNumericCharsNew(pucRegExpTag)) != NULL) {
@@ -409,7 +409,7 @@ RecognizeHashtags(xmlNodePtr pndArg, pcre2_code* preArgHashTag, pcre2_code* preA
       fResult = RecognizeHashtags(pndChild, preArgHashTag, preBlock);
     }
 
-    if (preBlock) {
+    if (preBlock != NULL && preBlock != preArgBlockTag) {
       pcre2_code_free(preBlock);
     }
     
@@ -745,7 +745,10 @@ RecognizeNodeTags(xmlNodePtr pndTags, xmlNodePtr pndArg, pcre2_code* preArg)
 {
   BOOL_T fResult = TRUE;
 
-  if (IS_NODE_META(pndArg) || IS_NODE_PIE_PRE(pndArg) || IS_NODE_PIE_TT(pndArg) || IS_NODE_PIE_LINK(pndArg) || IS_NODE_PIE_DATE(pndArg)) {
+  if (preArg == NULL) {
+    /* skip */
+  }
+  else if (IS_NODE_META(pndArg) || IS_NODE_PIE_PRE(pndArg) || IS_NODE_PIE_TT(pndArg) || IS_NODE_PIE_LINK(pndArg) || IS_NODE_PIE_DATE(pndArg)) {
     /* skip */
   }
   else if (IS_NODE_PIE_ETAG(pndArg) || IS_NODE_PIE_HTAG(pndArg) || IS_NODE_PIE_TTAG(pndArg)) {
