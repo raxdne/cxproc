@@ -401,6 +401,8 @@ RecognizeHashtags(xmlNodePtr pndArg, pcre2_code* preArgHashTag, pcre2_code* preA
 	pcre2_get_error_message(errornumber, buffer, sizeof(buffer));
 	PrintFormatLog(1,"PCRE2 compilation failed at offset %d: %s", (int)erroroffset, buffer);
       }
+
+      /*!\todo merge preBlock and preArgBlockTag ? */
       
       xmlFree(pucTT);
     }
