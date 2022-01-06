@@ -1582,23 +1582,30 @@ calProcessCalendarNode(xmlNodePtr pndArg, cxpContextPtr pccArg)
   if (IS_NODE_CALENDAR(pndArg)) {
     pieCalendarPtr pCalendarResult;
 
-    if ((pCalendarResult = CalendarSetup(pndArg, pccArg)) != NULL
-      && ProcessCalendarColumns(pCalendarResult, pccArg)
-      && RegisterDateNodes(pCalendarResult, NULL)
-      && ParseDates(pCalendarResult)
-      && AddYears(pCalendarResult)) {
+    if ((pCalendarResult = CalendarSetup(pndArg, pccArg)) != NULL) {
+
+      if (ProcessCalendarColumns(pCalendarResult, pccArg)
+	  && RegisterDateNodes(pCalendarResult, NULL)
+	  && ParseDates(pCalendarResult)
+	  && AddYears(pCalendarResult)) {
       
-      CalendarUpdate(pCalendarResult);
-      CalendarSetToday(pCalendarResult);
-      if (domGetPropFlag(pndArg, BAD_CAST"subst", TRUE)) {
-	/* do time-consuming format substitution by explicit demand only */
-	SubstituteFormat(pCalendarResult->pndCalendarRoot);
-      }
+	CalendarUpdate(pCalendarResult);
+	CalendarSetToday(pCalendarResult);
+	if (domGetPropFlag(pndArg, BAD_CAST"subst", TRUE)) {
+	  /* do time-consuming format substitution by explicit demand only */
+	  SubstituteFormat(pCalendarResult->pndCalendarRoot);
+	}
 #if 0
-      if (domGetPropFlag(pndArg, BAD_CAST"columns", FALSE) == FALSE) {
-	CalendarColumnsFree(pCalendarResult);
-      }
+	if (domGetPropFlag(pndArg, BAD_CAST"columns", FALSE) == FALSE) {
+	  CalendarColumnsFree(pCalendarResult);
+	}
 #endif
+      }
+      else if (AddYears(pCalendarResult)) {
+	CalendarUpdate(pCalendarResult);
+	CalendarSetToday(pCalendarResult);
+      }
+      
       pdocResult = pCalendarResult->pdocCalendar;
       pCalendarResult->pdocCalendar = NULL;
     }
