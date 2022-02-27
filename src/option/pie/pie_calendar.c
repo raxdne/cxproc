@@ -1665,6 +1665,7 @@ calAddAttributeDayDiff(xmlDocPtr pdocArg)
       */
       pCalendarResult->pdocCalendar = pdocArg;
       pCalendarResult->pndCalendarRoot = xmlDocGetRootElement(pdocArg);
+      /*!\todo use "/" NAME_PIE_PIE "//" NAME_PIE_DATE */
       if (RegisterDateNodes(pCalendarResult, BAD_CAST"/pie//date")
 	  && ParseDates(pCalendarResult)) {
 	pdocResult = pCalendarResult->pdocCalendar;
@@ -2205,7 +2206,7 @@ AddTreeYear(pieCalendarPtr pCalendarArg, int year)
   if (mktime(&tFirstFirst) == -1 || tFirstFirst.tm_year != year) {
     PrintFormatLog(1,"Year '%i' out of range", year);
     xmlStrPrintf( buffer,BUFFER_LENGTH, "Year '%i' out of range", year +  1900);
-    xmlNewChild(pndParent, NULL, NAME_PIE_ERROR, buffer);
+    xmlNewChild(pndParent, NULL, NAME_ERROR, buffer);
     return FALSE;
   }
   week_current = (tFirstFirst.tm_wday > 4 || tFirstFirst.tm_wday < 1) ? 0 : 1;

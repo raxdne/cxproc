@@ -120,9 +120,9 @@ cxpCtxtCgiNew(int argc, char *argv[], char *envp[])
     }
     else {
 #if defined(DEBUG) || defined(TESTCODE)
-      cxpCtxtLogSetLevel(pccResult, 3);
+      cxpCtxtLogSetLevel(pccResult, LEVEL_MAX);
 #else
-      cxpCtxtLogSetLevel(pccResult, 4);
+      cxpCtxtLogSetLevel(pccResult, 2);
 #endif
     }
     xmlFree(pucT);

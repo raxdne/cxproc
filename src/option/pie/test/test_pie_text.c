@@ -587,6 +587,45 @@ pieTextTest(cxpContextPtr pccArg)
     xmlFreeDoc(pdocT);
   }
 
+
+  if (RUNTEST) {
+    /* TEST:
+    */
+    xmlDocPtr pdocResult = NULL;
+    xmlChar *pucXpathCheck = (xmlChar*) "//*[@w]";
+    xmlChar *pucPattern = (xmlChar*) "//*[name()='p']";
+    xmlNodeSetPtr nodeset;
+    xmlXPathObjectPtr result = NULL;
+    xmlNodePtr pndRoot;
+
+    i++;
+    printf("TEST %i in '%s:%i': XPath nodeset ", i, __FILE__, __LINE__);
+
+    if ((pdocResult = xmlParseFile(TESTPREFIX "option/pie/text/test-pie-14.pie")) == NULL
+      || (pndRoot = xmlDocGetRootElement(pdocResult)) == NULL) {
+      printf("Error 1 xmlParseFile()\n");
+    }
+    else if (pieWeightXPathInDoc(pdocResult, pucPattern) == FALSE) {
+      printf("Error 1 pieWeightXPathInDoc()\n");
+    }
+    else if ((result = domGetXPathNodeset(pdocResult, pucXpathCheck)) == NULL
+      || (nodeset = result->nodesetval) == NULL) {
+      printf("Error 3 domGetXPathNodeset()\n");
+    }
+    else if (nodeset->nodeNr != 5) {
+      printf("Error 4 domGetXPathNodeset()\n");
+    }
+    else {
+	n_ok++;
+	printf("OK\n");
+    }
+    //CleanUpTree(pndRoot);
+    //domPutDocString(stderr, BAD_CAST "pieWeightXPathInDoc(): ", pdocResult);
+
+    xmlXPathFreeObject(result);
+    xmlFreeDoc(pdocResult);
+  }
+
   printf("Result in '%s': %i/%i OK\n\n", __FILE__, n_ok, i);
 
   return (i - n_ok);

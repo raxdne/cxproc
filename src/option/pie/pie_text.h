@@ -32,6 +32,9 @@ pieGetParentHeaderStr(xmlNodePtr pndN);
 extern xmlChar *
 pieGetAncestorContextStr(xmlNodePtr pndArg);
 
+extern BOOL_T
+pieWeightXPathInDoc(xmlDocPtr pdocArg, xmlChar *pucArg);
+
 extern void
 pieTextCleanup(void);
 

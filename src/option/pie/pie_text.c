@@ -87,6 +87,12 @@ SetPropBlockLocators(xmlNodePtr pndArg, xmlChar* pucArgFileName, xmlChar* pucArg
 static lang_t
 GetPieNodeLang(xmlNodePtr pndArg, cxpContextPtr pccArg);
 
+static BOOL_T
+IncrementWeightPropRecursive(xmlNodePtr pndArg);
+
+static int
+IncrementWeightProp(xmlNodePtr pndArg, int iArg);
+
 
 /*! exit procedure for this module
 */
@@ -327,6 +333,13 @@ pieProcessPieNode(xmlNodePtr pndArgPie, cxpContextPtr pccArg)
 
     RecognizeSymbols(pndPieRoot, GetPieNodeLang(pndArgPie, pccArg));
 
+    /*! \todo global cite recognition in scientific text */
+
+    if (domGetPropFlag(pndArgPie, BAD_CAST "offset", FALSE)) {
+      cxpCtxtLogPrint(pccArg, 3, "Calculating date offsets");
+      calAddAttributeDayDiff(pdocResult);
+    }
+
     if (domGetPropFlag(pndArgPie, BAD_CAST "todo", TRUE)) {
       cxpCtxtLogPrint(pccArg, 2, "Recognize tasks markup");
       RecognizeTasks(pndPieRoot);
@@ -377,7 +390,7 @@ pieProcessPieNode(xmlNodePtr pndArgPie, cxpContextPtr pccArg)
       pucTT = xmlStrcat(pucTT, BAD_CAST"]");
       /*\todo check XPAth format of pucTT */
       cxpCtxtLogPrint(pccArg, 2, "Filter XPath for '%s'", pucTT);
-      if (domWeightXPathInDoc(pdocResult, pucTT)) {
+      if (pieWeightXPathInDoc(pdocResult, pucTT)) {
 	/* some matching nodes found, remove others */
 	CleanUpTree(pndPieRoot);
       }
@@ -387,12 +400,6 @@ pieProcessPieNode(xmlNodePtr pndArgPie, cxpContextPtr pccArg)
 	pdocResult = NULL;
       }
       xmlFree(pucTT);
-    }
-
-    /*! \todo global cite recognition in scientific text */
-
-    if (domGetPropFlag(pndArgPie, BAD_CAST "offset", FALSE)) {
-      calAddAttributeDayDiff(pdocResult);
     }
   }
   else {
@@ -1189,7 +1196,7 @@ pieGetParentHeaderStr(xmlNodePtr pndN)
 void
 SetPropBlockLocators(xmlNodePtr pndArg, xmlChar* pucArgFileName, xmlChar* pucArgPrefix)
 {
-  if (IS_NODE_META(pndArg) || IS_NODE_PIE_ERROR(pndArg)) {
+  if (IS_NODE_META(pndArg) || IS_NODE_ERROR(pndArg)) {
   }
   else if (IS_ENODE(pndArg)) {
     xmlNodePtr pndChild;
@@ -1199,7 +1206,7 @@ SetPropBlockLocators(xmlNodePtr pndArg, xmlChar* pucArgFileName, xmlChar* pucArg
 
       if (IS_ENODE(pndChild)) {
 	i++;
-	if (IS_NODE_PIE_TTAG(pndChild) || IS_NODE_PIE_ETAG(pndChild) || IS_NODE_PIE_HTAG(pndChild) || IS_NODE_PIE_META(pndChild) || IS_NODE_PIE_ERROR(pndChild)) {
+	if (IS_NODE_PIE_TTAG(pndChild) || IS_NODE_PIE_ETAG(pndChild) || IS_NODE_PIE_HTAG(pndChild) || IS_NODE_PIE_META(pndChild) || IS_NODE_ERROR(pndChild)) {
 	  /* dont set xpath attribute here */
 	}
 	else if (xmlHasProp(pndChild, BAD_CAST"blocator")) {
@@ -1226,6 +1233,113 @@ SetPropBlockLocators(xmlNodePtr pndArg, xmlChar* pucArgFileName, xmlChar* pucArg
   }
 } /* end of SetPropBlockLocators() */
 
+
+/*! increments value of property "w" by iArg numerically
+\param pndArg node for attribute
+\param iArg default integer value
+*/
+int
+IncrementWeightProp(xmlNodePtr pndArg, int iArg)
+{
+  int iResult = 0;
+
+  if ((pndArg != NULL) && (pndArg->type == XML_ELEMENT_NODE) && iArg != 0) {
+    int iCurrent;
+    xmlAttrPtr patT;
+
+    if ((patT = xmlHasProp(pndArg, BAD_CAST"w")) == NULL
+      || patT->children == NULL || STR_IS_EMPTY(patT->children->content)) {
+      /* there is no attribute value yet, initial value '1' */
+      iResult = 1;
+    }
+    else if ((iCurrent = atoi((const char *)patT->children->content)) != 0) {
+      iResult = iCurrent + iArg;
+    }
+    else {
+      /*\todo remove property if iArg == 0? */
+    }
+
+    if (iResult) {
+      xmlChar mucCount[32];
+
+      xmlStrPrintf(mucCount, sizeof(mucCount), "%i", iResult);
+      xmlSetProp(pndArg, BAD_CAST"w", mucCount);
+    }
+  }
+  return iResult;
+} /* end of IncrementWeightProp() */
+
+
+/*!
+ */
+BOOL_T
+IncrementWeightPropRecursive(xmlNodePtr pndArg)
+{
+  BOOL_T fResult = FALSE;
+
+  if (pndArg) {
+    xmlNodePtr pndT;
+
+    IncrementWeightProp(pndArg, 1);
+
+    for (pndT = pndArg->children; pndT; pndT = pndT->next) {
+      IncrementWeightPropRecursive(pndT);
+    }
+
+    fResult = TRUE;
+  }
+
+  return fResult;
+} /* end of IncrementWeightPropRecursive() */
+
+
+/*! \return TRUE if a node according to XPath 'pucArg' in pdocArg was found
+\param pdocArg source DOM
+\param pucArg pointer to XPath string
+*/
+BOOL_T
+pieWeightXPathInDoc(xmlDocPtr pdocArg, xmlChar *pucArg)
+{
+  BOOL_T fResult = FALSE;
+
+  if (pdocArg != NULL && STR_IS_NOT_EMPTY(pucArg)) {
+    xmlNodePtr pndRoot;
+
+    if ((pndRoot = xmlDocGetRootElement(pdocArg))) {
+      xmlXPathObjectPtr result;
+
+      if ((result = domGetXPathNodeset(pdocArg, pucArg)) != NULL) {
+	int i;
+	xmlNodeSetPtr nodeset;
+
+	nodeset = result->nodesetval;
+	if (nodeset->nodeNr > 0) {
+	  for (i=0; i < nodeset->nodeNr; i++) {
+	    xmlNodePtr pndT;
+
+	    if (IS_NODE_PIE_HEADER(nodeset->nodeTab[i])) {
+	      /* weight the tree of this section when element matches */
+	      IncrementWeightPropRecursive(nodeset->nodeTab[i]->parent);
+	      /* weight all ancestors of this section */
+	      for (pndT=nodeset->nodeTab[i]->parent->parent; pndT; pndT=pndT->parent) {
+		IncrementWeightProp(pndT, 1);
+	      }
+	    }
+	    else {
+	      /* weight all ancestors and this element */
+	      for (pndT=nodeset->nodeTab[i]; pndT; pndT=pndT->parent) {
+		IncrementWeightProp(pndT, 1);
+	      }
+	    }
+	  }
+	  fResult = TRUE;
+	}
+	xmlXPathFreeObject(result);
+      }
+    }
+  }
+  return fResult;
+} /* end of pieWeightXPathInDoc() */
 
 
 #ifdef TESTCODE
