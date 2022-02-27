@@ -26,6 +26,7 @@ IF (CXPROC_SQLITE3)
     ${CXPROC_SRC_DIR}/option/database/database.c
     ${CXPROC_SRC_DIR}/option/database/database.h
     )
+  target_compile_definitions(filex       PUBLIC HAVE_LIBSQLITE3)
 
   SET(SQLITE3_FILES
     ${CXPROC_SRC_DIR}/option/database/cxp_database.c
@@ -34,11 +35,14 @@ IF (CXPROC_SQLITE3)
     ${CXPROC_SRC_DIR}/option/database/database.h
     )
   
-  target_sources(cxproc PUBLIC ${PIE_FILES})
+  target_sources(cxproc PUBLIC ${SQLITE3_FILES})
+  target_compile_definitions(cxproc      PUBLIC HAVE_LIBSQLITE3)
 
-  target_sources(cxproc-cgi PUBLIC ${PIE_FILES})
+  target_sources(cxproc-cgi PUBLIC ${SQLITE3_FILES})
+  target_compile_definitions(cxproc-cgi  PUBLIC HAVE_LIBSQLITE3)
 
-  target_sources(cxproc-test PUBLIC ${PIE_FILES})
+  target_sources(cxproc-test PUBLIC ${SQLITE3_FILES})
+  target_compile_definitions(cxproc-test PUBLIC HAVE_LIBSQLITE3)
 
   IF (SQLite3_SOURCE_FILE)
     target_sources(cxproc PUBLIC ${SQLite3_SOURCE_FILE})
@@ -49,11 +53,6 @@ IF (CXPROC_SQLITE3)
 
     target_sources(filex PUBLIC ${SQLite3_SOURCE_FILE})
   ENDIF ()
-
-  target_compile_definitions(filex       PUBLIC HAVE_LIBSQLITE3)
-  target_compile_definitions(cxproc      PUBLIC HAVE_LIBSQLITE3)
-  target_compile_definitions(cxproc-cgi  PUBLIC HAVE_LIBSQLITE3)
-  target_compile_definitions(cxproc-test PUBLIC HAVE_LIBSQLITE3)
 
   IF (SQLite3_SOURCE_FILE)
     add_definitions(-DSQLITE_THREADSAFE=0 -DSQLITE_OMIT_LOAD_EXTENSION)
