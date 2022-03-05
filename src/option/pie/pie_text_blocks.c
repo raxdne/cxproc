@@ -2238,7 +2238,9 @@ CleanUpTree(xmlNodePtr pndArg)
 	  CleanUpTree(pndChild);
 	}
       }
+#ifndef DEBUG
       xmlUnsetProp(pndChild, BAD_CAST"w");
+#endif
     }
     else if (IS_NODE_PIE_HEADER(pndArg)
       || IS_NODE_PIE_PAR(pndArg)
@@ -2253,7 +2255,9 @@ CleanUpTree(xmlNodePtr pndArg)
       ) {
       /* keep all descendants */
       for (pndChild = pndArg->children; pndChild != NULL; pndChild = pndChild->next) {
+#ifndef DEBUG
 	xmlUnsetProp(pndChild, BAD_CAST"w");
+#endif
       }
     }
     else {
@@ -2262,7 +2266,9 @@ CleanUpTree(xmlNodePtr pndArg)
 	CleanUpTree(pndChild);
       }
     }
+#ifndef DEBUG
     xmlUnsetProp(pndArg, BAD_CAST"w");
+#endif
   }
   else if (IS_NODE_PIE_HEADER(pndArg) && xmlHasProp(pndArg->parent, BAD_CAST"w") != NULL) {
     /* keep header if parent section has @w */

@@ -566,11 +566,19 @@ InheritHashtags(xmlNodePtr pndArgTop, xmlNodePtr pndArg)
 
 	/* append all tags of this 'section/h' to all 'task' sibling nodes */
 	for (pndT = pndChild->children; pndT; pndT = pndT->next) {
-	  if ((IS_NODE_PIE_HTAG(pndT) || IS_NODE_PIE_ETAG(pndT)) && pndT->children != NULL) {
-	    xmlNodePtr pndTT;
-
+	  xmlNodePtr pndTT;
+	  
+	  if (IS_NODE_PIE_LINK(pndT)) {
+	    /* append tags to parent node */
+	    for (pndTT = pndT->children; pndTT; pndTT = pndTT->next) {
+	      if ((IS_NODE_PIE_HTAG(pndTT) || IS_NODE_PIE_ETAG(pndTT)) && pndTT->children != NULL) {
+		AddTagNodeNew(pndChild->parent, pndTT->children->content);
+	      }
+	    }
+	  }
+	  else if ((IS_NODE_PIE_HTAG(pndT) || IS_NODE_PIE_ETAG(pndT)) && pndT->children != NULL) {
 	    for (pndTT = pndChild->parent->children; pndTT; pndTT = pndTT->next) {
-	      if (IS_NODE_PIE_TASK(pndTT)) {
+	      if (IS_NODE(pndTT,NULL)) {
 		AddTagNodeNew(pndTT, pndT->children->content);
 	      }
 	    }
