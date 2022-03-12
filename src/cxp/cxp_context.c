@@ -78,40 +78,6 @@ cxpCtxtNew(void)
     pccResult->level_set = -1;
     cxpCtxtCacheEnable(pccResult,FALSE);
     time(&(pccResult->system_zeit));
-
-    /*!\todo cxpCtxtEnvGetValueByName(NULL, BAD_CAST"CXP_DATE")*/
-#if 0
-    pucEnvDate = cxpCtxtEnvGetValueByName(pccArg, BAD_CAST"CXP_DATE");
-    fResult = (UpdateToday(pucEnvDate) > 0);
-    xmlFree(pucEnvDate);
-
-    if (tzOffsetToUTC == 9999) {
-      xmlChar *pucEnv;
-
-      /* default timezone of runtime environment (shell, HTTP Server) */
-      if ((pucEnv = cxpCtxtEnvGetValueByName(pccArg, BAD_CAST "CXP_TZ")) || (pucEnv = cxpCtxtEnvGetValueByName(pccArg, BAD_CAST "TZ"))) {
-	tzOffsetToUTC = (int)(60.0f * tzGetOffset(tzGetNumber(pucEnv)));
-      }
-      else {
-#ifdef _MSC_VER
-	// s. http://stackoverflow.com/questions/12112419/getting-windows-time-zone-information-c-mfc
-	// Get the timezone info.
-	//    TIME_ZONE_INFORMATION TimeZoneInfo;
-	//    GetTimeZoneInformation(&TimeZoneInfo);
-
-	// https://msdn.microsoft.com/en-us/library/windows/desktop/ms724318(v=vs.85).aspx
-	//PDYNAMIC_TIME_ZONE_INFORMATION pTimeZoneInformation;
-	DYNAMIC_TIME_ZONE_INFORMATION TimeZoneInformation;
-	GetDynamicTimeZoneInformation(&TimeZoneInformation);
-
-	tzOffsetToUTC = -TimeZoneInformation.Bias;
-#else
-	tzOffsetToUTC = 0;
-#endif
-      }
-    }
-
-#endif
   }
   else {
     //cxpCtxtLogPrint(pccArg, 0, "Out of memory at cxpCtxtDup()");

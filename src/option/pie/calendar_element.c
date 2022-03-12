@@ -108,12 +108,12 @@ UpdateCalendarElementDate(pieCalendarElementPtr pceArg);
 BOOL_T
 ceInit(void)
 {
-  xmlChar *pucEnvDate = NULL;
   BOOL_T fResult = TRUE;
   
-  //pucEnvDate = cxpCtxtEnvGetValueByName(NULL,BAD_CAST"CXP_DATE");
-  fResult = (UpdateToday(pucEnvDate) > 0);
-  xmlFree(pucEnvDate);
+  /* mit Systemzeit initialisieren */
+  time(&system_zeit);
+  memcpy(&timeNow, localtime(&system_zeit), sizeof(struct tm));
+  UpdateToday(NULL); /* update if CXP_DATE is set */
 
   /* register for exit() */
   if (atexit(ceCleanup) != 0) {
@@ -1320,26 +1320,63 @@ long int
 UpdateToday(xmlChar *pucArgToday)
 {
   xmlChar mpucT[BUFFER_LENGTH];
+  xmlChar *pucEnvDate;
 
-  if (pucArgToday) {
+  if (STR_IS_NOT_EMPTY(pucArgToday)) {
     pieCalendarElementPtr pceNew;
 
     pceNew = CalendarElementNew(pucArgToday);
     if (ScanCalendarElementDate(pceNew)) {
       PrintFormatLog(2,"Use '%s' as today",pucArgToday);
-      /*!\todo check values before */
-      memset(&timeNow,'\0',sizeof(struct tm));
-      timeNow.tm_year = pceNew->iYear - 1900;
-      timeNow.tm_mon  = pceNew->iMonth - 1;
-      timeNow.tm_mday = pceNew->iDay;
+      if (pceNew->iYear > 1900) {
+	timeNow.tm_year = pceNew->iYear - 1900;
+	if (pceNew->iMonth > -1) {
+	  timeNow.tm_mon  = pceNew->iMonth - 1;
+	  if (pceNew->iDay > 0) {
+	    timeNow.tm_mday = pceNew->iDay;
+	  }
+	}
+      }
       mktime(&timeNow);
+
+      /*!\todo handle time zone */
+#if 0
+
+    if (tzOffsetToUTC == 9999) {
+      xmlChar *pucEnv;
+
+      /* default timezone of runtime environment (shell, HTTP Server) */
+      if ((pucEnv = cxpCtxtEnvGetValueByName(pccArg, BAD_CAST "CXP_TZ")) || (pucEnv = cxpCtxtEnvGetValueByName(pccArg, BAD_CAST "TZ"))) {
+	tzOffsetToUTC = (int)(60.0f * tzGetOffset(tzGetNumber(pucEnv)));
+      }
+      else {
+#ifdef _MSC_VER
+	// s. http://stackoverflow.com/questions/12112419/getting-windows-time-zone-information-c-mfc
+	// Get the timezone info.
+	//    TIME_ZONE_INFORMATION TimeZoneInfo;
+	//    GetTimeZoneInformation(&TimeZoneInfo);
+
+	// https://msdn.microsoft.com/en-us/library/windows/desktop/ms724318(v=vs.85).aspx
+	//PDYNAMIC_TIME_ZONE_INFORMATION pTimeZoneInformation;
+	DYNAMIC_TIME_ZONE_INFORMATION TimeZoneInformation;
+	GetDynamicTimeZoneInformation(&TimeZoneInformation);
+
+	tzOffsetToUTC = -TimeZoneInformation.Bias;
+#else
+	tzOffsetToUTC = 0;
+#endif
+      }
+    }
+#endif
+      
     }
     CalendarElementFree(pceNew);
   }
+  else if ((pucEnvDate = BAD_CAST getenv("CXP_DATE")) != NULL) {
+    UpdateToday(pucEnvDate);
+  }
   else {
     PrintFormatLog(4,"Use system time as today");
-    /* mit Systemzeit initialisieren */
-    time(&system_zeit);
     memcpy(&timeNow,localtime(&system_zeit),sizeof(struct tm));
   }
 

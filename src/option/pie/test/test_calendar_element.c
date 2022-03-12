@@ -1405,6 +1405,39 @@ ceTest(void)
   }
 
 
+  if (RUNTEST) {
+
+    i++;
+    printf("TEST %i in '%s:%i': update 'timeNow' calendar element = ", i, __FILE__, __LINE__);
+
+    if (UpdateToday(NULL) < 0) {
+      printf("ERROR UpdateToday()\n");
+    }
+    else if (UpdateToday(BAD_CAST"2013-12-11T10:11:00CST ISO") < 0) {
+      printf("ERROR UpdateToday()\n");
+    }
+    else if (GetTodayYear() != 2013 || GetTodayMonth() != 12 || GetTodayDayOfMonth() != 11) {
+      printf("ERROR GetToday*()\n");
+    }
+    else if (UpdateToday(BAD_CAST"2017") < 0) {
+      printf("ERROR UpdateToday()\n");
+    }
+    else if (GetTodayYear() != 2017 || GetTodayMonth() != 12 || GetTodayDayOfMonth() != 11) {
+      printf("ERROR GetToday*()\n");
+    }
+    else if (UpdateToday(BAD_CAST"201703") < 0) {
+      printf("ERROR UpdateToday()\n");
+    }
+    else if (GetTodayYear() != 2017 || GetTodayMonth() != 3 || GetTodayDayOfMonth() != 11) {
+      printf("ERROR GetToday*()\n");
+    }
+    else {
+      n_ok++;
+      printf("OK\n");
+    }
+  }
+
+
   printf("Result in '%s': %i/%i OK\n\n", __FILE__, n_ok, i);
 
   return (i - n_ok);
