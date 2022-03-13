@@ -60,8 +60,6 @@ IF (CXPROC_PIE)
     ${CXPROC_SRC_DIR}/option/pie/pie_timezone.h
     ${CXPROC_SRC_DIR}/option/vcf/vcf.c
     ${CXPROC_SRC_DIR}/option/vcf/vcf.h
-    ${CXPROC_SRCLIB_DIR}/option/sunriset/sunriset.c
-    ${CXPROC_SRCLIB_DIR}/option/sunriset/sunriset.h
     )
 
   target_sources(cxproc PUBLIC ${PIE_FILES})
@@ -153,6 +151,14 @@ ENDIF (CXPROC_MARKDOWN)
 #
 # 
 #
+
+IF (CXPROC_LEGACY)
+  SET(PIE_FILES
+    ${PIE_FILES}
+    ${CXPROC_SRCLIB_DIR}/option/sunriset/sunriset.c
+    ${CXPROC_SRCLIB_DIR}/option/sunriset/sunriset.h
+    )
+ENDIF ()
 
 IF (CXPROC_PCRE2)
   target_link_libraries(pietextx ${PCRE2_LIBRARY})

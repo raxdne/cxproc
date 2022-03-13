@@ -48,7 +48,9 @@
 
 #include <libxml/tree.h>
 
+#ifdef LEGACY
 #include <sunriset/sunriset.h>
+#endif
 
 /* 
  */
@@ -1945,6 +1947,7 @@ SubstituteFormatStr(xmlNodePtr pndContext, xmlChar *fmt)
 	  puc0 = puc1 + 1;
 	}
       }
+#ifdef LEGACY
       else if (puc1[1] == 'S') { /* sun */
 	if (puc1[2] == 'R') {
 	  pucValue = domGetPropValuePtr(pndDay,BAD_CAST "sunrise");
@@ -1969,6 +1972,7 @@ SubstituteFormatStr(xmlNodePtr pndContext, xmlChar *fmt)
 	  puc0 = puc1 + 1;
 	}
       }
+#endif
       else if (puc1[1] == 'B') {
 	if (isdigit(puc1[2]) && isdigit(puc1[3]) && isdigit(puc1[4]) && isdigit(puc1[5]) && ! isdigit(puc1[6])) {
 	  /* difference in years */
@@ -2310,6 +2314,7 @@ AddTreeYear(pieCalendarPtr pCalendarArg, int year)
 	  xmlSetProp(pndDay, BAD_CAST "abs", buffer);
 
 	  if (pCalendarArg->fCoordinate) {
+#ifdef LEGACY
 	    double dHourUTCSunrise;
 	    double dHourUTCSunset;
 	    int iMinute;
@@ -2336,6 +2341,7 @@ AddTreeYear(pieCalendarPtr pCalendarArg, int year)
 	    iMinute = RoundToInt(dHourUTCSunset * 60.0);
 	    xmlStrPrintf(buffer, BUFFER_LENGTH, "%i:%02i", iMinute / 60, iMinute % 60);
 	    xmlSetProp(pndDay, BAD_CAST "sunset", buffer);
+#endif
 
 	    // Moon
 	    if (IsFullMoonConway(t.tm_year + 1900, t.tm_mon + 1, t.tm_mday)) {
