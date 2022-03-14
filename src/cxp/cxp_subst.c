@@ -104,6 +104,53 @@ ApplySubstText(const xmlNodePtr pndArg, const xmlChar *pucFrom, const xmlChar *p
 } /* end of ApplySubstText() */
 
 
+#ifdef HAVE_PCRE2
+
+/*! apply all substitutions recursively
+
+\param pndArg a xmlNodePtr to substitute node and its childs
+\param pucFrom
+\param pucTo
+
+\return TRUE if successful
+*/
+BOOL_T
+ApplySubstRegExp(const xmlNodePtr pndArg, const pcre2_code* preArgFrom, const xmlChar* pucTo)
+{
+  BOOL_T fResult = FALSE;
+
+  if (pndArg) {
+    if (pndArg->type == XML_TEXT_NODE || pndArg->type == XML_PI_NODE || pndArg->type == XML_COMMENT_NODE) {
+      int rc;
+      size_t output_length = BUFFER_LENGTH;
+      PCRE2_UCHAR output[BUFFER_LENGTH]; /*!\todo use a dynamic buffer */
+
+      if (STR_IS_NOT_EMPTY(pndArg->content)
+	&& 
+	(rc = pcre2_substitute(preArgFrom, (PCRE2_SPTR8)pndArg->content, xmlStrlen(pndArg->content), 0, PCRE2_SUBSTITUTE_GLOBAL, NULL, NULL, (PCRE2_SPTR8)pucTo, xmlStrlen(pucTo), output, &output_length)) > 0) {
+
+	  xmlNodeSetContent(pndArg, output);
+	  fResult = TRUE;
+      }
+      else {
+	/* ignore */
+      }
+    }
+    else if (pndArg->type == XML_ELEMENT_NODE || pndArg->type == XML_ATTRIBUTE_NODE) {
+      ApplySubstRegExp((xmlNode*)pndArg->properties, preArgFrom, pucTo);
+      ApplySubstRegExp(pndArg->children, preArgFrom, pucTo);
+    }
+    else {
+      /* ignore */
+    }
+    ApplySubstRegExp(pndArg->next, preArgFrom, pucTo);
+  }
+  return fResult;
+} /* end of ApplySubstRegExp() */
+
+#endif
+
+
 /*! process the childs of top element MAKE (non-recursive!)
 
 \param pndArg a xmlNodePtr to append data
@@ -244,6 +291,29 @@ cxpSubstDetect(xmlNodePtr pndArgSubst, cxpContextPtr pccArg)
       else if ((pucT = domGetPropValuePtr(pndArgSubst, BAD_CAST "string"))) {
 	pcxpSubstResult->pucName  = xmlStrdup(pucT);
       }
+#ifdef HAVE_PCRE2
+      else if ((pucT = domGetPropValuePtr(pndArgSubst, BAD_CAST "regexp"))) {
+	int errornumber = 0;
+	size_t erroroffset;
+	
+	pcxpSubstResult->preFrom = pcre2_compile(
+						 (PCRE2_SPTR8)pucT, /* the pattern */
+						 PCRE2_ZERO_TERMINATED, /* indicates pattern is zero-terminated */
+						 PCRE2_UTF|PCRE2_CASELESS,        /* default options */
+						 &errornumber,          /* for error number */
+						 &erroroffset,          /* for error offset */
+						 NULL);                 /* use default compile context */
+	
+	if (pcxpSubstResult->preFrom == NULL) {
+	  PCRE2_UCHAR buffer[256];
+	
+	  pcre2_get_error_message(errornumber, buffer, sizeof(buffer));
+	  PrintFormatLog(1,"PCRE2 compilation failed at offset %d: %s", (int)erroroffset, buffer);
+	}
+
+	/*!\todo check pcre2_compile() of pucTo once ??? */
+      }
+#endif
 
       if ((pucT = domGetPropValuePtr(pndArgSubst, BAD_CAST "default"))) {
 	/* detect a possible default value */
@@ -597,7 +667,18 @@ cxpSubstApply(xmlNodePtr pndArgTop, cxpSubstPtr pcxpSubstArg, cxpContextPtr pccA
   if (pcxpSubstArg) {
     /*!\todo substitute searchpath="pie.css" to whole filename */
 
-#if 1
+#ifdef EXPERIMENTAL
+    if (cxpSubstGetRegExp(pcxpSubstArg)) {
+      if (cxpSubstGetPtr(pcxpSubstArg)) {
+	ApplySubstRegExp(pndArgTop, cxpSubstGetRegExp(pcxpSubstArg), cxpSubstGetPtr(pcxpSubstArg));
+      }
+      else {
+      }
+    }
+    else {
+      ApplySubstText(pndArgTop, cxpSubstGetNamePtr(pcxpSubstArg), cxpSubstGetPtr(pcxpSubstArg));
+    }
+#elif 1
     ApplySubstText(pndArgTop, cxpSubstGetNamePtr(pcxpSubstArg), cxpSubstGetPtr(pcxpSubstArg));
 #else
     if (pcxpSubstArg->pucTo) {
@@ -776,6 +857,22 @@ cxpSubstGetPtr(cxpSubstPtr pcxpSubstArg)
 /* end of cxpSubstGetPtr() */
 
 
+#ifdef HAVE_PCRE2
+
+/*! \return a pointer to name if successful or NULL
+*/
+pcre2_code *
+cxpSubstGetRegExp(cxpSubstPtr pcxpSubstArg)
+{
+  if (pcxpSubstArg) {
+    return pcxpSubstArg->preFrom;
+  }
+  return NULL;
+} /* end of cxpSubstGetRegExp() */
+
+#endif
+
+
 /*! prints all data of pcxpSubstArg.
 
 \return a TRUE if successful
@@ -786,7 +883,15 @@ cxpSubstPrint(cxpSubstPtr pcxpSubstArg, cxpContextPtr pccArg)
   if (pcxpSubstArg) {
     xmlChar *pucT = NULL;
 
-    cxpCtxtLogPrint(pccArg,1,"String Substitution '%s':",pcxpSubstArg->pucName);
+    if (pcxpSubstArg->pucName) {
+      cxpCtxtLogPrint(pccArg, 1, "String Substitution '%s':", pcxpSubstArg->pucName);
+    }
+    else if (pcxpSubstArg->preFrom) {
+      cxpCtxtLogPrint(pccArg, 1, "Regexp Substitution");
+    }
+    else {
+      assert(FALSE);
+    }
 
     if (pcxpSubstArg->pucTo) {
       cxpCtxtLogPrint(pccArg,1,"\tpucTo       = '%s'",pcxpSubstArg->pucTo);
@@ -898,6 +1003,9 @@ cxpSubstFree(cxpSubstPtr pcxpSubstArg)
 #ifdef HAVE_JS
     xmlFree(pcxpSubstArg->pucScriptResult);
 #endif
+#ifdef HAVE_PCRE2
+    pcre2_code_free(pcxpSubstArg->preFrom);
+#endif
 
     //resNodeFree(pccArg->prnLocation);
 
@@ -965,19 +1073,21 @@ cxpSubstInChildNodes(xmlNodePtr pndArgTop, xmlNodePtr pndArgSubst, cxpContextPtr
 
     if ((pcxpSubstT = cxpSubstDetect(pndArgSubst, pccArg))) {
       fResult = TRUE;
-      if (cxpSubstGetNamePtr(pcxpSubstT)) {
-	xmlNodePtr pndFollowing;
+      if (
+#ifdef HAVE_PCRE2
+	cxpSubstGetRegExp(pcxpSubstT) != NULL ||
+#endif
+	cxpSubstGetNamePtr(pcxpSubstT) != NULL
+	) {
 
 	if (pndArgTop->parent != NULL && pndArgTop->parent->type == XML_DOCUMENT_NODE) {
-	  pndFollowing = pndArgTop;
+	  if (IS_VALID_NODE(pndArgTop)) {
+	    cxpSubstApply(pndArgTop, pcxpSubstT, pccArg);
+	  }
 	}
 	else {
-	  pndFollowing = pndArgSubst->next;
-	}
-
-	for (; pndFollowing; pndFollowing = pndFollowing->next) {
-	  if (IS_VALID_NODE(pndFollowing)) {
-	    cxpSubstApply(pndFollowing, pcxpSubstT, pccArg);
+	  if (IS_VALID_NODE(pndArgSubst->next)) {
+	    cxpSubstApply(pndArgSubst->next, pcxpSubstT, pccArg);
 	  }
 	}
 	xmlUnlinkNode(pndArgSubst);

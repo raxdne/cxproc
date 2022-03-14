@@ -1688,56 +1688,60 @@ pieElementToDOM(pieTextElementPtr ppeT)
 	if (STR_IS_NOT_EMPTY(pucC)) {
 	  int i;
 	  int j;
+	  int k;
 	  char* pchT;
-	  xmlChar* pucT;
-	  xmlChar* pucAttrName = NULL;
 
-	  for (i=j=0; ! isend(pucC[i]); i++) { /* clean content string */
-	    switch (pucC[i]) {
-	    case '(':
-	    case ')':
-	      break;
-	    default:
-	      pucC[j] = pucC[i];
-	      j++;
+	  for (i = 0; pucC[i] != '(' && !isend(pucC[i]); i++); /* find opening '(' */
+
+	  for (k = i + 1; pucC[k] != ',' && !isend(pucC[k]); k++); /* find separating ',' */
+
+	  for (j = xmlStrlen(pucC); j > i && pucC[j] != ')'; j--); /* find closing ')' */
+
+	  if (i >= 0 && k > i && pucC[k] == ',' && j > k) {
+	    BOOL_T fRegexp;
+	    xmlChar* pucT;
+	    xmlChar* pucAttrName = NULL;
+
+	    for (i++; isspace(pucC[i]); i++); /* skip space chars */
+
+	    if ((fRegexp = (pucC[i] == 'r'))) { /* regexp */
+	      i++;
 	    }
-	  }
-	  pucC[j] = (xmlChar)'\0';
 
-	  for (i=0; ! isend(pucC[i]); i++) {
-
-	    if (pucC[i] == ',') {
-
-	      pucT = xmlStrndup(BAD_CAST pucC,i);
+	    if ((pucT = xmlStrndup(BAD_CAST & pucC[i], k - i))) {
 	      StringRemovePairQuotes(pucT);
 	      if (STR_IS_NOT_EMPTY(pucT)) {
-		xmlSetProp(pndResult, BAD_CAST "string", pucT);
+		xmlSetProp(pndResult, BAD_CAST(fRegexp ? "regexp" : "string"), pucT);
 	      }
 	      xmlFree(pucT);
-
-	      if ((pucT = BAD_CAST xmlStrchr(BAD_CAST &pucC[i + 1], (xmlChar)'=')) != NULL) {
-		if ((pucAttrName = xmlStrndup(BAD_CAST &pucC[i + 1], pucT - &pucC[i + 1])) != NULL) {
-		  StringRemovePairQuotes(pucAttrName);
-		}
-		i = pucT - pucC;
-	      }
-	      else {
-		pucAttrName = xmlStrdup(BAD_CAST "to");
-	      }
-
-	      if ((pucT = xmlStrdup(BAD_CAST &pucC[i + 1])) != NULL) {
-		StringRemovePairQuotes(pucT);
-		if (STR_IS_NOT_EMPTY(pucT)) {
-		  xmlSetProp(pndResult, pucAttrName, pucT);
-		}
-		xmlFree(pucT);
-	      }
-	      else {
-	      }
-
-	      xmlFree(pucAttrName);
-	      break;
 	    }
+
+#if 1
+	    pucAttrName = xmlStrdup(BAD_CAST "to");
+#else
+	    if ((pucT = BAD_CAST xmlStrchr(BAD_CAST & pucC[k + 1], (xmlChar)'=')) != NULL) {
+	      /* subst */
+	      if ((pucAttrName = xmlStrndup(BAD_CAST & pucT[1], pucT - &pucC[i + 1])) != NULL) {
+		StringRemovePairQuotes(pucAttrName);
+	      }
+	      i = pucT - pucC;
+	    }
+	    else {
+	      pucAttrName = xmlStrdup(BAD_CAST "to");
+	    }
+#endif
+
+	    if ((pucT = xmlStrndup(BAD_CAST & pucC[k + 1], j - k - 1)) != NULL) {
+	      StringRemovePairQuotes(pucT);
+	      if (STR_IS_NOT_EMPTY(pucT)) {
+		xmlSetProp(pndResult, pucAttrName, pucT);
+	      }
+	      xmlFree(pucT);
+	    }
+	    else {
+	    }
+
+	    xmlFree(pucAttrName);
 	  }
 
 	  if (ppeT->iDepthHidden > 0) {

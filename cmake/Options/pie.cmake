@@ -4,7 +4,7 @@
 
 # TODO: cmake_dependent_option(USE_FOO "Use Foo" ON "USE_BAR;NOT USE_ZOT" OFF)
 
-IF (PCRE2_LIBRARY)
+IF (CXPROC_PCRE2)
   OPTION(CXPROC_PIE "Include PIE code" ON)
 ELSE ()
   SET(CXPROC_PIE OFF)
@@ -61,6 +61,14 @@ IF (CXPROC_PIE)
     ${CXPROC_SRC_DIR}/option/vcf/vcf.c
     ${CXPROC_SRC_DIR}/option/vcf/vcf.h
     )
+
+  IF (CXPROC_LEGACY)
+    SET(PIE_FILES
+      ${PIE_FILES}
+      ${CXPROC_SRCLIB_DIR}/option/sunriset/sunriset.c
+      ${CXPROC_SRCLIB_DIR}/option/sunriset/sunriset.h
+      )
+  ENDIF ()
 
   target_sources(cxproc PUBLIC ${PIE_FILES})
 
@@ -151,14 +159,6 @@ ENDIF (CXPROC_MARKDOWN)
 #
 # 
 #
-
-IF (CXPROC_LEGACY)
-  SET(PIE_FILES
-    ${PIE_FILES}
-    ${CXPROC_SRCLIB_DIR}/option/sunriset/sunriset.c
-    ${CXPROC_SRCLIB_DIR}/option/sunriset/sunriset.h
-    )
-ENDIF ()
 
 IF (CXPROC_PCRE2)
   target_link_libraries(pietextx ${PCRE2_LIBRARY})

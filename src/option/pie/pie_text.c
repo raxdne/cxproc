@@ -306,6 +306,12 @@ pieProcessPieNode(xmlNodePtr pndArgPie, cxpContextPtr pccArg)
       cxpCtxtLogPrint(pccArg, 3, "Ignoring scripts");
     }
 
+    /* process all child subst nodes */
+    cxpSubstInChildNodes(pndBlock, NULL, pccArg);
+
+    /* replace all subst nodes in tree by its result */
+    cxpSubstReplaceNodes(pndBlock, pccArg);
+
     if (domGetPropFlag(pndArgPie, BAD_CAST "figure", TRUE)) {
       cxpCtxtLogPrint(pccArg, 2, "Recognize Figures");
       RecognizeFigures(pndPieRoot);
@@ -322,12 +328,6 @@ pieProcessPieNode(xmlNodePtr pndArgPie, cxpContextPtr pccArg)
     else {
       cxpCtxtLogPrint(pccArg, 3, "Ignoring URLs");
     }
-
-    /* process all child subst nodes */
-    cxpSubstInChildNodes(pndBlock, NULL, pccArg);
-
-    /* replace all subst nodes in tree by its result */
-    cxpSubstReplaceNodes(pndBlock, pccArg);
 
     RecognizeDates(pndPieRoot,MIME_TEXT_PLAIN);
 

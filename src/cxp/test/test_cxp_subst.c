@@ -181,6 +181,35 @@ cxpSubstTest(cxpContextPtr pccArg)
   }
 
   if (RUNTEST) {
+    cxpSubstPtr pT;
+    xmlNodePtr pndSubst;
+
+    i++;
+    printf("TEST %i in '%s:%i': cxpSubstDetect() = ",i,__FILE__,__LINE__);
+
+    pndSubst = xmlNewNode(NULL,NAME_SUBST);
+    xmlSetProp(pndSubst,BAD_CAST "regexp",BAD_CAST"[A-Z]{1,3}");
+    xmlSetProp(pndSubst,BAD_CAST "to",BAD_CAST"YYY");
+
+    if ((pT = cxpSubstDetect(pndSubst,pccArg)) == NULL) {
+      printf("Error cxpSubstDetect()\n");
+    }
+    else if (pT->preFrom == NULL) {
+      printf("Error preFrom\n");
+    }
+    else if (pT->pucTo == NULL) {
+      printf("Error preTo\n");
+    }
+    else {
+      n_ok++;
+      printf("OK\n");
+    }
+    domPutNodeString(stderr, BAD_CAST"subst", pndSubst);
+    cxpSubstFree(pT);
+    xmlFreeNode(pndSubst);
+  }
+
+  if (RUNTEST) {
     i++;
     printf("TEST %i in '%s:%i': cxpSubstApply() = ",i,__FILE__,__LINE__);
 
@@ -302,6 +331,45 @@ cxpSubstTest(cxpContextPtr pccArg)
       printf("OK\n");
     }
     //domPutNodeString(stderr, BAD_CAST"post subst", pndTest);
+    xmlFreeNode(pndTest);
+  }
+
+
+  if (RUNTEST) {
+    xmlNodePtr pndTest;
+    xmlNodePtr pndT;
+    xmlNodePtr pndTT;
+    xmlNodePtr pndTTT;
+    xmlNodePtr pndSubst;
+
+    i++;
+    printf("TEST %i in '%s:%i': cxpSubstInChildNodes() regexp = ",i,__FILE__,__LINE__);
+
+    pndTest = xmlNewNode(NULL,NAME_XML);
+    pndSubst = xmlNewChild(pndTest,NULL,NAME_SUBST,NULL);
+    xmlSetProp(pndSubst,BAD_CAST "regexp",BAD_CAST "([A-Z]{3})");
+    //xmlSetProp(pndSubst, BAD_CAST "regexp", BAD_CAST "(BBBB)");
+    xmlSetProp(pndSubst,BAD_CAST "to",BAD_CAST " :: $1/$1 :: ");
+
+#if 0
+    pndSubst = xmlNewChild(pndTest,NULL,NAME_SUBST,NULL);
+    xmlSetProp(pndSubst,BAD_CAST "regexp",BAD_CAST "Z{3}");
+
+#endif
+    xmlNewChild(pndTest,NULL,NAME_PLAIN,BAD_CAST "BBBB");
+    xmlNewChild(pndTest,NULL,NAME_PLAIN,BAD_CAST "AAAA");
+    xmlNewChild(pndTest,NULL,NAME_PLAIN,BAD_CAST "%%CCC%%");
+
+    domPutNodeString(stderr, BAD_CAST"pre subst", pndTest);
+
+    if (cxpSubstInChildNodes(pndTest,NULL,pccArg) == FALSE) {
+      printf("Error 3\n");
+    }
+    else {
+      n_ok++;
+      printf("OK\n");
+    }
+    domPutNodeString(stderr, BAD_CAST"post subst", pndTest);
     xmlFreeNode(pndTest);
   }
 
