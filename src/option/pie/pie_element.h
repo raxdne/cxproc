@@ -164,6 +164,9 @@ extern int
 pieElementStrnlenEmpty(xmlChar *pucArg, int iArg);
 
 extern xmlNodePtr
+pieElementNodeSubst(pieTextElementPtr ppeT);
+
+extern xmlNodePtr
 pieElementToDOM(pieTextElementPtr ppeT);
 
 extern xmlChar *
