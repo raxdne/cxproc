@@ -1612,6 +1612,72 @@ pieElementStrnlenEmpty(xmlChar *pucArg, int iArg)
 \return a new node pointer or NULL if failed
 */
 xmlNodePtr
+pieElementNodeImport(pieTextElementPtr ppeT)
+{
+  xmlNodePtr pndResult = NULL;
+
+  if (ppeT) {
+    xmlChar* pucC;
+
+    pucC = pieElementGetBeginPtr(ppeT); /* shortcut */
+    if (STR_IS_NOT_EMPTY(pucC)) {
+      int i;
+      int j;
+      char* pchT;
+      char delimiter[] = ",;";
+
+      pndResult = xmlNewNode(NULL, NAME_PIE_IMPORT);
+
+      for (i = j = 0; !isend(pucC[i]); i++) { /* clean content string */
+	switch (pucC[i]) {
+	case '(':
+	case ')':
+	  break;
+	default:
+	  pucC[j] = pucC[i];
+	  j++;
+	}
+      }
+      pucC[j] = (xmlChar)'\0';
+
+      for (i = 0, pchT = strtok((char*)pucC, delimiter); pchT != NULL; i++) {
+	switch (i) {
+	case 0:
+	  if (STR_IS_NOT_EMPTY(pchT)) {
+	    xmlChar* pucT;
+
+	    pucT = xmlStrdup(BAD_CAST pchT);
+	    resPathRemoveQuotes(pucT);
+	    xmlSetProp(pndResult, BAD_CAST "name", pucT);
+	    xmlFree(pucT);
+	  }
+	  break;
+	case 1:
+	  if (STR_IS_NOT_EMPTY(pchT)) {
+	    xmlSetProp(pndResult, BAD_CAST "type", BAD_CAST pchT);
+	  }
+	  break;
+	case 2:
+	  if (STR_IS_NOT_EMPTY(pchT)) {
+	    xmlSetProp(pndResult, BAD_CAST "base", BAD_CAST pchT);
+	  }
+	  break;
+	default:
+	  break;
+	}
+	pchT = strtok(NULL, delimiter);
+      }
+    }
+  }
+  return pndResult;
+} /* end of pieElementNodeImport() */
+
+
+/*! makes elements content XML-conformant and
+\param ppeT element to use
+\return a new node pointer or NULL if failed
+*/
+xmlNodePtr
 pieElementNodeSubst(pieTextElementPtr ppeT)
 {
   xmlNodePtr pndResult = NULL;
@@ -1620,8 +1686,6 @@ pieElementNodeSubst(pieTextElementPtr ppeT)
     xmlChar* pucC;
 
     pucC = pieElementGetBeginPtr(ppeT); /* shortcut */
-
-    pndResult = xmlNewNode(NULL, NAME_SUBST);
     if (STR_IS_NOT_EMPTY(pucC)) {
       int p;
       int i;
@@ -1668,18 +1732,17 @@ pieElementNodeSubst(pieTextElementPtr ppeT)
       }
 
       if (STR_IS_NOT_EMPTY(puc0) && STR_IS_NOT_EMPTY(puc1)) {
+	pndResult = xmlNewNode(NULL, NAME_SUBST);
 	xmlSetProp(pndResult, BAD_CAST(fRegexp ? "regexp" : "string"), puc0);
 	xmlSetProp(pndResult, BAD_CAST (STR_IS_NOT_EMPTY(pucAttrName) ? pucAttrName : "to"), puc1);
+	if (ppeT->iDepthHidden > 0) {
+	  xmlSetProp(pndResult, BAD_CAST "valid", BAD_CAST"no");
+	}
 	xmlFree(puc1);
 	xmlFree(puc0);
       }
       xmlFree(pucAttrName);
-
-      if (ppeT->iDepthHidden > 0) {
-	xmlSetProp(pndResult, BAD_CAST "valid", BAD_CAST"no");
-      }
     }
-
   }
   return pndResult;
 } /* end of pieElementNodeSubst() */
@@ -1713,53 +1776,7 @@ pieElementToDOM(pieTextElementPtr ppeT)
     }
     else {
       if (pieElementIsImport(ppeT)) {
-	pndResult = xmlNewNode(NULL, NAME_PIE_IMPORT);
-	if (STR_IS_NOT_EMPTY(pucC)) {
-	  int i;
-	  int j;
-	  char* pchT;
-	  char delimiter[] = ",;";
-
-	  for (i=j=0; ! isend(pucC[i]); i++) { /* clean content string */
-	    switch (pucC[i]) {
-	    case '(':
-	    case ')':
-	      break;
-	    default:
-	      pucC[j] = pucC[i];
-	      j++;
-	    }
-	  }
-	  pucC[j] = (xmlChar)'\0';
-
-	  for (i=0, pchT = strtok((char*)pucC, delimiter); pchT != NULL; i++) {
-	    switch (i) {
-	    case 0:
-	      if (STR_IS_NOT_EMPTY(pchT)) {
-		xmlChar *pucT;
-		
-		pucT = xmlStrdup(BAD_CAST pchT);
-		resPathRemoveQuotes(pucT);
-		xmlSetProp(pndResult, BAD_CAST "name", pucT);
-		xmlFree(pucT);
-	      }
-	      break;
-	    case 1:
-	      if (STR_IS_NOT_EMPTY(pchT)) {
-		xmlSetProp(pndResult, BAD_CAST "type", BAD_CAST pchT);
-	      }
-	      break;
-	    case 2:
-	      if (STR_IS_NOT_EMPTY(pchT)) {
-		xmlSetProp(pndResult, BAD_CAST "base", BAD_CAST pchT);
-	      }
-	      break;
-	    default:
-	      break;
-	    }
-	    pchT = strtok(NULL, delimiter);
-	  }
-	}
+	pndResult = pieElementNodeImport(ppeT);
       }
       else if (pieElementIsSubst(ppeT)) {
 	pndResult = pieElementNodeSubst(ppeT);

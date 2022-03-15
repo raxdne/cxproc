@@ -898,7 +898,7 @@ cxpSubstPrint(cxpSubstPtr pcxpSubstArg, cxpContextPtr pccArg)
       cxpCtxtLogPrint(pccArg, 1, "Regexp Substitution");
     }
     else {
-      assert(FALSE);
+      cxpCtxtLogPrint(pccArg, 1, "No valid Substitution");
     }
 
     if (pcxpSubstArg->pucTo) {
