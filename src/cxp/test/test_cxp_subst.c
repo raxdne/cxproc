@@ -204,7 +204,7 @@ cxpSubstTest(cxpContextPtr pccArg)
       n_ok++;
       printf("OK\n");
     }
-    domPutNodeString(stderr, BAD_CAST"subst", pndSubst);
+    //domPutNodeString(stderr, BAD_CAST"subst", pndSubst);
     cxpSubstFree(pT);
     xmlFreeNode(pndSubst);
   }
@@ -348,19 +348,14 @@ cxpSubstTest(cxpContextPtr pccArg)
     pndTest = xmlNewNode(NULL,NAME_XML);
     pndSubst = xmlNewChild(pndTest,NULL,NAME_SUBST,NULL);
     xmlSetProp(pndSubst,BAD_CAST "regexp",BAD_CAST "([A-Z]{3})");
-    //xmlSetProp(pndSubst, BAD_CAST "regexp", BAD_CAST "(BBBB)");
     xmlSetProp(pndSubst,BAD_CAST "to",BAD_CAST " :: $1/$1 :: ");
-
-#if 0
     pndSubst = xmlNewChild(pndTest,NULL,NAME_SUBST,NULL);
     xmlSetProp(pndSubst,BAD_CAST "regexp",BAD_CAST "Z{3}");
-
-#endif
     xmlNewChild(pndTest,NULL,NAME_PLAIN,BAD_CAST "BBBB");
     xmlNewChild(pndTest,NULL,NAME_PLAIN,BAD_CAST "AAAA");
     xmlNewChild(pndTest,NULL,NAME_PLAIN,BAD_CAST "%%CCC%%");
 
-    domPutNodeString(stderr, BAD_CAST"pre subst", pndTest);
+    //domPutNodeString(stderr, BAD_CAST"pre subst", pndTest);
 
     if (cxpSubstInChildNodes(pndTest,NULL,pccArg) == FALSE) {
       printf("Error 3\n");
@@ -369,7 +364,7 @@ cxpSubstTest(cxpContextPtr pccArg)
       n_ok++;
       printf("OK\n");
     }
-    domPutNodeString(stderr, BAD_CAST"post subst", pndTest);
+    //domPutNodeString(stderr, BAD_CAST"post subst", pndTest);
     xmlFreeNode(pndTest);
   }
 

@@ -122,18 +122,26 @@ ApplySubstRegExp(const xmlNodePtr pndArg, const pcre2_code* preArgFrom, const xm
   if (pndArg) {
     if (pndArg->type == XML_TEXT_NODE || pndArg->type == XML_PI_NODE || pndArg->type == XML_COMMENT_NODE) {
       int rc;
-      size_t output_length = BUFFER_LENGTH;
-      PCRE2_UCHAR output[BUFFER_LENGTH]; /*!\todo use a dynamic buffer */
+      size_t sInput;
 
-      if (STR_IS_NOT_EMPTY(pndArg->content)
-	&& 
-	(rc = pcre2_substitute(preArgFrom, (PCRE2_SPTR8)pndArg->content, xmlStrlen(pndArg->content), 0, PCRE2_SUBSTITUTE_GLOBAL, NULL, NULL, (PCRE2_SPTR8)pucTo, xmlStrlen(pucTo), output, &output_length)) > 0) {
+      sInput = xmlStrlen(pndArg->content);
 
-	  xmlNodeSetContent(pndArg, output);
-	  fResult = TRUE;
-      }
-      else {
-	/* ignore */
+      if (sInput > 0) {
+	size_t sOutput;
+	xmlChar* pucOutput;
+
+	sOutput = sInput * 6;
+	if ((pucOutput = xmlMalloc(sOutput)) != NULL) {
+
+	  if ((rc = pcre2_substitute(preArgFrom, (PCRE2_SPTR8)pndArg->content, sInput, 0, PCRE2_SUBSTITUTE_GLOBAL,
+	    NULL, NULL, (PCRE2_SPTR8)pucTo, xmlStrlen(pucTo), pucOutput, &sOutput)) > 0) {
+
+	    assert(sOutput < sInput * 6);
+	    xmlNodeSetContent(pndArg, BAD_CAST pucOutput);
+	    fResult = TRUE;
+	  }
+	  xmlFree(pucOutput);
+	}
       }
     }
     else if (pndArg->type == XML_ELEMENT_NODE || pndArg->type == XML_ATTRIBUTE_NODE) {

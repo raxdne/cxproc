@@ -1669,10 +1669,11 @@ pieElementNodeSubst(pieTextElementPtr ppeT)
 
       if (STR_IS_NOT_EMPTY(puc0) && STR_IS_NOT_EMPTY(puc1)) {
 	xmlSetProp(pndResult, BAD_CAST(fRegexp ? "regexp" : "string"), puc0);
-	xmlSetProp(pndResult, BAD_CAST ((pucAttrName) ? pucAttrName : "to"), puc1);
+	xmlSetProp(pndResult, BAD_CAST (STR_IS_NOT_EMPTY(pucAttrName) ? pucAttrName : "to"), puc1);
 	xmlFree(puc1);
 	xmlFree(puc0);
       }
+      xmlFree(pucAttrName);
 
       if (ppeT->iDepthHidden > 0) {
 	xmlSetProp(pndResult, BAD_CAST "valid", BAD_CAST"no");
