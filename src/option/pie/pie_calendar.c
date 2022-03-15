@@ -1186,9 +1186,6 @@ RegisterDateNodes(pieCalendarPtr pCalendarArg, xmlChar *pucArg)
 	    if (IS_NODE_PIE_TD(nodeset->nodeTab[i]->parent) || IS_NODE_PIE_TH(nodeset->nodeTab[i]->parent)) {
 	      pucT = domNodeGetContentPtr(nodeset->nodeTab[i]);
 	    }
-	    else if (nodeset->nodeTab[i]->prev == NULL && nodeset->nodeTab[i]->next == NULL) {
-	      /* ignore isolated date elements */
-	    }
 	    else if ((pucT = domGetPropValuePtr(nodeset->nodeTab[i], BAD_CAST "ref"))) {
 	      /* use attribute value */
 	    }
