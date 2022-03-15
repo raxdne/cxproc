@@ -164,9 +164,12 @@ pcreTest(void)
     }
     else if ((rc = pcre2_substitute(preT, (PCRE2_SPTR8)pucT, xmlStrlen(pucT), 0, PCRE2_SUBSTITUTE_GLOBAL, NULL, NULL,(PCRE2_SPTR8)pucTT, xmlStrlen(pucTT), output, &output_length)) < 0) {
       printf("Error 1\n");
+      pcre2_get_error_message(errornumber, buffer, sizeof(buffer));
+      printf("PCRE2 compilation failed at offset %d: %s\n", (int)erroroffset, buffer);
+      pcre2_code_free(preT);
     }
-    else if (strcmp(pucTT, "A1B2C3 [www](http://www.www/www) D4E5F")) {
-      printf("Error 1\n");
+    else if (strcmp(output, "A1B2C3 [www](http://www.www/www) D4E5F")) {
+      printf("Error 2: '%s'\n", output);
     }
     else {
       n_ok++;
@@ -178,6 +181,8 @@ pcreTest(void)
 
 #endif
   
+  printf("Result in '%s': %i/%i OK\n\n", __FILE__, n_ok, i);
+
   return (i - n_ok);
 }
 /* end of pcreTest() */
