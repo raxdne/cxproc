@@ -125,18 +125,19 @@ ApplySubstRegExp(const xmlNodePtr pndArg, const pcre2_code* preArgFrom, const xm
       size_t sInput;
 
       sInput = xmlStrlen(pndArg->content);
-
       if (sInput > 0) {
 	size_t sOutput;
+	size_t sOutputMax;
 	xmlChar* pucOutput;
 
-	sOutput = sInput * 6;
-	if ((pucOutput = xmlMalloc(sOutput)) != NULL) {
+	sOutput = sOutputMax = ((sInput < 256) ? 256 : sInput) * 8;
+	
+	if ((pucOutput = xmlMalloc(sOutputMax)) != NULL) {
 
 	  if ((rc = pcre2_substitute(preArgFrom, (PCRE2_SPTR8)pndArg->content, sInput, 0, PCRE2_SUBSTITUTE_GLOBAL,
 	    NULL, NULL, (PCRE2_SPTR8)pucTo, xmlStrlen(pucTo), pucOutput, &sOutput)) > 0) {
 
-	    assert(sOutput < sInput * 6);
+	    assert(sOutput < sOutputMax);
 	    xmlNodeSetContent(pndArg, BAD_CAST pucOutput);
 	    fResult = TRUE;
 	  }
