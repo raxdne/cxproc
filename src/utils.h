@@ -163,6 +163,10 @@ iscal(xmlChar c);
 extern BOOL_T
 iscalx(xmlChar c);
 
+extern xmlNodePtr
+StringNodeSubst(xmlChar* pucArg);
+
+
 #ifdef TESTCODE
 extern int
 utilsTest(void);

@@ -26,6 +26,7 @@
 
 #include "basics.h"
 #include "utils.h"
+#include <cxp/cxp_dtd.h>
 
 
 /*! internal level for debug messages */
@@ -2272,6 +2273,79 @@ iscalx(xmlChar c)
   return FALSE;
 }
 /* end of iscal() */
+
+
+/*! makes elements content XML-conformant and
+\param ppeT element to use
+\return a new node pointer or NULL if failed
+*/
+xmlNodePtr
+StringNodeSubst(xmlChar* pucArg)
+{
+  xmlNodePtr pndResult = NULL;
+
+  if (STR_IS_NOT_EMPTY(pucArg)) {
+    int p;
+    int i;
+    int j;
+    int k;
+    BOOL_T fRegexp;
+    xmlChar* puc0 = NULL;
+    xmlChar* puc1 = NULL;
+    xmlChar* pucAttrName = NULL;
+    xmlChar ucQuot = '\''; /* quote char */
+
+    for (i = 0; pucArg[i] != '(' && !isend(pucArg[i]); i++); /* find opening '(' */
+
+    for (j = xmlStrlen(pucArg); j > i && pucArg[j] != ')'; j--); /* find closing ')' */
+
+    for (k = i + 1; isspace(pucArg[k]); k++); /* skip space chars */
+
+    if ((fRegexp = (pucArg[k] == 'r'))) {
+      k++;
+    }
+
+    for (p = 0; k < j; k++) { /* separate two parameters */
+      if (pucArg[k] == '\'' || (pucArg[k] == '\"' && (ucQuot = '\"'))) {
+	int l;
+
+	for (k++, l = k; k < j && pucArg[k] != ucQuot; k++); /* find closing char */
+	if (pucArg[k] == ucQuot) {
+	  if (p == 0) {
+	    puc0 = xmlStrndup(BAD_CAST &pucArg[l], k - l);
+	    p++;
+	  }
+	  else if (p == 1) {
+	    puc1 = xmlStrndup(BAD_CAST &pucArg[l], k - l);
+	    break;
+	  }
+	}
+      }
+      else if (pucArg[k] == '=' && p == 1) { /* named subst attribute */
+	int m;
+
+	for (m = k - 1; m > i && isalpha(pucArg[m]); m--); /* */
+	pucAttrName = xmlStrndup(BAD_CAST & pucArg[m+1], k - m - 1);
+      }
+    }
+
+    if (STR_IS_NOT_EMPTY(puc0) && STR_IS_NOT_EMPTY(puc1)) {
+      pndResult = xmlNewNode(NULL, NAME_SUBST);
+      xmlSetProp(pndResult, BAD_CAST(fRegexp ? "regexp" : "string"), puc0);
+      xmlSetProp(pndResult, BAD_CAST (STR_IS_NOT_EMPTY(pucAttrName) ? pucAttrName : "to"), puc1);
+#if 0
+      if (ppeT->iDepthHidden > 0) {
+	xmlSetProp(pndResult, BAD_CAST "valid", BAD_CAST"no");
+      }
+#endif
+      xmlFree(puc1);
+      xmlFree(puc0);
+    }
+    xmlFree(pucAttrName);
+  }
+
+  return pndResult;
+} /* end of StringNodeSubst() */
 
 
 #ifdef TESTCODE

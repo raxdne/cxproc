@@ -1683,66 +1683,7 @@ pieElementNodeSubst(pieTextElementPtr ppeT)
   xmlNodePtr pndResult = NULL;
 
   if (ppeT) {
-    xmlChar* pucC;
-
-    pucC = pieElementGetBeginPtr(ppeT); /* shortcut */
-    if (STR_IS_NOT_EMPTY(pucC)) {
-      int p;
-      int i;
-      int j;
-      int k;
-      BOOL_T fRegexp;
-      xmlChar* puc0 = NULL;
-      xmlChar* puc1 = NULL;
-      xmlChar* pucAttrName = NULL;
-      xmlChar ucQuot = '\''; /* quote char */
-
-      for (i = 0; pucC[i] != '(' && !isend(pucC[i]); i++); /* find opening '(' */
-
-      for (j = xmlStrlen(pucC); j > i && pucC[j] != ')'; j--); /* find closing ')' */
-
-      for (k = i + 1; isspace(pucC[k]); k++); /* skip space chars */
-
-      if ((fRegexp = (pucC[k] == 'r'))) {
-	k++;
-      }
-
-      for (p = 0; k < j; k++) { /* separate two parameters */
-	if (pucC[k] == '\'' || (pucC[k] == '\"' && (ucQuot = '\"'))) {
-	  int l;
-
-	  for (k++, l = k; k < j && pucC[k] != ucQuot; k++); /* find closing char */
-	  if (pucC[k] == ucQuot) {
-	    if (p == 0) {
-	      puc0 = xmlStrndup(BAD_CAST &pucC[l], k - l);
-	      p++;
-	    }
-	    else if (p == 1) {
-	      puc1 = xmlStrndup(BAD_CAST &pucC[l], k - l);
-	      break;
-	    }
-	  }
-	}
-	else if (pucC[k] == '=' && p == 1) { /* named subst attribute */
-	  int m;
-
-	  for (m = k - 1; m > i && isalpha(pucC[m]); m--); /* */
-	  pucAttrName = xmlStrndup(BAD_CAST & pucC[m+1], k - m - 1);
-	}
-      }
-
-      if (STR_IS_NOT_EMPTY(puc0) && STR_IS_NOT_EMPTY(puc1)) {
-	pndResult = xmlNewNode(NULL, NAME_SUBST);
-	xmlSetProp(pndResult, BAD_CAST(fRegexp ? "regexp" : "string"), puc0);
-	xmlSetProp(pndResult, BAD_CAST (STR_IS_NOT_EMPTY(pucAttrName) ? pucAttrName : "to"), puc1);
-	if (ppeT->iDepthHidden > 0) {
-	  xmlSetProp(pndResult, BAD_CAST "valid", BAD_CAST"no");
-	}
-	xmlFree(puc1);
-	xmlFree(puc0);
-      }
-      xmlFree(pucAttrName);
-    }
+    pndResult = StringNodeSubst(pieElementGetBeginPtr(ppeT)); /* shortcut */
   }
   return pndResult;
 } /* end of pieElementNodeSubst() */

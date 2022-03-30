@@ -19,9 +19,7 @@
 
 */
 
-#ifdef HAVE_PCRE2
 #include <pcre2.h>
-#endif
 
 #define isimpact(C) (C == (xmlChar)'+')
 

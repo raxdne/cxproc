@@ -307,9 +307,11 @@ pieProcessPieNode(xmlNodePtr pndArgPie, cxpContextPtr pccArg)
     }
 
     /* process all child subst nodes */
+    cxpCtxtLogPrint(pccArg, 2, "Start substitution");
     cxpSubstInChildNodes(pndBlock, NULL, pccArg);
 
     /* replace all subst nodes in tree by its result */
+    cxpCtxtLogPrint(pccArg, 2, "Start node substitution");
     cxpSubstReplaceNodes(pndBlock, pccArg);
 
     if (domGetPropFlag(pndArgPie, BAD_CAST "figure", TRUE)) {

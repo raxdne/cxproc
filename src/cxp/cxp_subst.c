@@ -1044,6 +1044,7 @@ cxpSubstInChildNodes(xmlNodePtr pndArgTop, xmlNodePtr pndArgSubst, cxpContextPtr
   }
   else if (pndArgSubst == NULL) {
     /* subst nodes not yet detected */
+    xmlNodePtr pndT;
     xmlNodePtr pndChild;
     xmlNodePtr pndNextChild;
 
@@ -1051,18 +1052,18 @@ cxpSubstInChildNodes(xmlNodePtr pndArgTop, xmlNodePtr pndArgSubst, cxpContextPtr
       pndNextChild = pndChild->next;
 
       if (IS_NODE_SUBST(pndChild)) {
+	cxpCtxtLogPrint(pccArg, 2, "New substitution found ''");
 	fResult |= cxpSubstInChildNodes(pndArgTop, pndChild, pccArg);
       }
 #ifdef HAVE_PIE
+      else if (IS_NODE_PIE_PAR(pndChild) && (pndT = StringNodeSubst(domNodeGetContentPtr(pndChild)))) {
+	cxpCtxtLogPrint(pccArg, 2, "New substitution found 'p'");
+	xmlReplaceNode(pndChild,pndT);
+	fResult |= cxpSubstInChildNodes(pndArgTop, pndT, pccArg);
+	xmlFreeNode(pndChild);
+      }
       else if (IS_NODE_PIE_BLOCK(pndChild)
 	|| IS_NODE_PIE_SECTION(pndChild)
-	|| IS_NODE_PIE_LIST(pndChild)
-	|| IS_NODE_PIE_TASK(pndChild)
-	|| IS_NODE_PIE_PAR(pndChild)
-	|| IS_NODE_PIE_HTAG(pndChild)
-	|| IS_NODE_PIE_ETAG(pndChild)
-	|| IS_NODE_PIE_LINK(pndChild)
-	/*!\bug complete list of elements */
 	) {
 	fResult |= cxpSubstInChildNodes(pndChild, NULL, pccArg);
       }
