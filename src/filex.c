@@ -34,6 +34,10 @@
 #include <res_node/res_node_io.h>
 #include "dom.h"
 
+#ifdef HAVE_PIE
+#include <pie/pie_text_blocks.h>
+#endif
+
 #ifdef HAVE_LIBARCHIVE
 #include <archive/archive.h>
 #endif
@@ -51,6 +55,9 @@ main(int argc, char *argv[], char *envp[])
   if (atexit(xmlCleanupParser) != 0
       || atexit(xmlMemoryDump) != 0
       || atexit(domCleanup) != 0
+#ifdef HAVE_PIE
+      || atexit(pieTextBlocksCleanup) != 0
+#endif
     ) {
     exit(EXIT_FAILURE);
   }

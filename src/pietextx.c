@@ -78,6 +78,18 @@ main(int argc, char *argv[], char *envp[]) {
 
   SetLogLevel(1);
 
+  /* register for exit() */
+  if (atexit(xmlCleanupParser) != 0
+      || atexit(xmlMemoryDump) != 0
+      || atexit(domCleanup) != 0
+#ifdef HAVE_PIE
+      || atexit(pieTextBlocksCleanup) != 0
+#endif
+    ) {
+    exit(EXIT_FAILURE);
+  }
+  /*!\bug add atexit(pieTextTagsCleanup) */
+
   if (argc > 1 && strcmp(argv[1],"-?") == 0) {
     fprintf(stderr,"'%s' - write parsed plain text a XML\n\n",argv[0]);
     fprintf(stderr,"'%s < abc.txt' - parse plain text input and write XML to stdout\n\n",argv[0]);
