@@ -34,8 +34,6 @@ typedef enum {
 
 typedef enum {
   undefined,
-  import,
-  subst,
   header,
   listitem,
   ruler,

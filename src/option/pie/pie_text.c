@@ -267,6 +267,9 @@ pieProcessPieNode(xmlNodePtr pndArgPie, cxpContextPtr pccArg)
     if (domGetPropFlag(pndPieRoot, NAME_PIE_IMPORT, TRUE)) {
       cxpContextPtr pccImport;
 
+      RecognizeSubsts(pndBlock);
+      RecognizeImports(pndBlock);
+
       cxpCtxtLogPrint(pccArg, 2, "Importing from node");
       pccImport = cxpCtxtFromAttr(pccArg, pndArgPie);
       // TODO: set top element if @root = 'yes'
@@ -280,7 +283,9 @@ pieProcessPieNode(xmlNodePtr pndArgPie, cxpContextPtr pccArg)
       }
     }
     else {
+      cxpCtxtLogPrint(pccArg, 3, "Ignoring import markup");
     }
+  
     pndMeta = xmlNewChild(pndPieRoot, NULL, NAME_META, NULL);
     xmlSetTreeDoc(pndMeta, pdocResult);
     cxpInfoProgram(pndMeta, pccArg);
@@ -458,6 +463,8 @@ ImportNodeCxp(xmlNodePtr pndArgImport, cxpContextPtr pccArg)
 	    xmlNodeSetName(pndPieProcRoot, NAME_PIE_BLOCK);
 	    xmlSetNs(pndPieProcRoot,NULL);
 	    SetPropBlockLocators(pndPieProcRoot,domGetPropValuePtr(pndArgImport, BAD_CAST"context"),NULL);
+	    RecognizeSubsts(pndPieProcRoot);
+	    RecognizeImports(pndPieProcRoot);
 	    xmlReplaceNode(pndArgImport, pndPieProcRoot);
 	    xmlFreeNode(pndArgImport);
 	    TraverseImportNodes(pndPieProcRoot, pccArg); /* parse result recursively */
@@ -496,6 +503,8 @@ ImportNodeCxp(xmlNodePtr pndArgImport, cxpContextPtr pccArg)
 
       if (ParsePlainBuffer(pndBlock, pucContent, GetModeByAttr(pndArgImport))) {
 	SetPropBlockLocators(pndBlock,domGetPropValuePtr(pndArgImport, BAD_CAST"context"),NULL);
+	RecognizeSubsts(pndBlock);
+	RecognizeImports(pndBlock);
 	TraverseImportNodes(pndBlock, pccArg); /* parse result recursively */
       }
       else {
@@ -712,6 +721,8 @@ ImportNodeFile(xmlNodePtr pndArgImport, cxpContextPtr pccArg)
 	if (STR_IS_NOT_EMPTY(pucContent)) {
 	  if (ParsePlainBuffer(pndBlock, pucContent, m)) {
 	    SetPropBlockLocators(pndBlock, resNodeGetNameRelative(cxpCtxtRootGet(pccInput), prnInput), NULL);
+	    RecognizeSubsts(pndBlock);
+	    RecognizeImports(pndBlock);
 	    TraverseImportNodes(pndBlock, pccInput); /* parse result recursively */
 	  }
 	  else {
@@ -749,6 +760,8 @@ ImportNodeFile(xmlNodePtr pndArgImport, cxpContextPtr pccArg)
 	    xmlSetProp(pndBlock, BAD_CAST"result", BAD_CAST"empty");
 	  }
 	  else if (ParsePlainBuffer(pndBlock, pucScriptResult, GetModeByAttr(pndBlock))) {
+	    RecognizeSubsts(pndBlock);
+	    RecognizeImports(pndBlock);
 	    TraverseImportNodes(pndBlock, pccInput); /* parse result recursively */
 	  }
 	  else {
@@ -787,6 +800,8 @@ ImportNodeFile(xmlNodePtr pndArgImport, cxpContextPtr pccArg)
 	  }
 	  xmlFreeDoc(pdocPie);
 	  SetPropBlockLocators(pndBlock, resNodeGetNameRelative(cxpCtxtRootGet(pccInput), prnInput), NULL);
+	  RecognizeSubsts(pndBlock);
+	  RecognizeImports(pndBlock);
 	  TraverseImportNodes(pndBlock, pccInput); /* parse result recursively */
 	}
 	else {
@@ -866,6 +881,8 @@ ImportNodeContent(xmlNodePtr pndArgImport, cxpContextPtr pccArg)
 	SetPropBlockLocators(pndBlock, resNodeGetNameRelative(cxpCtxtRootGet(pccArg), prnDoc), NULL);
 	resNodeFree(prnDoc);
       }
+      RecognizeSubsts(pndBlock);
+      RecognizeImports(pndBlock);
       TraverseImportNodes(pndBlock, pccArg); /* parse result recursively */
     }
     else {
@@ -974,6 +991,8 @@ ProcessImportNode(xmlNodePtr pndArgImport, cxpContextPtr pccArg)
       if ((pndT = xmlDocGetRootElement(pdocT)) != NULL && pndT->children != NULL && (pndT = xmlCopyNodeList(pndT->children)) != NULL) {
 	fResult = (xmlAddChildList(pndArgImport, pndT) != NULL);
 	xmlNodeSetName(pndArgImport, NAME_PIE_BLOCK);
+	RecognizeSubsts(pndArgImport);
+	RecognizeImports(pndArgImport);
 	TraverseImportNodes(pndArgImport, pccHere); /* parse result recursively */
       }
     }

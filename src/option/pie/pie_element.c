@@ -214,36 +214,6 @@ pieElementGetMode(pieTextElementPtr ppeArg)
 /*!
 */
 BOOL_T
-pieElementIsImport(pieTextElementPtr ppeArg)
-{
-  return (ppeArg != NULL && ppeArg->iDepthHidden < 1 && ppeArg->eType == import);
-}
-/* end of pieElementIsImport() */
-
-
-/*!
-*/
-BOOL_T
-pieElementIsSubst(pieTextElementPtr ppeArg)
-{
-  return (ppeArg != NULL && ppeArg->iDepthHidden < 1 && ppeArg->eType == subst);
-}
-/* end of pieElementIsSubst() */
-
-
-/*!
-*/
-BOOL_T
-pieElementIsBlock(pieTextElementPtr ppeArg)
-{
-  return (ppeArg != NULL && ppeArg->eType == import);
-}
-/* end of pieElementIsBlock() */
-
-
-/*!
-*/
-BOOL_T
 pieElementIsHeader(pieTextElementPtr ppeArg)
 {
   return (ppeArg != NULL && ppeArg->eType == header);
@@ -1480,19 +1450,9 @@ pieElementParse(pieTextElementPtr ppeArg)
       ppeArg->fDone = TRUE;
     }
 #endif
-    
-    switch (*pucA) {
-    case '#':
-      if (StringBeginsWith((char *)pucA, "#import")) { /* starts with import instruction */
-	ppeArg->eType = import;
-	pucA += xmlStrlen(BAD_CAST"#import");
-      }
-      else if (StringBeginsWith((char *)pucA, "#subst")) { /* starts with subst instruction */
-	ppeArg->eType = subst;
-	pucA += xmlStrlen(BAD_CAST"#subst");
-      }
-      break;
 
+    switch (*pucA) {
+      
     case '*':
       pucB = pucA;
       for (ppeArg->iDepth=0; *pucA == (xmlChar)'*'; pucA++, ppeArg->iDepth++) {}
@@ -1607,88 +1567,6 @@ pieElementStrnlenEmpty(xmlChar *pucArg, int iArg)
 /* end of pieElementStrnlenEmpty() */
 
 
-/*! makes elements content XML-conformant and
-\param ppeT element to use
-\return a new node pointer or NULL if failed
-*/
-xmlNodePtr
-pieElementNodeImport(pieTextElementPtr ppeT)
-{
-  xmlNodePtr pndResult = NULL;
-
-  if (ppeT) {
-    xmlChar* pucC;
-
-    pucC = pieElementGetBeginPtr(ppeT); /* shortcut */
-    if (STR_IS_NOT_EMPTY(pucC)) {
-      int i;
-      int j;
-      char* pchT;
-      char delimiter[] = ",;";
-
-      pndResult = xmlNewNode(NULL, NAME_PIE_IMPORT);
-
-      for (i = j = 0; !isend(pucC[i]); i++) { /* clean content string */
-	switch (pucC[i]) {
-	case '(':
-	case ')':
-	  break;
-	default:
-	  pucC[j] = pucC[i];
-	  j++;
-	}
-      }
-      pucC[j] = (xmlChar)'\0';
-
-      for (i = 0, pchT = strtok((char*)pucC, delimiter); pchT != NULL; i++) {
-	switch (i) {
-	case 0:
-	  if (STR_IS_NOT_EMPTY(pchT)) {
-	    xmlChar* pucT;
-
-	    pucT = xmlStrdup(BAD_CAST pchT);
-	    resPathRemoveQuotes(pucT);
-	    xmlSetProp(pndResult, BAD_CAST "name", pucT);
-	    xmlFree(pucT);
-	  }
-	  break;
-	case 1:
-	  if (STR_IS_NOT_EMPTY(pchT)) {
-	    xmlSetProp(pndResult, BAD_CAST "type", BAD_CAST pchT);
-	  }
-	  break;
-	case 2:
-	  if (STR_IS_NOT_EMPTY(pchT)) {
-	    xmlSetProp(pndResult, BAD_CAST "base", BAD_CAST pchT);
-	  }
-	  break;
-	default:
-	  break;
-	}
-	pchT = strtok(NULL, delimiter);
-      }
-    }
-  }
-  return pndResult;
-} /* end of pieElementNodeImport() */
-
-
-/*! makes elements content XML-conformant and
-\param ppeT element to use
-\return a new node pointer or NULL if failed
-*/
-xmlNodePtr
-pieElementNodeSubst(pieTextElementPtr ppeT)
-{
-  xmlNodePtr pndResult = NULL;
-
-  if (ppeT) {
-    pndResult = StringNodeSubst(pieElementGetBeginPtr(ppeT)); /* shortcut */
-  }
-  return pndResult;
-} /* end of pieElementNodeSubst() */
-
-
   /*! makes elements content XML-conformant and
   \param ppeT element to use
   \return a new node pointer or NULL if failed
@@ -1716,13 +1594,7 @@ pieElementToDOM(pieTextElementPtr ppeT)
       xmlAddChild(pndResult, xmlNewText(pucC));
     }
     else {
-      if (pieElementIsImport(ppeT)) {
-	pndResult = pieElementNodeImport(ppeT);
-      }
-      else if (pieElementIsSubst(ppeT)) {
-	pndResult = pieElementNodeSubst(ppeT);
-      }
-      else if (pieElementIsHeader(ppeT)) {
+      if (pieElementIsHeader(ppeT)) {
 	pndResult = xmlNewNode(NULL, NAME_PIE_SECTION);
 	if (STR_IS_NOT_EMPTY(pucC)) {
 	  xmlNodePtr pndH = NULL;

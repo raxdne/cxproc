@@ -2690,6 +2690,8 @@ resNodeContentToDOM(xmlNodePtr pndArg, resNodePtr prnArg)
 	  }
 	  pndTags = xmlNewChild(pndMeta, NULL, NAME_PIE_TAGLIST, NULL);
 
+	  RecognizeSubsts(pndPie);
+	  RecognizeImports(pndPie);
 	  RecognizeInlines(pndPie);
 	  RecognizeScripts(pndPie);
 	  RecognizeFigures(pndPie);

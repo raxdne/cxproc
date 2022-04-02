@@ -1377,6 +1377,38 @@ pieTextBlocksTest(void)
   }
 
 
+  if (RUNTEST) {
+    xmlNodePtr pndPie;
+    xmlNodePtr pndP = NULL;
+    xmlNodePtr pndT = NULL;
+
+    i++;
+    printf("TEST %i in '%s:%i': parse #import() = ", i, __FILE__, __LINE__);
+
+    if ((pndT = RecognizeImports(NULL)) != NULL) {
+      printf("Error 1 RecognizeImports()\n");
+    }
+    else if ((pndPie = xmlNewNode(NULL, NAME_PIE_PIE)) == NULL) {
+      printf("Error xmlNewNode()\n");
+    }
+    else if ((pndP = xmlNewChild(pndPie, NULL, NAME_PIE_PAR, BAD_CAST"#import \t ( \"abc.txt\" \t ) ; ")) == NULL
+      || (pndT = RecognizeImports(pndP)) != NULL) {
+      printf("Error 2 RecognizeImports()\n");
+    }
+    else if ((pndT = pndPie->children) != NULL && IS_NODE_PIE_IMPORT(pndT) == FALSE
+      || xmlStrEqual(domGetPropValuePtr(pndT, BAD_CAST"name"), BAD_CAST"abc.txt") == FALSE) {
+      printf("Error 3 RecognizeImports()\n");
+    }
+    else {
+      n_ok++;
+      printf("OK\n");
+    }
+    //domPutNodeString(stderr, BAD_CAST"imports", pndPie);
+    //domPutNodeString(stderr, BAD_CAST"import result", pndList);
+    xmlFreeNode(pndPie);
+  }
+
+
   printf("Result in '%s': %i/%i OK\n\n", __FILE__, n_ok, i);
 
   return (i - n_ok);

@@ -1056,12 +1056,6 @@ cxpSubstInChildNodes(xmlNodePtr pndArgTop, xmlNodePtr pndArgSubst, cxpContextPtr
 	fResult |= cxpSubstInChildNodes(pndArgTop, pndChild, pccArg);
       }
 #ifdef HAVE_PIE
-      else if (IS_NODE_PIE_PAR(pndChild) && (pndT = StringNodeSubst(domNodeGetContentPtr(pndChild)))) {
-	cxpCtxtLogPrint(pccArg, 2, "New substitution found 'p'");
-	xmlReplaceNode(pndChild,pndT);
-	fResult |= cxpSubstInChildNodes(pndArgTop, pndT, pccArg);
-	xmlFreeNode(pndChild);
-      }
       else if (IS_NODE_PIE_BLOCK(pndChild)
 	|| IS_NODE_PIE_SECTION(pndChild)
 	) {

@@ -76,6 +76,12 @@ extern xmlNodePtr
 RecognizeDates(xmlNodePtr pndArg, RN_MIME_TYPE eMimeTypeArg);
 
 extern xmlNodePtr
+RecognizeSubsts(xmlNodePtr pndArg);
+
+extern xmlNodePtr
+RecognizeImports(xmlNodePtr pndArg);
+
+extern xmlNodePtr
 RecognizeInlines(xmlNodePtr pndArg);
 
 extern xmlNodePtr
