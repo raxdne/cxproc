@@ -1,19 +1,18 @@
 #
 #
 #
-cmake_minimum_required(VERSION 3.0) # setting this is required
+cmake_minimum_required(VERSION 3.10) # setting this is required
 
 project(cxproc)            # this sets the project name
 
 # https://stackoverflow.com/questions/24460486/cmake-build-type-is-not-being-used-in-cmakelists-txt
 set(CMAKE_CONFIGURATION_TYPES "Debug;Release;Profile" CACHE STRING "" FORCE) 
-#set(CMAKE_BUILD_TYPE "Debug")
+# cmake --help-variable-list | grep Release
 
 # for profiling s. https://stackoverflow.com/questions/26491948/how-to-use-gprof-with-cmake
-# cmake -DCMAKE_CXX_FLAGS=-pg -DCMAKE_EXE_LINKER_FLAGS=-pg -DCMAKE_SHARED_LINKER_FLAGS=-pg ..
-# gprof bin/cxproc | ../build/gprof2dot.py | dot -Tpng -o gprof.png
 # or see test/main.sh and https://github.com/jrfonseca/gprof2dot
 # http://gernotklingler.com/blog/gprof-valgrind-gperftools-evaluation-tools-application-level-cpu-profiling-linux/
+#set(CMAKE_BUILD_TYPE "Profile")
 
 # s. https://cmake.org/Wiki/CMake_Useful_Variables
 
@@ -511,22 +510,23 @@ ENDIF (MSVC)
 OPTION (CXPROC_CXX "Compile as C++ code" OFF)
 MARK_AS_ADVANCED(CXPROC_CXX)
 
-# assign c++ options to c
 IF (CXPROC_CXX)
+  # compile as C++
   IF(MSVC)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /TP")
   ELSE(MSVC)
     set(CMAKE_C_COMPILER ${CMAKE_CXX_COMPILER})
-    #set(CMAKE_C_FLAGS ${CMAKE_CXX_FLAGS})
-    set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -fpermissive")
+    set(CMAKE_C_FLAGS "-std=c++17 ${CMAKE_C_FLAGS} -fpermissive")
+    set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG}")
     #set(CMAKE_C_FLAGS_RELEASE ${CMAKE_CXX_FLAGS_RELEASE})
     #set(CMAKE_C_FLAGS_PROFILE ${CMAKE_CXX_FLAGS_PROFILE})
   ENDIF (MSVC)
 ELSE(CXPROC_CXX)
+  # compile as C
   IF(MSVC)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /TC")
   ELSE(MSVC)
-    set(CMAKE_C_FLAGS "-std=c11 ${CMAKE_C_FLAGS}")
+    set(CMAKE_C_FLAGS "-std=c18 ${CMAKE_C_FLAGS}")
     #set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG}")
     #set(CMAKE_C_FLAGS_RELEASE ${CMAKE_C_FLAGS_RELEASE})
     #set(CMAKE_C_FLAGS_PROFILE ${CMAKE_C_FLAGS_PROFILE})

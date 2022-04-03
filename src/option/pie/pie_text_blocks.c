@@ -2604,7 +2604,7 @@ SubstNodeNew(xmlNodePtr pndArg)
     if (STR_IS_NOT_EMPTY(puc0) && STR_IS_NOT_EMPTY(puc1)) {
       pndResult = xmlNewNode(NULL, NAME_SUBST);
       xmlSetProp(pndResult, BAD_CAST(fRegexp ? "regexp" : "string"), puc0);
-      xmlSetProp(pndResult, BAD_CAST (STR_IS_NOT_EMPTY(pucAttrName) ? pucAttrName : "to"), puc1);
+      xmlSetProp(pndResult, (STR_IS_NOT_EMPTY(pucAttrName) ? pucAttrName : BAD_CAST "to"), puc1);
       xmlFree(puc1);
       xmlFree(puc0);
     }
