@@ -805,7 +805,11 @@ pieElementHasNext(pieTextElementPtr ppeArg)
 
 	if ((puc1 = BAD_CAST xmlStrstr(puc0, BAD_CAST"#end_of_skip")) != NULL) {
 	  /* skip string between markups */
-	  assert(Strnstr(puc0 + 1, (puc1 - puc0), BAD_CAST"#begin_of_skip") == NULL); /* nested skip markup? */
+
+	  if (Strnstr(puc0 + 1, (puc1 - puc0), BAD_CAST"#begin_of_skip") != NULL) {
+	    PrintFormatLog(1, "Unbalanced markup: '#begin_of_skip'");
+	  }
+
 	  ppeArg->iBegin = (index_t)(puc1 + xmlStrlen(BAD_CAST"#end_of_skip") - ppeArg->pucSource);
 	  fResult = TRUE;
 	}
@@ -827,7 +831,10 @@ pieElementHasNext(pieTextElementPtr ppeArg)
 
 	if ((puc1 = BAD_CAST xmlStrstr(puc0, BAD_CAST"#end_of_script")) != NULL) {
 	  /* copy string between markups */
-	  assert(Strnstr(puc0 + 1, (puc1 - puc0), BAD_CAST"#begin_of_script") == NULL); /* nested script markup? */
+
+	  if (Strnstr(puc0 + 1, (puc1 - puc0), BAD_CAST"#begin_of_script") != NULL) {
+	    PrintFormatLog(1, "Unbalanced markup: '#begin_of_script'");
+	  }
 
 	  ppeArg->pucContent = xmlStrndup(puc0 + xmlStrlen(BAD_CAST"#begin_of_script"), (int)(puc1 - (puc0 + xmlStrlen(BAD_CAST"#begin_of_script"))));
 	  ppeArg->iBegin += (index_t)(puc1 + xmlStrlen(BAD_CAST"#end_of_script") - puc0);
@@ -853,7 +860,9 @@ pieElementHasNext(pieTextElementPtr ppeArg)
 	  /* copy string between markups */
 	  index_t l;
 
-	  assert(Strnstr(puc0 + 1, (puc1 - puc0), BAD_CAST"#begin_of_pre") == NULL); /* nested pre markup? */
+	  if (Strnstr(puc0 + 1, (puc1 - puc0), BAD_CAST"#begin_of_pre") != NULL) {
+	    PrintFormatLog(1, "Unbalanced markup: '#begin_of_pre'");
+	  }
 
 	  for (l = xmlStrlen(BAD_CAST"#begin_of_pre"); puc0[l] == (xmlChar)'\n'; l++); /* skip leading empty lines */
 	  ppeArg->pucContent = xmlStrndup(puc0 + l, (int)(puc1 - (puc0 + l)));
@@ -948,7 +957,10 @@ pieElementHasNext(pieTextElementPtr ppeArg)
 
 	if ((puc1 = BAD_CAST xmlStrstr(puc0, BAD_CAST"#end_of_cxp")) != NULL) {
 	  /* copy string between markups */
-	  assert(Strnstr(puc0 + 1, (puc1 - puc0), BAD_CAST"#begin_of_cxp") == NULL); /* nested cxp markup? */
+
+	  if (Strnstr(puc0 + 1, (puc1 - puc0), BAD_CAST"#begin_of_cxp") != NULL) {
+	    PrintFormatLog(1, "Unbalanced markup: '#begin_of_cxp'");
+	  }
 
 	  ppeArg->pucContent = xmlStrndup(puc0 + xmlStrlen(BAD_CAST"#begin_of_cxp"), (int)(puc1 - (puc0 + xmlStrlen(BAD_CAST"#begin_of_cxp"))));
 	  ppeArg->iBegin += (index_t)(puc1 + xmlStrlen(BAD_CAST"#end_of_cxp") - puc0);
@@ -995,7 +1007,10 @@ pieElementHasNext(pieTextElementPtr ppeArg)
 
 	if ((puc1 = BAD_CAST xmlStrstr(puc0, BAD_CAST"#end_of_csv")) != NULL) {
 	  /* copy string between markups */
-	  assert(Strnstr(puc0 + 1, (puc1 - puc0), BAD_CAST"#begin_of_csv") == NULL); /* nested csv markup? */
+
+	  if (Strnstr(puc0 + 1, (puc1 - puc0), BAD_CAST"#begin_of_csv") != NULL) {
+	    PrintFormatLog(1, "Unbalanced markup: '#begin_of_csv'");
+	  }
 
 	  ppeArg->pucContent = xmlStrndup(pucT, (int)(puc1 - pucT));
 	  ppeArg->iBegin += (index_t)(puc1 + xmlStrlen(BAD_CAST"#end_of_csv") - puc0);
