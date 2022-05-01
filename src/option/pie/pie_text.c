@@ -408,6 +408,8 @@ pieProcessPieNode(xmlNodePtr pndArgPie, cxpContextPtr pccArg)
       }
       xmlFree(pucTT);
     }
+
+    pieValidateTree(pndPieRoot);
   }
   else {
     /* no pie make instructions */

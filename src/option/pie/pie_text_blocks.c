@@ -2190,6 +2190,37 @@ GetNumberOfMatches(xmlNodePtr pndArg, xmlChar *pucArgPattern)
 } /* End of GetNumberOfMatches() */
 
 
+/*! unlinks all element trees containing attribute valid="no"
+ */
+xmlNodePtr
+pieValidateTree(xmlNodePtr pndArg)
+{
+  if (IS_ENODE(pndArg)) {
+    xmlChar *pucV;
+    
+    if ((pucV = domGetPropValuePtr(pndArg,BAD_CAST"state")) != NULL && xmlStrEqual(pucV,BAD_CAST"rejected")
+	|| domGetPropValuePtr(pndArg,BAD_CAST"hidden") != NULL
+	|| IS_VALID_NODE(pndArg) == FALSE) {
+      xmlNodePtr pndRelease = pndArg;
+      
+      xmlUnlinkNode(pndRelease);
+      xmlFreeNode(pndRelease);
+    }
+    else {
+      xmlNodePtr pndChild;
+      xmlNodePtr pndNext = NULL;
+      
+      for (pndChild = pndArg->children; pndChild != NULL; pndChild = pndNext) {
+	pndNext = pndChild->next;
+	pieValidateTree(pndChild);
+      }
+    }
+  }
+  return NULL;
+}
+/* end of pieValidateTree() */
+
+
 /*! unlinks all element trees containing attribute valid="no" or has no attribute "w"
 
 \todo re-implement using XPath?
@@ -2198,10 +2229,6 @@ xmlNodePtr
 CleanUpTree(xmlNodePtr pndArg)
 {
   if (IS_ENODE(pndArg) == FALSE) {
-  }
-  else if (IS_VALID_NODE(pndArg) == FALSE) {
-    xmlUnlinkNode(pndArg);
-    xmlFreeNode(pndArg);
   }
   else if (IS_NODE_PIE_META(pndArg) || IS_NODE_PIE_TTAG(pndArg)) {
     /* to be ignored */

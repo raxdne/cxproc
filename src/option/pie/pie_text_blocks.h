@@ -85,6 +85,9 @@ extern xmlNodePtr
 RecognizeInlines(xmlNodePtr pndArg);
 
 extern xmlNodePtr
+pieValidateTree(xmlNodePtr pndArg);
+
+extern xmlNodePtr
 CleanUpTree(xmlNodePtr pndArg);
 
 extern xmlChar *
