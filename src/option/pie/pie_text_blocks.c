@@ -2605,7 +2605,7 @@ SubstNodeNew(xmlNodePtr pndArg)
     }
 
     for (p = 0; k < j; k++) { /* separate two parameters */
-      if (pucC[k] == '\'' || (pucC[k] == '\"' && (ucQuot = '\"'))) {
+      if (pucC[k] == '\'' || (pucC[k] == '\"' && (ucQuot == '\"'))) {
 	int l;
 
 	for (k++, l = k; k < j && pucC[k] != ucQuot; k++); /* find closing char */

@@ -117,7 +117,6 @@ resNodeDup(resNodePtr prnArg, int iArgOptions)
       resNodePtr prnChild = NULL;
 
       resNodeReadStatus(prnResult);
-      resNodeSetRecursion(prnResult,resNodeIsRecursive(prnArg));
 
       if (iArgOptions & RN_DUP_CONTENT && resNodeGetContentPtr(prnArg) != NULL) {
 	void *pT;
