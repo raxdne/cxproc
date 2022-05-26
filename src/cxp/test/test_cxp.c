@@ -794,7 +794,7 @@ cxpTest(cxpContextPtr pccArg)
     else if ((pccTT = cxpCtxtNew()) == NULL || cxpCtxtAddChild(pccTop, pccTT) == FALSE) {
       printf("Error cxpCtxtAddChild()\n");
     }
-    else if ((prnTT = resNodeListFindPath(cxpCtxtSearchGet(pccTT), BAD_CAST"config.cxp", (RN_FIND_FILE | RN_FIND_IN_SUBDIR))) == NULL) {
+    else if ((prnTT = cxpCtxtSearchFind(pccTT, BAD_CAST"config.cxp")) == NULL) {
       printf("Error resNodeListFindPath()\n");
     }
     else if (resNodeIsFile(prnTT) == FALSE) {

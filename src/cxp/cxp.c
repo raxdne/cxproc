@@ -604,7 +604,7 @@ cxpResNodeResolveNew(cxpContextPtr pccArg, xmlNodePtr pndArg, xmlChar *pucArg, i
 
     if (pndArg != NULL) {
       pucAttrName = domGetPropValuePtr(pndArg, BAD_CAST "name");
-      if (pucAttrName == NULL || STR_IS_EMPTY(pucAttrName) || xmlStrEqual(pucAttrName, BAD_CAST".")) { /* valid but empty attribute 'name' */
+      if (STR_IS_EMPTY(pucAttrName) || xmlStrEqual(pucAttrName, BAD_CAST".")) { /* valid but empty attribute 'name' */
 	pucAttrName = resNodeGetNameNormalized(cxpCtxtLocationGet(pccArg));
       }
       else if (iArgOptions == CXP_O_NONE) {
@@ -748,18 +748,13 @@ cxpResNodeResolveNew(cxpContextPtr pccArg, xmlNodePtr pndArg, xmlChar *pucArg, i
       }
 
       if (resNodeIsReadable(prnResult) == FALSE && (iArgOptions & CXP_O_SEARCH)) {
-	resNodePtr prnI;
+	resNodePtr prnT;
 
 	resNodeFree(prnResult);
 	prnResult = NULL;
 
-	for (prnI = cxpCtxtSearchGet(pccArg); prnI; prnI = resNodeGetNext(prnI)) {
-	  resNodePtr prnT;
-
-	  if ((prnT = resNodeListFindPath(prnI, pucShortcut, (RN_FIND_FILE | RN_FIND_IN_SUBDIR))) != NULL) {
-	    prnResult = resNodeDup(prnT, RN_DUP_THIS); /* found in search DOM */
-	    break;
-	  }
+	if ((prnT = cxpCtxtSearchFind(pccArg, pucShortcut)) != NULL) {
+	  prnResult = resNodeDup(prnT, RN_DUP_THIS); /* found in search DOM */
 	}
       }
 
@@ -1807,9 +1802,6 @@ cxpCtxtSearchGet(cxpContextPtr pccArg)
     if (pccArg->prnSearch) {
       prnResult = pccArg->prnSearch;
     }
-    else if ((pccParent = cxpCtxtGetParent(pccArg))) {
-      prnResult = cxpCtxtSearchGet(pccParent);
-    }
     else {
     }
   }
@@ -1835,72 +1827,24 @@ cxpCtxtSearchSet(cxpContextPtr pccArg, resNodePtr prnArg)
   BOOL_T fResult = FALSE;
 
   if (pccArg) {
-    xmlChar *pucPathValue = NULL;
 
 #ifdef DEBUG
     cxpCtxtLogPrint(pccArg, 2, "cxpCtxtSearchSet(cxpContextPtr pccArg, resNodePtr prnArg)");
 #endif
 
-    pucPathValue = cxpCtxtEnvGetValueByName(pccArg, BAD_CAST "CXP_PATH");
-    if (STR_IS_NOT_EMPTY(pucPathValue)) {
-      cxpCtxtLogPrint(pccArg, 2, "Use value '%s' of environment variable 'CXP_PATH'", pucPathValue);
-    }
-#ifdef HAVE_CGI
-    /* the only way in CGI mode!! */
-#else
-    else {
-      /*
-      some additional tricks to set the default search path
-      */
-      xmlChar *pucRelease;
-      xmlChar *pucExecutablePath;
-
-      pucRelease = cxpCtxtCliGetValue(pccArg, 0);
-      pucExecutablePath = resPathNormalize(pucRelease);
-      xmlFree(pucRelease);
-
-#ifdef _MSC_VER
-      /* find "cxproc" in argv[0] */
-      pucPathValue = resPathGetDirFind(pucExecutablePath, BAD_CAST"bin");
-      if (pucPathValue) {
-	cxpCtxtLogPrint(pccArg, 2, "Use executable directory '%s' in '%s'", pucPathValue, pucExecutablePath);
-	pucRelease = resPathGetBasedir(pucPathValue);
-	xmlFree(pucPathValue);
-	pucPathValue = xmlStrncatNew(pucRelease, BAD_CAST"//", -1);
-	xmlFree(pucRelease);
-      }
-      else {
-	pucPathValue = resPathGetDirFind(pucExecutablePath, BAD_CAST"cxproc");
-	if (pucPathValue) {
-	  cxpCtxtLogPrint(pccArg, 2, "Use executable directory '%s' in '%s'", pucPathValue, pucExecutablePath);
-	  pucRelease = pucPathValue;
-	  pucPathValue = xmlStrncatNew(pucRelease, BAD_CAST"//", -1);
-	  xmlFree(pucRelease);
-	}
-	else {
-	}
-      }
-#endif
-      xmlFree(pucExecutablePath);
-    }
-#endif
-    /*!\todo improve speed by using index files 'NAME_FILE_INDEX' */
-
     /*! release old search list first */
     resNodeListFree(pccArg->prnSearch);
+    pccArg->prnSearch = NULL;
+
+    if (prnArg) {
+      /*!\todo check readability of list first */
+      pccArg->prnSearch = resNodeDup(prnArg, RN_DUP_NEXT);
+    }
+
+    /*!\todo improve speed by using index files 'NAME_FILE_INDEX' */
 
     /*! check search path context */
-    if (STR_IS_NOT_EMPTY(pucPathValue)) {
-      pccArg->prnSearch = resNodeStrNew(pucPathValue);
-      resNodeSetRecursion(pccArg->prnSearch,resPathIsDirRecursive(pucPathValue));
-      xmlFree(pucPathValue);
-    }
-    else if (prnArg) {
-      pccArg->prnSearch = resNodeDup(prnArg, (RN_DUP_CHILDS | RN_DUP_NEXT));
-    }
-    else {
-      pccArg->prnSearch = NULL;
-    }
+
     if (resPathIsDescendant(resNodeGetNameNormalized(cxpCtxtRootGet(pccArg)), resNodeGetNameNormalized(cxpCtxtSearchGet(pccArg)))) {
       cxpCtxtLogPrint(pccArg, 1, "WARNING: Value '%s' is a descendant directory of search path '%s'",
 	resNodeGetNameNormalized(cxpCtxtRootGet(pccArg)), resNodeGetNameNormalized(cxpCtxtSearchGet(pccArg)));
@@ -1915,6 +1859,31 @@ cxpCtxtSearchSet(cxpContextPtr pccArg, resNodePtr prnArg)
 
   return fResult;
 } /* end of cxpCtxtSearchSet() */
+
+
+/*! find resNode in current cxpContext's search node
+
+\param pccArg -- pointer to context
+\param prnArg -- new resNode to set as location
+\return 
+*/
+resNodePtr
+cxpCtxtSearchFind(cxpContextPtr pccArg, xmlChar* pucArgPath)
+{
+  resNodePtr prnResult = NULL;
+
+  if (pccArg) {
+    cxpContextPtr pccI;
+
+    for (pccI = pccArg; pccI; pccI = pccI->parent) {
+      if ((prnResult = resNodeListFindPath(pccI->prnSearch, pucArgPath, RN_FIND_FILE | RN_FIND_IN_SUBDIR)) != NULL) {
+	break;
+      }
+    }
+  }
+
+  return prnResult;
+} /* end of cxpCtxtSearchFind() */
 
 
 /*! global XSL variables only (between RootElement and first xsl:template element)
@@ -2995,7 +2964,7 @@ cxpProcessCopyNode(xmlNodePtr pndArgCopy, cxpContextPtr pccArg)
     resNodePtr prnContent = NULL;
     resNodePtr prnTo = NULL;
 
-    if ((pucTo = domGetPropValuePtr(pndArgCopy, BAD_CAST "to")) == NULL || STR_IS_EMPTY(pucTo)
+    if ((pucTo = domGetPropValuePtr(pndArgCopy, BAD_CAST "to")) == NULL || *pucTo == '\0'
       || (prnTo = cxpResNodeResolveNew(pccArg, pndArgCopy, pucTo, CXP_O_WRITE)) == NULL) {
 #ifdef HAVE_CGI
       printf("Status: 501\r\n"
@@ -3004,7 +2973,7 @@ cxpProcessCopyNode(xmlNodePtr pndArgCopy, cxpContextPtr pccArg)
 #endif
       cxpCtxtLogPrint(pccArg, 1, "No valid target name");
     }
-    else if ((pucFrom = domGetPropValuePtr(pndArgCopy, BAD_CAST "from")) == NULL || STR_IS_EMPTY(pucFrom)
+    else if ((pucFrom = domGetPropValuePtr(pndArgCopy, BAD_CAST "from")) == NULL || *pucFrom == '\0'
       || (prnFrom = cxpResNodeResolveNew(pccArg, pndArgCopy, pucFrom, ((domGetPropFlag(pndArgCopy, BAD_CAST"search", FALSE)) ? CXP_O_SEARCH | CXP_O_READ : CXP_O_READ))) == NULL) {
 #ifdef HAVE_CGI
       printf("Status: 501\r\n"
@@ -3395,6 +3364,7 @@ cxpProcessInfoNode(xmlNodePtr pndInfo, cxpContextPtr pccArg)
     xmlChar *pucT;
     xmlNodePtr nodeDate;
     resNodePtr prnTest;
+    cxpContextPtr pccI;
 
     //domSetPropEat(nodeRuntime,BAD_CAST "platform",GetHostValueNamed(BAD_CAST "os"));
     /* working dir */
@@ -3444,12 +3414,14 @@ cxpProcessInfoNode(xmlNodePtr pndInfo, cxpContextPtr pccArg)
       domSetPropEat(pndEnv,BAD_CAST "select",cxpCtxtEnvGetValue(pccArg,i));
     }
 
-    /*! Search path directories */
-    for (prnTest = cxpCtxtSearchGet(pccArg); prnTest; prnTest = resNodeGetNext(prnTest)) {
-      xmlNodePtr pndSearch;
-      pndSearch = xmlNewChild(nodeRuntime, NULL, BAD_CAST "search", NULL);
-      xmlSetProp(pndSearch,BAD_CAST "select",resNodeGetNameNormalized(prnTest));
-      xmlSetProp(pndSearch,BAD_CAST "recursive", BAD_CAST (resNodeIsRecursive(prnTest) ? "yes" : "no"));
+    /*! List all path directories */
+    for (pccI = pccArg; pccI; pccI = cxpCtxtGetParent(pccI)) {
+      for (prnTest = cxpCtxtSearchGet(pccI); prnTest; prnTest = resNodeGetNext(prnTest)) {
+	xmlNodePtr pndSearch;
+	pndSearch = xmlNewChild(nodeRuntime, NULL, BAD_CAST "search", NULL);
+	xmlSetProp(pndSearch, BAD_CAST "select", resNodeGetNameNormalized(prnTest));
+	xmlSetProp(pndSearch, BAD_CAST "recursive", BAD_CAST(resNodeIsRecursive(prnTest) ? "yes" : "no"));
+      }
     }
   }
 

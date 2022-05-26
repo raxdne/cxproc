@@ -109,10 +109,15 @@ cxpCtxtCgiNew(int argc, char *argv[], char *envp[])
 
   pccResult = cxpCtxtNew();
   if (pccResult) {
+    xmlChar* pucPathValue = NULL;
+    resNodePtr prnT = NULL;
+
     pccResult->iCountArgv = argc;
     pccResult->ppcArgv = argv;
 
     cxpCtxtEnvDup(pccResult,envp);
+
+    cxpCtxtSetReadonly(pccResult, cxpCtxtEnvGetBoolByName(pccResult, BAD_CAST "CXP_READONLY", FALSE));
 
     pucT = cxpCtxtEnvGetValueByName(pccResult, BAD_CAST "CXP_LOG");
     if (cxpCtxtLogSetLevelStr(pccResult, pucT) == 0) {
@@ -129,10 +134,17 @@ cxpCtxtCgiNew(int argc, char *argv[], char *envp[])
 
     cxpCtxtLogPrint(pccResult,1,"Based on %s %s",CXP_VER_FILE_VERSION_STR,CXP_VER_FILE_BRANCH_STR);
 
-    if (cxpCtxtRootSet(pccResult,NULL)) {
-      cxpCtxtSearchSet(pccResult, NULL);
+    if (cxpCtxtRootSet(pccResult, NULL)) {
       cxpCtxtLocationSet(pccResult, cxpCtxtRootGet(pccResult));
-      cxpCtxtSetReadonly(pccResult, cxpCtxtEnvGetBoolByName(pccResult, BAD_CAST "CXP_READONLY", FALSE));
+
+      if ((pucPathValue = cxpCtxtEnvGetValueByName(pccResult, BAD_CAST "CXP_PATH")) != NULL) {
+	cxpCtxtLogPrint(pccResult, 2, "Use value '%s' of environment variable 'CXP_PATH'", pucPathValue);
+	if ((prnT = resNodeStrNew(pucPathValue))) {
+	  cxpCtxtSearchSet(pccResult, prnT);
+	  resNodeListFree(prnT);
+	}
+	xmlFree(pucPathValue);
+      }
     }
     else {
       cxpCtxtFree(pccResult);
@@ -237,7 +249,7 @@ cxpCtxtCgiParse(cxpContextPtr pccArg)
     /*!
       search for this file name in CXP_PATH
     */
-    prnFound = resNodeListFindPath(cxpCtxtSearchGet(pccArg), pucCgiPath, (RN_FIND_FILE | RN_FIND_IN_SUBDIR));
+    prnFound = cxpCtxtSearchFind(pccArg, pucCgiPath);
     if (resNodeReadStatus(prnFound) == FALSE) {
       cxpCtxtLogPrint(pccArg, 1, "File '%s' not found", pucCgiPath);
       resNodeFree(prnFound);

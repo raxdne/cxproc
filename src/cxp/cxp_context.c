@@ -590,7 +590,22 @@ cxpCtxtFromAttr(cxpContextPtr pccArg, xmlNodePtr pndArg)
     }
   }
 
-  /*\todo detect searchpath */
+#ifdef EXPERIMENTAL
+
+  pucAttr = domGetPropValuePtr(pndArg, BAD_CAST "searchpath");
+  if (STR_IS_NOT_EMPTY(pucAttr)) {
+    /* detect additional searchpath */
+
+#ifdef HAVE_CGI
+    cxpCtxtLogPrint(pccArg, 1, "ERROR: '%s' NOT to be used in CGI mode (CXP_PATH only) !!!", pucAttr);
+#else
+    if ((prnT = resNodeStrNew(pucAttr))) {
+      cxpCtxtSearchSet(pccArg, prnT);
+      resNodeListFree(prnT);
+    }
+#endif
+  }
+#endif
 
   //    cxpCtxtSetReadonly(pccResult,domGetPropFlag(pndArg,BAD_CAST "readonly",FALSE));
 
@@ -876,6 +891,7 @@ cxpCtxtAccessIsPermitted(cxpContextPtr pccArg, resNodePtr prnArg)
 {
   if (prnArg) {
     resNodePtr prnT;
+    cxpContextPtr pccI;
 
     switch (resNodeGetType(prnArg)) {
     case rn_type_stdout:
@@ -936,20 +952,22 @@ cxpCtxtAccessIsPermitted(cxpContextPtr pccArg, resNodePtr prnArg)
 
     /* check for search directory context */
 
-    for (prnT = cxpCtxtSearchGet(pccArg); prnT; prnT = resNodeGetNext(prnT)) {
-      if (resNodeIsDir(prnT)
-	&& resPathIsDescendant(resNodeGetNameNormalized(prnT), resNodeGetNameNormalized(prnArg))) {
-	/* OK */
+    for (pccI = pccArg; pccI; pccI = cxpCtxtGetParent(pccI)) {
+      for (prnT = cxpCtxtSearchGet(pccI); prnT; prnT = resNodeGetNext(prnT)) {
+	if (resNodeIsDir(prnT)
+	  && resPathIsDescendant(resNodeGetNameNormalized(prnT), resNodeGetNameNormalized(prnArg))) {
+	  /* OK */
 #ifdef DEBUG
-	cxpCtxtLogPrint(pccArg, 1, "Access to '%s' as descendant of search directory '%s' allowed", resNodeGetNameNormalized(prnArg), resNodeGetNameNormalized(prnT));
+	  cxpCtxtLogPrint(pccArg, 1, "Access to '%s' as descendant of search directory '%s' allowed", resNodeGetNameNormalized(prnArg), resNodeGetNameNormalized(prnT));
 #endif
-	return TRUE;
-      }
+	  return TRUE;
+	}
 #ifdef DEBUG
-      else {
-	cxpCtxtLogPrint(pccArg, 1, "Access to '%s' as descendant of search directory '%s' denied", resNodeGetNameNormalized(prnArg), resNodeGetNameNormalized(prnT));
-      }
+	else {
+	  cxpCtxtLogPrint(pccArg, 1, "Access to '%s' as descendant of search directory '%s' denied", resNodeGetNameNormalized(prnArg), resNodeGetNameNormalized(prnT));
+	}
 #endif
+      }
     }
     resNodeSetError(prnArg, rn_error_access,"access"); /* by default */
   }

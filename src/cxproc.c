@@ -169,10 +169,6 @@ main(int argc, char *argv[], char *envp[])
 #endif
     cxpCtxtEncSetPlain(pccMain, BAD_CAST "ISO-8859-1"); // TODO: use value of CXP_PLAIN_ENC
 
-    if (cxpCtxtSearchSet(pccMain, NULL) == FALSE) {
-      cxpCtxtLogPrint(pccMain,1,"Error cxpCtxtSearchSet()");
-    }
-
     cxpCtxtCacheEnable(pccMain, TRUE);
     
     if (cxpCtxtCliParse(pccMain)) {
