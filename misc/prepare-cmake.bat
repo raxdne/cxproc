@@ -1,25 +1,27 @@
 REM
-REM (p) 2020,2021 A. Tenbusch
+REM (p) 2020,2021,2022 A. Tenbusch
 REM
 
-for /f "delims=" %%i in ("%0") do set CXPBASE=%%~dpi
 
-REM SET CXPBASE=C:\UserData\Develop\cxproc-build\a\b
+REM for /f "delims=" %%i in ("%0") do set CXPBASE=%%~dpi
+
+SET CXPBASE=%CD%\..\cxproc-build\a\b\
 
 SET STATIC=0
 SET FLAG64=1
 
 REM VC++ Environment
 IF "%FLAG64%" == "1" (
-  CALL "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build\vcvars64.bat"
+  REM CALL "%ProgramFiles(x86)%\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build\vcvars64.bat"
+  CALL "%ProgramFiles%\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build\vcvars64.bat"
 ) ELSE (
-  CALL "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build\vcvars32.bat"
+  CALL "%ProgramFiles(x86)%\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build\vcvars32.bat"
 )
 
 IF "%STATIC%" == "1" (
-  SET ARCH=%VSCMD_ARG_TGT_ARCH%-windows-static
+  SET CXPARCH=%VSCMD_ARG_TGT_ARCH%-windows-static
 ) ELSE (
-  SET ARCH=%VSCMD_ARG_TGT_ARCH%-windows
+  SET CXPARCH=%VSCMD_ARG_TGT_ARCH%-windows
 )
 
 IF "0" == "1" (
@@ -28,7 +30,7 @@ IF "0" == "1" (
   REM git pull
   .\vcpkg integrate install
 
-  .\vcpkg --triplet %ARCH% --x-install-root=%CXPBASE%..\.. install curl zlib liblzma libarchive pcre2 libxml2 libxslt libexif sqlite3 duktape
+  .\vcpkg --triplet %CXPARCH% --x-install-root=%CXPBASE%..\.. install curl zlib liblzma libarchive pcre2 libxml2 libxslt libexif sqlite3 duktape
 
   REM imagemagick libgif libjpeg libpng libtiff
   
@@ -37,7 +39,7 @@ IF "0" == "1" (
   popd
 )
 
-set PREFIX=%CXPBASE%..\..\%ARCH%
+set PREFIX=%CXPBASE%..\..\%CXPARCH%
 
 SET DIR_BIN="%PREFIX%\bin"
 md %DIR_BIN%
@@ -51,7 +53,7 @@ SET DIR_CGI="%PREFIX%\www\cgi-bin"
 md %DIR_CGI%
 robocopy %DIR_BIN% %DIR_CGI% *.dll
 
-REM robocopy c:\windows\system32 %CXPBASE%..\..\%ARCH%\debug\bin VCRUNTIME140D.DLL
+REM robocopy c:\windows\system32 %CXPBASE%..\..\%CXPARCH%\debug\bin VCRUNTIME140D.DLL
 REM robocopy c:\windows\system32 %DIR_CGI% VCRUNTIME140D.DLL
 
 SET DIR_LOG="%PREFIX%\www\log"
@@ -66,17 +68,17 @@ REM robocopy %CXPBASE%..\doc %DIR_DOC% *.txt
 REM robocopy /S %CXPBASE%..\xml %PREFIX%\xml
 REM robocopy /S %CXPBASE%..\examples %PREFIX%\examples
 
-REM robocopy /S "%PREFIX%" "C:\UserData\Develop\cxproc-build\%ARCH%" *.*
+REM robocopy /S "%PREFIX%" "C:\UserData\Develop\cxproc-build\%CXPARCH%" *.*
 
 IF "0" == "1" (
   pushd %PREFIX%
-  REM "C:\UserData\Programme\7-ZipPortable\App\7-Zip\7z.exe" a -r ..\cxproc-v1.3-pre_%ARCH%.zip bin xml doc examples www\cgi-bin www\html\test -x!*.pdb -x!*.ilk -x!cxproc-test.exe
+  REM "C:\UserData\Programme\7-ZipPortable\App\7-Zip\7z.exe" a -r ..\cxproc-v1.3-pre_%CXPARCH%.zip bin xml doc examples www\cgi-bin www\html\test -x!*.pdb -x!*.ilk -x!cxproc-test.exe
   popd
 )
 
 IF "0" == "1" (
   pushd %CXPBASE%..
-  REM "C:\UserData\Programme\cmake\bin\cmake.exe" -B %DIR_BUILD% -G "Visual Studio 16 2019" -A %VSCMD_ARG_TGT_ARCH% -DCMAKE_TOOLCHAIN_FILE=C:\UserData\Develop\vcpkg\scripts\buildsystems\vcpkg.cmake -D CXPROC_DOC:BOOL=OFF -D CXPROC_PIE:BOOL=ON -D CXPROC_EXPERIMENTAL:BOOL=OFF -D CXPROC_CXX:BOOL=OFF
+  REM "C:\UserData\Programme\cmake\bin\cmake.exe" -B %DIR_BUILD% -G "Visual Studio 16 2019" -A %VSCMD_ARG_TGT_CXPARCH% -DCMAKE_TOOLCHAIN_FILE=C:\UserData\Develop\vcpkg\scripts\buildsystems\vcpkg.cmake -D CXPROC_DOC:BOOL=OFF -D CXPROC_PIE:BOOL=ON -D CXPROC_EXPERIMENTAL:BOOL=OFF -D CXPROC_CXX:BOOL=OFF
   REM "C:\UserData\Programme\cmake\bin\cmake.exe" --build %DIR_BUILD% --config Release --target cxproc
   popd
 )

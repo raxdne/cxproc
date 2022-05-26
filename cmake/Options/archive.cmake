@@ -18,15 +18,20 @@ IF (CXPROC_ARCHIVE)
     ${CXPROC_SRC_DIR}/option/archive/archive.c
     )
 
+  SET(CXP_ARCHIVE_FILES
+    ${CXPROC_SRC_DIR}/option/archive/cxp_archive.h
+    ${CXPROC_SRC_DIR}/option/archive/cxp_archive.c
+    )
+
   target_sources(dir2sqlite PUBLIC ${ARCHIVE_FILES})
 
   target_sources(filex PUBLIC ${ARCHIVE_FILES})
 
-  target_sources(cxproc PUBLIC ${ARCHIVE_FILES})
+  target_sources(cxproc PUBLIC ${ARCHIVE_FILES} ${CXP_ARCHIVE_FILES})
 
-  target_sources(cxproc-cgi PUBLIC ${ARCHIVE_FILES})
+  target_sources(cxproc-cgi PUBLIC ${ARCHIVE_FILES} ${CXP_ARCHIVE_FILES})
 
-  target_sources(cxproc-test PUBLIC ${ARCHIVE_FILES})
+  target_sources(cxproc-test PUBLIC ${ARCHIVE_FILES} ${CXP_ARCHIVE_FILES})
 
   add_definitions(-DHAVE_LIBARCHIVE)
 

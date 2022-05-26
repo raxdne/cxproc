@@ -48,6 +48,9 @@ INCLUDE_DIRECTORIES("${PROJECT_SOURCE_DIR}/third-party"
   "${CXPROC_PREFIX}/include"
   )
 
+#set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG ${PROJECT_BINARY_DIR}/debug)
+#set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_BINARY_DIR}/release)
+
 # https://www.mattkeeter.com/blog/2018-01-06-versioning/
 
 execute_process(COMMAND git describe --tags --long
@@ -602,9 +605,9 @@ ENDIF (CXPROC_LIBBZ2)
 IF (CXPROC_LZMA)
   INCLUDE_DIRECTORIES(${LIBLZMA_INCLUDE_DIR})
   add_definitions(-DHAVE_LIBLZMA)
-  IF (${LIBLZMA_LIBRARIES} MATCHES ".+static\\.lib$" OR ${LIBLZMA_LIBRARIES} MATCHES ".+\\.a$")
-    add_definitions(-DLIBLZMA_STATIC)
-  ENDIF ()
+  #IF (${LIBLZMA_LIBRARIES} MATCHES ".+static\\.lib$" OR ${LIBLZMA_LIBRARIES} MATCHES ".+\\.a$")
+  #  add_definitions(-DLIBLZMA_STATIC)
+  #ENDIF ()
   target_link_libraries(filex ${LIBLZMA_LIBRARIES})
   target_link_libraries(dir2sqlite ${LIBLZMA_LIBRARIES})
   target_link_libraries(pietextx ${LIBLZMA_LIBRARIES})
