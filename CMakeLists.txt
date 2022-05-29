@@ -69,7 +69,7 @@ set(PROJECT_VERSION_MAJOR "1")
 set(PROJECT_VERSION_MINOR "3")
 set(PROJECT_VERSION_PATCH "")
 
-#INCLUDE(docs)
+#include(docs)
 
 # Configuration checks
 
@@ -264,36 +264,34 @@ ENDIF(MSVC)
 # pthread
 #
 
-FIND_PACKAGE( Threads )
+# FIND_PACKAGE( Threads )
 
-IF(CMAKE_USE_PTHREADS_INIT)
-  MESSAGE(STATUS "Found optional libpthtread: ${CMAKE_THREAD_LIBS_INIT}")
-  OPTION (CXPROC_PTHREAD "Enable support for linking cxproc with libpthread." OFF)
-ELSE ()
-  OPTION (CXPROC_THREAD "Enable support native threads." OFF)
-ENDIF ()
-MARK_AS_ADVANCED(CXPROC_THREAD)
+# IF(CMAKE_USE_PTHREADS_INIT)
+#   MESSAGE(STATUS "Found optional libpthtread: ${CMAKE_THREAD_LIBS_INIT}")
+#   OPTION (CXPROC_PTHREAD "Enable support for linking cxproc with libpthread." OFF)
+# ELSE ()
+#   OPTION (CXPROC_THREAD "Enable support native threads." OFF)
+# ENDIF ()
+# MARK_AS_ADVANCED(CXPROC_THREAD)
 
-SET(THREAD_FILES
-  ${CXPROC_SRC_DIR}/cxp/cxp_threadp.h
-  ${CXPROC_SRC_DIR}/cxp/cxp_threadp.c
-  )
+# SET(THREAD_FILES
+#   ${CXPROC_SRC_DIR}/cxp/cxp_threadp.h
+#   ${CXPROC_SRC_DIR}/cxp/cxp_threadp.c
+#   )
 
-IF(CXPROC_PTHREAD)
+# IF(CXPROC_PTHREAD)
+#   target_sources(cxproc PUBLIC ${THREAD_FILES})
+#   target_sources(cxproc-cgi PUBLIC ${THREAD_FILES})
+#   target_sources(cxproc-test PUBLIC ${THREAD_FILES})
 
-  target_sources(cxproc PUBLIC ${THREAD_FILES})
+#   add_definitions(-DHAVE_LIBPTHREAD)
+# ELSEIF (CXPROC_THREAD)
+#   target_sources(cxproc PUBLIC ${THREAD_FILES})
+#   target_sources(cxproc-cgi PUBLIC ${THREAD_FILES})
+#   target_sources(cxproc-test PUBLIC ${THREAD_FILES})
 
-  target_sources(cxproc-cgi PUBLIC ${THREAD_FILES})
-
-  add_definitions(-DHAVE_LIBPTHREAD)
-ELSEIF (CXPROC_THREAD)
-  
-  target_sources(cxproc PUBLIC ${THREAD_FILES})
-
-  target_sources(cxproc-cgi PUBLIC ${THREAD_FILES})
-
-  add_definitions(-DWITH_THREAD)
-ENDIF (CXPROC_PTHREAD)
+#   add_definitions(-DWITH_THREAD)
+# ENDIF (CXPROC_PTHREAD)
 
 ################################################################################
 #

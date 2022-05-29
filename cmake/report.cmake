@@ -35,7 +35,7 @@ if (CXPROC_DOC)
 ENDIF (CXPROC_DOC)
   
 IF(CXPROC_PTHREAD)
-  MESSAGE(STATUS "  Link cxproc with pthread .......... : ${CXPROC_PTHREAD}")
+  MESSAGE(STATUS "  Compile cxproc with pthread ....... : ${CXPROC_PTHREAD}")
 ELSEIF (CXPROC_THREAD)
   MESSAGE(STATUS "  Compile cxproc with native threads  : ${CXPROC_THREAD}")
 ENDIF (CXPROC_PTHREAD)
