@@ -30,7 +30,9 @@
 
 #define RN_FIND_IN_ARCHIVE (8)
 
-#define RN_FIND_ALL        (RN_FIND_FILE | RN_FIND_DIR | RN_FIND_IN_SUBDIR | RN_FIND_IN_ARCHIVE)
+#define RN_FIND_NEXT	  (16)
+
+#define RN_FIND_ALL        (RN_FIND_FILE | RN_FIND_DIR | RN_FIND_IN_SUBDIR | RN_FIND_IN_ARCHIVE | RN_FIND_NEXT)
 
 extern BOOL_T
 resNodeListParse(resNodePtr prnArg, int iArgDepth, const pcre2_code *re_match);

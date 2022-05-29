@@ -112,11 +112,24 @@ resNodeDup(resNodePtr prnArg, int iArgOptions)
   resNodePtr prnResult = NULL;
 
   if (prnArg) {
-    if ((prnResult = resNodeDirNew(resNodeGetNameNormalized(prnArg)))) {
-      resNodePtr prnT = NULL;
+
+    if ((prnResult = resNodeDirNew(resNodeGetNameNormalized(prnArg))) == NULL) {
+    }
+    else if (iArgOptions & RN_DUP_EXIST && resNodeReadStatus(prnResult) == FALSE) { /* duplicate existing resource nodes only (file system) */
+      /* not existing */
+      resNodeFree(prnResult);
+      prnResult = NULL;
+    }
+    else if (iArgOptions & RN_DUP_READ && resNodeIsReadable(prnResult) == FALSE) { /* duplicate readable resource nodes only (file system) */
+      /* not readable */
+      resNodeFree(prnResult);
+      prnResult = NULL;
+    }
+    else {
       resNodePtr prnChild = NULL;
 
-      resNodeReadStatus(prnResult);
+      resNodeSetType(prnResult, resNodeGetType(prnArg));
+      resNodeSetRecursion(prnResult, resNodeIsRecursive(prnArg));
 
       if (iArgOptions & RN_DUP_CONTENT && resNodeGetContentPtr(prnArg) != NULL) {
 	void *pT;
@@ -188,12 +201,27 @@ resNodeDup(resNodePtr prnArg, int iArgOptions)
 	  resNodeAddChild(prnResult, resNodeDup(prnChild, (iArgOptions ^ RN_DUP_NEXT)));
 	}
       }
+    }
 
-      if (iArgOptions & RN_DUP_NEXT && (prnT = resNodeGetNext(prnArg)) != NULL) {
-	resNodeAddSibling(prnResult,resNodeDup(prnT,iArgOptions));
+    if (iArgOptions & RN_DUP_NEXT) {
+      resNodePtr prnI;
+
+      for (prnI = resNodeGetNext(prnArg); prnI; prnI = resNodeGetNext(prnI)) {
+	resNodePtr prnNew;
+
+	prnNew = resNodeDup(prnI, iArgOptions & ~RN_DUP_NEXT); /* duplicate without following siblings */
+	if (prnNew) {
+	  if (prnResult) {
+	    resNodeAddSibling(prnResult, prnNew);
+	  }
+	  else {
+	    prnResult = prnNew;
+	  }
+	}
       }
     }
   }
+
   return prnResult;
 } /* end of resNodeDup() */
 

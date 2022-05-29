@@ -286,6 +286,12 @@ resNodeListFindPath(resNodePtr prnArg, xmlChar *pucArgPath, int iArgOptions)
       }
     }
 #endif
+    
+    if (prnResult == NULL && prnArg->parent == NULL && (iArgOptions & RN_FIND_NEXT)) {
+      for (prnI = resNodeGetNext(prnArg); prnI != NULL && prnResult == NULL; prnI = resNodeGetNext(prnI)) {
+	prnResult = resNodeListFindPath(prnI, pucArgPath, iArgOptions & ~RN_FIND_NEXT);
+      }
+    }
   }
   return prnResult;
 } /* end of resNodeListFindPath() */

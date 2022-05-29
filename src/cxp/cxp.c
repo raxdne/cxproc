@@ -1838,7 +1838,7 @@ cxpCtxtSearchSet(cxpContextPtr pccArg, resNodePtr prnArg)
 
     if (prnArg) {
       /*!\todo check readability of list first */
-      pccArg->prnSearch = resNodeDup(prnArg, RN_DUP_NEXT);
+      pccArg->prnSearch = resNodeDup(prnArg, (RN_DUP_NEXT | RN_DUP_READ));
     }
 
     /*!\todo improve speed by using index files 'NAME_FILE_INDEX' */
@@ -1876,7 +1876,7 @@ cxpCtxtSearchFind(cxpContextPtr pccArg, xmlChar* pucArgPath)
     cxpContextPtr pccI;
 
     for (pccI = pccArg; pccI; pccI = pccI->parent) {
-      if ((prnResult = resNodeListFindPath(pccI->prnSearch, pucArgPath, RN_FIND_FILE | RN_FIND_IN_SUBDIR)) != NULL) {
+      if ((prnResult = resNodeListFindPath(pccI->prnSearch, pucArgPath, RN_FIND_ALL)) != NULL) {
 	break;
       }
     }

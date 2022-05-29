@@ -520,7 +520,7 @@ resNodeTestInOut(void)
     i++;
     printf("TEST %i in '%s:%i': open, read and close a HTTP archive resource (resNodeGetContent) = ", i, __FILE__, __LINE__);
 
-    if ((prnT = resNodeDirNew(BAD_CAST HTTPPREFIX "test-zip-7.zip/sub/plain.txt")) == NULL) {
+    if ((prnT = resNodeDirNew(BAD_CAST HTTPPREFIX "Test/Archive/TestArchive.zip/Test/TestContent.txt")) == NULL) {
       printf("Error resNodeDirNew()\n");
     }
     else if ((prnChild = resNodeGetChild(prnT)) == NULL || (prnChild = resNodeGetChild(prnChild)) == NULL) {
@@ -529,7 +529,7 @@ resNodeTestInOut(void)
     else if (resNodeGetContent(prnChild, 1024) == NULL) {
       printf("Error resNodeGetContent(): there is no content\n");
     }
-    else if (resNodeGetSize(prnChild) != 49) {
+    else if (resNodeGetSize(prnChild) != 45) {
       printf("Error 2 resNodeGetSize()\n");
     }
     else {

@@ -562,8 +562,8 @@ cxpTest(cxpContextPtr pccArg)
     printf("TEST %i in '%s:%i': set cxp context search path to multiple directories = ", i, __FILE__, __LINE__);
 
     pccT = cxpCtxtDup(pccArg);
-    xmlStrPrintf(mucT, BUFFER_LENGTH-1, "%s/xml/sub1/sub11//%c%s/option/pie/text//%c/tmp/%c%c%s//%c",
-      TESTPREFIX, PATHLIST_SEPARATOR, TESTPREFIX, PATHLIST_SEPARATOR, PATHLIST_SEPARATOR, PATHLIST_SEPARATOR, TEMPPREFIX, PATHLIST_SEPARATOR);
+    xmlStrPrintf(mucT, BUFFER_LENGTH-1, "%s/xml/sub1/sub11//%c%s/option/pie/text//%c/tmp/%c%c%s//%c%s//%c",
+      TESTPREFIX, PATHLIST_SEPARATOR, TESTPREFIX, PATHLIST_SEPARATOR, PATHLIST_SEPARATOR, PATHLIST_SEPARATOR, TEMPPREFIX, PATHLIST_SEPARATOR, TESTPREFIX, PATHLIST_SEPARATOR);
 
     if ((prnT = resNodeStrNew(mucT)) == NULL) {
       printf("Error resNodeStrNew()\n");
@@ -689,16 +689,13 @@ cxpTest(cxpContextPtr pccArg)
     else if ((xmlSetProp(pndCopy, BAD_CAST"to", BAD_CAST TEMPPREFIX "def/hij.pie")) == NULL) {
       printf("Error 3\n");
     }
-    else if ((xmlSetProp(pndCopy, BAD_CAST"delete", BAD_CAST "yes")) == NULL) {
-      printf("Error 4\n");
-    }
     else if (cxpProcessCopyNode(pndCopy,pccTest) == FALSE) {
       printf("Error 5\n");
     }
     else if (resNodeTestDirStr(BAD_CAST TEMPPREFIX "dummy") == FALSE) {
       printf("Error 6\n");
     }
-    else if (resNodeTestFileStr(BAD_CAST TEMPPREFIX "dummy/abc.pie") == TRUE) {
+    else if (resNodeTestFileStr(BAD_CAST TEMPPREFIX "dummy/abc.pie") == FALSE) {
       printf("Error 7\n");
     }
     else if (resNodeTestFileStr(BAD_CAST TEMPPREFIX "def/hij.pie") == FALSE) {

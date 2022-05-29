@@ -560,6 +560,67 @@ resNodeTestList(void)
 
 
   if (RUNTEST) {
+    size_t j;
+    resNodePtr prnT = NULL;
+    resNodePtr prnTT = NULL;
+    resNodePtr prnFound = NULL;
+
+    i++;
+    printf("TEST %i in '%s:%i': parse filesystem context recursively and search for context = ", i, __FILE__, __LINE__);
+
+    if ((prnTT = resNodeDirNew(BAD_CAST TESTPREFIX "option")) == NULL) {
+      printf("Error resNodeDirNew()\n");
+    }
+    else if (resNodeAddSibling(prnTT, resNodeDirNew(BAD_CAST TEMPPREFIX)) == FALSE) {
+      printf("Error resNodeAddSibling()\n");
+    }
+    else if (resNodeAddSibling(prnTT, resNodeDirNew(BAD_CAST TESTPREFIX "xml/")) == FALSE) {
+      printf("Error resNodeAddSibling()\n");
+    }
+    else if (resNodeAddSibling(prnTT, resNodeDirNew(BAD_CAST TESTPREFIX "DUMMY")) == FALSE) {
+      printf("Error resNodeAddSibling()\n");
+    }
+    else if (resNodeAddSibling(prnTT, resNodeDirNew(BAD_CAST TESTPREFIX "plain//")) == FALSE) {
+      printf("Error resNodeAddSibling()\n");
+    }
+    else if (resNodeListParse(prnTT, 999, NULL) == FALSE) {
+      printf("Error resNodeListParse() ...\n");
+    }
+    else if ((j = resNodeGetChildCount(prnTT, rn_type_dir)) != 10) {
+      printf("Error resNodeGetChildCount() = %i\n", j);
+    }
+    else if ((prnT = resNodeDup(prnTT, RN_DUP_NEXT | RN_DUP_READ)) == NULL) {
+      printf("Error resNodeDup()\n");
+    }
+#if 0
+    else if (resNodeListParse(prnT, 999, NULL) == FALSE) {
+      printf("Error resNodeListParse() ...\n");
+    }
+    else if ((j = resNodeGetChildCount(prnT, rn_type_dir)) != 10) {
+      printf("Error resNodeDirAppendEntries() = %i\n", j);
+    }
+#endif
+    else if ((prnFound = resNodeListFindPath(prnT, BAD_CAST"xml", (RN_FIND_DIR | RN_FIND_IN_SUBDIR))) == NULL) {
+      printf("Error 1 resNodeListFindPath() ...\n");
+    }
+    else if ((prnFound = resNodeListFindPath(prnT, BAD_CAST "pie/text/config.cxp", (RN_FIND_FILE | RN_FIND_IN_SUBDIR))) == NULL) {
+      printf("Error 2 resNodeListFindPath() ...\n");
+    }
+    else if ((prnFound = resNodeListFindPath(prnT, BAD_CAST "plain/config.cxp", (RN_FIND_ALL))) == NULL) {
+      printf("Error 3 resNodeListFindPath() ...\n");
+    }
+    else {
+      n_ok++;
+      printf("OK\n");
+    }
+
+    //puts((const char*)resNodeListToPlain(prnTT,RN_INFO_MAX));
+    resNodeFree(prnT);
+    resNodeFree(prnTT);
+  }
+
+
+  if (RUNTEST) {
     int j = 0;
     xmlChar *pucPlain = NULL;
     xmlChar *pucJSON = NULL;

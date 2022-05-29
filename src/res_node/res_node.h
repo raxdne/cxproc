@@ -68,7 +68,7 @@
 #include <res_node/res_path.h>
 #include <res_node/res_mime.h>
 
-/*! bits for duplicating of resource nodes
+/*! option bits for duplicating of resource nodes
  */
 #define RN_DUP_THIS    (0)
 
@@ -78,7 +78,13 @@
 
 #define RN_DUP_NEXT    (4)
 
-/*! bits for parsing of resource nodes
+#define RN_DUP_EXIST   (8)
+
+#define RN_DUP_READ    (16 | RN_DUP_EXIST)
+
+#define RN_DUP_WRITE   (32 | RN_DUP_EXIST)
+
+ /*! option bits for parsing of resource nodes
  */
 #define RN_INFO_MIN     (0)
 
