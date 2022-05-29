@@ -87,7 +87,7 @@ pieElementTest(void)
     if ((ppeT = pieElementNew(BAD_CAST "\t\r\n", RMODE_PAR)) == NULL) {
       printf("Error pieElementNew()");
     }
-    else if (pieElementHasNext(ppeT) == FALSE) {
+    else if (pieElementHasNext(ppeT) == FALSE || pieElementGetDepth(ppeT) != 0 || pieElementGetStrlen(ppeT) != 0) {
       printf("Error 1 pieElementHasNext()");
     }
     else if (pieElementHasNext(ppeT) == TRUE) {
@@ -775,13 +775,16 @@ pieElementTest(void)
       printf("Error %i pieElementNew()", 0);
     }
     else if (pieElementHasNext(ppeT) == FALSE || pieElementParse(ppeT) == FALSE || pieElementIsPar(ppeT) == FALSE || pieElementWeight(ppeT) != 2 || xmlStrlen(ppeT->pucContent) != 7) {
-      printf("Error %i pieElementWeight()", 0);
+      printf("Error %i pieElementWeight()", 1);
     }
     else if (pieElementHasNext(ppeT) == FALSE || pieElementParse(ppeT) == FALSE || pieElementIsHeader(ppeT) == FALSE || pieElementWeight(ppeT) != 3 || xmlStrlen(ppeT->pucContent) != 7) {
-      printf("Error %i pieElementWeight()", 0);
+      printf("Error %i pieElementWeight()", 2);
     }
     else if (pieElementHasNext(ppeT) == FALSE || pieElementParse(ppeT) == FALSE || pieElementIsPar(ppeT) == FALSE || pieElementWeight(ppeT) != 0 || xmlStrlen(ppeT->pucContent) != 4) {
-      printf("Error %i pieElementWeight()", 0);
+      printf("Error %i pieElementWeight()", 3);
+    }
+    else if (pieElementHasNext(ppeT) == TRUE || pieElementParse(ppeT) == FALSE || pieElementIsPar(ppeT) == TRUE || pieElementWeight(ppeT) != -1 || xmlStrlen(ppeT->pucContent) != 0) {
+      printf("Error %i pieElementWeight()", 4);
     }
     else {
       n_ok++;

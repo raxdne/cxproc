@@ -947,6 +947,10 @@ pieElementHasNext(pieTextElementPtr ppeArg)
 	ppeArg->iLength = xmlStrlen(ppeArg->pucContent);
 	fResult = TRUE;
       }
+#else
+      else if (TRUE) {
+	assert(FALSE);
+      }
 #endif
       else if (pieElementGetMode(ppeArg) == RMODE_PAR && StringBeginsWith((char *)puc0, "#begin_of_cxp")) {
 	/*
@@ -1251,7 +1255,7 @@ pieElementHasNext(pieTextElementPtr ppeArg)
 		  ppeArg->iDepth = 2;
 		}
 		else {
-		  assert(TRUE);
+		  assert(FALSE);
 		}
 		ppeArg->eType = header;
 		StrIncrementToNextLine(&puc0[iNextBegin], &iNextBegin);
@@ -1272,6 +1276,8 @@ pieElementHasNext(pieTextElementPtr ppeArg)
 	      else {
 	      }
 	    }
+#else
+	    assert(FALSE);
 #endif
 	  }
 	  else if (pieElementGetMode(ppeArg) == RMODE_LINE) {
@@ -1438,6 +1444,8 @@ pieElementParse(pieTextElementPtr ppeArg)
       xmlFree(pucRelease);
     }
     pieElementWeight(ppeArg);
+#else
+    assert(FALSE);
 #endif
   }
   else {
