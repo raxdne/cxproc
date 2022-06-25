@@ -79,6 +79,9 @@ extern xmlNodePtr
 RecognizeSubsts(xmlNodePtr pndArg);
 
 extern xmlNodePtr
+RecognizeIncludes(xmlNodePtr pndArg);
+
+extern xmlNodePtr
 RecognizeImports(xmlNodePtr pndArg);
 
 extern xmlNodePtr

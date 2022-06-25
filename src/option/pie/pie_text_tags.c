@@ -238,42 +238,49 @@ SplitStringToTagNodes2(const xmlChar* pucArg, pcre2_code* preArg, const xmlChar*
 	the regexp match, assemble node list with a common dummy
 	element node
 	*/
-	xmlChar* pucHashtag;
-	xmlChar* pucA = (xmlChar*)pucArg + ovector[0];
 
-	pucHashtag = xmlStrndup(pucA, (int)(ovector[1] - ovector[0]));
-	PrintFormatLog(3, "'%s' '%s' (%i..%i) in '%s'", pucArgName, pucHashtag, ovector[0], ovector[1], pucArg);
-
-	pndResult = xmlNewNode(NULL, BAD_CAST "dummy");
-
-	if (ovector[0] > 0) {
-	  /* the content starts with text	*/
-	  xmlChar* pucT = xmlStrndup(pucArg, (int)ovector[0]);
-	  xmlAddChild(pndResult, xmlNewText(pucT));
-	  xmlFree(pucT);
+	if (StringBeginsWith(&pucArg[ovector[0]],"#include")
+	    || StringBeginsWith(&pucArg[ovector[0]],"#import")
+	    || StringBeginsWith(&pucArg[ovector[0]],"#subst")) {
 	}
+	else {
+	  xmlChar* pucHashtag;
+	  xmlChar* pucA = (xmlChar*)pucArg + ovector[0];
 
-	if ((pndT = AddTagNodeNew(pndResult, pucHashtag))) {
-	  xmlNodeSetName(pndT, pucArgName);
-	}
+	  pucHashtag = xmlStrndup(pucA, (int)(ovector[1] - ovector[0]));
+	  PrintFormatLog(3, "'%s' '%s' (%i..%i) in '%s'", pucArgName, pucHashtag, ovector[0], ovector[1], pucArg);
 
-	if (ducOrigin > ovector[1]) {
-	  /* the content ends with text, recursion */
-	  pndPostfix = SplitStringToTagNodes2(pucArg + ovector[1], preArg, pucArgName);
-	  if (pndPostfix) {
-	    pndT = pndPostfix->children;
-	    domUnlinkNodeList(pndT);
-	    xmlAddChildList(pndResult, pndT);
-	    xmlFreeNode(pndPostfix);
-	  }
-	  else {
-	    xmlChar* pucT = xmlStrdup(pucArg + ovector[1]);
+	  pndResult = xmlNewNode(NULL, BAD_CAST "dummy");
+
+	  if (ovector[0] > 0) {
+	    /* the content starts with text	*/
+	    xmlChar* pucT = xmlStrndup(pucArg, (int)ovector[0]);
 	    xmlAddChild(pndResult, xmlNewText(pucT));
 	    xmlFree(pucT);
 	  }
-	}
 
-	xmlFree(pucHashtag);
+	  if ((pndT = AddTagNodeNew(pndResult, pucHashtag))) {
+	    xmlNodeSetName(pndT, pucArgName);
+	  }
+
+	  if (ducOrigin > ovector[1]) {
+	    /* the content ends with text, recursion */
+	    pndPostfix = SplitStringToTagNodes2(pucArg + ovector[1], preArg, pucArgName);
+	    if (pndPostfix) {
+	      pndT = pndPostfix->children;
+	      domUnlinkNodeList(pndT);
+	      xmlAddChildList(pndResult, pndT);
+	      xmlFreeNode(pndPostfix);
+	    }
+	    else {
+	      xmlChar* pucT = xmlStrdup(pucArg + ovector[1]);
+	      xmlAddChild(pndResult, xmlNewText(pucT));
+	      xmlFree(pucT);
+	    }
+	  }
+
+	  xmlFree(pucHashtag);
+	}
       }
     }
 

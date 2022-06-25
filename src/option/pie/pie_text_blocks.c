@@ -2592,7 +2592,7 @@ SubstNodeNew(xmlNodePtr pndArg)
     xmlChar* puc0 = NULL;
     xmlChar* puc1 = NULL;
     xmlChar* pucAttrName = NULL;
-    xmlChar ucQuot = '\''; /* quote char */
+    xmlChar ucQuot; /* quote char */
 
     for (i = 0; pucC[i] != '(' && !isend(pucC[i]); i++); /* find opening '(' */
 
@@ -2604,8 +2604,15 @@ SubstNodeNew(xmlNodePtr pndArg)
       k++;
     }
 
-    for (p = 0; k < j; k++) { /* separate two parameters */
-      if (pucC[k] == '\'' || (pucC[k] == '\"' && (ucQuot == '\"'))) {
+    for (ucQuot = '\0'; k < j; k++) { /* find opening quot */
+      if (pucC[k] == '\'' || pucC[k] == '\"') {
+	ucQuot = pucC[k];
+	break;
+      }
+    }
+
+    for (p = 0; ucQuot != '\0' && k < j; k++) { /* separate two parameters */
+      if (pucC[k] == ucQuot) {
 	int l;
 
 	for (k++, l = k; k < j && pucC[k] != ucQuot; k++); /* find closing char */
@@ -2675,6 +2682,110 @@ RecognizeSubsts(xmlNodePtr pndArg)
 
   return pndResult;
 } /* End of RecognizeSubsts() */
+
+
+/*! splits an UTF-8 string into an include element node
+\todo rename pndArg to NAME_PIE_INCLUDE ??
+*/
+xmlNodePtr
+IncludeNodeNew(xmlNodePtr pndArg)
+{
+  xmlNodePtr pndResult = NULL;
+  xmlChar* pucC = NULL;
+
+  if (IS_NODE_PIE_PAR(pndArg) && IS_VALID_NODE(pndArg) && pndArg->children != NULL && pndArg->children == pndArg->last
+      && xmlNodeIsText(pndArg->children) && (pucC = pndArg->children->content) != NULL
+      && (pucC = xmlStrcasestr(pucC,BAD_CAST"#include")) != NULL && (pucC += xmlStrlen(BAD_CAST"#include"))) {
+
+    int i;
+    int j;
+    char* pchT;
+    char delimiter[] = ",;";
+
+    pndResult = xmlNewNode(NULL, NAME_PIE_INCLUDE);
+
+    for (i = j = 0; !isend(pucC[i]); i++) { /* clean content string */
+      switch (pucC[i]) {
+      case '(':
+      case ')':
+      case '\t':
+      case ' ': /*\bug inside filename */
+	break;
+      default:
+	pucC[j] = pucC[i];
+	j++;
+      }
+    }
+    pucC[j] = (xmlChar)'\0';
+
+    for (i = 0, pchT = strtok((char*)pucC, delimiter); pchT != NULL; i++) {
+      switch (i) {
+      case 0:
+	if (STR_IS_NOT_EMPTY(pchT)) {
+	  xmlChar* pucT;
+
+	  pucT = xmlStrdup(BAD_CAST pchT);
+	  resPathRemoveQuotes(pucT);
+	  xmlSetProp(pndResult, BAD_CAST "name", pucT);
+	  xmlFree(pucT);
+	}
+	break;
+#if 0
+      case 1:
+	if (STR_IS_NOT_EMPTY(pchT)) {
+	  xmlSetProp(pndResult, BAD_CAST "type", BAD_CAST pchT);
+	}
+	break;
+      case 2:
+	if (STR_IS_NOT_EMPTY(pchT)) {
+	  xmlSetProp(pndResult, BAD_CAST "base", BAD_CAST pchT);
+	}
+	break;
+#endif
+      default:
+	break;
+      }
+      pchT = strtok(NULL, delimiter);
+    }
+  }
+  
+  return pndResult;
+} /* End of IncludeNodeNew() */
+
+
+/*!\return pointer to next node
+ */
+xmlNodePtr
+RecognizeIncludes(xmlNodePtr pndArg)
+{
+  xmlNodePtr pndResult = NULL;
+
+  if (pndArg) {
+    xmlNodePtr pndChild;
+    xmlNodePtr pndInclude;
+
+    pndResult = pndArg->next;
+    
+    if (pndArg->ns != NULL && pndArg->ns != pnsPie) {
+      /* skip nodes from other namespaces */
+    }
+    else if (IS_VALID_NODE(pndArg) == FALSE || xmlHasProp(pndArg,BAD_CAST"hidden") != NULL) {
+      /* skip */
+    }
+    else if ((pndInclude = IncludeNodeNew(pndArg)) != NULL) {
+      xmlReplaceNode(pndArg, pndInclude); /*! replace pndArg by pndInclude */
+      xmlFreeNode(pndArg);
+    }
+    else if (IS_NODE_PIE_SECTION(pndArg) || IS_NODE_PIE_BLOCK(pndArg) || IS_NODE_PIE_PIE(pndArg)) {
+      for (pndChild = pndArg->children; pndChild; pndChild = RecognizeIncludes(pndChild));
+    }
+    else {
+      /* skip */
+    }
+  }
+
+  return pndResult;
+} /* End of RecognizeIncludes() */
 
 
 /*! splits an UTF-8 string into an import element node

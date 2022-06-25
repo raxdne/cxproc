@@ -947,10 +947,6 @@ pieElementHasNext(pieTextElementPtr ppeArg)
 	ppeArg->iLength = xmlStrlen(ppeArg->pucContent);
 	fResult = TRUE;
       }
-#else
-      else if (TRUE) {
-	assert(FALSE);
-      }
 #endif
       else if (pieElementGetMode(ppeArg) == RMODE_PAR && StringBeginsWith((char *)puc0, "#begin_of_cxp")) {
 	/*
