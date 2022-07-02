@@ -1,0 +1,32 @@
+
+* archive
+
+** ZIP
+
+archive and compress files
+
+#begin_of_pre
+  <cxp:zip name="abc.zip" context="../../test">
+    <cxp:xml>
+      <cxp:dir>
+        <cxp:dir name="pie" depth="2"/>
+      </cxp:dir>
+    </cxp:xml>
+  </cxp:zip>
+#end_of_pre
+
+set base directory for in ZIP paths (not current directory only, use the context attribute)
+
+archive and compress files, map content to new filenames ()
+
+#begin_of_pre
+  <cxp:zip name="def.zip" level="3" context="../../test">
+    <file name="plain/config-single.cxp"/>
+    <file name="plain/config.cxp" map="mapped/t-1c-1.cxp"/>
+    <file name="plain/test-content-utf16be.txt" map="mapped/t-1c-3.cxp"/>
+  </cxp:zip>
+#end_of_pre
+
+filter files to archive with complex rules using XSLT
+
+archive files in an alternative structure without copying them
