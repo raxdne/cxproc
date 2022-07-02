@@ -44,7 +44,7 @@ jsonProcessJsonNode(xmlNodePtr pndArgJson, cxpContextPtr pccArg)
   //xmlNodePtr pndError;
   xmlNodePtr pndRoot;
   xmlNodePtr pndJson = NULL;
-  xmlChar *pucAttrFile;
+  xmlChar *pucAttrFile = NULL;
   xmlChar mpucT[BUFFER_LENGTH];
   xmlChar *pucContent = NULL;
 

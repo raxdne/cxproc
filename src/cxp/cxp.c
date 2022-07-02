@@ -612,7 +612,7 @@ cxpResNodeResolveNew(cxpContextPtr pccArg, xmlNodePtr pndArg, xmlChar *pucArg, i
       }
       else {
 	/* valid attribute 'name' */
-	DecodeRFC1738(pucAttrName);
+	DecodeRFC1738((char *)pucAttrName);
 	if (cxpIsStorageNode(pndArg)) { /* => target node, must be writable */
 	  iArgOptions = CXP_O_WRITE;
 	  assert((iArgOptions & CXP_O_SEARCH) == 0); /* searching is not allowed */

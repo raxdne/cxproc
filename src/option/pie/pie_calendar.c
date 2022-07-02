@@ -851,117 +851,110 @@ AddDateAttributes(pieCalendarElementPtr pceArg)
   if (pceArg) {
     pieCalendarElementPtr pceT;
     unsigned int i;
+    long int iDayAbsoluteMax = GetDayAbsolute(1970, 1, 1, -1, -1);
+    long int iDayToday = GetToday();
 
     for (pceT = pceArg, i=0; pceT; pceT = pceT->pNext, i++) {
       xmlNodePtr pndCurrent = pceT->pndEntry;
+      xmlChar mpucT[BUFFER_LENGTH];
+      long int iDayAbsolute = 0;
 
-      if (IS_VALID_NODE(pndCurrent)) {
-
-	long int iDayAbsoluteMax;
-	xmlChar *pucIso = NULL;
-	xmlChar mpucT[BUFFER_LENGTH];
-	long int iDayAbsolute = 0;
-
-	iDayAbsoluteMax = GetDayAbsolute(1970, 1, 1, -1, -1);
-	
-	if (pceT->iMonth > 0) {
-	  if (pceT->iDay > 0) {
-	    iDayAbsolute = GetDayAbsolute(pceT->iYear, pceT->iMonth, pceT->iDay, -1, -1);
-	  }
-	  else {
-	    iDayAbsolute = GetDayAbsolute(pceT->iYear, pceT->iMonth, 15, -1, -1); /* middle of the month */
-	  }
+      if (pceT->iMonth > 0) {
+	if (pceT->iDay > 0) {
+	  iDayAbsolute = GetDayAbsolute(pceT->iYear, pceT->iMonth, pceT->iDay, -1, -1);
 	}
-	else if (pceT->iWeek > 0) {
-	  if (pceT->iDayWeek > 0) {
-	    iDayAbsolute = GetDayAbsolute(pceT->iYear, -1, -1, pceT->iWeek, pceT->iDayWeek);
+	else {
+	  iDayAbsolute = GetDayAbsolute(pceT->iYear, pceT->iMonth, 15, -1, -1); /* middle of the month */
+	}
+      }
+      else if (pceT->iWeek > 0) {
+	if (pceT->iDayWeek > 0) {
+	  iDayAbsolute = GetDayAbsolute(pceT->iYear, -1, -1, pceT->iWeek, pceT->iDayWeek);
+	}
+	else {
+	  iDayAbsolute = GetDayAbsolute(pceT->iYear, -1, -1, pceT->iWeek, 3); /* middle of the week */
+	}
+      }
+      else {
+      }
+	  
+      if (iDayAbsolute > 0 && (iDayAbsolute > iDayAbsoluteMax)) {
+	iDayAbsoluteMax = iDayAbsolute;
+      }
+
+      xmlStrPrintf(mpucT, BUFFER_LENGTH, "%li", iDayAbsolute - iDayToday);
+      xmlSetProp(pndCurrent, BAD_CAST"diff", mpucT);
+	  
+#ifdef EXPERIMENTAL
+      /*!\todo concatenate sequential dates */
+
+      if (pceT->iYear > 1900 && pceT->iMonth > 0 && pceT->iDay > 0 ) {
+	if (pceT->iHourA > -1 && pceT->iMinuteA > -1 && pceT->iSecondA > -1) {
+	  xmlStrPrintf(mpucT, BUFFER_LENGTH,
+		       "%04i-%02i-%02iT%02i:%02i:%02i",
+		       pceT->iYear,
+		       pceT->iMonth,
+		       pceT->iDay,
+		       pceT->iHourA,
+		       pceT->iMinuteA,
+		       pceT->iSecondA
+		       );
+	      
+	  if (pceT->iTimezoneOffset) {
+	    xmlChar* pucT = NULL;
+
+	    if (pceT->iTimezoneOffset < 0) {
+	      pucT = xmlStrncatNew(mpucT, BAD_CAST STR_UTF8_MINUS, -1);
+	    }
+	    else if (pceT->iTimezoneOffset > 0) {
+	      pucT = xmlStrncatNew(mpucT, BAD_CAST "+", -1);
+	    }
+
+	    xmlStrPrintf(mpucT, BUFFER_LENGTH - 1, "%s%02i:%02i", pucT, (abs(pceT->iTimezoneOffset) / 60), (abs(pceT->iTimezoneOffset) % 60));
+	    xmlFree(pucT);
 	  }
-	  else {
-	    iDayAbsolute = GetDayAbsolute(pceT->iYear, -1, -1, pceT->iWeek, 3); /* middle of the week */
+	    
+	  if (pceT->iTimezone) {
+	    xmlSetProp(pndCurrent, BAD_CAST "tz", tzGetId(pceT->iTimezone));
 	  }
 	}
 	else {
+	  xmlStrPrintf(mpucT, BUFFER_LENGTH,
+		       "%04i-%02i-%02i",
+		       pceT->iYear,
+		       pceT->iMonth,
+		       pceT->iDay
+		       );
 	}
-	  
-	if (iDayAbsolute > 0 && (iDayAbsolute > iDayAbsoluteMax)) {
-	  iDayAbsoluteMax = iDayAbsolute;
-	}
 
-	xmlStrPrintf(mpucT, BUFFER_LENGTH, "%li", iDayAbsolute - GetToday());
-	xmlSetProp(pndCurrent, BAD_CAST"diff", mpucT);
-	  
-#ifdef EXPERIMENTAL
-	/*!\todo concatenate sequential dates */
+	xmlSetProp(pndCurrent, BAD_CAST"iso", mpucT);
 
-	if (pceT->iYear > 1900 && pceT->iMonth > 0 && pceT->iDay > 0 ) {
-	  if (pceT->iHourA > -1 && pceT->iMinuteA > -1 && pceT->iSecondA > -1) {
-	    xmlStrPrintf(mpucT, BUFFER_LENGTH,
-			 "%04i-%02i-%02iT%02i:%02i:%02i",
-			 pceT->iYear,
-			 pceT->iMonth,
-			 pceT->iDay,
-			 pceT->iHourA,
-			 pceT->iMinuteA,
-			 pceT->iSecondA
-			 );
-	      
-	    if (pceT->iTimezoneOffset) {
-	      xmlChar* pucT = NULL;
+	if (pceT->iHourA > -1) {
+	  xmlStrPrintf(mpucT,BUFFER_LENGTH-1, "%02i", (pceT->iHourA > -1) ? pceT->iHourA : 0);
+	  xmlSetProp(pndCurrent, BAD_CAST "hour", mpucT);
 
-	      if (pceT->iTimezoneOffset < 0) {
-		pucT = xmlStrncatNew(mpucT, BAD_CAST STR_UTF8_MINUS, -1);
-	      }
-	      else if (pceT->iTimezoneOffset > 0) {
-		pucT = xmlStrncatNew(mpucT, BAD_CAST "+", -1);
-	      }
+	  xmlStrPrintf(mpucT,BUFFER_LENGTH-1, "%02i", (pceT->iMinuteA > -1) ? pceT->iMinuteA : 0);
+	  xmlSetProp(pndCurrent, BAD_CAST "minute", mpucT);
 
-	      xmlStrPrintf(mpucT, BUFFER_LENGTH - 1, "%s%02i:%02i", pucT, (abs(pceT->iTimezoneOffset) / 60), (abs(pceT->iTimezoneOffset) % 60));
-	      xmlFree(pucT);
-	    }
-	    
-	    if (pceT->iTimezone) {
-	      xmlSetProp(pndCurrent, BAD_CAST "tz", tzGetId(pceT->iTimezone));
-	    }
-	  }
-	  else {
-	    xmlStrPrintf(mpucT, BUFFER_LENGTH,
-			 "%04i-%02i-%02i",
-			 pceT->iYear,
-			 pceT->iMonth,
-			 pceT->iDay
-			 );
-	  }
+	  xmlStrPrintf(mpucT,BUFFER_LENGTH-1, "%02i", (pceT->iSecondA > -1) ? pceT->iSecondA : 0);
+	  xmlSetProp(pndCurrent, BAD_CAST "second", mpucT);
 
-	  xmlSetProp(pndCurrent, BAD_CAST"iso", mpucT);
+	  if (pceT->iHourB > -1) {
+	    xmlStrPrintf(mpucT,BUFFER_LENGTH-1, "%02i", (pceT->iHourB > -1) ? pceT->iHourB : 0);
+	    xmlSetProp(pndCurrent, BAD_CAST "hour-end", mpucT);
 
-	  if (pceT->iHourA > -1) {
-	    xmlStrPrintf(mpucT,BUFFER_LENGTH-1, "%02i", (pceT->iHourA > -1) ? pceT->iHourA : 0);
-	    xmlSetProp(pndCurrent, BAD_CAST "hour", mpucT);
+	    xmlStrPrintf(mpucT,BUFFER_LENGTH-1, "%02i", (pceT->iMinuteB > -1) ? pceT->iMinuteB : 0);
+	    xmlSetProp(pndCurrent, BAD_CAST "minute-end", mpucT);
 
-	    xmlStrPrintf(mpucT,BUFFER_LENGTH-1, "%02i", (pceT->iMinuteA > -1) ? pceT->iMinuteA : 0);
-	    xmlSetProp(pndCurrent, BAD_CAST "minute", mpucT);
-
-	    xmlStrPrintf(mpucT,BUFFER_LENGTH-1, "%02i", (pceT->iSecondA > -1) ? pceT->iSecondA : 0);
-	    xmlSetProp(pndCurrent, BAD_CAST "second", mpucT);
-
-	    if (pceT->iHourB > -1) {
-	      xmlStrPrintf(mpucT,BUFFER_LENGTH-1, "%02i", (pceT->iHourB > -1) ? pceT->iHourB : 0);
-	      xmlSetProp(pndCurrent, BAD_CAST "hour-end", mpucT);
-
-	      xmlStrPrintf(mpucT,BUFFER_LENGTH-1, "%02i", (pceT->iMinuteB > -1) ? pceT->iMinuteB : 0);
-	      xmlSetProp(pndCurrent, BAD_CAST "minute-end", mpucT);
-
-	      xmlStrPrintf(mpucT,BUFFER_LENGTH-1, "%02i", (pceT->iSecondB > -1) ? pceT->iSecondB : 0);
-	      xmlSetProp(pndCurrent, BAD_CAST "second-end", mpucT);
-	    }
+	    xmlStrPrintf(mpucT,BUFFER_LENGTH-1, "%02i", (pceT->iSecondB > -1) ? pceT->iSecondB : 0);
+	    xmlSetProp(pndCurrent, BAD_CAST "second-end", mpucT);
 	  }
 	}
-#endif
       }
+#endif
     }
   }
-}
-/* End of AddDateAttributes() */
+} /* End of AddDateAttributes() */
 
 
 /*! \return an array of year numbers

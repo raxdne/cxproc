@@ -70,6 +70,12 @@ static BOOL_T
 ProcessPieDoc(xmlNodePtr pndArgResult, xmlDocPtr pdocArgPie, cxpContextPtr pccArg);
 
 static BOOL_T
+ProcessIncludeNode(xmlNodePtr pndArgInclude, cxpContextPtr pccArg);
+
+static BOOL_T
+IncludeNodeFile(xmlNodePtr pndArgInclude, cxpContextPtr pccArg);
+
+static BOOL_T
 ProcessImportNode(xmlNodePtr pndArgImport, cxpContextPtr pccArg);
 
 static BOOL_T
@@ -268,7 +274,7 @@ pieProcessPieNode(xmlNodePtr pndArgPie, cxpContextPtr pccArg)
     xmlDocSetRootElement(pdocResult, pndPieRoot);
 
     if (domGetPropFlag(pndPieRoot, NAME_PIE_IMPORT, TRUE)) {
-      cxpContextPtr pccImport;
+      cxpContextPtr pccImport = pccArg;
 
       RecognizeIncludes(pndBlock);
       TraverseIncludeNodes(pndBlock, pccImport); /* #inlude: parse and insert only, no recursion, no own subst, no imports, no block, no locators */
@@ -307,6 +313,7 @@ pieProcessPieNode(xmlNodePtr pndArgPie, cxpContextPtr pccArg)
 
     RecognizeInlines(pndPieRoot);
 
+#ifdef HAVE_SCRIPT
     if (domGetPropFlag(pndArgPie, BAD_CAST "script", TRUE)) {
       cxpCtxtLogPrint(pccArg, 2, "Recognize scripts");
       RecognizeScripts(pndPieRoot);
@@ -315,6 +322,7 @@ pieProcessPieNode(xmlNodePtr pndArgPie, cxpContextPtr pccArg)
     else {
       cxpCtxtLogPrint(pccArg, 3, "Ignoring scripts");
     }
+#endif
 
     /* process all child subst nodes */
     cxpCtxtLogPrint(pccArg, 2, "Start substitution");
@@ -343,14 +351,14 @@ pieProcessPieNode(xmlNodePtr pndArgPie, cxpContextPtr pccArg)
 
     RecognizeDates(pndPieRoot,MIME_TEXT_PLAIN);
 
-    RecognizeSymbols(pndPieRoot, GetPieNodeLang(pndArgPie, pccArg));
-
-    /*! \todo global cite recognition in scientific text */
-
     if (domGetPropFlag(pndArgPie, BAD_CAST "offset", FALSE)) {
       cxpCtxtLogPrint(pccArg, 3, "Calculating date offsets");
       calAddAttributeDayDiff(pdocResult);
     }
+
+    RecognizeSymbols(pndPieRoot, GetPieNodeLang(pndArgPie, pccArg));
+
+    /*! \todo global cite recognition in scientific text */
 
     if (domGetPropFlag(pndArgPie, BAD_CAST "todo", TRUE)) {
       cxpCtxtLogPrint(pccArg, 2, "Recognize tasks markup");

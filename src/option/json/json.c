@@ -190,7 +190,7 @@ jsonParseBuffer(xmlNodePtr pndParent, xmlChar *pucArg)
       if (r < 0) {
 	if (r == JSMN_ERROR_NOMEM) {
 	  xmlFree(tok);
-	  return NULL;
+	  return FALSE;
 	}
       }
       else {

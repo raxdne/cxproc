@@ -670,7 +670,7 @@ CleanListTag(xmlNodePtr pndArg, BOOL_T fArgMerge)
 
 	  if (pndI != pndTag
 	      && pndI->children != NULL && pndI->children->type == XML_TEXT_NODE && (pucI = pndI->children->content) != NULL
-	      && (fArgMerge && (pucI[0] != (xmlChar)'@' && pucI[0] != (xmlChar)'#' && StringBeginsWith((char*)pucI, (char*)pucTag)) || xmlStrEqual(pucI, pucTag))) {
+	      && ((fArgMerge && (pucI[0] != (xmlChar)'@' && pucI[0] != (xmlChar)'#' && StringBeginsWith((char*)pucI, (char*)pucTag))) || xmlStrEqual(pucI, pucTag))) {
 	    /*!
 	      merge similar node pndI to pndTag
 	    */
@@ -887,7 +887,6 @@ ProcessTags(xmlDocPtr pdocPie, xmlChar* pucAttrTags)
   xmlNodePtr pndRoot;
 
   if (pdocPie != NULL && (pndRoot = xmlDocGetRootElement(pdocPie)) != NULL) {
-    int errornumber = 0;
     xmlNodePtr pndMeta;
     xmlNodePtr pndTags = NULL;
 
@@ -916,6 +915,7 @@ ProcessTags(xmlDocPtr pdocPie, xmlChar* pucAttrTags)
     else if (xmlStrlen(pucAttrTags) > 1) {
       /* use default regexp */
       size_t erroroffset;
+      int errornumber = 0;
 
       pcre2_code* re_tag_local = NULL;
 

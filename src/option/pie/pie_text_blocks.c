@@ -2783,7 +2783,7 @@ RecognizeIncludes(xmlNodePtr pndArg)
     else if (IS_VALID_NODE(pndArg) == FALSE || xmlHasProp(pndArg,BAD_CAST"hidden") != NULL) {
       /* skip */
     }
-    else if (IS_NODE_PIE_INCLUDE(pndArg) && (pndInclude = IncludeNodeNew(pndArg)) != NULL) {
+    else if (IS_NODE_PIE_PAR(pndArg) && (pndInclude = IncludeNodeNew(pndArg)) != NULL) {
       xmlReplaceNode(pndArg, pndInclude); /*! replace pndArg by pndInclude */
       xmlFreeNode(pndArg);
     }
@@ -2896,7 +2896,7 @@ RecognizeImports(xmlNodePtr pndArg)
     else if (IS_VALID_NODE(pndArg) == FALSE || xmlHasProp(pndArg,BAD_CAST"hidden") != NULL) {
       /* skip */
     }
-    else if (IS_NODE_PIE_IMPORT(pndArg) && (pndImport = ImportNodeNew(pndArg)) != NULL) {
+    else if (IS_NODE_PIE_PAR(pndArg) && (pndImport = ImportNodeNew(pndArg)) != NULL) {
       xmlReplaceNode(pndArg, pndImport); /*! replace pndArg by pndImport */
       xmlFreeNode(pndArg);
     }

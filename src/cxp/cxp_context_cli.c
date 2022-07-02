@@ -721,8 +721,6 @@ cxpCtxtCliParse(cxpContextPtr pccArg)
 	    /*
 	      argv[1] is a name of a pie file, existing or not!
 	    */
-	    //xmlNodePtr pndPie = NULL;
-	    xmlNodePtr pndImport = NULL;
 
 	    pndXml = xmlNewChild(pndMake, NULL, NAME_XML, NULL);
 	    xmlSetProp(pndXml, BAD_CAST "name", BAD_CAST "-");
