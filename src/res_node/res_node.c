@@ -1094,6 +1094,7 @@ resNodeDirNew(xmlChar *pucArgPath)
 	  if (curl_url_get(curlURL, CURLUPART_PATH, (char **)&pucT, 0) == CURLUE_OK && STR_IS_NOT_EMPTY(pucT)) { /* extract the path from the parsed URL */
 	    xmlFree(pucPath);
 	    pucPath = xmlStrdup(pucT);
+	    DecodeRFC1738(pucPath);
 	  }
 	  curl_free(pucT);
 	  curl_url_cleanup(curlURL);
