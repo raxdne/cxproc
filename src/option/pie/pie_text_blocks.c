@@ -2701,16 +2701,27 @@ IncludeNodeNew(xmlNodePtr pndArg)
     int j;
     char* pchT;
     char delimiter[] = ",;";
+    BOOL_T fInQuotes;
 
     pndResult = xmlNewNode(NULL, NAME_PIE_INCLUDE);
 
-    for (i = j = 0; !isend(pucC[i]); i++) { /* clean content string */
+    for (i = j = 0, fInQuotes = FALSE; !isend(pucC[i]); i++) { /* clean content string */
       switch (pucC[i]) {
       case '(':
       case ')':
       case '\t':
-      case ' ': /*\bug inside filename */
 	break;
+
+      case ' ': /* inside filename */
+	if (fInQuotes) {
+	  pucC[j] = pucC[i];
+	  j++;
+	}
+	break;
+
+      case '\"':
+      case '\'':
+	fInQuotes = !fInQuotes;
       default:
 	pucC[j] = pucC[i];
 	j++;
@@ -2772,7 +2783,7 @@ RecognizeIncludes(xmlNodePtr pndArg)
     else if (IS_VALID_NODE(pndArg) == FALSE || xmlHasProp(pndArg,BAD_CAST"hidden") != NULL) {
       /* skip */
     }
-    else if ((pndInclude = IncludeNodeNew(pndArg)) != NULL) {
+    else if (IS_NODE_PIE_INCLUDE(pndArg) && (pndInclude = IncludeNodeNew(pndArg)) != NULL) {
       xmlReplaceNode(pndArg, pndInclude); /*! replace pndArg by pndInclude */
       xmlFreeNode(pndArg);
     }
@@ -2805,16 +2816,27 @@ ImportNodeNew(xmlNodePtr pndArg)
     int j;
     char* pchT;
     char delimiter[] = ",;";
+    BOOL_T fInQuotes;
 
     pndResult = xmlNewNode(NULL, NAME_PIE_IMPORT);
 
-    for (i = j = 0; !isend(pucC[i]); i++) { /* clean content string */
+    for (i = j = 0, fInQuotes = FALSE; !isend(pucC[i]); i++) { /* clean content string */
       switch (pucC[i]) {
       case '(':
       case ')':
       case '\t':
-      case ' ': /*\bug inside filename */
 	break;
+
+      case ' ': /* inside filename */
+	if (fInQuotes) {
+	  pucC[j] = pucC[i];
+	  j++;
+	}
+	break;
+
+      case '\"':
+      case '\'':
+	fInQuotes = !fInQuotes;
       default:
 	pucC[j] = pucC[i];
 	j++;
@@ -2874,7 +2896,7 @@ RecognizeImports(xmlNodePtr pndArg)
     else if (IS_VALID_NODE(pndArg) == FALSE || xmlHasProp(pndArg,BAD_CAST"hidden") != NULL) {
       /* skip */
     }
-    else if ((pndImport = ImportNodeNew(pndArg)) != NULL) {
+    else if (IS_NODE_PIE_IMPORT(pndArg) && (pndImport = ImportNodeNew(pndArg)) != NULL) {
       xmlReplaceNode(pndArg, pndImport); /*! replace pndArg by pndImport */
       xmlFreeNode(pndArg);
     }
