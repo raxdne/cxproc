@@ -217,7 +217,7 @@ cxpCtxtCgiParse(cxpContextPtr pccArg)
   if (pucCgiCxp == NULL && resNodeGetMimeType(prnPathTranslated) == MIME_APPLICATION_CXP_XML) {
     /* in this case use the translated path */
     pucCgiCxp = xmlStrdup(pucCgiPathTranslated);
-    xmlStrPrintf(mpucNameFile, BUFFER_LENGTH, (const char *)pucCgiCxp);
+    xmlStrPrintf(mpucNameFile, BUFFER_LENGTH, "%s", (char *)pucCgiCxp);
   }
 
   pucCgiEncoding = cxpCtxtCgiGetValueByName(pccArg,BAD_CAST"encoding");

@@ -46,6 +46,8 @@ https://spec.commonmark.org/0.29/
 
 s. Links
 
+http://microformats.org/wiki/Main_Page
+
 *** Formats
 
 slanted
