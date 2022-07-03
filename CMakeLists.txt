@@ -69,7 +69,7 @@ set(PROJECT_VERSION_MAJOR "1")
 set(PROJECT_VERSION_MINOR "3")
 set(PROJECT_VERSION_PATCH "")
 
-#include(docs)
+include(docs)
 
 # Configuration checks
 
@@ -887,6 +887,7 @@ set_target_properties(test-cgi
 ###############################################################################
 
 include(package)
+
 include(CPack)
 
 #OPTION(CXPROC_SHOW_REPORT     "Show the final configuration report" ON)
