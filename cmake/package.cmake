@@ -10,7 +10,7 @@ set(CPACK_BINARY_NUGET "OFF")
 set(CPACK_BINARY_WIX "OFF")
 set(CPACK_BINARY_ZIP "ON")
 
-INSTALL(TARGETS filex dir2sqlite pietextx cxproc RUNTIME DESTINATION bin)
+INSTALL(TARGETS filex dir2csv dir2sqlite pietextx cxproc RUNTIME DESTINATION bin)
 INSTALL(TARGETS cxproc-cgi test-cgi RUNTIME DESTINATION www/cgi-bin)
 IF(MSVC AND CXPROC_STATIC)
   # no DLLs required

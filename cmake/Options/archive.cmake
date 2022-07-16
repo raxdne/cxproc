@@ -23,6 +23,8 @@ IF (CXPROC_ARCHIVE)
     ${CXPROC_SRC_DIR}/option/archive/cxp_archive.c
     )
 
+  target_sources(dir2csv PUBLIC ${ARCHIVE_FILES})
+
   target_sources(dir2sqlite PUBLIC ${ARCHIVE_FILES})
 
   target_sources(filex PUBLIC ${ARCHIVE_FILES})
@@ -42,12 +44,14 @@ IF (CXPROC_ARCHIVE)
   IF(MSVC)
     # additional libraries with VC++
     target_link_libraries(filex ${LibArchive_LIBRARIES} ${LIBBZ2_LIBRARY_RELEASE} ${CRYPTO_LIBRARY} ${LZ4_LIBRARY} ${ZSTD_LIBRARY} ${LZO2_LIBRARY})
+    target_link_libraries(dir2csv ${LibArchive_LIBRARIES} ${LIBBZ2_LIBRARY_RELEASE} ${CRYPTO_LIBRARY} ${LZ4_LIBRARY} ${ZSTD_LIBRARY} ${LZO2_LIBRARY})
     target_link_libraries(dir2sqlite ${LibArchive_LIBRARIES} ${LIBBZ2_LIBRARY_RELEASE} ${CRYPTO_LIBRARY} ${LZ4_LIBRARY} ${ZSTD_LIBRARY} ${LZO2_LIBRARY})
     target_link_libraries(cxproc ${LibArchive_LIBRARIES} ${LIBBZ2_LIBRARY_RELEASE} ${CRYPTO_LIBRARY} ${LZ4_LIBRARY} ${ZSTD_LIBRARY} ${LZO2_LIBRARY})
     target_link_libraries(cxproc-test ${LibArchive_LIBRARIES} ${LIBBZ2_LIBRARY_RELEASE} ${CRYPTO_LIBRARY} ${LZ4_LIBRARY} ${ZSTD_LIBRARY} ${LZO2_LIBRARY})
     target_link_libraries(cxproc-cgi ${LibArchive_LIBRARIES} ${LIBBZ2_LIBRARY_RELEASE} ${CRYPTO_LIBRARY} ${LZ4_LIBRARY} ${ZSTD_LIBRARY} ${LZO2_LIBRARY})
   ELSE(MSVC)
     target_link_libraries(filex ${LibArchive_LIBRARIES})
+    target_link_libraries(dir2csv ${LibArchive_LIBRARIES})
     target_link_libraries(dir2sqlite ${LibArchive_LIBRARIES})
     target_link_libraries(cxproc ${LibArchive_LIBRARIES})
     target_link_libraries(cxproc-test ${LibArchive_LIBRARIES})

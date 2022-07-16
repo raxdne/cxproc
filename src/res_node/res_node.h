@@ -571,6 +571,9 @@ resNodeGetMtime(resNodePtr prnArg);
 extern xmlChar *
 resNodeGetMtimeStr(resNodePtr prnArg);
 
+extern long
+resNodeGetMtimeDiff(resNodePtr prnArg);
+
 extern size_t
 resNodeGetSize(resNodePtr prnArg);
 
@@ -603,6 +606,9 @@ resNodeToDOM(resNodePtr prnArg, int iArgOptions);
 
 extern xmlChar *
 resNodeToPlain(resNodePtr prnArg, int iArgOptions);
+
+extern xmlChar*
+resNodeToCSV(resNodePtr prnArg, int iArgOptions);
 
 extern xmlChar *
 resNodeToJSON(resNodePtr prnArg, int iArgOptions);

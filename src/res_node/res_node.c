@@ -3262,6 +3262,93 @@ resNodeToPlain(resNodePtr prnArg, int iArgOptions)
 /*!
 \todo change to a single line format
 
+  \param prnArg a pointer to a resource node
+  \return TRUE if prnArg is initialized
+ */
+xmlChar*
+resNodeToCSV(resNodePtr prnArg, int iArgOptions)
+{
+  xmlChar* pucResult = NULL;
+
+  //  if (resNodeReadStatus(prnArg) && ! resNodeIsHidden(prnArg)) {
+  pucResult = BAD_CAST xmlMalloc((BUFFER_LENGTH + 1) * sizeof(xmlChar));
+  if (pucResult) {
+
+    if (iArgOptions & RN_INFO_INDEX) {
+      switch (resNodeGetType(prnArg)) {
+      case rn_type_file:
+      case rn_type_archive:
+      case rn_type_file_in_archive:
+	xmlStrPrintf(pucResult, BUFFER_LENGTH,
+	  "%s\n",
+	  resNodeGetNameNormalized(prnArg));
+	break;
+      default:
+	xmlFree(pucResult);
+	pucResult = NULL;
+	break;
+      }
+    }
+    else {
+      switch (resNodeGetType(prnArg)) {
+      case rn_type_stdout:
+	xmlStrPrintf(pucResult, BUFFER_LENGTH, "stdout\n");
+	break;
+      case rn_type_stderr:
+	xmlStrPrintf(pucResult, BUFFER_LENGTH, "stderr\n");
+	break;
+      case rn_type_stdin:
+	xmlStrPrintf(pucResult, BUFFER_LENGTH, "stdin\n");
+	break;
+      case rn_type_dir:
+      case rn_type_dir_in_archive:
+      case rn_type_file:
+      case rn_type_file_in_archive:
+      case rn_type_symlink:
+	xmlStrPrintf(pucResult, BUFFER_LENGTH,
+	  "\"%c%c%c%c%c\";%li;%li;%li;\"%s\";%li;\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\"\n",
+	  (resNodeIsDir(prnArg) ? 'd' : resNodeIsLink(prnArg) ? 'l' : '-'),
+	  resNodeIsReadable(prnArg) ? 'r' : '-',
+	  resNodeIsWriteable(prnArg) ? 'w' : '-',
+	  resNodeIsExecuteable(prnArg) ? 'x' : '-',
+	  resNodeIsHidden(prnArg) ? 'h' : '-',
+	  //
+	  resNodeGetSize(prnArg),
+	  resNodeGetRecursiveSize(prnArg),
+	  //
+	  (resNodeIsDir(prnArg) ? resNodeGetChildCount(prnArg,rn_type_file) : 0),
+	  //
+	  resNodeGetMtimeStr(prnArg),
+	  resNodeGetMtimeDiff(prnArg),
+	  //
+	  (resNodeGetNameBase(prnArg) != NULL ? resNodeGetNameBase(prnArg) : BAD_CAST""),
+	  (resNodeGetExtension(prnArg) != NULL ? resNodeGetExtension(prnArg) : BAD_CAST""),
+	  (resNodeGetNameBaseDir(prnArg) != NULL ? resNodeGetNameBaseDir(prnArg) : BAD_CAST"."),
+	  //
+	  (resNodeGetOwner(prnArg) != NULL ? resNodeGetOwner(prnArg) : BAD_CAST"---"),
+	  //
+	  resNodeGetMimeTypeStr(prnArg),
+	  (resNodeGetNameObject(prnArg) != NULL ? resNodeGetNameObject(prnArg) : BAD_CAST"")
+	);
+	break;
+      default:
+	xmlFree(pucResult);
+	pucResult = NULL;
+	break;
+      }
+    }
+  }
+  //  }
+
+    /*!\todo set kind of error */
+
+  return pucResult;
+} /* end of resNodeToCSV() */
+
+
+/*!
+\todo change to a single line format
+
 \param prnArg a pointer to a resource node
 \return TRUE if prnArg is initialized
 */
@@ -3954,9 +4041,9 @@ resNodeSetExtension(resNodePtr prnArg)
 xmlChar *
 resNodeGetExtension(resNodePtr prnArg)
 {
-  if (prnArg) {
+  if (prnArg != NULL
+      && (prnArg->eType == rn_type_file || prnArg->eType == rn_type_file_in_archive)) {
     if (prnArg->pucExtension == NULL) {
-      resNodeResetNameBase(prnArg);
       resNodeSetExtension(prnArg);
     }
     return prnArg->pucExtension;
@@ -4145,6 +4232,27 @@ resNodeGetMtimeStr(resNodePtr prnArg)
   }
   return pucResult;
 } /* end of resNodeGetMtimeStr() */
+
+
+/*! Sets and returns the mtime string of this resource node.
+
+  \param prnArg a pointer to a resource node
+  \return 
+*/
+long
+resNodeGetMtimeDiff(resNodePtr prnArg)
+{
+  long liResult = -1;
+
+  if (resNodeGetMtime(prnArg) != -1) {
+    time_t nowTime;
+
+    time(&nowTime); /*!\todo optimize */
+
+    liResult = nowTime - resNodeGetMtime(prnArg);
+  }
+  return liResult;
+} /* end of resNodeGetMtimeDiff() */
 
 
 /*! Sets and returns the liSize of this resource node.

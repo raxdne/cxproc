@@ -178,7 +178,7 @@ resMimeGetTypeStr(int iArg)
   if (iArg >= MIME_UNKNOWN && iArg < MIME_END) {
     return (char *) resMimeTypeStr[iArg];
   }
-  return NULL;
+  return resMimeTypeStr[MIME_UNDEFINED];
 }
 /* end of resMimeGetTypeStr() */
 

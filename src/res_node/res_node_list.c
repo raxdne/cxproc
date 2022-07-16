@@ -818,16 +818,18 @@ resNodeListDumpRecursively(FILE *argout, resNodePtr prnArg, xmlChar *(*pfArg)(re
     
       for (prnEntry = resNodeGetChild(prnArg); prnEntry; prnEntry = resNodeGetNext(prnEntry)) {
 	resNodeListDumpRecursively(argout,prnEntry,pfArg);
+	resNodeIncrRecursiveSize(prnArg, resNodeGetRecursiveSize(prnEntry) + resNodeGetSize(prnEntry));
       }
     }
-    prnRelease = resNodeGetChild(prnArg);
-    resNodeListUnlinkDescendants(prnArg);
-    resNodeListFree(prnRelease);      
 
     if ((pucT = (*pfArg)(prnArg, RN_INFO_META))) {
       fputs((const char*)pucT, argout);
       xmlFree(pucT);
     }
+
+    prnRelease = resNodeGetChild(prnArg);
+    resNodeListUnlinkDescendants(prnArg);
+    resNodeListFree(prnRelease);
 
     fflush(argout);
     fResult = TRUE;

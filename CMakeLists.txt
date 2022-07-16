@@ -133,6 +133,26 @@ ADD_EXECUTABLE(filex
   ${CXPROC_SRC_DIR}/filex.c
  )
 
+ADD_EXECUTABLE(dir2csv
+  ${CXPROC_SRC_DIR}/basics.h
+  ${CXPROC_SRC_DIR}/dom.c
+  ${CXPROC_SRC_DIR}/dom.h
+  ${CXPROC_SRC_DIR}/res_node/res_mime.c
+  ${CXPROC_SRC_DIR}/res_node/res_mime.h
+  ${CXPROC_SRC_DIR}/res_node/res_node.c
+  ${CXPROC_SRC_DIR}/res_node/res_node.h
+  ${CXPROC_SRC_DIR}/res_node/res_node_io.c
+  ${CXPROC_SRC_DIR}/res_node/res_node_io.h
+  ${CXPROC_SRC_DIR}/res_node/res_node_list.c
+  ${CXPROC_SRC_DIR}/res_node/res_node_list.h
+  ${CXPROC_SRC_DIR}/res_node/res_path.c
+  ${CXPROC_SRC_DIR}/res_node/res_path.h
+  ${CXPROC_SRC_DIR}/utils.c
+  ${CXPROC_SRC_DIR}/utils.h
+  ${CXPROC_SRC_DIR}/version.h
+  ${CXPROC_SRC_DIR}/dir2csv.c
+  )
+
 ADD_EXECUTABLE(dir2sqlite
   ${CXPROC_SRC_DIR}/basics.h
   ${CXPROC_SRC_DIR}/dom.c
@@ -253,6 +273,7 @@ ADD_EXECUTABLE(test-cgi
 
 IF(MSVC)
   target_sources(filex      PUBLIC ${CXPROC_SRC_DIR}/version.rc)
+  target_sources(dir2csv PUBLIC ${CXPROC_SRC_DIR}/version.rc)
   target_sources(dir2sqlite PUBLIC ${CXPROC_SRC_DIR}/version.rc)
   target_sources(pietextx   PUBLIC ${CXPROC_SRC_DIR}/version.rc)
   target_sources(cxproc     PUBLIC ${CXPROC_SRC_DIR}/version.rc)
@@ -443,6 +464,7 @@ IF (LIBXML2_LIBRARY)
     IF(MSVC)
       target_link_libraries(filex ws2_32.lib)
       target_link_libraries(dir2sqlite ws2_32.lib)
+      target_link_libraries(dir2csv ws2_32.lib)
       target_link_libraries(pietextx ws2_32.lib)
       target_link_libraries(cxproc ws2_32.lib)
       target_link_libraries(cxproc-test ws2_32.lib)
@@ -541,6 +563,7 @@ ENDIF (CXPROC_CXX)
 
 IF (CXPROC_PCRE2)
   target_link_libraries(filex ${PCRE2_LIBRARY})
+  target_link_libraries(dir2csv ${PCRE2_LIBRARY})
   target_link_libraries(dir2sqlite ${PCRE2_LIBRARY})
   target_link_libraries(pietextx ${PCRE2_LIBRARY})
   target_link_libraries(cxproc ${PCRE2_LIBRARY})
@@ -558,6 +581,7 @@ ENDIF ()
 
 IF (CXPROC_LIBZ)
   target_link_libraries(filex ${ZLIB_LIBRARY_RELEASE})
+  target_link_libraries(dir2csv ${ZLIB_LIBRARY_RELEASE})
   target_link_libraries(dir2sqlite ${ZLIB_LIBRARY_RELEASE})
   target_link_libraries(pietextx ${ZLIB_LIBRARY_RELEASE})
   target_link_libraries(cxproc ${ZLIB_LIBRARY_RELEASE})
@@ -607,6 +631,7 @@ IF (CXPROC_LZMA)
   #  add_definitions(-DLIBLZMA_STATIC)
   #ENDIF ()
   target_link_libraries(filex ${LIBLZMA_LIBRARIES})
+  target_link_libraries(dir2csv ${LIBLZMA_LIBRARIES})
   target_link_libraries(dir2sqlite ${LIBLZMA_LIBRARIES})
   target_link_libraries(pietextx ${LIBLZMA_LIBRARIES})
   target_link_libraries(cxproc ${LIBLZMA_LIBRARIES})
@@ -678,6 +703,7 @@ IF (${CURL_LIBRARY_RELEASE} MATCHES ".+static\\.lib$" OR ${CURL_LIBRARY_RELEASE}
 ENDIF ()
 
 target_link_libraries(filex ${CURL_LIBRARY_RELEASE})
+target_link_libraries(dir2csv ${CURL_LIBRARY_RELEASE})
 target_link_libraries(dir2sqlite ${CURL_LIBRARY_RELEASE})
 target_link_libraries(cxproc ${CURL_LIBRARY_RELEASE})
 target_link_libraries(cxproc-test ${CURL_LIBRARY_RELEASE})
@@ -689,12 +715,14 @@ target_link_libraries(cxproc-cgi  ${CURL_LIBRARY_RELEASE})
 IF(MSVC)
   # additional libraries with VC++
   target_link_libraries(filex crypt32 wldap32)
+  target_link_libraries(dir2csv crypt32 wldap32)
   target_link_libraries(dir2sqlite crypt32 wldap32)
   target_link_libraries(cxproc crypt32 wldap32)
   target_link_libraries(cxproc-test crypt32 wldap32)
   target_link_libraries(cxproc-cgi  crypt32 wldap32)
 ELSE(MSVC)
   target_link_libraries(filex ssl crypto)
+  target_link_libraries(dir2csv ssl crypto)
   target_link_libraries(dir2sqlite ssl crypto)
   target_link_libraries(cxproc ssl crypto)
   target_link_libraries(cxproc-test ssl crypto)
@@ -710,6 +738,7 @@ ENDIF(MSVC)
 #
 
 target_link_libraries(filex ${LIBICONV_LIBRARY} ${LIBCHARSET_LIBRARY} ${LIBXML2_LIBRARY})
+target_link_libraries(dir2csv ${LIBICONV_LIBRARY} ${LIBCHARSET_LIBRARY} ${LIBXML2_LIBRARY})
 target_link_libraries(dir2sqlite ${LIBICONV_LIBRARY} ${LIBCHARSET_LIBRARY} ${LIBXML2_LIBRARY})
 target_link_libraries(pietextx ${LIBICONV_LIBRARY} ${LIBCHARSET_LIBRARY} ${LIBXML2_LIBRARY})
 target_link_libraries(cxproc ${LIBICONV_LIBRARY} ${LIBCHARSET_LIBRARY} ${LIBXML2_LIBRARY} ${LIBXSLT_LIBRARIES})
@@ -758,6 +787,7 @@ ENDIF(MSVC)
 IF(MSVC)
 ELSE(MSVC)
   target_link_libraries(filex -ldl -lm)
+  target_link_libraries(dir2csv -ldl -lm)
   target_link_libraries(dir2sqlite -ldl -lm)
   target_link_libraries(pietextx -ldl -lm)
   target_link_libraries(cxproc -ldl -lm)
@@ -768,6 +798,7 @@ ELSE(MSVC)
   #ENDIF ()
   IF (CXPROC_LIBZ)
     target_link_libraries(filex -lz)
+    target_link_libraries(dir2csv -lz)
     target_link_libraries(dir2sqlite -lz)
     target_link_libraries(cxproc -lz)
     target_link_libraries(cxproc-test -lz)
@@ -779,6 +810,19 @@ ELSE(MSVC)
 ENDIF(MSVC)
 
 set_target_properties(filex
+    PROPERTIES
+    ARCHIVE_OUTPUT_DIRECTORY "${CXPROC_PREFIX}/lib"
+    LIBRARY_OUTPUT_DIRECTORY "${CXPROC_PREFIX}/lib"
+    RUNTIME_OUTPUT_DIRECTORY "${CXPROC_PREFIX}/bin"
+    ARCHIVE_OUTPUT_DIRECTORY_DEBUG "${CXPROC_PREFIX}/lib"
+    LIBRARY_OUTPUT_DIRECTORY_DEBUG "${CXPROC_PREFIX}/lib"
+    RUNTIME_OUTPUT_DIRECTORY_DEBUG "${CXPROC_PREFIX}/bin"
+    ARCHIVE_OUTPUT_DIRECTORY_RELEASE "${CXPROC_PREFIX}/lib"
+    LIBRARY_OUTPUT_DIRECTORY_RELEASE "${CXPROC_PREFIX}/lib"
+    RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CXPROC_PREFIX}/bin"
+)
+
+set_target_properties(dir2csv
     PROPERTIES
     ARCHIVE_OUTPUT_DIRECTORY "${CXPROC_PREFIX}/lib"
     LIBRARY_OUTPUT_DIRECTORY "${CXPROC_PREFIX}/lib"
