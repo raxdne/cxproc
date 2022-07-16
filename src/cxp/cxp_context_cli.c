@@ -726,6 +726,15 @@ cxpCtxtCliParse(cxpContextPtr pccArg)
 	    xmlSetProp(pndXml, BAD_CAST "name", BAD_CAST "-");
 
 	    pndPie = xmlNewChild(pndXml, pieGetNs(), NAME_PIE, NULL);
+	    xmlSetProp(pndPie, BAD_CAST "tags", BAD_CAST "yes");
+	    xmlSetProp(pndPie, BAD_CAST "date", BAD_CAST "yes");
+	    xmlSetProp(pndPie, BAD_CAST "todo", BAD_CAST "yes");
+	    xmlSetProp(pndPie, BAD_CAST "offset", BAD_CAST "yes");
+	    xmlSetProp(pndPie, BAD_CAST "url", BAD_CAST "yes");
+	    xmlSetProp(pndPie, BAD_CAST "figure", BAD_CAST "yes");
+	    xmlSetProp(pndPie, BAD_CAST "script", BAD_CAST "no");
+	    xmlSetProp(pndPie, BAD_CAST "locators", BAD_CAST "no");
+	    
 	    pndImport = xmlNewChild(pndPie, NULL, NAME_PIE_IMPORT, NULL);
 	    if (resNodeIsFile(prnContent) && resNodeIsExist(prnContent)) {
 	      xmlSetProp(pndImport, BAD_CAST "name", resNodeGetNameNormalized(prnContent));

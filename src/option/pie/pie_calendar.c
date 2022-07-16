@@ -1142,6 +1142,8 @@ SplitDateSequences(pieCalendarElementPtr pceArg)
 
 
 /*! register all calendar related DOM attributes
+
+\todo replace XPath implementation by recursive procedure
  */
 BOOL_T
 RegisterDateNodes(pieCalendarPtr pCalendarArg, xmlChar *pucArg)
