@@ -888,45 +888,57 @@ AddDateAttributes(pieCalendarElementPtr pceArg)
 #ifdef EXPERIMENTAL
       /*!\todo concatenate sequential dates */
 
-      if (pceT->iYear > 1900 && pceT->iMonth > 0 && pceT->iDay > 0 ) {
-	if (pceT->iHourA > -1 && pceT->iMinuteA > -1 && pceT->iSecondA > -1) {
-	  xmlStrPrintf(mpucT, BUFFER_LENGTH,
-		       "%04i-%02i-%02iT%02i:%02i:%02i",
-		       pceT->iYear,
-		       pceT->iMonth,
-		       pceT->iDay,
-		       pceT->iHourA,
-		       pceT->iMinuteA,
-		       pceT->iSecondA
-		       );
+      mpucT[0] = '\0';
+      
+      if (pceT->iYear > 1900) {
+	
+	if (pceT->iWeek > 0 && pceT->iDayWeek > 0) {
+	  UpdateCalendarElementDate(pceT);
+	}
+	
+	if (pceT->iMonth > 0 && pceT->iDay > 0) {
+	
+	  if (pceT->iHourA > -1 && pceT->iMinuteA > -1 && pceT->iSecondA > -1) {
+	    xmlStrPrintf(mpucT, BUFFER_LENGTH,
+			 "%04i-%02i-%02iT%02i:%02i:%02i",
+			 pceT->iYear,
+			 pceT->iMonth,
+			 pceT->iDay,
+			 pceT->iHourA,
+			 pceT->iMinuteA,
+			 pceT->iSecondA
+			 );
 	      
-	  if (pceT->iTimezoneOffset) {
-	    xmlChar* pucT = NULL;
+	    if (pceT->iTimezoneOffset) {
+	      xmlChar* pucT = NULL;
 
-	    if (pceT->iTimezoneOffset < 0) {
-	      pucT = xmlStrncatNew(mpucT, BAD_CAST STR_UTF8_MINUS, -1);
-	    }
-	    else if (pceT->iTimezoneOffset > 0) {
-	      pucT = xmlStrncatNew(mpucT, BAD_CAST "+", -1);
-	    }
+	      if (pceT->iTimezoneOffset < 0) {
+		pucT = xmlStrncatNew(mpucT, BAD_CAST STR_UTF8_MINUS, -1);
+	      }
+	      else if (pceT->iTimezoneOffset > 0) {
+		pucT = xmlStrncatNew(mpucT, BAD_CAST "+", -1);
+	      }
 
-	    xmlStrPrintf(mpucT, BUFFER_LENGTH - 1, "%s%02i:%02i", pucT, (abs(pceT->iTimezoneOffset) / 60), (abs(pceT->iTimezoneOffset) % 60));
-	    xmlFree(pucT);
-	  }
+	      xmlStrPrintf(mpucT, BUFFER_LENGTH - 1, "%s%02i:%02i", pucT, (abs(pceT->iTimezoneOffset) / 60), (abs(pceT->iTimezoneOffset) % 60));
+	      xmlFree(pucT);
+	    }
 	    
-	  if (pceT->iTimezone) {
-	    xmlSetProp(pndCurrent, BAD_CAST "tz", tzGetId(pceT->iTimezone));
+	    if (pceT->iTimezone) {
+	      xmlSetProp(pndCurrent, BAD_CAST "tz", tzGetId(pceT->iTimezone));
+	    }
+	  }
+	  else {
+	    xmlStrPrintf(mpucT, BUFFER_LENGTH,
+			 "%04i-%02i-%02i",
+			 pceT->iYear,
+			 pceT->iMonth,
+			 pceT->iDay
+			 );
 	  }
 	}
-	else {
-	  xmlStrPrintf(mpucT, BUFFER_LENGTH,
-		       "%04i-%02i-%02i",
-		       pceT->iYear,
-		       pceT->iMonth,
-		       pceT->iDay
-		       );
-	}
+      }
 
+      if (STR_IS_NOT_EMPTY(mpucT)) {
 	xmlSetProp(pndCurrent, BAD_CAST"iso", mpucT);
 
 	if (pceT->iHourA > -1) {

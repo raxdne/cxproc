@@ -99,9 +99,6 @@ ScanDateIterationStepTo(pieCalendarElementPtr pceArg);
 static BOOL_T
 ScanDateIterationStepOffset(pieCalendarElementPtr pceArg);
 
-static BOOL_T
-UpdateCalendarElementDate(pieCalendarElementPtr pceArg);
-
 
 /*!
 */
@@ -414,6 +411,12 @@ ScanCalendarElementDate(pieCalendarElementPtr pceArgResult)
 	return FALSE;
       }
     }
+#ifdef EXPERIMENTAL
+    else if (pucGcal[4]=='-' && pucGcal[5]=='W' && isdigit(pucGcal[6])) {
+      /* ISO Week Date "2006-W22" */
+      eTypeDate = DATE_WEEK_ISO;
+    }
+#endif
     else if (pucGcal[4]=='*'
 	     && (pucGcal[5]=='w' || pucGcal[5]=='W')
 	     && isdigit(pucGcal[6])) {
@@ -537,6 +540,38 @@ ScanCalendarElementDate(pieCalendarElementPtr pceArgResult)
 	pucSepEnd = &pucGcal[4];
       }
     }
+#ifdef EXPERIMENTAL
+    else if (eTypeDate==DATE_WEEK_ISO) {
+      /*
+	eval year/week string
+      */
+      xmlChar *pucE;
+
+      pucE = &pucGcal[6];
+
+      w = (int) strtol((char *)pucE,(char **)&pucE,10);
+      if (pceArgResult) {
+	if (w>-1 && w<54) {
+	}
+	else if (w == 99) {
+	}
+	else {
+	  PrintFormatLog(2,"Ignore '%s': invalid week '%s'", pucGcal, pucE);
+	  return FALSE;
+	}
+      }
+      else {
+	/* this result isn't needed */
+      }
+
+      pucSepEnd = pucE;
+      if (pucE[0] == '-' && isdigit(pucE[1])) {
+	/* entry for a specified day of week found
+	 */
+	d_week = (int) strtol((char *)&pucE[1], (char**)&pucSepEnd, 10);
+      }
+    }
+#endif
     else if (eTypeDate==DATE_WEEK) {
       /*
 	eval year/week string

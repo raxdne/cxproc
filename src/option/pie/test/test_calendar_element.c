@@ -693,6 +693,34 @@ ceTest(void)
     CalendarElementFree(pceT);
   }
 
+#ifdef EXPERIMENTAL
+  if (RUNTEST) {
+    pieCalendarElementPtr pceT;
+
+    i++;
+    printf("TEST %i in '%s:%i': scan a calendar element = ",i,__FILE__,__LINE__);
+
+    if ((pceT = CalendarElementNew(BAD_CAST"2009-W33")) == NULL) {
+      printf("ERROR\n");
+    }
+    else if (ScanCalendarElementDate(pceT) == FALSE) {
+      printf("ERROR\n");
+    }
+    else if (pceT->eTypeDate != DATE_WEEK_ISO) {
+      printf("ERROR\n");
+    }
+    else if (pceT->iYear != 2009 || pceT->iMonth != -1 || pceT->iDay != -1 || pceT->iWeek != 33 || pceT->iDayWeek != -1) {
+      printf("ERROR\n");
+    }
+    else {
+      n_ok++;
+      printf("OK\n");
+    }
+    CalendarElementFree(pceT);
+  }
+
+#endif
+  
   if (RUNTEST) {
     pieCalendarElementPtr pceT;
 
@@ -718,6 +746,34 @@ ceTest(void)
     CalendarElementFree(pceT);
   }
 
+#ifdef EXPERIMENTAL
+  if (RUNTEST) {
+    pieCalendarElementPtr pceT;
+
+    i++;
+    printf("TEST %i in '%s:%i': scan a calendar element = ",i,__FILE__,__LINE__);
+
+    if ((pceT = CalendarElementNew(BAD_CAST"2009-W3-3")) == NULL) {
+      printf("ERROR\n");
+    }
+    else if (ScanCalendarElementDate(pceT) == FALSE) {
+      printf("ERROR\n");
+    }
+    else if (pceT->eTypeDate != DATE_WEEK_ISO) {
+      printf("ERROR\n");
+    }
+    else if (pceT->iYear != 2009 || pceT->iMonth != -1 || pceT->iDay != -1 || pceT->iWeek != 3 || pceT->iDayWeek != 3) {
+      printf("ERROR\n");
+    }
+    else {
+      n_ok++;
+      printf("OK\n");
+    }
+    CalendarElementFree(pceT);
+  }
+
+#endif
+  
   if (RUNTEST) {
     pieCalendarElementPtr pceT;
 
@@ -743,6 +799,35 @@ ceTest(void)
     CalendarElementFree(pceT);
   }
 
+#ifdef EXPERIMENTAL
+  
+  if (RUNTEST) {
+    pieCalendarElementPtr pceT;
+
+    i++;
+    printf("TEST %i in '%s:%i': scan a calendar element = ",i,__FILE__,__LINE__);
+
+    if ((pceT = CalendarElementNew(BAD_CAST"2009-W34-2")) == NULL) {
+      printf("ERROR\n");
+    }
+    else if (ScanCalendarElementDate(pceT) == FALSE) {
+      printf("ERROR\n");
+    }
+    else if (pceT->eTypeDate != DATE_WEEK_ISO) {
+      printf("ERROR\n");
+    }
+    else if (pceT->iYear != 2009 || pceT->iMonth != -1 || pceT->iDay != -1 || pceT->iWeek != 34 || pceT->iDayWeek != 2) {
+      printf("ERROR\n");
+    }
+    else {
+      n_ok++;
+      printf("OK\n");
+    }
+    CalendarElementFree(pceT);
+  }
+
+#endif
+  
   if (RUNTEST) {
     pieCalendarElementPtr pceT;
 
@@ -768,6 +853,35 @@ ceTest(void)
     CalendarElementFree(pceT);
   }
 
+#ifdef EXPERIMENTAL
+  
+  if (RUNTEST) {
+    pieCalendarElementPtr pceT;
+
+    i++;
+    printf("TEST %i in '%s:%i': scan a calendar element = ",i,__FILE__,__LINE__);
+
+    if ((pceT = CalendarElementNew(BAD_CAST"2009-W55-8")) == NULL) {
+      printf("ERROR\n");
+    }
+    else if (ScanCalendarElementDate(pceT) == TRUE) {
+      printf("ERROR\n");
+    }
+    else if (pceT->eTypeDate != DATE_ERROR) {
+      printf("ERROR\n");
+    }
+    else if (pceT->iYear != -1 || pceT->iMonth != -1 || pceT->iDay != -1 || pceT->iWeek != -1 || pceT->iDayWeek != -1) {
+      printf("ERROR\n");
+    }
+    else {
+      n_ok++;
+      printf("OK\n");
+    }
+    CalendarElementFree(pceT);
+  }
+
+#endif
+  
   if (RUNTEST) {
     pieCalendarElementPtr pceT;
 
@@ -799,6 +913,41 @@ ceTest(void)
     CalendarElementFree(pceT);
   }
 
+#ifdef EXPERIMENTAL
+  
+  if (RUNTEST) {
+    pieCalendarElementPtr pceT;
+
+    i++;
+    printf("TEST %i in '%s:%i': scan a calendar element = ",i,__FILE__,__LINE__);
+
+    if ((pceT = CalendarElementNew(BAD_CAST"0000-W99-2")) == NULL) {
+      printf("ERROR: CalendarElementNew()\n");
+    }
+    else if (ScanCalendarElementDate(pceT) == FALSE) {
+      printf("ERROR: ScanCalendarElementDate()\n");
+    }
+    else if (pceT->eTypeDate != DATE_WEEK_ISO) {
+      printf("ERROR: eTypeDate\n");
+    }
+    else if (pceT->iYear != 0 || pceT->iMonth != -1 || pceT->iDay != -1 || pceT->iWeek != 99 || pceT->iDayWeek != 2 || pceT->iStep != -1) {
+      //printf("%i %i %i %i %i %i \n", pceT->iYear, pceT->iMonth, pceT->iDay, pceT->iWeek, pceT->iDayWeek, pceT->iStep);
+      printf("ERROR: value\n");
+    }
+    else if ((pceT->iYear = 2009) != 2009 || ScanDateIteration(pceT) == FALSE
+	     || pceT->iMonth != -1 || pceT->iDay != -1 || pceT->iWeek != 99 || pceT->iDayWeek != 2 || pceT->iStep != 7) {
+      //printf("%i %i %i %i %i %i \n", pceT->iYear, pceT->iMonth, pceT->iDay, pceT->iWeek, pceT->iDayWeek, pceT->iStep);
+      printf("ERROR: value\n");
+    }
+    else {
+      n_ok++;
+      printf("OK\n");
+    }
+    CalendarElementFree(pceT);
+  }
+
+#endif
+  
   if (SKIPTEST) {
     pieCalendarElementPtr pceT;
 
