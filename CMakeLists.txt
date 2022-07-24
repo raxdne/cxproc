@@ -245,7 +245,7 @@ target_compile_definitions(cxproc-test PUBLIC
   BUILDPREFIX="${CXPROC_PREFIX}/"
   TESTPREFIX="${CXPROC_TEST_DIR}/"
   TEMPPREFIX="${CXPROC_TEMP_DIR}/"
-  HTTPPREFIX="http://localhost:8183/")
+  HTTPPREFIX="${CXPROC_HTTPPREFIX}")
 
 ADD_EXECUTABLE(cxproc-cgi
  ${CXPROC_SRC_DIR}/cxproc-cgi.c
@@ -345,6 +345,10 @@ IF (CURL_LIBRARY_RELEASE)
   OPTION(CXPROC_CURL "Enable support for linking cxproc with libcurl." OFF)
 ELSE ()
   SET(CXPROC_CURL OFF)
+ENDIF ()
+
+IF (CXPROC_CURL)
+  SET(CXPROC_HTTPPREFIX CACHE STRING "http://localhost:8183/")
 ENDIF ()
 
 ################################################################################

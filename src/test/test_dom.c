@@ -554,6 +554,29 @@ domTest(void)
 
 
   if (RUNTEST) {
+    xmlDocPtr pdocT;
+    xmlNodePtr pndRoot;
+
+    i++;
+    printf("TEST %i in '%s:%i': file XSL tree = ",i,__FILE__,__LINE__);
+
+    if ((pdocT = xmlParseFile(BAD_CAST TESTPREFIX "xsl/TestValidate.xsl")) == NULL) {
+    }
+    else if ((pndRoot = xmlDocGetRootElement(pdocT)) == NULL) {
+    }
+    else if (xmlStrEqual(domGetXslOutputMethod(pdocT),BAD_CAST"xml") == FALSE) {
+      //domPutDocString(stderr,pdocT,BAD_CAST"Result XSL Document");
+    }
+    else {
+      n_ok++;
+      printf("OK\n");
+    }
+
+    xmlFreeDoc(pdocT);
+  }
+
+
+  if (RUNTEST) {
     xmlChar *pucT = BAD_CAST"ABCDEF";
     xmlNodePtr pndTest;
 

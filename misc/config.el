@@ -89,10 +89,10 @@
 ; (setenv "CXP_PATH" prefix)
 ; (setenv "CXP_LOG" "3")
 
-(setq 
- gdb-many-window t
- gdb-show-main t
- gud-gdb-command-name "gdb -i=mi --annotate=3 -x debug.gdb")
+;; (setq 
+;;  gdb-many-window t
+;;  gdb-show-main t
+;;  gud-gdb-command-name "gdb -i=mi --annotate=3 -x debug.gdb")
 
 ;;; mode
 
