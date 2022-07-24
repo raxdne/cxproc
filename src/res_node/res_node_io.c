@@ -146,7 +146,14 @@ resNodeOpen(resNodePtr prnArg, const char *pchArgMode)
       fResult = TRUE;
     }
     else if (strchr(pchArgMode,(int)'a') && resMimeIsArchive(resNodeGetMimeType(prnArg))) {
-      fResult = OpenArchive(prnArg);
+
+      if (resPathIsURL(resNodeGetNameNormalized(prnArg))) {
+	fResult = OpenURL(prnArg);
+      }
+      else {
+	fResult = OpenArchive(prnArg);
+      }
+
       if (fResult) {
 	if (prnArg->eMode == mode_write || prnArg->eMode == mode_append) {
 	  prnArg->fRead = TRUE;
@@ -173,6 +180,29 @@ resNodeOpen(resNodePtr prnArg, const char *pchArgMode)
 	prnArg->fExist = TRUE;
       }
     }
+#if 0
+    else if (resNodeIsArchive(prnArg)) {
+
+      if (resPathIsURL(resNodeGetNameNormalized(prnArg))) {
+	fResult = OpenURL(prnArg);
+      }
+      else {
+	fResult = TRUE;
+      }
+
+      if (fResult) {
+	if (prnArg->eMode == mode_write || prnArg->eMode == mode_append) {
+	  prnArg->fRead = TRUE;
+	    prnArg->fWrite = TRUE;
+	}
+	else {
+	  prnArg->fRead = TRUE;
+	  prnArg->fWrite = FALSE;
+	}
+	prnArg->fExist = TRUE;
+      }
+    }
+#endif
     else if (resNodeIsFileInArchive(prnArg)) {
       resNodePtr prnArchive;
 
@@ -888,7 +918,7 @@ resNodeReadContent(resNodePtr prnArg, int iArgMax)
       resNodeSetBlockSize(prnArg,BUFFER_LENGTH);
     }
 
-    if (resNodeIsURL(prnArg)) {
+    if (prnArg->eAccess == rn_access_curl && prnArg->handleIO != NULL) {
 #ifdef HAVE_LIBCURL
       CURLcode res;
 
@@ -1055,20 +1085,21 @@ resNodeGetContent(resNodePtr prnArg, int iArgMax)
 	}
       }
       else if (resNodeIsFileInArchive(prnArg)) {
-	resNodePtr prnParent;
+	resNodePtr prnArchive;
+	resNodePtr prnUrl;
 
-	if ((prnParent = resNodeGetAncestorArchive(prnArg)) != NULL) {
+	if ((prnArchive = resNodeGetAncestorArchive(prnArg)) != NULL) {
 
-	  if (resNodeIsURL(prnParent) && ! resNodeIsMemory(prnParent)) {
+	  if (resPathIsURL(resNodeGetNameNormalized(prnArchive)) && ! resNodeIsMemory(prnArchive)) {
 	    /* must fetch archive content from URL into memory */
-	    if (resNodeOpen(prnParent, "rb")) {
-	      resNodeReadContent(prnParent, iArgMax);
-	      resNodeClose(prnParent);
+	    if (resNodeOpen(prnArchive, "rb")) {
+	      resNodeReadContent(prnArchive, iArgMax);
+	      resNodeClose(prnArchive);
 	    }
 	  }
 
 #ifdef HAVE_LIBARCHIVE
-	  if (arcAppendEntries(prnParent, NULL, TRUE)) {
+	  if (arcAppendEntries(prnArchive, NULL, TRUE)) {
 	    pResult = resNodeGetContentPtr(prnArg);
 	  }
 #endif
@@ -1195,8 +1226,7 @@ resNodeGetContentDoc(resNodePtr prnArg)
   xmlDocPtr pdocResult = NULL;
 
   if (prnArg) {
-    if (prnArg->pdocContent == NULL
-      && (resNodeGetMimeType(prnArg) == MIME_TEXT_HTML || resMimeIsXml(resNodeGetMimeType(prnArg)))) {
+    if (prnArg->pdocContent == NULL) {
       pdocResult = resNodeReadDoc(prnArg);
       resNodeSetContentDocEat(prnArg, pdocResult);
     }
@@ -1232,11 +1262,11 @@ resNodeSwapContent(resNodePtr prnArgFrom, resNodePtr prnArgTo)
 {
   BOOL_T fResult = FALSE;
 
-  if (resNodeGetContent(prnArgFrom,1024) == FALSE) {
-    resNodeSetError(prnArgFrom,rn_error_copy,"Can't get content '%s'", resNodeGetNameNormalized(prnArgFrom));
-  }
-  else if (prnArgTo == NULL) {
+  if (prnArgTo == NULL) {
     resNodeSetError(prnArgTo,rn_error_copy,"There is no target for content");
+  }
+  else if (resNodeGetContent(prnArgFrom, 1024) == FALSE) {
+    resNodeSetError(prnArgFrom, rn_error_copy, "Can't get content '%s'", resNodeGetNameNormalized(prnArgFrom));
   }
   else { /* swap content */
     void *pContent;

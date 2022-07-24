@@ -175,7 +175,7 @@ static const char* resMimeTypeStr[] = {
 char *
 resMimeGetTypeStr(int iArg)
 {
-  if (iArg >= MIME_UNKNOWN && iArg < MIME_END) {
+  if (iArg >= MIME_UNDEFINED && iArg < MIME_END) {
     return (char *) resMimeTypeStr[iArg];
   }
   return resMimeTypeStr[MIME_UNDEFINED];

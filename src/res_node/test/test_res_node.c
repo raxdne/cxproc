@@ -792,8 +792,7 @@ resNodeTest(void)
     fputs((const char *)mucTestLabel,stderr);
     mucTestResult[0] = '\0';
 
-
-    if ((prnT = resNodeDirNew(BAD_CAST HTTPPREFIX "test-zip-7.zip/path/test.txt")) == NULL) {
+    if ((prnT = resNodeDirNew(BAD_CAST HTTPPREFIX "non-dir/test-zip-7.zip/path/test.txt")) == NULL) {
       xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeDirNew(): %s\n",resNodeGetErrorMsg(prnT));
     }
     else if (resNodeGetChild(prnT) == NULL) {
@@ -802,10 +801,10 @@ resNodeTest(void)
     else if ((pucT = resNodeGetURI(prnT)) == NULL) {
       xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeGetURI(): %s\n",resNodeGetErrorMsg(prnT));
     }
-    else if (resPathIsEquivalent(pucT,BAD_CAST HTTPPREFIX "test-zip-7.zip") == FALSE) {
+    else if (resPathIsEquivalent(resNodeGetNameBase(resNodeGetChild(prnT)), BAD_CAST "test-zip-7.zip") == FALSE) {
       xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resPathIsEquivalent(): %s\n",resNodeGetErrorMsg(prnT));
     }
-    else if (resPathIsEquivalent(resNodeGetURI(resNodeGetChild(prnT)),BAD_CAST HTTPPREFIX "test-zip-7.zip/path/") == FALSE) {
+    else if (resPathIsEquivalent(resNodeGetURI(resNodeGetChild(resNodeGetChild(prnT))),BAD_CAST HTTPPREFIX "non-dir/test-zip-7.zip/path/") == FALSE) {
       xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resPathIsEquivalent(): %s\n",resNodeGetErrorMsg(prnT));
     }
     else {
@@ -920,22 +919,22 @@ resNodeTest(void)
       xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resPathIsEquivalent()\n");
     }
     else if (resNodeGetType(prnT) != rn_type_archive) {
-      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeGetType()\n");
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error 1 resNodeGetType()\n");
     }
     else if (resNodeGetMimeType(prnT) != MIME_APPLICATION_ZIP) {
-      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeGetMimeType()\n");
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error 1 resNodeGetMimeType()\n");
     }
     else if ((prnChild = resNodeGetChild(prnT)) == NULL) {
-      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeGetChild()\n");
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error 1 resNodeGetChild()\n");
     }
     else if (resNodeGetType(prnChild) != rn_type_dir_in_archive) {
-      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeGetType()\n");
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error 2 resNodeGetType()\n");
     }
     else if (resNodeGetMimeType(prnChild) != MIME_INODE_DIRECTORY) {
-      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeGetMimeType()\n");
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error 2 resNodeGetMimeType()\n");
     }
     else if ((prnChild = resNodeGetChild(prnChild)) == NULL) {
-      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeGetChild()\n");
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error 2 resNodeGetChild()\n");
     }
     else {
       n_ok++;

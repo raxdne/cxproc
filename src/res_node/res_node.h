@@ -554,6 +554,9 @@ extern RN_TYPE
 resNodeGetType(resNodePtr prnArg);
 
 extern xmlChar *
+resNodeGetTypeStr(resNodePtr prnArg);
+
+extern xmlChar *
 resNodeGetNameNormalized(resNodePtr prnArg);
 
 extern char *
@@ -609,6 +612,9 @@ resNodeToPlain(resNodePtr prnArg, int iArgOptions);
 
 extern xmlChar*
 resNodeToCSV(resNodePtr prnArg, int iArgOptions);
+
+extern xmlChar*
+resNodeToGraphviz(resNodePtr prnArg, int iArgOptions);
 
 extern xmlChar *
 resNodeToJSON(resNodePtr prnArg, int iArgOptions);

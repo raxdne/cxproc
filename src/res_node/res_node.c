@@ -19,6 +19,22 @@
 
 */
 
+/*!\todo “URL -> Content” => `https://localhost/cxproc/exe` */
+
+/*!\todo “URL -> Database -> SQL Query -> Content” => `https://localhost/Test/Database.db3`->Database Node->`?SELECT * FROM directory` */
+
+/*!\todo “URL -> Archive Path -> Content”
+
+- `https://localhost/Test/Arcive.zip`->Archive Node->`Test/Text.txt`
+
+- `https://localhost/Test/Archive.zip`->Archive Node->`Test/Archive.zip`->Archive Node->`Test/Text.txt` */
+
+/*!\todo “Directory -> Content” */
+
+/*!\todo “Directory -> File -> Archive -> Archive Path -> Content” */
+
+/*!\todo “Directory -> File -> Database -> SQL Query -> Content” */
+
 /*!\todo deny direct access to 'resNodePtr' from extern /prn[a-z]+->[a-z]+/ */
 
 /*!\todo improve speed by using index files 'NAME_FILE_INDEX' */
@@ -59,6 +75,33 @@
 #if defined(HAVE_LIBEXIF)
 #include <image/image_exif.h>
 #endif
+
+
+const xmlChar *mpucTypeNames[] = {
+	     "rn_type_undef",
+	     "rn_type_stdout",
+	     "rn_type_stderr",
+	     "rn_type_stdin",
+	     "rn_type_memory",
+	     "rn_type_root",
+	     "rn_type_dir",
+	     "rn_type_file",
+	     "rn_type_file_compressed",
+	     "rn_type_document_plain",
+	     "rn_type_document_dom",
+	     "rn_type_document_json",
+	     "rn_type_image",
+	     "rn_type_index",
+	     "rn_type_archive",
+	     "rn_type_dir_in_archive",
+	     "rn_type_file_in_archive",
+	     "rn_type_database",
+	     "rn_type_file_in_database",
+	     "rn_type_symlink",
+	     "rn_type_url_http",
+	     "rn_type_url_ftp",
+	     "rn_type_url"
+};
 
 static resNodePtr
 resNodeNew(void);
@@ -1123,6 +1166,9 @@ resNodeDirNew(xmlChar *pucArgPath)
 	  eType = rn_type_file_in_archive;
 	}
       }
+      else if (pucNameArchive != NULL) { /*  */
+	eType = rn_type_archive;
+      }
       else if (resPathIsHttpURL(pucPath)) { /*  */
 	eType = rn_type_url_http;
       }
@@ -1167,15 +1213,25 @@ resNodeDirNew(xmlChar *pucArgPath)
       curl_free(pucT);
 
       if (pucNameArchive) { /* URL contains an archive name */
-	if (pucNameInArchive) { /* URL contains a name into archive also */
-	  pucT = xmlStrndup(pucPath,pucNameInArchive - pucPath - 1);
-	  xmlFree(prnResult->pucNameNormalized);
-	  prnResult->pucNameNormalized = pucT;
-	  if (curl_url_set(prnResult->curlURL, CURLUPART_PATH, (const char *)prnResult->pucNameNormalized, 0) == CURLUE_OK) { /* update the path from the parsed URL */
-	  }
-	  resNodeAddChildNew(prnResult,pucNameInArchive);
+	resNodePtr prnArchive;
+
+	/* cut URL before archive */
+	pucT = xmlStrndup(pucPath, pucNameArchive - pucPath - 1);
+	xmlFree(prnResult->pucNameNormalized);
+	prnResult->pucNameNormalized = pucT;
+	if (curl_url_set(prnResult->curlURL, CURLUPART_PATH, (const char*)prnResult->pucNameNormalized, 0) == CURLUE_OK) { /* update the path from the parsed URL */
 	}
-      }	     
+
+	/* add a new node for archive */
+	pucT = xmlStrndup(pucNameArchive, pucNameInArchive - pucNameArchive - 1);
+	prnArchive = resNodeAddChildNew(prnResult, pucT);
+	resNodeSetType(prnArchive, rn_type_archive);
+
+	/* add a node for archive path */
+	if (pucNameInArchive) { /* URL contains a name into archive also */
+	  resNodeSetType(resNodeAddChildNew(prnArchive, pucNameInArchive), rn_type_file_in_archive);
+	}
+      }
       /*\todo handle sqlite in URL */
       eType = rn_type_url;
     }
@@ -3217,6 +3273,7 @@ resNodeToPlain(resNodePtr prnArg, int iArgOptions)
 	case rn_type_stdin:
 	  xmlStrPrintf(pucResult, BUFFER_LENGTH, "stdin\n");
 	  break;
+	case rn_type_archive:
 	case rn_type_dir:
 	case rn_type_dir_in_archive:
 	case rn_type_file:
@@ -3345,6 +3402,71 @@ resNodeToCSV(resNodePtr prnArg, int iArgOptions)
   return pucResult;
 } /* end of resNodeToCSV() */
 
+
+#ifdef DEBUG
+
+/*!
+\todo change to a single line format
+
+  \param prnArg a pointer to a resource node
+  \return TRUE if prnArg is initialized
+ */
+xmlChar*
+resNodeToGraphviz(resNodePtr prnArg, int iArgOptions)
+{
+  xmlChar* pucResult = NULL;
+
+  pucResult = BAD_CAST xmlMalloc((BUFFER_LENGTH + 1) * sizeof(xmlChar));
+  if (pucResult) {
+
+    switch (resNodeGetType(prnArg)) {
+    case rn_type_stdout:
+    case rn_type_stderr:
+    case rn_type_stdin:
+      xmlStrPrintf(pucResult, BUFFER_LENGTH, "// stdin\n");
+      break;
+    default:
+      xmlStrPrintf(pucResult, BUFFER_LENGTH,
+		   "node%x [label = \"<f0> %X|name: %s|size: %li|type: %s|<f2> parent:%X|<f3> next:%X|<f4> children:%X|<f5> last:%X\"];\n"
+		   "%snode%x:f2 -> node%x:f0;\n"
+		   "%snode%x:f3 -> node%x:f0;\n"
+		   "%snode%x:f4 -> node%x:f0;\n"
+		   "%snode%x:f5 -> node%x:f0;\n",
+		   prnArg,
+		   //
+		   prnArg,
+		   resNodeGetNameBase(prnArg),
+		   resNodeGetSize(prnArg),
+		   resNodeGetTypeStr(prnArg),
+		   prnArg->parent,
+		   prnArg->next,
+		   prnArg->children,
+		   prnArg->last,
+		   //
+		   (prnArg->prev == NULL ? "//" : "//"),
+		   prnArg,
+		   prnArg->parent,
+		   //
+		   (prnArg->next == NULL ? "//" : ""),
+		   prnArg,
+		   prnArg->next,
+		   //
+		   (prnArg->children == NULL ? "//" : ""),
+		   prnArg,
+		   prnArg->children,
+		   //
+		   (prnArg->last == NULL ? "//" : ""),
+		   prnArg,
+		   prnArg->last
+		   );
+      break;
+    }
+  }
+
+  return pucResult;
+} /* end of resNodeToGraphviz() */
+
+#endif
 
 /*!
 \todo change to a single line format
@@ -3772,6 +3894,9 @@ resNodeUpdate(resNodePtr prnArg, int iArgOptions, const pcre2_code *re_match, co
 	}
 #endif
 #ifdef HAVE_LIBARCHIVE
+	else if (resNodeIsArchive(prnArg)) {
+	  fResult = arcAppendEntries(prnArg, re_match, TRUE); /* update achive nodes */
+	}
 	else if (resNodeIsFileInArchive(prnArg)) {
 	  fResult = arcAppendEntries(resNodeGetAncestorArchive(prnArg), re_match, TRUE);
 	  /*\todo avoid redundant parsing */
@@ -3816,6 +3941,9 @@ resNodeReadStatus(resNodePtr prnArg)
     if (prnArg->fStat) {
       /* this resource node was stat'd already */
       fResult = prnArg->fExist;
+    }
+    else if (prnArg->liSize > 0 && prnArg->pContent != NULL) {
+      fResult = TRUE;
     }
     else if (resNodeIsDirInArchive(prnArg) || resNodeIsFileInArchive(prnArg)) {
       fResult = (resNodeGetAncestorArchive(prnArg) != NULL); /* stat archive */
@@ -4027,9 +4155,22 @@ resNodeSetExtension(resNodePtr prnArg)
 {
   BOOL_T fResult = FALSE;
 
-  if (prnArg) {
-    xmlFree(prnArg->pucExtension);
-    prnArg->pucExtension = resPathGetExtension(prnArg->pucNameBase);
+  if (prnArg != NULL && prnArg->pucExtension == NULL) {
+    switch (prnArg->eType) {
+    case rn_type_undef:
+    case rn_type_file:
+    case rn_type_file_compressed:
+    case rn_type_image:
+    case rn_type_archive:
+    case rn_type_file_in_archive:
+    case rn_type_database:
+    case rn_type_file_in_database:
+    case rn_type_symlink:
+      prnArg->pucExtension = resPathGetExtension(resNodeGetNameBase(prnArg));
+      break;
+    default:
+      break;
+    }
     fResult = (prnArg->pucExtension != NULL);
   }
   return fResult;
@@ -4041,15 +4182,30 @@ resNodeSetExtension(resNodePtr prnArg)
 xmlChar *
 resNodeGetExtension(resNodePtr prnArg)
 {
-  if (prnArg != NULL
-      && (prnArg->eType == rn_type_file || prnArg->eType == rn_type_file_in_archive)) {
-    if (prnArg->pucExtension == NULL) {
-      resNodeSetExtension(prnArg);
+  xmlChar *pucResult = NULL;
+
+  if (prnArg) {
+    switch (prnArg->eType) {
+    case rn_type_undef:
+    case rn_type_file:
+    case rn_type_file_compressed:
+    case rn_type_image:
+    case rn_type_archive:
+    case rn_type_file_in_archive:
+    case rn_type_database:
+    case rn_type_file_in_database:
+    case rn_type_symlink:
+      if (prnArg->pucExtension == NULL) {
+	resNodeSetExtension(prnArg);
+      }
+      pucResult = prnArg->pucExtension;
+      break;
+    default:
+      break;
     }
-    return prnArg->pucExtension;
   }
 
-  return NULL;
+  return pucResult;
 } /* end of resNodeGetExtension() */
 
 
@@ -4109,6 +4265,24 @@ resNodeSetType(resNodePtr prnArg, RN_TYPE eArgType)
     prnArg->eType = eArgType;
   }
 } /* end of resNodeSetType() */
+
+
+/*! Sets and returns the type of this resource node.
+
+\param prnArg a pointer to a resource node
+\return value of eType or -1 in case of errors
+*/
+xmlChar *
+resNodeGetTypeStr(resNodePtr prnArg)
+{
+  xmlChar *pucResult = mpucTypeNames[rn_type_undef];
+
+  if (prnArg != NULL && prnArg->eType >= rn_type_undef && prnArg->eType <= rn_type_url) {
+    pucResult = mpucTypeNames[prnArg->eType];
+  }
+
+  return pucResult;
+} /* end of resNodeGetTypeStr() */
 
 
 /*! Sets and returns the type of this resource node.

@@ -768,6 +768,57 @@ resNodeListToPlain(resNodePtr prnArg, int iArgOptions)
 } /* end of resNodeListToPlain() */
 
 
+#ifdef DEBUG
+
+/*! Resource Node List To Graphviz
+
+\param prnArg -- resNode tree to build as graphviz string
+\param iArgOptions bits for options 
+\return pointer to buffer with graphviz output
+*/
+xmlChar *
+resNodeListToGraphviz(resNodePtr prnArg, int iArgOptions)
+{
+  xmlChar *pucResult = NULL;
+
+  if (prnArg) {
+    resNodePtr prnT;
+
+    for (prnT = prnArg; prnT; prnT = resNodeGetNext(prnT)) {
+      xmlChar* pucT = NULL;
+      resNodePtr prnChild;
+
+      if ((prnChild = resNodeGetChild(prnT))) {
+	if ((pucT = resNodeListToGraphviz(prnChild, iArgOptions))) {
+	  if (pucResult) {
+	    pucResult = xmlStrcat(pucResult, pucT);
+	    xmlFree(pucT);
+	  }
+	  else {
+	    pucResult = pucT;
+	  }
+	}
+      }
+
+      if ((pucT = resNodeToGraphviz(prnT, iArgOptions))) {
+	if (pucResult) {
+	  pucResult = xmlStrcat(pucResult, pucT);
+	  xmlFree(pucT);
+	}
+	else {
+	  pucResult = pucT;
+	}
+      }
+    }
+  }
+  else {
+    resNodeSetError(prnArg,rn_error_argv,"Error resNodeListToGraphviz()");
+  }
+  return pucResult;
+} /* end of resNodeListToGraphviz() */
+
+#endif
+
 /*! dump a resNode to 'argout' using 'pfArg'
 
 \todo handle links and archives
