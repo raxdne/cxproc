@@ -55,7 +55,11 @@
 
 #define RE_DATE_YEAR   "([12][90][0-9]{2}|0{4})"
 #define RE_DATE_EASTER "\\@e([\\-+][0-9]+)*"
+#ifdef EXPERIMENTAL
+#define RE_DATE_WEEK   "(-W[0-5]*[0-9](-[1-7])*|\\*+w[0-59]*[0-9](mon|tue|wed|thu|fri|sat|sun))"
+#else
 #define RE_DATE_WEEK   "\\*+w[0-59]*[0-9](mon|tue|wed|thu|fri|sat|sun)"
+#endif
 #define RE_DATE_MONTH  "[01][0-9]"
 #define RE_DATE_DAY    "[0123][0-9]"
 #define RE_DATE_HOUR   "[\t ]+[012]*[0-9][\\.:][0-5][0-9](-[012]*[0-9][\\.:][0-5][0-9])*"
