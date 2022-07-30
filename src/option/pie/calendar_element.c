@@ -1024,7 +1024,11 @@ ScanDateIterationStepTo(pieCalendarElementPtr pceArg)
     xmlChar *pucSep = pceArg->pucSep;
 
     if (pceArg->iAnchor > 0 && pucSep != NULL
-	&& pucSep[0] == '#'
+#ifdef EXPERIMENTAL
+      && (pucSep[0] == '#' || pucSep[0] == '/')
+#else
+      && pucSep[0] == '#'
+#endif
 	&& (((pucSep[1]=='w' || pucSep[1]=='W') && isdigit(pucSep[2]))
 	    || (isdigit(pucSep[1])))) {
       /* add the day range to anchor */
@@ -1039,6 +1043,8 @@ ScanDateIterationStepTo(pieCalendarElementPtr pceArg)
 	  pceArg->iStep = 1;
 	  pceArg->iCount = iDelta;
 	  /*!\todo add step size detection "#21.3" */
+	  for (pucSep++; iscal(*pucSep); pucSep++) ;
+	  pceArg->pucSep = pucSep;
 	}
 	else {
 	  PrintFormatLog(1,"Date range error: '%s'",pceArg->pucDate);
@@ -1082,10 +1088,21 @@ ScanDateIterationStepOffset(pieCalendarElementPtr pceArg)
 BOOL_T
 DateIterationFollows(pieCalendarElementPtr pceArg)
 {
-  if (pceArg) {
-    xmlChar *pucSep = pceArg->pucSep;
-
-    return (pceArg->iAnchor > 0 && pucSep != NULL && (pucSep[0] == '-' || pucSep[0] == '+' || pucSep[0] == '.' || pucSep[0] == '#' || pucSep[0] == ':'));
+  if (pceArg != NULL && pceArg->iAnchor > 0 && pceArg->pucSep != NULL) {
+    switch (pceArg->pucSep[0]) {
+    case '-':
+    case '+':
+    case '.':
+    case '#':
+    case ':':
+#ifdef EXPERIMENTAL
+    case '/':
+#endif
+      return TRUE;
+      break;
+    default:
+      break;
+    }
   }
   return FALSE;
 }
@@ -1343,6 +1360,12 @@ calConcatNextDate(xmlChar *pucArgGcal)
       return NULL;
     }
   }
+#ifdef EXPERIMENTAL
+  else if (*pucB == '/') {
+    memcpy(pucArgGcal, &pucB[1], (size_t)xmlStrlen(&pucB[1]) + 1);
+    return pucArgGcal;
+  }
+#endif
 
   return NULL;
 }

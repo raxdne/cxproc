@@ -70,6 +70,8 @@
 #define RE_DATE_GERMAN RE_DATE_DAY "\\." RE_DATE_MONTH "\\." RE_DATE_YEAR
 
 #define RE_DATE "\\b("							\
+  "(" RE_DATE_YEAR "-" RE_DATE_MONTH "-" RE_DATE_DAY "(" RE_DATE_ISO_TIME "|" RE_DATE_HOUR ")*" ")/(" RE_DATE_YEAR "-" RE_DATE_MONTH "-" RE_DATE_DAY "(" RE_DATE_ISO_TIME "|" RE_DATE_HOUR ")*" ")" \
+  "|"									\
   "(" RE_DATE_YEAR "-" RE_DATE_MONTH "-" RE_DATE_DAY "(" RE_DATE_ISO_TIME "|" RE_DATE_HOUR ")*" ")" \
   "|"									\
   "(" RE_DATE_YEAR RE_DATE_MONTH RE_DATE_DAY "(" RE_DATE_MODS ")*" "(" RE_DATE_HOUR ")*" ")"	\
