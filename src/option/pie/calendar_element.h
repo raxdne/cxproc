@@ -19,6 +19,7 @@
 */
 
 #include <pie/pie_timezone.h>
+#include <dt.h>
 
 typedef enum {
   DATE_ISO,
@@ -44,7 +45,7 @@ struct pieCalendarElement {
   xmlChar *pucId; /*!< pointer to ID string */
   xmlChar *pucDate; /*!< pointer to single date string */
   xmlChar *pucSep; /*!< pointer to iteration separator string */
-  unsigned int iAnchor; /*!< day index of Date anchor */
+  dt_t iAnchor; /*!< day index of Date anchor */
   int iStep; /*!< iterator increment of day steps */
   int iCount; /*!< iteration count */
   int iYear;  /*!< Date year anchor */

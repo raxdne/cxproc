@@ -1735,7 +1735,9 @@ GetSelectedFileName(xmlChar *pucArgMsg, xmlChar *pucArgPath)
 }
 /* end of GetSelectedFileName() */
 
+#ifdef EXPERIMENTAL
 
+#else
 /*! computes the number of days since 1970-01-01 as an absolute value
 */
 long int
@@ -1823,6 +1825,7 @@ GetDayAbsolute(int year, int mon, int mday, int week, int wday)
 }
 /* end of GetDayAbsolute() */
 
+#endif
 
 /* compute the sequential number of a day in the year
 (1-Jan = 1, 31-Dec = 365/366)

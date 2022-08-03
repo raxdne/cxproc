@@ -3202,6 +3202,11 @@ cxpProcessInfoNode(xmlNodePtr pndInfo, cxpContextPtr pccArg)
     xmlSetProp(nodeOption, BAD_CAST "version", BAD_CAST ZLIB_VERSION);
 #endif
 
+    nodeOption = xmlNewChild(nodeProgram, NULL, BAD_CAST"lib", NULL);
+    xmlSetProp(nodeOption,BAD_CAST "name",BAD_CAST"c-dt");
+    xmlSetProp(nodeOption,BAD_CAST "ns",BAD_CAST"https://github.com/chansen/c-dt");
+    xmlSetProp(nodeOption,BAD_CAST "select", BAD_CAST "yes");
+
     nodeOption = xmlNewChild(nodeProgram,NULL,BAD_CAST"module",NULL);
     xmlSetProp(nodeOption,BAD_CAST "name",BAD_CAST"petrinet");
 #ifdef HAVE_PETRINET

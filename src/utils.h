@@ -136,8 +136,16 @@ extern xmlChar *
 GetUTF8Bytes(int val);
 
 
+#ifdef EXPERIMENTAL
+
+#define GetDayAbsolute(Y,M,D,W,WD) dt_from_ymd(Y,M,D)
+
+#else
+
 extern long int
 GetDayAbsolute(int year, int mon, int mday, int week, int wday);
+
+#endif
 
 extern long int
 GetEasterSunday(int iArgYear, int *piArgMonth, int *piArgDay);
@@ -153,6 +161,7 @@ GetNowFormatStr(xmlChar *pucArgFormat);
 
 extern xmlChar *
 GetDateIsoString(time_t ArgTime);
+
 
 extern int
 ishashtag(xmlChar* pucArg, int* piArg);

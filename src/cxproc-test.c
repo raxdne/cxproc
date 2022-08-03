@@ -54,6 +54,8 @@
 #endif
 #endif
 
+#include <dt.h>
+
 /* 
  */
 #include "basics.h"
@@ -105,6 +107,7 @@
 #include "test/test_libxslt.c"
 #include "test/test_pcre.c"
 #include "test/test_threads.c"
+#include "test/test_dt.c"
 
 
 int
@@ -203,6 +206,7 @@ main(int argc, char** argv, char** envp)
 	iErrorCode += pcreTest();
 	iErrorCode += threadTest();
 	iErrorCode += utilsTest();
+	iErrorCode += dtTest();
       }
 
       if (pcTest == NULL || xmlStrEqual(BAD_CAST pcTest, BAD_CAST "res_node")) {
