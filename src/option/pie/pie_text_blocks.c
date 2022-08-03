@@ -74,6 +74,10 @@
   "|"									\
   "(" RE_DATE_YEAR "-" RE_DATE_MONTH "-" RE_DATE_DAY "(" RE_DATE_ISO_TIME "|" RE_DATE_HOUR ")*" ")" \
   "|"									\
+  "(" RE_DATE_YEAR RE_DATE_WEEK ")/(" RE_DATE_YEAR RE_DATE_WEEK ")"     \
+  "|"									\
+  "(" RE_DATE_YEAR RE_DATE_WEEK ")"					\
+  "|"									\
   "(" RE_DATE_YEAR RE_DATE_MONTH RE_DATE_DAY "(" RE_DATE_MODS ")*" "(" RE_DATE_HOUR ")*" ")"	\
   "|"									\
   "(" RE_DATE_YEAR RE_DATE_MONTH RE_DATE_DAY "(" RE_DATE_ISO_TIME "|" RE_DATE_HOUR ")*" ")"	\
@@ -81,8 +85,6 @@
   "(" RE_DATE_YEAR RE_DATE_EASTER ")"					\
   "|"									\
   "(" RE_DATE_GERMAN "(" RE_DATE_HOUR ")*" ")"				\
-  "|"									\
-  "(" RE_DATE_YEAR RE_DATE_WEEK ")"					\
   ")\\b"
 
 #define RE_INLINE "_{2,}[^_]+_{2,}|\\*{2,}[^\\*]+\\*{2,}|`[^`]+`"

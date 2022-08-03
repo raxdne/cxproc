@@ -569,7 +569,7 @@ resNodeTestInOut(void)
       n_ok++;
       printf("OK\n");
     }
-    domPutNodeString(stderr, BAD_CAST "ODT ", pndT);
+    //domPutNodeString(stderr, BAD_CAST "ODT ", pndT);
     resNodeFree(prnT);
   }
 

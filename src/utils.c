@@ -1758,7 +1758,7 @@ GetDayAbsolute(int year, int mon, int mday, int week, int wday)
       t.tm_isdst = 0;
       result = (long int)(mktime(&t) / (time_t)(60 * 60 * 24));
     }
-    else if (week > -1 && week < 54 && wday > -1 && wday < 7) {
+    else if (week > -1 && week < 54 && wday > -1 && wday < 8) {
 
       /* starting with the very first day of year */
       t.tm_yday = 0;

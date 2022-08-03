@@ -1560,7 +1560,7 @@ ceTest(void)
     i++;
     printf("TEST %i in '%s:%i': scan a calendar element = ", i, __FILE__, __LINE__);
 
-    if ((pceT = CalendarElementNew(BAD_CAST"2013-12-11/2014-03-11 ISO date range")) == NULL) {
+    if ((pceT = CalendarElementNew(BAD_CAST"2013-12-11/2014-03-11 ISO date interval")) == NULL) {
       printf("ERROR\n");
     }
     else if (ScanCalendarElementDate(pceT) == FALSE) {
@@ -1572,7 +1572,7 @@ ceTest(void)
     else if (ScanDateIteration(pceT) == FALSE) {
       printf("ERROR\n");
     }
-    else if (xmlStrEqual(pceT->pucSep, BAD_CAST" ISO date range") == FALSE) {
+    else if (xmlStrEqual(pceT->pucSep, BAD_CAST" ISO date interval") == FALSE) {
       printf("ERROR\n");
     }
     else if (pceT->iYear != 2013
@@ -1594,7 +1594,41 @@ ceTest(void)
     i++;
     printf("TEST %i in '%s:%i': scan a calendar element = ", i, __FILE__, __LINE__);
 
-    if ((pceT = CalendarElementNew(BAD_CAST"2013-10-12T14:00:00/2013-10-14T14:00:00 ISO date range")) == NULL) {
+    if ((pceT = CalendarElementNew(BAD_CAST"2013-W50-2/2014-W11-1 ISO week interval")) == NULL) {
+      printf("ERROR\n");
+    }
+    else if (ScanCalendarElementDate(pceT) == FALSE) {
+      printf("ERROR\n");
+    }
+    else if (pceT->eTypeDate != DATE_WEEK_ISO) {
+      printf("ERROR\n");
+    }
+    else if (ScanDateIteration(pceT) == FALSE) {
+      printf("ERROR\n");
+    }
+    else if (xmlStrEqual(pceT->pucSep, BAD_CAST" ISO week interval") == FALSE) {
+      printf("ERROR\n");
+    }
+    else if (pceT->iYear != 2013
+      || pceT->iMonth != -1 || pceT->iDay != -1 || pceT->iWeek != 50 || pceT->iDayWeek != 2
+      || pceT->iCount != 90 || pceT->iStep != 1) {
+      printf("ERROR\n");
+    }
+    else {
+      n_ok++;
+      printf("OK\n");
+    }
+    CalendarElementFree(pceT);
+  }
+
+
+  if (RUNTEST) {
+    pieCalendarElementPtr pceT;
+
+    i++;
+    printf("TEST %i in '%s:%i': scan a calendar element = ", i, __FILE__, __LINE__);
+
+    if ((pceT = CalendarElementNew(BAD_CAST"2013-10-12T14:00:00/2013-10-14T14:00:00 ISO date interval")) == NULL) {
       printf("ERROR\n");
     }
     else if (ScanCalendarElementDate(pceT) == FALSE) {
@@ -1612,12 +1646,12 @@ ceTest(void)
     else if (ScanCalendarElementTime(pceT) == TRUE) {
       printf("ERROR\n");
     }
-    else if (xmlStrEqual(pceT->pucSep, BAD_CAST" ISO date range") == FALSE) {
+    else if (xmlStrEqual(pceT->pucSep, BAD_CAST" ISO date interval") == FALSE) {
       printf("ERROR\n");
     }
     else if (pceT->iYear != 2013
-      || pceT->iMonth != 12 || pceT->iDay != 11 || pceT->iWeek != -1 || pceT->iDayWeek != -1
-      || pceT->iCount != 90 || pceT->iStep != 1) {
+      || pceT->iMonth != 10 || pceT->iDay != 12 || pceT->iWeek != -1 || pceT->iDayWeek != -1
+      || pceT->iCount != 2 || pceT->iStep != 1) {
       printf("ERROR\n");
     }
     else {
