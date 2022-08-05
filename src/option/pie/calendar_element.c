@@ -1169,10 +1169,7 @@ ScanDateIteration(pieCalendarElementPtr pceArg)
       }
       else {
 	/*! valid year and valid week */
-	if (pceArg->iDayWeek < 0) {
-	  /*! no valid day of week */
-	}
-	else if (pceArg->iDayWeek == 7) {
+	if (pceArg->iDayWeek < 0 || pceArg->iDayWeek == 7) {
 	  /*! valid year, valid week and all days of week */
 	  pceArg->iAnchor = GetDayAbsolute(pceArg->iYear, -1, -1, pceArg->iWeek, 0);
 	  pceArg->iStep = -1;

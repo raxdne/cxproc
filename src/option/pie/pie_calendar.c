@@ -893,7 +893,7 @@ AddDateAttributes(pieCalendarElementPtr pceArg)
 	if (pceT->iCount > 0 && pceT->iStep == 1) {
 	  /* date interval */
 
-	  xmlStrPrintf(mpucT, BUFFER_LENGTH, "%li", pceT->iCount);
+	  xmlStrPrintf(mpucT, BUFFER_LENGTH, "%li", pceT->iCount + 1);
 	  xmlSetProp(pndCurrent, BAD_CAST"interval", mpucT);
 	  
 	  if ((iDayAbsolute + pceT->iCount) < iDayToday) {
