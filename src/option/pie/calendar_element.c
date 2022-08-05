@@ -335,6 +335,9 @@ UpdateCalendarElementDate(pieCalendarElementPtr pceArg)
 \return NULL in case of error, else pointer to xmlChar after date expression string
 
 \todo find date string in any position of pceArgResult->pucDate
+
+\deprecated due to migration to ISO 8601
+
  */
 BOOL_T
 ScanCalendarElementDate(pieCalendarElementPtr pceArgResult)
@@ -699,6 +702,9 @@ ScanCalendarElementDate(pieCalendarElementPtr pceArgResult)
 
  \param
  \return NULL in case of error, else pointer to xmlChar after Time expression string
+
+ \deprecated due to migration to ISO 8601
+
   */
 xmlChar*
 ScanTimeTripeString(xmlChar* pucArgGcal, int *piArgHour, int *piArgMinute, int *piArgSecond)
@@ -822,6 +828,8 @@ ScanTimeTripeString(xmlChar* pucArgGcal, int *piArgHour, int *piArgMinute, int *
 
  \param
  \return NULL in case of error, else pointer to xmlChar after Time expression string
+ 
+ \deprecated due to migration to ISO 8601
   */
 BOOL_T
 ScanCalendarElementTime(pieCalendarElementPtr pceArg)
@@ -1596,32 +1604,11 @@ GetTodaySecond(void)
 }
 /* end of GetTodaySecond() */
 
-
-/*! Decodes the given string and returns the according result of GetDayAbsolute()
-
-\param pucGcal date string
-*/
-long int
-GetDayAbsoluteStr(xmlChar *pucGcal)
-{
-  long int liResult = -1;
-
-  if (pucGcal != NULL && xmlStrlen(pucGcal) > 4) {
-    pieCalendarElementPtr pceT;
-
-    pceT = CalendarElementNew(pucGcal);
-    if (pceT) {
-      ScanCalendarElementDate(pceT);
-      liResult = GetDayAbsolute(pceT->iYear,pceT->iMonth,pceT->iDay,pceT->iWeek,pceT->iDayWeek);
-      CalendarElementFree(pceT);
-    }
-  }
-  return liResult;
-}
-/* end of GetDayAbsoluteStr() */
-
+#if 1
 
 /*! \return the index number
+
+\deprecated due to migration to ISO 8601
 */
 int
 GetDayOfWeekInt(xmlChar *pucDow)
@@ -1639,52 +1626,7 @@ GetDayOfWeekInt(xmlChar *pucDow)
 }
 /* end of GetDayOfWeekInt() */
 
-
-/*! \return a string 
-*/
-xmlChar *
-GetDiffDaysStrNew(xmlChar *pucArgAbs,xmlChar *pucArgDate)
-{
-  xmlChar *pucResult = NULL;
-
-  if (pucArgAbs != NULL && pucArgDate != NULL) {
-    xmlChar mpucT[BUFFER_LENGTH];
-
-    int iDayStart = (int)GetDayAbsoluteStr(pucArgDate);
-    int iDayEnd   = (int)strtol((char *)pucArgAbs,NULL,10);
-
-    xmlStrPrintf(mpucT,BUFFER_LENGTH, "%i", iDayEnd - iDayStart);
-    pucResult = xmlStrdup(mpucT);
-  }
-
-  return pucResult;
-}
-/* end of GetDiffDaysStrNew() */
-
-
-/*! \return a string
-*/
-xmlChar *
-GetDiffYearsStrNew(xmlChar *pucArgStart,xmlChar *pucArgEnd)
-{
-  xmlChar *pucResult = NULL;
-
-  if (pucArgStart != NULL && pucArgEnd != NULL) {
-
-    int iYearStart = (int)strtol((char *)pucArgStart,NULL,10);
-    int iYearEnd   = (int)strtol((char *)pucArgEnd,NULL,10);
-
-    if (iYearStart - iYearEnd > 0) {
-      xmlChar mpucT[BUFFER_LENGTH];
-
-      xmlStrPrintf(mpucT,BUFFER_LENGTH, "%i",iYearStart - iYearEnd);
-      pucResult = xmlStrdup(mpucT);
-    }
-  }
-
-  return pucResult;
-}
-/* end of GetDiffYearsStrNew() */
+#endif
 
 
 

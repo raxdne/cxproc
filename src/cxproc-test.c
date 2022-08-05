@@ -205,8 +205,8 @@ main(int argc, char** argv, char** envp)
 	iErrorCode += xslTest();
 	iErrorCode += pcreTest();
 	iErrorCode += threadTest();
-	iErrorCode += utilsTest();
 	iErrorCode += dtTest();
+	iErrorCode += utilsTest();
       }
 
       if (pcTest == NULL || xmlStrEqual(BAD_CAST pcTest, BAD_CAST "res_node")) {

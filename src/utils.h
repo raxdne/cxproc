@@ -135,17 +135,17 @@ chomp(unsigned char *c);
 extern xmlChar *
 GetUTF8Bytes(int val);
 
-
-#ifdef EXPERIMENTAL
-
-#define GetDayAbsolute(Y,M,D,W,WD) dt_from_ymd(Y,M,D)
-
-#else
-
 extern long int
 GetDayAbsolute(int year, int mon, int mday, int week, int wday);
 
-#endif
+extern long int
+GetDayAbsoluteStr(xmlChar *pucGcal);
+
+extern xmlChar *
+GetDiffDaysStrNew(xmlChar *pucArgStart,xmlChar *pucArgEnd);
+
+extern xmlChar *
+GetDiffYearsStrNew(xmlChar *pucArgStart,xmlChar *pucArgEnd);
 
 extern long int
 GetEasterSunday(int iArgYear, int *piArgMonth, int *piArgDay);

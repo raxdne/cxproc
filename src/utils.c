@@ -23,6 +23,7 @@
 #include <inttypes.h>
 #include <libxml/parser.h>
 #include <libxml/parserInternals.h>
+#include <dt.h>
 
 #include "basics.h"
 #include "utils.h"
@@ -1735,15 +1736,64 @@ GetSelectedFileName(xmlChar *pucArgMsg, xmlChar *pucArgPath)
 }
 /* end of GetSelectedFileName() */
 
-#ifdef EXPERIMENTAL
+/*! Decodes the given string and returns the according result of GetDayAbsolute()
 
+\param pucGcal date string
+*/
+long int
+GetDayAbsoluteStr(xmlChar *pucGcal)
+{
+  long int liResult = -1;
+
+  if (pucGcal != NULL && xmlStrlen(pucGcal) > 4) {
+#if 1
+    dt_t dtp;
+    int sod, nsec;
+    int l, t;
+
+    if ((l = dt_parse_iso_date(pucGcal, 20, &dtp)) > 4) {
+      if ((t = dt_parse_iso_time_extended(&pucGcal[l+1], 20, &sod, &nsec)) > l) {
+      }
+      else {
+      }
+      liResult = dtp;
+    }
+    else {
+    }
 #else
+    pieCalendarElementPtr pceT;
+
+    pceT = CalendarElementNew(pucGcal);
+    if (pceT) {
+      ScanCalendarElementDate(pceT);
+      liResult = GetDayAbsolute(pceT->iYear,pceT->iMonth,pceT->iDay,pceT->iWeek,pceT->iDayWeek);
+      CalendarElementFree(pceT);
+    }
+#endif
+  }
+  return liResult;
+}
+/* end of GetDayAbsoluteStr() */
+
+
 /*! computes the number of days since 1970-01-01 as an absolute value
 */
 long int
 GetDayAbsolute(int year, int mon, int mday, int week, int wday)
 {
   long int result = 0;
+
+#ifdef EXPERIMENTAL
+  if (year>1969) {
+    if (week > -1) {
+      result = dt_from_ywd(year, week, wday);
+    }
+    else {
+      result = dt_from_ymd(year, mon, mday);
+    }
+  }
+
+#else
 
   if (year>1969) {
     struct tm t;
@@ -1821,18 +1871,79 @@ GetDayAbsolute(int year, int mon, int mday, int week, int wday)
       }
     }
   }
+#endif
   return result;
 }
 /* end of GetDayAbsolute() */
 
+
+/*! \return a string 
+*/
+xmlChar *
+GetDiffDaysStrNew(xmlChar *pucArgAbs,xmlChar *pucArgDate)
+{
+  xmlChar *pucResult = NULL;
+
+  if (pucArgAbs != NULL && pucArgDate != NULL) {
+    xmlChar mpucT[BUFFER_LENGTH];
+
+#if 1
+    dt_t dtpAbs;
+    dt_t dtpDate;
+    //int sod, nsec;
+    int l, t;
+
+    if (dt_parse_iso_date(pucArgAbs, 20, &dtpAbs) > 4 && dt_parse_iso_date(pucArgDate, 20, &dtpDate) > 4) {
+      xmlStrPrintf(mpucT,BUFFER_LENGTH, "%i", dtpAbs - dtpDate);
+    }
+    else {
+    }
+#else
+    int iDayStart = (int)GetDayAbsoluteStr(pucArgDate);
+    int iDayEnd   = (int)strtol((char *)pucArgAbs,NULL,10);
+    
+    xmlStrPrintf(mpucT,BUFFER_LENGTH, "%i", iDayEnd - iDayStart);
 #endif
+    
+    pucResult = xmlStrdup(mpucT);
+  }
+
+  return pucResult;
+}
+/* end of GetDiffDaysStrNew() */
+
+
+/*! \return a string
+*/
+xmlChar *
+GetDiffYearsStrNew(xmlChar *pucArgStart,xmlChar *pucArgEnd)
+{
+  xmlChar *pucResult = NULL;
+
+  if (pucArgStart != NULL && pucArgEnd != NULL) {
+
+    int iYearStart = (int)strtol((char *)pucArgStart,NULL,10);
+    int iYearEnd   = (int)strtol((char *)pucArgEnd,NULL,10);
+
+    if (iYearStart - iYearEnd > 0) {
+      xmlChar mpucT[BUFFER_LENGTH];
+
+      xmlStrPrintf(mpucT,BUFFER_LENGTH, "%i",iYearStart - iYearEnd);
+      pucResult = xmlStrdup(mpucT);
+    }
+  }
+
+  return pucResult;
+}
+/* end of GetDiffYearsStrNew() */
+
 
 /* compute the sequential number of a day in the year
 (1-Jan = 1, 31-Dec = 365/366)
 J.D. Robertson: Remark on Algorithm 398,
 Comm. ACM 13, 10 (Oct. 1972), p. 918
 */
-int GetDayOfYear(int day, int month, int year)
+int _GetDayOfYear(int day, int month, int year)
 {
   int  lmon; /* derived from month */
 
@@ -1855,6 +1966,11 @@ Comm. ACM 13, 10 (Oct. 1972), p. 918
 */
 int GetDayOfWeek(int day, int month, int year)
 {
+#if 1
+  int y, result, d;
+  dt_to_ywd(dt_from_ywd(year, month, day), &y, &d, &result);
+  return result;
+#else
   int  lmon; /* derived from month */
   int  mmon; /* derived from month */
 
@@ -1865,6 +1981,7 @@ int GetDayOfWeek(int day, int month, int year)
     + mmon / 400 - (mmon / 100) *   2)
     - 1) % 7 + 1
     );
+#endif
 }
 /* end of GetDayOfWeek() */
 
@@ -1878,6 +1995,10 @@ int
 GetWeekOfYear(int day, int month, int year)
 {
 #if 1
+  int y, result, d;
+  dt_to_ywd(dt_from_ywd(year, month, day), &y, &result, &d);
+  return result;
+#elif 0
   // http://www.nord-com.net/h-g.mekelburg/kalender/kal-64.htm
   int Woche = 0;
   int Wchtag1Jan = GetDayOfWeek(1, 1, year) - 1;
@@ -1950,6 +2071,12 @@ long int
 GetEasterSunday(int iArgYear, int *piArgMonth, int *piArgDay)
 {
 #if 1
+  long int result = -1;
+  int y;
+  result = dt_from_easter(iArgYear, DT_WESTERN);
+  dt_to_ywd(result, &y, piArgMonth, piArgDay);
+  return result;
+#elif 1
   long int result = -1;
   struct tm t;
 
@@ -2025,6 +2152,8 @@ GetEasterSunday(int iArgYear, int *piArgMonth, int *piArgDay)
 
 \param pucArgFormat pointer to a date like format string
 \return pointer to a new allocated copy of pucArgFormat, format sequences replaced by its values
+
+\todo check use of c-dt code
 */
 xmlChar *
 GetNowFormatStr(xmlChar *pucArgFormat)
@@ -2175,6 +2304,7 @@ interchange formats – Information interchange – Representation of
 dates and times" (http://en.wikipedia.org/wiki/ISO_8601)
 
 \todo append timezone id
+\todo check use of c-dt code
 */
 xmlChar *
 GetDateIsoString(time_t ArgTime)

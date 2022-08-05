@@ -68,21 +68,6 @@ ceTest(void)
   }
 
   if (RUNTEST) {
-    pieCalendarElementType ceT;
-
-    i++;
-    printf("TEST %i in '%s:%i': GetWeekOfYear() = ",i,__FILE__,__LINE__);
-    ;
-    if ((ceT.iWeek = GetWeekOfYear(3, 6, 2013)) != 23) {
-      printf("ERROR\n");
-    }
-    else {
-      n_ok++;
-      printf("OK\n");
-    }
-  }
-
-  if (RUNTEST) {
     i++;
     printf("TEST %i in '%s:%i': ",i,__FILE__,__LINE__);
 
@@ -246,22 +231,6 @@ ceTest(void)
     }
     else if ((pucT = ScanTimeTripeString(pucT, &h, &m, &s)) != NULL
 	     || h != -1 || m != -1 || s != -1) {
-      printf("ERROR\n");
-    }
-    else {
-      n_ok++;
-      printf("OK\n");
-    }
-  }
-
-  if (RUNTEST) {
-    int m,d;
-    long int liEasterAbs;
-
-    i++;
-    printf("TEST %i in '%s:%i': ",i,__FILE__,__LINE__);
-
-    if ((liEasterAbs = GetEasterSunday(2031, &m, &d)) != 22381 || m != 4 || d != 13) {
       printf("ERROR\n");
     }
     else {

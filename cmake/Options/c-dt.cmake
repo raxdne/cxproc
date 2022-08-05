@@ -25,9 +25,11 @@ set (CDT_SOURCE_FILES
 
 INCLUDE_DIRECTORIES(${CDT_SOURCE_DIR})
 
-target_sources(cxproc PUBLIC ${CDT_SOURCE_FILES})
-
+target_sources(pietextx   PUBLIC ${CDT_SOURCE_FILES})
+target_sources(dir2sqlite PUBLIC ${CDT_SOURCE_FILES})
+target_sources(dir2csv    PUBLIC ${CDT_SOURCE_FILES})
+target_sources(filex      PUBLIC ${CDT_SOURCE_FILES})
+target_sources(cxproc     PUBLIC ${CDT_SOURCE_FILES})
 target_sources(cxproc-cgi PUBLIC ${CDT_SOURCE_FILES})
-
 target_sources(cxproc-test PUBLIC ${CDT_SOURCE_FILES})
 

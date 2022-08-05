@@ -505,6 +505,36 @@ utilsTest(void)
   }
 
   if (RUNTEST) {
+
+    i++;
+    printf("TEST %i in '%s:%i': GetWeekOfYear() = ",i,__FILE__,__LINE__);
+
+    if (GetWeekOfYear(3, 6, 2013) != 23) {
+      printf("ERROR\n");
+    }
+    else {
+      n_ok++;
+      printf("OK\n");
+    }
+  }
+
+  if (RUNTEST) {
+    int m,d;
+    long int liEasterAbs;
+
+    i++;
+    printf("TEST %i in '%s:%i': ",i,__FILE__,__LINE__);
+
+    if ((liEasterAbs = GetEasterSunday(2031, &m, &d)) != 22381 || m != 4 || d != 13) {
+      printf("ERROR\n");
+    }
+    else {
+      n_ok++;
+      printf("OK\n");
+    }
+  }
+
+  if (RUNTEST) {
     xmlChar *pucTest;
 
     i++;

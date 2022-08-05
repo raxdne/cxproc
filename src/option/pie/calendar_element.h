@@ -158,15 +158,6 @@ GetTodayMinute(void);
 extern int
 GetTodaySecond(void);
 
-extern long int
-GetDayAbsoluteStr(xmlChar *pucGcal);
-
-extern xmlChar *
-GetDiffDaysStrNew(xmlChar *pucArgStart,xmlChar *pucArgEnd);
-
-extern xmlChar *
-GetDiffYearsStrNew(xmlChar *pucArgStart,xmlChar *pucArgEnd);
-
 extern int
 GetDayOfWeekInt(xmlChar *pucDow);
 
