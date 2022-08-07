@@ -157,7 +157,7 @@ extern xmlChar *
 GetDateIsoString(time_t ArgTime);
 
 extern size_t
-dt_parse_iso_period(const char *str, size_t len, int *yp, int *mp, dt_t *dp);
+dt_parse_iso_period(const char *str, size_t len, int *yp, int *mp, int *dp, int *wp);
 
 extern size_t
 dt_parse_iso_date_interval(const char* str, size_t len, dt_t* pdt0, dt_t* pdt1);

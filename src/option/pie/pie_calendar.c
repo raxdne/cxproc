@@ -728,6 +728,36 @@ AddDateAttributes(pieCalendarElementPtr pceArg)
       xmlSetProp(pndCurrent, BAD_CAST"diff", mpucT);
 	  
 #ifdef EXPERIMENTAL
+
+      if (pceT->iAnchor > 0) {
+	long int iDayDiff = 0;
+	
+	if (pceT->iCount > 0 && pceT->iStep == 1) {
+	  /* date interval */
+
+	  xmlStrPrintf(mpucT, BUFFER_LENGTH, "%li", pceT->iCount + 1);
+	  xmlSetProp(pndCurrent, BAD_CAST"interval", mpucT);
+	  
+	  if ((pceT->iAnchor + pceT->iCount) < iDayToday) {
+	    /* date interval ends before today */
+	    iDayDiff = (pceT->iAnchor + pceT->iCount) - iDayToday;
+	  }
+	  else if (iDayToday < pceT->iAnchor) {
+	    /* date interval begins after today */
+	    iDayDiff = pceT->iAnchor - iDayToday;
+	  }
+	  else {
+	    /* today is in date interval */
+	  }
+	}
+	else {
+	  /* single date */
+	  iDayDiff = pceT->iAnchor - iDayToday;
+	}
+	xmlStrPrintf(mpucT, BUFFER_LENGTH, "%li", iDayDiff);
+	xmlSetProp(pndCurrent, BAD_CAST"diff", mpucT);
+      }
+      
       /*!\todo concatenate sequential dates */
 
       mpucT[0] = '\0';

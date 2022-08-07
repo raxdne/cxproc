@@ -2212,15 +2212,15 @@ isiso8601(xmlChar c)
  * \bug floating values not used
  */
 size_t
-dt_parse_iso_period(const char *str, size_t len, int *yp, int *mp, int *dp) {
+dt_parse_iso_period(const char *str, size_t len, int *yp, int *mp, int *dp, int* wp) {
   size_t n = 0;
 
-  if (str != NULL && *str == 'P' && len > 0 && yp != NULL && mp != NULL && dp != NULL) {
-    int y, m, d, i;
+  if (str != NULL && *str == 'P' && len > 0) {
+    int y, m, d, i, w;
     char *p;
     bool v;
 
-    for (p = str + 1, v = true,  y = m = d = 0; 
+    for (p = str + 1, v = true,  y = m = d = w = 0; 
       v && (n = p - str) < len && (v = (i = strtol(p, &p, 10)) > -1);
       p++) {
 
@@ -2228,6 +2228,16 @@ dt_parse_iso_period(const char *str, size_t len, int *yp, int *mp, int *dp) {
 	
       if (i < 0) {
 	break;
+      }
+      else if (*p == 'W') {
+	if (w < 1 && y < 1 && m < 1 && d < 1) {
+	  w = i;
+	  //p++;
+	}
+	else {
+	  v = false;
+	}
+	//break;
       }
       else if (*p == 'Y') {
 	if (y < 1 && m < 1 && d < 1) {
@@ -2264,9 +2274,14 @@ dt_parse_iso_period(const char *str, size_t len, int *yp, int *mp, int *dp) {
     }
     
     if (v) {
-      *yp = y;
-      *mp = m;
-      *dp = d;
+      if (yp)
+	*yp = y;
+      if (mp)
+	*mp = m;
+      if (dp)
+	*dp = d;
+      if (wp)
+	*wp = w;
     }
     else {
       n = 0;
@@ -2299,10 +2314,16 @@ dt_parse_iso_date_interval(const char *str, size_t len, dt_t *pdt0, dt_t *pdt1) 
 	  *pdt1 = dt1;
 	  n += j;
 	}
-	else if ((j = dt_parse_iso_period(&p[n], len, &y, &m, &d)) > 3) {
-	  dt1 = dt_add_years(dt0,y, DT_EXCESS);
-	  dt1 = dt_add_months(dt1, m, DT_EXCESS);
-	  dt1 += d;
+	else if ((j = dt_parse_iso_period(&p[n], len, &y, &m, &d, &w)) > 0) {
+
+	  if (w > 0) {
+	    dt1 = dt0 + w * 7;
+	  }
+	  else {
+	    dt1 = dt_add_years(dt0, y, DT_EXCESS);
+	    dt1 = dt_add_months(dt1, m, DT_EXCESS);
+	    dt1 += d;
+	  }
 
 	  *pdt0 = dt0;
 	  *pdt1 = dt1;
@@ -2319,14 +2340,20 @@ dt_parse_iso_date_interval(const char *str, size_t len, dt_t *pdt0, dt_t *pdt1) 
       }
 
     }
-    else if ((n = dt_parse_iso_period(&p[n], len, &y, &m, &d)) > 3) {
+    else if ((n = dt_parse_iso_period(&p[n], len, &y, &m, &d, &w)) > 0) {
 
       if (p[n++] == '/') {
 
 	if ((j = dt_parse_iso_date(&p[n], len - n, &dt1)) > 3) {
-	  dt0 = dt_add_years(dt1, -y, DT_EXCESS);
-	  dt0 = dt_add_months(dt0, -m, DT_EXCESS);
-	  dt0 -= d;
+
+	  if (w > 0) {
+	    dt0 = dt1 - w * 7;
+	  }
+	  else {
+	    dt0 = dt_add_years(dt1, -y, DT_EXCESS);
+	    dt0 = dt_add_months(dt0, -m, DT_EXCESS);
+	    dt0 -= d;
+	  }
 
 	  *pdt0 = dt0;
 	  *pdt1 = dt1;

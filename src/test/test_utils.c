@@ -508,27 +508,36 @@ utilsTest(void)
   /* ISO 8601 Durations */
   
   if (RUNTEST) {
-    int y, m, d;
+    int y, m, d, w;
     
     i++;
     printf("TEST %i in '%s:%i': ",i,__FILE__,__LINE__);
 
-    if (dt_parse_iso_period(NULL, 20, NULL, NULL, NULL) != 0) {
+    if (dt_parse_iso_period(NULL, 20, NULL, NULL, NULL, NULL) != 0) {
       printf("ERROR dt_parse_iso_period()\n");
     }
-    else if (dt_parse_iso_period("P1YM-4DT", 20, &y, &m, &d) != 0) {
+    else if (dt_parse_iso_period("P1YM-4DT", 20, &y, &m, &d, NULL) != 0) {
       printf("ERROR dt_parse_iso_period()\n");
     }
-    else if (dt_parse_iso_period("P3Y6M4DT12H30M5S", BUFFER_LENGTH, &y, &m, &d) != 7) {
+    else if (dt_parse_iso_period("P3Y6M4DT12H30M5S", BUFFER_LENGTH, &y, &m, &d, NULL) != 7) {
       printf("ERROR dt_parse_iso_period()\n");
     }
     else if (y != 3 || m != 6 || d != 4) {
       printf("ERROR dt_parse_iso_period()\n");
     }
-    else if (dt_parse_iso_period("P7Y", BUFFER_LENGTH, &y, &m, &d) != 3) {
+    else if (dt_parse_iso_period("P7Y", BUFFER_LENGTH, &y, &m, &d, NULL) != 3) {
       printf("ERROR dt_parse_iso_period()\n");
     }
     else if (y != 7 || m != 0 || d != 0) {
+      printf("ERROR dt_parse_iso_period()\n");
+    }
+    else if (dt_parse_iso_period("P2W", BUFFER_LENGTH, &y, &m, &d, &w) != 3) {
+      printf("ERROR dt_parse_iso_period()\n");
+    }
+    else if (w != 2 || m != 0 || d != 0) {
+      printf("ERROR dt_parse_iso_period()\n");
+    }
+    else if (dt_parse_iso_period("P", BUFFER_LENGTH, &y, &m, &d, &w) != 1) {
       printf("ERROR dt_parse_iso_period()\n");
     }
     else {
@@ -563,6 +572,17 @@ utilsTest(void)
     else if (dt_year(dt1) != 2011 || dt_month(dt1) != 7 || dt_dom(dt1) != 11) {
       printf("ERROR dt_parse_string()\n");
     }
+    else if (dt_parse_iso_date_interval("2011-399 AAA", BUFFER_LENGTH, &dt0, &dt1) != 4) {
+      printf("ERROR dt_parse_iso_period()\n");
+    }
+    else if (dt_year(dt0) != 2011 || dt_month(dt0) != 1 || dt_dom(dt0) != 1) {
+      printf("ERROR dt_parse_string()\n");
+    }
+#if 0
+    else if (dt1 != 0) {
+      printf("ERROR dt_parse_string()\n");
+    }
+#endif
     else if (dt_parse_iso_date_interval("20110703/P3Y6M4D TEST", BUFFER_LENGTH, &dt0, &dt1) != 16) {
       printf("ERROR dt_parse_iso_period()\n");
     }
@@ -572,7 +592,7 @@ utilsTest(void)
     else if (dt_year(dt1) != 2015 || dt_month(dt1) != 1 || dt_dom(dt1) != 7) {
       printf("ERROR dt_parse_string()\n");
     }
-    else if (dt_parse_iso_date_interval("P3Y6M4D/20110703 TEST", BUFFER_LENGTH, &dt0, &dt1) != 16) {
+    else if (dt_parse_iso_date_interval("P3W/20110703 TEST", BUFFER_LENGTH, &dt0, &dt1) != 12) {
       printf("ERROR dt_parse_iso_period()\n");
     }
     else if (dt_year(dt1) != 2011 || dt_month(dt1) != 7 || dt_dom(dt1) != 3) {
@@ -595,7 +615,7 @@ utilsTest(void)
     i++;
     printf("TEST %i in '%s:%i': ",i,__FILE__,__LINE__);
 
-    if (dt_parse_iso_period("R5/2008-03-01T13:00:00Z/P1Y2M10DT2H30M", -1, &y, &m, &d) != 0) {
+    if (dt_parse_iso_period("R5/2008-03-01T13:00:00Z/P1Y2M10DT2H30M", -1, &y, &m, &d, NULL) != 0) {
       printf("ERROR dt_parse_iso_period()\n");
     }
     else if (y != 3 || m != 6 || d != 4) {
