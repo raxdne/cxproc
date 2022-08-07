@@ -519,11 +519,6 @@ utilsTest(void)
     else if (dt_parse_iso_period("P1YM-4DT", 20, &y, &m, &d) != 0) {
       printf("ERROR dt_parse_iso_period()\n");
     }
-#if 0
-    else if (y != 0 || m != 0 || d != 0) {
-      printf("ERROR dt_parse_iso_period()\n");
-    }
-#endif
     else if (dt_parse_iso_period("P3Y6M4DT12H30M5S", BUFFER_LENGTH, &y, &m, &d) != 7) {
       printf("ERROR dt_parse_iso_period()\n");
     }
@@ -592,7 +587,6 @@ utilsTest(void)
     }
   }
 
-#if 0
    /* ISO 8601 Repeating intervals */
  
   if (RUNTEST) {
@@ -612,7 +606,7 @@ utilsTest(void)
       printf("OK\n");
     }
   }
-#endif
+
   
   if (RUNTEST) {
 
@@ -621,22 +615,6 @@ utilsTest(void)
 
     if (GetWeekOfYear(3, 6, 2013) != 23) {
       printf("ERROR GetWeekOfYear()\n");
-    }
-    else {
-      n_ok++;
-      printf("OK\n");
-    }
-  }
-
-  if (RUNTEST) {
-    int m,d;
-    long int liEasterAbs;
-
-    i++;
-    printf("TEST %i in '%s:%i': ",i,__FILE__,__LINE__);
-
-    if ((liEasterAbs = GetEasterSunday(2031, &m, &d)) != 741545 || m != 4 || d != 13) {
-      printf("ERROR GetEasterSunday()\n");
     }
     else {
       n_ok++;

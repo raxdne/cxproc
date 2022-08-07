@@ -23,7 +23,6 @@
 #include <inttypes.h>
 #include <libxml/parser.h>
 #include <libxml/parserInternals.h>
-#include <c-dt/dt.h>
 
 #include "basics.h"
 #include "utils.h"
@@ -1746,7 +1745,6 @@ GetDayAbsoluteStr(xmlChar *pucGcal)
   long int liResult = -1;
 
   if (pucGcal != NULL && xmlStrlen(pucGcal) > 4) {
-#if 1
     dt_t dtp;
     int sod, nsec;
     int l, t;
@@ -1760,123 +1758,10 @@ GetDayAbsoluteStr(xmlChar *pucGcal)
     }
     else {
     }
-#else
-    pieCalendarElementPtr pceT;
-
-    pceT = CalendarElementNew(pucGcal);
-    if (pceT) {
-      ScanCalendarElementDate(pceT);
-      liResult = GetDayAbsolute(pceT->iYear,pceT->iMonth,pceT->iDay,pceT->iWeek,pceT->iDayWeek);
-      CalendarElementFree(pceT);
-    }
-#endif
   }
   return liResult;
 }
 /* end of GetDayAbsoluteStr() */
-
-
-/*! computes the number of days since 1970-01-01 as an absolute value
-
-\deprecated to be replaced by  dt_from_ywd()/dt_from_ymd()
-*/
-long int
-GetDayAbsolute(int year, int mon, int mday, int week, int wday)
-{
-  long int result = 0;
-
-#ifdef EXPERIMENTAL
-  if (year>1969) {
-    if (week > -1) {
-      result = dt_from_ywd(year, week, wday);
-    }
-    else {
-      result = dt_from_ymd(year, mon, mday);
-    }
-  }
-
-#else
-
-  if (year>1969) {
-    struct tm t;
-    t.tm_year = year - 1900;
-
-    if (mon > 0 && mday > 0 && mday < 32) {
-      t.tm_yday = 0;
-      t.tm_mon = mon - 1;
-      t.tm_mday = mday;
-      t.tm_wday = 0;
-      t.tm_hour = 0;
-      t.tm_min = 0;
-      t.tm_sec = 0;
-      t.tm_isdst = 0;
-      result = (long int)(mktime(&t) / (time_t)(60 * 60 * 24));
-    }
-    else if (week > -1 && week < 54 && wday > -1 && wday < 7) {
-
-      /* starting with the very first day of year */
-      t.tm_yday = 0;
-      t.tm_mon = 0;
-      t.tm_mday = 1;
-      t.tm_wday = 0;
-      t.tm_hour = 0;
-      t.tm_min = 0;
-      t.tm_sec = 0;
-      t.tm_isdst = 0;
-      result = (long int)(mktime(&t) / (time_t)(60 * 60 * 24));
-
-      if (week == 0 && t.tm_wday > 0 && t.tm_wday < 5) {
-	PrintFormatLog(1, "There is no week '0' in year '%i'", year);
-	return -1;
-      }
-
-      /* offset for very first week of year */
-      switch (t.tm_wday) {
-      case 0: 		/* sun */
-	result += 1;
-	break;
-      case 1: 		/* mon */
-	break;
-      case 2: 		/* tue */
-	result -= 1;
-	break;
-      case 3: 		/* wed */
-	result -= 2;
-	break;
-      case 4: 		/* thu */
-	result -= 3;
-	break;
-      case 5: 		/* fri */
-	result += 3;
-	break;
-      case 6: 		/* sat */
-	result += 2;
-	break;
-      }
-
-      /* add days of all complete weeks */
-      result += (week - 1) * 7;
-
-      /* add days of according week */
-      switch (wday) {
-      case 0: 		/* sun */
-	result += 6;
-	break;
-      case 1: 		/* mon */
-      case 2: 		/* tue */
-      case 3: 		/* wed */
-      case 4: 		/* thu */
-      case 5: 		/* fri */
-      case 6: 		/* sat */
-	result += wday - 1;
-	break;
-      }
-    }
-  }
-#endif
-  return result;
-}
-/* end of GetDayAbsolute() */
 
 
 /*! \return a string 
@@ -2042,97 +1927,6 @@ GetWeekOfYear(int day, int month, int year)
 #endif
 }
 /* end of GetWeekOfYear() */
-
-
-/*! \return the date of easter sunday in given year
-
-  s.http://www.ptb.de/cms/fachabteilungen/abt4/fb-44/ag-441/darstellung-der-gesetzlichen-zeit/wann-ist-ostern.html
-
-  (1)  K = INT(X / 100);
-
-  (2)  M = 15 + INT((3K + 3) / 4) - INT((8K + 13) / 25);
-
-  (3)  S = 2 - INT((3K + 3) / 4);
-
-  (4)  A = MOD(X, 19);
-
-  (5)  D = MOD(19A + M, 30);
-
-  (6)  R = INT(D / 29) + (INT(D / 28) - INT(D / 29)) * INT(A / 11);
-
-  (7)  OG = 21 + D - R;
-
-  (8)  SZ = 7 - MOD(X + INT(X / 4) + S, 7);
-
-  (9)  OE = 7 - MOD(OG - SZ, 7);
-
-  OG ist das Märzdatum des Ostervollmonds.Dies entspricht dem 14. Tag des ersten Monats im Mondkalender, genannt Nisanu. SZ ist das Datum des ersten Sonntags im März.
-
-  OS = OG + OE ist das Datum des Ostersonntags, als Datum im Monat März dargestellt. (Der 32. März entspricht also dem 1. April, usw.)
-
-\deprecated to be replaced by  dt_from_easter/dt_from_ymd()
-*/
-long int
-GetEasterSunday(int iArgYear, int *piArgMonth, int *piArgDay)
-{
-#if 1
-  long int result = -1;
-  int y;
-  result = dt_from_easter(iArgYear, DT_WESTERN);
-  dt_to_ymd(result, &y, piArgMonth, piArgDay);
-  return result;
-#elif 1
-  long int result = -1;
-  struct tm t;
-
-  int X = iArgYear;
-
-  int K = (int)floor(X / 100.0f);
-
-  int M = 15 + (int)floor((3 * K + 3) / 4.0f) - (int)floor((8 * K + 13) / 25.0f);
-
-  int S = 2 - (int)floor((3 * K + 3) / 4.0f);
-
-  int A = X % 19;
-
-  int D = (19 * A + M) % 30;
-
-  int R = (int)floor(D / 29.0f) + ((int)floor(D / 28.0f) - (int)floor(D / 29.0f)) * (int)floor(A / 11.0f);
-
-  int OG = 21 + D - R;
-
-  int SZ = 7 - ((X + (int)floor(X / 4.0f) + S) % 7);
-
-  int OE = 7 - ((OG - SZ) % 7);
-
-  t.tm_year = X - 1900;
-  t.tm_yday = 0;
-  t.tm_mon = 2;
-  t.tm_mday = OG + OE;
-  t.tm_wday = 0;
-  t.tm_hour = 0;
-  t.tm_min = 0;
-  t.tm_sec = 0;
-  t.tm_isdst = 0;
-  result = (long int)(mktime(&t) / (time_t)(60 * 60 * 24));
-
-  if (piArgMonth) {
-    *piArgMonth = t.tm_mon + 1;
-  }
-
-  if (piArgDay) {
-    *piArgDay = t.tm_mday;
-  }
-
-  return result;
-#else
-  int y, m, w, d, d_week;
-
-  easter1(iArgYear, &d, &m);
-  return GetDayAbsolute(iArgYear, m, d, -1, -1);
-#endif
-}
-/* end of GetEasterSunday() */
 
 
 /*! a subset of linux date command format
@@ -2377,42 +2171,39 @@ ishashtag(xmlChar* pucArg, int* piArg)
 } /* End of ishashtag() */
 
 
-/*! \return true if c is a valid char for a date string.
-The separator chars '#' and ',' are handled separately in iscalx()
+/*! \return true if c is a valid char for a date string according to ISO 8601
 
-\deprecated due to ISO 8601
+\bug handle STR_UTF8_MINUS "\xE2\x88\x92" 
 */
 BOOL_T
-iscal(xmlChar c)
+isiso8601(xmlChar c)
 {
-  if (isdigit((int)c)
-    || (c == '*') || (c == ':') || (c == '.') || (c == '+') || (c == '-') || (c == '@')
-    || (c == 'm') || (c == 'o') || (c == 'n')
-    || (c == 't') || (c == 'T') || (c == 'u') || (c == 'e')
-    || (c == 'w') || (c == 'W') || (c == 'd')
-    || (c == 'h')
-    || (c == 'f') || (c == 'r') || (c == 'i')
-    || (c == 's') || (c == 'a')
-    ) {
+  if (isdigit((int)c)) {
     return TRUE;
   }
-  return FALSE;
-}
-/* end of iscal() */
-
-
-/*! \return true if c is a extended valid char for a date string.
-\deprecated due to ISO 8601
-*/
-BOOL_T
-iscalx(xmlChar c)
-{
-  if ((c == ',') || (c == '#')) {
-    return TRUE;
+  else {
+    switch (c) {
+    case ':':
+    case '+':
+    case '-':
+    case '/':
+    case 'Y':
+    case 'M':
+    case 'D':
+    case 'T':
+    case 'H':
+    case 'P':
+    case 'R':
+    case 'S':
+    case 'W':
+      return TRUE;
+      break;
+    default:
+      break;
+    }
   }
   return FALSE;
-}
-/* end of iscal() */
+} /* end of isiso8601() */
 
 
 /*
@@ -2496,8 +2287,8 @@ dt_parse_iso_date_interval(const char *str, size_t len, dt_t *pdt0, dt_t *pdt1) 
   if (str != NULL && len > 0 && pdt0 != NULL && pdt1 != NULL) {
     size_t j = 0;
     char *p = str;
-    int y, m, d;
-    dt_t dt0, dt1;
+    int y, m, d, w;
+    dt_t dt0 = 0, dt1 = 0;
 
     if ((n = dt_parse_iso_date(p, len, &dt0)) > 3) {
 
@@ -2522,7 +2313,9 @@ dt_parse_iso_date_interval(const char *str, size_t len, dt_t *pdt0, dt_t *pdt1) 
 	}
       }
       else {
-	n = 0;
+	//n = 0;
+	*pdt0 = dt0;
+	*pdt1 = 0;
       }
 
     }
@@ -2547,6 +2340,62 @@ dt_parse_iso_date_interval(const char *str, size_t len, dt_t *pdt0, dt_t *pdt1) 
 	n = 0;
       }
 
+    }
+    else if (isdigit(p[n++]) && isdigit(p[n++]) && isdigit(p[n++]) && isdigit(p[n++])) {
+
+      y = 1000 * (p[0] - '0') + 100 * (p[1] - '0') + 10 * (p[2] - '0') + (p[3] - '0');
+
+      assert(y > -1 && y < 2999);
+
+      /*! implicit intervals (whole year, month, week) */
+
+      if (p[n] == '-' && isdigit(p[n + 1]) && isdigit(p[n + 2]) && !isdigit(p[n + 3])) {
+	/* ISO 8601 YYYY-MM */
+	m = 10 * (p[n + 1] - '0') + (p[n + 2] - '0');
+	if (m > 0 && m < 13) {
+	  n += 3;
+	  dt0 = dt_from_ymd(y, m, 1);
+	  dt1 = dt_end_of_month(dt0, 0);
+	}
+	else {
+	  n = 0;
+	}
+      }
+      else if (p[n] == '-' && p[n+1] == 'W' && isdigit(p[n + 2]) && isdigit(p[n + 3]) && !isdigit(p[n + 4])) {
+	/* ISO 8601 YYYY-Wnn */
+	w = 10 * (p[n + 2] - '0') + (p[n + 3] - '0');
+	if (w > -1 && w < 54) {
+	  n += 4;
+	  dt0 = dt_from_ywd(y, w, 1);
+	  dt1 = dt_end_of_week(dt0, 1);
+	}
+	else {
+	  n = 0;
+	}
+      }
+      else if (isdigit(p[n]) && isdigit(p[n + 1]) && !isdigit(p[n + 2])) {
+	/* ISO 8601 YYYYMM */
+	m = 10 * (p[n] - '0') + (p[n + 1] - '0');
+	if (m > 0 && m < 13) {
+	  n += 2;
+	  dt0 = dt_from_ymd(y, m, 1);
+	  dt1 = dt_end_of_month(dt0, 0);
+	}
+	else {
+	  n = 0;
+	}
+      }
+      else if (!isdigit(p[n])) {
+	/* ISO 8601 YYYY */
+	dt0 = dt_from_ymd(y, 1, 1);
+	dt1 = dt_end_of_year(dt0, 0);
+      }
+      else {
+	n = 0;
+      }
+
+      *pdt0 = dt0;
+      *pdt1 = dt1;
     }
     else {
       n = 0;

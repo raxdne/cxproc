@@ -1189,6 +1189,7 @@ IncludeNodeFile(xmlNodePtr pndArgInclude, cxpContextPtr pccArg)
       if (pndBlock != NULL && pndBlock->children != NULL) {
 	RecognizeSubsts(pndBlock);
 	domReplaceNodeList(pndArgInclude, pndBlock->children);
+	xmlFreeNodeList(pndArgInclude);
 	xmlFreeNode(pndBlock);
       }
 

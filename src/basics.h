@@ -21,6 +21,7 @@
 /*! common basics of all modules
  */
 
+#include <assert.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <stddef.h>
@@ -145,6 +146,10 @@ typedef int index_t;
 
 #ifndef TIME_H_INCLUDED
 #include <time.h>
+#endif
+
+#ifndef __DT_H__
+#include <c-dt/dt.h>
 #endif
 
 /* https://www.cs.tut.fi/~jkorpela/round.html */

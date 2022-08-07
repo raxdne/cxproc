@@ -107,14 +107,17 @@ ceInit(void);
 extern pieCalendarElementPtr
 CalendarElementNew(xmlChar *pucArg);
 
+extern pieCalendarElementPtr
+CalendarElementUpdate(pieCalendarElementPtr pceArg, xmlChar* pucArg);
+
+extern BOOL_T
+CalendarElementUpdateValues(pieCalendarElementPtr pceArg);
+
 extern void
 CalendarElementFree(pieCalendarElementPtr pceArg);
 
 extern pieCalendarElementPtr
 CalendarElementDup(pieCalendarElementPtr pceArg);
-
-extern pieCalendarElementPtr
-_CalendarElementReset(pieCalendarElementPtr pceArg);
 
 extern BOOL_T
 CalendarElementListAdd(pieCalendarElementPtr pceArgList, pieCalendarElementPtr pceArg);
@@ -122,7 +125,7 @@ CalendarElementListAdd(pieCalendarElementPtr pceArgList, pieCalendarElementPtr p
 extern int
 GetRunningTime();
 
-extern long int
+extern dt_t
 UpdateToday(xmlChar *pucArgToday);
 
 extern long int
@@ -166,12 +169,6 @@ PrintCalendarElement(pieCalendarElementPtr pceArg);
 
 extern BOOL_T
 ScanCalendarElementDate(pieCalendarElementPtr pceArgResult);
-
-extern BOOL_T
-ScanCalendarElementTime(pieCalendarElementPtr pceArg);
-
-extern BOOL_T
-UpdateCalendarElementDate(pieCalendarElementPtr pceArg);
 
 extern xmlChar *
 EndOfDate(xmlChar *pucArg);

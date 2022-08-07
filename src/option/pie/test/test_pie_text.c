@@ -397,7 +397,6 @@ pieTextTest(cxpContextPtr pccArg)
   if (RUNTEST) {
     xmlNodePtr pndT;
     xmlNodePtr pndPie;
-    xmlDocPtr pdocT = NULL;
 
     i++;
     printf("TEST %i in '%s:%i': include text file to a text node = ", i, __FILE__, __LINE__);
@@ -425,6 +424,7 @@ pieTextTest(cxpContextPtr pccArg)
       printf("Error xmlNewChild()\n");
     }
     else {
+      xmlDocPtr pdocT = NULL;
 
       //domPutNodeString(stderr, BAD_CAST "pre include", pndPie);
       TraverseIncludeNodes(pndPie, pccArg);
@@ -440,6 +440,7 @@ pieTextTest(cxpContextPtr pccArg)
 	printf("OK\n");
       }
       //domPutDocString(stderr, BAD_CAST "subst result", pdocT);
+      xmlFreeDoc(pdocT);
     }
     xmlFreeNode(pndPie);
   }
