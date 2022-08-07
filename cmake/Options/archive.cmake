@@ -62,7 +62,7 @@ IF (CXPROC_ARCHIVE)
   #  target_link_libraries(cxproc-httpd ${LibArchive_LIBRARIES})
   #ENDIF ()
 
-IF(CXPROC_TESTS)
+IF(BUILD_TESTING)
   
   add_test(NAME archive-code
     WORKING_DIRECTORY ${CXPROC_PREFIX}
@@ -83,7 +83,7 @@ IF(CXPROC_TESTS)
   add_test(NAME filex-archive-intern-intern
     WORKING_DIRECTORY ${CXPROC_PREFIX}
     COMMAND ${CXPROC_PREFIX}/bin/filex ${CXPROC_TEST_DIR}/option/archive/test-zip-odt.zip/test-xml-zip.odt/content.xml)
-ENDIF(CXPROC_TESTS)
+ENDIF(BUILD_TESTING)
   
 
 ENDIF (CXPROC_ARCHIVE)

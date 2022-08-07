@@ -66,7 +66,7 @@ IF (CXPROC_SQLITE3)
     #ENDIF ()
   ENDIF ()
 
-IF(CXPROC_TESTS)
+IF(BUILD_TESTING)
   
   add_test(NAME sql-code  
     COMMAND ${CXPROC_PREFIX}/bin/cxproc-test -t sql)
@@ -82,7 +82,7 @@ IF(CXPROC_TESTS)
   add_test(NAME filex-sql
     WORKING_DIRECTORY ${CXPROC_PREFIX}
     COMMAND ${CXPROC_PREFIX}/bin/filex ${CXPROC_TEST_DIR}/option/sql/test.db3)
-ENDIF(CXPROC_TESTS)
+ENDIF(BUILD_TESTING)
   
 ENDIF()
 

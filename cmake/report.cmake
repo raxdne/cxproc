@@ -20,7 +20,7 @@
   MESSAGE(STATUS "")
 #  MESSAGE(STATUS "  Build static binary ............... : ${CXPROC_STATIC}")
 #  MESSAGE(STATUS "  Buffer size for cxproc ............ : ${CXPROC_BUFSIZE}")
-  MESSAGE(STATUS "  Enable tests ...................... : ${CXPROC_TESTS}")
+  MESSAGE(STATUS "  Enable tests ...................... : ${BUILD_TESTING}")
   MESSAGE(STATUS "  Compile cxproc code for legacy  ... : ${CXPROC_LEGACY}")
   MESSAGE(STATUS "  Compile cxproc experimental code .. : ${CXPROC_EXPERIMENTAL}")
   
