@@ -162,6 +162,8 @@ GetNowFormatStr(xmlChar *pucArgFormat);
 extern xmlChar *
 GetDateIsoString(time_t ArgTime);
 
+extern size_t
+dt_parse_iso_period(const char *str, size_t len, int *yp, int *mp, int *dp);
 
 extern int
 ishashtag(xmlChar* pucArg, int* piArg);

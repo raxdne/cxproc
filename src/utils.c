@@ -23,7 +23,7 @@
 #include <inttypes.h>
 #include <libxml/parser.h>
 #include <libxml/parserInternals.h>
-#include <dt.h>
+#include <c-dt/dt.h>
 
 #include "basics.h"
 #include "utils.h"
@@ -1751,8 +1751,8 @@ GetDayAbsoluteStr(xmlChar *pucGcal)
     int sod, nsec;
     int l, t;
 
-    if ((l = dt_parse_iso_date(pucGcal, 20, &dtp)) > 4) {
-      if ((t = dt_parse_iso_time_extended(&pucGcal[l+1], 20, &sod, &nsec)) > l) {
+    if ((l = dt_parse_iso_date((const char *)pucGcal, 20, &dtp)) > 4) {
+      if ((t = dt_parse_iso_time_extended((const char *)&pucGcal[l+1], 20, &sod, &nsec)) > l) {
       }
       else {
       }
@@ -1777,6 +1777,8 @@ GetDayAbsoluteStr(xmlChar *pucGcal)
 
 
 /*! computes the number of days since 1970-01-01 as an absolute value
+
+\deprecated to be replaced by  dt_from_ywd()/dt_from_ymd()
 */
 long int
 GetDayAbsolute(int year, int mon, int mday, int week, int wday)
@@ -1893,7 +1895,7 @@ GetDiffDaysStrNew(xmlChar *pucArgAbs,xmlChar *pucArgDate)
     //int sod, nsec;
     int l, t;
 
-    if (dt_parse_iso_date(pucArgAbs, 20, &dtpAbs) > 4 && dt_parse_iso_date(pucArgDate, 20, &dtpDate) > 4) {
+    if (dt_parse_iso_date((const char *)pucArgAbs, 20, &dtpAbs) > 4 && dt_parse_iso_date((const char *)pucArgDate, 20, &dtpDate) > 4) {
       xmlStrPrintf(mpucT,BUFFER_LENGTH, "%i", dtpAbs - dtpDate);
     }
     else {
@@ -1990,13 +1992,15 @@ int GetDayOfWeek(int day, int month, int year)
 The weeks start at monday, and some days at the beginning
 of January may be in week "0"
 which means week 52 of the previous year.
+
+\deprecated to be replaced by  dt_from_ywd()/dt_from_ymd()
 */
 int
 GetWeekOfYear(int day, int month, int year)
 {
 #if 1
   int y, result, d;
-  dt_to_ywd(dt_from_ywd(year, month, day), &y, &result, &d);
+  dt_to_ywd(dt_from_ymd(year, month, day), &y, &result, &d);
   return result;
 #elif 0
   // http://www.nord-com.net/h-g.mekelburg/kalender/kal-64.htm
@@ -2066,6 +2070,7 @@ GetWeekOfYear(int day, int month, int year)
 
   OS = OG + OE ist das Datum des Ostersonntags, als Datum im Monat März dargestellt. (Der 32. März entspricht also dem 1. April, usw.)
 
+\deprecated to be replaced by  dt_from_easter/dt_from_ymd()
 */
 long int
 GetEasterSunday(int iArgYear, int *piArgMonth, int *piArgDay)
@@ -2074,7 +2079,7 @@ GetEasterSunday(int iArgYear, int *piArgMonth, int *piArgDay)
   long int result = -1;
   int y;
   result = dt_from_easter(iArgYear, DT_WESTERN);
-  dt_to_ywd(result, &y, piArgMonth, piArgDay);
+  dt_to_ymd(result, &y, piArgMonth, piArgDay);
   return result;
 #elif 1
   long int result = -1;
@@ -2374,6 +2379,8 @@ ishashtag(xmlChar* pucArg, int* piArg)
 
 /*! \return true if c is a valid char for a date string.
 The separator chars '#' and ',' are handled separately in iscalx()
+
+\deprecated due to ISO 8601
 */
 BOOL_T
 iscal(xmlChar c)
@@ -2395,6 +2402,7 @@ iscal(xmlChar c)
 
 
 /*! \return true if c is a extended valid char for a date string.
+\deprecated due to ISO 8601
 */
 BOOL_T
 iscalx(xmlChar c)
@@ -2405,6 +2413,149 @@ iscalx(xmlChar c)
   return FALSE;
 }
 /* end of iscal() */
+
+
+/*
+ *  "P3Y6M4DT12H30M5S" Calendar date period  (ISO 8601)
+ * 
+ * \bug floating values not used
+ */
+size_t
+dt_parse_iso_period(const char *str, size_t len, int *yp, int *mp, int *dp) {
+  size_t n = 0;
+
+  if (str != NULL && *str == 'P' && len > 0 && yp != NULL && mp != NULL && dp != NULL) {
+    int y, m, d, i;
+    char *p;
+    bool v;
+
+    for (p = str + 1, v = true,  y = m = d = 0; 
+      v && (n = p - str) < len && (v = (i = strtol(p, &p, 10)) > -1);
+      p++) {
+
+      /*!\todo check order of Y M D */
+	
+      if (i < 0) {
+	break;
+      }
+      else if (*p == 'Y') {
+	if (y < 1 && m < 1 && d < 1) {
+	  y = i;
+	}
+	else {
+	  v = false;
+	}
+      }
+      else if (*p == 'M') {
+	if (m < 1 && d < 1) {
+	  m = i;
+	}
+	else {
+	  v = false;
+	}
+      }
+      else if (*p == 'D') {
+	if (d < 1) {
+	  d = i;
+	}
+	else {
+	  v = false;
+	}
+      }
+      else if (*p == 'T') {
+	/*!\bug time parsing to be implemented */
+	break;
+      }
+      else {
+	/* end of period string */
+	break;
+      }
+    }
+    
+    if (v) {
+      *yp = y;
+      *mp = m;
+      *dp = d;
+    }
+    else {
+      n = 0;
+    }
+  }
+
+  return n;
+}
+
+
+/*
+ *  "20110703/20110711" Calendar date interval (ISO 8601)
+ */
+size_t
+dt_parse_iso_date_interval(const char *str, size_t len, dt_t *pdt0, dt_t *pdt1) {
+  size_t n = 0;
+
+  if (str != NULL && len > 0 && pdt0 != NULL && pdt1 != NULL) {
+    size_t j = 0;
+    char *p = str;
+    int y, m, d;
+    dt_t dt0, dt1;
+
+    if ((n = dt_parse_iso_date(p, len, &dt0)) > 3) {
+
+      if (p[n++] == '/') {
+
+	if ((j = dt_parse_iso_date(&p[n], len - n, &dt1)) > 3) {
+	  *pdt0 = dt0;
+	  *pdt1 = dt1;
+	  n += j;
+	}
+	else if ((j = dt_parse_iso_period(&p[n], len, &y, &m, &d)) > 3) {
+	  dt1 = dt_add_years(dt0,y, DT_EXCESS);
+	  dt1 = dt_add_months(dt1, m, DT_EXCESS);
+	  dt1 += d;
+
+	  *pdt0 = dt0;
+	  *pdt1 = dt1;
+	  n += j;
+	}
+	else {
+	  n = 0;
+	}
+      }
+      else {
+	n = 0;
+      }
+
+    }
+    else if ((n = dt_parse_iso_period(&p[n], len, &y, &m, &d)) > 3) {
+
+      if (p[n++] == '/') {
+
+	if ((j = dt_parse_iso_date(&p[n], len - n, &dt1)) > 3) {
+	  dt0 = dt_add_years(dt1, -y, DT_EXCESS);
+	  dt0 = dt_add_months(dt0, -m, DT_EXCESS);
+	  dt0 -= d;
+
+	  *pdt0 = dt0;
+	  *pdt1 = dt1;
+	  n += j;
+	}
+	else {
+	  n = 0;
+	}
+      }
+      else {
+	n = 0;
+      }
+
+    }
+    else {
+      n = 0;
+    }
+    
+  }
+
+  return n;
+}
 
 
 #ifdef TESTCODE

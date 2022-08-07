@@ -504,13 +504,123 @@ utilsTest(void)
     }
   }
 
+
+  /* ISO 8601 Durations */
+  
+  if (RUNTEST) {
+    int y, m, d;
+    
+    i++;
+    printf("TEST %i in '%s:%i': ",i,__FILE__,__LINE__);
+
+    if (dt_parse_iso_period(NULL, 20, NULL, NULL, NULL) != 0) {
+      printf("ERROR dt_parse_iso_period()\n");
+    }
+    else if (dt_parse_iso_period("P1YM-4DT", 20, &y, &m, &d) != 0) {
+      printf("ERROR dt_parse_iso_period()\n");
+    }
+#if 0
+    else if (y != 0 || m != 0 || d != 0) {
+      printf("ERROR dt_parse_iso_period()\n");
+    }
+#endif
+    else if (dt_parse_iso_period("P3Y6M4DT12H30M5S", BUFFER_LENGTH, &y, &m, &d) != 7) {
+      printf("ERROR dt_parse_iso_period()\n");
+    }
+    else if (y != 3 || m != 6 || d != 4) {
+      printf("ERROR dt_parse_iso_period()\n");
+    }
+    else if (dt_parse_iso_period("P7Y", BUFFER_LENGTH, &y, &m, &d) != 3) {
+      printf("ERROR dt_parse_iso_period()\n");
+    }
+    else if (y != 7 || m != 0 || d != 0) {
+      printf("ERROR dt_parse_iso_period()\n");
+    }
+    else {
+      n_ok++;
+      printf("OK\n");
+    }
+  }
+
+   /* ISO 8601 Time intervals */
+ 
+  if (RUNTEST) {
+    dt_t dt0, dt1;
+    
+    i++;
+    printf("TEST %i in '%s:%i': ",i,__FILE__,__LINE__);
+
+    if (dt_parse_iso_date_interval(NULL, 0, &dt0, &dt1) != 0) {
+      printf("ERROR dt_parse_iso_period()\n");
+    }
+    else if (dt_parse_iso_date_interval("20110703/20110711", BUFFER_LENGTH, NULL, NULL) != 0) {
+      printf("ERROR dt_parse_iso_period()\n");
+    }
+    else if (dt_parse_iso_date_interval("20110703/2011 AAA", BUFFER_LENGTH, &dt0, &dt1) != 0) {
+      printf("ERROR dt_parse_iso_period()\n");
+    }
+    else if (dt_parse_iso_date_interval("20110703/20110711 AAA", BUFFER_LENGTH, &dt0, &dt1) != 17) {
+      printf("ERROR dt_parse_iso_period()\n");
+    }
+    else if (dt_year(dt0) != 2011 || dt_month(dt0) != 7 || dt_dom(dt0) != 3) {
+      printf("ERROR dt_parse_string()\n");
+    }
+    else if (dt_year(dt1) != 2011 || dt_month(dt1) != 7 || dt_dom(dt1) != 11) {
+      printf("ERROR dt_parse_string()\n");
+    }
+    else if (dt_parse_iso_date_interval("20110703/P3Y6M4D TEST", BUFFER_LENGTH, &dt0, &dt1) != 16) {
+      printf("ERROR dt_parse_iso_period()\n");
+    }
+    else if (dt_year(dt0) != 2011 || dt_month(dt0) != 7 || dt_dom(dt0) != 3) {
+      printf("ERROR dt_parse_string()\n");
+    }
+    else if (dt_year(dt1) != 2015 || dt_month(dt1) != 1 || dt_dom(dt1) != 7) {
+      printf("ERROR dt_parse_string()\n");
+    }
+    else if (dt_parse_iso_date_interval("P3Y6M4D/20110703 TEST", BUFFER_LENGTH, &dt0, &dt1) != 16) {
+      printf("ERROR dt_parse_iso_period()\n");
+    }
+    else if (dt_year(dt1) != 2011 || dt_month(dt1) != 7 || dt_dom(dt1) != 3) {
+      printf("ERROR dt_parse_string()\n");
+    }
+    else if (dt_year(dt0) != 2007 || dt_month(dt0) != 12 || dt_dom(dt0) != 29) {
+      printf("ERROR dt_parse_string()\n");
+    }
+    else {
+      n_ok++;
+      printf("OK\n");
+    }
+  }
+
+#if 0
+   /* ISO 8601 Repeating intervals */
+ 
+  if (RUNTEST) {
+    int y, m, d;
+    
+    i++;
+    printf("TEST %i in '%s:%i': ",i,__FILE__,__LINE__);
+
+    if (dt_parse_iso_period("R5/2008-03-01T13:00:00Z/P1Y2M10DT2H30M", -1, &y, &m, &d) != 0) {
+      printf("ERROR dt_parse_iso_period()\n");
+    }
+    else if (y != 3 || m != 6 || d != 4) {
+      printf("ERROR dt_parse_iso_period()\n");
+    }
+    else {
+      n_ok++;
+      printf("OK\n");
+    }
+  }
+#endif
+  
   if (RUNTEST) {
 
     i++;
-    printf("TEST %i in '%s:%i': GetWeekOfYear() = ",i,__FILE__,__LINE__);
+    printf("TEST %i in '%s:%i': = ",i,__FILE__,__LINE__);
 
     if (GetWeekOfYear(3, 6, 2013) != 23) {
-      printf("ERROR\n");
+      printf("ERROR GetWeekOfYear()\n");
     }
     else {
       n_ok++;
@@ -525,8 +635,8 @@ utilsTest(void)
     i++;
     printf("TEST %i in '%s:%i': ",i,__FILE__,__LINE__);
 
-    if ((liEasterAbs = GetEasterSunday(2031, &m, &d)) != 22381 || m != 4 || d != 13) {
-      printf("ERROR\n");
+    if ((liEasterAbs = GetEasterSunday(2031, &m, &d)) != 741545 || m != 4 || d != 13) {
+      printf("ERROR GetEasterSunday()\n");
     }
     else {
       n_ok++;
