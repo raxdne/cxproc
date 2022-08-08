@@ -80,7 +80,6 @@
 #define RE_ISO_DATE_DAY  RE_DATE_YEAR "-*" RE_DATE_MONTH "-*" RE_DATE_DAY
 #define RE_ISO_DATE      "(" RE_ISO_DATE_DAY "|" RE_ISO_DATE_ORD "|" RE_ISO_DATE_WEEK ")(" RE_ISO_TIME ")*"
 
-//#define RE_DATE_MODS   "[\\,\\+\\:\\#\\.x][0-9]+"
 //#define RE_DATE_TIME   "[\t ]+[012]*[0-9].[0-5][0-9](-[0-9]{1,2}.[0-5][0-9])*"
 //#define RE_DATE_GERMAN RE_DATE_DAY "\\." RE_DATE_MONTH "\\." RE_DATE_YEAR
 
@@ -89,8 +88,10 @@
   "|"									\
   "(" RE_ISO_PERIOD ")/(" RE_ISO_DATE ")" \
   "|"									\
+  "(" RE_DATE_YEAR RE_DATE_MONTH RE_DATE_DAY "(," RE_DATE_MONTH RE_DATE_DAY "|," RE_DATE_DAY ")+" ")" \
+  "|"									\
   "(" RE_ISO_DATE ")" \
-		 ")\\b")
+  ")\\b")
 
 /*
 */
@@ -2133,6 +2134,7 @@ SplitStringToDateNodes(const xmlChar *pucArg, RN_MIME_TYPE eMimeTypeArg)
 	xmlChar *pucA = (xmlChar *)pucArg + ovector[2];
 
 	if ((pucDate = xmlStrndup(pucA, (int)(ovector[3] - ovector[2]))) != NULL) {
+	  xmlChar *pucDateNext = NULL;
 
 	  PrintFormatLog(3, "Date '%s' (%i..%i) in '%s'", pucDate, ovector[2], ovector[3], pucArg);
 
@@ -2145,15 +2147,47 @@ SplitStringToDateNodes(const xmlChar *pucArg, RN_MIME_TYPE eMimeTypeArg)
 	    xmlFree(pucT);
 	  }
 
-	  if (eMimeTypeArg == MIME_TEXT_PLAIN_CALENDAR) {
-	    pndIn = xmlNewChild(pndResult, NULL, NAME_PIE_DATE, NULL);
-	    xmlSetProp(pndIn,BAD_CAST"ref",pucDate);
-	  }
-	  else {
-	    pndIn = xmlNewTextChild(pndResult, NULL, NAME_PIE_DATE, pucDate);
-	  }
+	  do {
+	    /*! separate the list of dates if required (ISO compact dates only, neither extended nor time) */
+	    xmlChar* pucSep = NULL;
+	    xmlChar* pucD;
+
+	    for (pucSep = pucDate; !isend(*pucSep); pucSep++) {
+	      if (*pucSep == (xmlChar)',') {
+		/* next list separator found */
+		break;
+	      }
+	      else if (isdigit(*pucSep)) {
+		/* OK */
+	      }
+	      else {
+		pucSep = pucDate;
+		break;
+	      }
+	    }
+
+	    if (((pucSep > pucDate && !isend(*pucSep)) && (pucD = xmlStrndup(pucDate, (pucSep - pucDate))))
+	      || (pucD = xmlStrdup(pucDate))) {
+
+	      if (eMimeTypeArg == MIME_TEXT_PLAIN_CALENDAR) {
+		pndIn = xmlNewChild(pndResult, NULL, NAME_PIE_DATE, NULL);
+		xmlSetProp(pndIn, BAD_CAST"ref", pucD);
+	      }
+	      else {
+		pndIn = xmlNewTextChild(pndResult, NULL, NAME_PIE_DATE, pucD);
+	      }
+
+	      if (pucSep > pucDate && !isend(*pucSep)) {
+		xmlAddChild(pndResult, xmlNewText(BAD_CAST","));
+	      }
+	      xmlFree(pucD);
+	    }
+	    else {
+	    }
+	  } while (StringConcatNextDate(pucDate) != NULL);
 	}
 
+	
 	if (pndIn != NULL && ducOrigin > ovector[1]) {
 	  /* the content ends with text, recursion */
 

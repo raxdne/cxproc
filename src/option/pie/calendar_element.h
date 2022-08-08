@@ -173,9 +173,6 @@ ScanCalendarElementDate(pieCalendarElementPtr pceArgResult);
 extern xmlChar *
 EndOfDate(xmlChar *pucArg);
 
-extern xmlChar *
-calConcatNextDate(xmlChar *pucArgGcal);
-
 extern BOOL_T
 ScanDateIteration(pieCalendarElementPtr pceArg);
 

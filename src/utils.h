@@ -168,6 +168,8 @@ ishashtag(xmlChar* pucArg, int* piArg);
 extern BOOL_T
 isiso8601(xmlChar c);
 
+extern xmlChar*
+StringConcatNextDate(xmlChar* pucArgGcal);
 
 #ifdef TESTCODE
 extern int

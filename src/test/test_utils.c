@@ -27,6 +27,7 @@ utilsTest(void)
   int i;
   int n_ok;
   xmlChar *pucTest;
+  xmlChar buffer[BUFFER_LENGTH];
 
   n_ok=0;
   i=0;
@@ -504,6 +505,96 @@ utilsTest(void)
     }
   }
 
+
+  if (RUNTEST) {
+    i++;
+    printf("TEST %i in '%s:%i': ", i, __FILE__, __LINE__);
+
+    xmlStrPrintf(buffer, BUFFER_LENGTH, "20091011,17,1122,33");
+
+    if (StringConcatNextDate(buffer) == NULL || xmlStrEqual(buffer, BAD_CAST"20091017,1122,33") == FALSE) {
+      printf("ERROR\n");
+    }
+    else if (StringConcatNextDate(buffer) == NULL || xmlStrEqual(buffer, BAD_CAST"20091122,33") == FALSE) {
+      printf("ERROR\n");
+    }
+    else if (StringConcatNextDate(buffer) == NULL || xmlStrEqual(buffer, BAD_CAST"20091133") == FALSE) {
+      printf("ERROR\n");
+    }
+    else {
+      n_ok++;
+      printf("OK\n");
+    }
+  }
+
+  if (RUNTEST) {
+    i++;
+    printf("TEST %i in '%s:%i': ", i, __FILE__, __LINE__);
+
+    xmlStrPrintf(buffer, BUFFER_LENGTH, "20091011,20101011");
+
+    if (xmlStrEqual(StringConcatNextDate(buffer), BAD_CAST"20101011") == FALSE) {
+      printf("ERROR\n");
+    }
+    else {
+      n_ok++;
+      printf("OK\n");
+    }
+  }
+
+  if (RUNTEST) {
+    i++;
+    printf("TEST %i in '%s:%i': ", i, __FILE__, __LINE__);
+
+    xmlStrPrintf(buffer, BUFFER_LENGTH, "20121015,20130613,0701,05");
+
+    if (xmlStrEqual(StringConcatNextDate(buffer), BAD_CAST"20130613,0701,05") == FALSE) {
+      printf("ERROR\n");
+    }
+    else if (xmlStrEqual(StringConcatNextDate(buffer), BAD_CAST"20130701,05") == FALSE) {
+      printf("ERROR\n");
+    }
+    else if (xmlStrEqual(StringConcatNextDate(buffer), BAD_CAST"20130705") == FALSE) {
+      printf("ERROR\n");
+    }
+    else {
+      n_ok++;
+      printf("OK\n");
+    }
+  }
+
+  if (RUNTEST) {
+    i++;
+    printf("TEST %i in '%s:%i': ", i, __FILE__, __LINE__);
+
+    xmlStrPrintf(buffer, BUFFER_LENGTH, "20121208,201306");
+
+    if (StringConcatNextDate(buffer) != NULL) {
+      printf("ERROR\n");
+    }
+    else {
+      n_ok++;
+      printf("OK\n");
+    }
+  }
+
+  if (RUNTEST) {
+    i++;
+    printf("TEST %i in '%s:%i': trailing separator ", i, __FILE__, __LINE__);
+
+    xmlStrPrintf(buffer, BUFFER_LENGTH, "20091011,1112,");
+
+    if (xmlStrEqual(StringConcatNextDate(buffer), BAD_CAST"20091112,") == FALSE) {
+      printf("ERROR\n");
+    }
+    else if (StringConcatNextDate(buffer) != NULL) {
+      printf("ERROR\n");
+    }
+    else {
+      n_ok++;
+      printf("OK\n");
+    }
+  }
 
   /* ISO 8601 Durations */
   

@@ -2206,6 +2206,74 @@ isiso8601(xmlChar c)
 } /* end of isiso8601() */
 
 
+/*! Assembles the next date part, only compact ISO date 'YYYYMMDD,MMDD,DD'.
+
+  \param pucArgGcal pointer to comma separated list of date strings
+  \return pointer to a the modified pucGcal or NULL if no date string follows,
+*/
+xmlChar*
+StringConcatNextDate(xmlChar* pucArgGcal)
+{
+  xmlChar* pucE;
+  xmlChar* pucB;		/* begin of next string */
+  xmlChar* pucTmp;
+  int l_new;
+  int l_old;
+
+  for (pucB = pucArgGcal, l_old = 0; isdigit(*pucB); pucB++, l_old++) {
+    /*
+      skip all chars in first calendar string
+    */
+  }
+
+  if (*pucB == ',') {
+
+    for (pucB++, pucE = pucB; isdigit(*pucE); pucE++) {
+      /* skip all chars in second calendar string */
+    }
+
+    l_new = (int)(pucE - pucB);
+
+    if (l_new > 0) {
+      if (isdigit(*pucB)) {
+	if (l_new < 3) {
+	  pucTmp = xmlStrndup(pucArgGcal, 6);
+	  if (l_new < 2)  /* insert leading zero */
+	    pucTmp = xmlStrcat(pucTmp, BAD_CAST "0");
+	}
+	else if (l_new < 5) {
+	  pucTmp = xmlStrndup(pucArgGcal, 4);
+	  if (l_new < 4)  /* insert leading zero */
+	    pucTmp = xmlStrcat(pucTmp, BAD_CAST "0");
+	}
+	else if (l_new > 7) {
+	  /* this is a complete new 'yyyymmdd' */
+	  /* 	memmove(pucArgGcal,pucB,xmlStrlen(pucB)+1); */
+	  pucTmp = xmlStrndup(pucArgGcal, 0);
+	}
+	else {
+	  PrintFormatLog(2, "no valid extension '%s' in '%s'", pucB, pucArgGcal);
+	  return NULL;
+	}
+      }
+      else {
+	PrintFormatLog(2, "Different types between '%s' in '%s'", pucB, pucArgGcal);
+	return NULL;
+      }
+      pucTmp = xmlStrcat(pucTmp, pucB);
+      memcpy(pucArgGcal, pucTmp, (size_t)xmlStrlen(pucTmp) + 1);
+      xmlFree(pucTmp);
+      return pucArgGcal;
+    }
+    else {
+      return NULL;
+    }
+  }
+  return NULL;
+}
+/* end of StringConcatNextDate() */
+
+
 /*
  *  "P3Y6M4DT12H30M5S" Calendar date period  (ISO 8601)
  * 
