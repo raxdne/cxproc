@@ -32,6 +32,83 @@ pieCalendarTest(cxpContextPtr pccArg)
 
 
   if (RUNTEST) {
+    pieCalendarPtr pCalendarT;
+    
+    i++;
+    printf("TEST %i in '%s:%i': CalendarNew() = ", i, __FILE__, __LINE__);
+    
+    if ((pCalendarT = CalendarNew()) == NULL) {
+      printf("Error CalendarNew()\n");
+    }
+    else if (AddTreeYear(NULL,-1) != NULL) {
+      printf("Error AddTreeYear()\n");
+    }
+    else if (AddTreeYear(pCalendarT,2009) == NULL) {
+      printf("Error AddTreeYear()\n");
+    }
+    else {
+      n_ok++;
+      printf("OK\n");
+    }
+    PrintCalendarSetup(pCalendarT, pccArg);
+    CalendarFree(pCalendarT);
+  }
+
+  // return 0;
+
+
+  if (RUNTEST) {
+    pieCalendarPtr pCalendarT;
+    xmlDocPtr pdocTest = NULL;
+    
+    i++;
+    printf("TEST %i in '%s:%i': CalendarSetup() = ", i, __FILE__, __LINE__);
+    
+    if ((pdocTest = xmlParseFile(TESTPREFIX "option/pie/calendar/test-calendar-setup.pie")) == NULL) {
+      printf("Error xmlParseFile()\n");
+    }
+    else if ((pCalendarT = CalendarSetup(NULL,pccArg)) == NULL) {
+      printf("Error CalendarSetup()\n");
+    }
+    else if ((pCalendarT = CalendarSetup(xmlDocGetRootElement(pdocTest),pccArg)) == NULL) {
+      printf("Error CalendarSetup()\n");
+    }
+    else {
+      n_ok++;
+      printf("OK\n");
+    }
+    //PrintCalendarSetup(pCalendarT, pccArg);
+    CalendarFree(pCalendarT);
+    xmlFreeDoc(pdocTest);
+  }
+
+  return 0;
+
+
+  if (RUNTEST) {
+    pieCalendarPtr pCalendarT;
+    xmlDocPtr pdocTest = NULL;
+    xmlDocPtr pdocT = NULL;
+    
+    i++;
+    printf("TEST %i in '%s:%i': calProcessCalendarNode() = ", i, __FILE__, __LINE__);
+    
+    if ((pdocTest = xmlParseFile(TESTPREFIX "option/pie/calendar/test-calendar-setup.pie")) == NULL) {
+      printf("Error xmlParseFile()\n");
+    }
+    else if ((pdocT = calProcessCalendarNode(xmlDocGetRootElement(pdocTest), pccArg)) == NULL) {
+      printf("Error calPcalProcessCalendarNoderocessDoc()\n");
+    }
+    else {
+      n_ok++;
+      printf("OK\n");
+    }
+    domPutDocString(stderr, BAD_CAST "calProcessCalendarNode", pdocT);
+    xmlFreeDoc(pdocT);
+    xmlFreeDoc(pdocTest);
+  }
+
+  if (RUNTEST) {
     xmlNodePtr pndMakeCalendar;
     xmlNodePtr pndCol;
     xmlNodePtr pndChild;

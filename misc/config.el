@@ -301,7 +301,7 @@
 					   " --target clean"
 			  		   ))
 			  )
-g		)
+		)
 
 (global-set-key [S-f3]  (lambda ()
 			""
