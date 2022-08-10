@@ -895,9 +895,11 @@ cxpSubstPrint(cxpSubstPtr pcxpSubstArg, cxpContextPtr pccArg)
     if (pcxpSubstArg->pucName) {
       cxpCtxtLogPrint(pccArg, 1, "String Substitution '%s':", pcxpSubstArg->pucName);
     }
+#if HAVE_PCRE2
     else if (pcxpSubstArg->preFrom) {
       cxpCtxtLogPrint(pccArg, 1, "Regexp Substitution");
     }
+#endif
     else {
       cxpCtxtLogPrint(pccArg, 1, "No valid Substitution");
     }

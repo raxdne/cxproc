@@ -22,7 +22,7 @@
 /*! 
 */
 int
-pieCalendarTest(cxpContextPtr pccArg)
+calTest(cxpContextPtr pccArg)
 {
   int n_ok;
   int i;

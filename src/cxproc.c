@@ -60,7 +60,7 @@
 
 #ifdef HAVE_PIE
 #include <pie/pie_text.h>
-#include <pie/pie_calendar.h>
+#include <cxp/cxp_calendar.h>
 #endif
 
 /*!\todo named args */

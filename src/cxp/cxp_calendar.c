@@ -59,9 +59,12 @@
 #include <res_node/res_node.h>
 #include <cxp/cxp.h>
 #include <cxp/cxp_dir.h>
+#include <cxp/calendar_element.h>
 #include "dom.h"
-#include <pie/pie_text.h>
-#include <pie/pie_calendar.h>
+
+#include <cxp/cxp_calendar.h>
+
+#include <pie/pie_dtd.h>
 
 const char *mpucNumber[] = {
 			    "00","01","02","03","04","05","06","07","08","09",
@@ -445,6 +448,7 @@ FindCalendarElementCol(xmlNodePtr pndArgParent, xmlChar *pucArgIdCol, xmlNodePtr
     xmlNodePtr pndChild;
     xmlChar *pucHour;
 
+#if 0
     if ((pndHour = domGetFirstChild(pndArgParent,NAME_PIE_HOUR))
 	&& (pucHour = domGetPropValuePtr(pndArgInsert, BAD_CAST "hour"))) {
       /*  */
@@ -455,7 +459,9 @@ FindCalendarElementCol(xmlNodePtr pndArgParent, xmlChar *pucArgIdCol, xmlNodePtr
 	}
       }
     }
-    else if (pucArgIdCol) {
+    else
+#endif
+      if (pucArgIdCol) {
       for (pndCol = domGetFirstChild(pndArgParent,NAME_COL);
 	  pndCol != NULL && xmlStrcasecmp(pucArgIdCol,domGetPropValuePtr(pndCol,BAD_CAST "idref"));
 	  pndCol = domGetNextNode(pndCol,NAME_COL)) {
@@ -582,11 +588,13 @@ CalendarUpdate(pieCalendarPtr pCalendarArg)
 	    xmlUnsetProp(pndNew, BAD_CAST"id");
 	  }
 
+#if 0
 	  /*! add ancestor axis to pndNew */
 	  if ((pucHeader = pieGetParentHeaderStr(pndCurrent))) {
 	    domSetPropEat(pndNew, BAD_CAST "hstr", pucHeader);
 	  }
-
+#endif
+	  
 	  /* inherit ancestor state attributes, if required
 	  */
 	  if (domGetPropValuePtr(pndCurrent, BAD_CAST"state") != NULL) {
@@ -662,9 +670,11 @@ CalendarUpdate(pieCalendarPtr pCalendarArg)
 	    xmlNewTextChild(pndNew,NULL,NAME_PIE_DATE,pceT->pucDate);
 	    xmlAddChild(pndNew, xmlNewText(BAD_CAST " "));
 	    xmlAddChild(pndNew, xmlNewText(pucText));
+#if 0
 	    if ((pucHeader = pieGetParentHeaderStr(pndCurrent))) {
 	      domSetPropEat(pndNew, BAD_CAST "hstr", pucHeader);
 	    }
+#endif
 	    InsertCalendarElementEat(pCalendarArg, pceT, pndNew);
 	  }
 	}
@@ -1356,7 +1366,7 @@ CalendarSetup(xmlNodePtr pndArg, cxpContextPtr pccArg)
     cxpInfoProgram(pndMeta, pccArg);
     if (IS_NODE_CALENDAR(pndArg)) {
       pndCalendarCopy = xmlCopyNode(pndArg, 1);
-      pieValidateTree(pndCalendarCopy);
+      //pieValidateTree(pndCalendarCopy);
     }
     else if ((pndCalendarCopy = xmlNewNode(NULL, NAME_PIE_CALENDAR)) == NULL
       || xmlSetProp(pndCalendarCopy, BAD_CAST"subst", BAD_CAST "no") == NULL
@@ -1377,7 +1387,7 @@ CalendarSetup(xmlNodePtr pndArg, cxpContextPtr pccArg)
       PrintFormatLog(1, "Cannot create new calendar");
     }
     else if ((pndTT = xmlCopyNode(pndArg, 1)) != NULL) {
-      pieValidateTree(pndTT);
+      //pieValidateTree(pndTT);
       xmlAddChild(pndT, pndTT);
     }
     xmlAddChild(pndMeta, pndCalendarCopy);
@@ -2183,5 +2193,5 @@ IsFullMoonConway(int year, int month, int day)
 
 
 #ifdef TESTCODE
-#include "test/test_pie_calendar.c"
+#include "test/test_cxp_calendar.c"
 #endif

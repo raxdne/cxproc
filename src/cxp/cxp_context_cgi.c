@@ -79,7 +79,7 @@ RFC3875 CGI 1.1 <http://tools.ietf.org/html/rfc3875#page-10>
 
 #ifdef HAVE_PIE
 #include <pie/pie_text.h>
-#include <pie/pie_calendar.h>
+#include <cxp/cxp_calendar.h>
 #include <petrinet/petrinet.h>
 #endif
 #ifdef HAVE_LIBSQLITE3

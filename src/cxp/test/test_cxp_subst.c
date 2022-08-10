@@ -180,6 +180,8 @@ cxpSubstTest(cxpContextPtr pccArg)
     xmlFreeNode(pndSubst);
   }
 
+#ifdef HAVE_PCRE2
+  
   if (RUNTEST) {
     cxpSubstPtr pT;
     xmlNodePtr pndSubst;
@@ -209,6 +211,8 @@ cxpSubstTest(cxpContextPtr pccArg)
     xmlFreeNode(pndSubst);
   }
 
+#endif
+  
   if (RUNTEST) {
     i++;
     printf("TEST %i in '%s:%i': cxpSubstApply() = ",i,__FILE__,__LINE__);

@@ -901,4 +901,4 @@ ceTest(void)
 
   return (i - n_ok);
 }
-/* end of calTest() */
+/* end of ceTest() */

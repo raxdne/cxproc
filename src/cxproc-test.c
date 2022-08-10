@@ -69,7 +69,7 @@
 #include <pie/pie_text.h>
 #include <ics/ics.h>
 #include <vcf/vcf.h>
-#include <pie/pie_calendar.h>
+#include <cxp/cxp_calendar.h>
 #endif
 #ifdef HAVE_PETRINET
 #include <petrinet/petrinet.h>
@@ -234,6 +234,9 @@ main(int argc, char** argv, char** envp)
 	  iErrorCode += cxpCtxtEncTest(pccT);
 	  iErrorCode += cxpCtxtCacheTest(pccT);
 	  iErrorCode += cxpSubstTest(pccT);
+	  iErrorCode += calTest(pccT);
+	  iErrorCode += pieTimezoneTest();
+	  iErrorCode += ceTest();	  
 	  iErrorCode += cxpTest(pccT);
 
 	  cxpCtxtIncrExitCode(pccTest, cxpCtxtGetExitCode(pccT));
@@ -305,9 +308,6 @@ main(int argc, char** argv, char** envp)
 	  iErrorCode += pieTextTagsTest();
 	  iErrorCode += pieTextBlocksTest();
 	  iErrorCode += pieTextTest(pccT);
-	  iErrorCode += pieTimezoneTest();
-	  iErrorCode += ceTest();
-	  iErrorCode += pieCalendarTest(pccT);
 
 	  cxpCtxtIncrExitCode(pccTest,cxpCtxtGetExitCode(pccT));
 	  cxpCtxtFree(pccT);

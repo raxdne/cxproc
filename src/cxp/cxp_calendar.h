@@ -30,6 +30,6 @@ calAddAttributeDayDiff(xmlDocPtr pdocArg);
 
 #ifdef TESTCODE
 extern int
-pieCalendarTest(cxpContextPtr pccArg);
+calTest(cxpContextPtr pccArg);
 #endif
 

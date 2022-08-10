@@ -2175,6 +2175,7 @@ SplitStringToDateNodes(const xmlChar *pucArg, RN_MIME_TYPE eMimeTypeArg)
 	      }
 	      else {
 		pndIn = xmlNewTextChild(pndResult, NULL, NAME_PIE_DATE, pucD);
+		/*!\todo add date properties */
 	      }
 
 	      if (pucSep > pucDate && !isend(*pucSep)) {

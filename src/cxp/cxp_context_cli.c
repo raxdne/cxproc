@@ -48,8 +48,10 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 #ifdef HAVE_PIE
 #include <pie/pie_text.h>
-#include <pie/pie_calendar.h>
+#include <cxp/cxp_calendar.h>
 #include <petrinet/petrinet.h>
+#else
+#include <pie/pie_dtd.h>
 #endif
 #ifdef HAVE_LIBSQLITE3
 #include <database/database.h>
@@ -405,7 +407,6 @@ cxpCtxtCliParse(cxpContextPtr pccArg)
 	 */
 	cxpCtxtCliPrintHelp(pccArg);
       }
-#ifdef HAVE_PIE
       else if (atoi((char*)pucArgvFirst) > 1900) {
 	/*
 	  argv[1] is a valid year number, calendar
@@ -459,7 +460,6 @@ cxpCtxtCliParse(cxpContextPtr pccArg)
 	  }
 	}
       }
-#endif
       else if (xmlStrEqual(pucArgvFirst, BAD_CAST"-e")) {
 	/*! print program environment
 	 */

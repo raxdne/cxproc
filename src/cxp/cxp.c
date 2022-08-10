@@ -76,9 +76,11 @@
 #include <cxp/cxp_threadp.h>
 #include "dom.h"
 #include <cxp/cxp_dir.h>
-#include <pie/pie_text.h>
+#include <cxp/cxp_calendar.h>
 #ifdef HAVE_PIE
-#include <pie/pie_calendar.h>
+#include <pie/pie_text.h>
+#else
+#include <pie/pie_dtd.h>
 #endif
 #ifdef HAVE_PETRINET
 #include <petrinet/petrinet.h>
@@ -1258,11 +1260,9 @@ cxpProcessXmlNode(xmlNodePtr pndArg, cxpContextPtr pccArg)
       else if (IS_NODE_PIE(pndChildSource)) {
 	pdocT = pieProcessPieNode(pndChildSource,pccHere);
       }
-#ifdef HAVE_PIE
       else if (IS_NODE_CALENDAR(pndChildSource)) {
 	pdocT = calProcessCalendarNode(pndChildSource,pccHere);
       }
-#endif
 #ifdef HAVE_PETRINET
       else if (IS_NODE_PATHNET(pndChildSource) || IS_NODE_PATHTABLE(pndChildSource)) {
 	pdocT = pnetProcessNode(pndChildSource,pccHere);

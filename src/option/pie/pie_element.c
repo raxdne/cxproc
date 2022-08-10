@@ -36,7 +36,7 @@
 #include "plain_text.h"
 #include <pie/pie_dtd.h>
 #include <pie/pie_element.h>
-#include <pie/calendar_element.h>
+#include <cxp/calendar_element.h>
 
 #ifdef LEGACY
 #define IS_CONTACT_CHAR_START(C) (C==(xmlChar)'|')
