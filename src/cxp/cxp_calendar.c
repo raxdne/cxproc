@@ -232,7 +232,7 @@ GetCalendarNodeNext(const xmlNodePtr pndI, int distance);
 static BOOL_T
 IsFullMoonConway(int year, int month, int day);
 
-#ifdef DEBUG
+#if defined(DEBUG) || defined(TESTCODE)
 BOOL_T
 PrintCalendarSetup(pieCalendarPtr pCalendarArg, cxpContextPtr pccArg);
 #endif
@@ -717,6 +717,8 @@ CalendarSetToday(pieCalendarPtr pCalendarArg)
 /*! insert a day diff attribute to all registered calendar elements of the according DOM.
 	
   add an attribute with canonical ISO date (e.g. output of ICS format)
+
+  \deprecated due to AddNodeDateAttributes() ??
 */
 void
 AddDateAttributes(pieCalendarElementPtr pceArg)

@@ -83,6 +83,10 @@ IF (BUILD_TESTING)
     WORKING_DIRECTORY ${CXPROC_PREFIX}
     COMMAND ${CXPROC_PREFIX}/bin/cxproc-test -t pie)
 
+  add_test(NAME pietextx-cli
+    WORKING_DIRECTORY ${CXPROC_PREFIX}
+    COMMAND ${CXPROC_PREFIX}/bin/pietextx ${CXPROC_TEST_DIR}/option/pie/text/test-pie-9.txt)
+
   add_test(NAME pie-cxp-import-circular
     WORKING_DIRECTORY ${CXPROC_TEST_DIR}/option/pie/text/circular
     COMMAND ${CXPROC_PREFIX}/bin/cxproc config-circular.cxp)

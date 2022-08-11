@@ -2097,7 +2097,135 @@ SplitStringToInlineNodes(const xmlChar *pucArg)
 /* end of SplitStringToInlineNodes() */
 
 
-/*! splits an UTF-8 string into a list of text and date element nodes
+/*! insert a day diff attribute to pndArgDate
+*/
+BOOL_T
+AddNodeDateAttributes(xmlNodePtr pndArgDate)
+{
+  BOOL_T fResult = FALSE;
+  xmlChar* pucDate;
+
+  if (IS_NODE_PIE_DATE(pndArgDate) && (pucDate = xmlNodeGetContent(pndArgDate)) != NULL && STR_IS_NOT_EMPTY(pucDate)) {
+    dt_t dt0, dt1;
+    size_t l;
+
+    if ((l = dt_parse_iso_date_interval(pucDate, xmlStrlen(pucDate), &dt0, &dt1)) > 0) {
+
+      if (dt0) {
+	time_t t;
+	long int iDayDiff = 0;
+	xmlChar mpucT[BUFFER_LENGTH];
+	dt_t iDayToday;
+
+	//xmlStrPrintf(mpucT, BUFFER_LENGTH, "%li", dt0);
+	//xmlSetProp(pndArgDate, BAD_CAST"abs", mpucT);
+	xmlStrPrintf(mpucT, BUFFER_LENGTH, "%04i-%02i-%02i", dt_year(dt0), dt_month(dt0), dt_dom(dt0));
+	xmlSetProp(pndArgDate, BAD_CAST"iso", mpucT);
+
+	time(&t); /*!\todo reduce number of calls of time()/localtime() */
+	iDayToday = dt_from_struct_tm(localtime(&t));
+
+	if (dt1 > dt0) {
+	  /* an interval end */
+
+	  xmlStrPrintf(mpucT, BUFFER_LENGTH, "%li", dt1 - dt0 + 1);
+	  xmlSetProp(pndArgDate, BAD_CAST"interval", mpucT);
+
+	  if (dt1 < iDayToday) {
+	    /* date interval ends before today */
+	    iDayDiff = dt1 - iDayToday;
+	  }
+	  else if (iDayToday < dt0) {
+	    /* date interval begins after today */
+	    iDayDiff = dt0 - iDayToday;
+	  }
+	  else {
+	    /* today is in date interval */
+	  }
+	}
+	else {
+	  /* no interval end, single date */
+	  iDayDiff = dt0 - iDayToday;
+	}
+
+	xmlStrPrintf(mpucT, BUFFER_LENGTH, "%li", iDayDiff);
+	xmlSetProp(pndArgDate, BAD_CAST"diff", mpucT);
+
+	fResult = TRUE;
+      }
+      else {
+      }
+    }
+
+#if 0
+
+      if (pceT->iMonth > 0 && pceT->iDay > 0) {
+
+	if (pceT->iHourA > -1 && pceT->iMinuteA > -1 && pceT->iSecondA > -1) {
+	  xmlStrPrintf(mpucT, BUFFER_LENGTH,
+	    "%04i-%02i-%02iT%02i:%02i:%02i",
+	    pceT->iYear,
+	    pceT->iMonth,
+	    pceT->iDay,
+	    pceT->iHourA,
+	    pceT->iMinuteA,
+	    pceT->iSecondA
+	  );
+
+	  if (pceT->iTimezoneOffset) {
+	    xmlChar* pucT = NULL;
+
+	    if (pceT->iTimezoneOffset < 0) {
+	      pucT = xmlStrncatNew(mpucT, BAD_CAST STR_UTF8_MINUS, -1);
+	    }
+	    else if (pceT->iTimezoneOffset > 0) {
+	      pucT = xmlStrncatNew(mpucT, BAD_CAST "+", -1);
+	    }
+
+	    xmlStrPrintf(mpucT, BUFFER_LENGTH - 1, "%s%02i:%02i", pucT, (abs(pceT->iTimezoneOffset) / 60), (abs(pceT->iTimezoneOffset) % 60));
+	    xmlFree(pucT);
+	  }
+
+	  if (pceT->iTimezone) {
+	    xmlSetProp(pndArgDate, BAD_CAST "tz", tzGetId(pceT->iTimezone));
+	  }
+	}
+	else {
+	}
+      }
+
+    if (STR_IS_NOT_EMPTY(mpucT)) {
+
+      if (pceT->iHourA > -1) {
+	xmlStrPrintf(mpucT, BUFFER_LENGTH - 1, "%02i", (pceT->iHourA > -1) ? pceT->iHourA : 0);
+	xmlSetProp(pndArgDate, BAD_CAST "hour", mpucT);
+
+	xmlStrPrintf(mpucT, BUFFER_LENGTH - 1, "%02i", (pceT->iMinuteA > -1) ? pceT->iMinuteA : 0);
+	xmlSetProp(pndArgDate, BAD_CAST "minute", mpucT);
+
+	xmlStrPrintf(mpucT, BUFFER_LENGTH - 1, "%02i", (pceT->iSecondA > -1) ? pceT->iSecondA : 0);
+	xmlSetProp(pndArgDate, BAD_CAST "second", mpucT);
+
+	if (pceT->iHourB > -1) {
+	  xmlStrPrintf(mpucT, BUFFER_LENGTH - 1, "%02i", (pceT->iHourB > -1) ? pceT->iHourB : 0);
+	  xmlSetProp(pndArgDate, BAD_CAST "hour-end", mpucT);
+
+	  xmlStrPrintf(mpucT, BUFFER_LENGTH - 1, "%02i", (pceT->iMinuteB > -1) ? pceT->iMinuteB : 0);
+	  xmlSetProp(pndArgDate, BAD_CAST "minute-end", mpucT);
+
+	  xmlStrPrintf(mpucT, BUFFER_LENGTH - 1, "%02i", (pceT->iSecondB > -1) ? pceT->iSecondB : 0);
+	  xmlSetProp(pndArgDate, BAD_CAST "second-end", mpucT);
+	}
+      }
+    }
+#endif
+
+    return fResult;
+  } 
+} /* End of AddNodeDateAttributes() */
+
+  
+  /*! splits an UTF-8 string into a list of text and date element nodes
 */
 xmlNodePtr
 SplitStringToDateNodes(const xmlChar *pucArg, RN_MIME_TYPE eMimeTypeArg)
@@ -2175,7 +2303,7 @@ SplitStringToDateNodes(const xmlChar *pucArg, RN_MIME_TYPE eMimeTypeArg)
 	      }
 	      else {
 		pndIn = xmlNewTextChild(pndResult, NULL, NAME_PIE_DATE, pucD);
-		/*!\todo add date properties */
+		AddNodeDateAttributes(pndIn);
 	      }
 
 	      if (pucSep > pucDate && !isend(*pucSep)) {
