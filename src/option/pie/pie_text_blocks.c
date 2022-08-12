@@ -2105,7 +2105,7 @@ AddNodeDateAttributes(xmlNodePtr pndArgDate)
   BOOL_T fResult = FALSE;
   xmlChar* pucDate;
 
-  if (IS_NODE_PIE_DATE(pndArgDate) && (pucDate = xmlNodeGetContent(pndArgDate)) != NULL && STR_IS_NOT_EMPTY(pucDate)) {
+  if (IS_NODE_PIE_DATE(pndArgDate) && (pucDate = pndArgDate->content) != NULL && STR_IS_NOT_EMPTY(pucDate)) {
     dt_t dt0, dt1;
     size_t l;
 
@@ -3519,7 +3519,7 @@ GetModeByAttr(xmlNodePtr pndArgImport)
 rmode_t 
 GetModeByExtension(xmlChar *pucArgExt)
 {
-  rmode_t eResultMode = RMODE_PAR;
+  rmode_t eResultMode = RMODE_UNDEFINED;
 
   if (STR_IS_EMPTY(pucArgExt)) {
     /* no type is defined */
@@ -3532,6 +3532,9 @@ GetModeByExtension(xmlChar *pucArgExt)
   }
   else if (xmlStrEqual(pucArgExt, BAD_CAST "js")) {
     eResultMode = RMODE_PRE;
+  }
+  else if (xmlStrEqual(pucArgExt, BAD_CAST "txt")) {
+    eResultMode = RMODE_PAR;
   }
   else if (xmlStrEqual(pucArgExt, BAD_CAST "md")) {
     eResultMode = RMODE_MD;

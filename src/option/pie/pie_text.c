@@ -19,6 +19,8 @@
 
 */
 
+/*!\todo remove calls of cxpCtxtLogPrint() */
+
 /*!\todo remove XML-only features (@effort, @assignee,  ...), in XSL too */
 
 /*!\todo autodetection line or paragraph input */
@@ -74,6 +76,9 @@ ProcessIncludeNode(xmlNodePtr pndArgInclude, cxpContextPtr pccArg);
 
 static BOOL_T
 IncludeNodeFile(xmlNodePtr pndArgInclude, cxpContextPtr pccArg);
+
+static BOOL_T
+ProcessImportOptions(xmlNodePtr pndArgPie, xmlNodePtr pndArgImport, cxpContextPtr pccArg);
 
 static BOOL_T
 ProcessImportNode(xmlNodePtr pndArgImport, cxpContextPtr pccArg);
@@ -332,44 +337,8 @@ pieProcessPieNode(xmlNodePtr pndArgPie, cxpContextPtr pccArg)
     cxpCtxtLogPrint(pccArg, 2, "Start node substitution");
     cxpSubstReplaceNodes(pndBlock, pccArg);
 
-    if (domGetPropFlag(pndArgPie, BAD_CAST "figure", TRUE)) {
-      cxpCtxtLogPrint(pccArg, 2, "Recognize Figures");
-      RecognizeFigures(pndPieRoot);
-    }
-    else {
-      cxpCtxtLogPrint(pccArg, 3, "Ignoring Figures markup");
-    }
-
-    if (domGetPropFlag(pndArgPie, BAD_CAST "url", TRUE)) {
-      cxpCtxtLogPrint(pccArg, 2, "Recognize URLs");
-      /*! \todo use an attribute for regexp?? */
-      RecognizeUrls(pndPieRoot);
-    }
-    else {
-      cxpCtxtLogPrint(pccArg, 3, "Ignoring URLs");
-    }
-
-    RecognizeDates(pndPieRoot,MIME_TEXT_PLAIN);
-
-    if (domGetPropFlag(pndArgPie, BAD_CAST "offset", FALSE)) {
-      cxpCtxtLogPrint(pccArg, 3, "Calculating date offsets");
-      calAddAttributeDayDiff(pdocResult);
-    }
-
-    RecognizeSymbols(pndPieRoot, GetPieNodeLang(pndArgPie, pccArg));
-
-    /*! \todo global cite recognition in scientific text */
-
-    if (domGetPropFlag(pndArgPie, BAD_CAST "todo", TRUE)) {
-      cxpCtxtLogPrint(pccArg, 2, "Recognize tasks markup");
-      RecognizeTasks(pndPieRoot);
-    }
-    else {
-      cxpCtxtLogPrint(pccArg, 3, "Ignoring tasks markup");
-    }
-
-    SetPropBlockLocators(pndPieRoot,NULL,NULL);
-
+    ProcessImportOptions(pndPieRoot,pndArgPie, pccArg);
+  
     pucAttr = domGetPropValuePtr(pndArgPie, BAD_CAST "xpath"); /*  */
     if (STR_IS_NOT_EMPTY(pucAttr) && xmlStrEqual(pucAttr,BAD_CAST"/*") == FALSE) {
       xmlDocPtr pdocResultXPath;
@@ -739,10 +708,18 @@ ImportNodeFile(xmlNodePtr pndArgImport, cxpContextPtr pccArg)
 
 	if (STR_IS_NOT_EMPTY(pucContent)) {
 	  if (ParsePlainBuffer(pndBlock, pucContent, m)) {
-	    SetPropBlockLocators(pndBlock, resNodeGetNameRelative(cxpCtxtRootGet(pccInput), prnInput), NULL);
+
+	    if (domGetPropFlag(pndArgImport, BAD_CAST "locators", FALSE)) {
+	      SetPropBlockLocators(pndBlock, resNodeGetNameRelative(cxpCtxtRootGet(pccInput), prnInput), NULL);
+	    }
+
 	    RecognizeIncludes(pndBlock);
 	    TraverseIncludeNodes(pndBlock, pccInput);
-	    RecognizeSubsts(pndBlock);
+
+	    if (domGetPropFlag(pndArgImport, BAD_CAST "subst", FALSE)) {
+	      RecognizeSubsts(pndBlock);
+	    }
+
 	    RecognizeImports(pndBlock);
 	    TraverseImportNodes(pndBlock, pccInput); /* parse result recursively */
 	  }
@@ -1256,6 +1233,68 @@ TraverseImportNodes(xmlNodePtr pndArg, cxpContextPtr pccArg)
   }
 }
 /* end of TraverseImportNodes() */
+
+
+/*! process the import node pndArgImport attributes in context of pccArg
+
+\param pndArgImport node for import, else traversing childs
+\param pccArg the processing context
+
+\return TRUE if import was successful, else FALSE
+*/
+BOOL_T
+ProcessImportOptions(xmlNodePtr pndArgPie, xmlNodePtr pndArgImport, cxpContextPtr pccArg)
+{
+  BOOL_T fResult = FALSE;
+
+#ifdef DEBUG
+  cxpCtxtLogPrint(pccArg, 3, "ProcessImportOptions(pndArgImport=%0x,pccArg=%0x)", pndArgImport, pccArg);
+#endif
+
+  if (pndArgPie) {
+    
+    if (domGetPropFlag(pndArgPie, BAD_CAST "figure", TRUE)) {
+      cxpCtxtLogPrint(pccArg, 2, "Recognize Figures");
+      RecognizeFigures(pndArgPie);
+    }
+    else {
+      cxpCtxtLogPrint(pccArg, 3, "Ignoring Figures markup");
+    }
+
+    if (domGetPropFlag(pndArgPie, BAD_CAST "url", TRUE)) {
+      cxpCtxtLogPrint(pccArg, 2, "Recognize URLs");
+      /*! \todo use an attribute for regexp?? */
+      RecognizeUrls(pndArgPie);
+    }
+    else {
+      cxpCtxtLogPrint(pccArg, 3, "Ignoring URLs");
+    }
+
+    RecognizeDates(pndArgPie,MIME_TEXT_PLAIN);
+
+    RecognizeSymbols(pndArgPie, GetPieNodeLang(pndArgPie, pccArg));
+
+    /*! \todo global cite recognition in scientific text */
+
+    if (domGetPropFlag(pndArgPie, BAD_CAST "todo", TRUE)) {
+      cxpCtxtLogPrint(pccArg, 2, "Recognize tasks markup");
+      RecognizeTasks(pndArgPie);
+    }
+    else {
+      cxpCtxtLogPrint(pccArg, 3, "Ignoring tasks markup");
+    }
+
+    if (domGetPropFlag(pndArgPie, BAD_CAST "locators", TRUE)) {
+      cxpCtxtLogPrint(pccArg, 2, "Add locator attribute");
+      SetPropBlockLocators(pndArgPie,NULL,NULL);
+    }
+    else {
+      cxpCtxtLogPrint(pccArg, 3, "Skipping locators");
+    }
+  }
+  return fResult;
+}
+/* end of ProcessImportOptions() */
 
 
 /*! process the single import node pndArgImport in context of pccArg and replace it

@@ -24,6 +24,7 @@
 #define isimpact(C) (C == (xmlChar)'+')
 
 typedef enum {
+  RMODE_UNDEFINED, /*! unknown content */
   RMODE_MD,     /*! markdown-formatted content */
   RMODE_PAR,    /*! paragraph content */
   RMODE_LINE,   /*! line oriented content */

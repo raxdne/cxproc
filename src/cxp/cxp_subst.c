@@ -676,7 +676,7 @@ cxpSubstApply(xmlNodePtr pndArgTop, cxpSubstPtr pcxpSubstArg, cxpContextPtr pccA
   if (pcxpSubstArg) {
     /*!\todo substitute searchpath="pie.css" to whole filename */
 
-#ifdef EXPERIMENTAL
+#if defined(EXPERIMENTAL) && defined(HAVE_PCRE2)
     if (cxpSubstGetRegExp(pcxpSubstArg)) {
       if (cxpSubstGetPtr(pcxpSubstArg)) {
 	ApplySubstRegExp(pndArgTop, cxpSubstGetRegExp(pcxpSubstArg), cxpSubstGetPtr(pcxpSubstArg));
