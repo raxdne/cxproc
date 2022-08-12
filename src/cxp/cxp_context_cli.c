@@ -441,18 +441,6 @@ cxpCtxtCliParse(cxpContextPtr pccArg)
 	  xmlSetProp(pndXml, BAD_CAST "name", BAD_CAST "-");
 	  pndCalendar = xmlNewChild(pndXml, NULL, NAME_CALENDAR, NULL);
 	  domSetPropEat(pndCalendar, BAD_CAST "year", pucYear);
-	  xmlSetProp(pndCalendar, BAD_CAST"subst", BAD_CAST "yes");
-
-	  pndT = xmlNewChild(pndCalendar, NULL, NAME_PIE_COL, NULL);
-	  xmlSetProp(pndT, BAD_CAST"id", BAD_CAST "legend");
-	  xmlSetProp(pndT, BAD_CAST"name", BAD_CAST"Legend");
-	  pndT = xmlNewChild(pndT, NULL, NAME_XML, NULL);
-	  pndT = xmlNewChild(pndT, NULL, NAME_PIE_PIE, NULL);
-	  domUnsetNs(pndT);
-	  pndT = xmlNewChild(pndT, NULL, NAME_PIE_PAR, BAD_CAST"%Y-%m-%d %a (%j)");
-	  pndT = xmlNewChild(pndT, NULL, NAME_PIE_DATE, NULL);
-	  xmlSetProp(pndT, BAD_CAST"ref", BAD_CAST"00000000");
-
 	  cxpCtxtCliAddXsl(pndXml, pccArg);
 
 	  if (pndPause) {

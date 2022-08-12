@@ -250,6 +250,9 @@ CalendarElementListAdd(pieCalendarElementPtr pceArgList, pieCalendarElementPtr p
 void
 CalendarElementFree(pieCalendarElementPtr pceArg)
 {
+  if (pceArg->pNext) {
+    CalendarElementFree(pceArg->pNext);
+  }
   xmlFree(pceArg->pucDate);
   xmlFree(pceArg->pucId);
   xmlFree(pceArg);
@@ -322,10 +325,36 @@ ScanCalendarElementDate(pieCalendarElementPtr pceArgResult)
     if (pceArgResult->pucSep != NULL) {
       dt_t dt0, dt1;
       size_t l;
+      xmlChar *pucT = pceArgResult->pucSep; /* shortcut */
+      
+      //for (; pceArgResult->pucSep[0] == ','; pceArgResult->pucSep++);
 
-      for (; pceArgResult->pucSep[0] == ','; pceArgResult->pucSep++);
+      if (isdigit(pucT[0]) && isdigit(pucT[1]) && isdigit(pucT[2]) && isdigit(pucT[3])
+	&& isdigit(pucT[4]) && isdigit(pucT[5]) && isdigit(pucT[6]) && isdigit(pucT[7])
+	&& isdigit(pucT[8]) && isdigit(pucT[9])) {
 
-      if ((l = dt_parse_iso_date_interval(pceArgResult->pucSep, xmlStrlen(pceArgResult->pucSep), &dt0, &dt1)) > 0) {
+	/* system time "1311186519" */
+	unsigned long iT;
+	time_t tT;
+	xmlChar* pucSepEnd;
+
+	pucT = xmlStrndup(pucT, 10);
+	iT = strtoul((const char*)pucT, NULL, 10);
+	xmlFree(pucT);
+
+	tT = (time_t)iT;
+	pceArgResult->iAnchor = dt_from_struct_tm(localtime((const time_t*)(&tT)));
+	pceArgResult->eTypeDate = DATE_SYSTEM;
+	pceArgResult->iStep = -1;
+	pceArgResult->iCount = -1;
+
+	for (pceArgResult->pucSep += 10; isdigit(*(pceArgResult->pucSep)); pceArgResult->pucSep++) {
+	  /* skip chars of millisecs */
+	}
+
+	fResult = TRUE;
+      }
+      else if ((l = dt_parse_iso_date_interval(pceArgResult->pucSep, xmlStrlen(pceArgResult->pucSep), &dt0, &dt1)) > 0) {
 	if (dt0) {
 	  pceArgResult->eTypeDate = DATE_ISO;
 	  pceArgResult->iAnchor = dt0;
@@ -340,14 +369,15 @@ ScanCalendarElementDate(pieCalendarElementPtr pceArgResult)
 	    pceArgResult->iStep = -1;
 	    pceArgResult->iCount = -1;
 	  }
-
-	  CalendarElementUpdateValues(pceArgResult);
-	  
 	  fResult = TRUE;
 	}
 	else {
 	}
 	pceArgResult->pucSep = &pceArgResult->pucSep[l-1];
+      }
+
+      if (fResult) {
+	CalendarElementUpdateValues(pceArgResult);
       }
     }
   }

@@ -656,8 +656,8 @@ CalendarUpdate(pieCalendarPtr pCalendarArg)
 	  //xmlFreeNode(pndNew);
 	}
       }
-#ifdef LEGACY
-      else if (IS_NODE_PIE_FILE(pceT->pndEntry) && (pndCurrent = pceT->pndEntry) != NULL) {
+      else if ((IS_NODE_PIE_DIR(pceT->pndEntry) || IS_NODE_PIE_FILE(pceT->pndEntry))
+	&& (pndCurrent = pceT->pndEntry) != NULL) {
 	xmlChar *pucText;
 
 	if ((pucText = domGetPropValuePtr(pndCurrent,BAD_CAST"name")) != NULL && xmlStrlen(pucText) > 0) {
@@ -670,16 +670,10 @@ CalendarUpdate(pieCalendarPtr pCalendarArg)
 	    xmlNewTextChild(pndNew,NULL,NAME_PIE_DATE,pceT->pucDate);
 	    xmlAddChild(pndNew, xmlNewText(BAD_CAST " "));
 	    xmlAddChild(pndNew, xmlNewText(pucText));
-#if 0
-	    if ((pucHeader = pieGetParentHeaderStr(pndCurrent))) {
-	      domSetPropEat(pndNew, BAD_CAST "hstr", pucHeader);
-	    }
-#endif
 	    InsertCalendarElementEat(pCalendarArg, pceT, pndNew);
 	  }
 	}
       }
-#endif
     }
   }
 } /* end of CalendarUpdate() */
@@ -1004,11 +998,7 @@ RegisterDateNodes(pieCalendarPtr pCalendarArg, xmlChar *pucArg)
 	result = domGetXPathNodeset(pCalendarArg->pdocCalendar, pucArg);
       }
       else {
-#ifdef LEGACY
-	result = domGetXPathNodeset(pCalendarArg->pdocCalendar, BAD_CAST"/calendar/col//*[name() = 'date' or @date or @mtime2]");
-#else
-	result = domGetXPathNodeset(pCalendarArg->pdocCalendar, BAD_CAST"/calendar/col//date");
-#endif
+	result = domGetXPathNodeset(pCalendarArg->pdocCalendar, BAD_CAST"/calendar/col//*[name() = 'date' or @date or @mtime2 or @MODIFIED]");
       }
 
       if (result) {
@@ -1033,6 +1023,8 @@ RegisterDateNodes(pieCalendarPtr pCalendarArg, xmlChar *pucArg)
 	  }
 	  else if ((pucT = domGetPropValuePtr(nodeset->nodeTab[i], BAD_CAST "mtime2"))) {
 	  }
+	  else if ((pucT = domGetPropValuePtr(nodeset->nodeTab[i], BAD_CAST "MODIFIED"))) {
+	  }
 	  else {
 	  }
 #endif
@@ -1048,6 +1040,7 @@ RegisterDateNodes(pieCalendarPtr pCalendarArg, xmlChar *pucArg)
 	    else {
 	      pceNew->pndEntry = nodeset->nodeTab[i];
 	    }
+	    pceNew->pucDate = xmlStrdup(pucT);
 
 	    /*! use ancestor col element for pucColId
 	    */
@@ -1089,15 +1082,12 @@ ParseDates(pieCalendarPtr pCalendarArg)
   if (pCalendarArg) {
     pieCalendarElementPtr pceT;
 
-    fResult = TRUE;
-
-    //for (pceT = pCalendarArg->pceFirst; pceT; pceT = SplitDateSequences(pceT));
-
     for (pceT = pCalendarArg->pceFirst; pceT; pceT = pceT->pNext) {
       if (ScanCalendarElementDate(pceT)) {
-	AddDateAttributes(pceT);
       }
     }
+    AddDateAttributes(pCalendarArg->pceFirst);
+    fResult = TRUE;
   }
   return fResult;
 } /* end of ParseDates() */
@@ -1187,19 +1177,6 @@ ProcessCalendarColumns(pieCalendarPtr pCalendarArg, cxpContextPtr pccArg)
 	    xmlFreeDoc(pdocInput);
 	  }
 	}
-	else if (IS_NODE_PIE_PIE(pndColchild) || IS_NODE_PIE_PAR(pndColchild) || IS_NODE_PIE_HEADER(pndColchild)
-	  || IS_NODE_FILE(pndColchild) || IS_NODE_DIR(pndColchild)) {
-#if 0
-	  xmlUnlinkNode(pndColchild);
-	  xmlAddChild(pndColNew, pndColchild);
-#else
-	  /*!\todo use domReplaceNodeList() */
-	  xmlAddChild(pndColNew, xmlCopyNode(pndColchild, 1));
-#endif
-	}
-	else if (IS_ENODE(pndColchild)) {
-	  PrintFormatLog(1, "No valid element '%s' for CALENDAR processing", pndColchild->name);
-	}
       }
     }
     fResult = TRUE;
@@ -1220,14 +1197,7 @@ CalendarFree(pieCalendarPtr pCalendarArg)
   PrintFormatLog(1,"CalendarFree(pCalendarArg=%0x)",pCalendarArg);
 #endif
 
-  for (pceT = pCalendarArg->pceFirst; pceT; ) {
-    pieCalendarElementPtr pceRelease;
-    
-    pceRelease = pceT;
-    pceT = pceRelease->pNext;
-
-    CalendarElementFree(pceRelease);
-  }
+  CalendarElementFree(pCalendarArg->pceFirst);
   //xmlMemFree(pCalendarArg->ppndDay);
 
   xmlMemFree(pCalendarArg->pmiYear);
@@ -1432,7 +1402,7 @@ calProcessCalendarNode(xmlNodePtr pndArg, cxpContextPtr pccArg)
       
 	CalendarUpdate(pCalendarResult);
 	CalendarSetToday(pCalendarResult);
-	if (domGetPropFlag(pndArg, BAD_CAST"subst", TRUE)) {
+	if (domGetPropFlag(pndArg, BAD_CAST"subst", FALSE)) {
 	  /* do time-consuming format substitution by explicit demand only */
 	  SubstituteFormat(pCalendarResult->pndCalendarRoot);
 	}
@@ -2098,7 +2068,7 @@ AddTreeYear(pieCalendarPtr pCalendarArg, int year)
 	xmlSetProp(pndDay, BAD_CAST "oy", buffer);
 
 	xmlStrPrintf(buffer, BUFFER_LENGTH, "%i", dt_dow(dti));
-	xmlSetProp(pndDay, BAD_CAST "ow", BAD_CAST mpucNumber[dt_dow(dti)]);
+	xmlSetProp(pndDay, BAD_CAST "ow", buffer);
 	/* attribute is used in calGetWeekNode() */
 	xmlSetProp(pndDay, BAD_CAST "own", dow[dt_dow(dti)]);
 
