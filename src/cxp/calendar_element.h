@@ -21,22 +21,8 @@
 #include <cxp/cxp_timezone.h>
 #include <c-dt/dt.h>
 
-typedef enum {
-  DATE_ISO,
-  DATE_DAY,
-  DATE_MONTH,
-  DATE_WEEK,
-  DATE_WEEK_ISO,
-  DATE_YEAR,
-  DATE_EASTER,
-  DATE_GERMAN,
-  DATE_SYSTEM,
-  DATE_SYSTEM_MSEC,
-  DATE_ERROR
-} date_t;
-
-
 /*! structure
+\todo iAnchor OR iYear,iMonth,iDay,...
  */
 struct pieCalendarElement {
   xmlNodePtr pndEntry; /*!< pointer to anchor DOM node */
@@ -67,8 +53,6 @@ struct pieCalendarElement {
   int iMinuteB;  /*!< Minute of Time */
   int iSecondB;  /*!< Second of Time */
 
-  date_t eTypeDate; /*!< recognized type of date */
-
   struct pieCalendarElement *pNext;
 } ;
 
@@ -84,22 +68,6 @@ extern const xmlChar *dow_de[];
 extern const xmlChar *moy[];
 
 extern const xmlChar *moy_de[];
-
-extern xmlChar *pucTodayYear;
-
-extern xmlChar *pucTodayMonth;
-
-extern xmlChar *pucTodayWeek;
-
-extern xmlChar *pucTodayDayYear;
-
-extern xmlChar *pucTodayDayMonth;
-
-extern xmlChar *pucTodayHour;
-
-extern xmlChar *pucTodayMinute;
-
-extern xmlChar *pucTodaySecond;
 
 extern BOOL_T
 ceInit(void);
@@ -161,20 +129,12 @@ GetTodayMinute(void);
 extern int
 GetTodaySecond(void);
 
-extern int
-GetDayOfWeekInt(xmlChar *pucDow);
-
 extern void
 PrintCalendarElement(pieCalendarElementPtr pceArg);
 
 extern BOOL_T
 ScanCalendarElementDate(pieCalendarElementPtr pceArgResult);
 
-extern xmlChar *
-EndOfDate(xmlChar *pucArg);
-
-extern BOOL_T
-ScanDateIteration(pieCalendarElementPtr pceArg);
 
 #ifdef TESTCODE
 extern int

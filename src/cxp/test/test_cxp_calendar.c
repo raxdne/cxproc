@@ -172,7 +172,7 @@ calTest(cxpContextPtr pccArg)
     xmlSetProp(pndChild, BAD_CAST"name", BAD_CAST TESTPREFIX "option/pie/text/test-pie-9.txt");
 
     /*! write the reference configuration for cxp_calendar */
-    xmlSaveFormatFile(BAD_CAST TESTPREFIX "option/pie/calendar/test-calendar.cxp", pdocCalendarDefinition, 1);
+    xmlSaveFormatFile(BAD_CAST TESTPREFIX "calendar/test-calendar.cxp", pdocCalendarDefinition, 1);
 
     if ((pdocCalendar = calProcessCalendarNode(pndMakeCalendar, pccArg)) == NULL) {
       printf("Error calProcessCalendarNode()\n");

@@ -225,8 +225,6 @@ CalendarElementReset(pieCalendarElementPtr pceArg)
     pceArg->iHourB = -1;
     pceArg->iMinuteB = -1;
     pceArg->iSecondB = -1;
-
-    pceArg->eTypeDate = DATE_ERROR;
   }
   return pceArg;
 } /* End of CalendarElementReset() */
@@ -259,8 +257,7 @@ CalendarElementFree(pieCalendarElementPtr pceArg)
     if (pceArg->pNext) {
       CalendarElementFree(pceArg->pNext);
     }
-    xmlFree(pceArg->pucDate);
-    xmlFree(pceArg->pucId);
+    CalendarElementReset(pceArg);
     xmlFree(pceArg);
   }
 } /* end of CalendarElementFree() */
@@ -322,7 +319,6 @@ ScanCalendarElementDate(pieCalendarElementPtr pceArgResult)
   BOOL_T fResult = FALSE;
 
   if (pceArgResult != NULL && pceArgResult->pucDate != NULL) {
-    pceArgResult->eTypeDate = DATE_ERROR;
 
     if (pceArgResult->pucSep == NULL) {
       pceArgResult->pucSep = pceArgResult->pucDate;
@@ -350,7 +346,6 @@ ScanCalendarElementDate(pieCalendarElementPtr pceArgResult)
 
 	tT = (time_t)iT;
 	pceArgResult->iAnchor = dt_from_struct_tm(localtime((const time_t*)(&tT)));
-	pceArgResult->eTypeDate = DATE_SYSTEM;
 	pceArgResult->iStep = -1;
 	pceArgResult->iCount = -1;
 
@@ -362,13 +357,12 @@ ScanCalendarElementDate(pieCalendarElementPtr pceArgResult)
       }
       else if ((l = dt_parse_iso_date_interval(pceArgResult->pucSep, xmlStrlen(pceArgResult->pucSep), &dt0, &dt1)) > 0) {
 	if (dt0) {
-	  pceArgResult->eTypeDate = DATE_ISO;
 	  pceArgResult->iAnchor = dt0;
 
 	  if (dt1 > dt0) {
 	    /* an interval end */
 	    pceArgResult->iStep = 1;
-	    pceArgResult->iCount = dt1 - dt0;
+	    pceArgResult->iCount = dt1 - dt0 - 1;
 	  }
 	  else {
 	    /* no interval end */
