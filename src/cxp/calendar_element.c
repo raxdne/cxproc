@@ -195,14 +195,22 @@ pieCalendarElementPtr
 CalendarElementReset(pieCalendarElementPtr pceArg)
 {
   if (pceArg) {
+
     if (pceArg->pucId) {
       xmlFree(pceArg->pucId);
+      pceArg->pucId = NULL;
     }
-    pceArg->pucId = NULL;
-    pceArg->pucDate = NULL;
+    
     pceArg->pucSep = NULL;
-    pceArg->pNext = NULL;
+    if (pceArg->pucDate) {
+      xmlFree(pceArg->pucDate);
+      pceArg->pucDate = NULL;
+    }
+    
+    //memset(pceArg, 0, sizeof(pieCalendarElementType));
 
+    pceArg->iAnchor = 0;
+    
     pceArg->iYear = -1;
     pceArg->iMonth = -1;
     pceArg->iDay = -1;
@@ -219,7 +227,6 @@ CalendarElementReset(pieCalendarElementPtr pceArg)
     pceArg->iSecondB = -1;
 
     pceArg->eTypeDate = DATE_ERROR;
-
   }
   return pceArg;
 } /* End of CalendarElementReset() */
@@ -230,19 +237,17 @@ CalendarElementReset(pieCalendarElementPtr pceArg)
 BOOL_T
 CalendarElementListAdd(pieCalendarElementPtr pceArgList, pieCalendarElementPtr pceArg)
 {
-  if (pceArg != NULL) {
-    pieCalendarElementPtr pceT;
-
-    for (pceT=pceArgList; pceT; pceT = pceT->pNext) {
-      if (pceT->pNext == NULL) {
-	pceT->pNext = pceArg;
-	return TRUE;
-      }
+  if (pceArgList != NULL && pceArg != NULL) {
+    if (pceArgList->pNext) {
+      return CalendarElementListAdd(pceArgList->pNext,pceArg);
+    }
+    else {
+      pceArgList->pNext = pceArg;
+      return TRUE;
     }
   }
   return FALSE;
-}
-/* End of CalendarElementListAdd() */
+} /* End of CalendarElementListAdd() */
 
 
 /*! free a new allocated calendar element
@@ -250,14 +255,15 @@ CalendarElementListAdd(pieCalendarElementPtr pceArgList, pieCalendarElementPtr p
 void
 CalendarElementFree(pieCalendarElementPtr pceArg)
 {
-  if (pceArg->pNext) {
-    CalendarElementFree(pceArg->pNext);
+  if (pceArg) {
+    if (pceArg->pNext) {
+      CalendarElementFree(pceArg->pNext);
+    }
+    xmlFree(pceArg->pucDate);
+    xmlFree(pceArg->pucId);
+    xmlFree(pceArg);
   }
-  xmlFree(pceArg->pucDate);
-  xmlFree(pceArg->pucId);
-  xmlFree(pceArg);
-}
-/* end of CalendarElementFree() */
+} /* end of CalendarElementFree() */
 
 
 /*! Prints
@@ -268,7 +274,7 @@ void
 PrintCalendarElement(pieCalendarElementPtr pceArg)
 {
   if (pceArg != NULL && pceArg->pndEntry != NULL) {
-    PrintFormatLog(1, "Calendar element: %s/%s=%s, anchor=%li, count=%li, step=%li",
+    PrintFormatLog(1, "Calendar element: %s/%s=%s, anchor=%lu, count=%i, step=%i",
       pceArg->pndEntry->parent->name,
       pceArg->pndEntry->name,
       pceArg->pucDate,
@@ -289,7 +295,7 @@ CalendarElementUpdateValues(pieCalendarElementPtr pceArg)
 {
   BOOL_T fResult = FALSE;
   
-  if (pceArg != NULL && pceArg->iAnchor > -1) {
+  if (pceArg != NULL && pceArg->iAnchor > 0) {
     pceArg->iYear    = dt_year(pceArg->iAnchor);
     pceArg->iMonth   = dt_month(pceArg->iAnchor);
     pceArg->iDay     = dt_dom(pceArg->iAnchor);

@@ -187,7 +187,8 @@ calTest(cxpContextPtr pccArg)
     xmlFreeDoc(pdocCalendarDefinition);
   }
 
-
+#if 0
+  
   if (RUNTEST) {
     xmlDocPtr pdocTest = NULL;
 
@@ -208,6 +209,7 @@ calTest(cxpContextPtr pccArg)
     xmlFreeDoc(pdocTest);
   }
 
+#endif
 
   if (RUNTEST) {
     xmlDocPtr pdocTest = NULL;

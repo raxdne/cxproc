@@ -1,23 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <make>
-  <xml name="/home/developer/cxproc-build/x86_64-gnu-linux/build/../tmp/calendar-1.xml">
+  <xml name="C:/UserData/Develop/cxproc-build/x64-windows/build/../tmp/calendar-1.xml">
     <calendar year="content" coordinate="5225+01234/" timezone="CET">
-      <!-- 
- -->
       <col id="dir">
         <xml>
-          <dir depth="1" verbosity="3" name="/home/developer/cxproc-build/cxproc/test/option"/>
+          <dir depth="1" verbosity="3" name="H:/cxproc-build/cxproc/test/option"/>
         </xml>
       </col>
       <col id="file">
         <xml>
-          <file verbosity="4" name="/home/developer/cxproc-build/cxproc/test/option/pie/calendar/mindmap.mm"/>
+          <file verbosity="4" name="H:/cxproc-build/cxproc/test/option/pie/calendar/mindmap.mm"/>
         </xml>
       </col>
       <col id="text">
         <xml>
           <pie>
-            <import name="/home/developer/cxproc-build/cxproc/test/option/pie/text/test-pie-9.txt"/>
+            <import name="H:/cxproc-build/cxproc/test/option/pie/text/test-pie-9.txt"/>
           </pie>
         </xml>
       </col>

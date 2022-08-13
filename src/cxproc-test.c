@@ -171,9 +171,7 @@ main(int argc, char** argv, char** envp)
   xmlZipRegisterOutputCallback();
 #endif
 
-#ifdef HAVE_PIE
   ceInit();
-#endif
 
 #ifdef _WIN32
   resPathSetNativeEncoding("ISO-8859-1");

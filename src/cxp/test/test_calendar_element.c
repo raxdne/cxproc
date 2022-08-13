@@ -517,7 +517,7 @@ ceTest(void)
     if ((pceT = CalendarElementNew(BAD_CAST"2009-W3-3")) == NULL) {
       printf("ERROR\n");
     }
-    else if ((pceT = CalendarElementNew(BAD_CAST"2009-W03-3")) == NULL) {
+    else if ((pceT = CalendarElementUpdate(pceT, BAD_CAST"2009-W03-3")) == NULL) {
       printf("ERROR\n");
     }
     else if (ScanCalendarElementDate(pceT) == FALSE) {

@@ -507,18 +507,14 @@ FindCalendarElementCol(xmlNodePtr pndArgParent, xmlChar *pucArgIdCol, xmlNodePtr
 void
 InsertCalendarElementEat(pieCalendarPtr pCalendarArg, pieCalendarElementPtr pceArg, xmlNodePtr pndArg)
 {
-  xmlNodePtr pndCol;
-
-  assert(pCalendarArg != NULL);
-  assert(pCalendarArg->pdocCalendar != NULL);
-  assert(pceArg != NULL);
-  assert(pndArg != NULL);
-
-  if (pceArg->iAnchor > 0) {
+  if (pCalendarArg != NULL && pCalendarArg->pdocCalendar != NULL
+      && pceArg != NULL && pceArg->iAnchor > 0
+      && pndArg != NULL) {
     /* an anchor is specified */
     if (pCalendarArg->mpndDay[pieCalendarIndex(pceArg->iAnchor)]) {
       int i;
       unsigned int iAnchorNew;
+      xmlNodePtr pndCol;
 
       for (i=0, iAnchorNew=pceArg->iAnchor; i < pceArg->iCount; i++) {
 	/* do iteration of this calendar element */
@@ -527,7 +523,7 @@ InsertCalendarElementEat(pieCalendarPtr pCalendarArg, pieCalendarElementPtr pceA
 	  xmlNodePtr pndNew;
 
 	  if ((pndCol = FindCalendarElementCol(pCalendarArg->mpndDay[pieCalendarIndex(iAnchorNew)], pceArg->pucColId, pndArg)) != NULL
-	    && (pndNew = xmlCopyNode(pndArg, 1)) != NULL) {
+	      && (pndNew = xmlCopyNode(pndArg, 1)) != NULL) {
 	    xmlSetProp(pndNew, BAD_CAST"idref", pceArg->pucId);
 	    xmlAddChild(pndCol, pndNew);
 	  }
@@ -551,9 +547,9 @@ InsertCalendarElementEat(pieCalendarPtr pCalendarArg, pieCalendarElementPtr pceA
   }
   else {
     /* no anchor specified */
+    xmlFreeNode(pndArg);
   }
-}
-/* End of InsertCalendarElementEat() */
+} /* End of InsertCalendarElementEat() */
 
 
 /*! update calendar DOM with all registered calendar elements of 'pCalendarArg'
@@ -1162,7 +1158,7 @@ ProcessCalendarColumns(pieCalendarPtr pCalendarArg, cxpContextPtr pccArg)
 	      domFreeNodeByName(pndRoot, NAME_META);
 	      PrintFormatLog(2, "Insert XML DOM into calendar");
 	      /*!\todo avoid copy of DOM, replace instead (respect the used namespaces) */
-#if 0
+#if 1
 	      xmlUnlinkNode(pndRoot);
 	      xmlSetTreeDoc(pndRoot, pCalendarArg->pdocCalendar);
 	      xmlAddChild(pndColNew, pndRoot);
@@ -1198,10 +1194,7 @@ CalendarFree(pieCalendarPtr pCalendarArg)
 #endif
 
   CalendarElementFree(pCalendarArg->pceFirst);
-  //xmlMemFree(pCalendarArg->ppndDay);
-
   xmlMemFree(pCalendarArg->pmiYear);
-
   xmlFreeDoc(pCalendarArg->pdocCalendar);
   
 #ifdef DEBUG
@@ -1245,15 +1238,7 @@ CalendarNew(void)
   pCalendarResult = (pieCalendarPtr) xmlMalloc(sizeof(pieCalendar));
   if (pCalendarResult) {
     memset(pCalendarResult,0,sizeof(pieCalendar));
-#if 0
-    pCalendarResult->mpndDay = (xmlNode**) xmlMalloc(PIE_CALENDAR_SIZE);
-    if (pCalendarResult->mpndDay) {
-      memset(pCalendarResult->mpndDay, 0, PIE_CALENDAR_SIZE);
-    }
-#else
     memset(pCalendarResult->mpndDay, 0, PIE_CALENDAR_SIZE);
-#endif
-
     pCalendarResult->eType = PIE_CALENDAR_MDAY;
   }
   return pCalendarResult;
@@ -1341,17 +1326,8 @@ CalendarSetup(xmlNodePtr pndArg, cxpContextPtr pccArg)
       //pieValidateTree(pndCalendarCopy);
     }
     else if ((pndCalendarCopy = xmlNewNode(NULL, NAME_PIE_CALENDAR)) == NULL
-      || xmlSetProp(pndCalendarCopy, BAD_CAST"subst", BAD_CAST "no") == NULL
-#if 0
-      || (pndT = xmlNewChild(pndCalendarCopy, NULL, NAME_PIE_COL, NULL)) == NULL
-      || xmlSetProp(pndT, BAD_CAST"id", BAD_CAST "legend") == NULL
-      || xmlSetProp(pndT, BAD_CAST"name", BAD_CAST"Legend") == NULL
-      || (pndTT = xmlNewChild(pndT, NULL, NAME_PIE_PAR, BAD_CAST"%a %d.%m. (%j)")) == NULL
-      || (pndTT = xmlNewChild(pndTT, NULL, NAME_PIE_DATE, NULL)) == NULL
-      || xmlSetProp(pndTT, BAD_CAST"ref", BAD_CAST"00000000") == NULL
-#endif
-	     ) {
-      PrintFormatLog(1, "Cannot create new calendar");
+	     || xmlSetProp(pndCalendarCopy, BAD_CAST"subst", BAD_CAST "no") == NULL) {
+      PrintFormatLog(1, "Cannot copy to new calendar");
     }
     else if ((pndT = xmlNewChild(pndCalendarCopy, NULL, NAME_PIE_COL, NULL)) == NULL
       || xmlSetProp(pndT, BAD_CAST"id", BAD_CAST "content") == NULL
@@ -1419,8 +1395,8 @@ calProcessCalendarNode(xmlNodePtr pndArg, cxpContextPtr pccArg)
       
       pdocResult = pCalendarResult->pdocCalendar;
       pCalendarResult->pdocCalendar = NULL;
+      CalendarFree(pCalendarResult);
     }
-    CalendarFree(pCalendarResult);
   }
   return pdocResult;
 } /* end of calProcessCalendarNode() */
@@ -1432,7 +1408,7 @@ xmlDocPtr
 calProcessDoc(xmlDocPtr pdocArg, cxpContextPtr pccArg)
 {
   xmlDocPtr pdocResult = NULL;
-  pieCalendarPtr pCalendarResult;
+  pieCalendarPtr pCalendarResult = NULL;
 
   if ((pCalendarResult = CalendarSetup(xmlDocGetRootElement(pdocArg), pccArg)) != NULL
     && ProcessCalendarColumns(pCalendarResult, pccArg)
@@ -1450,46 +1426,10 @@ calProcessDoc(xmlDocPtr pdocArg, cxpContextPtr pccArg)
     pdocResult = pCalendarResult->pdocCalendar;
     pCalendarResult->pdocCalendar = NULL;
   }
-  //  CalendarFree(pCalendarResult);
+  CalendarFree(pCalendarResult);
   
   return pdocResult;
 } /* end of calProcessDoc() */
-
-
-/*! process the required calendar files
- */
-xmlDocPtr
-calAddAttributeDayDiff(xmlDocPtr pdocArg)
-{
-  xmlDocPtr pdocResult = NULL;
-
-#ifdef DEBUG
-  PrintFormatLog(1,"calAddAttributeDayDiff(pdocArg=%0x)",pdocArg);
-#endif
-
-  if (pdocArg) {
-    pieCalendarPtr pCalendarResult;
-
-    pCalendarResult = CalendarNew();
-    if (pCalendarResult) {
-      /*! create DOM
-      */
-      pCalendarResult->pdocCalendar = pdocArg;
-      pCalendarResult->pndCalendarRoot = xmlDocGetRootElement(pdocArg);
-      /*!\todo use "/" NAME_PIE_PIE "//" NAME_PIE_DATE */
-      if (RegisterDateNodes(pCalendarResult, BAD_CAST"/pie//date")
-	  && ParseDates(pCalendarResult)) {
-	pdocResult = pCalendarResult->pdocCalendar;
-      }
-#ifdef DEBUG
-      PrintCalendarSetup(pCalendarResult,NULL);
-#endif
-      pCalendarResult->pdocCalendar = NULL;
-      CalendarFree(pCalendarResult);
-    }
-  }
-  return pdocResult;
-} /* end of calAddAttributeDayDiff() */
 
 
 /*! \return 
