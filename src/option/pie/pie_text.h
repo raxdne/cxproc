@@ -21,7 +21,7 @@
 
 #include <pie/pie_text_blocks.h>
 
-#define PARENTSTRING_LENGTH_MAX 20 /* maximum string length for generated parent header string */
+#define PARENTSTRING_LENGTH_MAX 40 /* maximum string length for generated parent header string */
 
 extern xmlDocPtr
 pieProcessPieNode(xmlNodePtr pndMakePie, cxpContextPtr pccArg);

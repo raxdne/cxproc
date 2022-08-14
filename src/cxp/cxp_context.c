@@ -650,15 +650,12 @@ cxpCtxtFree(cxpContextPtr pccArg)
   if (pccArg) {
     cxpContextPtr pccT;
 
-    if ((pccT = cxpCtxtGetChild(pccArg))) {
-      cxpContextPtr pccNext = NULL;
+    if ((pccT = cxpCtxtGetNext(pccArg))) {
+      cxpCtxtFree(pccT);
+    }
 
-      while (pccT) {
-	pccNext = pccT->next;
-	cxpCtxtFree(pccT);
-	pccT = pccNext;
-      }
-      pccArg->children = NULL;
+    if ((pccT = cxpCtxtGetChild(pccArg))) {
+      cxpCtxtFree(pccT);
     }
 
     if (pccArg->ppcEnv) {

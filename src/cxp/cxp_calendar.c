@@ -59,12 +59,9 @@
 #include <res_node/res_node.h>
 #include <cxp/cxp.h>
 #include <cxp/cxp_dir.h>
-#include <cxp/calendar_element.h>
 #include "dom.h"
 
-#include <cxp/cxp_calendar.h>
-
-#include <pie/pie_dtd.h>
+#include <pie/pie_text.h>
 
 const char *mpucNumber[] = {
 			    "00","01","02","03","04","05","06","07","08","09",
@@ -584,12 +581,10 @@ CalendarUpdate(pieCalendarPtr pCalendarArg)
 	    xmlUnsetProp(pndNew, BAD_CAST"id");
 	  }
 
-#if 0
 	  /*! add ancestor axis to pndNew */
 	  if ((pucHeader = pieGetParentHeaderStr(pndCurrent))) {
 	    domSetPropEat(pndNew, BAD_CAST "hstr", pucHeader);
 	  }
-#endif
 	  
 	  /* inherit ancestor state attributes, if required
 	  */
@@ -649,9 +644,9 @@ CalendarUpdate(pieCalendarPtr pCalendarArg)
 	  }
 
 	  InsertCalendarElementEat(pCalendarArg, pceT, pndNew);
-	  //xmlFreeNode(pndNew);
 	}
       }
+#if 0
       else if ((IS_NODE_PIE_DIR(pceT->pndEntry) || IS_NODE_PIE_FILE(pceT->pndEntry))
 	&& (pndCurrent = pceT->pndEntry) != NULL) {
 	xmlChar *pucText;
@@ -670,6 +665,7 @@ CalendarUpdate(pieCalendarPtr pCalendarArg)
 	  }
 	}
       }
+#endif
     }
   }
 } /* end of CalendarUpdate() */
@@ -1060,7 +1056,7 @@ RegisterDateNodes(pieCalendarPtr pCalendarArg, xmlChar *pucArg)
       }
 
 #ifdef DEBUG
-    PrintCalendarSetup(pCalendarArg,NULL);
+      //PrintCalendarSetup(pCalendarArg,NULL);
 #endif
   }
 
@@ -1117,7 +1113,7 @@ PrintCalendarSetup(pieCalendarPtr pCalendarArg, cxpContextPtr pccArg)
 BOOL_T
 ProcessCalendarColumns(pieCalendarPtr pCalendarArg, cxpContextPtr pccArg)
 {
-  BOOL_T fResult = TRUE;
+  BOOL_T fResult = FALSE;
   xmlNodePtr pndMeta;
   xmlNodePtr pndCalendarConfiguration;
 
@@ -1158,7 +1154,7 @@ ProcessCalendarColumns(pieCalendarPtr pCalendarArg, cxpContextPtr pccArg)
 	      domFreeNodeByName(pndRoot, NAME_META);
 	      PrintFormatLog(2, "Insert XML DOM into calendar");
 	      /*!\todo avoid copy of DOM, replace instead (respect the used namespaces) */
-#if 1
+#if 0
 	      xmlUnlinkNode(pndRoot);
 	      xmlSetTreeDoc(pndRoot, pCalendarArg->pdocCalendar);
 	      xmlAddChild(pndColNew, pndRoot);
@@ -1177,6 +1173,9 @@ ProcessCalendarColumns(pieCalendarPtr pCalendarArg, cxpContextPtr pccArg)
     }
     fResult = TRUE;
   }
+  else {
+    PrintFormatLog(1, "Wrong structure");
+  }
   return fResult;
 } /* end of ProcessCalendarColumns() */
 
@@ -1190,19 +1189,19 @@ CalendarFree(pieCalendarPtr pCalendarArg)
     pieCalendarElementPtr pceT;
 
 #ifdef DEBUG
-  PrintFormatLog(1,"CalendarFree(pCalendarArg=%0x)",pCalendarArg);
+    PrintFormatLog(1,"CalendarFree(pCalendarArg=%0x)",pCalendarArg);
 #endif
 
-  CalendarElementFree(pCalendarArg->pceFirst);
-  xmlMemFree(pCalendarArg->pmiYear);
-  xmlFreeDoc(pCalendarArg->pdocCalendar);
+    CalendarElementFree(pCalendarArg->pceFirst);
+    xmlMemFree(pCalendarArg->pmiYear);
+    xmlFreeDoc(pCalendarArg->pdocCalendar);
   
 #ifdef DEBUG
-  memset(pCalendarArg->mpndDay, 0, PIE_CALENDAR_SIZE);
-  memset(pCalendarArg,0,sizeof(pieCalendar));
+    memset(pCalendarArg->mpndDay, 0, PIE_CALENDAR_SIZE);
+    memset(pCalendarArg,0,sizeof(pieCalendar));
 #endif
 
-  xmlFree(pCalendarArg);
+    xmlFree(pCalendarArg);
   }
 } /* end of CalendarFree() */
 
@@ -1258,7 +1257,7 @@ CalendarSetup(xmlNodePtr pndArg, cxpContextPtr pccArg)
     /*! create DOM
      */
     xmlChar mpucT[BUFFER_LENGTH];
-    xmlNodePtr pndCalendarCopy;
+    xmlNodePtr pndCalendarCopy = NULL;
     xmlNodePtr pndMeta;
     xmlNodePtr pndT;
     xmlNodePtr pndTT;
@@ -1382,11 +1381,9 @@ calProcessCalendarNode(xmlNodePtr pndArg, cxpContextPtr pccArg)
 	  /* do time-consuming format substitution by explicit demand only */
 	  SubstituteFormat(pCalendarResult->pndCalendarRoot);
 	}
-#if 0
-	if (domGetPropFlag(pndArg, BAD_CAST"columns", FALSE) == FALSE) {
+	if (domGetPropFlag(pndArg, BAD_CAST"columns", TRUE) == FALSE) {
 	  CalendarColumnsFree(pCalendarResult);
 	}
-#endif
       }
       else if (AddYears(pCalendarResult)) {
 	CalendarUpdate(pCalendarResult);
@@ -1403,6 +1400,7 @@ calProcessCalendarNode(xmlNodePtr pndArg, cxpContextPtr pccArg)
 
 
 /*! process the required calendar files
+\deprecated ???
  */
 xmlDocPtr
 calProcessDoc(xmlDocPtr pdocArg, cxpContextPtr pccArg)

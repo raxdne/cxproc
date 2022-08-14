@@ -245,3 +245,5 @@ tzGetOffset(int iArg);
 extern int
 pieTimezoneTest(void);
 #endif
+
+#define _TIMEZONE_H_

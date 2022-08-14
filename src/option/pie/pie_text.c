@@ -47,7 +47,6 @@
 #include "dom.h"
 #include <cxp/cxp_dir.h>
 #include <pie/pie_text.h>
-#include <cxp/cxp_calendar.h>
 #include "utils.h"
 #include <vcf/vcf.h>
 
@@ -1447,7 +1446,7 @@ pieGetParentHeaderStr(xmlNodePtr pndN)
   xmlNodePtr pndI;
 
   for ( pucResult=NULL,pndI=pndN; pndI; pndI = pndI->parent) {
-    if (IS_NODE_PIE_SECTION(pndI)) {
+    if (IS_NODE_PIE_SECTION(pndI) || IS_NODE_PIE_TASK(pndI) || IS_NODE_PIE_TARGET(pndI)) {
       if (pndI==pndN) {
 	/* ignore first section node itself */
       }
@@ -1494,48 +1493,6 @@ pieGetParentHeaderStr(xmlNodePtr pndN)
 	    break;
 	  }
 	}
-      }
-    }
-    else if (IS_NODE(pndI,BAD_CAST"node")) {
-      if (pndI==pndN) {
-	/* ignore first section node itself */
-      }
-      else {
-	xmlChar *pucHeader = NULL;
-	xmlChar *pucAttrText;
-	if ((pucAttrText = domGetPropValuePtr(pndI,BAD_CAST"TEXT"))
-	    && xmlStrlen(pucAttrText) > 0) {
-	  xmlChar *pucRelease;
-	  pucHeader = xmlStrncatNew(pucAttrText, BAD_CAST " :: ", -1);
-	  pucRelease = pucResult;
-	  pucResult = xmlStrncatNew(pucHeader, pucResult, -1);
-	  xmlFree(pucRelease);
-	  xmlFree(pucHeader);
-	  if (xmlStrlen(pucResult) > PARENTSTRING_LENGTH_MAX) {
-	    break;
-	  }
-	}
-      }
-    }
-    else if (IS_NODE_DIR(pndI)) {
-      if (pndI==pndN) {
-        /* ignore first section node itself */
-      }
-      else {
-        xmlChar *pucHeader = NULL;
-        xmlChar *pucAttrText;
-        if ((pucAttrText = domGetPropValuePtr(pndI,BAD_CAST"name"))
-            && xmlStrlen(pucAttrText) > 0) {
-          xmlChar *pucRelease;
-          pucHeader = xmlStrncatNew(pucAttrText, BAD_CAST " :: ", -1);
-          pucRelease = pucResult;
-          pucResult = xmlStrncatNew(pucHeader, pucResult, -1);
-          xmlFree(pucRelease);
-          xmlFree(pucHeader);
-	  if (xmlStrlen(pucResult) > PARENTSTRING_LENGTH_MAX) {
-            break;
-          }
-        }
       }
     }
   }

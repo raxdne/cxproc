@@ -64,7 +64,7 @@ typedef int index_t;
     #define BOOL_T bool
   #else
     /*! use char as boolean type */
-    #define BOOL_T char
+    #define BOOL_T _Bool
   #endif
 #endif
 
