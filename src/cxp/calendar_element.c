@@ -153,8 +153,6 @@ CalendarElementUpdate(pieCalendarElementPtr pceArg, xmlChar* pucArg)
 
       for (i = 0; isspace(pucArg[i]); i++) {}
 
-      /*!\todo check use of dt_parse_iso_date_interval() to skip ScanCalendarElementDate() */
-
       for (j = 0; isiso8601(pucArg[i + j]); j++) {}
 
       if (j > 3) {
@@ -209,22 +207,15 @@ CalendarElementReset(pieCalendarElementPtr pceArg)
     
     //memset(pceArg, 0, sizeof(pieCalendarElementType));
 
-    pceArg->iAnchor = 0;
+    pceArg->dtBegin = 0;
+    pceArg->dtEnd   = pceArg->dtBegin;
     
-    pceArg->iYear = -1;
-    pceArg->iMonth = -1;
-    pceArg->iDay = -1;
-    pceArg->iWeek = -1;
-    pceArg->iDayWeek = -1;
-    pceArg->iStep = -1;
+    pceArg->period.y = 0;
+    pceArg->period.m = 0;
+    pceArg->period.d = 0;
+    pceArg->period.w = 0;
 
-    pceArg->iHourA = -1;
-    pceArg->iMinuteA = -1;
-    pceArg->iSecondA = -1;
-
-    pceArg->iHourB = -1;
-    pceArg->iMinuteB = -1;
-    pceArg->iSecondB = -1;
+    pceArg->iRecurrence = 0;
   }
   return pceArg;
 } /* End of CalendarElementReset() */
@@ -271,37 +262,16 @@ void
 PrintCalendarElement(pieCalendarElementPtr pceArg)
 {
   if (pceArg != NULL && pceArg->pndEntry != NULL) {
-    PrintFormatLog(1, "Calendar element: %s/%s=%s, anchor=%lu, count=%i, step=%i",
+    PrintFormatLog(1, "Calendar element: %s/%s=%s, begin=%lu, end=%lu, repeat=%.1f",
       pceArg->pndEntry->parent->name,
       pceArg->pndEntry->name,
       pceArg->pucDate,
-      pceArg->iAnchor,
-      pceArg->iCount,
-      pceArg->iStep);
+      pceArg->dtBegin,
+      pceArg->dtEnd,
+      pceArg->iRecurrence);
   }
 } /* end of PrintCalendarElement() */
 
-
-/*! updates all date fields in pceArg
-
-\param pceArg
-\return TRUE or FALSE in case of error
- */
-BOOL_T
-CalendarElementUpdateValues(pieCalendarElementPtr pceArg)
-{
-  BOOL_T fResult = FALSE;
-  
-  if (pceArg != NULL && pceArg->iAnchor > 0) {
-    pceArg->iYear    = dt_year(pceArg->iAnchor);
-    pceArg->iMonth   = dt_month(pceArg->iAnchor);
-    pceArg->iDay     = dt_dom(pceArg->iAnchor);
-    pceArg->iWeek    = dt_woy(pceArg->iAnchor);
-    pceArg->iDayWeek = dt_dow(pceArg->iAnchor);
-    fResult = TRUE;
-  }
-  return fResult;
-} /* end of CalendarElementUpdateValues() */
 
 
 /*! Scans 'pceArgResult' for a datum description and write the results to
@@ -325,8 +295,6 @@ ScanCalendarElementDate(pieCalendarElementPtr pceArgResult)
     }
 
     if (pceArgResult->pucSep != NULL) {
-      dt_t dt0, dt1;
-      size_t l;
       xmlChar *pucT = pceArgResult->pucSep; /* shortcut */
       
       //for (; pceArgResult->pucSep[0] == ','; pceArgResult->pucSep++);
@@ -345,9 +313,8 @@ ScanCalendarElementDate(pieCalendarElementPtr pceArgResult)
 	xmlFree(pucT);
 
 	tT = (time_t)iT;
-	pceArgResult->iAnchor = dt_from_struct_tm(localtime((const time_t*)(&tT)));
-	pceArgResult->iStep = -1;
-	pceArgResult->iCount = -1;
+	pceArgResult->dtBegin = dt_from_struct_tm(localtime((const time_t*)(&tT)));
+	pceArgResult->dtEnd = pceArgResult->dtBegin;
 
 	for (pceArgResult->pucSep += 10; isdigit(*(pceArgResult->pucSep)); pceArgResult->pucSep++) {
 	  /* skip chars of millisecs */
@@ -355,29 +322,189 @@ ScanCalendarElementDate(pieCalendarElementPtr pceArgResult)
 
 	fResult = TRUE;
       }
-      else if ((l = dt_parse_iso_date_interval(pceArgResult->pucSep, xmlStrlen(pceArgResult->pucSep), &dt0, &dt1)) > 0) {
-	if (dt0) {
-	  pceArgResult->iAnchor = dt0;
+      else {
+	size_t j;
+	size_t n = 0;
+	int y, m, d, w, r;
 
-	  if (dt1 > dt0) {
-	    /* an interval end */
-	    pceArgResult->iStep = 1;
-	    pceArgResult->iCount = dt1 - dt0 - 1;
+	if ((n = dt_parse_iso_recurrance(pucT, xmlStrlen(pceArgResult->pucSep), &pceArgResult->iRecurrence)) > 1) {
+
+	  if (pucT[n] == '/') {
+	    n++;
+	  }
+
+	}
+
+	if ((j = dt_parse_iso_date(&pucT[n], xmlStrlen(&pucT[n]), &pceArgResult->dtBegin)) > 3) {
+	  n += j;
+	  if (pucT[n] == '/') { /* */
+	    n++;
+	    if ((j = dt_parse_iso_date(&pucT[n], xmlStrlen(&pucT[n]), &pceArgResult->dtEnd)) > 3) {
+	      /* date/date */
+	      assert(pceArgResult->iRecurrence < 1);
+	      n += j;
+	    }
+	    else if ((j = dt_parse_iso_period(&pucT[n], xmlStrlen(&pucT[n]), &y, &m, &d, &w)) > 0) {
+
+	      if (pceArgResult->iRecurrence > 0) {
+		/* recurrance/date/period */
+		pceArgResult->period.y = y;
+		pceArgResult->period.m = m;
+		pceArgResult->period.d = d;
+		pceArgResult->period.w = w;
+	      }
+	      else {
+		/* date/period */
+		pceArgResult->dtEnd = pceArgResult->dtBegin;
+		if (w != 0) {
+		  /* date/week-period */
+		  pceArgResult->dtEnd += w * 7;
+		}
+		else {
+		  pceArgResult->dtEnd = dt_add_years(pceArgResult->dtEnd, y, DT_EXCESS);
+		  pceArgResult->dtEnd = dt_add_months(pceArgResult->dtEnd, m, DT_EXCESS);
+		  pceArgResult->dtEnd += d;
+		}
+	      }
+	      n += j;
+	    }
+	    else {
+	      n = 0;
+	    }
+	  }
+#if 0
+	  else if (pucT[n] == 'T') {
+	    int s;
+	    n++;
+	    if ((j = dt_parse_iso_time_extended(&pucT[n], len - n, &s, NULL)) > 3) {
+	      n += j;
+	    }
+	  }
+#endif
+	  else {
+	    /* no interval */
+	  }
+
+	}
+	else if ((j = dt_parse_iso_period(&pucT[n], xmlStrlen(&pucT[n]), &y, &m, &d, &w)) > 0) {
+	  n += j;
+
+	  if (pucT[n] == '/') {
+	    n++;
+
+	    if ((j = dt_parse_iso_date(&pucT[n], xmlStrlen(&pucT[n]), &pceArgResult->dtEnd)) > 3) {
+
+	      if (pceArgResult->iRecurrence > 0) {
+		/* recurrance/date/period */
+		pceArgResult->period.y = y;
+		pceArgResult->period.m = m;
+		pceArgResult->period.d = d;
+		pceArgResult->period.w = w;
+	      }
+	      else {
+		/* period/date */
+		pceArgResult->dtBegin = pceArgResult->dtEnd;
+		if (w != 0) {
+		  /* week-period/date */
+		  pceArgResult->dtBegin -= w * 7;
+		}
+		else {
+		  pceArgResult->dtBegin = dt_add_years(pceArgResult->dtBegin, -y, DT_EXCESS);
+		  pceArgResult->dtBegin = dt_add_months(pceArgResult->dtBegin, -m, DT_EXCESS);
+		  pceArgResult->dtBegin -= d;
+		}
+	      }
+	      n += j;
+	    }
+	    else {
+	      n = 0;
+	    }
 	  }
 	  else {
-	    /* no interval end */
-	    pceArgResult->iStep = -1;
-	    pceArgResult->iCount = -1;
+	    n = 0;
 	  }
-	  fResult = TRUE;
+
+	}
+	else if (isdigit(pucT[n]) && isdigit(pucT[n+1]) && isdigit(pucT[n+2]) && isdigit(pucT[n+3])) {
+
+	  y = 1000 * (pucT[n] - '0') + 100 * (pucT[n+1] - '0') + 10 * (pucT[n+2] - '0') + (pucT[n+3] - '0');
+
+	  assert(y > -1 && y < 2999);
+
+	  n += 4;
+
+	  /*! implicit intervals (whole year, month, week) */
+
+	  if (pucT[n] == '-' && isdigit(pucT[n + 1]) && isdigit(pucT[n + 2]) && !isdigit(pucT[n + 3])) {
+	    /* ISO 8601 YYYY-MM */
+	    m = 10 * (pucT[n + 1] - '0') + (pucT[n + 2] - '0');
+	    if (m > 0 && m < 13) {
+	      n += 3;
+	      pceArgResult->dtBegin = dt_from_ymd(y, m, 1);
+	      pceArgResult->dtEnd = dt_end_of_month(pceArgResult->dtBegin, 0);
+	    }
+	    else {
+	      n = 0;
+	    }
+	  }
+	  else if (pucT[n] == '-' && pucT[n + 1] == 'W' && isdigit(pucT[n + 2]) && isdigit(pucT[n + 3]) && !isdigit(pucT[n + 4])) {
+	    /* ISO 8601 YYYY-Wnn */
+	    w = 10 * (pucT[n + 2] - '0') + (pucT[n + 3] - '0');
+	    if (w > -1 && w < 54) {
+	      n += 4;
+	      pceArgResult->dtBegin = dt_from_ywd(y, w, 1);
+	      pceArgResult->dtEnd = dt_end_of_week(pceArgResult->dtBegin, 1);
+	    }
+	    else {
+	      n = 0;
+	    }
+	  }
+	  else if (isdigit(pucT[n]) && isdigit(pucT[n + 1]) && !isdigit(pucT[n + 2])) {
+	    /* ISO 8601 YYYYMM */
+	    m = 10 * (pucT[n] - '0') + (pucT[n + 1] - '0');
+	    if (m > 0 && m < 13) {
+	      n += 2;
+	      pceArgResult->dtBegin = dt_from_ymd(y, m, 1);
+	      pceArgResult->dtEnd = dt_end_of_month(pceArgResult->dtBegin, 0);
+	    }
+	    else {
+	      n = 0;
+	    }
+	  }
+	  else if (!isiso8601(pucT[n])) {
+	    /* ISO 8601 YYYY */
+	    pceArgResult->dtBegin = dt_from_ymd(y, 1, 1);
+	    pceArgResult->dtEnd = dt_end_of_year(pceArgResult->dtBegin, 0);
+	  }
+	  else {
+	    n = 0;
+	  }
+
 	}
 	else {
+	  n = 0;
 	}
-	pceArgResult->pucSep = &pceArgResult->pucSep[l-1];
-      }
 
-      if (fResult) {
-	CalendarElementUpdateValues(pceArgResult);
+	if (pceArgResult->dtEnd > 0) {
+	  if (pceArgResult->dtEnd > pceArgResult->dtBegin) {
+	    /* expected */
+	  }
+	  else if (pceArgResult->dtEnd < pceArgResult->dtBegin) {
+	    /* swap pceArgResult->dtEnd and pceArgResult->dtBegin */
+	    dt_t dt0;
+
+	    dt0 = pceArgResult->dtEnd;
+	    pceArgResult->dtEnd = pceArgResult->dtBegin;
+	    pceArgResult->dtBegin = dt0;
+	  }
+	  else {
+	    /* it's not an interval */
+	    pceArgResult->dtEnd = 0;
+	  }
+	}
+
+	pceArgResult->pucSep += n;
+	fResult = n > 0;
       }
     }
   }

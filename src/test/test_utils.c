@@ -646,51 +646,61 @@ utilsTest(void)
     printf("TEST %i in '%s:%i': ",i,__FILE__,__LINE__);
 
     if (dt_parse_iso_date_interval(NULL, 0, &dt0, &dt1) != 0) {
-      printf("ERROR dt_parse_iso_period()\n");
+      printf("ERROR dt_parse_iso_date_interval()\n");
     }
     else if (dt_parse_iso_date_interval("20110703/20110711", BUFFER_LENGTH, NULL, NULL) != 0) {
-      printf("ERROR dt_parse_iso_period()\n");
+      printf("ERROR dt_parse_iso_date_interval()\n");
     }
     else if (dt_parse_iso_date_interval("20110703/2011 AAA", BUFFER_LENGTH, &dt0, &dt1) != 0) {
-      printf("ERROR dt_parse_iso_period()\n");
+      printf("ERROR dt_parse_iso_date_interval()\n");
     }
     else if (dt_parse_iso_date_interval("20110703/20110711 AAA", BUFFER_LENGTH, &dt0, &dt1) != 17) {
-      printf("ERROR dt_parse_iso_period()\n");
+      printf("ERROR dt_parse_iso_date_interval()\n");
     }
     else if (dt_year(dt0) != 2011 || dt_month(dt0) != 7 || dt_dom(dt0) != 3) {
-      printf("ERROR dt_parse_string()\n");
+      printf("ERROR dt_parse_iso_date_interval()\n");
     }
     else if (dt_year(dt1) != 2011 || dt_month(dt1) != 7 || dt_dom(dt1) != 11) {
-      printf("ERROR dt_parse_string()\n");
+      printf("ERROR dt_parse_iso_date_interval()\n");
     }
-    else if (dt_parse_iso_date_interval("2011-399 AAA", BUFFER_LENGTH, &dt0, &dt1) != 4) {
-      printf("ERROR dt_parse_iso_period()\n");
+    else if (dt_parse_iso_date_interval("20110711/20110711 AAA", BUFFER_LENGTH, &dt0, &dt1) != 17) {
+      printf("ERROR dt_parse_iso_date_interval()\n");
     }
-    else if (dt_year(dt0) != 2011 || dt_month(dt0) != 1 || dt_dom(dt0) != 1) {
-      printf("ERROR dt_parse_string()\n");
+    else if (dt0 != dt1) {
+      printf("ERROR dt_parse_iso_date_interval()\n");
     }
-#if 0
-    else if (dt1 != 0) {
-      printf("ERROR dt_parse_string()\n");
-    }
-#endif
-    else if (dt_parse_iso_date_interval("20110703/P3Y6M4D TEST", BUFFER_LENGTH, &dt0, &dt1) != 16) {
-      printf("ERROR dt_parse_iso_period()\n");
+    else if (dt_parse_iso_date_interval("20110711/20110703 AAA", BUFFER_LENGTH, &dt0, &dt1) != 17) {
+      printf("ERROR dt_parse_iso_date_interval()\n");
     }
     else if (dt_year(dt0) != 2011 || dt_month(dt0) != 7 || dt_dom(dt0) != 3) {
-      printf("ERROR dt_parse_string()\n");
+      printf("ERROR dt_parse_iso_date_interval()\n");
+    }
+    else if (dt_year(dt1) != 2011 || dt_month(dt1) != 7 || dt_dom(dt1) != 11) {
+      printf("ERROR dt_parse_iso_date_interval()\n");
+    }
+    else if (dt_parse_iso_date_interval("2011-399 AAA", BUFFER_LENGTH, &dt0, &dt1) != 4) {
+      printf("ERROR dt_parse_iso_date_interval()\n");
+    }
+    else if (dt_year(dt0) != 2011 || dt_month(dt0) != 1 || dt_dom(dt0) != 1) {
+      printf("ERROR dt_parse_iso_date_interval()\n");
+    }
+    else if (dt_parse_iso_date_interval("20110703/P3Y6M4D TEST", BUFFER_LENGTH, &dt0, &dt1) != 16) {
+      printf("ERROR dt_parse_iso_date_interval()\n");
+    }
+    else if (dt_year(dt0) != 2011 || dt_month(dt0) != 7 || dt_dom(dt0) != 3) {
+      printf("ERROR dt_parse_iso_date_interval()\n");
     }
     else if (dt_year(dt1) != 2015 || dt_month(dt1) != 1 || dt_dom(dt1) != 7) {
-      printf("ERROR dt_parse_string()\n");
+      printf("ERROR dt_parse_iso_date_interval()\n");
     }
     else if (dt_parse_iso_date_interval("P3W/20110703 TEST", BUFFER_LENGTH, &dt0, &dt1) != 12) {
-      printf("ERROR dt_parse_iso_period()\n");
+      printf("ERROR dt_parse_iso_date_interval()\n");
     }
     else if (dt_year(dt1) != 2011 || dt_month(dt1) != 7 || dt_dom(dt1) != 3) {
-      printf("ERROR dt_parse_string()\n");
+      printf("ERROR dt_parse_iso_date_interval()\n");
     }
-    else if (dt_year(dt0) != 2007 || dt_month(dt0) != 12 || dt_dom(dt0) != 29) {
-      printf("ERROR dt_parse_string()\n");
+    else if (dt_year(dt0) != 2011 || dt_month(dt0) != 06 || dt_dom(dt0) != 12) {
+      printf("ERROR dt_parse_iso_date_interval()\n");
     }
     else {
       n_ok++;
@@ -701,16 +711,22 @@ utilsTest(void)
    /* ISO 8601 Repeating intervals */
  
   if (RUNTEST) {
-    int y, m, d;
+    int y, m, d, r;
     
     i++;
     printf("TEST %i in '%s:%i': ",i,__FILE__,__LINE__);
 
-    if (dt_parse_iso_period("R5/2008-03-01T13:00:00Z/P1Y2M10DT2H30M", -1, &y, &m, &d, NULL) != 0) {
-      printf("ERROR dt_parse_iso_period()\n");
+    if (dt_parse_iso_recurrance(NULL, 20, NULL) != 0) {
+      printf("ERROR dt_parse_iso_recurrance()\n");
     }
-    else if (y != 3 || m != 6 || d != 4) {
-      printf("ERROR dt_parse_iso_period()\n");
+    else if (dt_parse_iso_recurrance("R-21/", 20, &r) != 0) {
+      printf("ERROR dt_parse_iso_recurrance()\n");
+    }
+    else if (dt_parse_iso_recurrance("R3/20110703/P3M2DT12H30M5S", BUFFER_LENGTH, &r) != 2) {
+      printf("ERROR dt_parse_iso_recurrance()\n");
+    }
+    else if (r != 3) {
+      printf("ERROR dt_parse_iso_recurrance()\n");
     }
     else {
       n_ok++;
@@ -718,7 +734,7 @@ utilsTest(void)
     }
   }
 
-  
+
   if (RUNTEST) {
 
     i++;

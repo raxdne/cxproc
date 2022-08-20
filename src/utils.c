@@ -2275,6 +2275,36 @@ StringConcatNextDate(xmlChar* pucArgGcal)
 
 
 /*
+ *  "R5/" Calendar date recurrence (ISO 8601)
+ * 
+ * \bug floating values not used
+ */
+size_t
+dt_parse_iso_recurrance(const char *str, size_t len, int* deltad) {
+  size_t n = 0;
+
+  if (str != NULL && *str == 'R' && len > 0) {
+    int d;
+    char *p;
+    bool v;
+
+    d = strtol(&str[1], &p, 10);
+    if (d > 0 && d < 100 && *p == '/') {
+      if (deltad) {
+	*deltad = d;
+      }
+      n = p - str;
+    }
+    else {
+      n = 0;
+    }
+  }
+
+  return n;
+} /* end of dt_parse_iso_recurrance() */
+
+
+/*
  *  "P3Y6M4DT12H30M5S" Calendar date period  (ISO 8601)
  * 
  * \bug floating values not used
@@ -2333,7 +2363,7 @@ dt_parse_iso_period(const char *str, size_t len, int *yp, int *mp, int *dp, int*
       }
       else if (*p == 'T') {
 	/*!\bug time parsing to be implemented */
-	break;
+	for (; isiso8601(p[1]) && p[1] != '/'; p++);
       }
       else {
 	/* end of period string */
@@ -2357,11 +2387,13 @@ dt_parse_iso_period(const char *str, size_t len, int *yp, int *mp, int *dp, int*
   }
 
   return n;
-}
+} /* end of dt_parse_iso_period() */
 
 
 /*
  *  "20110703/20110711" Calendar date interval (ISO 8601)
+
+\deprecated due to ScanCalendarElementDate()
  */
 size_t
 dt_parse_iso_date_interval(const char *str, size_t len, dt_t *pdt0, dt_t *pdt1) {
@@ -2375,11 +2407,23 @@ dt_parse_iso_date_interval(const char *str, size_t len, dt_t *pdt0, dt_t *pdt1) 
 
     if ((n = dt_parse_iso_date(p, len, &dt0)) > 3) {
 
-      if (p[n++] == '/') {
-
+      if (p[n] == '/') {
+	n++;
 	if ((j = dt_parse_iso_date(&p[n], len - n, &dt1)) > 3) {
-	  *pdt0 = dt0;
-	  *pdt1 = dt1;
+	  if (dt1 > dt0) {
+	    *pdt0 = dt0;
+	    *pdt1 = dt1;
+	  }
+	  else if (dt1 < dt0) {
+	    /* dt1 is earlier than dt0 */
+	    *pdt0 = dt1;
+	    *pdt1 = dt0;
+	  }
+	  else {
+	    /* it's not an interval */
+	    *pdt0 = dt0;
+	    *pdt1 = dt0;
+	  }
 	  n += j;
 	}
 	else if ((j = dt_parse_iso_period(&p[n], len, &y, &m, &d, &w)) > 0) {
@@ -2401,10 +2445,18 @@ dt_parse_iso_date_interval(const char *str, size_t len, dt_t *pdt0, dt_t *pdt1) 
 	  n = 0;
 	}
       }
+      else if (p[n] == 'T') {
+	int s;
+	n++;
+	if ((j = dt_parse_iso_time_extended(&p[n], len - n, &s, NULL)) > 3) {
+	  n += j;
+	}
+      }
       else {
-	//n = 0;
+	/* no interval => end = begin */
 	*pdt0 = dt0;
-	*pdt1 = 0;
+	*pdt1 = dt0;
+	n++;
       }
 
     }
@@ -2499,7 +2551,7 @@ dt_parse_iso_date_interval(const char *str, size_t len, dt_t *pdt0, dt_t *pdt1) 
   }
 
   return n;
-}
+} /* end of dt_parse_iso_date_interval() */
 
 
 #ifdef TESTCODE

@@ -25,36 +25,34 @@
 #include <c-dt/dt.h>
 
 /*! structure
-\todo iAnchor OR iYear,iMonth,iDay,...
  */
 struct pieCalendarElement {
+
   xmlNodePtr pndEntry; /*!< pointer to anchor DOM node */
   xmlAttrPtr patAttr; /*!< pointer to descendant DOM attribute of pndEntry */
+
   xmlChar *pucColId; /*!< pointer to column id of Date anchor */
   xmlChar *pucId; /*!< pointer to ID string */
   xmlChar *pucDate; /*!< pointer to single date string */
   xmlChar *pucSep; /*!< pointer to iteration separator string */
-  dt_t iAnchor; /*!< day index of Date anchor */
-  int iStep; /*!< iterator increment of day steps */
-  int iCount; /*!< iteration count */
-  int iYear;  /*!< Date year anchor */
-  int iMonth;  /*!< Date month anchor */
-  int iDay;  /*!< Date day anchor */
-  int iWeek; /*!< Date week anchor */
-  int iDayWeek; /*!< Date day of week anchor */
 
-  /* values of begin time */
-  int iHourA;  /*!< Hour of Time */
-  int iMinuteA;  /*!< Minute of Time */
-  int iSecondA;  /*!< Second of Time */
+  dt_t dtBegin; /*!< day index of Interval Begin Date */
+  int iSecBegin;
+
+  dt_t dtEnd;   /*!< day index of Interval End Date */
+  int iSecEnd;
+
+  struct {
+    int y;
+    int m;
+    int d;
+    int w;
+  } period;
+
+  int iRecurrence; 			/*! recurrences */
 
   int iTimezone;	/*!< numerical ID for timezone (UTC by default) */
   int iTimezoneOffset; /*!< offset to UTC in minutes */
-
-  /* values of end time */
-  int iHourB;  /*!< Hour of Time */
-  int iMinuteB;  /*!< Minute of Time */
-  int iSecondB;  /*!< Second of Time */
 
   struct pieCalendarElement *pNext;
 } ;
