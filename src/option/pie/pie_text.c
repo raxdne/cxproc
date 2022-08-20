@@ -19,6 +19,8 @@
 
 */
 
+/*!\todo remove calls of cxpCtxtLogPrint() */
+
 /*!\todo remove XML-only features (@effort, @assignee,  ...), in XSL too */
 
 /*!\todo autodetection line or paragraph input */
@@ -45,7 +47,6 @@
 #include "dom.h"
 #include <cxp/cxp_dir.h>
 #include <pie/pie_text.h>
-#include <pie/pie_calendar.h>
 #include "utils.h"
 #include <vcf/vcf.h>
 
@@ -74,6 +75,9 @@ ProcessIncludeNode(xmlNodePtr pndArgInclude, cxpContextPtr pccArg);
 
 static BOOL_T
 IncludeNodeFile(xmlNodePtr pndArgInclude, cxpContextPtr pccArg);
+
+static BOOL_T
+ProcessImportOptions(xmlNodePtr pndArgPie, xmlNodePtr pndArgImport, cxpContextPtr pccArg);
 
 static BOOL_T
 ProcessImportNode(xmlNodePtr pndArgImport, cxpContextPtr pccArg);
@@ -332,44 +336,8 @@ pieProcessPieNode(xmlNodePtr pndArgPie, cxpContextPtr pccArg)
     cxpCtxtLogPrint(pccArg, 2, "Start node substitution");
     cxpSubstReplaceNodes(pndBlock, pccArg);
 
-    if (domGetPropFlag(pndArgPie, BAD_CAST "figure", TRUE)) {
-      cxpCtxtLogPrint(pccArg, 2, "Recognize Figures");
-      RecognizeFigures(pndPieRoot);
-    }
-    else {
-      cxpCtxtLogPrint(pccArg, 3, "Ignoring Figures markup");
-    }
-
-    if (domGetPropFlag(pndArgPie, BAD_CAST "url", TRUE)) {
-      cxpCtxtLogPrint(pccArg, 2, "Recognize URLs");
-      /*! \todo use an attribute for regexp?? */
-      RecognizeUrls(pndPieRoot);
-    }
-    else {
-      cxpCtxtLogPrint(pccArg, 3, "Ignoring URLs");
-    }
-
-    RecognizeDates(pndPieRoot,MIME_TEXT_PLAIN);
-
-    if (domGetPropFlag(pndArgPie, BAD_CAST "offset", FALSE)) {
-      cxpCtxtLogPrint(pccArg, 3, "Calculating date offsets");
-      calAddAttributeDayDiff(pdocResult);
-    }
-
-    RecognizeSymbols(pndPieRoot, GetPieNodeLang(pndArgPie, pccArg));
-
-    /*! \todo global cite recognition in scientific text */
-
-    if (domGetPropFlag(pndArgPie, BAD_CAST "todo", TRUE)) {
-      cxpCtxtLogPrint(pccArg, 2, "Recognize tasks markup");
-      RecognizeTasks(pndPieRoot);
-    }
-    else {
-      cxpCtxtLogPrint(pccArg, 3, "Ignoring tasks markup");
-    }
-
-    SetPropBlockLocators(pndPieRoot,NULL,NULL);
-
+    ProcessImportOptions(pndPieRoot,pndArgPie, pccArg);
+  
     pucAttr = domGetPropValuePtr(pndArgPie, BAD_CAST "xpath"); /*  */
     if (STR_IS_NOT_EMPTY(pucAttr) && xmlStrEqual(pucAttr,BAD_CAST"/*") == FALSE) {
       xmlDocPtr pdocResultXPath;
@@ -739,10 +707,18 @@ ImportNodeFile(xmlNodePtr pndArgImport, cxpContextPtr pccArg)
 
 	if (STR_IS_NOT_EMPTY(pucContent)) {
 	  if (ParsePlainBuffer(pndBlock, pucContent, m)) {
-	    SetPropBlockLocators(pndBlock, resNodeGetNameRelative(cxpCtxtRootGet(pccInput), prnInput), NULL);
+
+	    if (domGetPropFlag(pndArgImport, BAD_CAST "locators", FALSE)) {
+	      SetPropBlockLocators(pndBlock, resNodeGetNameRelative(cxpCtxtRootGet(pccInput), prnInput), NULL);
+	    }
+
 	    RecognizeIncludes(pndBlock);
 	    TraverseIncludeNodes(pndBlock, pccInput);
-	    RecognizeSubsts(pndBlock);
+
+	    if (domGetPropFlag(pndArgImport, BAD_CAST "subst", FALSE)) {
+	      RecognizeSubsts(pndBlock);
+	    }
+
 	    RecognizeImports(pndBlock);
 	    TraverseImportNodes(pndBlock, pccInput); /* parse result recursively */
 	  }
@@ -1189,6 +1165,7 @@ IncludeNodeFile(xmlNodePtr pndArgInclude, cxpContextPtr pccArg)
       if (pndBlock != NULL && pndBlock->children != NULL) {
 	RecognizeSubsts(pndBlock);
 	domReplaceNodeList(pndArgInclude, pndBlock->children);
+	xmlFreeNodeList(pndArgInclude);
 	xmlFreeNode(pndBlock);
       }
 
@@ -1255,6 +1232,68 @@ TraverseImportNodes(xmlNodePtr pndArg, cxpContextPtr pccArg)
   }
 }
 /* end of TraverseImportNodes() */
+
+
+/*! process the import node pndArgImport attributes in context of pccArg
+
+\param pndArgImport node for import, else traversing childs
+\param pccArg the processing context
+
+\return TRUE if import was successful, else FALSE
+*/
+BOOL_T
+ProcessImportOptions(xmlNodePtr pndArgPie, xmlNodePtr pndArgImport, cxpContextPtr pccArg)
+{
+  BOOL_T fResult = FALSE;
+
+#ifdef DEBUG
+  cxpCtxtLogPrint(pccArg, 3, "ProcessImportOptions(pndArgImport=%0x,pccArg=%0x)", pndArgImport, pccArg);
+#endif
+
+  if (pndArgPie) {
+    
+    if (domGetPropFlag(pndArgPie, BAD_CAST "figure", TRUE)) {
+      cxpCtxtLogPrint(pccArg, 2, "Recognize Figures");
+      RecognizeFigures(pndArgPie);
+    }
+    else {
+      cxpCtxtLogPrint(pccArg, 3, "Ignoring Figures markup");
+    }
+
+    if (domGetPropFlag(pndArgPie, BAD_CAST "url", TRUE)) {
+      cxpCtxtLogPrint(pccArg, 2, "Recognize URLs");
+      /*! \todo use an attribute for regexp?? */
+      RecognizeUrls(pndArgPie);
+    }
+    else {
+      cxpCtxtLogPrint(pccArg, 3, "Ignoring URLs");
+    }
+
+    RecognizeDates(pndArgPie,MIME_TEXT_PLAIN);
+
+    RecognizeSymbols(pndArgPie, GetPieNodeLang(pndArgPie, pccArg));
+
+    /*! \todo global cite recognition in scientific text */
+
+    if (domGetPropFlag(pndArgPie, BAD_CAST "todo", TRUE)) {
+      cxpCtxtLogPrint(pccArg, 2, "Recognize tasks markup");
+      RecognizeTasks(pndArgPie);
+    }
+    else {
+      cxpCtxtLogPrint(pccArg, 3, "Ignoring tasks markup");
+    }
+
+    if (domGetPropFlag(pndArgPie, BAD_CAST "locators", TRUE)) {
+      cxpCtxtLogPrint(pccArg, 2, "Add locator attribute");
+      SetPropBlockLocators(pndArgPie,NULL,NULL);
+    }
+    else {
+      cxpCtxtLogPrint(pccArg, 3, "Skipping locators");
+    }
+  }
+  return fResult;
+}
+/* end of ProcessImportOptions() */
 
 
 /*! process the single import node pndArgImport in context of pccArg and replace it
@@ -1399,15 +1438,16 @@ TraverseScriptNodes(xmlNodePtr pndCurrent, cxpContextPtr pccArg)
 
 
 /*! \return a string of ancestor section/h nodes
+\deprecated
 */
 xmlChar *
-pieGetParentHeaderStr(xmlNodePtr pndN)
+_pieGetParentHeaderStr(xmlNodePtr pndN)
 {
   xmlChar *pucResult;
   xmlNodePtr pndI;
 
   for ( pucResult=NULL,pndI=pndN; pndI; pndI = pndI->parent) {
-    if (IS_NODE_PIE_SECTION(pndI)) {
+    if (IS_NODE_PIE_SECTION(pndI) || IS_NODE_PIE_TASK(pndI) || IS_NODE_PIE_TARGET(pndI)) {
       if (pndI==pndN) {
 	/* ignore first section node itself */
       }
@@ -1456,48 +1496,6 @@ pieGetParentHeaderStr(xmlNodePtr pndN)
 	}
       }
     }
-    else if (IS_NODE(pndI,BAD_CAST"node")) {
-      if (pndI==pndN) {
-	/* ignore first section node itself */
-      }
-      else {
-	xmlChar *pucHeader = NULL;
-	xmlChar *pucAttrText;
-	if ((pucAttrText = domGetPropValuePtr(pndI,BAD_CAST"TEXT"))
-	    && xmlStrlen(pucAttrText) > 0) {
-	  xmlChar *pucRelease;
-	  pucHeader = xmlStrncatNew(pucAttrText, BAD_CAST " :: ", -1);
-	  pucRelease = pucResult;
-	  pucResult = xmlStrncatNew(pucHeader, pucResult, -1);
-	  xmlFree(pucRelease);
-	  xmlFree(pucHeader);
-	  if (xmlStrlen(pucResult) > PARENTSTRING_LENGTH_MAX) {
-	    break;
-	  }
-	}
-      }
-    }
-    else if (IS_NODE_DIR(pndI)) {
-      if (pndI==pndN) {
-        /* ignore first section node itself */
-      }
-      else {
-        xmlChar *pucHeader = NULL;
-        xmlChar *pucAttrText;
-        if ((pucAttrText = domGetPropValuePtr(pndI,BAD_CAST"name"))
-            && xmlStrlen(pucAttrText) > 0) {
-          xmlChar *pucRelease;
-          pucHeader = xmlStrncatNew(pucAttrText, BAD_CAST " :: ", -1);
-          pucRelease = pucResult;
-          pucResult = xmlStrncatNew(pucHeader, pucResult, -1);
-          xmlFree(pucRelease);
-          xmlFree(pucHeader);
-	  if (xmlStrlen(pucResult) > PARENTSTRING_LENGTH_MAX) {
-            break;
-          }
-        }
-      }
-    }
   }
 
   if (pucResult) {
@@ -1511,6 +1509,281 @@ pieGetParentHeaderStr(xmlNodePtr pndN)
   return NULL;
 }
 /* end of pieGetParentHeaderStr() */
+
+
+/*! \return a sub-tree of ancestor section/h nodes
+*/
+xmlNodePtr
+pieGetSelfAncestorNodeList(xmlNodePtr pndArg)
+{
+  xmlNodePtr pndResult = NULL;
+  xmlNodePtr pndI;
+
+  assert(IS_NODE_PIE_DATE(pndArg));
+
+  if ((pndResult = xmlNewNode(NULL,NAME_PIE_BLOCK)) == NULL) {
+  }
+  else if (IS_NODE_PIE_PAR(pndArg->parent)) { /* p/date */
+    
+    if (pndResult->children) {
+      xmlAddPrevSibling(pndResult->children,xmlCopyNode(pndArg->parent,1));
+    }
+    else {
+      xmlAddChild(pndResult,xmlCopyNode(pndArg->parent,1));
+    }
+
+    if (IS_NODE_PIE_SECTION(pndArg->parent->parent) || IS_NODE_PIE_TASK(pndArg->parent->parent)) { /* section/header/date */
+      if (IS_NODE_PIE_SECTION(pndArg->parent->parent->parent)) { /* section/section/header/date */
+	xmlAddPrevSibling(pndResult->children,xmlCopyNode(pndArg->parent->parent->parent->children,1));
+      }
+    }
+#if 0
+    if (IS_NODE_PIE_SECTION(pndArg->parent->parent)) { /* section/p/date */
+    }
+    else if (IS_NODE_PIE_TASK(pndArg->parent->parent)) { /* task/p/date */
+    }
+#endif
+    else if (IS_NODE_PIE_LIST(pndArg->parent->parent)) { /* list/p/date */
+    }
+    else {
+    }
+  }
+  else if (IS_NODE_PIE_HEADER(pndArg->parent)) { /* header/date */
+    
+    if (pndResult->children) {
+      xmlAddPrevSibling(pndResult->children,xmlCopyNode(pndArg->parent,1));
+    }
+    else {
+      xmlAddChild(pndResult,xmlCopyNode(pndArg->parent,1));
+    }
+
+    if (IS_NODE_PIE_SECTION(pndArg->parent->parent) || IS_NODE_PIE_TASK(pndArg->parent->parent)) { /* section/header/date */
+      if (IS_NODE_PIE_SECTION(pndArg->parent->parent->parent)) { /* section/section/header/date */
+	xmlAddPrevSibling(pndResult->children,xmlCopyNode(pndArg->parent->parent->parent->children,1));
+      }
+    }
+#if 0
+    else if (IS_NODE_PIE_TASK(pndArg->parent->parent)) { /* task/header/date */
+    }
+#endif
+    else {
+    }
+  }
+  else {
+    assert(FALSE);
+  }
+
+#if 0
+  
+  for (pndResult=xmlNewNode(NULL,NAME_PIE_PAR), pndI=pndArg; pndI; pndI = pndI->parent) {
+    xmlNodePtr pndNew;
+
+    if (IS_NODE_PIE_DATE(pndI)) {
+      /* skip, copy with parent node */
+    }
+    else if (IS_NODE_PIE_PAR(pndI)) {
+
+      if ((pndNew = xmlCopyNode(pndI,1))) {
+	//xmlNodeSetName(pndNew,NAME_PIE_SPAN);
+	if (pndResult->children) {
+	  xmlAddPrevSibling(pndResult->children,pndNew);
+	}
+	else {
+	  xmlAddChild(pndResult,pndNew);
+	}
+      }
+    }
+    else if (IS_NODE_PIE_HEADER(pndI)) {
+      if ((pndNew = xmlCopyNode(pndI,1))) {
+	//xmlNodeSetName(pndNew,NAME_PIE_SPAN);
+	//xmlAddChild(pndNew,xmlNewText(BAD_CAST" :: "));
+	if (pndResult->children) {
+	  xmlAddPrevSibling(pndResult->children,xmlNewText(BAD_CAST" :: "));
+	  xmlAddPrevSibling(pndResult->children,pndNew);
+	}
+	else {
+	  xmlAddChild(pndResult,pndNew);
+	}
+      }
+    }
+    else if (IS_NODE_PIE_SECTION(pndI)) {
+      if ((pndNew = xmlCopyNode(domGetFirstChild(pndI,NAME_PIE_HEADER),1))) {
+	xmlChar *pucT;
+	
+	xmlNodeSetName(pndNew,NAME_PIE_SPAN);
+	//xmlAddChild(pndNew,xmlNewText(BAD_CAST" :: "));
+	if (pndResult->children) {
+	  xmlAddPrevSibling(pndResult->children,xmlNewText(BAD_CAST" :: "));
+	  xmlAddPrevSibling(pndResult->children,pndNew);
+	}
+	else {
+	  xmlAddChild(pndResult,pndNew);
+	}
+
+	/* inherit ancestor impact attributes, if required
+	 */
+	if ((pucT = domGetPropValuePtr(pndI, BAD_CAST"impact")) != NULL) {
+	  /* attribute exists already */
+	  xmlSetProp(pndNew, BAD_CAST"impact", pucT);
+	}
+
+      }
+    }
+    else if (IS_NODE_PIE_TASK(pndI) || IS_NODE_PIE_TARGET(pndI)) {
+      if ((pndNew = xmlCopyNode(pndI,1))) {
+	xmlChar *pucT;
+	
+	//xmlNodeSetName(pndNew,NAME_PIE_SPAN);
+	//xmlAddChild(pndNew,xmlNewText(BAD_CAST" :: "));
+	if (pndResult->children) {
+	  //xmlAddPrevSibling(pndResult->children,xmlNewText(BAD_CAST" :: "));
+	  xmlAddPrevSibling(pndResult->children,pndNew);
+	}
+	else {
+	  xmlAddChild(pndResult,pndNew);
+	}
+
+	/* inherit ancestor impact attributes, if required
+	 */
+	if ((pucT = domGetPropValuePtr(pndI, BAD_CAST"impact")) != NULL) {
+	  /* attribute exists already */
+	  xmlSetProp(pndNew, BAD_CAST"impact", pucT);
+	}
+
+      }
+    }
+    else if (IS_NODE_PIE_TH(pndI) || IS_NODE_PIE_TD(pndI) || IS_NODE_PIE_TR(pndI)) {
+    }
+    
+      xmlChar *pucHeader;
+      xmlChar *pucT;
+
+      if ((pndNew = xmlCopyNode(pndCurrent, 1))) {
+	if ((pucT = domGetPropValuePtr(pndNew, BAD_CAST"id"))) {
+	  /* rename id attribute to idref in copy of pndNew
+	   */
+	  xmlSetProp(pndNew, BAD_CAST"idref", pucT);
+	  xmlUnsetProp(pndNew, BAD_CAST"id");
+	}
+
+	/*! add ancestor axis to pndNew */
+	if ((pucHeader = pieGetParentHeaderStr(pndCurrent))) {
+	  domSetPropEat(pndNew, BAD_CAST "hstr", pucHeader);
+	}
+	  
+	/* inherit ancestor state attributes, if required
+	 */
+	if (domGetPropValuePtr(pndCurrent, BAD_CAST"state") != NULL) {
+	  /* attribute exists already */
+	}
+	else if (pndCurrent->parent == NULL) {
+	}
+	else if ((pucT = domGetPropValuePtr(pndCurrent->parent, BAD_CAST"state")) != NULL) {
+	  xmlSetProp(pndNew, BAD_CAST"state", pucT);
+	}
+
+	/* inherit ancestor class attributes, if required
+	 */
+	if (domGetPropValuePtr(pndCurrent, BAD_CAST"class") != NULL) {
+	  /* attribute exists already */
+	}
+	else if (pndCurrent->parent == NULL) {
+	}
+	else if ((pucT = domGetPropValuePtr(pndCurrent->parent, BAD_CAST"class")) != NULL) {
+	  xmlSetProp(pndNew, BAD_CAST"class", pucT);
+	}
+	else {
+	  /* add a generic class attribute
+	   */
+	  assert(STR_IS_NOT_EMPTY(pndCurrent->parent->name));
+	  xmlSetProp(pndNew, BAD_CAST "class", pndCurrent->parent->name);
+	}
+
+	/* inherit ancestor impact attributes, if required
+	 */
+	if (domGetPropValuePtr(pndCurrent, BAD_CAST"impact") != NULL) {
+	  /* attribute exists already */
+	}
+	else if (pndCurrent->parent == NULL) {
+	}
+	else if ((pucT = domGetPropValuePtr(pndCurrent->parent, BAD_CAST"impact")) != NULL) {
+	  xmlSetProp(pndNew, BAD_CAST"impact", pucT);
+	}
+	else if (pndCurrent->parent->parent == NULL) {
+	}
+	else if ((pucT = domGetPropValuePtr(pndCurrent->parent->parent, BAD_CAST"impact")) != NULL) {
+	  xmlSetProp(pndNew, BAD_CAST"impact", pucT);
+	}
+	  
+	/* check if this element has a holiday markup '+' set attribute 'holiday' to 'yes'
+	 */
+	if (xmlNodeIsText(pndNew->children) && (pucT = pndNew->children->content) != NULL && pucT[0] == (xmlChar)'+') {
+	  xmlSetProp(pndNew, BAD_CAST"holiday", BAD_CAST"yes");
+	  for ( ; *pucT == (xmlChar)'+'; pucT++) ; /* skip markup chars */
+	  for ( ; isspace(*pucT); pucT++) ;	     /* skip spaces */
+	  if (STR_IS_NOT_EMPTY(pucT)) {
+	    xmlChar *pucRelease = pndNew->children->content;
+	    pndNew->children->content = xmlStrdup(pucT);
+	    xmlFree(pucRelease);
+	  }
+	}
+      }
+    
+      if (IS_NODE_PIE_SECTION(pndI) || IS_NODE_PIE_TASK(pndI) || IS_NODE_PIE_TARGET(pndI)) {
+	if (pndI==pndArg) {
+	  /* ignore first section node itself */
+	}
+	else {
+	  xmlNodePtr pndHeader;
+
+	  pndHeader = domGetFirstChild(pndI, NAME_PIE_HEADER);
+	  if (pndHeader==NULL) {
+	    /* skip */
+	  }
+	  else if (pndHeader==pndArg) {
+	    /* ignore first section node itself */
+	  }
+	  else {
+	    xmlChar *pucT = NULL;
+	    xmlChar *pucHeader = NULL;
+	    xmlNodePtr pndHeaderChild;
+
+	    for (pndHeaderChild=pndHeader->children; pndHeaderChild; pndHeaderChild=pndHeaderChild->next) {
+	      if (IS_NODE_PIE_LINK(pndHeaderChild) || IS_NODE_PIE_DATE(pndHeaderChild) || IS_NODE_PIE_HTAG(pndHeaderChild) || IS_NODE_PIE_ETAG(pndHeaderChild)) {
+		if ((pucT = domNodeGetContentPtr(pndHeaderChild))) {
+		  /* append first text node content of link node */
+		  pucHeader = xmlStrcat(pucHeader, pucT);
+		}
+	      }
+	      else if (pndHeaderChild->type == XML_TEXT_NODE && xmlStrlen(pndHeaderChild->content) > 0) {
+		pucHeader = xmlStrcat(pucHeader, pndHeaderChild->content);
+	      }
+	    }
+
+	    if (pucHeader) {
+	      if (xmlStrlen(pucHeader) > 0) {
+		xmlChar *pucRelease;
+
+		pucHeader = xmlStrcat(pucHeader, BAD_CAST " :: ");
+		pucRelease = pucResult;
+		pucResult = xmlStrncatNew(pucHeader, pucResult, -1);
+		xmlFree(pucRelease);
+	      }
+	      xmlFree(pucHeader);
+	    }
+
+	    if (xmlStrlen(pucResult) > PARENTSTRING_LENGTH_MAX) {
+	      break;
+	    }
+	  }
+	}
+      }
+
+  }
+#endif
+
+  return pndResult;
+} /* end of pieGetSelfAncestorNodeList() */
 
 
 /*! Adds attributes bxpath and blocator to all descendant element nodes.

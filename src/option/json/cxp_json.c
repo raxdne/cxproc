@@ -28,7 +28,7 @@
 #include <cxp/cxp_dir.h>
 #include "dom.h"
 #include <pie/pie_text.h>
-#include <pie/pie_calendar.h>
+#include <cxp/cxp_calendar.h>
 #include "plain_text.h"
 #include <json/cxp_json.h>
 

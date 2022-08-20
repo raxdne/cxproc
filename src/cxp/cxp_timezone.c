@@ -25,7 +25,7 @@
 #include <libxml/tree.h>
 
 #include "basics.h"
-#include <pie/pie_timezone.h>
+#include <cxp/cxp_timezone.h>
 #include "utils.h"
 
 int tzOffsetToUTC = 9999; /*!> default Offset to UTC in Minutes while runtime */
@@ -742,5 +742,5 @@ tzGetOffset(int iArg)
 
 
 #ifdef TESTCODE
-#include "test/test_pie_timezone.c"
+#include "test/test_cxp_timezone.c"
 #endif

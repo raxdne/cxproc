@@ -287,7 +287,8 @@
 			  (if (buffer-file-name)
 			      (save-buffer))
 			  (compile (concat "cmake --build " prefix "/../x86_64-gnu-linux/build/ -j 4"
-					   ;" --target all" cxproc filex cxproc-cgi cxproc-test 
+					   ;;" --target cxproc"
+					   ;;" --target all" cxproc filex cxproc-cgi cxproc-test 
 			  		   ))
 					;(compile "make test")
 			  )

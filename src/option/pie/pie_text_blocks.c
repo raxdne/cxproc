@@ -50,44 +50,56 @@
 #define RE_LINK "([^\\|]*)\\| *([^\\|]+) *\\|([^\\|]*)\\|"
 #define RE_LINK_MD "!*\\[([^\\]]*)\\]\\(([^\\)]+)\\)"
 #define RE_LINK_MD_AUTO "(<|&lt;|\\xE2\\x80\\x99)([^<> \\t]+)(>|&gt;|\\xE2\\x80\\x98)"
+
+/*
+*/
 #define RE_FIG "^[ \\t]*(Fig|Abb)\\.[ \\t]*([^ \\t]+)[ \\t]*(.+)*$"
+
+/*
+*/
 #define RE_SCRIPT "script=\\\"([^\\\"]+)\\\""
 
-#define RE_DATE_YEAR   "([12][90][0-9]{2}|0{4})"
-#define RE_DATE_EASTER "\\@e([\\-+][0-9]+)*"
-#ifdef EXPERIMENTAL
-#define RE_DATE_WEEK   "(-W[0-5]*[0-9](-[1-7])*|\\*+w[0-59]*[0-9](mon|tue|wed|thu|fri|sat|sun))"
-#else
-#define RE_DATE_WEEK   "\\*+w[0-59]*[0-9](mon|tue|wed|thu|fri|sat|sun)"
-#endif
+/*! s https://en.wikipedia.org/wiki/ISO_8601
+*/
+
+#define RE_DATE_YEAR   "[12][90][0-9][0-9]"
 #define RE_DATE_MONTH  "[01][0-9]"
 #define RE_DATE_DAY    "[0123][0-9]"
-#define RE_DATE_HOUR   "[\t ]+[012]*[0-9][\\.:][0-5][0-9](-[012]*[0-9][\\.:][0-5][0-9])*"
 
-#define RE_DATE_ISO_TIME "T[012][0-9]:*[0-5][0-9]:*[0-5][0-9]((\\+|" STR_UTF8_MINUS ")[0-9]{2}:*[0-9]{2}|Z|[A-Z]{3})"
-#define RE_DATE_MODS   "[\\,\\+\\:\\#\\.x][0-9]+"
-#define RE_DATE_TIME   "[\t ]+[012]*[0-9].[0-5][0-9](-[0-9]{1,2}.[0-5][0-9])*"
-#define RE_DATE_GERMAN RE_DATE_DAY "\\." RE_DATE_MONTH "\\." RE_DATE_YEAR
+//#define RE_DATE_EASTER "\\@e([\\-+][0-9]+)*"
+//#define RE_DATE_HOUR   "[\t ]+[012]*[0-9][\\.:][0-5][0-9](-[012]*[0-9][\\.:][0-5][0-9])*"
 
-#define RE_DATE "\\b("							\
-  "(" RE_DATE_YEAR "-*" RE_DATE_MONTH "-*" RE_DATE_DAY "(" RE_DATE_ISO_TIME "|" RE_DATE_HOUR ")*" ")/(" RE_DATE_YEAR "-*" RE_DATE_MONTH "-*" RE_DATE_DAY "(" RE_DATE_ISO_TIME "|" RE_DATE_HOUR ")*" ")" \
-  "|"									\
-  "(" RE_DATE_YEAR "-*" RE_DATE_MONTH "-*" RE_DATE_DAY "(" RE_DATE_ISO_TIME "|" RE_DATE_HOUR ")*" ")" \
-  "|"									\
-  "(" RE_DATE_YEAR RE_DATE_WEEK ")/(" RE_DATE_YEAR RE_DATE_WEEK ")"     \
-  "|"									\
-  "(" RE_DATE_YEAR RE_DATE_WEEK ")"					\
-  "|"									\
-  "(" RE_DATE_YEAR RE_DATE_MONTH RE_DATE_DAY "(" RE_DATE_MODS ")*" "(" RE_DATE_HOUR ")*" ")"	\
-  "|"									\
-  "(" RE_DATE_YEAR RE_DATE_MONTH RE_DATE_DAY "(" RE_DATE_ISO_TIME "|" RE_DATE_HOUR ")*" ")"	\
-  "|"									\
-  "(" RE_DATE_YEAR RE_DATE_EASTER ")"					\
-  "|"									\
-  "(" RE_DATE_GERMAN "(" RE_DATE_HOUR ")*" ")"				\
-  ")\\b"
+#define RE_ISO_RECURRENCE   "R[0-9]+"
+#define RE_ISO_PERIOD   "P(([0-9]+Y)*([0-9]+M)*([0-9]+D)*(T[0-9]+H[0-9]+M[0-9]+S)*|[0-9]+W)"
+#define RE_ISO_ORD      "-[0-9]{3}"
+#define RE_ISO_WEEK     "-W[0-5]*[0-9](-[1-7])*"
+//#define RE_ISO_QUATER  "-W[0-5]*[0-9](-[1-7])*"
+#define RE_ISO_TIME     "T[012][0-9]:*[0-5][0-9]:*[0-5][0-9]" "(" "(" "(" "\\+" "|" STR_UTF8_MINUS ")*" "[0-9]{2}" "(" ":*[0-9]{2}" ")*" ")" "|" "[A-Z]{3}" "|" "Z" ")*"
 
+#define RE_ISO_DATE_ORD  RE_DATE_YEAR RE_ISO_ORD
+#define RE_ISO_DATE_WEEK RE_DATE_YEAR RE_ISO_WEEK
+#define RE_ISO_DATE_DAY  RE_DATE_YEAR "-*" RE_DATE_MONTH "-*" RE_DATE_DAY
+#define RE_ISO_DATE      "(" RE_ISO_DATE_DAY "|" RE_ISO_DATE_ORD "|" RE_ISO_DATE_WEEK ")(" RE_ISO_TIME ")*"
+
+//#define RE_DATE_TIME   "[\t ]+[012]*[0-9].[0-5][0-9](-[0-9]{1,2}.[0-5][0-9])*"
+//#define RE_DATE_GERMAN RE_DATE_DAY "\\." RE_DATE_MONTH "\\." RE_DATE_YEAR
+
+#define RE_DATE ("\\b("					       \
+  "(" RE_ISO_RECURRENCE "/)*(" RE_ISO_DATE ")/(" RE_ISO_DATE "|" RE_ISO_PERIOD ")" \
+  "|"									\
+  "(" RE_ISO_RECURRENCE "/)*(" RE_ISO_PERIOD ")/(" RE_ISO_DATE ")" \
+  "|"									\
+  "(" RE_DATE_YEAR RE_DATE_MONTH RE_DATE_DAY "(," RE_DATE_MONTH RE_DATE_DAY "|," RE_DATE_DAY ")+" ")" \
+  "|"									\
+  "(" RE_ISO_DATE ")" \
+  ")\\b")
+
+/*
+*/
 #define RE_INLINE "_{2,}[^_]+_{2,}|\\*{2,}[^\\*]+\\*{2,}|`[^`]+`"
+
+/*
+*/
 #define RE_TASK "^(TODO|DONE|REQ|BUG|TARGET|TEST)(:[ \\t]*)"
 
 
@@ -312,7 +324,7 @@ CompileRegExpDefaults(void)
     re_date = pcre2_compile(
       (PCRE2_SPTR8)RE_DATE, /* the pattern */
       PCRE2_ZERO_TERMINATED, /* indicates pattern is zero-terminated */
-      PCRE2_CASELESS,        /* default options */
+      PCRE2_NO_UTF_CHECK,    /* default options */
       &errornumber,          /* for error number */
       &erroroffset,          /* for error offset */
       NULL);                 /* use default compile context */
@@ -325,7 +337,7 @@ CompileRegExpDefaults(void)
   }
 
   if (re_inline == NULL) {
-    PrintFormatLog(2, "Initialize INLINE regexp '%s'", RE_DATE);
+    PrintFormatLog(2, "Initialize INLINE regexp '%s'", RE_INLINE);
     re_inline = pcre2_compile(
       (PCRE2_SPTR8)RE_INLINE, /* the pattern */
       PCRE2_ZERO_TERMINATED, /* indicates pattern is zero-terminated */
@@ -2086,7 +2098,7 @@ SplitStringToInlineNodes(const xmlChar *pucArg)
 /* end of SplitStringToInlineNodes() */
 
 
-/*! splits an UTF-8 string into a list of text and date element nodes
+  /*! splits an UTF-8 string into a list of text and date element nodes
 */
 xmlNodePtr
 SplitStringToDateNodes(const xmlChar *pucArg, RN_MIME_TYPE eMimeTypeArg)
@@ -2123,6 +2135,7 @@ SplitStringToDateNodes(const xmlChar *pucArg, RN_MIME_TYPE eMimeTypeArg)
 	xmlChar *pucA = (xmlChar *)pucArg + ovector[2];
 
 	if ((pucDate = xmlStrndup(pucA, (int)(ovector[3] - ovector[2]))) != NULL) {
+	  xmlChar *pucDateNext = NULL;
 
 	  PrintFormatLog(3, "Date '%s' (%i..%i) in '%s'", pucDate, ovector[2], ovector[3], pucArg);
 
@@ -2135,15 +2148,51 @@ SplitStringToDateNodes(const xmlChar *pucArg, RN_MIME_TYPE eMimeTypeArg)
 	    xmlFree(pucT);
 	  }
 
-	  if (eMimeTypeArg == MIME_TEXT_PLAIN_CALENDAR) {
-	    pndIn = xmlNewChild(pndResult, NULL, NAME_PIE_DATE, NULL);
-	    xmlSetProp(pndIn,BAD_CAST"ref",pucDate);
-	  }
-	  else {
-	    pndIn = xmlNewTextChild(pndResult, NULL, NAME_PIE_DATE, pucDate);
-	  }
+	  do {
+	    /*! separate the list of dates if required (ISO compact dates only, neither extended nor time) */
+	    xmlChar* pucSep = NULL;
+	    xmlChar* pucD;
+
+	    for (pucSep = pucDate; !isend(*pucSep); pucSep++) {
+	      if (*pucSep == (xmlChar)',') {
+		/* next list separator found */
+		break;
+	      }
+	      else if (isdigit(*pucSep)) {
+		/* OK */
+	      }
+	      else {
+		pucSep = pucDate;
+		break;
+	      }
+	    }
+
+	    if (((pucSep > pucDate && !isend(*pucSep)) && (pucD = xmlStrndup(pucDate, (pucSep - pucDate))))
+	      || (pucD = xmlStrdup(pucDate))) {
+
+	      if (eMimeTypeArg == MIME_TEXT_PLAIN_CALENDAR) {
+		pndIn = xmlNewChild(pndResult, NULL, NAME_PIE_DATE, NULL);
+		xmlSetProp(pndIn, BAD_CAST"ref", pucD);
+	      }
+	      else {
+		pndIn = xmlNewTextChild(pndResult, NULL, NAME_PIE_DATE, pucD);
+#ifdef PIE_STANDALONE
+#else
+		AddNodeDateAttributes(pndIn,NULL);
+#endif
+	      }
+
+	      if (pucSep > pucDate && !isend(*pucSep)) {
+		xmlAddChild(pndResult, xmlNewText(BAD_CAST","));
+	      }
+	      xmlFree(pucD);
+	    }
+	    else {
+	    }
+	  } while (StringConcatNextDate(pucDate) != NULL);
 	}
 
+	
 	if (pndIn != NULL && ducOrigin > ovector[1]) {
 	  /* the content ends with text, recursion */
 
@@ -3346,7 +3395,7 @@ GetModeByAttr(xmlNodePtr pndArgImport)
 rmode_t 
 GetModeByExtension(xmlChar *pucArgExt)
 {
-  rmode_t eResultMode = RMODE_PAR;
+  rmode_t eResultMode = RMODE_UNDEFINED;
 
   if (STR_IS_EMPTY(pucArgExt)) {
     /* no type is defined */
@@ -3359,6 +3408,9 @@ GetModeByExtension(xmlChar *pucArgExt)
   }
   else if (xmlStrEqual(pucArgExt, BAD_CAST "js")) {
     eResultMode = RMODE_PRE;
+  }
+  else if (xmlStrEqual(pucArgExt, BAD_CAST "txt")) {
+    eResultMode = RMODE_PAR;
   }
   else if (xmlStrEqual(pucArgExt, BAD_CAST "md")) {
     eResultMode = RMODE_MD;

@@ -1229,8 +1229,14 @@ pieTextBlocksTest(void)
     else if ((pndT = SplitStringToDateNodes(BAD_CAST"20160301,20160303 and 20160304",MIME_TEXT_PLAIN)) == NULL || xmlAddChild(pndPie, pndT) == NULL) {
       printf("Error 2 SplitStringToDateNodes()\n");
     }
+    else if ((pndT = SplitStringToDateNodes(BAD_CAST"20160301,04,0303 and 20160304",MIME_TEXT_PLAIN)) == NULL || xmlAddChild(pndPie, pndT) == NULL) {
+      printf("Error 2 SplitStringToDateNodes()\n");
+    }
     else if ((pndT = SplitStringToDateNodes(BAD_CAST"2016-03-01;2016-03-03 and 2016-03-04",MIME_TEXT_PLAIN)) == NULL || xmlAddChild(pndPie, pndT) == NULL) {
       printf("Error 3 SplitStringToDateNodes()\n");
+    }
+    else if ((pndT = SplitStringToDateNodes(BAD_CAST"2013-10-11,10-14,01-14 and ", MIME_TEXT_PLAIN)) == NULL || xmlAddChild(pndPie, pndT) == NULL) {
+      printf("Error 2 SplitStringToDateNodes()\n");
     }
     else if ((pndT = SplitStringToDateNodes(BAD_CAST"20160307+11",MIME_TEXT_PLAIN)) == NULL || xmlAddChild(pndPie, pndT) == NULL) {
       printf("Error 3 SplitStringToDateNodes()\n");
@@ -1244,6 +1250,49 @@ pieTextBlocksTest(void)
       printf("OK\n");
     }
     //domPutNodeString(stderr, BAD_CAST"date result", pndPie);
+    xmlFreeNode(pndPie);
+  }
+
+
+  if (RUNTEST) {
+    xmlNodePtr pndPie;
+    xmlNodePtr pndT = NULL;
+    xmlNodePtr pndPar = NULL;
+
+    i++;
+    printf("TEST %i in '%s:%i': parse date elements = ", i, __FILE__, __LINE__);
+
+    pndPie = xmlNewNode(NULL, NAME_PIE_PIE);
+    pndT = xmlNewChild(pndPie, NULL, NAME_PIE_SECTION, NULL);
+    xmlNewChild(pndT, NULL, NAME_PIE_HEADER, BAD_CAST"header");
+    pndPar = xmlNewChild(pndT, NULL, NAME_PIE_PAR, BAD_CAST"Test ");
+
+    if ((pndT = xmlNewChild(pndPar, NULL, NAME_PIE_DATE, BAD_CAST"2016/2017")) == NULL || AddNodeDateAttributes(pndT,NULL) == FALSE) {
+      printf("Error AddNodeDateAttributes()\n");
+    }
+    else if ((pndT = xmlNewChild(pndPar, NULL, NAME_PIE_DATE, BAD_CAST"2018-03-01/2017-04-03")) == NULL || AddNodeDateAttributes(pndT,NULL) == FALSE) {
+      printf("Error AddNodeDateAttributes()\n");
+    }
+    else if ((pndT = xmlNewChild(pndPar, NULL, NAME_PIE_DATE, BAD_CAST"2018-03-01/P2Y3M")) == NULL || AddNodeDateAttributes(pndT,NULL) == FALSE) {
+      printf("Error AddNodeDateAttributes()\n");
+    }
+    else if ((pndT = xmlNewChild(pndPar, NULL, NAME_PIE_DATE, BAD_CAST"P3D/2017-04-03")) == NULL || AddNodeDateAttributes(pndT,NULL) == FALSE) {
+      printf("Error AddNodeDateAttributes()\n");
+    }
+    else if ((pndT = xmlNewChild(pndPar, NULL, NAME_PIE_DATE, BAD_CAST"R3/2017-04-03/P3D")) == NULL || AddNodeDateAttributes(pndT, NULL) == FALSE) {
+      printf("Error AddNodeDateAttributes()\n");
+    }
+    else if ((pndT = xmlNewChild(pndPar, NULL, NAME_PIE_DATE, BAD_CAST"R4/P4D/2017-04-20")) == NULL || AddNodeDateAttributes(pndT, NULL) == FALSE) {
+      printf("Error AddNodeDateAttributes()\n");
+    }
+    else if ((pndT = xmlNewChild(pndPar, NULL, NAME_PIE_HTAG, BAD_CAST"#bbb")) == NULL || AddNodeDateAttributes(pndT,BAD_CAST"P1Y4D/2017-04-03") == FALSE) {
+      printf("Error AddNodeDateAttributes()\n");
+    }
+    else {
+      n_ok++;
+      printf("OK\n");
+    }
+    domPutNodeString(stderr, BAD_CAST"date result", pndPie);
     xmlFreeNode(pndPie);
   }
 

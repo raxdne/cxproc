@@ -79,7 +79,7 @@ RFC3875 CGI 1.1 <http://tools.ietf.org/html/rfc3875#page-10>
 
 #ifdef HAVE_PIE
 #include <pie/pie_text.h>
-#include <pie/pie_calendar.h>
+#include <cxp/cxp_calendar.h>
 #include <petrinet/petrinet.h>
 #endif
 #ifdef HAVE_LIBSQLITE3
@@ -174,6 +174,7 @@ cxpCtxtCgiParse(cxpContextPtr pccArg)
   xmlChar *pucCgiCxp = NULL;
   xmlChar *pucCgiEncoding = NULL;
   xmlChar *pucCgiPath = NULL;
+  xmlChar *pucCgiYear = NULL;
   xmlChar *pucCgiPathTranslated = NULL;
   xmlChar *pucCgiXpath = NULL;
   xmlChar *pucCgiXsl = NULL;
@@ -276,6 +277,9 @@ cxpCtxtCgiParse(cxpContextPtr pccArg)
       resNodeFree(prnTest);
     }
   }
+  else if ((pucCgiYear = cxpCtxtCgiGetValueByName(pccArg, BAD_CAST"year")) != NULL) {
+    /*! output of XML calendar */
+  }
 
   if (prnFile) {
     prnContent = resNodeGetLastDescendant(prnFile);
@@ -321,7 +325,17 @@ cxpCtxtCgiParse(cxpContextPtr pccArg)
   }
 #endif
 
-  if (prnPathTranslated) {
+  if (STR_IS_NOT_EMPTY(pucCgiYear)) {
+    xmlNodePtr pndCalendar;
+    xmlNodePtr pndT;
+
+    pndXml = xmlNewChild(pndMake, NULL, NAME_XML, NULL);
+    xmlSetProp(pndXml, BAD_CAST "name", BAD_CAST "-");
+    pndCalendar = xmlNewChild(pndXml, NULL, NAME_CALENDAR, NULL);
+    domSetPropEat(pndCalendar, BAD_CAST "year", pucCgiYear);
+    //cxpCtxtCliAddXsl(pndXml, pccArg);
+  }
+  else if (prnPathTranslated) {
     /* deliver the file content via CXP configuration */
     pndXml = xmlNewChild(pndMake, NULL, NAME_XML, NULL);
     xmlSetProp(pndXml, BAD_CAST "name", resNodeGetNameNormalized(prnPathTranslated));

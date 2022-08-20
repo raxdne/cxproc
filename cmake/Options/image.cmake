@@ -41,12 +41,12 @@ IF (CXPROC_LIBEXIF)
   #  target_link_libraries(cxproc-httpd ${LIBEXIF_LIBRARY})
   #ENDIF ()
 
-  IF(CXPROC_TESTS)
+  IF(BUILD_TESTING)
   
 add_test(NAME image-cxp
     WORKING_DIRECTORY ${CXPROC_TEST_DIR}/option/image
     COMMAND ${CXPROC_PREFIX}/bin/cxproc config.cxp)
-ENDIF(CXPROC_TESTS)
+ENDIF(BUILD_TESTING)
   
 ENDIF ()
 

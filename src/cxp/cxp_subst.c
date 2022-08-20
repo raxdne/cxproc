@@ -676,7 +676,7 @@ cxpSubstApply(xmlNodePtr pndArgTop, cxpSubstPtr pcxpSubstArg, cxpContextPtr pccA
   if (pcxpSubstArg) {
     /*!\todo substitute searchpath="pie.css" to whole filename */
 
-#ifdef EXPERIMENTAL
+#if defined(EXPERIMENTAL) && defined(HAVE_PCRE2)
     if (cxpSubstGetRegExp(pcxpSubstArg)) {
       if (cxpSubstGetPtr(pcxpSubstArg)) {
 	ApplySubstRegExp(pndArgTop, cxpSubstGetRegExp(pcxpSubstArg), cxpSubstGetPtr(pcxpSubstArg));
@@ -895,9 +895,11 @@ cxpSubstPrint(cxpSubstPtr pcxpSubstArg, cxpContextPtr pccArg)
     if (pcxpSubstArg->pucName) {
       cxpCtxtLogPrint(pccArg, 1, "String Substitution '%s':", pcxpSubstArg->pucName);
     }
+#if HAVE_PCRE2
     else if (pcxpSubstArg->preFrom) {
       cxpCtxtLogPrint(pccArg, 1, "Regexp Substitution");
     }
+#endif
     else {
       cxpCtxtLogPrint(pccArg, 1, "No valid Substitution");
     }

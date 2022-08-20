@@ -76,9 +76,11 @@
 #include <cxp/cxp_threadp.h>
 #include "dom.h"
 #include <cxp/cxp_dir.h>
-#include <pie/pie_text.h>
+#include <cxp/cxp_calendar.h>
 #ifdef HAVE_PIE
-#include <pie/pie_calendar.h>
+#include <pie/pie_text.h>
+#else
+#include <pie/pie_dtd.h>
 #endif
 #ifdef HAVE_PETRINET
 #include <petrinet/petrinet.h>
@@ -1258,11 +1260,9 @@ cxpProcessXmlNode(xmlNodePtr pndArg, cxpContextPtr pccArg)
       else if (IS_NODE_PIE(pndChildSource)) {
 	pdocT = pieProcessPieNode(pndChildSource,pccHere);
       }
-#ifdef HAVE_PIE
       else if (IS_NODE_CALENDAR(pndChildSource)) {
 	pdocT = calProcessCalendarNode(pndChildSource,pccHere);
       }
-#endif
 #ifdef HAVE_PETRINET
       else if (IS_NODE_PATHNET(pndChildSource) || IS_NODE_PATHTABLE(pndChildSource)) {
 	pdocT = pnetProcessNode(pndChildSource,pccHere);
@@ -3201,6 +3201,11 @@ cxpProcessInfoNode(xmlNodePtr pndInfo, cxpContextPtr pccArg)
     xmlSetProp(nodeOption, BAD_CAST "ns", BAD_CAST"http://zlib.net/");
     xmlSetProp(nodeOption, BAD_CAST "version", BAD_CAST ZLIB_VERSION);
 #endif
+
+    nodeOption = xmlNewChild(nodeProgram, NULL, BAD_CAST"lib", NULL);
+    xmlSetProp(nodeOption,BAD_CAST "name",BAD_CAST"c-dt");
+    xmlSetProp(nodeOption,BAD_CAST "ns",BAD_CAST"https://github.com/chansen/c-dt");
+    xmlSetProp(nodeOption,BAD_CAST "select", BAD_CAST "yes");
 
     nodeOption = xmlNewChild(nodeProgram,NULL,BAD_CAST"module",NULL);
     xmlSetProp(nodeOption,BAD_CAST "name",BAD_CAST"petrinet");

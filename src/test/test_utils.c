@@ -27,6 +27,7 @@ utilsTest(void)
   int i;
   int n_ok;
   xmlChar *pucTest;
+  xmlChar buffer[BUFFER_LENGTH];
 
   n_ok=0;
   i=0;
@@ -497,6 +498,250 @@ utilsTest(void)
     }
     else if (GetPositionISO6709("+4851-00221",&latit,&longit) != 0 || fabs(latit - 48.850) > 0.001 || fabs(longit + 2.350) > 0.001) {
       printf("ERROR GetPositionISO6709(): format %.3f %.3f\n", latit, longit);
+    }
+    else {
+      n_ok++;
+      printf("OK\n");
+    }
+  }
+
+
+  if (RUNTEST) {
+    i++;
+    printf("TEST %i in '%s:%i': ", i, __FILE__, __LINE__);
+
+    xmlStrPrintf(buffer, BUFFER_LENGTH, "20091011,17,1122,33");
+
+    if (StringConcatNextDate(buffer) == NULL || xmlStrEqual(buffer, BAD_CAST"20091017,1122,33") == FALSE) {
+      printf("ERROR\n");
+    }
+    else if (StringConcatNextDate(buffer) == NULL || xmlStrEqual(buffer, BAD_CAST"20091122,33") == FALSE) {
+      printf("ERROR\n");
+    }
+    else if (StringConcatNextDate(buffer) == NULL || xmlStrEqual(buffer, BAD_CAST"20091133") == FALSE) {
+      printf("ERROR\n");
+    }
+    else {
+      n_ok++;
+      printf("OK\n");
+    }
+  }
+
+  if (RUNTEST) {
+    i++;
+    printf("TEST %i in '%s:%i': ", i, __FILE__, __LINE__);
+
+    xmlStrPrintf(buffer, BUFFER_LENGTH, "20091011,20101011");
+
+    if (xmlStrEqual(StringConcatNextDate(buffer), BAD_CAST"20101011") == FALSE) {
+      printf("ERROR\n");
+    }
+    else {
+      n_ok++;
+      printf("OK\n");
+    }
+  }
+
+  if (RUNTEST) {
+    i++;
+    printf("TEST %i in '%s:%i': ", i, __FILE__, __LINE__);
+
+    xmlStrPrintf(buffer, BUFFER_LENGTH, "20121015,20130613,0701,05");
+
+    if (xmlStrEqual(StringConcatNextDate(buffer), BAD_CAST"20130613,0701,05") == FALSE) {
+      printf("ERROR\n");
+    }
+    else if (xmlStrEqual(StringConcatNextDate(buffer), BAD_CAST"20130701,05") == FALSE) {
+      printf("ERROR\n");
+    }
+    else if (xmlStrEqual(StringConcatNextDate(buffer), BAD_CAST"20130705") == FALSE) {
+      printf("ERROR\n");
+    }
+    else {
+      n_ok++;
+      printf("OK\n");
+    }
+  }
+
+  if (RUNTEST) {
+    i++;
+    printf("TEST %i in '%s:%i': ", i, __FILE__, __LINE__);
+
+    xmlStrPrintf(buffer, BUFFER_LENGTH, "20121208,201306");
+
+    if (StringConcatNextDate(buffer) != NULL) {
+      printf("ERROR\n");
+    }
+    else {
+      n_ok++;
+      printf("OK\n");
+    }
+  }
+
+  if (RUNTEST) {
+    i++;
+    printf("TEST %i in '%s:%i': trailing separator ", i, __FILE__, __LINE__);
+
+    xmlStrPrintf(buffer, BUFFER_LENGTH, "20091011,1112,");
+
+    if (xmlStrEqual(StringConcatNextDate(buffer), BAD_CAST"20091112,") == FALSE) {
+      printf("ERROR\n");
+    }
+    else if (StringConcatNextDate(buffer) != NULL) {
+      printf("ERROR\n");
+    }
+    else {
+      n_ok++;
+      printf("OK\n");
+    }
+  }
+
+  /* ISO 8601 Durations */
+  
+  if (RUNTEST) {
+    int y, m, d, w;
+    
+    i++;
+    printf("TEST %i in '%s:%i': ",i,__FILE__,__LINE__);
+
+    if (dt_parse_iso_period(NULL, 20, NULL, NULL, NULL, NULL) != 0) {
+      printf("ERROR dt_parse_iso_period()\n");
+    }
+    else if (dt_parse_iso_period("P1YM-4DT", 20, &y, &m, &d, NULL) != 0) {
+      printf("ERROR dt_parse_iso_period()\n");
+    }
+    else if (dt_parse_iso_period("P3Y6M4DT12H30M5S", BUFFER_LENGTH, &y, &m, &d, NULL) != 7) {
+      printf("ERROR dt_parse_iso_period()\n");
+    }
+    else if (y != 3 || m != 6 || d != 4) {
+      printf("ERROR dt_parse_iso_period()\n");
+    }
+    else if (dt_parse_iso_period("P7Y", BUFFER_LENGTH, &y, &m, &d, NULL) != 3) {
+      printf("ERROR dt_parse_iso_period()\n");
+    }
+    else if (y != 7 || m != 0 || d != 0) {
+      printf("ERROR dt_parse_iso_period()\n");
+    }
+    else if (dt_parse_iso_period("P2W", BUFFER_LENGTH, &y, &m, &d, &w) != 3) {
+      printf("ERROR dt_parse_iso_period()\n");
+    }
+    else if (w != 2 || m != 0 || d != 0) {
+      printf("ERROR dt_parse_iso_period()\n");
+    }
+    else if (dt_parse_iso_period("P", BUFFER_LENGTH, &y, &m, &d, &w) != 1) {
+      printf("ERROR dt_parse_iso_period()\n");
+    }
+    else {
+      n_ok++;
+      printf("OK\n");
+    }
+  }
+
+   /* ISO 8601 Time intervals */
+ 
+  if (RUNTEST) {
+    dt_t dt0, dt1;
+    
+    i++;
+    printf("TEST %i in '%s:%i': ",i,__FILE__,__LINE__);
+
+    if (dt_parse_iso_date_interval(NULL, 0, &dt0, &dt1) != 0) {
+      printf("ERROR dt_parse_iso_date_interval()\n");
+    }
+    else if (dt_parse_iso_date_interval("20110703/20110711", BUFFER_LENGTH, NULL, NULL) != 0) {
+      printf("ERROR dt_parse_iso_date_interval()\n");
+    }
+    else if (dt_parse_iso_date_interval("20110703/2011 AAA", BUFFER_LENGTH, &dt0, &dt1) != 0) {
+      printf("ERROR dt_parse_iso_date_interval()\n");
+    }
+    else if (dt_parse_iso_date_interval("20110703/20110711 AAA", BUFFER_LENGTH, &dt0, &dt1) != 17) {
+      printf("ERROR dt_parse_iso_date_interval()\n");
+    }
+    else if (dt_year(dt0) != 2011 || dt_month(dt0) != 7 || dt_dom(dt0) != 3) {
+      printf("ERROR dt_parse_iso_date_interval()\n");
+    }
+    else if (dt_year(dt1) != 2011 || dt_month(dt1) != 7 || dt_dom(dt1) != 11) {
+      printf("ERROR dt_parse_iso_date_interval()\n");
+    }
+    else if (dt_parse_iso_date_interval("20110711/20110711 AAA", BUFFER_LENGTH, &dt0, &dt1) != 17) {
+      printf("ERROR dt_parse_iso_date_interval()\n");
+    }
+    else if (dt0 != dt1) {
+      printf("ERROR dt_parse_iso_date_interval()\n");
+    }
+    else if (dt_parse_iso_date_interval("20110711/20110703 AAA", BUFFER_LENGTH, &dt0, &dt1) != 17) {
+      printf("ERROR dt_parse_iso_date_interval()\n");
+    }
+    else if (dt_year(dt0) != 2011 || dt_month(dt0) != 7 || dt_dom(dt0) != 3) {
+      printf("ERROR dt_parse_iso_date_interval()\n");
+    }
+    else if (dt_year(dt1) != 2011 || dt_month(dt1) != 7 || dt_dom(dt1) != 11) {
+      printf("ERROR dt_parse_iso_date_interval()\n");
+    }
+    else if (dt_parse_iso_date_interval("2011-399 AAA", BUFFER_LENGTH, &dt0, &dt1) != 4) {
+      printf("ERROR dt_parse_iso_date_interval()\n");
+    }
+    else if (dt_year(dt0) != 2011 || dt_month(dt0) != 1 || dt_dom(dt0) != 1) {
+      printf("ERROR dt_parse_iso_date_interval()\n");
+    }
+    else if (dt_parse_iso_date_interval("20110703/P3Y6M4D TEST", BUFFER_LENGTH, &dt0, &dt1) != 16) {
+      printf("ERROR dt_parse_iso_date_interval()\n");
+    }
+    else if (dt_year(dt0) != 2011 || dt_month(dt0) != 7 || dt_dom(dt0) != 3) {
+      printf("ERROR dt_parse_iso_date_interval()\n");
+    }
+    else if (dt_year(dt1) != 2015 || dt_month(dt1) != 1 || dt_dom(dt1) != 7) {
+      printf("ERROR dt_parse_iso_date_interval()\n");
+    }
+    else if (dt_parse_iso_date_interval("P3W/20110703 TEST", BUFFER_LENGTH, &dt0, &dt1) != 12) {
+      printf("ERROR dt_parse_iso_date_interval()\n");
+    }
+    else if (dt_year(dt1) != 2011 || dt_month(dt1) != 7 || dt_dom(dt1) != 3) {
+      printf("ERROR dt_parse_iso_date_interval()\n");
+    }
+    else if (dt_year(dt0) != 2011 || dt_month(dt0) != 06 || dt_dom(dt0) != 12) {
+      printf("ERROR dt_parse_iso_date_interval()\n");
+    }
+    else {
+      n_ok++;
+      printf("OK\n");
+    }
+  }
+
+   /* ISO 8601 Repeating intervals */
+ 
+  if (RUNTEST) {
+    int y, m, d, r;
+    
+    i++;
+    printf("TEST %i in '%s:%i': ",i,__FILE__,__LINE__);
+
+    if (dt_parse_iso_recurrance(NULL, 20, NULL) != 0) {
+      printf("ERROR dt_parse_iso_recurrance()\n");
+    }
+    else if (dt_parse_iso_recurrance("R-21/", 20, &r) != 0) {
+      printf("ERROR dt_parse_iso_recurrance()\n");
+    }
+    else if (dt_parse_iso_recurrance("R3/20110703/P3M2DT12H30M5S", BUFFER_LENGTH, &r) != 2) {
+      printf("ERROR dt_parse_iso_recurrance()\n");
+    }
+    else if (r != 3) {
+      printf("ERROR dt_parse_iso_recurrance()\n");
+    }
+    else {
+      n_ok++;
+      printf("OK\n");
+    }
+  }
+
+
+  if (RUNTEST) {
+
+    i++;
+    printf("TEST %i in '%s:%i': = ",i,__FILE__,__LINE__);
+
+    if (GetWeekOfYear(3, 6, 2013) != 23) {
+      printf("ERROR GetWeekOfYear()\n");
     }
     else {
       n_ok++;

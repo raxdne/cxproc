@@ -1735,93 +1735,94 @@ GetSelectedFileName(xmlChar *pucArgMsg, xmlChar *pucArgPath)
 }
 /* end of GetSelectedFileName() */
 
+/*! Decodes the given string and returns the according result of GetDayAbsolute()
 
-/*! computes the number of days since 1970-01-01 as an absolute value
+\param pucGcal date string
 */
 long int
-GetDayAbsolute(int year, int mon, int mday, int week, int wday)
+GetDayAbsoluteStr(xmlChar *pucGcal)
 {
-  long int result = 0;
+  long int liResult = -1;
 
-  if (year>1969) {
-    struct tm t;
-    t.tm_year = year - 1900;
+  if (pucGcal != NULL && xmlStrlen(pucGcal) > 4) {
+    dt_t dtp;
+    int sod, nsec;
+    int l, t;
 
-    if (mon > 0 && mday > 0 && mday < 32) {
-      t.tm_yday = 0;
-      t.tm_mon = mon - 1;
-      t.tm_mday = mday;
-      t.tm_wday = 0;
-      t.tm_hour = 0;
-      t.tm_min = 0;
-      t.tm_sec = 0;
-      t.tm_isdst = 0;
-      result = (long int)(mktime(&t) / (time_t)(60 * 60 * 24));
+    if ((l = dt_parse_iso_date((const char *)pucGcal, 20, &dtp)) > 4) {
+      if ((t = dt_parse_iso_time_extended((const char *)&pucGcal[l+1], 20, &sod, &nsec)) > l) {
+      }
+      else {
+      }
+      liResult = dtp;
     }
-    else if (week > -1 && week < 54 && wday > -1 && wday < 8) {
-
-      /* starting with the very first day of year */
-      t.tm_yday = 0;
-      t.tm_mon = 0;
-      t.tm_mday = 1;
-      t.tm_wday = 0;
-      t.tm_hour = 0;
-      t.tm_min = 0;
-      t.tm_sec = 0;
-      t.tm_isdst = 0;
-      result = (long int)(mktime(&t) / (time_t)(60 * 60 * 24));
-
-      if (week == 0 && t.tm_wday > 0 && t.tm_wday < 5) {
-	PrintFormatLog(1, "There is no week '0' in year '%i'", year);
-	return -1;
-      }
-
-      /* offset for very first week of year */
-      switch (t.tm_wday) {
-      case 0: 		/* sun */
-	result += 1;
-	break;
-      case 1: 		/* mon */
-	break;
-      case 2: 		/* tue */
-	result -= 1;
-	break;
-      case 3: 		/* wed */
-	result -= 2;
-	break;
-      case 4: 		/* thu */
-	result -= 3;
-	break;
-      case 5: 		/* fri */
-	result += 3;
-	break;
-      case 6: 		/* sat */
-	result += 2;
-	break;
-      }
-
-      /* add days of all complete weeks */
-      result += (week - 1) * 7;
-
-      /* add days of according week */
-      switch (wday) {
-      case 0: 		/* sun */
-	result += 6;
-	break;
-      case 1: 		/* mon */
-      case 2: 		/* tue */
-      case 3: 		/* wed */
-      case 4: 		/* thu */
-      case 5: 		/* fri */
-      case 6: 		/* sat */
-	result += wday - 1;
-	break;
-      }
+    else {
     }
   }
-  return result;
+  return liResult;
 }
-/* end of GetDayAbsolute() */
+/* end of GetDayAbsoluteStr() */
+
+
+/*! \return a string 
+*/
+xmlChar *
+GetDiffDaysStrNew(xmlChar *pucArgAbs,xmlChar *pucArgDate)
+{
+  xmlChar *pucResult = NULL;
+
+  if (pucArgAbs != NULL && pucArgDate != NULL) {
+    xmlChar mpucT[BUFFER_LENGTH];
+
+#if 1
+    dt_t dtpAbs;
+    dt_t dtpDate;
+    //int sod, nsec;
+    int l, t;
+
+    if (dt_parse_iso_date((const char *)pucArgAbs, 20, &dtpAbs) > 4 && dt_parse_iso_date((const char *)pucArgDate, 20, &dtpDate) > 4) {
+      xmlStrPrintf(mpucT,BUFFER_LENGTH, "%i", dtpAbs - dtpDate);
+    }
+    else {
+    }
+#else
+    int iDayStart = (int)GetDayAbsoluteStr(pucArgDate);
+    int iDayEnd   = (int)strtol((char *)pucArgAbs,NULL,10);
+    
+    xmlStrPrintf(mpucT,BUFFER_LENGTH, "%i", iDayEnd - iDayStart);
+#endif
+    
+    pucResult = xmlStrdup(mpucT);
+  }
+
+  return pucResult;
+}
+/* end of GetDiffDaysStrNew() */
+
+
+/*! \return a string
+*/
+xmlChar *
+GetDiffYearsStrNew(xmlChar *pucArgStart,xmlChar *pucArgEnd)
+{
+  xmlChar *pucResult = NULL;
+
+  if (pucArgStart != NULL && pucArgEnd != NULL) {
+
+    int iYearStart = (int)strtol((char *)pucArgStart,NULL,10);
+    int iYearEnd   = (int)strtol((char *)pucArgEnd,NULL,10);
+
+    if (iYearStart - iYearEnd > 0) {
+      xmlChar mpucT[BUFFER_LENGTH];
+
+      xmlStrPrintf(mpucT,BUFFER_LENGTH, "%i",iYearStart - iYearEnd);
+      pucResult = xmlStrdup(mpucT);
+    }
+  }
+
+  return pucResult;
+}
+/* end of GetDiffYearsStrNew() */
 
 
 /* compute the sequential number of a day in the year
@@ -1829,7 +1830,7 @@ GetDayAbsolute(int year, int mon, int mday, int week, int wday)
 J.D. Robertson: Remark on Algorithm 398,
 Comm. ACM 13, 10 (Oct. 1972), p. 918
 */
-int GetDayOfYear(int day, int month, int year)
+int _GetDayOfYear(int day, int month, int year)
 {
   int  lmon; /* derived from month */
 
@@ -1852,6 +1853,11 @@ Comm. ACM 13, 10 (Oct. 1972), p. 918
 */
 int GetDayOfWeek(int day, int month, int year)
 {
+#if 1
+  int y, result, d;
+  dt_to_ywd(dt_from_ywd(year, month, day), &y, &d, &result);
+  return result;
+#else
   int  lmon; /* derived from month */
   int  mmon; /* derived from month */
 
@@ -1862,6 +1868,7 @@ int GetDayOfWeek(int day, int month, int year)
     + mmon / 400 - (mmon / 100) *   2)
     - 1) % 7 + 1
     );
+#endif
 }
 /* end of GetDayOfWeek() */
 
@@ -1870,11 +1877,17 @@ int GetDayOfWeek(int day, int month, int year)
 The weeks start at monday, and some days at the beginning
 of January may be in week "0"
 which means week 52 of the previous year.
+
+\deprecated to be replaced by  dt_from_ywd()/dt_from_ymd()
 */
 int
 GetWeekOfYear(int day, int month, int year)
 {
 #if 1
+  int y, result, d;
+  dt_to_ywd(dt_from_ymd(year, month, day), &y, &result, &d);
+  return result;
+#elif 0
   // http://www.nord-com.net/h-g.mekelburg/kalender/kal-64.htm
   int Woche = 0;
   int Wchtag1Jan = GetDayOfWeek(1, 1, year) - 1;
@@ -1916,90 +1929,6 @@ GetWeekOfYear(int day, int month, int year)
 /* end of GetWeekOfYear() */
 
 
-/*! \return the date of easter sunday in given year
-
-  s.http://www.ptb.de/cms/fachabteilungen/abt4/fb-44/ag-441/darstellung-der-gesetzlichen-zeit/wann-ist-ostern.html
-
-  (1)  K = INT(X / 100);
-
-  (2)  M = 15 + INT((3K + 3) / 4) - INT((8K + 13) / 25);
-
-  (3)  S = 2 - INT((3K + 3) / 4);
-
-  (4)  A = MOD(X, 19);
-
-  (5)  D = MOD(19A + M, 30);
-
-  (6)  R = INT(D / 29) + (INT(D / 28) - INT(D / 29)) * INT(A / 11);
-
-  (7)  OG = 21 + D - R;
-
-  (8)  SZ = 7 - MOD(X + INT(X / 4) + S, 7);
-
-  (9)  OE = 7 - MOD(OG - SZ, 7);
-
-  OG ist das Märzdatum des Ostervollmonds.Dies entspricht dem 14. Tag des ersten Monats im Mondkalender, genannt Nisanu. SZ ist das Datum des ersten Sonntags im März.
-
-  OS = OG + OE ist das Datum des Ostersonntags, als Datum im Monat März dargestellt. (Der 32. März entspricht also dem 1. April, usw.)
-
-*/
-long int
-GetEasterSunday(int iArgYear, int *piArgMonth, int *piArgDay)
-{
-#if 1
-  long int result = -1;
-  struct tm t;
-
-  int X = iArgYear;
-
-  int K = (int)floor(X / 100.0f);
-
-  int M = 15 + (int)floor((3 * K + 3) / 4.0f) - (int)floor((8 * K + 13) / 25.0f);
-
-  int S = 2 - (int)floor((3 * K + 3) / 4.0f);
-
-  int A = X % 19;
-
-  int D = (19 * A + M) % 30;
-
-  int R = (int)floor(D / 29.0f) + ((int)floor(D / 28.0f) - (int)floor(D / 29.0f)) * (int)floor(A / 11.0f);
-
-  int OG = 21 + D - R;
-
-  int SZ = 7 - ((X + (int)floor(X / 4.0f) + S) % 7);
-
-  int OE = 7 - ((OG - SZ) % 7);
-
-  t.tm_year = X - 1900;
-  t.tm_yday = 0;
-  t.tm_mon = 2;
-  t.tm_mday = OG + OE;
-  t.tm_wday = 0;
-  t.tm_hour = 0;
-  t.tm_min = 0;
-  t.tm_sec = 0;
-  t.tm_isdst = 0;
-  result = (long int)(mktime(&t) / (time_t)(60 * 60 * 24));
-
-  if (piArgMonth) {
-    *piArgMonth = t.tm_mon + 1;
-  }
-
-  if (piArgDay) {
-    *piArgDay = t.tm_mday;
-  }
-
-  return result;
-#else
-  int y, m, w, d, d_week;
-
-  easter1(iArgYear, &d, &m);
-  return GetDayAbsolute(iArgYear, m, d, -1, -1);
-#endif
-}
-/* end of GetEasterSunday() */
-
-
 /*! a subset of linux date command format
 
 %d     day of month (e.g., 01)
@@ -2022,6 +1951,8 @@ GetEasterSunday(int iArgYear, int *piArgMonth, int *piArgDay)
 
 \param pucArgFormat pointer to a date like format string
 \return pointer to a new allocated copy of pucArgFormat, format sequences replaced by its values
+
+\todo check use of c-dt code
 */
 xmlChar *
 GetNowFormatStr(xmlChar *pucArgFormat)
@@ -2172,6 +2103,7 @@ interchange formats – Information interchange – Representation of
 dates and times" (http://en.wikipedia.org/wiki/ISO_8601)
 
 \todo append timezone id
+\todo check use of c-dt code
 */
 xmlChar *
 GetDateIsoString(time_t ArgTime)
@@ -2239,39 +2171,387 @@ ishashtag(xmlChar* pucArg, int* piArg)
 } /* End of ishashtag() */
 
 
-/*! \return true if c is a valid char for a date string.
-The separator chars '#' and ',' are handled separately in iscalx()
+/*! \return true if c is a valid char for a date string according to ISO 8601
+
+\bug handle STR_UTF8_MINUS "\xE2\x88\x92" 
 */
 BOOL_T
-iscal(xmlChar c)
+isiso8601(xmlChar c)
 {
-  if (isdigit((int)c)
-    || (c == '*') || (c == ':') || (c == '.') || (c == '+') || (c == '-') || (c == '@')
-    || (c == 'm') || (c == 'o') || (c == 'n')
-    || (c == 't') || (c == 'T') || (c == 'u') || (c == 'e')
-    || (c == 'w') || (c == 'W') || (c == 'd')
-    || (c == 'h')
-    || (c == 'f') || (c == 'r') || (c == 'i')
-    || (c == 's') || (c == 'a')
-    ) {
+  if (isdigit((int)c)) {
     return TRUE;
   }
+  else {
+    switch (c) {
+    case ':':
+    case '+':
+    case '-':
+    case '/':
+    case 'Y':
+    case 'M':
+    case 'D':
+    case 'T':
+    case 'H':
+    case 'P':
+    case 'R':
+    case 'S':
+    case 'W':
+      return TRUE;
+      break;
+    default:
+      break;
+    }
+  }
   return FALSE;
-}
-/* end of iscal() */
+} /* end of isiso8601() */
 
 
-/*! \return true if c is a extended valid char for a date string.
+/*! Assembles the next date part, only compact ISO date 'YYYYMMDD,MMDD,DD'.
+
+  \param pucArgGcal pointer to comma separated list of date strings
+  \return pointer to a the modified pucGcal or NULL if no date string follows,
 */
-BOOL_T
-iscalx(xmlChar c)
+xmlChar*
+StringConcatNextDate(xmlChar* pucArgGcal)
 {
-  if ((c == ',') || (c == '#')) {
-    return TRUE;
+  xmlChar* pucE;
+  xmlChar* pucB;		/* begin of next string */
+  xmlChar* pucTmp;
+  int l_new;
+  int l_old;
+
+  for (pucB = pucArgGcal, l_old = 0; isdigit(*pucB); pucB++, l_old++) {
+    /*
+      skip all chars in first calendar string
+    */
   }
-  return FALSE;
+
+  if (*pucB == ',') {
+
+    for (pucB++, pucE = pucB; isdigit(*pucE); pucE++) {
+      /* skip all chars in second calendar string */
+    }
+
+    l_new = (int)(pucE - pucB);
+
+    if (l_new > 0) {
+      if (isdigit(*pucB)) {
+	if (l_new < 3) {
+	  pucTmp = xmlStrndup(pucArgGcal, 6);
+	  if (l_new < 2)  /* insert leading zero */
+	    pucTmp = xmlStrcat(pucTmp, BAD_CAST "0");
+	}
+	else if (l_new < 5) {
+	  pucTmp = xmlStrndup(pucArgGcal, 4);
+	  if (l_new < 4)  /* insert leading zero */
+	    pucTmp = xmlStrcat(pucTmp, BAD_CAST "0");
+	}
+	else if (l_new > 7) {
+	  /* this is a complete new 'yyyymmdd' */
+	  /* 	memmove(pucArgGcal,pucB,xmlStrlen(pucB)+1); */
+	  pucTmp = xmlStrndup(pucArgGcal, 0);
+	}
+	else {
+	  PrintFormatLog(2, "no valid extension '%s' in '%s'", pucB, pucArgGcal);
+	  return NULL;
+	}
+      }
+      else {
+	PrintFormatLog(2, "Different types between '%s' in '%s'", pucB, pucArgGcal);
+	return NULL;
+      }
+      pucTmp = xmlStrcat(pucTmp, pucB);
+      memcpy(pucArgGcal, pucTmp, (size_t)xmlStrlen(pucTmp) + 1);
+      xmlFree(pucTmp);
+      return pucArgGcal;
+    }
+    else {
+      return NULL;
+    }
+  }
+  return NULL;
 }
-/* end of iscal() */
+/* end of StringConcatNextDate() */
+
+
+/*
+ *  "R5/" Calendar date recurrence (ISO 8601)
+ * 
+ * \bug floating values not used
+ */
+size_t
+dt_parse_iso_recurrance(const char *str, size_t len, int* deltad) {
+  size_t n = 0;
+
+  if (str != NULL && *str == 'R' && len > 0) {
+    int d;
+    char *p;
+    bool v;
+
+    d = strtol(&str[1], &p, 10);
+    if (d > 0 && d < 100 && *p == '/') {
+      if (deltad) {
+	*deltad = d;
+      }
+      n = p - str;
+    }
+    else {
+      n = 0;
+    }
+  }
+
+  return n;
+} /* end of dt_parse_iso_recurrance() */
+
+
+/*
+ *  "P3Y6M4DT12H30M5S" Calendar date period  (ISO 8601)
+ * 
+ * \bug floating values not used
+ */
+size_t
+dt_parse_iso_period(const char *str, size_t len, int *yp, int *mp, int *dp, int* wp) {
+  size_t n = 0;
+
+  if (str != NULL && *str == 'P' && len > 0) {
+    int y, m, d, i, w;
+    char *p;
+    bool v;
+
+    for (p = str + 1, v = true,  y = m = d = w = 0; 
+      v && (n = p - str) < len && (v = (i = strtol(p, &p, 10)) > -1);
+      p++) {
+
+      /*!\todo check order of Y M D */
+	
+      if (i < 0) {
+	break;
+      }
+      else if (*p == 'W') {
+	if (w < 1 && y < 1 && m < 1 && d < 1) {
+	  w = i;
+	  //p++;
+	}
+	else {
+	  v = false;
+	}
+	//break;
+      }
+      else if (*p == 'Y') {
+	if (y < 1 && m < 1 && d < 1) {
+	  y = i;
+	}
+	else {
+	  v = false;
+	}
+      }
+      else if (*p == 'M') {
+	if (m < 1 && d < 1) {
+	  m = i;
+	}
+	else {
+	  v = false;
+	}
+      }
+      else if (*p == 'D') {
+	if (d < 1) {
+	  d = i;
+	}
+	else {
+	  v = false;
+	}
+      }
+      else if (*p == 'T') {
+	/*!\bug time parsing to be implemented */
+	for (; isiso8601(p[1]) && p[1] != '/'; p++);
+      }
+      else {
+	/* end of period string */
+	break;
+      }
+    }
+    
+    if (v) {
+      if (yp)
+	*yp = y;
+      if (mp)
+	*mp = m;
+      if (dp)
+	*dp = d;
+      if (wp)
+	*wp = w;
+    }
+    else {
+      n = 0;
+    }
+  }
+
+  return n;
+} /* end of dt_parse_iso_period() */
+
+
+/*
+ *  "20110703/20110711" Calendar date interval (ISO 8601)
+
+\deprecated due to ScanCalendarElementDate()
+ */
+size_t
+dt_parse_iso_date_interval(const char *str, size_t len, dt_t *pdt0, dt_t *pdt1) {
+  size_t n = 0;
+
+  if (str != NULL && len > 0 && pdt0 != NULL && pdt1 != NULL) {
+    size_t j = 0;
+    char *p = str;
+    int y, m, d, w;
+    dt_t dt0 = 0, dt1 = 0;
+
+    if ((n = dt_parse_iso_date(p, len, &dt0)) > 3) {
+
+      if (p[n] == '/') {
+	n++;
+	if ((j = dt_parse_iso_date(&p[n], len - n, &dt1)) > 3) {
+	  if (dt1 > dt0) {
+	    *pdt0 = dt0;
+	    *pdt1 = dt1;
+	  }
+	  else if (dt1 < dt0) {
+	    /* dt1 is earlier than dt0 */
+	    *pdt0 = dt1;
+	    *pdt1 = dt0;
+	  }
+	  else {
+	    /* it's not an interval */
+	    *pdt0 = dt0;
+	    *pdt1 = dt0;
+	  }
+	  n += j;
+	}
+	else if ((j = dt_parse_iso_period(&p[n], len, &y, &m, &d, &w)) > 0) {
+
+	  if (w > 0) {
+	    dt1 = dt0 + w * 7;
+	  }
+	  else {
+	    dt1 = dt_add_years(dt0, y, DT_EXCESS);
+	    dt1 = dt_add_months(dt1, m, DT_EXCESS);
+	    dt1 += d;
+	  }
+
+	  *pdt0 = dt0;
+	  *pdt1 = dt1;
+	  n += j;
+	}
+	else {
+	  n = 0;
+	}
+      }
+      else if (p[n] == 'T') {
+	int s;
+	n++;
+	if ((j = dt_parse_iso_time_extended(&p[n], len - n, &s, NULL)) > 3) {
+	  n += j;
+	}
+      }
+      else {
+	/* no interval => end = begin */
+	*pdt0 = dt0;
+	*pdt1 = dt0;
+	n++;
+      }
+
+    }
+    else if ((n = dt_parse_iso_period(&p[n], len, &y, &m, &d, &w)) > 0) {
+
+      if (p[n++] == '/') {
+
+	if ((j = dt_parse_iso_date(&p[n], len - n, &dt1)) > 3) {
+
+	  if (w > 0) {
+	    dt0 = dt1 - w * 7;
+	  }
+	  else {
+	    dt0 = dt_add_years(dt1, -y, DT_EXCESS);
+	    dt0 = dt_add_months(dt0, -m, DT_EXCESS);
+	    dt0 -= d;
+	  }
+
+	  *pdt0 = dt0;
+	  *pdt1 = dt1;
+	  n += j;
+	}
+	else {
+	  n = 0;
+	}
+      }
+      else {
+	n = 0;
+      }
+
+    }
+    else if (isdigit(p[n++]) && isdigit(p[n++]) && isdigit(p[n++]) && isdigit(p[n++])) {
+
+      y = 1000 * (p[0] - '0') + 100 * (p[1] - '0') + 10 * (p[2] - '0') + (p[3] - '0');
+
+      assert(y > -1 && y < 2999);
+
+      /*! implicit intervals (whole year, month, week) */
+
+      if (p[n] == '-' && isdigit(p[n + 1]) && isdigit(p[n + 2]) && !isdigit(p[n + 3])) {
+	/* ISO 8601 YYYY-MM */
+	m = 10 * (p[n + 1] - '0') + (p[n + 2] - '0');
+	if (m > 0 && m < 13) {
+	  n += 3;
+	  dt0 = dt_from_ymd(y, m, 1);
+	  dt1 = dt_end_of_month(dt0, 0);
+	}
+	else {
+	  n = 0;
+	}
+      }
+      else if (p[n] == '-' && p[n+1] == 'W' && isdigit(p[n + 2]) && isdigit(p[n + 3]) && !isdigit(p[n + 4])) {
+	/* ISO 8601 YYYY-Wnn */
+	w = 10 * (p[n + 2] - '0') + (p[n + 3] - '0');
+	if (w > -1 && w < 54) {
+	  n += 4;
+	  dt0 = dt_from_ywd(y, w, 1);
+	  dt1 = dt_end_of_week(dt0, 1);
+	}
+	else {
+	  n = 0;
+	}
+      }
+      else if (isdigit(p[n]) && isdigit(p[n + 1]) && !isdigit(p[n + 2])) {
+	/* ISO 8601 YYYYMM */
+	m = 10 * (p[n] - '0') + (p[n + 1] - '0');
+	if (m > 0 && m < 13) {
+	  n += 2;
+	  dt0 = dt_from_ymd(y, m, 1);
+	  dt1 = dt_end_of_month(dt0, 0);
+	}
+	else {
+	  n = 0;
+	}
+      }
+      else if (!isdigit(p[n])) {
+	/* ISO 8601 YYYY */
+	dt0 = dt_from_ymd(y, 1, 1);
+	dt1 = dt_end_of_year(dt0, 0);
+      }
+      else {
+	n = 0;
+      }
+
+      *pdt0 = dt0;
+      *pdt1 = dt1;
+    }
+    else {
+      n = 0;
+    }
+    
+  }
+
+  return n;
+} /* end of dt_parse_iso_date_interval() */
 
 
 #ifdef TESTCODE

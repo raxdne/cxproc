@@ -27,8 +27,6 @@ IF (CXPROC_PIE)
     ${CXPROC_SRC_DIR}/option/pie/pie_text_blocks.h
     ${CXPROC_SRC_DIR}/option/pie/pie_text_tags.c
     ${CXPROC_SRC_DIR}/option/pie/pie_text_tags.h
-    ${CXPROC_SRC_DIR}/option/pie/pie_timezone.c
-    ${CXPROC_SRC_DIR}/option/pie/pie_timezone.h
     ${CXPROC_SRC_DIR}/option/vcf/vcf.c
     ${CXPROC_SRC_DIR}/option/vcf/vcf.h
     )
@@ -46,8 +44,6 @@ IF (CXPROC_PIE)
   SET(PIE_FILES
     ${CXPROC_SRC_DIR}/option/ics/ics.c
     ${CXPROC_SRC_DIR}/option/ics/ics.h
-    ${CXPROC_SRC_DIR}/option/pie/pie_calendar.c
-    ${CXPROC_SRC_DIR}/option/pie/pie_calendar.h
     ${CXPROC_SRC_DIR}/option/pie/pie_element.c
     ${CXPROC_SRC_DIR}/option/pie/pie_element.h
     ${CXPROC_SRC_DIR}/option/pie/pie_text_blocks.c
@@ -56,8 +52,6 @@ IF (CXPROC_PIE)
     ${CXPROC_SRC_DIR}/option/pie/pie_text.h ${CXPROC_SRC_DIR}/option/pie/pie_dtd.h
     ${CXPROC_SRC_DIR}/option/pie/pie_text_tags.c
     ${CXPROC_SRC_DIR}/option/pie/pie_text_tags.h
-    ${CXPROC_SRC_DIR}/option/pie/pie_timezone.c
-    ${CXPROC_SRC_DIR}/option/pie/pie_timezone.h
     ${CXPROC_SRC_DIR}/option/vcf/vcf.c
     ${CXPROC_SRC_DIR}/option/vcf/vcf.h
     )
@@ -84,10 +78,14 @@ IF (CXPROC_PIE)
 
   OPTION(CXPROC_MARKDOWN "Compile MARKDOWN code" ON)
 
-IF (CXPROC_TESTS)
+IF (BUILD_TESTING)
   add_test(NAME pie-code
     WORKING_DIRECTORY ${CXPROC_PREFIX}
     COMMAND ${CXPROC_PREFIX}/bin/cxproc-test -t pie)
+
+  add_test(NAME pietextx-cli
+    WORKING_DIRECTORY ${CXPROC_PREFIX}
+    COMMAND ${CXPROC_PREFIX}/bin/pietextx ${CXPROC_TEST_DIR}/option/pie/text/test-pie-9.txt)
 
   add_test(NAME pie-cxp-import-circular
     WORKING_DIRECTORY ${CXPROC_TEST_DIR}/option/pie/text/circular
@@ -121,19 +119,7 @@ IF (CXPROC_TESTS)
     WORKING_DIRECTORY ${CXPROC_TEST_DIR}/option/pie/text/xml
     COMMAND ${CXPROC_PREFIX}/bin/cxproc config-pie-import-xml.cxp)
 
-  add_test(NAME calendar-cxp
-    WORKING_DIRECTORY ${CXPROC_TEST_DIR}/option/pie/calendar
-    COMMAND ${CXPROC_PREFIX}/bin/cxproc config.cxp)
-
-  add_test(NAME cli-conf-year
-    WORKING_DIRECTORY ${CXPROC_PREFIX}
-    COMMAND ${CXPROC_PREFIX}/bin/cxproc -t 2012)
-
-  add_test(NAME cli-year
-    WORKING_DIRECTORY ${CXPROC_PREFIX}
-    COMMAND ${CXPROC_PREFIX}/bin/cxproc 2012)
-
-  set_property(TEST pie-code pie-cxp-import-cxp calendar-cxp cli-conf-year cli-year
+  set_property(TEST pie-code pie-cxp-import-cxp
     APPEND PROPERTY ENVIRONMENT CXP_PATH=${PROJECT_SOURCE_DIR}//
     )
   
@@ -145,7 +131,7 @@ IF (CXPROC_TESTS)
     WORKING_DIRECTORY ${CXPROC_PREFIX}
     COMMAND ${CXPROC_PREFIX}/bin/cxproc-test -t vcf)
 
-ENDIF (CXPROC_TESTS)
+ENDIF (BUILD_TESTING)
 
 ELSE ()
   SET(CXPROC_MARKDOWN OFF)

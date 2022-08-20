@@ -25,11 +25,9 @@ calProcessCalendarNode(xmlNodePtr pndMakeCalendar, cxpContextPtr pccArg);
 extern xmlDocPtr
 calProcessDoc(xmlDocPtr pdocArg, cxpContextPtr pccArg);
 
-extern xmlDocPtr
-calAddAttributeDayDiff(xmlDocPtr pdocArg);
 
 #ifdef TESTCODE
 extern int
-pieCalendarTest(cxpContextPtr pccArg);
+calTest(cxpContextPtr pccArg);
 #endif
 

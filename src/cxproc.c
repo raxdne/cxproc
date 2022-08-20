@@ -60,7 +60,7 @@
 
 #ifdef HAVE_PIE
 #include <pie/pie_text.h>
-#include <pie/pie_calendar.h>
+#include <cxp/cxp_calendar.h>
 #endif
 
 /*!\todo named args */
@@ -139,9 +139,7 @@ main(int argc, char *argv[], char *envp[])
   xmlZipRegisterOutputCallback();
 #endif
 
-#ifdef HAVE_PIE
   ceInit();
-#endif
 
 #ifdef _WIN32
   resPathSetNativeEncoding("ISO-8859-1");

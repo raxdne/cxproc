@@ -22,7 +22,7 @@
 /*! 
 */
 int
-pieCalendarTest(cxpContextPtr pccArg)
+calTest(cxpContextPtr pccArg)
 {
   int n_ok;
   int i;
@@ -32,6 +32,29 @@ pieCalendarTest(cxpContextPtr pccArg)
 
 
   if (RUNTEST) {
+    pieCalendarPtr pCalendarT;
+    
+    i++;
+    printf("TEST %i in '%s:%i': CalendarNew() = ", i, __FILE__, __LINE__);
+    
+    if ((pCalendarT = CalendarNew()) == NULL) {
+      printf("Error CalendarNew()\n");
+    }
+    else if (AddTreeYear(NULL,-1) != NULL) {
+      printf("Error AddTreeYear()\n");
+    }
+    else if (AddTreeYear(pCalendarT,2009) == NULL) {
+      printf("Error AddTreeYear()\n");
+    }
+    else {
+      n_ok++;
+      printf("OK\n");
+    }
+    PrintCalendarSetup(pCalendarT, pccArg);
+    CalendarFree(pCalendarT);
+  }
+
+  if (SKIPTEST) {
     xmlNodePtr pndMakeCalendar;
     xmlNodePtr pndCol;
     xmlNodePtr pndChild;
@@ -98,6 +121,75 @@ pieCalendarTest(cxpContextPtr pccArg)
 
 
   if (RUNTEST) {
+    xmlNodePtr pndMakeCalendar = NULL;
+    xmlNodePtr pndMake = NULL;
+    xmlNodePtr pndCol = NULL;
+    xmlNodePtr pndChild = NULL;
+    xmlNodePtr pndMonth = NULL;
+    xmlNodePtr pndDay = NULL;
+    xmlDocPtr pdocCalendarDefinition = NULL;
+    xmlDocPtr pdocCalendar = NULL;
+
+    i++;
+    printf("TEST %i in '%s:%i': build a cxp calendar = ", i, __FILE__, __LINE__);
+
+    pdocCalendarDefinition = xmlNewDoc(BAD_CAST "1.0");
+    pndMake = xmlNewDocNode(pdocCalendarDefinition, NULL, NAME_MAKE, NULL);
+    xmlDocSetRootElement(pdocCalendarDefinition, pndMake);
+    pdocCalendarDefinition->encoding = xmlStrdup(BAD_CAST "UTF-8"); /* according to conversion in ParseImportNodePlainContent() */
+
+    pndChild = xmlNewChild(pndMake, NULL, NAME_XML, NULL);
+    xmlSetProp(pndChild, BAD_CAST "name", BAD_CAST TEMPPREFIX "calendar-1.xml");
+    pndMakeCalendar = xmlNewChild(pndChild, NULL, NAME_CALENDAR, NULL);
+    //xmlSetProp(pndMakeCalendar, BAD_CAST "year", BAD_CAST"2015");
+    xmlSetProp(pndMakeCalendar, BAD_CAST "year", BAD_CAST"content");
+    //xmlSetProp(pndMakeCalendar, BAD_CAST "type", BAD_CAST"year");
+    xmlSetProp(pndMakeCalendar, BAD_CAST "coordinate", BAD_CAST"5225+01234/");
+    xmlSetProp(pndMakeCalendar, BAD_CAST "timezone", BAD_CAST"CET");
+
+    pndCol = xmlNewChild(pndMakeCalendar, NULL, NAME_COL, NULL);
+    xmlSetProp(pndCol, BAD_CAST"id", BAD_CAST"dir");
+    pndChild = xmlNewChild(pndCol, NULL, NAME_XML, NULL);
+    pndChild = xmlNewChild(pndChild, NULL, NAME_DIR, NULL);
+
+    xmlSetProp(pndChild, BAD_CAST"depth", BAD_CAST"1");
+    xmlSetProp(pndChild, BAD_CAST"verbosity", BAD_CAST"3");
+    xmlSetProp(pndChild, BAD_CAST "name", BAD_CAST TESTPREFIX "option");
+
+    pndCol = xmlNewChild(pndMakeCalendar, NULL, NAME_COL, NULL);
+    xmlSetProp(pndCol, BAD_CAST"id", BAD_CAST"file");
+    pndChild = xmlNewChild(pndCol, NULL, NAME_XML, NULL);
+    pndChild = xmlNewChild(pndChild, NULL, NAME_FILE, NULL);
+
+    xmlSetProp(pndChild, BAD_CAST"verbosity", BAD_CAST"4");
+    xmlSetProp(pndChild, BAD_CAST "name", BAD_CAST TESTPREFIX "option/pie/calendar/mindmap.mm");
+
+    pndCol = xmlNewChild(pndMakeCalendar, NULL, NAME_COL, NULL);
+    xmlSetProp(pndCol, BAD_CAST"id", BAD_CAST"text");
+    pndChild = xmlNewChild(pndCol, NULL, NAME_XML, NULL);
+    pndChild = xmlNewChild(pndChild, NULL, NAME_PIE, NULL);
+    pndChild = xmlNewChild(pndChild, NULL, NAME_PIE_IMPORT, NULL);
+    xmlSetProp(pndChild, BAD_CAST"name", BAD_CAST TESTPREFIX "option/pie/text/test-pie-9.txt");
+
+    /*! write the reference configuration for cxp_calendar */
+    xmlSaveFormatFile(BAD_CAST TESTPREFIX "calendar/test-calendar.cxp", pdocCalendarDefinition, 1);
+
+    if ((pdocCalendar = calProcessCalendarNode(pndMakeCalendar, pccArg)) == NULL) {
+      printf("Error calProcessCalendarNode()\n");
+    }
+    else {
+      n_ok++;
+      printf("OK\n");
+    }
+    //domPutDocString(stderr, BAD_CAST "pdocCalendar", pdocCalendar);
+
+    xmlFreeDoc(pdocCalendar);
+    xmlFreeDoc(pdocCalendarDefinition);
+  }
+
+#if 0
+  
+  if (RUNTEST) {
     xmlDocPtr pdocTest = NULL;
 
     i++;
@@ -117,6 +209,7 @@ pieCalendarTest(cxpContextPtr pccArg)
     xmlFreeDoc(pdocTest);
   }
 
+#endif
 
   if (RUNTEST) {
     xmlDocPtr pdocTest = NULL;

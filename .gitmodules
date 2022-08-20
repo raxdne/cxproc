@@ -1,3 +1,6 @@
 [submodule "third-party/option/jsmn"]
 	path = third-party/option/jsmn
 	url = git@github.com:zserge/jsmn.git
+[submodule "third-party/c-dt"]
+	path = third-party/c-dt
+	url = https://github.com/chansen/c-dt.git

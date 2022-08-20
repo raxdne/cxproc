@@ -152,7 +152,19 @@ add_test(NAME xsl-cxp
   WORKING_DIRECTORY ${CXPROC_TEST_DIR}/xsl
   COMMAND ${CXPROC_PREFIX}/bin/cxproc config.cxp)
 
-set_property(TEST cli-help cli-description cli-env cli-conf-plain cli-search cli-conf-dir dir-code dir-cxp each-cxp eval-cxp plain-cxp system-cxp worst-cxp xhtml-cxp xml-cxp xsl-cxp
+add_test(NAME calendar-cxp
+  WORKING_DIRECTORY ${CXPROC_TEST_DIR}/option/pie/calendar
+  COMMAND ${CXPROC_PREFIX}/bin/cxproc config.cxp)
+
+add_test(NAME cli-conf-year
+  WORKING_DIRECTORY ${CXPROC_PREFIX}
+  COMMAND ${CXPROC_PREFIX}/bin/cxproc -t 2012)
+
+add_test(NAME cli-year
+  WORKING_DIRECTORY ${CXPROC_PREFIX}
+  COMMAND ${CXPROC_PREFIX}/bin/cxproc 2012)
+
+set_property(TEST cli-help cli-description cli-env cli-conf-plain cli-search cli-conf-dir cli-conf-year cli-year dir-code dir-cxp calendar-cxp each-cxp eval-cxp plain-cxp system-cxp worst-cxp xhtml-cxp xml-cxp xsl-cxp
   APPEND PROPERTY ENVIRONMENT CXP_PATH=${PROJECT_SOURCE_DIR}//
   )
 

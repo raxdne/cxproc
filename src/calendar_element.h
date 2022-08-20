@@ -18,55 +18,44 @@
   Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 */
 
-#include <pie/pie_timezone.h>
+#ifndef _TIMEZONE_H_
+#include <cxp/cxp_timezone.h>
+#endif
 
-typedef enum {
-  DATE_ISO,
-  DATE_DAY,
-  DATE_MONTH,
-  DATE_WEEK,
-  DATE_WEEK_ISO,
-  DATE_YEAR,
-  DATE_EASTER,
-  DATE_GERMAN,
-  DATE_SYSTEM,
-  DATE_SYSTEM_MSEC,
-  DATE_ERROR
-} date_t;
-
+#include <c-dt/dt.h>
 
 /*! structure
  */
 struct pieCalendarElement {
+
   xmlNodePtr pndEntry; /*!< pointer to anchor DOM node */
   xmlAttrPtr patAttr; /*!< pointer to descendant DOM attribute of pndEntry */
+
   xmlChar *pucColId; /*!< pointer to column id of Date anchor */
   xmlChar *pucId; /*!< pointer to ID string */
   xmlChar *pucDate; /*!< pointer to single date string */
   xmlChar *pucSep; /*!< pointer to iteration separator string */
-  unsigned int iAnchor; /*!< day index of Date anchor */
-  int iStep; /*!< iterator increment of day steps */
-  int iCount; /*!< iteration count */
-  int iYear;  /*!< Date year anchor */
-  int iMonth;  /*!< Date month anchor */
-  int iDay;  /*!< Date day anchor */
-  int iWeek; /*!< Date week anchor */
-  int iDayWeek; /*!< Date day of week anchor */
 
-  /* values of begin time */
-  int iHourA;  /*!< Hour of Time */
-  int iMinuteA;  /*!< Minute of Time */
-  int iSecondA;  /*!< Second of Time */
+  dt_t dtBegin; /*!< day index of Interval Begin Date */
+  int iSecBegin;
+
+  dt_t dtEnd;   /*!< day index of Interval End Date */
+  int iSecEnd;
+
+  struct {
+    int y;
+    int m;
+    int d;
+    int w;
+    int hour;
+    int minute;
+    int second;
+  } period;
+
+  int iRecurrence;	/*! recurrences */
 
   int iTimezone;	/*!< numerical ID for timezone (UTC by default) */
   int iTimezoneOffset; /*!< offset to UTC in minutes */
-
-  /* values of end time */
-  int iHourB;  /*!< Hour of Time */
-  int iMinuteB;  /*!< Minute of Time */
-  int iSecondB;  /*!< Second of Time */
-
-  date_t eTypeDate; /*!< recognized type of date */
 
   struct pieCalendarElement *pNext;
 } ;
@@ -84,27 +73,17 @@ extern const xmlChar *moy[];
 
 extern const xmlChar *moy_de[];
 
-extern xmlChar *pucTodayYear;
-
-extern xmlChar *pucTodayMonth;
-
-extern xmlChar *pucTodayWeek;
-
-extern xmlChar *pucTodayDayYear;
-
-extern xmlChar *pucTodayDayMonth;
-
-extern xmlChar *pucTodayHour;
-
-extern xmlChar *pucTodayMinute;
-
-extern xmlChar *pucTodaySecond;
-
 extern BOOL_T
 ceInit(void);
 
 extern pieCalendarElementPtr
 CalendarElementNew(xmlChar *pucArg);
+
+extern pieCalendarElementPtr
+CalendarElementUpdate(pieCalendarElementPtr pceArg, xmlChar* pucArg);
+
+extern BOOL_T
+CalendarElementUpdateValues(pieCalendarElementPtr pceArg);
 
 extern void
 CalendarElementFree(pieCalendarElementPtr pceArg);
@@ -112,16 +91,13 @@ CalendarElementFree(pieCalendarElementPtr pceArg);
 extern pieCalendarElementPtr
 CalendarElementDup(pieCalendarElementPtr pceArg);
 
-extern pieCalendarElementPtr
-_CalendarElementReset(pieCalendarElementPtr pceArg);
-
 extern BOOL_T
 CalendarElementListAdd(pieCalendarElementPtr pceArgList, pieCalendarElementPtr pceArg);
 
 extern int
 GetRunningTime();
 
-extern long int
+extern dt_t
 UpdateToday(xmlChar *pucArgToday);
 
 extern long int
@@ -157,38 +133,17 @@ GetTodayMinute(void);
 extern int
 GetTodaySecond(void);
 
-extern long int
-GetDayAbsoluteStr(xmlChar *pucGcal);
-
-extern xmlChar *
-GetDiffDaysStrNew(xmlChar *pucArgStart,xmlChar *pucArgEnd);
-
-extern xmlChar *
-GetDiffYearsStrNew(xmlChar *pucArgStart,xmlChar *pucArgEnd);
-
-extern int
-GetDayOfWeekInt(xmlChar *pucDow);
-
 extern void
 PrintCalendarElement(pieCalendarElementPtr pceArg);
 
 extern BOOL_T
 ScanCalendarElementDate(pieCalendarElementPtr pceArgResult);
 
-extern BOOL_T
-ScanCalendarElementTime(pieCalendarElementPtr pceArg);
+extern pieCalendarElementPtr
+SplitCalendarElementRecurrences(pieCalendarElementPtr pceArg);
 
 extern BOOL_T
-UpdateCalendarElementDate(pieCalendarElementPtr pceArg);
-
-extern xmlChar *
-EndOfDate(xmlChar *pucArg);
-
-extern xmlChar *
-calConcatNextDate(xmlChar *pucArgGcal);
-
-extern BOOL_T
-ScanDateIteration(pieCalendarElementPtr pceArg);
+AddNodeDateAttributes(xmlNodePtr pndArg, xmlChar* pucArg);
 
 #ifdef TESTCODE
 extern int

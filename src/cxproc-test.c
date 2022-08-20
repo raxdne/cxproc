@@ -69,7 +69,7 @@
 #include <pie/pie_text.h>
 #include <ics/ics.h>
 #include <vcf/vcf.h>
-#include <pie/pie_calendar.h>
+#include <cxp/cxp_calendar.h>
 #endif
 #ifdef HAVE_PETRINET
 #include <petrinet/petrinet.h>
@@ -105,6 +105,7 @@
 #include "test/test_libxslt.c"
 #include "test/test_pcre.c"
 #include "test/test_threads.c"
+#include "test/test_dt.c"
 
 
 int
@@ -170,9 +171,7 @@ main(int argc, char** argv, char** envp)
   xmlZipRegisterOutputCallback();
 #endif
 
-#ifdef HAVE_PIE
   ceInit();
-#endif
 
 #ifdef _WIN32
   resPathSetNativeEncoding("ISO-8859-1");
@@ -202,6 +201,7 @@ main(int argc, char** argv, char** envp)
 	iErrorCode += xslTest();
 	iErrorCode += pcreTest();
 	iErrorCode += threadTest();
+	iErrorCode += dtTest();
 	iErrorCode += utilsTest();
       }
 
@@ -232,6 +232,9 @@ main(int argc, char** argv, char** envp)
 	  iErrorCode += cxpCtxtEncTest(pccT);
 	  iErrorCode += cxpCtxtCacheTest(pccT);
 	  iErrorCode += cxpSubstTest(pccT);
+	  iErrorCode += calTest(pccT);
+	  iErrorCode += pieTimezoneTest();
+	  iErrorCode += ceTest();	  
 	  iErrorCode += cxpTest(pccT);
 
 	  cxpCtxtIncrExitCode(pccTest, cxpCtxtGetExitCode(pccT));
@@ -299,13 +302,10 @@ main(int argc, char** argv, char** envp)
 
 	pccT = cxpCtxtDup(pccTest);
 	if (pccT) {
-	  iErrorCode += pieElementTest();
-	  iErrorCode += pieTextTagsTest();
+	  //iErrorCode += pieElementTest();
+	  //iErrorCode += pieTextTagsTest();
 	  iErrorCode += pieTextBlocksTest();
-	  iErrorCode += pieTextTest(pccT);
-	  iErrorCode += pieTimezoneTest();
-	  iErrorCode += ceTest();
-	  iErrorCode += pieCalendarTest(pccT);
+	  //iErrorCode += pieTextTest(pccT);
 
 	  cxpCtxtIncrExitCode(pccTest,cxpCtxtGetExitCode(pccT));
 	  cxpCtxtFree(pccT);

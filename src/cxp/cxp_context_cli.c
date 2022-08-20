@@ -48,8 +48,10 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 #ifdef HAVE_PIE
 #include <pie/pie_text.h>
-#include <pie/pie_calendar.h>
+#include <cxp/cxp_calendar.h>
 #include <petrinet/petrinet.h>
+#else
+#include <pie/pie_dtd.h>
 #endif
 #ifdef HAVE_LIBSQLITE3
 #include <database/database.h>
@@ -405,7 +407,6 @@ cxpCtxtCliParse(cxpContextPtr pccArg)
 	 */
 	cxpCtxtCliPrintHelp(pccArg);
       }
-#ifdef HAVE_PIE
       else if (atoi((char*)pucArgvFirst) > 1900) {
 	/*
 	  argv[1] is a valid year number, calendar
@@ -440,18 +441,6 @@ cxpCtxtCliParse(cxpContextPtr pccArg)
 	  xmlSetProp(pndXml, BAD_CAST "name", BAD_CAST "-");
 	  pndCalendar = xmlNewChild(pndXml, NULL, NAME_CALENDAR, NULL);
 	  domSetPropEat(pndCalendar, BAD_CAST "year", pucYear);
-	  xmlSetProp(pndCalendar, BAD_CAST"subst", BAD_CAST "yes");
-
-	  pndT = xmlNewChild(pndCalendar, NULL, NAME_PIE_COL, NULL);
-	  xmlSetProp(pndT, BAD_CAST"id", BAD_CAST "legend");
-	  xmlSetProp(pndT, BAD_CAST"name", BAD_CAST"Legend");
-	  pndT = xmlNewChild(pndT, NULL, NAME_XML, NULL);
-	  pndT = xmlNewChild(pndT, NULL, NAME_PIE_PIE, NULL);
-	  domUnsetNs(pndT);
-	  pndT = xmlNewChild(pndT, NULL, NAME_PIE_PAR, BAD_CAST"%Y-%m-%d %a (%j)");
-	  pndT = xmlNewChild(pndT, NULL, NAME_PIE_DATE, NULL);
-	  xmlSetProp(pndT, BAD_CAST"ref", BAD_CAST"00000000");
-
 	  cxpCtxtCliAddXsl(pndXml, pccArg);
 
 	  if (pndPause) {
@@ -459,7 +448,6 @@ cxpCtxtCliParse(cxpContextPtr pccArg)
 	  }
 	}
       }
-#endif
       else if (xmlStrEqual(pucArgvFirst, BAD_CAST"-e")) {
 	/*! print program environment
 	 */

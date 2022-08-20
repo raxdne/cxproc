@@ -135,12 +135,14 @@ chomp(unsigned char *c);
 extern xmlChar *
 GetUTF8Bytes(int val);
 
-
 extern long int
-GetDayAbsolute(int year, int mon, int mday, int week, int wday);
+GetDayAbsoluteStr(xmlChar *pucGcal);
 
-extern long int
-GetEasterSunday(int iArgYear, int *piArgMonth, int *piArgDay);
+extern xmlChar *
+GetDiffDaysStrNew(xmlChar *pucArgStart,xmlChar *pucArgEnd);
+
+extern xmlChar *
+GetDiffYearsStrNew(xmlChar *pucArgStart,xmlChar *pucArgEnd);
 
 extern int
 GetDayOfWeek(int day, int month, int year);
@@ -154,15 +156,23 @@ GetNowFormatStr(xmlChar *pucArgFormat);
 extern xmlChar *
 GetDateIsoString(time_t ArgTime);
 
+extern size_t
+dt_parse_iso_recurrance(const char *str, size_t len, int* deltad);
+
+extern size_t
+dt_parse_iso_period(const char *str, size_t len, int *yp, int *mp, int *dp, int *wp);
+
+extern size_t
+dt_parse_iso_date_interval(const char* str, size_t len, dt_t* pdt0, dt_t* pdt1);
+
 extern int
 ishashtag(xmlChar* pucArg, int* piArg);
 
 extern BOOL_T
-iscal(xmlChar c);
+isiso8601(xmlChar c);
 
-extern BOOL_T
-iscalx(xmlChar c);
-
+extern xmlChar*
+StringConcatNextDate(xmlChar* pucArgGcal);
 
 #ifdef TESTCODE
 extern int
