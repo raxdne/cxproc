@@ -26,7 +26,7 @@
 
 #include "basics.h"
 #include <res_node/res_node_io.h>
-#include <cxp/calendar_element.h>
+#include "calendar_element.h"
 #include <cxp/cxp.h>
 #include "dom.h"
 #include <cxp/cxp_dir.h>

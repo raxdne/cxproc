@@ -1256,6 +1256,49 @@ pieTextBlocksTest(void)
 
   if (RUNTEST) {
     xmlNodePtr pndPie;
+    xmlNodePtr pndT = NULL;
+    xmlNodePtr pndPar = NULL;
+
+    i++;
+    printf("TEST %i in '%s:%i': parse date elements = ", i, __FILE__, __LINE__);
+
+    pndPie = xmlNewNode(NULL, NAME_PIE_PIE);
+    pndT = xmlNewChild(pndPie, NULL, NAME_PIE_SECTION, NULL);
+    xmlNewChild(pndT, NULL, NAME_PIE_HEADER, BAD_CAST"header");
+    pndPar = xmlNewChild(pndT, NULL, NAME_PIE_PAR, BAD_CAST"Test ");
+
+    if ((pndT = xmlNewChild(pndPar, NULL, NAME_PIE_DATE, BAD_CAST"2016/2017")) == NULL || AddNodeDateAttributes(pndT,NULL) == FALSE) {
+      printf("Error AddNodeDateAttributes()\n");
+    }
+    else if ((pndT = xmlNewChild(pndPar, NULL, NAME_PIE_DATE, BAD_CAST"2018-03-01/2017-04-03")) == NULL || AddNodeDateAttributes(pndT,NULL) == FALSE) {
+      printf("Error AddNodeDateAttributes()\n");
+    }
+    else if ((pndT = xmlNewChild(pndPar, NULL, NAME_PIE_DATE, BAD_CAST"2018-03-01/P2Y3M")) == NULL || AddNodeDateAttributes(pndT,NULL) == FALSE) {
+      printf("Error AddNodeDateAttributes()\n");
+    }
+    else if ((pndT = xmlNewChild(pndPar, NULL, NAME_PIE_DATE, BAD_CAST"P3D/2017-04-03")) == NULL || AddNodeDateAttributes(pndT,NULL) == FALSE) {
+      printf("Error AddNodeDateAttributes()\n");
+    }
+    else if ((pndT = xmlNewChild(pndPar, NULL, NAME_PIE_DATE, BAD_CAST"R3/2017-04-03/P3D")) == NULL || AddNodeDateAttributes(pndT, NULL) == FALSE) {
+      printf("Error AddNodeDateAttributes()\n");
+    }
+    else if ((pndT = xmlNewChild(pndPar, NULL, NAME_PIE_DATE, BAD_CAST"R4/P4D/2017-04-20")) == NULL || AddNodeDateAttributes(pndT, NULL) == FALSE) {
+      printf("Error AddNodeDateAttributes()\n");
+    }
+    else if ((pndT = xmlNewChild(pndPar, NULL, NAME_PIE_HTAG, BAD_CAST"#bbb")) == NULL || AddNodeDateAttributes(pndT,BAD_CAST"P1Y4D/2017-04-03") == FALSE) {
+      printf("Error AddNodeDateAttributes()\n");
+    }
+    else {
+      n_ok++;
+      printf("OK\n");
+    }
+    domPutNodeString(stderr, BAD_CAST"date result", pndPie);
+    xmlFreeNode(pndPie);
+  }
+
+
+  if (RUNTEST) {
+    xmlNodePtr pndPie;
     xmlNodePtr pndP = NULL;
     xmlNodePtr pndT = NULL;
 

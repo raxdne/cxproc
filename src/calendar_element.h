@@ -47,9 +47,12 @@ struct pieCalendarElement {
     int m;
     int d;
     int w;
+    int hour;
+    int minute;
+    int second;
   } period;
 
-  int iRecurrence; 			/*! recurrences */
+  int iRecurrence;	/*! recurrences */
 
   int iTimezone;	/*!< numerical ID for timezone (UTC by default) */
   int iTimezoneOffset; /*!< offset to UTC in minutes */
@@ -136,6 +139,8 @@ PrintCalendarElement(pieCalendarElementPtr pceArg);
 extern BOOL_T
 ScanCalendarElementDate(pieCalendarElementPtr pceArgResult);
 
+extern BOOL_T
+AddNodeDateAttributes(xmlNodePtr pndArg, xmlChar* pucArg);
 
 #ifdef TESTCODE
 extern int

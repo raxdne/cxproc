@@ -110,8 +110,8 @@ ADD_EXECUTABLE(filex
   ${CXPROC_SRC_DIR}/dom.h
 #  ${CXPROC_SRC_DIR}/git_info.h
 #  ${CXPROC_SRC_DIR}/git_revision.h
-  ${CXPROC_SRC_DIR}/cxp/calendar_element.c
-  ${CXPROC_SRC_DIR}/cxp/calendar_element.h
+  ${CXPROC_SRC_DIR}/calendar_element.c
+  ${CXPROC_SRC_DIR}/calendar_element.h
   ${CXPROC_SRC_DIR}/plain_text.c
   ${CXPROC_SRC_DIR}/plain_text.h
   ${CXPROC_SRC_DIR}/res_node/res_mime.c
@@ -199,7 +199,7 @@ SET(CXPROC_HEADERS
   ${CXPROC_SRC_DIR}/cxp/cxp_context_cache.h
   ${CXPROC_SRC_DIR}/cxp/cxp_subst.h
   ${CXPROC_SRC_DIR}/cxp/cxp_dir.h
-  ${CXPROC_SRC_DIR}/cxp/calendar_element.h
+  ${CXPROC_SRC_DIR}/calendar_element.h
   ${CXPROC_SRC_DIR}/cxp/cxp_calendar.h
   ${CXPROC_SRC_DIR}/cxp/cxp_timezone.h
   ${CXPROC_SRC_DIR}/dom.h
@@ -221,7 +221,7 @@ SET(CXPROC_SOURCES
   ${CXPROC_SRC_DIR}/cxp/cxp_subst.c
   ${CXPROC_SRC_DIR}/cxp/cxp.c
   ${CXPROC_SRC_DIR}/cxp/cxp_dir.c
-  ${CXPROC_SRC_DIR}/cxp/calendar_element.c
+  ${CXPROC_SRC_DIR}/calendar_element.c
   ${CXPROC_SRC_DIR}/cxp/cxp_calendar.c
   ${CXPROC_SRC_DIR}/cxp/cxp_timezone.c
   ${CXPROC_SRC_DIR}/dom.c

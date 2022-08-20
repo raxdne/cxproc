@@ -888,8 +888,10 @@ RegisterDateNodes(pieCalendarPtr pCalendarArg, xmlChar *pucArg)
 	  else if ((pucT = domGetPropValuePtr(nodeset->nodeTab[i], BAD_CAST "done"))) {
 	  }
 	  else if ((pucT = domGetPropValuePtr(nodeset->nodeTab[i], BAD_CAST "mtime2"))) {
+	    /* dir listing */
 	  }
 	  else if ((pucT = domGetPropValuePtr(nodeset->nodeTab[i], BAD_CAST "MODIFIED"))) {
+	    /* Freemind XML Format */
 	  }
 	  else {
 	  }

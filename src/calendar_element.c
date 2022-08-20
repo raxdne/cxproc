@@ -25,7 +25,7 @@
 
 #include "basics.h"
 #include "utils.h"
-#include <cxp/calendar_element.h>
+#include "calendar_element.h"
 
 /*\todo s. http://unicode.org/reports/tr35/tr35-dates.html */
 
@@ -283,6 +283,71 @@ PrintCalendarElement(pieCalendarElementPtr pceArg)
 \param pceArgResult
 \return NULL in case of error, else pointer to xmlChar after date expression string
  */
+pieCalendarElementPtr
+SplitCalendarElementRecurrences(pieCalendarElementPtr pceArg)
+{
+  pieCalendarElementPtr pceResult = NULL;
+
+  if (pceArg != NULL && pceArg->iRecurrence > 0) {
+    pieCalendarElementPtr pceI;
+
+    for (pceI = CalendarElementDup(pceArg); pceI != NULL && pceI->iRecurrence > 0; pceI->iRecurrence--) {
+      pieCalendarElementPtr pceT;
+
+      pceT = CalendarElementDup(pceI);
+      if (pceT) {
+	pceT->iRecurrence = 0;
+	if (pceResult) {
+	  CalendarElementListAdd(pceResult, pceT);
+	}
+	else {
+	  pceResult = pceT;
+	}
+      }
+
+      if (pceI->dtBegin > 0) {
+	if (pceI->period.w != 0) {
+	  /* date/week-period */
+	  pceI->dtBegin += pceI->period.w * 7;
+	}
+	else {
+	  pceI->dtBegin = dt_add_years(pceI->dtBegin, pceI->period.y, DT_EXCESS);
+	  pceI->dtBegin = dt_add_months(pceI->dtBegin, pceI->period.m, DT_EXCESS);
+	  pceI->dtBegin += pceI->period.d;
+	}
+      }
+      else if (pceI->dtEnd > 0) {
+	if (pceI->period.w != 0) {
+	  /* week-period/date */
+	  pceI->dtEnd -= pceI->period.w * 7;
+	}
+	else {
+	  pceI->dtEnd = dt_add_years(pceI->dtEnd, - pceI->period.y, DT_EXCESS);
+	  pceI->dtEnd = dt_add_months(pceI->dtEnd, - pceI->period.m, DT_EXCESS);
+	  pceI->dtEnd -= pceI->period.d;
+	}
+      }
+      else {
+      }
+
+    }
+    CalendarElementFree(pceI);
+  }
+
+  return pceResult;
+} /* end of SplitCalendarElementRecurrences() */
+
+
+
+/*! Scans 'pceArgResult' for a datum description and write the results to
+  the given addresses.
+
+  skips further scans if result pointer is NULL (speedup for
+  calGetYearMinMax())
+
+\param pceArgResult
+\return NULL in case of error, else pointer to xmlChar after date expression string
+ */
 BOOL_T
 ScanCalendarElementDate(pieCalendarElementPtr pceArgResult)
 {
@@ -435,11 +500,37 @@ ScanCalendarElementDate(pieCalendarElementPtr pceArgResult)
 
 	  /*! implicit intervals (whole year, month, week) */
 
-	  if (pucT[n] == '-' && isdigit(pucT[n + 1]) && isdigit(pucT[n + 2]) && !isdigit(pucT[n + 3])) {
+	  if (pucT[n] == '/' && isdigit(pucT[n + 1]) && isdigit(pucT[n + 2]) && isdigit(pucT[n + 3]) && isdigit(pucT[n + 4]) && !isiso8601(pucT[n + 5])) {
+	    /* ISO 8601 YYYY/YYYY */
+	    int z;
+
+	    z = 1000 * (pucT[n + 1] - '0') + 100 * (pucT[n + 2] - '0') + 10 * (pucT[n + 3] - '0') + (pucT[n + 4] - '0');
+	    if (z > -1 && z < 2999) {
+	      pceArgResult->dtBegin = dt_from_yd(y, 1);
+	      pceArgResult->dtEnd = dt_from_yd(z+1, 0);
+	      n += 5;
+	    }
+	    else {
+	      n = 0;
+	    }
+	  }
+	  else if (pucT[n] == '-' && isdigit(pucT[n + 1]) && isdigit(pucT[n + 2]) && !isdigit(pucT[n + 3])) {
 	    /* ISO 8601 YYYY-MM */
 	    m = 10 * (pucT[n + 1] - '0') + (pucT[n + 2] - '0');
 	    if (m > 0 && m < 13) {
 	      n += 3;
+	      pceArgResult->dtBegin = dt_from_ymd(y, m, 1);
+	      pceArgResult->dtEnd = dt_end_of_month(pceArgResult->dtBegin, 0);
+	    }
+	    else {
+	      n = 0;
+	    }
+	  }
+	  else if (isdigit(pucT[n]) && isdigit(pucT[n + 1]) && !isdigit(pucT[n + 2])) {
+	    /* ISO 8601 YYYYMM */
+	    m = 10 * (pucT[n] - '0') + (pucT[n + 1] - '0');
+	    if (m > 0 && m < 13) {
+	      n += 2;
 	      pceArgResult->dtBegin = dt_from_ymd(y, m, 1);
 	      pceArgResult->dtEnd = dt_end_of_month(pceArgResult->dtBegin, 0);
 	    }
@@ -454,18 +545,6 @@ ScanCalendarElementDate(pieCalendarElementPtr pceArgResult)
 	      n += 4;
 	      pceArgResult->dtBegin = dt_from_ywd(y, w, 1);
 	      pceArgResult->dtEnd = dt_end_of_week(pceArgResult->dtBegin, 1);
-	    }
-	    else {
-	      n = 0;
-	    }
-	  }
-	  else if (isdigit(pucT[n]) && isdigit(pucT[n + 1]) && !isdigit(pucT[n + 2])) {
-	    /* ISO 8601 YYYYMM */
-	    m = 10 * (pucT[n] - '0') + (pucT[n + 1] - '0');
-	    if (m > 0 && m < 13) {
-	      n += 2;
-	      pceArgResult->dtBegin = dt_from_ymd(y, m, 1);
-	      pceArgResult->dtEnd = dt_end_of_month(pceArgResult->dtBegin, 0);
 	    }
 	    else {
 	      n = 0;
@@ -513,6 +592,175 @@ ScanCalendarElementDate(pieCalendarElementPtr pceArgResult)
 } /* end of ScanCalendarElementDate() */
 
 
+/*! insert a day diff attribute to pndArg
+*/
+BOOL_T
+AddNodeDateAttributes(xmlNodePtr pndArg, xmlChar* pucArg)
+{
+  BOOL_T fResult = FALSE;
+  xmlChar* pucDate;
+
+  if (pndArg != NULL
+      && ((STR_IS_NOT_EMPTY(pucArg) && (pucDate = pucArg))
+	  || ((pndArg->children != NULL && (pucDate = pndArg->children->content) != NULL)))) {
+    pieCalendarElementPtr pceT;
+
+    if ((pceT = CalendarElementNew(pucDate))) {
+      time_t t;
+      dt_t iDayToday;
+      long int iDayDiff = 0;
+      pieCalendarElementPtr pceList;
+
+      time(&t); /*!\todo reduce number of calls of time()/localtime() */
+      iDayToday = dt_from_struct_tm(localtime(&t));
+
+      if (ScanCalendarElementDate(pceT)) {
+	xmlChar mpucT[BUFFER_LENGTH];
+	xmlChar* pucDisplay = NULL;
+	pieCalendarElementPtr pceI;
+
+
+	if ((pceList = SplitCalendarElementRecurrences(pceT))) {
+	  mpucT[0] = '\0';
+	  for (pceI = pceList; pceI; pceI = pceI->pNext) {
+	    xmlStrPrintf(mpucT, BUFFER_LENGTH, "%04i-%02i-%02i",
+	      dt_year(pceI->dtBegin > 0 ? pceI->dtBegin : pceI->dtEnd), 
+	      dt_month(pceI->dtBegin > 0 ? pceI->dtBegin : pceI->dtEnd), 
+	      dt_dom(pceI->dtBegin > 0 ? pceI->dtBegin : pceI->dtEnd));
+
+	    if (pucDisplay) {
+	      if (pceI->dtBegin > 0) {
+		pucDisplay = xmlStrcat(pucDisplay, ",");
+		pucDisplay = xmlStrcat(pucDisplay, mpucT);
+	      }
+	      else {
+		xmlChar* pucT;
+
+		pucT = xmlStrdup(mpucT);
+		pucT = xmlStrcat(pucT, ",");
+		pucDisplay = xmlStrcat(pucT, pucDisplay);
+		// xmlFree(pucDisplay);
+	      }
+	    }
+	    else {
+	      pucDisplay = xmlStrdup(mpucT);
+	    }
+	  }
+	  CalendarElementFree(pceList);
+	  domSetPropEat(pndArg, BAD_CAST"iso", pucDisplay);
+	}
+	else {
+	  xmlStrPrintf(mpucT, BUFFER_LENGTH, "%04i-%02i-%02i", dt_year(pceT->dtBegin), dt_month(pceT->dtBegin), dt_dom(pceT->dtBegin));
+	  xmlSetProp(pndArg, BAD_CAST"iso", mpucT);
+	}
+
+
+
+	//xmlStrPrintf(mpucT, BUFFER_LENGTH, "%li", pceT->dtBegin);
+	//xmlSetProp(pndArg, BAD_CAST"abs", mpucT);
+
+
+	if (pceT->dtEnd > pceT->dtBegin) {
+	  /* an interval end */
+
+	  xmlStrPrintf(mpucT, BUFFER_LENGTH, "%04i-%02i-%02i", dt_year(pceT->dtEnd), dt_month(pceT->dtEnd), dt_dom(pceT->dtEnd));
+	  xmlSetProp(pndArg, BAD_CAST"b", mpucT);
+
+	  xmlStrPrintf(mpucT, BUFFER_LENGTH, "%li", pceT->dtEnd - pceT->dtBegin + 1);
+	  xmlSetProp(pndArg, BAD_CAST"interval", mpucT);
+
+	  if (pceT->dtEnd < iDayToday) {
+	    /* date interval ends before today */
+	    iDayDiff = pceT->dtEnd - iDayToday;
+	  }
+	  else if (iDayToday < pceT->dtBegin) {
+	    /* date interval begins after today */
+	    iDayDiff = pceT->dtBegin - iDayToday;
+	  }
+	  else {
+	    /* today is in date interval */
+	  }
+	}
+	else {
+	  /* no interval end, single date */
+	  iDayDiff = pceT->dtBegin - iDayToday;
+	}
+
+	xmlStrPrintf(mpucT, BUFFER_LENGTH, "%li", iDayDiff);
+	xmlSetProp(pndArg, BAD_CAST"diff", mpucT);
+
+	fResult = TRUE;
+      }
+    }
+    
+#if 0
+
+      if (pceT->iMonth > 0 && pceT->iDay > 0) {
+
+	if (pceT->iHourA > -1 && pceT->iMinuteA > -1 && pceT->iSecondA > -1) {
+	  xmlStrPrintf(mpucT, BUFFER_LENGTH,
+	    "%04i-%02i-%02iT%02i:%02i:%02i",
+	    pceT->iYear,
+	    pceT->iMonth,
+	    pceT->iDay,
+	    pceT->iHourA,
+	    pceT->iMinuteA,
+	    pceT->iSecondA
+	  );
+
+	  if (pceT->iTimezoneOffset) {
+	    xmlChar* pucT = NULL;
+
+	    if (pceT->iTimezoneOffset < 0) {
+	      pucT = xmlStrncatNew(mpucT, BAD_CAST STR_UTF8_MINUS, -1);
+	    }
+	    else if (pceT->iTimezoneOffset > 0) {
+	      pucT = xmlStrncatNew(mpucT, BAD_CAST "+", -1);
+	    }
+
+	    xmlStrPrintf(mpucT, BUFFER_LENGTH - 1, "%s%02i:%02i", pucT, (abs(pceT->iTimezoneOffset) / 60), (abs(pceT->iTimezoneOffset) % 60));
+	    xmlFree(pucT);
+	  }
+
+	  if (pceT->iTimezone) {
+	    xmlSetProp(pndArg, BAD_CAST "tz", tzGetId(pceT->iTimezone));
+	  }
+	}
+	else {
+	}
+      }
+
+    if (STR_IS_NOT_EMPTY(mpucT)) {
+
+      if (pceT->iHourA > -1) {
+	xmlStrPrintf(mpucT, BUFFER_LENGTH - 1, "%02i", (pceT->iHourA > -1) ? pceT->iHourA : 0);
+	xmlSetProp(pndArg, BAD_CAST "hour", mpucT);
+
+	xmlStrPrintf(mpucT, BUFFER_LENGTH - 1, "%02i", (pceT->iMinuteA > -1) ? pceT->iMinuteA : 0);
+	xmlSetProp(pndArg, BAD_CAST "minute", mpucT);
+
+	xmlStrPrintf(mpucT, BUFFER_LENGTH - 1, "%02i", (pceT->iSecondA > -1) ? pceT->iSecondA : 0);
+	xmlSetProp(pndArg, BAD_CAST "second", mpucT);
+
+	if (pceT->iHourB > -1) {
+	  xmlStrPrintf(mpucT, BUFFER_LENGTH - 1, "%02i", (pceT->iHourB > -1) ? pceT->iHourB : 0);
+	  xmlSetProp(pndArg, BAD_CAST "hour-end", mpucT);
+
+	  xmlStrPrintf(mpucT, BUFFER_LENGTH - 1, "%02i", (pceT->iMinuteB > -1) ? pceT->iMinuteB : 0);
+	  xmlSetProp(pndArg, BAD_CAST "minute-end", mpucT);
+
+	  xmlStrPrintf(mpucT, BUFFER_LENGTH - 1, "%02i", (pceT->iSecondB > -1) ? pceT->iSecondB : 0);
+	  xmlSetProp(pndArg, BAD_CAST "second-end", mpucT);
+	}
+      }
+    }
+#endif
+
+    return fResult;
+  } 
+} /* End of AddNodeDateAttributes() */
+
+  
 /*!
 */
 dt_t

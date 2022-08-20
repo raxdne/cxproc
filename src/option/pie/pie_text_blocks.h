@@ -20,7 +20,7 @@
 */
 
 #include <pie/pie_dtd.h>
-#include <cxp/calendar_element.h>
+#include "calendar_element.h"
 #include <pie/pie_element.h>
 
 #ifdef PIE_STANDALONE
