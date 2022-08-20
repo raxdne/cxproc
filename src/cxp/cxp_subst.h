@@ -52,6 +52,10 @@ struct _cxpSubst {
   xmlChar *pucScriptResult;
 #endif
 
+#ifdef HAVE_PCRE2
+  pcre2_code *preFrom;
+#endif
+  
   BOOL_T  fReplaceInAttr;
 
   /*! different encodings of subst */
@@ -84,6 +88,13 @@ cxpSubstIncludeNodes(xmlNodePtr pndArg,cxpContextPtr pccArg);
 
 extern xmlChar *
 cxpSubstGetPtr(cxpSubstPtr pcxpSubstArg);
+
+#ifdef HAVE_PCRE2
+
+extern pcre2_code*
+cxpSubstGetRegExp(cxpSubstPtr pcxpSubstArg);
+
+#endif
 
 extern xmlChar *
 _cxpSubstGetDefaultPtr(cxpSubstPtr pcxpSubstArg);

@@ -23,8 +23,6 @@
 
 #define PARENTSTRING_LENGTH_MAX 20 /* maximum string length for generated parent header string */
 
-#define CXP_PIE_URL (BAD_CAST "http://www.tenbusch.info/pie")
-
 extern xmlDocPtr
 pieProcessPieNode(xmlNodePtr pndMakePie, cxpContextPtr pccArg);
 
@@ -33,6 +31,9 @@ pieGetParentHeaderStr(xmlNodePtr pndN);
 
 extern xmlChar *
 pieGetAncestorContextStr(xmlNodePtr pndArg);
+
+extern BOOL_T
+pieWeightXPathInDoc(xmlDocPtr pdocArg, xmlChar *pucArg);
 
 extern void
 pieTextCleanup(void);

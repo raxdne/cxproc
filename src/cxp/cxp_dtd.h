@@ -28,11 +28,7 @@
 
 #define NAME_MAKE BAD_CAST "make"
 
-#define NAME_META BAD_CAST "meta"
-
 #define NAME_DESCRIPTION BAD_CAST "description"
-
-#define NAME_ERROR BAD_CAST "error"
 
 #define NAME_FROM BAD_CAST "from"
 
@@ -122,8 +118,6 @@
 #define IS_COMMENT(NODE) (NODE != NULL && NODE->type == XML_COMMENT_NODE && NODE->content != NULL)
 
 #define IS_NODE_MAKE(NODE) (IS_NODE(NODE,NAME_MAKE))
-
-#define IS_NODE_META(NODE) (IS_NODE(NODE,NAME_META))
 
 #define IS_NODE_DESCRIPTION(NODE) (IS_NODE(NODE,NAME_DESCRIPTION))
 

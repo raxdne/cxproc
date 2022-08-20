@@ -21,6 +21,16 @@
 
 #define CXP_VERSION_BUILD_STR "0000"
 
+/* https://docs.microsoft.com/en-us/cpp/preprocessor/predefined-macros */
+
+#ifndef CXP_TIMESTAMP_BUILD
+  #ifndef __DATE__
+    #define CXP_TIMESTAMP_BUILD "0000-00-00 00:00:00"
+  #else
+    #define CXP_TIMESTAMP_BUILD __DATE__ " " __TIME__
+  #endif
+#endif
+
 /*!\todo define permanent namespace URL */
 
 #define CXP_VERSION_URL      "https://github.com/raxdne/cxproc"

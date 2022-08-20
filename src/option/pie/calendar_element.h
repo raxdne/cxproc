@@ -25,6 +25,7 @@ typedef enum {
   DATE_DAY,
   DATE_MONTH,
   DATE_WEEK,
+  DATE_WEEK_ISO,
   DATE_YEAR,
   DATE_EASTER,
   DATE_GERMAN,
@@ -176,6 +177,9 @@ ScanCalendarElementDate(pieCalendarElementPtr pceArgResult);
 
 extern BOOL_T
 ScanCalendarElementTime(pieCalendarElementPtr pceArg);
+
+extern BOOL_T
+UpdateCalendarElementDate(pieCalendarElementPtr pceArg);
 
 extern xmlChar *
 EndOfDate(xmlChar *pucArg);

@@ -337,7 +337,7 @@ dbParseDirTraverse(resNodePtr prnArgDb, resNodePtr prnArgContext, int iDepthArg,
       dbInsertMetaLog(prnArgDb, BAD_CAST"error/parse+list", resNodeGetNameNormalized(prnArgContext));
     }
 
-    pucStatement = resNodeToSql(prnArgContext, 1);
+    pucStatement = resNodeToSQL(prnArgContext, 1);
     dbInsert(prnArgDb, pucStatement);
     xmlFree(pucStatement);
   }
@@ -386,7 +386,7 @@ dbParseDirTraverse(resNodePtr prnArgDb, resNodePtr prnArgContext, int iDepthArg,
 #endif
       }
 
-      pucStatement = resNodeToSql(prnArgContext, 1);
+      pucStatement = resNodeToSQL(prnArgContext, 1);
       dbInsert(prnArgDb, pucStatement);
       xmlFree(pucStatement);
     }
@@ -458,13 +458,9 @@ dbProcessDirNode(resNodePtr prnArgDb, xmlNodePtr pndArgDir, cxpContextPtr pccArg
 
   xmlChar mpucT[BUFFER_LENGTH];
   pcre2_code *re_match = NULL;
-#ifdef HAVE_PCRE2
-  int erroffset = 0;
-  int opt_match_pcre = PCRE2_UTF;
-#endif
   
   if (IS_VALID_NODE(pndArgDir) == FALSE) {
-    return NULL;
+    return FALSE;
   }
 
   /*!\todo set depth attribute per single dir element, instead of global */
@@ -486,6 +482,7 @@ dbProcessDirNode(resNodePtr prnArgDb, xmlNodePtr pndArgDir, cxpContextPtr pccArg
     && xmlStrlen(pucAttrMatch) > 0)) {
     size_t erroroffset;
     int errornumber;
+    int opt_match_pcre = PCRE2_UTF;
 
     if (xmlHasProp(pndArgDir, BAD_CAST "imatch")) {
       cxpCtxtLogPrint(pccArg,2, "Use caseless file match '%s' in %s with depth '%i'", pucAttrMatch, NAME_DIR, iDepth);
@@ -506,7 +503,7 @@ dbProcessDirNode(resNodePtr prnArgDb, xmlNodePtr pndArgDir, cxpContextPtr pccArg
     if (re_match == NULL) {
       /* regexp error handling */
       dbInsertMetaLog(prnArgDb, BAD_CAST "error/regexp", pucAttrMatch);
-      return NULL;
+      return FALSE;
     }
   }
 #endif

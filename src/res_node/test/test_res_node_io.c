@@ -454,9 +454,9 @@ resNodeTestInOut(void)
     xmlDocPtr pdocT = NULL;
 
     i++;
-    printf("TEST %i in '%s:%i': read a global HTTP file context as DOM = ",i,__FILE__,__LINE__);
+    printf("TEST %i in '%s:%i': read a global HTTPS file context as DOM = ",i,__FILE__,__LINE__);
 
-    if ((prnT = resNodeDirNew(BAD_CAST "http://www.tagesschau.de/newsticker.rdf")) == NULL) {
+    if ((prnT = resNodeDirNew(BAD_CAST "https://www.tagesschau.de:443/newsticker.rdf")) == NULL) {
       printf("Error resNodeDirNew()\n");
     }
     else if ((pdocT = resNodeGetContentDoc(prnT)) == NULL) {
@@ -513,23 +513,31 @@ resNodeTestInOut(void)
   }
 
 
+#if HAVE_LIBARCHIVE
+  
   if (RUNTEST) {
     resNodePtr prnT = NULL;
     resNodePtr prnChild = NULL;
 
     i++;
-    printf("TEST %i in '%s:%i': open, read and close a HTTP archive resource (resNodeGetContent) = ", i, __FILE__, __LINE__);
+    printf("TEST %i in '%s:%i': open, read and close a HTTP archive resource (" HTTPPREFIX ") = ", i, __FILE__, __LINE__);
 
-    if ((prnT = resNodeDirNew(BAD_CAST HTTPPREFIX "test-zip-7.zip/sub/plain.txt")) == NULL) {
+    if ((prnT = resNodeDirNew(BAD_CAST HTTPPREFIX "Test/Archive/TestArchive.zip/Test/TestContent.txt")) == NULL || resNodeIsURL(prnT) == FALSE) {
       printf("Error resNodeDirNew()\n");
     }
-    else if ((prnChild = resNodeGetChild(prnT)) == NULL || (prnChild = resNodeGetChild(prnChild)) == NULL) {
-      printf("Error 1 resNodeGetSize()\n");
+    else if ((prnChild = resNodeGetChild(prnT)) == NULL || resNodeIsArchive(prnChild) == FALSE) {
+      printf("Error 1 resNodeGetChild()\n");
+    }
+    else if ((prnChild = resNodeGetChild(prnChild)) == NULL || resNodeIsDirInArchive(prnChild) == FALSE) {
+    printf("Error 1 resNodeGetChild()\n");
+    }
+    else if ((prnChild = resNodeGetChild(prnChild)) == NULL || resNodeIsFileInArchive(prnChild) == FALSE) {
+      printf("Error 1 resNodeGetChild()\n");
     }
     else if (resNodeGetContent(prnChild, 1024) == NULL) {
       printf("Error resNodeGetContent(): there is no content\n");
     }
-    else if (resNodeGetSize(prnChild) != 49) {
+    else if (resNodeGetSize(prnChild) != 45) {
       printf("Error 2 resNodeGetSize()\n");
     }
     else {
@@ -541,6 +549,30 @@ resNodeTestInOut(void)
   }
 
 #endif
+
+#endif
+
+  if (RUNTEST) {
+    resNodePtr prnT = NULL;
+    xmlNodePtr pndT = NULL;
+
+    i++;
+    printf("TEST %i in '%s:%i': reads content of archive file context = ", i, __FILE__, __LINE__);
+
+    if ((prnT = resNodeDirNew(BAD_CAST TESTPREFIX "xml/test-xml-zip.odt")) == NULL) {
+      printf("Error 2 resNodeGetSize()\n");
+    }
+    else if ((pndT = resNodeToDOM(prnT,RN_INFO_MAX)) == NULL) {
+      printf("Error resNodeReadDoc()\n");
+    }
+    else {
+      n_ok++;
+      printf("OK\n");
+    }
+    //domPutNodeString(stderr, BAD_CAST "ODT ", pndT);
+    resNodeFree(prnT);
+  }
+
 
   if (RUNTEST) {
     resNodePtr prnT = NULL;
@@ -562,6 +594,33 @@ resNodeTestInOut(void)
     resNodeFree(prnT);
   }
 
+
+  if (RUNTEST) {
+    xmlDocPtr pdocTest;
+    resNodePtr prnT = NULL;
+
+    i++;
+    printf("TEST %i in '%s:%i': resNodeChangeDomURL() = ", i, __FILE__, __LINE__);
+
+    prnT = resNodeDirNew(BAD_CAST TESTPREFIX "xml/");
+    pdocTest = xmlParseFile(TESTPREFIX "xsl/TestValidate.xsl");
+    if (pdocTest) {
+      resNodeChangeDomURL(pdocTest, prnT);
+      if (xmlStrEqual(pdocTest->URL, resNodeGetURI(prnT))) {
+	n_ok++;
+	printf("OK\n");
+      }
+      else {
+	printf("Error\n");
+      }
+    }
+    else {
+      printf("Error\n");
+    }
+
+    xmlFreeDoc(pdocTest);
+    resNodeFree(prnT);
+  }
 
   printf("\nResult in '%s': %i/%i OK\n\n",__FILE__,n_ok,i);
 

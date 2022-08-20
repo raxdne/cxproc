@@ -1,0 +1,578 @@
+
+TAGS: Markdown|Emacs|CSV
+
+* PIE
+
+check also https://github.com/raxdne/pie
+
+** Why?
+
+structured and tagged plain text input format into structured XML
+
+following ways to markup structure
+
++ Markdown
+
++ Emacs Outline Mode
+
++ CSV
+
++ Line/Log
+
+
+inline markup is Markdown
+
+hash tags
+
+some additional markup for todos, bugs, impact
+
+** Document Structure
+
+*** Emacs Outline Mode
+
+s. https://www.emacswiki.org/emacs/OutlineMode
+
+http://www.gnu.org/software/emacs/manual/html_node/emacs/Outline-Mode.html
+
+*** Markdown
+
+https://spec.commonmark.org/0.29/
+
+*** CSV
+
+*** Log
+
+** Inline Markup
+
+s. Links
+
+http://microformats.org/wiki/Main_Page
+
+*** Formats
+
+slanted
+
+strong
+
+pre-formatted
+
+*** Elements
+
+regexp for automatic tagging
+
+Tags
+
+Anchors
+
+URLs
+
+TODO|TEST|BUG|TARGET
+
+Impact
+
+Dates
+
+*** Validation
+
+`✘` and `✔`
+
+*** Special Chars
+
+Unicode
+
+** File Assembling/Processing
+
+*** `include`
+
+pie element to include a simple file without processing
+
+simple substitutions
+
+assembling of large text documents
+
+
+*** `import`
+
+pie element to process and import a simple file
+
+pie element with simple file import
+
+#begin_of_pre
+<cxp:xml name="../../tmp/test-pie-1.pie">
+  <cxp:pie>
+    <import name="test-pie-1.txt"/>
+  </cxp:pie>
+</cxp:xml>
+#end_of_pre
+
+import with attributes and transformation into HTML
+
+attributes
+
+- validation
+
+- date
+
+- offset
+
+- url
+
+- figure
+
+- italics
+
+- xpath
+
+- tags
+
+- hidden
+
+#begin_of_pre
+<cxp:xhtml name="../../tmp/test-pie-6.html">
+  <cxp:xml name="../../tmp/test-pie-6.pie">
+    <cxp:pie url="yes" figure="yes" date="yes" xpath="yes">
+      <import name="test-pie-6.txt"/>
+    </cxp:pie>
+  </cxp:xml>
+  <cxp:xsl name="Validate.xsl"/>
+  <cxp:xsl name="pie2html.xsl"/>
+</cxp:xhtml>
+#end_of_pre
+
+more complex import with nested configuration
+
+#begin_of_pre
+<cxp:xhtml name="../../tmp/test-pie-9.html">
+  <cxp:xml name="../../tmp/test-pie-9.pie">
+    <cxp:pie url="yes" figure="no" date="yes" xpath="yes">
+      <import name="../../tmp/test-pie-8.pie">
+        <xsl xpath="/pie/section[1]/section[2]"/>
+      </import>
+      <import type="cxp">
+        <xml>
+          <xml name="none.mm"/>
+          <xsl name="mm2pie.xsl"/>
+        </xml>
+      </import>
+    </cxp:pie>
+    <cxp:xsl name="Validate.xsl"/>
+  </cxp:xml>
+  <cxp:xsl name="pie2html.xsl"/>
+</cxp:xhtml>
+#end_of_pre
+
+
+#begin_of_pre
+<cxp:xml name="../../tmp/test-pie-10.pie">
+  <cxp:pie url="no" figure="no" date="no">
+    <import name="test-pie-10.txt" type="line"/>
+    <import name="../calendar/feiertage.gcal" type="line"/>
+  </cxp:pie>
+</cxp:xml>
+#end_of_pre
+
+different types of plain files
+
+#begin_of_pre
+<cxp:xml name="../../tmp/test-pie-11.pie">
+  <cxp:pie url="no" figure="no" date="no" tags="yes">
+    <import name="test-pie-11.txt" type="csv"/>
+    <!-- default separator -->
+    <import name="test-pie-11b.txt" type="csv" sep=" *:: *"/>
+    <import name="../calendar/feiertage.gcal" type="line"/>
+    <import name="test-csv-1.csv" type="csv"/>
+  </cxp:pie>
+</cxp:xml>
+#end_of_pre
+
+concatenation of plain files
+
+#begin_of_pre
+  <cxp:xml name="../../tmp/test-pie-12.pie">
+    <cxp:pie url="no" figure="no" date="no">
+      <import name="test-pie-12a.txt"/>
+      <import name="test-pie-12b.txt"/>
+    </cxp:pie>
+  </cxp:xml>
+#end_of_pre
+
+Mix of files and strings
+
+#begin_of_pre
+  <cxp:xml name="../../tmp/test-pie-13.pie">
+    <cxp:pie>
+      <cxp:plain>
+		* FGHI
+	    </cxp:plain>
+      <cxp:plain>
+		** JKLMÖÄÜßHH
+	    </cxp:plain>
+      <cxp:plain name="test-pie-1.txt"/>
+      <cxp:plain>
+		ABCDE
+	    </cxp:plain>
+      <cxp:plain name="test-pie-12b.txt"/>
+    </cxp:pie>
+  </cxp:xml>
+#end_of_pre
+
+
+#begin_of_pre
+  <cxp:xml name="../../tmp/test-pie-13b.pie">
+    <cxp:pie url="yes" figure="no" date="no">
+      <import name="test-pie-13.txt" format="log"/>
+    </cxp:pie>
+  </cxp:xml>
+#end_of_pre
+
+Logfile imports per line and per paragraph
+
+#begin_of_pre
+  <cxp:xml name="../../tmp/test-pie-14.pie">
+    <cxp:pie url="yes" date="yes" figure="no">
+      <import name="test-14a.cal" format="log" type="line"/>
+      <import name="test-14b.cal" format="log"/>
+    </cxp:pie>
+  </cxp:xml>
+#end_of_pre
+
+Logfile import per paragraph and DOM
+
+#begin_of_pre
+  <cxp:xml name="../../tmp/test-pie-14b.pie">
+    <cxp:pie url="yes" figure="no" date="yes">
+      <import name="test-pie-13.txt" format="log"/>
+      <import name="test-pie-14.pie"/>
+    </cxp:pie>
+  </cxp:xml>
+#end_of_pre
+
+Stylesheet shortcut as XPath
+
+#begin_of_pre
+  <cxp:xml name="../../tmp/test-pie-15.pie">
+    <cxp:xml name="../../tmp/test-pie-6.pie"/>
+    <cxp:xsl xpath="/pie/section[1]/section[1]"/>
+  </cxp:xml>
+#end_of_pre
+
+
+#begin_of_pre
+  <cxp:xhtml name="../../tmp/test-pie-16.html">
+    <cxp:xml>
+      <cxp:pie tags="no">
+        <import name="test-pie-16.pie"/>
+      </cxp:pie>
+    </cxp:xml>
+    <cxp:xsl name="pie2html.xsl">
+      <cxp:variable name="flag_tags" select="false()"/>
+    </cxp:xsl>
+  </cxp:xhtml>
+#end_of_pre
+
+
+#begin_of_pre
+  <cxp:xml name="../../tmp/test-pie-17.pie">
+    <cxp:pie tags="no" import="yes">
+      <import name="test-pie-17.pie"/>
+    </cxp:pie>
+  </cxp:xml>
+#end_of_pre
+
+
+#begin_of_pre
+  <cxp:xml name="../../tmp/test-pie-18.pie">
+    <cxp:pie url="yes" figure="no" date="yes" import="yes">
+      <import name="test-pie-9.txt"/>
+    </cxp:pie>
+  </cxp:xml>
+#end_of_pre
+
+import from plain text node
+
+#begin_of_pre
+  <cxp:xml name="../../tmp/test-pie-19.pie">
+    <cxp:pie url="yes" figure="no" date="yes" import="yes">
+      <import>
+
+* ABC
+
+** DDD
+
+*** EEE
+
+fksjhfksh ökäöläröwer
+
+
+      </import>
+    </cxp:pie>
+  </cxp:xml>
+#end_of_pre
+
+import from logformatted text node
+
+#begin_of_pre
+  <cxp:xml name="../../tmp/test-pie-19b.pie">
+    <cxp:pie url="yes" figure="no" date="yes" import="yes">
+      <import type="log">
+20101103 AAA
+20101105 BBB
+20101107 CCC
+20101109 DEF
+      </import>
+    </cxp:pie>
+  </cxp:xml>
+#end_of_pre
+
+
+#begin_of_pre
+  <cxp:xml name="../../tmp/test-pie-21.pie">
+    <cxp:pie url="yes" figure="no" date="yes" import="yes">
+      <section>
+        <h>Empty files</h>
+        <import name="test-pie-21.txt"/>
+        <import name="test-pie-21b.txt"/>
+      </section>
+    </cxp:pie>
+  </cxp:xml>
+  <cxp:xml name="../../tmp/test-pie-22.pie">
+    <cxp:pie url="yes" figure="no" date="yes" import="yes">
+      <import name="test-pie-22.txt"/>
+    </cxp:pie>
+  </cxp:xml>
+#end_of_pre
+
+
+#begin_of_pre
+  <cxp:xml name="../../tmp/test-pie-23a.pie">
+    <cxp:pie url="no" figure="no" date="no">
+      <import name="test-pie-10.txt" type="line" match="sec"/>
+    </cxp:pie>
+  </cxp:xml>
+  <cxp:xml name="../../tmp/test-pie-23b.pie">
+    <cxp:pie url="no" figure="no" date="no">
+      <import name="test-pie-10.txt" type="line" xmatch="sec"/>
+    </cxp:pie>
+  </cxp:xml>
+#end_of_pre
+
+Import via time value, environment, command line arguments or CGI
+
+#begin_of_pre
+  <cxp:xml name="../../tmp/test-pie-23a.pie">
+    <cxp:pie url="no" figure="no" date="no">
+      <import env="SERVER_SOFTWARE" default="'Unknown'"/>
+      <import now="** %Y-%m-%d"/>
+      <import cgi="id" default="'ABC'"/>
+    </cxp:pie>
+  </cxp:xml>
+#end_of_pre
+
+validate
+
+** Examples
+
+*** Hello World
+
+Content `hello.txt`
+
+#begin_of_pre
+
+* Hello World
+
+This is a Test!
+
+#end_of_pre
+
+Command line
+
+#begin_of_pre
+pietextx hello.txt
+#end_of_pre
+
+XML Result
+
+#begin_of_pre
+<?xml version="1.0"?>
+<pie>
+  <block>
+    <section>
+      <h>Hello World</h>
+      <p>This is a Test!</p>
+    </section>
+  </block>
+</pie>
+#end_of_pre
+
+*** Hello Markdown
+
+Content `hello.md`
+
+#begin_of_pre
+
+# Hello Markdown
+This is a Test!
+
+#end_of_pre
+
+*** Hello CSV
+
+Content `hello.csv`
+
+#begin_of_pre
+sep=;
+* Hello;World
+This;is a;Test!
+
+#end_of_pre
+
+*** XML Result
+
+Command line (s. <./examples/>)
+
+#begin_of_pre
+filex examples/*
+#end_of_pre
+
+#begin_of_pre
+<?xml version="1.0" encoding="UTF-8"?>
+<dir>
+  <file name="hello.csv" prefix=".../doc/option/pie/examples" type="text/csv" ext="csv" size="37" mtime="1656762822" mtime2="2022-07-02T13:53:42" read="yes" write="yes" execute="no" hidden="no">
+    <pie>
+      <block type="table" context="file://.../doc/option/pie/examples/hello.csv">
+        <table cols="3" rows="3">
+          <tr>
+            <th>Hello</th>
+            <th>World</th>
+            <th> </th>
+          </tr>
+          <tr>
+            <td>This</td>
+            <td>is a</td>
+            <td>Test!</td>
+          </tr>
+          <t>#table</t>
+        </table>
+      </block>
+      <meta>
+        <t>
+          <t>#table</t>
+        </t>
+      </meta>
+    </pie>
+  </file>
+  <file name="hello.md" prefix=".../doc/option/pie" type="text/markdown" ext="md" size="34" mtime="1656761765" mtime2="2022-07-02T13:36:05" read="yes" write="yes" execute="no" hidden="no">
+    <pie>
+      <block type="markdown" context="file://.../doc/option/pie/hello.md">
+        <section>
+          <h>Hello Markdown</h>
+          <p>This is a Test!</p>
+        </section>
+      </block>
+      <meta>
+        <t/>
+      </meta>
+    </pie>
+  </file>
+  <file name="hello.txt" prefix=".../doc/option/pie" type="text/plain" ext="txt" size="34" mtime="1656761570" mtime2="2022-07-02T13:32:50" read="yes" write="yes" execute="no" hidden="no">
+    <pie>
+      <block context="file://.../doc/option/pie/hello.txt">
+        <section>
+          <h>Hello World</h>
+          <p>This is a Test!</p>
+        </section>
+      </block>
+      <meta>
+        <t/>
+      </meta>
+    </pie>
+  </file>
+</dir>
+#end_of_pre
+
+;*** Create Markdown output from a MS Word File
+
+;*** Use a directory structure as document structure
+
+*** Task Management
+
+*** Blocks
+
+**** pre-formatted
+
+starts with line `#begin_of_pre` and end with `#end_of_pre`
+
+**** skip
+
+#begin_of_pre
+#begin_of_skip
+This will be skipped!
+#end_of_skip
+#end_of_pre
+
+**** cxp
+
+#begin_of_pre
+#begin_of_cxp
+...
+#end_of_cxp
+#end_of_pre
+
+**** CSV
+
+#begin_of_pre
+#begin_of_csv
+sep=,
+A,B,C
+D,E,,F
+#end_of_csv
+#end_of_pre
+
+result
+
+#begin_of_csv
+sep=,
+A,B,C
+D,E,,F
+#end_of_csv
+
+*** Tagging
+
+** Editors
+
+*** Emacs
+
+TODO: insert pie configuration ++
+
+*** Notepad++
+
+*** VSCode?
+
+** Frontends
+
+*** cxproc
+
+*** cxproc-cgi
+
+*** filex
+
+#begin_of_pre
+filex *.txt > out.pie
+#end_of_pre
+
+*** pietextx
+
+#begin_of_pre
+cat *.txt | pietextx > out.pie
+#end_of_pre
+
+#begin_of_pre
+find . -type f -iname '*.txt' | pietextx -f > out.pie
+#end_of_pre
+
+** Similar Approaches
+
+Pandoc
+
+Rest
+

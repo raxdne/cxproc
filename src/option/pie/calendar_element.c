@@ -99,21 +99,18 @@ ScanDateIterationStepTo(pieCalendarElementPtr pceArg);
 static BOOL_T
 ScanDateIterationStepOffset(pieCalendarElementPtr pceArg);
 
-static BOOL_T
-UpdateCalendarElementDate(pieCalendarElementPtr pceArg);
-
 
 /*!
 */
 BOOL_T
 ceInit(void)
 {
-  xmlChar *pucEnvDate = NULL;
   BOOL_T fResult = TRUE;
   
-  //pucEnvDate = cxpCtxtEnvGetValueByName(NULL,BAD_CAST"CXP_DATE");
-  fResult = (UpdateToday(pucEnvDate) > 0);
-  xmlFree(pucEnvDate);
+  /* mit Systemzeit initialisieren */
+  time(&system_zeit);
+  memcpy(&timeNow, localtime(&system_zeit), sizeof(struct tm));
+  UpdateToday(NULL); /* update if CXP_DATE is set */
 
   /* register for exit() */
   if (atexit(ceCleanup) != 0) {
@@ -414,6 +411,12 @@ ScanCalendarElementDate(pieCalendarElementPtr pceArgResult)
 	return FALSE;
       }
     }
+#ifdef EXPERIMENTAL
+    else if (pucGcal[4]=='-' && pucGcal[5]=='W' && isdigit(pucGcal[6])) {
+      /* ISO Week Date "2006-W22" */
+      eTypeDate = DATE_WEEK_ISO;
+    }
+#endif
     else if (pucGcal[4]=='*'
 	     && (pucGcal[5]=='w' || pucGcal[5]=='W')
 	     && isdigit(pucGcal[6])) {
@@ -537,6 +540,38 @@ ScanCalendarElementDate(pieCalendarElementPtr pceArgResult)
 	pucSepEnd = &pucGcal[4];
       }
     }
+#ifdef EXPERIMENTAL
+    else if (eTypeDate==DATE_WEEK_ISO) {
+      /*
+	eval year/week string
+      */
+      xmlChar *pucE;
+
+      pucE = &pucGcal[6];
+
+      w = (int) strtol((char *)pucE,(char **)&pucE,10);
+      if (pceArgResult) {
+	if (w>-1 && w<54) {
+	}
+	else if (w == 99) {
+	}
+	else {
+	  PrintFormatLog(2,"Ignore '%s': invalid week '%s'", pucGcal, pucE);
+	  return FALSE;
+	}
+      }
+      else {
+	/* this result isn't needed */
+      }
+
+      pucSepEnd = pucE;
+      if (pucE[0] == '-' && isdigit(pucE[1])) {
+	/* entry for a specified day of week found
+	 */
+	d_week = (int) strtol((char *)&pucE[1], (char**)&pucSepEnd, 10);
+      }
+    }
+#endif
     else if (eTypeDate==DATE_WEEK) {
       /*
 	eval year/week string
@@ -989,7 +1024,11 @@ ScanDateIterationStepTo(pieCalendarElementPtr pceArg)
     xmlChar *pucSep = pceArg->pucSep;
 
     if (pceArg->iAnchor > 0 && pucSep != NULL
-	&& pucSep[0] == '#'
+#ifdef EXPERIMENTAL
+      && (pucSep[0] == '#' || pucSep[0] == '/')
+#else
+      && pucSep[0] == '#'
+#endif
 	&& (((pucSep[1]=='w' || pucSep[1]=='W') && isdigit(pucSep[2]))
 	    || (isdigit(pucSep[1])))) {
       /* add the day range to anchor */
@@ -1004,6 +1043,8 @@ ScanDateIterationStepTo(pieCalendarElementPtr pceArg)
 	  pceArg->iStep = 1;
 	  pceArg->iCount = iDelta;
 	  /*!\todo add step size detection "#21.3" */
+	  for (pucSep++; iscal(*pucSep); pucSep++) ;
+	  pceArg->pucSep = pucSep;
 	}
 	else {
 	  PrintFormatLog(1,"Date range error: '%s'",pceArg->pucDate);
@@ -1047,10 +1088,21 @@ ScanDateIterationStepOffset(pieCalendarElementPtr pceArg)
 BOOL_T
 DateIterationFollows(pieCalendarElementPtr pceArg)
 {
-  if (pceArg) {
-    xmlChar *pucSep = pceArg->pucSep;
-
-    return (pceArg->iAnchor > 0 && pucSep != NULL && (pucSep[0] == '-' || pucSep[0] == '+' || pucSep[0] == '.' || pucSep[0] == '#' || pucSep[0] == ':'));
+  if (pceArg != NULL && pceArg->iAnchor > 0 && pceArg->pucSep != NULL) {
+    switch (pceArg->pucSep[0]) {
+    case '-':
+    case '+':
+    case '.':
+    case '#':
+    case ':':
+#ifdef EXPERIMENTAL
+    case '/':
+#endif
+      return TRUE;
+      break;
+    default:
+      break;
+    }
   }
   return FALSE;
 }
@@ -1117,10 +1169,7 @@ ScanDateIteration(pieCalendarElementPtr pceArg)
       }
       else {
 	/*! valid year and valid week */
-	if (pceArg->iDayWeek < 0) {
-	  /*! no valid day of week */
-	}
-	else if (pceArg->iDayWeek == 7) {
+	if (pceArg->iDayWeek < 0 || pceArg->iDayWeek == 7) {
 	  /*! valid year, valid week and all days of week */
 	  pceArg->iAnchor = GetDayAbsolute(pceArg->iYear, -1, -1, pceArg->iWeek, 0);
 	  pceArg->iStep = -1;
@@ -1308,6 +1357,12 @@ calConcatNextDate(xmlChar *pucArgGcal)
       return NULL;
     }
   }
+#ifdef EXPERIMENTAL
+  else if (*pucB == '/') {
+    memcpy(pucArgGcal, &pucB[1], (size_t)xmlStrlen(&pucB[1]) + 1);
+    return pucArgGcal;
+  }
+#endif
 
   return NULL;
 }
@@ -1320,26 +1375,63 @@ long int
 UpdateToday(xmlChar *pucArgToday)
 {
   xmlChar mpucT[BUFFER_LENGTH];
+  xmlChar *pucEnvDate;
 
-  if (pucArgToday) {
+  if (STR_IS_NOT_EMPTY(pucArgToday)) {
     pieCalendarElementPtr pceNew;
 
     pceNew = CalendarElementNew(pucArgToday);
     if (ScanCalendarElementDate(pceNew)) {
       PrintFormatLog(2,"Use '%s' as today",pucArgToday);
-      /*!\todo check values before */
-      memset(&timeNow,'\0',sizeof(struct tm));
-      timeNow.tm_year = pceNew->iYear - 1900;
-      timeNow.tm_mon  = pceNew->iMonth - 1;
-      timeNow.tm_mday = pceNew->iDay;
+      if (pceNew->iYear > 1900) {
+	timeNow.tm_year = pceNew->iYear - 1900;
+	if (pceNew->iMonth > -1) {
+	  timeNow.tm_mon  = pceNew->iMonth - 1;
+	  if (pceNew->iDay > 0) {
+	    timeNow.tm_mday = pceNew->iDay;
+	  }
+	}
+      }
       mktime(&timeNow);
+
+      /*!\todo handle time zone */
+#if 0
+
+    if (tzOffsetToUTC == 9999) {
+      xmlChar *pucEnv;
+
+      /* default timezone of runtime environment (shell, HTTP Server) */
+      if ((pucEnv = cxpCtxtEnvGetValueByName(pccArg, BAD_CAST "CXP_TZ")) || (pucEnv = cxpCtxtEnvGetValueByName(pccArg, BAD_CAST "TZ"))) {
+	tzOffsetToUTC = (int)(60.0f * tzGetOffset(tzGetNumber(pucEnv)));
+      }
+      else {
+#ifdef _MSC_VER
+	// s. http://stackoverflow.com/questions/12112419/getting-windows-time-zone-information-c-mfc
+	// Get the timezone info.
+	//    TIME_ZONE_INFORMATION TimeZoneInfo;
+	//    GetTimeZoneInformation(&TimeZoneInfo);
+
+	// https://msdn.microsoft.com/en-us/library/windows/desktop/ms724318(v=vs.85).aspx
+	//PDYNAMIC_TIME_ZONE_INFORMATION pTimeZoneInformation;
+	DYNAMIC_TIME_ZONE_INFORMATION TimeZoneInformation;
+	GetDynamicTimeZoneInformation(&TimeZoneInformation);
+
+	tzOffsetToUTC = -TimeZoneInformation.Bias;
+#else
+	tzOffsetToUTC = 0;
+#endif
+      }
+    }
+#endif
+      
     }
     CalendarElementFree(pceNew);
   }
+  else if ((pucEnvDate = BAD_CAST getenv("CXP_DATE")) != NULL) {
+    UpdateToday(pucEnvDate);
+  }
   else {
     PrintFormatLog(4,"Use system time as today");
-    /* mit Systemzeit initialisieren */
-    time(&system_zeit);
     memcpy(&timeNow,localtime(&system_zeit),sizeof(struct tm));
   }
 

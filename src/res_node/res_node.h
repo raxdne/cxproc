@@ -68,7 +68,7 @@
 #include <res_node/res_path.h>
 #include <res_node/res_mime.h>
 
-/*! bits for duplicating of resource nodes
+/*! option bits for duplicating of resource nodes
  */
 #define RN_DUP_THIS    (0)
 
@@ -78,7 +78,13 @@
 
 #define RN_DUP_NEXT    (4)
 
-/*! bits for parsing of resource nodes
+#define RN_DUP_EXIST   (8)
+
+#define RN_DUP_READ    (16 | RN_DUP_EXIST)
+
+#define RN_DUP_WRITE   (32 | RN_DUP_EXIST)
+
+ /*! option bits for parsing of resource nodes
  */
 #define RN_INFO_MIN     (0)
 
@@ -548,6 +554,9 @@ extern RN_TYPE
 resNodeGetType(resNodePtr prnArg);
 
 extern xmlChar *
+resNodeGetTypeStr(resNodePtr prnArg);
+
+extern xmlChar *
 resNodeGetNameNormalized(resNodePtr prnArg);
 
 extern char *
@@ -564,6 +573,9 @@ resNodeGetMtime(resNodePtr prnArg);
 
 extern xmlChar *
 resNodeGetMtimeStr(resNodePtr prnArg);
+
+extern long
+resNodeGetMtimeDiff(resNodePtr prnArg);
 
 extern size_t
 resNodeGetSize(resNodePtr prnArg);
@@ -598,11 +610,17 @@ resNodeToDOM(resNodePtr prnArg, int iArgOptions);
 extern xmlChar *
 resNodeToPlain(resNodePtr prnArg, int iArgOptions);
 
+extern xmlChar*
+resNodeToCSV(resNodePtr prnArg, int iArgOptions);
+
+extern xmlChar*
+resNodeToGraphviz(resNodePtr prnArg, int iArgOptions);
+
 extern xmlChar *
 resNodeToJSON(resNodePtr prnArg, int iArgOptions);
 
 extern xmlChar *
-resNodeToSql(resNodePtr prnArg, int iArgOptions);
+resNodeToSQL(resNodePtr prnArg, int iArgOptions);
 
 extern xmlChar *
 resNodeSetProp(resNodePtr prnArg, xmlChar *pucArgKey, xmlChar *pucArgValue);
@@ -612,6 +630,9 @@ resNodeGetProp(resNodePtr prnArg, xmlChar *pucArgKey);
 
 extern BOOL_T
 resNodeContentToDOM(xmlNodePtr pndArg, resNodePtr prnArg);
+
+extern xmlChar*
+resNodeDatabaseSchemaStr(void);
 
 #ifdef TESTCODE
 extern int

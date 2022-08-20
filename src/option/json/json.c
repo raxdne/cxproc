@@ -86,7 +86,7 @@ jsonTransform(xmlNodePtr pndArgJson, const char *js, jsmntok_t *t, size_t count)
     xmlNodePtr pndObject;
     xmlNodePtr pndProperty;
     xmlChar *pucT;
-    int i, j;
+    int c, i, j;
     int ciChilds;
 
     j = 0;
@@ -107,7 +107,7 @@ jsonTransform(xmlNodePtr pndArgJson, const char *js, jsmntok_t *t, size_t count)
 
 	  xmlSetProp(pndProperty,BAD_CAST "type",BAD_CAST "object");
 	  PrintFormatLog(2,"JSON new property object '%s' with %i childs", pucT, ciObjectChilds);
-	  for (h = 0; h < ciObjectChilds; ) {
+	  for (h = 0, c = 0; c < ciObjectChilds; c++) {
 	    xmlChar *pucTT;
 
 	    pucTT = xmlStrndup(BAD_CAST (js + ((t+1+j)+1+h)->start), (((t+1+j)+1+h)->end - ((t+1+j)+1+h)->start));
@@ -128,7 +128,7 @@ jsonTransform(xmlNodePtr pndArgJson, const char *js, jsmntok_t *t, size_t count)
 
 	  xmlSetProp(pndProperty,BAD_CAST "type",BAD_CAST "array");
 	  PrintFormatLog(2,"JSON new property array '%s' with %i childs", pucT, ciArrayChilds);
-	  for (h = 0; h < ciArrayChilds; ) {
+	  for (h = 0, c = 0; c < ciArrayChilds; c++) {
 	    xmlNodePtr pndEntity;
 
 	    pndEntity = xmlNewChild(pndProperty,NULL,BAD_CAST "entity",NULL);
@@ -147,7 +147,7 @@ jsonTransform(xmlNodePtr pndArgJson, const char *js, jsmntok_t *t, size_t count)
   else if (t->type == JSMN_ARRAY) {
     xmlNodePtr pndArray;
     xmlNodePtr pndNew;
-    int i, j;
+    int c, i, j;
     int ciChilds;
 
     j = 0;
@@ -155,7 +155,7 @@ jsonTransform(xmlNodePtr pndArgJson, const char *js, jsmntok_t *t, size_t count)
     xmlSetProp(pndArray,BAD_CAST "type",BAD_CAST "array");
     ciChilds = t->size;
     PrintFormatLog(2,"JSON new array '%s' with %i childs", BAD_CAST "anonymous", ciChilds);
-    for (i = 0; i < ciChilds; i++) {
+    for (c = 0; c < ciChilds; c++) {
       pndNew = xmlNewChild(pndArray,NULL,BAD_CAST "entity",NULL);
       j += jsonTransform(pndNew, js, t+1+j, count-j);
     }
@@ -178,23 +178,26 @@ jsonParseBuffer(xmlNodePtr pndParent, xmlChar *pucArg)
     jsmn_parser p;
     jsmntok_t *tok;
     size_t tokcount = iLength;
-    int r;
 
     /* Prepare parser */
     jsmn_init(&p);
 
     tok = (jsmntok_t *) xmlMalloc(sizeof(*tok) * tokcount);
+    if (tok) {
+      int r;
 
-    r = jsmn_parse(&p, (const char *)pucArg, iLength, tok, tokcount);
-    if (r < 0) {
-      if (r == JSMN_ERROR_NOMEM) {
-	xmlFree(tok);
-	return NULL;
+      r = jsmn_parse(&p, (const char *)pucArg, iLength, tok, tokcount);
+      if (r < 0) {
+	if (r == JSMN_ERROR_NOMEM) {
+	  xmlFree(tok);
+	  return FALSE;
+	}
       }
-    } else {
-      jsonTransform(pndParent, (const char *)pucArg, tok, p.toknext);
+      else {
+	jsonTransform(pndParent, (const char *)pucArg, tok, p.toknext);
+      }
+      xmlFree(tok);
     }
-    xmlFree(tok);
   }
   return fResult;
 } /* end of jsonParseBuffer() */

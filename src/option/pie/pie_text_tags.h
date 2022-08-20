@@ -23,7 +23,7 @@ extern BOOL_T
 RecognizeHashtags(xmlNodePtr pndArg, pcre2_code* preArgHashTag, pcre2_code* preArgBlockTag);
 
 extern BOOL_T
-InheritHashtags(xmlDocPtr pdocArg);
+InheritHashtags(xmlNodePtr pndArgTop, xmlNodePtr pndArg);
 
 extern xmlNodePtr
 ProcessTags(xmlDocPtr pdocPie, xmlChar *pucAttrTags);

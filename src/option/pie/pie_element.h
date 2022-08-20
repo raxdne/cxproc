@@ -19,9 +19,7 @@
 
 */
 
-#ifdef HAVE_PCRE2
 #include <pcre2.h>
-#endif
 
 #define isimpact(C) (C == (xmlChar)'+')
 
@@ -36,8 +34,6 @@ typedef enum {
 
 typedef enum {
   undefined,
-  import,
-  subst,
   header,
   listitem,
   ruler,
@@ -109,9 +105,6 @@ pieElementHasNext(pieTextElementPtr ppeArg);
 extern BOOL_T
 pieElementParse(pieTextElementPtr ppeArg);
 
-extern BOOL_T
-_pieElementUpdateMarkup(pieTextElementPtr ppeArg);
-
 extern int
 pieElementGetDepth(pieTextElementPtr ppeArg);
 
@@ -165,6 +158,9 @@ pieElementIsMetaOrigin(pieTextElementPtr ppeArg);
 
 extern int
 pieElementStrnlenEmpty(xmlChar *pucArg, int iArg);
+
+extern xmlNodePtr
+pieElementNodeSubst(pieTextElementPtr ppeT);
 
 extern xmlNodePtr
 pieElementToDOM(pieTextElementPtr ppeT);

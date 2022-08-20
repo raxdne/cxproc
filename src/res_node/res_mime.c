@@ -26,8 +26,9 @@
 
 /* s. http://en.wikipedia.org/wiki/List_of_file_formats_%28alphabetical%29 */
 static const char* resMimeTypeStr[] = {
-  /* MIME_UNDDEFINED */ "type/undefined",
+  /* MIME_UNDEFINED */ "type/undefined",
   /* MIME_UNKNOWN */ "type/unknown",
+  /* MIME_EMPTY */ "type/empty",
   /*
     Microsoft Office
   */
@@ -174,10 +175,10 @@ static const char* resMimeTypeStr[] = {
 char *
 resMimeGetTypeStr(int iArg)
 {
-  if (iArg >= MIME_UNKNOWN && iArg < MIME_END) {
+  if (iArg >= MIME_UNDEFINED && iArg < MIME_END) {
     return (char *) resMimeTypeStr[iArg];
   }
-  return NULL;
+  return resMimeTypeStr[MIME_UNDEFINED];
 }
 /* end of resMimeGetTypeStr() */
 
@@ -265,6 +266,17 @@ resMimeIsPicture(int iMimeType)
 	  || iMimeType == MIME_IMAGE_WMF
 	  );
 } /* end of resMimeIsPicture() */
+
+
+/*! \return TRUE if iMimeType is a video format
+*/
+BOOL_T
+resMimeIsVideo(int iMimeType)
+{
+  return (iMimeType == MIME_VIDEO_MP4
+	  || iMimeType == MIME_VIDEO_AVI
+	  );
+} /* end of resMimeIsVideo() */
 
 
 /*! \return TRUE if iMimeType is an archive format

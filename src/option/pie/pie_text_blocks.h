@@ -22,7 +22,12 @@
 #include <pie/pie_dtd.h>
 #include <pie/calendar_element.h>
 #include <pie/pie_element.h>
+
+#ifdef PIE_STANDALONE
+#else
 #include "plain_text.h"
+#endif
+
 #include <pie/pie_text_tags.h>
 
 #define CXP_PIE_URL (BAD_CAST "http://www.tenbusch.info/pie")
@@ -33,6 +38,9 @@ typedef enum {
   LANG_FR
 } lang_t;
 
+
+extern xmlNsPtr
+pieGetNs(void);
 
 extern BOOL_T
 CompileRegExpDefaults(void);
@@ -68,7 +76,19 @@ extern xmlNodePtr
 RecognizeDates(xmlNodePtr pndArg, RN_MIME_TYPE eMimeTypeArg);
 
 extern xmlNodePtr
+RecognizeSubsts(xmlNodePtr pndArg);
+
+extern xmlNodePtr
+RecognizeIncludes(xmlNodePtr pndArg);
+
+extern xmlNodePtr
+RecognizeImports(xmlNodePtr pndArg);
+
+extern xmlNodePtr
 RecognizeInlines(xmlNodePtr pndArg);
+
+extern xmlNodePtr
+pieValidateTree(xmlNodePtr pndArg);
 
 extern xmlNodePtr
 CleanUpTree(xmlNodePtr pndArg);
@@ -97,11 +117,20 @@ TransformToTable(xmlNodePtr pndArgParent, xmlNodePtr pndArg, xmlChar *pucPattern
 extern xmlNodePtr
 FindElementNodeLast(xmlNodePtr pndArg);
 
+#ifdef PIE_STANDALONE
+
+#else
+
 extern BOOL_T
 IsImportCircularStr(xmlNodePtr pndArg, xmlChar *pucArgURI);
 
 extern BOOL_T
 IsImportCircular(xmlNodePtr pndArg, resNodePtr prnArg);
+
+extern rmode_t
+GetModeByMimeType(RN_MIME_TYPE tArg);
+
+#endif
 
 extern BOOL_T
 IsImportFromAttr(xmlNodePtr pndArg);
@@ -114,9 +143,6 @@ GetModeByAttr(xmlNodePtr pndArgImport);
 
 extern rmode_t 
 GetModeByExtension(xmlChar *pucArgExt);
-
-extern rmode_t
-GetModeByMimeType(RN_MIME_TYPE tArg);
 
 #ifdef TESTCODE
 extern int

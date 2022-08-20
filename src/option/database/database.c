@@ -448,100 +448,28 @@ BOOL_T
 dbParseDirCreateTables(resNodePtr prnArgDb)
 {
   BOOL_T fResult = TRUE;
-  xmlChar *pucSql = NULL;
-  xmlChar mpucT[BUFFER_LENGTH];
-  char* zErr = NULL;
-  int rc;
-  int i;
   sqlite3 *pdbContext;
 
-  pdbContext = (sqlite3 *)resNodeGetHandleIO(prnArgDb);
+  if ((pdbContext = (sqlite3 *)resNodeGetHandleIO(prnArgDb)) != NULL) {
+    xmlChar *pucSql = NULL;
 
-  if (TableExists(prnArgDb,BAD_CAST"meta") == FALSE) {
-    pucSql = BAD_CAST"create table meta(i INTEGER PRIMARY KEY, timestamp INTEGER, key text, value text);";
-    rc = sqlite3_exec(pdbContext, (const char *)pucSql, NULL, NULL, &zErr);
-    if (rc == SQLITE_OK) {
-    }
-    else if (zErr) {
-      PrintFormatLog(1, "SQL error 'meta': %s\n", zErr);
-      sqlite3_free(zErr);
-      fResult = FALSE;
-    }
-  }
-  dbInsertMetaLog(prnArgDb, BAD_CAST"log/create",NULL);
-
-  if (TableExists(prnArgDb,BAD_CAST"directory") == FALSE) {
-    pucSql = BAD_CAST"create table directory("
-      "i INTEGER PRIMARY KEY, "
-      "depth INTEGER, "
-      "type INTEGER, "
-      "mime INTEGER, "
-      "r INTEGER, "
-      "w INTEGER, "
-      "x INTEGER, "
-      "h INTEGER, "
-#if 0
-      "owner text, "
-#endif
-      "name text, "
-      "ext text, "
-      "object text, "
-      "size INTEGER, "
-      "rsize INTEGER, "
-      "path text, "
-      "mtime INTEGER, "
-      "mtime2 text"
-      ");";
-    rc = sqlite3_exec(pdbContext, (const char *)pucSql, NULL, NULL, &zErr);
-    if (rc == SQLITE_OK) {
-    }
-    else if (zErr) {
-      PrintFormatLog(1, "SQL error 'directory': %s\n", zErr);
-      sqlite3_free(zErr);
-      fResult = FALSE;
-    }
-  }
-
-  if (TableExists(prnArgDb,BAD_CAST"mimetypes") == FALSE) {
-    pucSql = xmlStrdup(BAD_CAST"create table mimetypes(mime INTEGER, name text);");
-    for (i=MIME_UNKNOWN; i < MIME_END; i++) {
-      char *pcMime;
-	
-      pcMime = (char *)resMimeGetTypeStr(i);
-      if (pcMime) {
-	xmlStrPrintf(mpucT,BUFFER_LENGTH, "insert into mimetypes(mime,name) values (%i,\"%s\");", i, BAD_CAST pcMime);
-	pucSql = xmlStrcat(pucSql,mpucT);
+    if ((pucSql = resNodeDatabaseSchemaStr()) != NULL) {
+      char* zErr = NULL;
+      int rc;
+    
+      rc = sqlite3_exec(pdbContext, (const char *)pucSql, NULL, NULL, &zErr);
+      if (rc == SQLITE_OK) {
       }
+      else if (zErr) {
+	PrintFormatLog(1, "SQL error 'meta': %s\n", zErr);
+	sqlite3_free(zErr);
+	fResult = FALSE;
+      }
+      xmlFree(pucSql);
     }
 
-    rc = sqlite3_exec(pdbContext, (const char *)pucSql, NULL, NULL, &zErr);
-    if (rc == SQLITE_OK) {
-    }
-    else if (zErr) {
-      PrintFormatLog(1, "SQL error 'mimetypes': %s\n", zErr);
-      sqlite3_free(zErr);
-      fResult = FALSE;
-    }
-    xmlFree(pucSql);
+    dbInsertMetaLog(prnArgDb, BAD_CAST"log/create",NULL);
   }
-  
-  if (TableExists(prnArgDb,BAD_CAST"queries") == FALSE) {
-    pucSql = BAD_CAST"create table queries(query text);"
-      "insert into queries(query) values (\"SELECT * FROM meta;\");"
-      "insert into queries(query) values (\"SELECT DISTINCT name FROM directory;\");"
-      "insert into queries(query) values (\"SELECT sum(size)/(1024*1024*1024) AS GB FROM directory;\");"
-      "insert into queries(query) values (\"SELECT path || '/' || name AS File,(size / 1048576) AS MB,mtime2 AS MTime FROM directory WHERE (size > 1048576) ORDER BY MB DESC;\");"
-      "insert into queries(query) values (\"SELECT count() AS Count, name AS Name FROM directory GROUP BY name ORDER BY Count DESC;\");";
-    rc = sqlite3_exec(pdbContext, (const char *)pucSql, NULL, NULL, &zErr);
-    if (rc == SQLITE_OK) {
-    }
-    else if (zErr) {
-      PrintFormatLog(1, "SQL error 'queries': %s\n", zErr);
-      sqlite3_free(zErr);
-      fResult = FALSE;
-    }
-  }
-
   return fResult;
 } /* end of dbParseDirCreateTables() */
 

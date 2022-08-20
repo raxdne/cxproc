@@ -286,6 +286,12 @@ resNodeListFindPath(resNodePtr prnArg, xmlChar *pucArgPath, int iArgOptions)
       }
     }
 #endif
+    
+    if (prnResult == NULL && prnArg->parent == NULL && (iArgOptions & RN_FIND_NEXT)) {
+      for (prnI = resNodeGetNext(prnArg); prnI != NULL && prnResult == NULL; prnI = resNodeGetNext(prnI)) {
+	prnResult = resNodeListFindPath(prnI, pucArgPath, iArgOptions & ~RN_FIND_NEXT);
+      }
+    }
   }
   return prnResult;
 } /* end of resNodeListFindPath() */
@@ -614,9 +620,8 @@ resNodeListToSQL(resNodePtr prnArg, int iArgOptions)
     resNodePtr prnChild;
     xmlChar *pucT;
 
-    pucT = resNodeToSql(prnT,iArgOptions);
+    pucT = resNodeToSQL(prnT,iArgOptions);
     pucResult = xmlStrcat(pucResult, pucT);
-    pucResult = xmlStrcat(pucResult, BAD_CAST";");
     xmlFree(pucT);
 
     if ((prnChild = resNodeGetChild(prnT))) {
@@ -761,6 +766,186 @@ resNodeListToPlain(resNodePtr prnArg, int iArgOptions)
   }
   return pucResult;
 } /* end of resNodeListToPlain() */
+
+
+#ifdef DEBUG
+
+/*! Resource Node List To Graphviz
+
+\param prnArg -- resNode tree to build as graphviz string
+\param iArgOptions bits for options 
+\return pointer to buffer with graphviz output
+*/
+xmlChar *
+resNodeListToGraphviz(resNodePtr prnArg, int iArgOptions)
+{
+  xmlChar *pucResult = NULL;
+
+  if (prnArg) {
+    resNodePtr prnT;
+
+    for (prnT = prnArg; prnT; prnT = resNodeGetNext(prnT)) {
+      xmlChar* pucT = NULL;
+      resNodePtr prnChild;
+
+      if ((prnChild = resNodeGetChild(prnT))) {
+	if ((pucT = resNodeListToGraphviz(prnChild, iArgOptions))) {
+	  if (pucResult) {
+	    pucResult = xmlStrcat(pucResult, pucT);
+	    xmlFree(pucT);
+	  }
+	  else {
+	    pucResult = pucT;
+	  }
+	}
+      }
+
+      if ((pucT = resNodeToGraphviz(prnT, iArgOptions))) {
+	if (pucResult) {
+	  pucResult = xmlStrcat(pucResult, pucT);
+	  xmlFree(pucT);
+	}
+	else {
+	  pucResult = pucT;
+	}
+      }
+    }
+  }
+  else {
+    resNodeSetError(prnArg,rn_error_argv,"Error resNodeListToGraphviz()");
+  }
+  return pucResult;
+} /* end of resNodeListToGraphviz() */
+
+#endif
+
+/*! dump a resNode to 'argout' using 'pfArg'
+
+\todo handle links and archives
+
+\param argout -- output stream
+\param prnArg -- resNode to dump
+\param pfArg -- pointer to format function
+
+\return TRUE if successful, FALSE in case of errors
+*/
+BOOL_T
+resNodeListDumpRecursively(FILE *argout, resNodePtr prnArg, xmlChar *(*pfArg)(resNodePtr, int))
+{
+  BOOL_T fResult = FALSE;
+  xmlChar *pucT;
+
+#ifdef HAVE_LIBARCHIVE
+  if (resNodeIsDirInArchive(prnArg)) {
+    resNodePtr prnEntry;
+
+#ifdef DEBUG
+    fputc('/',stderr);
+#endif
+    
+    for (prnEntry = resNodeGetChild(prnArg); prnEntry; prnEntry = resNodeGetNext(prnEntry)) {
+      resNodeListDumpRecursively(argout,prnEntry,pfArg);
+    }
+
+    if ((pucT = (*pfArg)(prnArg, RN_INFO_META))) {
+      fputs((const char*)pucT, argout);
+      xmlFree(pucT);
+    }
+
+    fflush(argout);
+    fResult = TRUE;
+  }
+  else 
+#endif
+  if (resNodeIsDir(prnArg)) {
+    resNodePtr prnRelease;
+
+#ifdef DEBUG
+    fputc('/',stderr);
+#endif
+    
+    if (resNodeDirAppendEntries(prnArg, NULL)) {
+      resNodePtr prnEntry;
+    
+      for (prnEntry = resNodeGetChild(prnArg); prnEntry; prnEntry = resNodeGetNext(prnEntry)) {
+	resNodeListDumpRecursively(argout,prnEntry,pfArg);
+	resNodeIncrRecursiveSize(prnArg, resNodeGetRecursiveSize(prnEntry) + resNodeGetSize(prnEntry));
+      }
+    }
+
+    if ((pucT = (*pfArg)(prnArg, RN_INFO_META))) {
+      fputs((const char*)pucT, argout);
+      xmlFree(pucT);
+    }
+
+    prnRelease = resNodeGetChild(prnArg);
+    resNodeListUnlinkDescendants(prnArg);
+    resNodeListFree(prnRelease);
+
+    fflush(argout);
+    fResult = TRUE;
+  }
+#ifdef HAVE_LIBARCHIVE
+  else if (resNodeIsArchive(prnArg)) {
+    resNodePtr prnRelease;
+
+#ifdef DEBUG
+    fputc('.',stderr);
+#endif
+
+    if (arcAppendEntries(prnArg, NULL, FALSE)) {
+      resNodePtr prnEntry;
+    
+      for (prnEntry = resNodeGetChild(prnArg); prnEntry; prnEntry = resNodeGetNext(prnEntry)) {
+	resNodeListDumpRecursively(argout,prnEntry,pfArg);
+      }
+    }
+    
+    prnRelease = resNodeGetChild(prnArg);
+    resNodeListUnlinkDescendants(prnArg);
+    resNodeListFree(prnRelease);      
+
+    if ((pucT = (*pfArg)(prnArg, RN_INFO_META))) {
+      fputs((const char*)pucT, argout);
+      xmlFree(pucT);
+    }
+
+    fflush(argout);
+    fResult = TRUE;
+  }
+#endif
+
+#if 0
+  else if (resNodeIsURL(prnArg)) {
+    /*  */
+    fResult = TRUE;
+  }
+  else if (resNodeIsLink(prnArg)) {
+    /*  */
+    //  fResult = (resNodeResolveLinkChildNew(prnArg) != NULL);
+  }
+#endif
+  
+  else if (resNodeIsFile(prnArg)) {
+    /*  */
+      
+#ifdef DEBUG
+    fputc('.',stderr);
+#endif
+    
+    if ((pucT = (pfArg)(prnArg, RN_INFO_META)) == NULL) {
+    }
+    else {
+      fputs((const char*)pucT, argout);
+      xmlFree(pucT);
+    }
+    fResult = TRUE;
+  }
+  else {
+  }
+
+  return fResult;
+} /* end of resNodeListDumpRecursively() */
 
 
 /*! Resource Node List To a plain tree view

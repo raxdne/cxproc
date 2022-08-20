@@ -1,5 +1,5 @@
 
-** Scripting ECMAScript
+* Scripting ECMAScript
 
 ;JavaScript mit XML als Verzeichnisbaum http://directory.google.com/Top/Computers/Programming/Languages/JavaScript/Scripts/Site_Navigation/
 http://www.zzee.com/ahl.inf/Javascript-directory-tree.html

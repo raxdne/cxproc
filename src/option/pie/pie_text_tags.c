@@ -91,6 +91,11 @@ StringUpdateMarkupNew(xmlChar* pucArg, int* piArg)
 	/* count separators backwards */
 	k++;
       }
+      else if (pucArg[j] == (xmlChar)'.' || pucArg[j] == (xmlChar)',' || pucArg[j] == (xmlChar)';' || pucArg[j] == (xmlChar)':'
+	|| pucArg[j] == (xmlChar)'?' || pucArg[j] == (xmlChar)'!') {
+	k = 0; /* to be ignored */
+	break;
+      }
       else if (k > 0) {
 	if (isspace(pucArg[j])) {
 	}
@@ -233,42 +238,49 @@ SplitStringToTagNodes2(const xmlChar* pucArg, pcre2_code* preArg, const xmlChar*
 	the regexp match, assemble node list with a common dummy
 	element node
 	*/
-	xmlChar* pucHashtag;
-	xmlChar* pucA = (xmlChar*)pucArg + ovector[0];
 
-	pucHashtag = xmlStrndup(pucA, (int)(ovector[1] - ovector[0]));
-	PrintFormatLog(3, "'%s' '%s' (%i..%i) in '%s'", pucArgName, pucHashtag, ovector[0], ovector[1], pucArg);
-
-	pndResult = xmlNewNode(NULL, BAD_CAST "dummy");
-
-	if (ovector[0] > 0) {
-	  /* the content starts with text	*/
-	  xmlChar* pucT = xmlStrndup(pucArg, (int)ovector[0]);
-	  xmlAddChild(pndResult, xmlNewText(pucT));
-	  xmlFree(pucT);
+	if (StringBeginsWith(&pucArg[ovector[0]],"#include")
+	    || StringBeginsWith(&pucArg[ovector[0]],"#import")
+	    || StringBeginsWith(&pucArg[ovector[0]],"#subst")) {
 	}
+	else {
+	  xmlChar* pucHashtag;
+	  xmlChar* pucA = (xmlChar*)pucArg + ovector[0];
 
-	if ((pndT = AddTagNodeNew(pndResult, pucHashtag))) {
-	  xmlNodeSetName(pndT, pucArgName);
-	}
+	  pucHashtag = xmlStrndup(pucA, (int)(ovector[1] - ovector[0]));
+	  PrintFormatLog(3, "'%s' '%s' (%i..%i) in '%s'", pucArgName, pucHashtag, ovector[0], ovector[1], pucArg);
 
-	if (ducOrigin > ovector[1]) {
-	  /* the content ends with text, recursion */
-	  pndPostfix = SplitStringToTagNodes2(pucArg + ovector[1], preArg, pucArgName);
-	  if (pndPostfix) {
-	    pndT = pndPostfix->children;
-	    domUnlinkNodeList(pndT);
-	    xmlAddChildList(pndResult, pndT);
-	    xmlFreeNode(pndPostfix);
-	  }
-	  else {
-	    xmlChar* pucT = xmlStrdup(pucArg + ovector[1]);
+	  pndResult = xmlNewNode(NULL, BAD_CAST "dummy");
+
+	  if (ovector[0] > 0) {
+	    /* the content starts with text	*/
+	    xmlChar* pucT = xmlStrndup(pucArg, (int)ovector[0]);
 	    xmlAddChild(pndResult, xmlNewText(pucT));
 	    xmlFree(pucT);
 	  }
-	}
 
-	xmlFree(pucHashtag);
+	  if ((pndT = AddTagNodeNew(pndResult, pucHashtag))) {
+	    xmlNodeSetName(pndT, pucArgName);
+	  }
+
+	  if (ducOrigin > ovector[1]) {
+	    /* the content ends with text, recursion */
+	    pndPostfix = SplitStringToTagNodes2(pucArg + ovector[1], preArg, pucArgName);
+	    if (pndPostfix) {
+	      pndT = pndPostfix->children;
+	      domUnlinkNodeList(pndT);
+	      xmlAddChildList(pndResult, pndT);
+	      xmlFreeNode(pndPostfix);
+	    }
+	    else {
+	      xmlChar* pucT = xmlStrdup(pucArg + ovector[1]);
+	      xmlAddChild(pndResult, xmlNewText(pucT));
+	      xmlFree(pucT);
+	    }
+	  }
+
+	  xmlFree(pucHashtag);
+	}
       }
     }
 
@@ -367,10 +379,13 @@ RecognizeHashtags(xmlNodePtr pndArg, pcre2_code* preArgHashTag, pcre2_code* preA
       fResult = FALSE;
     }
   }
+  else if (IS_VALID_NODE(pndArg) == FALSE || xmlHasProp(pndArg,BAD_CAST"hidden") != NULL) {
+    /* skip */
+  }
   else if (IS_NODE_PIE_PIE(pndArg) || IS_NODE_PIE_BLOCK(pndArg)) {
     xmlChar* pucTT = NULL;
     xmlChar* pucRegExpTag = NULL;
-    pcre2_code* preBlock = NULL;
+    pcre2_code* preBlock = preArgBlockTag;
 
     if ((pucRegExpTag = GetBlockTagRegExpStr(pndArg, NULL, FALSE)) != NULL
 	&& (pucTT = StringDecodeNumericCharsNew(pucRegExpTag)) != NULL) {
@@ -396,6 +411,8 @@ RecognizeHashtags(xmlNodePtr pndArg, pcre2_code* preArgHashTag, pcre2_code* preA
 	pcre2_get_error_message(errornumber, buffer, sizeof(buffer));
 	PrintFormatLog(1,"PCRE2 compilation failed at offset %d: %s", (int)erroroffset, buffer);
       }
+
+      /*!\todo merge preBlock and preArgBlockTag ? */
       
       xmlFree(pucTT);
     }
@@ -404,7 +421,7 @@ RecognizeHashtags(xmlNodePtr pndArg, pcre2_code* preArgHashTag, pcre2_code* preA
       fResult = RecognizeHashtags(pndChild, preArgHashTag, preBlock);
     }
 
-    if (preBlock) {
+    if (preBlock != NULL && preBlock != preArgBlockTag) {
       pcre2_code_free(preBlock);
     }
     
@@ -412,13 +429,14 @@ RecognizeHashtags(xmlNodePtr pndArg, pcre2_code* preArgHashTag, pcre2_code* preA
       xmlFree(pucRegExpTag);
     }
   }
-  else if (pndArg == NULL || IS_NODE_META(pndArg) || IS_NODE_PIE_PRE(pndArg) || IS_NODE_PIE_TT(pndArg) || IS_NODE_PIE_DATE(pndArg) || IS_NODE_PIE_LINK(pndArg)) {
+  else if (pndArg == NULL || IS_NODE_META(pndArg) || IS_NODE_PIE_PRE(pndArg) || IS_NODE_PIE_TT(pndArg) || IS_NODE_PIE_DATE(pndArg)) {
     /* skip */
   }
   else if (IS_NODE_PIE_ETAG(pndArg) || IS_NODE_PIE_HTAG(pndArg) || IS_NODE_PIE_TTAG(pndArg)) {
     /* skip existing tag elements */
   }
-  else if (IS_ENODE(pndArg) && (pndArg->ns==NULL)) { //  || pndArg->ns==pnsPie
+  else if ((IS_ENODE(pndArg) && (pndArg->ns==NULL /* || pndArg->ns==pnsPie */ )
+	    && (IS_NODE_PIE_LINK(pndArg) == FALSE || domGetPropValuePtr(pndArg, BAD_CAST"href") != NULL || domGetPropValuePtr(pndArg, BAD_CAST"id") != NULL))) {
 
     for (pndChild = pndArg->children;
       fResult && pndChild != NULL;
@@ -511,88 +529,107 @@ GetBlockTagRegExpStr(xmlNodePtr pndArg, xmlChar *pucArg, BOOL_T fArgRecursion)
 } /* End of GetBlockTagRegExpStr() */
 
 
-/*! inherit the impact attribute and htag nodes from an ancestor node
+/*! recognize all remarkable text tags and append them as childs to pndArgTop
 */
 BOOL_T
-InheritHashtags(xmlDocPtr pdocArg)
+InheritHashtags(xmlNodePtr pndArgTop, xmlNodePtr pndArg)
 {
-  BOOL_T fResult = FALSE;
+  BOOL_T fResult = TRUE;
 
-  if (pdocArg != NULL) {
-    xmlNodePtr pndRoot;
+  if (IS_NODE_META(pndArg) || IS_NODE_PIE_PRE(pndArg) || IS_NODE_PIE_TT(pndArg) || IS_NODE_PIE_DATE(pndArg)) {
+    /* skip */
+  }
+  else if (IS_NODE_PIE_ETAG(pndArg) || IS_NODE_PIE_HTAG(pndArg) || IS_NODE_PIE_TTAG(pndArg)) {
+    /* skip existing tag elements */
+  }
+  else if (IS_ENODE(pndArg) && (pndArg->ns == NULL)) { //  || pndArg->ns==pnsPie
+    xmlNodePtr pndT;
+    xmlNodePtr pndChild;
 
-    if ((pndRoot = xmlDocGetRootElement(pdocArg))) {
-      xmlXPathObjectPtr result;
+    for (pndChild = pndArg->children; pndChild; pndChild = pndChild->next) {
 
-      if ((result = domGetXPathNodeset(pdocArg, BAD_CAST"//*[name() = 'task' or name() = 'p' or name() = 'h' or name() = 'link' or name() = 'th' or name() = 'td']")) != NULL) {
-	int i;
-	xmlNodeSetPtr nodeset;
+      if (xmlNodeIsText(pndChild)) {
+      }
+      else if (IS_NODE_PIE_LINK(pndChild)
+	&& IS_NODE_PIE_HEADER(pndChild->parent)
+	&& (IS_NODE_PIE_SECTION(pndChild->parent->parent) || IS_NODE_PIE_TASK(pndChild->parent->parent))) {
 
-	nodeset = result->nodesetval;
-	if (nodeset->nodeNr > 0) {
-	  for (i=0; i < nodeset->nodeNr; i++) {
-	    xmlNodePtr pndT;
-	    
-#ifdef EXPERIMENTAL
-	    if (domGetPropValuePtr(nodeset->nodeTab[i], BAD_CAST"impact") == NULL) {
-	      /* try to find this attribute at a ancestor node */
-	      for (pndT=nodeset->nodeTab[i]->parent; pndT; pndT=pndT->parent) {
-		xmlChar* pucT;
+	/* append tags to parent node */
+	for (pndT = pndChild->children; pndT; pndT = pndT->next) {
+	  if ((IS_NODE_PIE_HTAG(pndT) || IS_NODE_PIE_ETAG(pndT)) && pndT->children != NULL) {
+	    AddTagNodeNew(pndChild->parent->parent, pndT->children->content);
+	  }
+	}
+      }
+#if 0
+      else if (IS_NODE_PIE_LINK(pndChild)) {
 
-		if ((pucT = domGetPropValuePtr(pndT, BAD_CAST"impact"))) {
-		  xmlSetProp(nodeset->nodeTab[i], BAD_CAST"impact", pucT);
-		  break;
-		}
-	      }
-	    }
+	/* append tags to parent node */
+	for (pndT = pndChild->children; pndT; pndT = pndT->next) {
+	  if ((IS_NODE_PIE_HTAG(pndT) || IS_NODE_PIE_ETAG(pndT)) && pndT->children != NULL) {
+	    AddTagNodeNew(pndChild->parent, pndT->children->content);
+	  }
+	}
+      }
 #endif
-	    
-	    if (IS_NODE_PIE_HEADER(nodeset->nodeTab[i]) || IS_NODE_PIE_LINK(nodeset->nodeTab[i]) || IS_NODE_PIE_TH(nodeset->nodeTab[i]) || IS_NODE_PIE_TD(nodeset->nodeTab[i])) {
+      else if (IS_NODE_PIE_HEADER(pndChild) && IS_NODE_PIE_SECTION(pndChild->parent)) {
 
-	      /* append tags to parent node */
-	      for (pndT=nodeset->nodeTab[i]->children; pndT; pndT=pndT->next) {
-		if ((IS_NODE_PIE_HTAG(pndT) || IS_NODE_PIE_ETAG(pndT)) && pndT->children != NULL) {
-		  AddTagNodeNew(nodeset->nodeTab[i]->parent, pndT->children->content);
-		}
-	      }
-
-	      if (IS_NODE_PIE_HEADER(nodeset->nodeTab[i]) && IS_NODE_PIE_SECTION(nodeset->nodeTab[i]->parent)) {
-		/* append all tags of this 'section/h' to all 'task' sibling nodes */
-		for (pndT=nodeset->nodeTab[i]->children; pndT; pndT=pndT->next) {
-		  if ((IS_NODE_PIE_HTAG(pndT) || IS_NODE_PIE_ETAG(pndT)) && pndT->children != NULL) {
-		    xmlNodePtr pndTT;
-
-		    for (pndTT=nodeset->nodeTab[i]->parent->children; pndTT; pndTT=pndTT->next) {
-		      if (IS_NODE_PIE_TASK(pndTT)) {
-			AddTagNodeNew(pndTT, pndT->children->content);
-		      }
-		    }
-		  }
-		}
-	      }
-
-	    }
-	    else if (IS_NODE_PIE_PAR(nodeset->nodeTab[i])) {
-	      if (IS_NODE_PIE_LIST(nodeset->nodeTab[i]->parent)) {
-		/* append this tags to parent element 'list' */
-		for (pndT=nodeset->nodeTab[i]->children; pndT; pndT=pndT->next) {
-		  if ((IS_NODE_PIE_HTAG(pndT) || IS_NODE_PIE_ETAG(pndT)) && pndT->children != NULL) {
-		    AddTagNodeNew(nodeset->nodeTab[i]->parent, pndT->children->content);
-		  }
-		}
-	      }
-	      else {
-		for (pndT=nodeset->nodeTab[i]->children; pndT; pndT=pndT->next) {
-		  if ((IS_NODE_PIE_HTAG(pndT) || IS_NODE_PIE_ETAG(pndT)) && pndT->children != NULL) {
-		    AddTagNodeNew(nodeset->nodeTab[i], pndT->children->content);
-		  }
-		}
+	/* append all tags of this 'section/h' to all 'task' sibling nodes */
+	for (pndT = pndChild->children; pndT; pndT = pndT->next) {
+	  xmlNodePtr pndTT;
+	  
+	  if (IS_NODE_PIE_LINK(pndT)) {
+	    /* append tags to parent node */
+	    for (pndTT = pndT->children; pndTT; pndTT = pndTT->next) {
+	      if ((IS_NODE_PIE_HTAG(pndTT) || IS_NODE_PIE_ETAG(pndTT)) && pndTT->children != NULL) {
+		AddTagNodeNew(pndChild->parent, pndTT->children->content);
 	      }
 	    }
 	  }
-	  fResult = TRUE;
+	  else if ((IS_NODE_PIE_HTAG(pndT) || IS_NODE_PIE_ETAG(pndT)) && pndT->children != NULL) {
+	    for (pndTT = pndChild->parent->children; pndTT; pndTT = pndTT->next) {
+	      if (IS_NODE(pndTT,NULL)) {
+		AddTagNodeNew(pndTT, pndT->children->content);
+	      }
+	    }
+	  }
 	}
-	xmlXPathFreeObject(result);
+	//fResult = InheritHashtags(pndArgTop, pndChild);
+      }
+      else if (IS_NODE_PIE_HEADER(pndChild) || IS_NODE_PIE_LINK(pndChild)
+	|| IS_NODE_PIE_TH(pndChild) || IS_NODE_PIE_TD(pndChild)) {
+
+	/* append tags to parent node */
+	for (pndT = pndChild->children; pndT; pndT = pndT->next) {
+	  if ((IS_NODE_PIE_HTAG(pndT) || IS_NODE_PIE_ETAG(pndT)) && pndT->children != NULL) {
+	    AddTagNodeNew(pndChild->parent, pndT->children->content);
+	  }
+	}
+	//fResult = InheritHashtags(pndArgTop, pndChild);
+      }
+      else if (IS_NODE_PIE_PAR(pndChild) && IS_NODE_PIE_LIST(pndChild->parent)) {
+	/* append this tags to parent element 'list' */
+	for (pndT = pndChild->children; pndT; pndT = pndT->next) {
+	  if ((IS_NODE_PIE_HTAG(pndT) || IS_NODE_PIE_ETAG(pndT)) && pndT->children != NULL) {
+	    AddTagNodeNew(pndChild->parent, pndT->children->content);
+	  }
+	  else {
+	  }
+	}
+	fResult = InheritHashtags(pndArgTop, pndChild);
+      }
+      else if (IS_NODE_PIE_PAR(pndChild)) {
+	for (pndT = pndChild->children; pndT; pndT = pndT->next) {
+	  if ((IS_NODE_PIE_HTAG(pndT) || IS_NODE_PIE_ETAG(pndT)) && pndT->children != NULL) {
+	    AddTagNodeNew(pndChild, pndT->children->content);
+	  }
+	  else {
+	  }
+	}
+	fResult = InheritHashtags(pndArgTop, pndChild);
+      }
+      else {
+	fResult = InheritHashtags(pndArgTop, pndChild);
       }
     }
   }
@@ -633,7 +670,7 @@ CleanListTag(xmlNodePtr pndArg, BOOL_T fArgMerge)
 
 	  if (pndI != pndTag
 	      && pndI->children != NULL && pndI->children->type == XML_TEXT_NODE && (pucI = pndI->children->content) != NULL
-	      && (fArgMerge && (pucI[0] != (xmlChar)'@' && pucI[0] != (xmlChar)'#' && StringBeginsWith((char*)pucI, (char*)pucTag)) || xmlStrEqual(pucI, pucTag))) {
+	      && ((fArgMerge && (pucI[0] != (xmlChar)'@' && pucI[0] != (xmlChar)'#' && StringBeginsWith((char*)pucI, (char*)pucTag))) || xmlStrEqual(pucI, pucTag))) {
 	    /*!
 	      merge similar node pndI to pndTag
 	    */
@@ -728,7 +765,13 @@ RecognizeNodeTags(xmlNodePtr pndTags, xmlNodePtr pndArg, pcre2_code* preArg)
 {
   BOOL_T fResult = TRUE;
 
-  if (IS_NODE_META(pndArg) || IS_NODE_PIE_PRE(pndArg) || IS_NODE_PIE_TT(pndArg) || IS_NODE_PIE_LINK(pndArg) || IS_NODE_PIE_DATE(pndArg)) {
+  if (preArg == NULL) {
+    /* skip */
+  }
+  else if (IS_VALID_NODE(pndArg) == FALSE || xmlHasProp(pndArg,BAD_CAST"hidden") != NULL) {
+    /* skip */
+  }
+  else if (IS_NODE_META(pndArg) || IS_NODE_PIE_PRE(pndArg) || IS_NODE_PIE_TT(pndArg) || IS_NODE_PIE_LINK(pndArg) || IS_NODE_PIE_DATE(pndArg)) {
     /* skip */
   }
   else if (IS_NODE_PIE_ETAG(pndArg) || IS_NODE_PIE_HTAG(pndArg) || IS_NODE_PIE_TTAG(pndArg)) {
@@ -844,7 +887,6 @@ ProcessTags(xmlDocPtr pdocPie, xmlChar* pucAttrTags)
   xmlNodePtr pndRoot;
 
   if (pdocPie != NULL && (pndRoot = xmlDocGetRootElement(pdocPie)) != NULL) {
-    int errornumber = 0;
     xmlNodePtr pndMeta;
     xmlNodePtr pndTags = NULL;
 
@@ -858,8 +900,8 @@ ProcessTags(xmlDocPtr pdocPie, xmlChar* pucAttrTags)
     }
 
     RecognizeHashtags(pndRoot, NULL, NULL);
-    InheritHashtags(pdocPie);
-      
+    InheritHashtags(pndRoot, pndRoot);
+
     if ((pndMeta = domGetFirstChild(pndRoot, NAME_META)) == NULL) {
       pndMeta = xmlNewChild(pndRoot, NULL, NAME_PIE_META, NULL);
     }
@@ -873,6 +915,7 @@ ProcessTags(xmlDocPtr pdocPie, xmlChar* pucAttrTags)
     else if (xmlStrlen(pucAttrTags) > 1) {
       /* use default regexp */
       size_t erroroffset;
+      int errornumber = 0;
 
       pcre2_code* re_tag_local = NULL;
 
@@ -910,10 +953,10 @@ ProcessTags(xmlDocPtr pdocPie, xmlChar* pucAttrTags)
 xmlNodePtr
 RecognizeGlobalTags(xmlNodePtr pndTags, xmlNodePtr pndArg)
 {
-  if (IS_NODE_META(pndArg) || IS_NODE_PIE_PRE(pndArg) || IS_NODE_PIE_TT(pndArg) || IS_NODE_PIE_LINK(pndArg)) {
+  if (IS_NODE_META(pndArg) || IS_NODE_PIE_PRE(pndArg) || IS_NODE_PIE_TT(pndArg)) {
     /* skip */
   }
-  else if (xmlHasProp(pndArg,BAD_CAST"hidden") != NULL) {
+  else if (IS_VALID_NODE(pndArg) == FALSE || xmlHasProp(pndArg,BAD_CAST"hidden") != NULL) {
     /* skip */
   }
   else if (IS_ENODE(pndArg) && (pndArg->ns==NULL)) { //  || pndArg->ns==pnsPie

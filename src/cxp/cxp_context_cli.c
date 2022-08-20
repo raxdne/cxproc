@@ -68,7 +68,7 @@ cxpCtxtCliPrintHelp(cxpContextPtr pccArg);
 static BOOL_T
 cxpCtxtCliAddXsl(xmlNodePtr pndArgParent, cxpContextPtr pccArg);
 
-/*! creates a new cxproc Context for a command line request
+/*! creates a new 'root' cxproc Context for a command line request
 
 \param argc -- count of program arguments
 \param **argv -- pointer to array of program arguments
@@ -82,6 +82,8 @@ cxpCtxtCliNew(int argc, char *argv[], char *envp[])
 
   pccResult = cxpCtxtNew();
   if (pccResult) {
+    xmlChar* pucPathValue = NULL;
+    resNodePtr prnT = NULL;
     resNodePtr prnNew;
 
     pccResult->iCountArgv = argc;
@@ -111,8 +113,47 @@ cxpCtxtCliNew(int argc, char *argv[], char *envp[])
       FALSE));
 #endif
 
+    if ((pucPathValue = cxpCtxtEnvGetValueByName(pccResult, BAD_CAST "CXP_PATH")) != NULL) {
+      cxpCtxtLogPrint(pccResult, 2, "Use value '%s' of environment variable 'CXP_PATH'", pucPathValue);
+      if ((prnT = resNodeStrNew(pucPathValue))) {
+	cxpCtxtSearchSet(pccResult, prnT);
+	resNodeListFree(prnT);
+      }
+      xmlFree(pucPathValue);
+    }
 #if 0
-    fsSetSearch(pucArgSearch);
+    else {
+      /*
+      some additional tricks to set the default search path
+      */
+      xmlChar* pucT;
+      xmlChar* pucExecutablePath;
+
+      pucT = cxpCtxtCliGetValue(pccResult, 0);
+      pucExecutablePath = resPathNormalize(pucT);
+      xmlFree(pucT);
+
+      pucT = resPathGetDirFind(pucExecutablePath, BAD_CAST"bin");
+      if (STR_IS_NOT_EMPTY(pucT)) {
+	cxpCtxtLogPrint(pccResult, 2, "Use executable directory '%s' in '%s'", pucT, pucExecutablePath);
+	pucPathValue = resPathGetBasedir(pucT);
+	xmlFree(pucT);
+      }
+      else {
+	pucT = resPathGetDirFind(pucExecutablePath, BAD_CAST"cxproc");
+	if (STR_IS_NOT_EMPTY(pucT)) {
+	  cxpCtxtLogPrint(pccResult, 2, "Use executable directory '%s' in '%s'", pucT, pucExecutablePath);
+	  pucPathValue = pucT;
+	}
+      }
+
+      if ((prnT = resNodeStrNew(pucPathValue))) {
+	resNodeSetRecursion(prnT, TRUE);
+	cxpCtxtSearchSet(pccResult, prnT);
+      }
+      xmlFree(pucPathValue);
+      xmlFree(pucExecutablePath);
+    }
 #endif
   }
   return pccResult;
@@ -364,6 +405,7 @@ cxpCtxtCliParse(cxpContextPtr pccArg)
 	 */
 	cxpCtxtCliPrintHelp(pccArg);
       }
+#ifdef HAVE_PIE
       else if (atoi((char*)pucArgvFirst) > 1900) {
 	/*
 	  argv[1] is a valid year number, calendar
@@ -417,6 +459,7 @@ cxpCtxtCliParse(cxpContextPtr pccArg)
 	  }
 	}
       }
+#endif
       else if (xmlStrEqual(pucArgvFirst, BAD_CAST"-e")) {
 	/*! print program environment
 	 */
@@ -514,12 +557,16 @@ cxpCtxtCliParse(cxpContextPtr pccArg)
 	    else {
 	      /* there is no name of directories to search, use internal search paths */
 	      resNodePtr prnT;
+	      cxpContextPtr pccI;
 
 	      pndDir = xmlNewChild(pndXml, NULL, NAME_DIR, NULL);
+
 	      /* handle multiple search dir names */
-	      for (prnT = cxpCtxtSearchGet(pccArg); prnT; prnT = resNodeGetNext(prnT)) {
-		xmlSetProp(pndDir, BAD_CAST "name", resNodeGetNameNormalized(prnT));
-		xmlSetProp(pndDir, BAD_CAST "depth", BAD_CAST(resNodeIsRecursive(prnT) ? "99" : "1"));
+	      for (pccI = pccArg; pccI; pccI = cxpCtxtGetParent(pccI)) {
+		for (prnT = cxpCtxtSearchGet(pccI); prnT; prnT = resNodeGetNext(prnT)) {
+		  xmlSetProp(pndDir, BAD_CAST "name", resNodeGetNameNormalized(prnT));
+		  xmlSetProp(pndDir, BAD_CAST "depth", BAD_CAST(resNodeIsRecursive(prnT) ? "99" : "1"));
+		}
 	      }
 	    }
 	    pndXsl = xmlNewChild(pndPlain, NULL, NAME_XSL, NULL);
@@ -574,7 +621,7 @@ cxpCtxtCliParse(cxpContextPtr pccArg)
 	xmlSetProp(pndXml, BAD_CAST "name", BAD_CAST "-");
 	xmlSetProp(pndXml, BAD_CAST "schema", BAD_CAST "pie.rng");
 
-	pndPie = xmlNewChild(pndXml, NULL, NAME_PIE, NULL);
+	pndPie = xmlNewChild(pndXml, pieGetNs(), NAME_PIE, NULL);
 	xmlSetProp(pndPie, BAD_CAST "url", BAD_CAST "yes");
 	xmlSetProp(pndPie, BAD_CAST "figure", BAD_CAST "yes");
 	/* there is no file context when reading from stdin */
@@ -669,6 +716,37 @@ cxpCtxtCliParse(cxpContextPtr pccArg)
 	      cxpCtxtLogPrint(pccArg, 2, "Search later for '%s'", resNodeGetNameBase(prnContent));
 	    }
 	  }
+#ifdef HAVE_PIE
+	  else if (iMimeType == MIME_APPLICATION_PIE_XML || iMimeType == MIME_TEXT_PLAIN || iMimeType == MIME_TEXT_MARKDOWN) {
+	    /*
+	      argv[1] is a name of a pie file, existing or not!
+	    */
+
+	    pndXml = xmlNewChild(pndMake, NULL, NAME_XML, NULL);
+	    xmlSetProp(pndXml, BAD_CAST "name", BAD_CAST "-");
+
+	    pndPie = xmlNewChild(pndXml, pieGetNs(), NAME_PIE, NULL);
+	    xmlSetProp(pndPie, BAD_CAST "tags", BAD_CAST "yes");
+	    xmlSetProp(pndPie, BAD_CAST "date", BAD_CAST "yes");
+	    xmlSetProp(pndPie, BAD_CAST "todo", BAD_CAST "yes");
+	    xmlSetProp(pndPie, BAD_CAST "offset", BAD_CAST "yes");
+	    xmlSetProp(pndPie, BAD_CAST "url", BAD_CAST "yes");
+	    xmlSetProp(pndPie, BAD_CAST "figure", BAD_CAST "yes");
+	    xmlSetProp(pndPie, BAD_CAST "script", BAD_CAST "no");
+	    xmlSetProp(pndPie, BAD_CAST "locators", BAD_CAST "no");
+	    
+	    pndImport = xmlNewChild(pndPie, NULL, NAME_PIE_IMPORT, NULL);
+	    if (resNodeIsFile(prnContent) && resNodeIsExist(prnContent)) {
+	      xmlSetProp(pndImport, BAD_CAST "name", resNodeGetNameNormalized(prnContent));
+	    }
+	    else {
+	      xmlSetProp(pndImport, BAD_CAST "name", resNodeGetNameBase(prnContent));
+	      xmlSetProp(pndImport, BAD_CAST "search", BAD_CAST "yes");
+	      cxpCtxtLogPrint(pccArg, 2, "Search later for '%s'", resNodeGetNameBase(prnContent));
+	    }
+	    cxpCtxtCliAddXsl(pndXml, pccArg);
+	  }
+#endif
 #ifdef HAVE_LIBARCHIVE
 	  else if (iMimeType == MIME_APPLICATION_ZIP
 		   || iMimeType == MIME_APPLICATION_X_TAR
@@ -937,7 +1015,7 @@ cxpCtxtCliAddXsl(xmlNodePtr pndArgParent, cxpContextPtr pccArg)
 	else {
 	  resNodePtr prnXslFound;
 
-	  prnXslFound = resNodeListFindPath(cxpCtxtSearchGet(pccArg), pucArgvN, (RN_FIND_FILE | RN_FIND_IN_SUBDIR));
+	  prnXslFound = cxpCtxtSearchFind(pccArg, pucArgvN);
 	  if (resNodeReadStatus(prnXslFound)) {
 	    xmlSetProp(pndXsl, BAD_CAST "name", resNodeGetNameNormalized(prnXslFound));
 	  }
@@ -1005,10 +1083,6 @@ cxpCtxtCliProcess(cxpContextPtr pccArg)
       /* level value from environment */
     }
     xmlFree(pucT);
-  }
-
-  if (cxpCtxtSearchSet(pccArg, NULL) == FALSE) {
-    cxpCtxtLogPrint(pccArg, 2, "No default search path directory found");
   }
 
   if (pccArg->pdocContextNode) {

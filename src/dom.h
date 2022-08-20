@@ -22,6 +22,18 @@
 
 #include <res_node/res_node.h>
 
+#define NAME_META BAD_CAST "meta"
+
+#define NAME_ERROR BAD_CAST "error"
+
+#define NAME_INFO BAD_CAST "info"
+
+#define IS_NODE_META(NODE) (IS_NODE(NODE,NAME_META))
+
+#define IS_NODE_ERROR(NODE) (IS_NODE(NODE,NAME_ERROR))
+
+#define IS_NODE_INFO(NODE) (IS_NODE(NODE,NAME_INFO))
+
 #define IS_NODE__XSL(NODE,NAME) (NODE != NULL && NODE->type == XML_ELEMENT_NODE && NODE->ns != NULL && NODE->ns->prefix != NULL && xmlStrEqual(NODE->ns->prefix,BAD_CAST "xsl") && NODE->name != NULL && (NAME==NULL || xmlStrEqual(NODE->name,BAD_CAST NAME)))
 
 #define IS_NODE_XSL_STYLESHEET(NODE) (IS_NODE__XSL(NODE,"stylesheet"))
@@ -45,9 +57,6 @@ domGetXPathNodeset(xmlDocPtr pdocArg, xmlChar *pucArg);
 
 extern xmlDocPtr
 domGetXPathDoc(xmlDocPtr pdocArg, xmlChar *pucArg);
-
-extern BOOL_T
-domWeightXPathInDoc(xmlDocPtr pdocArg, xmlChar *pucArg);
 
 extern void
 domUnsetPropFileLocator(xmlNodePtr pndArg);
@@ -151,14 +160,14 @@ domIsTreeOverlapping(xmlNodePtr pndArgA, xmlNodePtr pndArgB);
 extern BOOL_T
 domNodeHasAncestor(xmlNodePtr pndArg, xmlChar* pucArg);
 
+extern BOOL_T
+domNodeHasChild(xmlNodePtr pndArg, xmlChar* pucArg);
+
 extern xmlNodePtr
 domValidateTree(xmlNodePtr pndArg);
 
 extern xmlNodePtr
 domAddNodeToError(xmlDocPtr pdocArg, xmlNodePtr pndArg);
-
-extern void
-domChangeURL(xmlDocPtr pdocArg, resNodePtr pccArg);
 
 extern BOOL_T
 domDocIsHtml(xmlDocPtr pdocArg);

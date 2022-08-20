@@ -56,9 +56,6 @@ xmlNsPtr pnsXsl = NULL;
 const xmlChar *pucXsl = BAD_CAST "http://www.w3.org/1999/XSL/Transform";
 
 
-static int
-IncrementWeightProp(xmlNodePtr pndArg, int iArg);
-
 
 /*! cleanup this module
 */
@@ -136,114 +133,6 @@ domGetXPathNodeset(xmlDocPtr pdocArg, xmlChar *pucArg)
 } /* end of domGetXPathNodeset() */
 
 
-/*! increments value of property "w" by iArg numerically
-\param pndArg node for attribute
-\param iArg default integer value
-*/
-int
-IncrementWeightProp(xmlNodePtr pndArg, int iArg)
-{
-  int iResult = 0;
-
-  if ((pndArg != NULL) && (pndArg->type == XML_ELEMENT_NODE) && iArg != 0) {
-    int iCurrent;
-    xmlAttrPtr patT;
-
-    if ((patT = xmlHasProp(pndArg, BAD_CAST"w")) == NULL
-      || patT->children == NULL || STR_IS_EMPTY(patT->children->content)) {
-      /* there is no attribute value yet, initial value '1' */
-      iResult = 1;
-    }
-    else if ((iCurrent = atoi((const char *)patT->children->content)) != 0) {
-      iResult = iCurrent + iArg;
-    }
-    else {
-      /*\todo remove property if iArg == 0? */
-    }
-
-    if (iResult) {
-      xmlChar mucCount[32];
-
-      xmlStrPrintf(mucCount, sizeof(mucCount), "%i", iResult);
-      xmlSetProp(pndArg, BAD_CAST"w", mucCount);
-    }
-  }
-  return iResult;
-} /* end of IncrementWeightProp() */
-
-
-/*!
- */
-BOOL_T
-IncrementWeightPropRecursive(xmlNodePtr pndArg)
-{
-  BOOL_T fResult = FALSE;
-
-  if (pndArg) {
-    xmlNodePtr pndT;
-
-    IncrementWeightProp(pndArg, 1);
-
-    for (pndT = pndArg->children; pndT; pndT = pndT->next) {
-      IncrementWeightPropRecursive(pndT);
-    }
-
-    fResult = TRUE;
-  }
-
-  return fResult;
-} /* end of IncrementWeightPropRecursive() */
-
-
-/*! \return TRUE if a node according to XPath 'pucArg' in pdocArg was found
-\param pdocArg source DOM
-\param pucArg pointer to XPath string
-*/
-BOOL_T
-domWeightXPathInDoc(xmlDocPtr pdocArg, xmlChar *pucArg)
-{
-  BOOL_T fResult = FALSE;
-
-  if (pdocArg != NULL && STR_IS_NOT_EMPTY(pucArg)) {
-    xmlNodePtr pndRoot;
-
-    if ((pndRoot = xmlDocGetRootElement(pdocArg))) {
-      xmlXPathObjectPtr result;
-
-      if ((result = domGetXPathNodeset(pdocArg, pucArg)) != NULL) {
-	int i;
-	xmlNodeSetPtr nodeset;
-
-	nodeset = result->nodesetval;
-	if (nodeset->nodeNr > 0) {
-	  for (i=0; i < nodeset->nodeNr; i++) {
-	    xmlNodePtr pndT;
-
-	    if (IS_NODE_PIE_SECTION(nodeset->nodeTab[i])) {
-	      /* weight the tree of this section when element matches */
-	      IncrementWeightPropRecursive(nodeset->nodeTab[i]);
-	      /* weight all ancestors of this section */
-	      for (pndT=nodeset->nodeTab[i]->parent; pndT; pndT=pndT->parent) {
-		IncrementWeightProp(pndT, 1);
-	      }
-	    }
-	    else {
-	      /* weight all ancestors and this element */
-	      for (pndT=nodeset->nodeTab[i]; pndT; pndT=pndT->parent) {
-		IncrementWeightProp(pndT, 1);
-	      }
-	    }
-	  }
-	  fResult = TRUE;
-	}
-	xmlXPathFreeObject(result);
-      }
-    }
-  }
-  return fResult;
-} /* end of domWeightXPathInDoc() */
-
-
 /*! \return a new DOM according to XPath 'pucArg' in pdocArg
 \param pdocArg source DOM
 \param pucArg pointer to XPath string
@@ -260,7 +149,7 @@ domGetXPathDoc(xmlDocPtr pdocArg, xmlChar *pucArg)
       xmlChar *pucRootName;
 
       if ((pucRootName = BAD_CAST pndRoot->name) == NULL) {
-	pucRootName = NAME_PIE_PIE;
+	pucRootName = NAME_XML;
       }
 
       if ((pdocResult = xmlNewDoc(BAD_CAST "1.0")) != NULL) {
@@ -635,7 +524,7 @@ domUnsetPropAll(xmlNodePtr pndArg)
 void
 domUnsetPropFileLocator(xmlNodePtr pndArg)
 {
-  if (IS_NODE_META(pndArg) || IS_NODE_PIE_ERROR(pndArg)) {
+  if (IS_NODE_META(pndArg) || IS_NODE_ERROR(pndArg)) {
   }
   else if (IS_ENODE(pndArg)) {
     xmlNodePtr pndChild;
@@ -660,7 +549,7 @@ domSetPropFileLocator(xmlNodePtr pndArg, xmlChar *pucArg)
   if (pucArg == NULL || isend(*pucArg)) {
     /* no usable value, dont set the attribute, no recursion */
   }
-  else if (IS_NODE_META(pndArg) || IS_NODE_PIE_ERROR(pndArg)) {
+  else if (IS_NODE_META(pndArg) || IS_NODE_ERROR(pndArg)) {
   }
   else if (IS_ENODE(pndArg)) {
     xmlNodePtr pndChild;
@@ -669,9 +558,12 @@ domSetPropFileLocator(xmlNodePtr pndArg, xmlChar *pucArg)
 	xmlSetProp(pndChild,BAD_CAST"flocator",pucArg);
 	domSetPropFileLocator(pndChild,pucArg);
       }
-      else if (IS_NODE_PIE_TASK(pndChild)
+      else if (FALSE
+#ifdef HAVE_PIE
+	|| IS_NODE_PIE_TASK(pndChild)
 	|| IS_NODE_PIE_TARGET(pndChild)
 	|| IS_NODE_PIE_PRE(pndChild)
+#endif
 #ifdef HAVE_PETRINET
 	|| IS_NODE_PKG2_STATE(pndChild)
 	|| IS_NODE_PKG2_TRANSITION(pndChild)
@@ -697,7 +589,7 @@ domSetPropFileLocator(xmlNodePtr pndArg, xmlChar *pucArg)
 void
 domSetPropFileXpath(xmlNodePtr pndArg, xmlChar* pucArgName, xmlChar* pucArgPrefix)
 {
-  if (IS_NODE_META(pndArg) || IS_NODE_PIE_ERROR(pndArg)) {
+  if (IS_NODE_META(pndArg) || IS_NODE_ERROR(pndArg)) {
   }
   else if (IS_ENODE(pndArg)) {
     xmlNodePtr pndChild;
@@ -809,7 +701,7 @@ domMimeType(xmlDocPtr pdocArg)
 	eTypeResult = MIME_TEXT_HTML;
       }
 #ifdef HAVE_PIE
-      else if (xmlStrEqual(pndRoot->name,BAD_CAST "pie")) {
+      else if (xmlStrEqual(pndRoot->name,NAME_PIE_PIE)) {
 	eTypeResult = MIME_APPLICATION_PIE_XML;
       }
 #endif
@@ -895,6 +787,8 @@ domPutDocString(FILE *out, xmlChar *pucArgMessage, xmlDocPtr pdocArg)
   return iResult;
 } /* end of domPutDocString() */
 
+
+#if 0
 
 /*! 
 */
@@ -1003,6 +897,9 @@ domPutNodeGraphvizStringRecursive(FILE *out, xmlNodePtr pndArg, int iArgDepth)
 /* end of domPutNodeGraphvizStringRecursive() */
 
 #endif
+
+#endif
+
 
 
 /*! \return TRUE if two node with all childrens are equal
@@ -1341,6 +1238,27 @@ domNodeHasAncestor(xmlNodePtr pndArg, xmlChar* pucArg)
 } /* end of domNodeHasAncestor() */
 
 
+/*! \return TRUE if 'pndArg' has an child node with name 'pucArg'
+ */
+BOOL_T
+domNodeHasChild(xmlNodePtr pndArg, xmlChar* pucArg)
+{
+  BOOL_T fResult = FALSE;
+
+  if (pndArg != NULL && STR_IS_NOT_EMPTY(pucArg)) {
+    xmlNodePtr pndT;
+
+    /* check node childs */
+    for (pndT = pndArg->children; fResult == FALSE && pndT != NULL; pndT = pndT->next) {
+      if (IS_NODE(pndT, pucArg)) {
+	fResult = TRUE;
+      }
+    }
+  }
+  return fResult;
+} /* end of domNodeHasChild() */
+
+
 /*! returns TRUE if there is an overlapping between pndArgA and pndArgB
 */
 BOOL_T
@@ -1562,33 +1480,6 @@ domNodeGrepNew(xmlNodePtr pndArg, xmlChar *pucArgGrep)
 } /* End of domNodeGrepNew() */
 
 #endif
-
-
-/*! change the URL of DOM pdocArg to URI of pccArg
-
-\param pdocArg pointer to DOM
-\param pccArg the filesystem context
-
- */
-void
-domChangeURL(xmlDocPtr pdocArg, resNodePtr prnArg)
-{
-#ifdef DEBUG
-  PrintFormatLog(3,"domChangeURL(pdocArg=%0x,prnArg=%0x) to '%s'",pdocArg,prnArg,resNodeGetURI(prnArg));
-#endif
-
-  if (pdocArg != NULL && prnArg != NULL) {
-    xmlChar *pucUri;
-
-    pucUri = resNodeGetURI(prnArg);
-    if (pucUri) {
-      xmlFree((void *) pdocArg->URL);
-      pdocArg->URL = xmlStrdup(pucUri);
-    }
-  }
-}
-/* end of domChangeURL() */
-
 
 
 #ifdef TESTCODE

@@ -19,6 +19,22 @@
 
 */
 
+/*!\todo “URL -> Content” => `https://localhost/cxproc/exe` */
+
+/*!\todo “URL -> Database -> SQL Query -> Content” => `https://localhost/Test/Database.db3`->Database Node->`?SELECT * FROM directory` */
+
+/*!\todo “URL -> Archive Path -> Content”
+
+- `https://localhost/Test/Arcive.zip`->Archive Node->`Test/Text.txt`
+
+- `https://localhost/Test/Archive.zip`->Archive Node->`Test/Archive.zip`->Archive Node->`Test/Text.txt` */
+
+/*!\todo “Directory -> Content” */
+
+/*!\todo “Directory -> File -> Archive -> Archive Path -> Content” */
+
+/*!\todo “Directory -> File -> Database -> SQL Query -> Content” */
+
 /*!\todo deny direct access to 'resNodePtr' from extern /prn[a-z]+->[a-z]+/ */
 
 /*!\todo improve speed by using index files 'NAME_FILE_INDEX' */
@@ -42,6 +58,7 @@
 #endif
 
 #include "dom.h"
+#include <cxp/cxp_dtd.h>
 
 #ifdef HAVE_JSON
 #include <json/json.h>
@@ -58,6 +75,33 @@
 #if defined(HAVE_LIBEXIF)
 #include <image/image_exif.h>
 #endif
+
+
+const xmlChar *mpucTypeNames[] = {
+	     "rn_type_undef",
+	     "rn_type_stdout",
+	     "rn_type_stderr",
+	     "rn_type_stdin",
+	     "rn_type_memory",
+	     "rn_type_root",
+	     "rn_type_dir",
+	     "rn_type_file",
+	     "rn_type_file_compressed",
+	     "rn_type_document_plain",
+	     "rn_type_document_dom",
+	     "rn_type_document_json",
+	     "rn_type_image",
+	     "rn_type_index",
+	     "rn_type_archive",
+	     "rn_type_dir_in_archive",
+	     "rn_type_file_in_archive",
+	     "rn_type_database",
+	     "rn_type_file_in_database",
+	     "rn_type_symlink",
+	     "rn_type_url_http",
+	     "rn_type_url_ftp",
+	     "rn_type_url"
+};
 
 static resNodePtr
 resNodeNew(void);
@@ -111,12 +155,24 @@ resNodeDup(resNodePtr prnArg, int iArgOptions)
   resNodePtr prnResult = NULL;
 
   if (prnArg) {
-    if ((prnResult = resNodeDirNew(resNodeGetNameNormalized(prnArg)))) {
-      resNodePtr prnT = NULL;
+
+    if ((prnResult = resNodeDirNew(resNodeGetNameNormalized(prnArg))) == NULL) {
+    }
+    else if (iArgOptions & RN_DUP_EXIST && resNodeReadStatus(prnResult) == FALSE) { /* duplicate existing resource nodes only (file system) */
+      /* not existing */
+      resNodeFree(prnResult);
+      prnResult = NULL;
+    }
+    else if (iArgOptions & RN_DUP_READ && resNodeIsReadable(prnResult) == FALSE) { /* duplicate readable resource nodes only (file system) */
+      /* not readable */
+      resNodeFree(prnResult);
+      prnResult = NULL;
+    }
+    else {
       resNodePtr prnChild = NULL;
 
-      resNodeReadStatus(prnResult);
-      resNodeSetRecursion(prnResult,resNodeIsRecursive(prnArg));
+      resNodeSetType(prnResult, resNodeGetType(prnArg));
+      resNodeSetRecursion(prnResult, resNodeIsRecursive(prnArg));
 
       if (iArgOptions & RN_DUP_CONTENT && resNodeGetContentPtr(prnArg) != NULL) {
 	void *pT;
@@ -188,12 +244,27 @@ resNodeDup(resNodePtr prnArg, int iArgOptions)
 	  resNodeAddChild(prnResult, resNodeDup(prnChild, (iArgOptions ^ RN_DUP_NEXT)));
 	}
       }
+    }
 
-      if (iArgOptions & RN_DUP_NEXT && (prnT = resNodeGetNext(prnArg)) != NULL) {
-	resNodeAddSibling(prnResult,resNodeDup(prnT,iArgOptions));
+    if (iArgOptions & RN_DUP_NEXT) {
+      resNodePtr prnI;
+
+      for (prnI = resNodeGetNext(prnArg); prnI; prnI = resNodeGetNext(prnI)) {
+	resNodePtr prnNew;
+
+	prnNew = resNodeDup(prnI, iArgOptions & ~RN_DUP_NEXT); /* duplicate without following siblings */
+	if (prnNew) {
+	  if (prnResult) {
+	    resNodeAddSibling(prnResult, prnNew);
+	  }
+	  else {
+	    prnResult = prnNew;
+	  }
+	}
       }
     }
   }
+
   return prnResult;
 } /* end of resNodeDup() */
 
@@ -221,10 +292,15 @@ resNodeRootNew(resNodePtr prnRoot, xmlChar *pucArgPath)
       }
     }
 
-    if (prnResult != NULL && resPathIsDescendant(prnRoot->pucNameNormalized,prnResult->pucNameNormalized) == FALSE) {
-      resNodeSetError(prnResult,rn_error_path,"Path '%s' is out of root resource node",prnResult->pucNameNormalized);
-      resNodeFree(prnResult);
-      prnResult = NULL;
+    if (prnResult != NULL) {
+      if (resPathIsDescendant(prnRoot->pucNameNormalized,prnResult->pucNameNormalized) == FALSE) {
+	resNodeSetError(prnResult,rn_error_path,"Path '%s' is out of root resource node",prnResult->pucNameNormalized);
+	resNodeFree(prnResult);
+	prnResult = NULL;
+      }
+      else {
+	resNodeSetRecursion(prnResult,resPathIsDirRecursive(pucArgPath));
+      }
     }
   }
   else { /* no root resource node exists */
@@ -1061,6 +1137,7 @@ resNodeDirNew(xmlChar *pucArgPath)
 	  if (curl_url_get(curlURL, CURLUPART_PATH, (char **)&pucT, 0) == CURLUE_OK && STR_IS_NOT_EMPTY(pucT)) { /* extract the path from the parsed URL */
 	    xmlFree(pucPath);
 	    pucPath = xmlStrdup(pucT);
+	    DecodeRFC1738((char *)pucPath);
 	  }
 	  curl_free(pucT);
 	  curl_url_cleanup(curlURL);
@@ -1088,6 +1165,9 @@ resNodeDirNew(xmlChar *pucArgPath)
 	else {
 	  eType = rn_type_file_in_archive;
 	}
+      }
+      else if (pucNameArchive != NULL) { /*  */
+	eType = rn_type_archive;
       }
       else if (resPathIsHttpURL(pucPath)) { /*  */
 	eType = rn_type_url_http;
@@ -1133,15 +1213,25 @@ resNodeDirNew(xmlChar *pucArgPath)
       curl_free(pucT);
 
       if (pucNameArchive) { /* URL contains an archive name */
-	if (pucNameInArchive) { /* URL contains a name into archive also */
-	  pucT = xmlStrndup(pucPath,pucNameInArchive - pucPath - 1);
-	  xmlFree(prnResult->pucNameNormalized);
-	  prnResult->pucNameNormalized = pucT;
-	  if (curl_url_set(prnResult->curlURL, CURLUPART_PATH, (const char *)prnResult->pucNameNormalized, 0) == CURLUE_OK) { /* update the path from the parsed URL */
-	  }
-	  resNodeAddChildNew(prnResult,pucNameInArchive);
+	resNodePtr prnArchive;
+
+	/* cut URL before archive */
+	pucT = xmlStrndup(pucPath, pucNameArchive - pucPath - 1);
+	xmlFree(prnResult->pucNameNormalized);
+	prnResult->pucNameNormalized = pucT;
+	if (curl_url_set(prnResult->curlURL, CURLUPART_PATH, (const char*)prnResult->pucNameNormalized, 0) == CURLUE_OK) { /* update the path from the parsed URL */
 	}
-      }	     
+
+	/* add a new node for archive */
+	pucT = xmlStrndup(pucNameArchive, pucNameInArchive - pucNameArchive - 1);
+	prnArchive = resNodeAddChildNew(prnResult, pucT);
+	resNodeSetType(prnArchive, rn_type_archive);
+
+	/* add a node for archive path */
+	if (pucNameInArchive) { /* URL contains a name into archive also */
+	  resNodeSetType(resNodeAddChildNew(prnArchive, pucNameInArchive), rn_type_file_in_archive);
+	}
+      }
       /*\todo handle sqlite in URL */
       eType = rn_type_url;
     }
@@ -2234,6 +2324,34 @@ resNodeIsPicture(resNodePtr prnArg)
 } /* end of resNodeIsPicture() */
 
 
+/*! \return TRUE if prnArg is a processable shortcut file
+*/
+BOOL_T
+resNodeIsShortcut(resNodePtr prnArg)
+{
+  BOOL_T fResult = FALSE;
+
+  if (resNodeIsFile(prnArg)) {
+    fResult = resPathIsEquivalent(resNodeGetNameBase(prnArg), BAD_CAST"shortcuts.pie");
+  }
+  return fResult;
+} /* end of resNodeIsShortcut() */
+
+
+/*! \return TRUE if prnArg is a processable video file
+*/
+BOOL_T
+resNodeIsVideo(resNodePtr prnArg)
+{
+  BOOL_T fResult = FALSE;
+
+  if (prnArg) {
+    fResult = resMimeIsVideo(resNodeGetMimeType(prnArg));
+  }
+  return fResult;
+} /* end of resNodeIsVideo() */
+
+
 /*! \return TRUE if prnArg is a processable archive file
 */
 BOOL_T
@@ -2584,6 +2702,10 @@ resNodeContentToDOM(xmlNodePtr pndArg, resNodePtr prnArg)
     iMimeType = resNodeGetMimeType(prnArg);
     switch (iMimeType) {
 
+    case MIME_EMPTY:
+      /* no file content */
+    break;
+
 #ifdef HAVE_PIE
     case MIME_APPLICATION_PIE_XML:
     case MIME_TEXT_PLAIN:
@@ -2652,6 +2774,8 @@ resNodeContentToDOM(xmlNodePtr pndArg, resNodePtr prnArg)
 	  }
 	  pndTags = xmlNewChild(pndMeta, NULL, NAME_PIE_TAGLIST, NULL);
 
+	  RecognizeSubsts(pndPie);
+	  RecognizeImports(pndPie);
 	  RecognizeInlines(pndPie);
 	  RecognizeScripts(pndPie);
 	  RecognizeFigures(pndPie);
@@ -2660,6 +2784,7 @@ resNodeContentToDOM(xmlNodePtr pndArg, resNodePtr prnArg)
 	  RecognizeSymbols(pndPie, LANG_DEFAULT);
 	  RecognizeTasks(pndPie);
 	  RecognizeHashtags(pndPie,NULL, NULL);
+	  InheritHashtags(pndPie, pndPie);
 	  RecognizeGlobalTags(pndTags, pndPie);
 	  CleanListTag(pndTags, FALSE);
 	  //domPutNodeString(stderr, BAD_CAST "resNodeContentToDOM(): ", pndPie);
@@ -2837,6 +2962,10 @@ resNodeContentToDOM(xmlNodePtr pndArg, resNodePtr prnArg)
     case MIME_IMAGE_JPEG:
     case MIME_IMAGE_PNG:
     case MIME_IMAGE_TIFF:
+#ifdef EXPERIMENTAL
+    case MIME_UNKNOWN:
+    case MIME_UNDEFINED:
+#endif
 #ifdef HAVE_LIBEXIF
       /* get image information details via libexif */
       imgParseFileExif(pndArg, prnArg);
@@ -2844,6 +2973,7 @@ resNodeContentToDOM(xmlNodePtr pndArg, resNodePtr prnArg)
 #elif defined HAVE_LIBMAGICK	
       //imgParseFile(pndArg, prnArg);
 #endif
+      xmlFree(resNodeEatContentPtr(prnArg));
       break;
 
 #if 0
@@ -2861,7 +2991,9 @@ resNodeContentToDOM(xmlNodePtr pndArg, resNodePtr prnArg)
 #endif
       
     default: /* no addtitional file information details */
-#if 0
+#if 1
+      PrintFormatLog(1, "No file information details '%s' %i", resNodeGetNameNormalized(prnArg),iMimeType);
+#else
       {
 	xmlChar *pucContent;
 
@@ -2944,7 +3076,7 @@ resNodeToDOM(resNodePtr prnArg, int iArgOptions)
       }
     }
 
-    if (resNodeGetMimeType(prnArg) != rn_type_undef) {
+    if (resNodeGetMimeType(prnArg) != MIME_UNDEFINED) {
       xmlSetProp(pndT, BAD_CAST "type", BAD_CAST resNodeGetMimeTypeStr(prnArg));
     }
 
@@ -3061,8 +3193,15 @@ resNodeToDOM(resNodePtr prnArg, int iArgOptions)
     else if (iArgOptions & RN_INFO_CONTENT && resNodeIsLink(prnArg)) {
       /*!\todo add link target content */
     }
+    else if (iArgOptions & RN_INFO_META && (resNodeIsShortcut(prnArg) || resNodeGetMimeType(prnArg) == MIME_APPLICATION_CXP_XML)) {
+      /*! required for shortcuts, titles and icons */
+      resNodeContentToDOM(pndT, prnArg);
+    }
     else if (resNodeIsPicture(prnArg)) {
       resNodeContentToDOM(pndT, prnArg);
+    }
+    else if (resNodeIsVideo(prnArg)) {
+      //resNodeContentToDOM(pndT, prnArg);
     }
     else if (resNodeIsFile(prnArg)) {
 
@@ -3134,6 +3273,7 @@ resNodeToPlain(resNodePtr prnArg, int iArgOptions)
 	case rn_type_stdin:
 	  xmlStrPrintf(pucResult, BUFFER_LENGTH, "stdin\n");
 	  break;
+	case rn_type_archive:
 	case rn_type_dir:
 	case rn_type_dir_in_archive:
 	case rn_type_file:
@@ -3175,6 +3315,158 @@ resNodeToPlain(resNodePtr prnArg, int iArgOptions)
   return pucResult;
 } /* end of resNodeToPlain() */
 
+
+/*!
+\todo change to a single line format
+
+  \param prnArg a pointer to a resource node
+  \return TRUE if prnArg is initialized
+ */
+xmlChar*
+resNodeToCSV(resNodePtr prnArg, int iArgOptions)
+{
+  xmlChar* pucResult = NULL;
+
+  //  if (resNodeReadStatus(prnArg) && ! resNodeIsHidden(prnArg)) {
+  pucResult = BAD_CAST xmlMalloc((BUFFER_LENGTH + 1) * sizeof(xmlChar));
+  if (pucResult) {
+
+    if (iArgOptions & RN_INFO_INDEX) {
+      switch (resNodeGetType(prnArg)) {
+      case rn_type_file:
+      case rn_type_archive:
+      case rn_type_file_in_archive:
+	xmlStrPrintf(pucResult, BUFFER_LENGTH,
+	  "%s\n",
+	  resNodeGetNameNormalized(prnArg));
+	break;
+      default:
+	xmlFree(pucResult);
+	pucResult = NULL;
+	break;
+      }
+    }
+    else {
+      switch (resNodeGetType(prnArg)) {
+      case rn_type_stdout:
+	xmlStrPrintf(pucResult, BUFFER_LENGTH, "stdout\n");
+	break;
+      case rn_type_stderr:
+	xmlStrPrintf(pucResult, BUFFER_LENGTH, "stderr\n");
+	break;
+      case rn_type_stdin:
+	xmlStrPrintf(pucResult, BUFFER_LENGTH, "stdin\n");
+	break;
+      case rn_type_dir:
+      case rn_type_dir_in_archive:
+      case rn_type_file:
+      case rn_type_file_in_archive:
+      case rn_type_symlink:
+	xmlStrPrintf(pucResult, BUFFER_LENGTH,
+	  "\"%c%c%c%c%c\";%li;%li;%li;\"%s\";%li;\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\"\n",
+	  (resNodeIsDir(prnArg) ? 'd' : resNodeIsLink(prnArg) ? 'l' : '-'),
+	  resNodeIsReadable(prnArg) ? 'r' : '-',
+	  resNodeIsWriteable(prnArg) ? 'w' : '-',
+	  resNodeIsExecuteable(prnArg) ? 'x' : '-',
+	  resNodeIsHidden(prnArg) ? 'h' : '-',
+	  //
+	  resNodeGetSize(prnArg),
+	  resNodeGetRecursiveSize(prnArg),
+	  //
+	  (resNodeIsDir(prnArg) ? resNodeGetChildCount(prnArg,rn_type_file) : 0),
+	  //
+	  resNodeGetMtimeStr(prnArg),
+	  resNodeGetMtimeDiff(prnArg),
+	  //
+	  (resNodeGetNameBase(prnArg) != NULL ? resNodeGetNameBase(prnArg) : BAD_CAST""),
+	  (resNodeGetExtension(prnArg) != NULL ? resNodeGetExtension(prnArg) : BAD_CAST""),
+	  (resNodeGetNameBaseDir(prnArg) != NULL ? resNodeGetNameBaseDir(prnArg) : BAD_CAST"."),
+	  //
+	  (resNodeGetOwner(prnArg) != NULL ? resNodeGetOwner(prnArg) : BAD_CAST"---"),
+	  //
+	  resNodeGetMimeTypeStr(prnArg),
+	  (resNodeGetNameObject(prnArg) != NULL ? resNodeGetNameObject(prnArg) : BAD_CAST"")
+	);
+	break;
+      default:
+	xmlFree(pucResult);
+	pucResult = NULL;
+	break;
+      }
+    }
+  }
+  //  }
+
+    /*!\todo set kind of error */
+
+  return pucResult;
+} /* end of resNodeToCSV() */
+
+
+#ifdef DEBUG
+
+/*!
+\todo change to a single line format
+
+  \param prnArg a pointer to a resource node
+  \return TRUE if prnArg is initialized
+ */
+xmlChar*
+resNodeToGraphviz(resNodePtr prnArg, int iArgOptions)
+{
+  xmlChar* pucResult = NULL;
+
+  pucResult = BAD_CAST xmlMalloc((BUFFER_LENGTH + 1) * sizeof(xmlChar));
+  if (pucResult) {
+
+    switch (resNodeGetType(prnArg)) {
+    case rn_type_stdout:
+    case rn_type_stderr:
+    case rn_type_stdin:
+      xmlStrPrintf(pucResult, BUFFER_LENGTH, "// stdin\n");
+      break;
+    default:
+      xmlStrPrintf(pucResult, BUFFER_LENGTH,
+		   "node%x [label = \"<f0> %X|name: %s|size: %li|type: %s|<f2> parent:%X|<f3> next:%X|<f4> children:%X|<f5> last:%X\"];\n"
+		   "%snode%x:f2 -> node%x:f0;\n"
+		   "%snode%x:f3 -> node%x:f0;\n"
+		   "%snode%x:f4 -> node%x:f0;\n"
+		   "%snode%x:f5 -> node%x:f0;\n",
+		   prnArg,
+		   //
+		   prnArg,
+		   resNodeGetNameBase(prnArg),
+		   resNodeGetSize(prnArg),
+		   resNodeGetTypeStr(prnArg),
+		   prnArg->parent,
+		   prnArg->next,
+		   prnArg->children,
+		   prnArg->last,
+		   //
+		   (prnArg->prev == NULL ? "//" : "//"),
+		   prnArg,
+		   prnArg->parent,
+		   //
+		   (prnArg->next == NULL ? "//" : ""),
+		   prnArg,
+		   prnArg->next,
+		   //
+		   (prnArg->children == NULL ? "//" : ""),
+		   prnArg,
+		   prnArg->children,
+		   //
+		   (prnArg->last == NULL ? "//" : ""),
+		   prnArg,
+		   prnArg->last
+		   );
+      break;
+    }
+  }
+
+  return pucResult;
+} /* end of resNodeToGraphviz() */
+
+#endif
 
 /*!
 \todo change to a single line format
@@ -3246,147 +3538,127 @@ resNodeToJSON(resNodePtr prnArg, int iArgOptions)
 \return TRUE if prnArg is initialized
 */
 xmlChar *
-resNodeToSql(resNodePtr prnArg, int iArgOptions)
+resNodeToSQL(resNodePtr prnArg, int iArgOptions)
 {
   xmlChar *pucResult = NULL;
 
-  if (resNodeReadStatus(prnArg) && ! resNodeIsHidden(prnArg)) {
-
+  if (prnArg != NULL) {
     pucResult = BAD_CAST xmlMalloc((BUFFER_LENGTH + 1) * sizeof(xmlChar));
-
     if (pucResult) {
-      if (resNodeIsError(prnArg)) {
+      if (resNodeReadStatus(prnArg) == FALSE || resNodeIsError(prnArg)) {
 	time_t system_zeit_1;
 
 	/* add readable time */
 	time(&system_zeit_1);
 
-	//PrintFormatLog(2,"Database log '%s': '%s'", pucArgKey, pucValue);
-
 	switch (resNodeGetError(prnArg)) {
 	case rn_error_stat:
 	  xmlStrPrintf(pucResult, BUFFER_LENGTH,
-	      "insert into meta (timestamp,key,value) values (%li,\"%s\",\"%s\")",
+	      "INSERT INTO 'meta' VALUES (%li,\"%s\",\"%s\");\n",
 	      (long int)system_zeit_1, BAD_CAST"error/stat", resNodeGetNameNormalized(prnArg));
 	  break;
 	case rn_error_name:
 	  xmlStrPrintf(pucResult, BUFFER_LENGTH,
-	      "insert into meta (timestamp,key,value) values (%li,\"%s\",\"%s\")",
+	      "INSERT INTO 'meta' VALUES (%li,\"%s\",\"%s\");\n",
 	      (long int)system_zeit_1, BAD_CAST"error/name", resNodeGetNameNormalized(prnArg));
 	  break;
 	case rn_error_owner:
 	  xmlStrPrintf(pucResult, BUFFER_LENGTH,
-	      "insert into meta (timestamp,key,value) values (%li,\"%s\",\"%s\")",
+	      "INSERT INTO 'meta' VALUES (%li,\"%s\",\"%s\");\n",
 	      (long int)system_zeit_1, BAD_CAST"error/owner", resNodeGetNameNormalized(prnArg));
 	  break;
 	case rn_error_memory:
 	  xmlStrPrintf(pucResult, BUFFER_LENGTH,
-	      "insert into meta (timestamp,key,value) values (%li,\"%s\",\"%s\")",
+	      "INSERT INTO 'meta' VALUES (%li,\"%s\",\"%s\");\n",
 	      (long int)system_zeit_1, BAD_CAST"error/memory", resNodeGetNameNormalized(prnArg));
 	  break;
 	case rn_error_max_path:
 	  xmlStrPrintf(pucResult, BUFFER_LENGTH,
-	      "insert into meta (timestamp,key,value) values (%li,\"%s\",\"%s\")",
+	      "INSERT INTO 'meta' VALUES (%li,\"%s\",\"%s\");\n",
 	      (long int)system_zeit_1, BAD_CAST"error/maxpath", resNodeGetNameNormalized(prnArg));
 	  break;
 	default:
 	  xmlStrPrintf(pucResult, BUFFER_LENGTH,
-	      "insert into meta (timestamp,key,value) values (%li,\"%s\",\"%s\")",
+	      "INSERT INTO 'meta' VALUES (%li,\"%s\",\"%s\");\n",
 	      (long int)system_zeit_1, BAD_CAST"error/context", resNodeGetNameNormalized(prnArg));
 	}
       }
       else {
 	xmlChar *pucT;
-	xmlChar *pucSqlDecl;
-	xmlChar *pucSqlValue;
+	xmlChar *pucSqlValues;
 
-	pucSqlDecl = xmlStrdup(BAD_CAST"insert into directory (");
-	pucSqlValue = xmlStrdup(BAD_CAST"values (");
+	pucSqlValues = xmlStrdup(BAD_CAST"INSERT INTO 'directory' VALUES (");
 
-	pucSqlDecl = xmlStrcat(pucSqlDecl,BAD_CAST"depth,type,");
 	xmlStrPrintf(pucResult, BUFFER_LENGTH, "%i,%i,", resPathGetDepth(resNodeGetNameNormalized(prnArg)), resNodeGetType(prnArg));
-	pucSqlValue = xmlStrcat(pucSqlValue,pucResult);
+	pucSqlValues = xmlStrcat(pucSqlValues,pucResult);
 		     
-	pucSqlDecl = xmlStrcat(pucSqlDecl,BAD_CAST"name,");
-	pucSqlValue = xmlStrcat(pucSqlValue,BAD_CAST"\"");
+	pucSqlValues = xmlStrcat(pucSqlValues,BAD_CAST"\"");
 	if ((pucT = resNodeGetNameBase(prnArg))) {
-	  pucSqlValue = xmlStrcat(pucSqlValue,pucT);
+	  pucSqlValues = xmlStrcat(pucSqlValues,pucT);
 	}
-	pucSqlValue = xmlStrcat(pucSqlValue,BAD_CAST"\",");
+	pucSqlValues = xmlStrcat(pucSqlValues,BAD_CAST"\",");
 
 #if 0
-	pucSqlDecl = xmlStrcat(pucSqlDecl,BAD_CAST"owner,");
-	pucSqlValue = xmlStrcat(pucSqlValue,BAD_CAST"\"");
+	pucSqlValues = xmlStrcat(pucSqlValues,BAD_CAST"\"");
 	if ((pucT = resNodeGetOwner(prnArg))) {
-	  pucSqlValue = xmlStrcat(pucSqlValue,pucT);
+	  pucSqlValues = xmlStrcat(pucSqlValues,pucT);
 	}
-	pucSqlValue = xmlStrcat(pucSqlValue,BAD_CAST"\",");
+	pucSqlValues = xmlStrcat(pucSqlValues,BAD_CAST"\",");
 #endif
 	
-	pucSqlDecl = xmlStrcat(pucSqlDecl,BAD_CAST"size,");
 	xmlStrPrintf(pucResult, BUFFER_LENGTH, "%li,", resNodeGetSize(prnArg));
-	pucSqlValue = xmlStrcat(pucSqlValue,pucResult);
+	pucSqlValues = xmlStrcat(pucSqlValues,pucResult);
 		     
 	if (resNodeIsDir(prnArg)) {
-	  pucSqlDecl = xmlStrcat(pucSqlDecl,BAD_CAST"rsize,");
-	  xmlStrPrintf(pucResult, BUFFER_LENGTH, "%li,", (long)(resNodeGetRecursiveSize(prnArg) / SIZE_MEGA));
-	  pucSqlValue = xmlStrcat(pucSqlValue,pucResult);
+	  xmlStrPrintf(pucResult, BUFFER_LENGTH, "%li,\"\",\"\",", (long)(resNodeGetRecursiveSize(prnArg) / SIZE_MEGA));
+	  pucSqlValues = xmlStrcat(pucSqlValues,pucResult);
 	}
 	else {
-	  pucSqlDecl = xmlStrcat(pucSqlDecl,BAD_CAST"ext,");
-	  pucSqlValue = xmlStrcat(pucSqlValue,BAD_CAST"\"");
+	  pucSqlValues = xmlStrcat(pucSqlValues,BAD_CAST"0,\"");
 	  if ((pucT = resNodeGetExtension(prnArg))) {
-	    pucSqlValue = xmlStrcat(pucSqlValue,pucT);
+	    pucSqlValues = xmlStrcat(pucSqlValues,pucT);
 	  }
-	  pucSqlValue = xmlStrcat(pucSqlValue,BAD_CAST"\",");
+	  pucSqlValues = xmlStrcat(pucSqlValues,BAD_CAST"\",");
 
-	  pucSqlDecl = xmlStrcat(pucSqlDecl,BAD_CAST"object,");
-	  pucSqlValue = xmlStrcat(pucSqlValue,BAD_CAST"\"");
+	  pucSqlValues = xmlStrcat(pucSqlValues,BAD_CAST"\"");
 	  if ((pucT = resNodeGetNameObject(prnArg))) {
-	    pucSqlValue = xmlStrcat(pucSqlValue,pucT);
+	    pucSqlValues = xmlStrcat(pucSqlValues,pucT);
 	  }
-	  pucSqlValue = xmlStrcat(pucSqlValue,BAD_CAST"\",");
+	  pucSqlValues = xmlStrcat(pucSqlValues,BAD_CAST"\",");
 	}
       
-	pucSqlDecl = xmlStrcat(pucSqlDecl,BAD_CAST"path,");
-	pucSqlValue = xmlStrcat(pucSqlValue,BAD_CAST"\"");
+	pucSqlValues = xmlStrcat(pucSqlValues,BAD_CAST"\"");
 	if ((pucT = resNodeGetNameBaseDir(prnArg))) {
-	  pucSqlValue = xmlStrcat(pucSqlValue,pucT);
+	  pucSqlValues = xmlStrcat(pucSqlValues,pucT);
 	}
-	pucSqlValue = xmlStrcat(pucSqlValue,BAD_CAST"\",");
+	pucSqlValues = xmlStrcat(pucSqlValues,BAD_CAST"\",");
 
-	pucSqlDecl = xmlStrcat(pucSqlDecl,BAD_CAST"mime,mtime,");
 	xmlStrPrintf(pucResult, BUFFER_LENGTH, "%i,%li,", (int)resNodeGetMimeType(prnArg), (long)(resNodeGetMtime(prnArg)));
-	pucSqlValue = xmlStrcat(pucSqlValue,pucResult);
+	pucSqlValues = xmlStrcat(pucSqlValues,pucResult);
 		     
-	pucSqlDecl = xmlStrcat(pucSqlDecl,BAD_CAST"mtime2,");
-	pucSqlValue = xmlStrcat(pucSqlValue,BAD_CAST"\"");
+	pucSqlValues = xmlStrcat(pucSqlValues,BAD_CAST"\"");
 	if ((pucT = resNodeGetMtimeStr(prnArg))) {
-	  pucSqlValue = xmlStrcat(pucSqlValue,pucT);
+	  pucSqlValues = xmlStrcat(pucSqlValues,pucT);
 	}
-	pucSqlValue = xmlStrcat(pucSqlValue,BAD_CAST"\",");
+	pucSqlValues = xmlStrcat(pucSqlValues,BAD_CAST"\",");
 
-	pucSqlDecl = xmlStrcat(pucSqlDecl,BAD_CAST"r,w,x,h");
 	xmlStrPrintf(pucResult, BUFFER_LENGTH, "%c,%c,%c,%c",
 	    (resNodeIsReadable(prnArg) ? '1' : '0'),
 	    (resNodeIsWriteable(prnArg) ? '1' : '0'),
 	    (resNodeIsExecuteable(prnArg) ? '1' : '0'),
 	    (resNodeIsHidden(prnArg) ? '1' : '0'));
-	pucSqlValue = xmlStrcat(pucSqlValue,pucResult);
+	pucSqlValues = xmlStrcat(pucSqlValues,pucResult);
 	
-	pucSqlDecl = xmlStrcat(pucSqlDecl,BAD_CAST") ");
-	pucSqlValue = xmlStrcat(pucSqlValue,BAD_CAST")");
+	pucSqlValues = xmlStrcat(pucSqlValues,BAD_CAST")");
 
 	xmlFree(pucResult);
-	pucResult = pucSqlDecl;
-	pucResult = xmlStrcat(pucResult,pucSqlValue);
-	xmlFree(pucSqlValue);
+	pucResult = pucSqlValues;
+	pucResult = xmlStrcat(pucResult,BAD_CAST";\n");
       }
     }
   }
-
   return pucResult;
-} /* end of resNodeToSql() */
+} /* end of resNodeToSQL() */
 
 
 /*! Detects and sets owner of the resource node.
@@ -3622,6 +3894,9 @@ resNodeUpdate(resNodePtr prnArg, int iArgOptions, const pcre2_code *re_match, co
 	}
 #endif
 #ifdef HAVE_LIBARCHIVE
+	else if (resNodeIsArchive(prnArg)) {
+	  fResult = arcAppendEntries(prnArg, re_match, TRUE); /* update achive nodes */
+	}
 	else if (resNodeIsFileInArchive(prnArg)) {
 	  fResult = arcAppendEntries(resNodeGetAncestorArchive(prnArg), re_match, TRUE);
 	  /*\todo avoid redundant parsing */
@@ -3667,7 +3942,10 @@ resNodeReadStatus(resNodePtr prnArg)
       /* this resource node was stat'd already */
       fResult = prnArg->fExist;
     }
-    else if (resNodeIsFileInArchive(prnArg)) {
+    else if (prnArg->liSize > 0 && prnArg->pContent != NULL) {
+      fResult = TRUE;
+    }
+    else if (resNodeIsDirInArchive(prnArg) || resNodeIsFileInArchive(prnArg)) {
       fResult = (resNodeGetAncestorArchive(prnArg) != NULL); /* stat archive */
     }
     else if (resNodeIsError(prnArg) == FALSE) {
@@ -3763,6 +4041,9 @@ resNodeReadStatus(resNodePtr prnArg)
 
 	    prnArg->fExist = TRUE;
 	    prnArg->liSize = (long int)s.st_size;
+	    if (prnArg->liSize == 0) {
+	      prnArg->eMimeType = MIME_EMPTY;
+	    }
 	    prnArg->tMtime = s.st_mtime;
 
 #ifdef _MSC_VER
@@ -3874,9 +4155,22 @@ resNodeSetExtension(resNodePtr prnArg)
 {
   BOOL_T fResult = FALSE;
 
-  if (prnArg) {
-    xmlFree(prnArg->pucExtension);
-    prnArg->pucExtension = resPathGetExtension(prnArg->pucNameBase);
+  if (prnArg != NULL && prnArg->pucExtension == NULL) {
+    switch (prnArg->eType) {
+    case rn_type_undef:
+    case rn_type_file:
+    case rn_type_file_compressed:
+    case rn_type_image:
+    case rn_type_archive:
+    case rn_type_file_in_archive:
+    case rn_type_database:
+    case rn_type_file_in_database:
+    case rn_type_symlink:
+      prnArg->pucExtension = resPathGetExtension(resNodeGetNameBase(prnArg));
+      break;
+    default:
+      break;
+    }
     fResult = (prnArg->pucExtension != NULL);
   }
   return fResult;
@@ -3888,15 +4182,30 @@ resNodeSetExtension(resNodePtr prnArg)
 xmlChar *
 resNodeGetExtension(resNodePtr prnArg)
 {
+  xmlChar *pucResult = NULL;
+
   if (prnArg) {
-    if (prnArg->pucExtension == NULL) {
-      resNodeResetNameBase(prnArg);
-      resNodeSetExtension(prnArg);
+    switch (prnArg->eType) {
+    case rn_type_undef:
+    case rn_type_file:
+    case rn_type_file_compressed:
+    case rn_type_image:
+    case rn_type_archive:
+    case rn_type_file_in_archive:
+    case rn_type_database:
+    case rn_type_file_in_database:
+    case rn_type_symlink:
+      if (prnArg->pucExtension == NULL) {
+	resNodeSetExtension(prnArg);
+      }
+      pucResult = prnArg->pucExtension;
+      break;
+    default:
+      break;
     }
-    return prnArg->pucExtension;
   }
 
-  return NULL;
+  return pucResult;
 } /* end of resNodeGetExtension() */
 
 
@@ -3956,6 +4265,24 @@ resNodeSetType(resNodePtr prnArg, RN_TYPE eArgType)
     prnArg->eType = eArgType;
   }
 } /* end of resNodeSetType() */
+
+
+/*! Sets and returns the type of this resource node.
+
+\param prnArg a pointer to a resource node
+\return value of eType or -1 in case of errors
+*/
+xmlChar *
+resNodeGetTypeStr(resNodePtr prnArg)
+{
+  xmlChar *pucResult = mpucTypeNames[rn_type_undef];
+
+  if (prnArg != NULL && prnArg->eType >= rn_type_undef && prnArg->eType <= rn_type_url) {
+    pucResult = mpucTypeNames[prnArg->eType];
+  }
+
+  return pucResult;
+} /* end of resNodeGetTypeStr() */
 
 
 /*! Sets and returns the type of this resource node.
@@ -4079,6 +4406,27 @@ resNodeGetMtimeStr(resNodePtr prnArg)
   }
   return pucResult;
 } /* end of resNodeGetMtimeStr() */
+
+
+/*! Sets and returns the mtime string of this resource node.
+
+  \param prnArg a pointer to a resource node
+  \return 
+*/
+long
+resNodeGetMtimeDiff(resNodePtr prnArg)
+{
+  long liResult = -1;
+
+  if (resNodeGetMtime(prnArg) != -1) {
+    time_t nowTime;
+
+    time(&nowTime); /*!\todo optimize */
+
+    liResult = nowTime - resNodeGetMtime(prnArg);
+  }
+  return liResult;
+} /* end of resNodeGetMtimeDiff() */
 
 
 /*! Sets and returns the liSize of this resource node.
@@ -4765,6 +5113,72 @@ resNodeDirAppendEntries(resNodePtr prnArgDir, const pcre2_code *re_match)
 } /* end of resNodeDirAppendEntries() */
 
 #endif
+
+
+/*! Read and sets the file MIME type of this context.
+
+  \param prnArg the context
+ */
+xmlChar*
+resNodeDatabaseSchemaStr(void)
+{
+  int i;
+  xmlChar* pucResult = NULL;
+  xmlChar mpucT[BUFFER_LENGTH];
+
+  pucResult = xmlStrdup(BAD_CAST
+    "PRAGMA journal_mode = OFF;\n"
+    "\n"
+    "CREATE TABLE IF NOT EXISTS 'directory' ("
+    "depth INTEGER, "
+    "type INTEGER, "
+    "name text, "
+#if 0
+    "owner text, "
+#endif
+    "size INTEGER, "
+    "rsize INTEGER, "
+    "ext text, "
+    "object text, "
+    "path text, "
+    "mime INTEGER, "
+    "mtime INTEGER, "
+    "mtime2 text, "
+    "r INTEGER, "
+    "w INTEGER, "
+    "x INTEGER, "
+    "h INTEGER "
+    ");\n\n");
+
+  pucResult = xmlStrcat(pucResult, BAD_CAST
+    "CREATE TABLE IF NOT EXISTS 'meta' (timestamp INTEGER, key text, value text);\n\n");
+
+  pucResult = xmlStrcat(pucResult, BAD_CAST
+    "CREATE TABLE IF NOT EXISTS 'mimetypes' (mime INTEGER, name text);\n\n");
+
+  for (i = MIME_UNKNOWN; i < MIME_END; i++) {
+    char* pcMime;
+
+    pcMime = (char*)resMimeGetTypeStr(i);
+    if (pcMime) {
+      xmlStrPrintf(mpucT, BUFFER_LENGTH, "INSERT INTO 'mimetypes' VALUES (%i,\"%s\");\n", i, BAD_CAST pcMime);
+      pucResult = xmlStrcat(pucResult, mpucT);
+    }
+  }
+  pucResult = xmlStrcat(pucResult, BAD_CAST "\n\n");
+
+  pucResult = xmlStrcat(pucResult, BAD_CAST
+    "CREATE TABLE IF NOT EXISTS 'queries' (query text);\n"
+    "\n"
+    "INSERT INTO 'queries' VALUES (\"SELECT * FROM meta;\");\n"
+    "INSERT INTO 'queries' VALUES (\"SELECT DISTINCT name FROM directory;\");\n"
+    "INSERT INTO 'queries' VALUES (\"SELECT sum(size)/(1024*1024*1024) AS GB FROM directory;\");\n"
+    "INSERT INTO 'queries' VALUES (\"SELECT path || '/' || name AS File,(size / 1048576) AS MB,mtime2 AS MTime FROM directory WHERE (size > 1048576) ORDER BY MB DESC;\");\n"
+    "INSERT INTO 'queries' VALUES (\"SELECT count() AS Count, name AS Name FROM directory GROUP BY name ORDER BY Count DESC;\");\n"
+    "\n");
+
+  return pucResult;
+} /* end of resNodeDatabaseSchemaStr() */
 
 
 #ifdef TESTCODE

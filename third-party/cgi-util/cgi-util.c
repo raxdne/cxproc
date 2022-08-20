@@ -280,6 +280,17 @@ int cgi_init(void)
 			{
 			  /* We got a boundary! */
 			  
+			  if (which_entry > -1 && cgi_entries[which_entry].val != NULL && cgi_entries[which_entry].content_length > 0) {
+			    /* terminate last entry at last newline */
+			    if (cgi_entries[which_entry].val[cgi_entries[which_entry].content_length - 1] == '\r') {
+			      cgi_entries[which_entry].content_length--;
+			    }
+			    if (cgi_entries[which_entry].val[cgi_entries[which_entry].content_length - 1] == '\n') {
+			      cgi_entries[which_entry].content_length--;
+			    }
+			    cgi_entries[which_entry].val[cgi_entries[which_entry].content_length - 1] = '\0';
+			  }
+
 			  in_multipart_headers = 1;
 			  which_entry = -1;
 			}
@@ -337,7 +348,6 @@ int cgi_init(void)
 						   strlen("name=") + 1);
 					  strcpy(cgi_entries[which_entry].name,
 						 strstr(cgi_query, "name=") +
-						 strlen("name=") +
 						 strlen("name="));
 					  
 					  /* strdup(strstr(cgi_query,
@@ -347,14 +357,16 @@ int cgi_init(void)
 					  
 					  /* Truncate after quote: */
 					  
-					  if (strchr(cgi_entries[which_entry].
-						     name, '\"') != NULL)
+					  if (cgi_entries[which_entry].name[0] == '\"') {
+					    char* pc;
+
+					    pc = strchr(&(cgi_entries[which_entry].name[1]), '\"');
+					    if (pc != NULL)
 					    {
-					      strcpy(strchr(cgi_entries
-							    [which_entry].name,
-							    '\"'), "\0");
+					      *pc = '\0';
+					      strncpy(cgi_entries[which_entry].name, &(cgi_entries[which_entry].name[1]), pc - cgi_entries[which_entry].name);
 					    }
-					  
+					  }
 					  
 					  /* Set default content-type: */
 					  
@@ -393,7 +405,7 @@ int cgi_init(void)
 							     "Content-Type: ")) - strlen("Content-Type: ") + 1);
 				      cgi_entries[which_entry].content_type =
 					strcpy(cgi_entries[which_entry].content_type,
-					       strstr(getenv("CONTENT_TYPE"), "Content-Type: ") +
+					       strstr(cgi_query, "Content-Type: ") +
 					       strlen("Content-Type: "));
 				      
 

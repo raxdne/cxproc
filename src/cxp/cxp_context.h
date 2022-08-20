@@ -193,6 +193,10 @@ cxpCtxtSearchSet(cxpContextPtr pccArg, resNodePtr prnArg);
 extern resNodePtr
 cxpCtxtSearchGet(cxpContextPtr pccArg);
 
+extern resNodePtr
+cxpCtxtSearchFind(cxpContextPtr pccArg, xmlChar* pucArgPath);
+
+
 extern xmlChar *
 cxpCtxtLocationGetStr(cxpContextPtr pccArg);
 

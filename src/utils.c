@@ -85,6 +85,37 @@ SetLogLevelStr(xmlChar *pucArg)
 /* end of SetLogLevelStr() */
 
 
+/*! reads blockwise content from input stream 'argin'
+  \todo UTF8Check() encoding of input should be UTF-8
+  \return pointer to a dynamically allocated buffer or NULL in case of errors
+*/
+xmlChar *
+ReadUTF8ToBufferNew(FILE* argin) 
+{
+  xmlChar* pucResult = NULL;
+
+  if (argin != NULL) {
+    size_t b;
+    size_t l;
+
+    for (b = 0, l = BUFFER_LENGTH; (pucResult = BAD_CAST xmlRealloc((void *)pucResult, l)) != NULL; b += BUFFER_LENGTH, l += BUFFER_LENGTH) {
+      size_t k;
+
+      PrintFormatLog(4, "%i Byte allocated", l);
+
+      if ((k = fread(&pucResult[b], 1, BUFFER_LENGTH, argin)) < BUFFER_LENGTH) {
+	/* end of input reached */
+	l = b + k;
+	pucResult[l] = '\0';
+	PrintFormatLog(2, "%i Byte read", l);
+	break;
+      }
+    }
+  }
+  return pucResult;
+} /* end of ReadUTF8ToBufferNew() */
+
+
 /*! \return TRUE if pchArg was converted to lowercases successfully
   Stops at the string end or line end of pchArg, works properly when pchArg contains ASCII chars only!
 */
@@ -1727,7 +1758,7 @@ GetDayAbsolute(int year, int mon, int mday, int week, int wday)
       t.tm_isdst = 0;
       result = (long int)(mktime(&t) / (time_t)(60 * 60 * 24));
     }
-    else if (week > -1 && week < 54 && wday > -1 && wday < 7) {
+    else if (week > -1 && week < 54 && wday > -1 && wday < 8) {
 
       /* starting with the very first day of year */
       t.tm_yday = 0;
@@ -2217,8 +2248,8 @@ iscal(xmlChar c)
   if (isdigit((int)c)
     || (c == '*') || (c == ':') || (c == '.') || (c == '+') || (c == '-') || (c == '@')
     || (c == 'm') || (c == 'o') || (c == 'n')
-    || (c == 't') || (c == 'u') || (c == 'e')
-    || (c == 'w') || (c == 'd')
+    || (c == 't') || (c == 'T') || (c == 'u') || (c == 'e')
+    || (c == 'w') || (c == 'W') || (c == 'd')
     || (c == 'h')
     || (c == 'f') || (c == 'r') || (c == 'i')
     || (c == 's') || (c == 'a')

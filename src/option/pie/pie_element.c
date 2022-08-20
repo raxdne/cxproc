@@ -214,36 +214,6 @@ pieElementGetMode(pieTextElementPtr ppeArg)
 /*!
 */
 BOOL_T
-pieElementIsImport(pieTextElementPtr ppeArg)
-{
-  return (ppeArg != NULL && ppeArg->iDepthHidden < 1 && ppeArg->eType == import);
-}
-/* end of pieElementIsImport() */
-
-
-/*!
-*/
-BOOL_T
-pieElementIsSubst(pieTextElementPtr ppeArg)
-{
-  return (ppeArg != NULL && ppeArg->iDepthHidden < 1 && ppeArg->eType == subst);
-}
-/* end of pieElementIsSubst() */
-
-
-/*!
-*/
-BOOL_T
-pieElementIsBlock(pieTextElementPtr ppeArg)
-{
-  return (ppeArg != NULL && ppeArg->eType == import);
-}
-/* end of pieElementIsBlock() */
-
-
-/*!
-*/
-BOOL_T
 pieElementIsHeader(pieTextElementPtr ppeArg)
 {
   return (ppeArg != NULL && ppeArg->eType == header);
@@ -835,7 +805,11 @@ pieElementHasNext(pieTextElementPtr ppeArg)
 
 	if ((puc1 = BAD_CAST xmlStrstr(puc0, BAD_CAST"#end_of_skip")) != NULL) {
 	  /* skip string between markups */
-	  assert(Strnstr(puc0 + 1, (puc1 - puc0), BAD_CAST"#begin_of_skip") == NULL); /* nested skip markup? */
+
+	  if (Strnstr(puc0 + 1, (puc1 - puc0), BAD_CAST"#begin_of_skip") != NULL) {
+	    PrintFormatLog(1, "Unbalanced markup: '#begin_of_skip'");
+	  }
+
 	  ppeArg->iBegin = (index_t)(puc1 + xmlStrlen(BAD_CAST"#end_of_skip") - ppeArg->pucSource);
 	  fResult = TRUE;
 	}
@@ -857,7 +831,10 @@ pieElementHasNext(pieTextElementPtr ppeArg)
 
 	if ((puc1 = BAD_CAST xmlStrstr(puc0, BAD_CAST"#end_of_script")) != NULL) {
 	  /* copy string between markups */
-	  assert(Strnstr(puc0 + 1, (puc1 - puc0), BAD_CAST"#begin_of_script") == NULL); /* nested script markup? */
+
+	  if (Strnstr(puc0 + 1, (puc1 - puc0), BAD_CAST"#begin_of_script") != NULL) {
+	    PrintFormatLog(1, "Unbalanced markup: '#begin_of_script'");
+	  }
 
 	  ppeArg->pucContent = xmlStrndup(puc0 + xmlStrlen(BAD_CAST"#begin_of_script"), (int)(puc1 - (puc0 + xmlStrlen(BAD_CAST"#begin_of_script"))));
 	  ppeArg->iBegin += (index_t)(puc1 + xmlStrlen(BAD_CAST"#end_of_script") - puc0);
@@ -883,7 +860,9 @@ pieElementHasNext(pieTextElementPtr ppeArg)
 	  /* copy string between markups */
 	  index_t l;
 
-	  assert(Strnstr(puc0 + 1, (puc1 - puc0), BAD_CAST"#begin_of_pre") == NULL); /* nested pre markup? */
+	  if (Strnstr(puc0 + 1, (puc1 - puc0), BAD_CAST"#begin_of_pre") != NULL) {
+	    PrintFormatLog(1, "Unbalanced markup: '#begin_of_pre'");
+	  }
 
 	  for (l = xmlStrlen(BAD_CAST"#begin_of_pre"); puc0[l] == (xmlChar)'\n'; l++); /* skip leading empty lines */
 	  ppeArg->pucContent = xmlStrndup(puc0 + l, (int)(puc1 - (puc0 + l)));
@@ -978,7 +957,10 @@ pieElementHasNext(pieTextElementPtr ppeArg)
 
 	if ((puc1 = BAD_CAST xmlStrstr(puc0, BAD_CAST"#end_of_cxp")) != NULL) {
 	  /* copy string between markups */
-	  assert(Strnstr(puc0 + 1, (puc1 - puc0), BAD_CAST"#begin_of_cxp") == NULL); /* nested cxp markup? */
+
+	  if (Strnstr(puc0 + 1, (puc1 - puc0), BAD_CAST"#begin_of_cxp") != NULL) {
+	    PrintFormatLog(1, "Unbalanced markup: '#begin_of_cxp'");
+	  }
 
 	  ppeArg->pucContent = xmlStrndup(puc0 + xmlStrlen(BAD_CAST"#begin_of_cxp"), (int)(puc1 - (puc0 + xmlStrlen(BAD_CAST"#begin_of_cxp"))));
 	  ppeArg->iBegin += (index_t)(puc1 + xmlStrlen(BAD_CAST"#end_of_cxp") - puc0);
@@ -1025,7 +1007,10 @@ pieElementHasNext(pieTextElementPtr ppeArg)
 
 	if ((puc1 = BAD_CAST xmlStrstr(puc0, BAD_CAST"#end_of_csv")) != NULL) {
 	  /* copy string between markups */
-	  assert(Strnstr(puc0 + 1, (puc1 - puc0), BAD_CAST"#begin_of_csv") == NULL); /* nested csv markup? */
+
+	  if (Strnstr(puc0 + 1, (puc1 - puc0), BAD_CAST"#begin_of_csv") != NULL) {
+	    PrintFormatLog(1, "Unbalanced markup: '#begin_of_csv'");
+	  }
 
 	  ppeArg->pucContent = xmlStrndup(pucT, (int)(puc1 - pucT));
 	  ppeArg->iBegin += (index_t)(puc1 + xmlStrlen(BAD_CAST"#end_of_csv") - puc0);
@@ -1266,7 +1251,7 @@ pieElementHasNext(pieTextElementPtr ppeArg)
 		  ppeArg->iDepth = 2;
 		}
 		else {
-		  assert(TRUE);
+		  assert(FALSE);
 		}
 		ppeArg->eType = header;
 		StrIncrementToNextLine(&puc0[iNextBegin], &iNextBegin);
@@ -1287,6 +1272,8 @@ pieElementHasNext(pieTextElementPtr ppeArg)
 	      else {
 	      }
 	    }
+#else
+	    assert(FALSE);
 #endif
 	  }
 	  else if (pieElementGetMode(ppeArg) == RMODE_LINE) {
@@ -1353,87 +1340,6 @@ pieElementHasNext(pieTextElementPtr ppeArg)
   }
   return fResult;
 } /* end of pieElementHasNext() */
-
-
-/*! update legacy markup in ppeArg->pucContent
-
-\param ppeArg
-\return TRUE or FALSE in case of errors
-*/
-BOOL_T
-_pieElementUpdateMarkup(pieTextElementPtr ppeArg)
-{
-  BOOL_T fResult = FALSE;
-
-  if (ppeArg != NULL && STR_IS_NOT_EMPTY(ppeArg->pucContent) && pieElementGetMode(ppeArg) != RMODE_PRE) {
-    int i, j, k;
-    xmlChar *pucA;
-
-    pucA = ppeArg->pucContent;
-
-    /* try to find backwards an 'ending' separator */
-    for (j=xmlStrlen(pucA); j>0 && IS_CONTACT_CHAR_START(pucA[j]) == FALSE; j--);
-
-    /* count separators backwards */
-    for (k = j; k > 0 && IS_CONTACT_CHAR_START(pucA[k]); k--);
-
-    if (k < j && isspace(pucA[k])) { /* there is more than one separator and a space char before */
-
-      xmlChar *pucB;
-
-      ppeArg->iWeight = j - k;
-
-      pucB = BAD_CAST xmlMalloc((size_t) ppeArg->iLength * 2);
-      k++; /* to include space char too */
-      memcpy(pucB, pucA, k);
-      pucB[k] = '\0';
-
-      for (i=j+1; pucA[i]; ) {
-	int l;
-
-	for (; isspace(pucA[i]); i++);
-	
-	for (j=i; ishashtag(&pucA[i],&l); i += l);
-
-	if (i > j) { /* there are hashtag chars */
-	  xmlChar *pucT;
-
-	  pucB[k++] = (xmlChar)' ';
-	  if (pucA[j] == (xmlChar)'#' || pucA[j] == (xmlChar)'@') {
-	    /* there is hashtag markup already */
-	  }
-	  else {
-	    pucB[k++] = (xmlChar)'@';
-	  }
-	  memcpy(&pucB[k], &pucA[j], (size_t) i - j);
-
-#ifdef LEGACY
-	  if ((pucT = Strnstr(&pucB[k], i - j, BAD_CAST"_org")) != NULL
-	    || (pucT = Strnstr(&pucB[k], i - j, BAD_CAST"_do")) != NULL
-	    || (pucT = Strnstr(&pucB[k], i - j, BAD_CAST"_review")) != NULL
-	    || (pucT = Strnstr(&pucB[k], i - j, BAD_CAST"_rejected")) != NULL) {
-	    /* split GTD categories '_org', '_do', '_review', '_rejected' */
-	    pucT[0] = (xmlChar)'#';
-	  }
-#endif
-
-	  k += i - j;
-	  pucB[k] = (xmlChar)'\0';
-	}
-	else if (isend(pucA[i])) { /* neither space nor hashtag chars */
-	  break;
-	}
-	else {
-	  i++;
-	}
-      }
-      xmlFree(ppeArg->pucContent);
-      ppeArg->pucContent = pucB;
-    }
-    fResult = TRUE;
-  }
-  return fResult;
-} /* end of _pieElementUpdateMarkup() */
 
 
 /*!
@@ -1534,6 +1440,8 @@ pieElementParse(pieTextElementPtr ppeArg)
       xmlFree(pucRelease);
     }
     pieElementWeight(ppeArg);
+#else
+    assert(FALSE);
 #endif
   }
   else {
@@ -1561,19 +1469,9 @@ pieElementParse(pieTextElementPtr ppeArg)
       ppeArg->fDone = TRUE;
     }
 #endif
-    
-    switch (*pucA) {
-    case '#':
-      if (StringBeginsWith((char *)pucA, "#import")) { /* starts with import instruction */
-	ppeArg->eType = import;
-	pucA += xmlStrlen(BAD_CAST"#import");
-      }
-      else if (StringBeginsWith((char *)pucA, "#subst")) { /* starts with subst instruction */
-	ppeArg->eType = subst;
-	pucA += xmlStrlen(BAD_CAST"#subst");
-      }
-      break;
 
+    switch (*pucA) {
+      
     case '*':
       pucB = pucA;
       for (ppeArg->iDepth=0; *pucA == (xmlChar)'*'; pucA++, ppeArg->iDepth++) {}
@@ -1688,10 +1586,10 @@ pieElementStrnlenEmpty(xmlChar *pucArg, int iArg)
 /* end of pieElementStrnlenEmpty() */
 
 
-/*! makes elements content XML-conformant and
-\param ppeT element to use
-\return a new node pointer or NULL if failed
-*/
+  /*! makes elements content XML-conformant and
+  \param ppeT element to use
+  \return a new node pointer or NULL if failed
+  */
 xmlNodePtr
 pieElementToDOM(pieTextElementPtr ppeT)
 {
@@ -1715,114 +1613,7 @@ pieElementToDOM(pieTextElementPtr ppeT)
       xmlAddChild(pndResult, xmlNewText(pucC));
     }
     else {
-      if (pieElementIsImport(ppeT)) {
-	pndResult = xmlNewNode(NULL, NAME_PIE_IMPORT);
-	if (STR_IS_NOT_EMPTY(pucC)) {
-	  int i;
-	  int j;
-	  char* pchT;
-	  char delimiter[] = ",;";
-
-	  for (i=j=0; ! isend(pucC[i]); i++) { /* clean content string */
-	    switch (pucC[i]) {
-	    case '(':
-	    case ')':
-	      break;
-	    default:
-	      pucC[j] = pucC[i];
-	      j++;
-	    }
-	  }
-	  pucC[j] = (xmlChar)'\0';
-
-	  for (i=0, pchT = strtok((char*)pucC, delimiter); pchT != NULL; i++) {
-	    switch (i) {
-	    case 0:
-	      resPathRemoveQuotes(BAD_CAST pchT);
-	      if (STR_IS_NOT_EMPTY(pchT)) {
-		xmlSetProp(pndResult, BAD_CAST "name", BAD_CAST pchT);
-	      }
-	      break;
-	    case 1:
-	      if (STR_IS_NOT_EMPTY(pchT)) {
-		xmlSetProp(pndResult, BAD_CAST "type", BAD_CAST pchT);
-	      }
-	      break;
-	    case 2:
-	      if (STR_IS_NOT_EMPTY(pchT)) {
-		xmlSetProp(pndResult, BAD_CAST "base", BAD_CAST pchT);
-	      }
-	      break;
-	    default:
-	      break;
-	    }
-	    pchT = strtok(NULL, delimiter);
-	  }
-	}
-      }
-      else if (pieElementIsSubst(ppeT)) {
-	pndResult = xmlNewNode(NULL, NAME_SUBST);
-	if (STR_IS_NOT_EMPTY(pucC)) {
-	  int i;
-	  int j;
-	  char* pchT;
-	  xmlChar* pucT;
-	  xmlChar* pucAttrName = NULL;
-
-	  for (i=j=0; ! isend(pucC[i]); i++) { /* clean content string */
-	    switch (pucC[i]) {
-	    case '(':
-	    case ')':
-	      break;
-	    default:
-	      pucC[j] = pucC[i];
-	      j++;
-	    }
-	  }
-	  pucC[j] = (xmlChar)'\0';
-
-	  for (i=0; ! isend(pucC[i]); i++) {
-
-	    if (pucC[i] == ',') {
-
-	      pucT = xmlStrndup(BAD_CAST pucC,i);
-	      StringRemovePairQuotes(pucT);
-	      if (STR_IS_NOT_EMPTY(pucT)) {
-		xmlSetProp(pndResult, BAD_CAST "string", pucT);
-	      }
-	      xmlFree(pucT);
-
-	      if ((pucT = BAD_CAST xmlStrchr(BAD_CAST &pucC[i + 1], (xmlChar)'=')) != NULL) {
-		if ((pucAttrName = xmlStrndup(BAD_CAST &pucC[i + 1], pucT - &pucC[i + 1])) != NULL) {
-		  StringRemovePairQuotes(pucAttrName);
-		}
-		i = pucT - pucC;
-	      }
-	      else {
-		pucAttrName = xmlStrdup(BAD_CAST "to");
-	      }
-
-	      if ((pucT = xmlStrdup(BAD_CAST &pucC[i + 1])) != NULL) {
-		StringRemovePairQuotes(pucT);
-		if (STR_IS_NOT_EMPTY(pucT)) {
-		  xmlSetProp(pndResult, pucAttrName, pucT);
-		}
-		xmlFree(pucT);
-	      }
-	      else {
-	      }
-
-	      xmlFree(pucAttrName);
-	      break;
-	    }
-	  }
-
-	  if (ppeT->iDepthHidden > 0) {
-	    xmlSetProp(pndResult, BAD_CAST "valid", BAD_CAST"no");
-	  }
-	}
-      }
-      else if (pieElementIsHeader(ppeT)) {
+      if (pieElementIsHeader(ppeT)) {
 	pndResult = xmlNewNode(NULL, NAME_PIE_SECTION);
 	if (STR_IS_NOT_EMPTY(pucC)) {
 	  xmlNodePtr pndH = NULL;
