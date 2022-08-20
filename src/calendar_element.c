@@ -172,13 +172,17 @@ CalendarElementDup(pieCalendarElementPtr pceArg)
   pieCalendarElementPtr pceResult = NULL;
 
   if (pceArg) {
+    assert(pceArg->pNext == NULL);
+    
     pceResult = CalendarElementNew(NULL);
     if (pceResult) {
       memcpy(pceResult,pceArg,sizeof(pieCalendarElementType));
       if (pceArg->pucId) {
 	pceResult->pucId = xmlStrdup(pceArg->pucId);
       }
-      pceResult->pucDate = NULL;
+      if (pceArg->pucDate) {
+	pceResult->pucDate = xmlStrdup(pceArg->pucDate);
+      }
       pceResult->pucSep = NULL;
       pceResult->pNext = NULL;
     }
@@ -291,6 +295,8 @@ SplitCalendarElementRecurrences(pieCalendarElementPtr pceArg)
   if (pceArg != NULL && pceArg->iRecurrence > 0) {
     pieCalendarElementPtr pceI;
 
+    assert(pceArg->pNext == NULL);
+    
     for (pceI = CalendarElementDup(pceArg); pceI != NULL && pceI->iRecurrence > 0; pceI->iRecurrence--) {
       pieCalendarElementPtr pceT;
 
@@ -618,7 +624,6 @@ AddNodeDateAttributes(xmlNodePtr pndArg, xmlChar* pucArg)
 	xmlChar mpucT[BUFFER_LENGTH];
 	xmlChar* pucDisplay = NULL;
 	pieCalendarElementPtr pceI;
-
 
 	if ((pceList = SplitCalendarElementRecurrences(pceT))) {
 	  mpucT[0] = '\0';

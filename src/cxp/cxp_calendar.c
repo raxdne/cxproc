@@ -179,10 +179,7 @@ static void
 AddDateAttributes(pieCalendarElementPtr pceArg);
 
 static BOOL_T
-RegisterDateNodes(pieCalendarPtr pCalendarArg, xmlChar *pucArg);
-
-static BOOL_T
-ParseDates(pieCalendarPtr pCalendarArg);
+RegisterAndParseDateNodes(pieCalendarPtr pCalendarArg, xmlChar *pucArg);
 
 static BOOL_T
 ProcessCalendarColumns(pieCalendarPtr pCalendarArg, cxpContextPtr pccArg);
@@ -508,37 +505,51 @@ CalendarUpdate(pieCalendarPtr pCalendarArg)
     pieCalendarElementPtr pceT;
 
     for (pceT = pCalendarArg->pceFirst; pceT; pceT = pceT->pNext) {
-      
-      if (pieCalendarIndex(pceT->dtBegin) > 0
+      xmlNodePtr pndAdd;
+
+      if ((pndAdd = pieGetSelfAncestorNodeList(pceT->pndEntry))) {
+	xmlNodePtr pndCol;
+
+	xmlSetProp(pndAdd, BAD_CAST"idref", pceT->pucId);
+
+	if (pieCalendarIndex(pceT->dtBegin) > 0
 	  && pCalendarArg->mpndDay[pieCalendarIndex(pceT->dtBegin)] != NULL
 	  && pieCalendarIndex(pceT->dtEnd) > 0
 	  && pCalendarArg->mpndDay[pieCalendarIndex(pceT->dtEnd)] != NULL) {
-	/* an anchor is specified */
-	xmlNodePtr pndAdd;
-
-	if ((pndAdd = pieGetSelfAncestorNodeList(pceT->pndEntry))) {
+	  /* an interval is specified */
 	  dt_t dtI;
-	
-	  xmlSetProp(pndAdd, BAD_CAST"idref", pceT->pucId);
-	  
-	  for (dtI=pceT->dtBegin; dtI <= pceT->dtEnd; dtI++) {
+
+	  for (dtI = pceT->dtBegin; dtI <= pceT->dtEnd; dtI++) {
 	    /* do iteration of this calendar interval */
-	    xmlNodePtr pndCol;
 	    xmlNodePtr pndAddCopy;
 
 	    assert(pCalendarArg->mpndDay[pieCalendarIndex(dtI)]);
-	      
-	    if ((pndCol = FindCalendarElementCol(pCalendarArg->mpndDay[pieCalendarIndex(dtI)], pceT->pucColId, pceT->pndEntry)) != NULL
-		&& (pndAddCopy = xmlCopyNode(pndAdd,1))) {
-	      xmlAddChild(pndCol,pndAddCopy);
-	    }
-	  }
 
+	    if ((pndCol = FindCalendarElementCol(pCalendarArg->mpndDay[pieCalendarIndex(dtI)], pceT->pucColId, pceT->pndEntry)) != NULL
+	      && (pndAddCopy = xmlCopyNode(pndAdd, 1))) {
+	      xmlAddChild(pndCol, pndAddCopy);
+	    }
+
+	  }
 	  xmlFreeNode(pndAdd);
 	}
-      }
-      else {
-	//xmlFreeNode(pceT->pndEntry);
+	else if (pieCalendarIndex(pceT->dtBegin) > 0
+	  && pCalendarArg->mpndDay[pieCalendarIndex(pceT->dtBegin)] != NULL) {
+	  /* an anchor is specified */
+	  dt_t dtI;
+
+	  assert(pCalendarArg->mpndDay[pieCalendarIndex(pceT->dtBegin)]);
+
+	  if ((pndCol = FindCalendarElementCol(pCalendarArg->mpndDay[pieCalendarIndex(pceT->dtBegin)], pceT->pucColId, pceT->pndEntry)) != NULL) {
+	    xmlAddChild(pndCol, pndAdd);
+	  }
+
+	  //xmlFreeNode(pndAdd);
+	}
+	else {
+	  xmlFreeNode(pndAdd);
+	  //xmlFreeNode(pceT->pndEntry);
+	}
       }
     }
   }
@@ -844,12 +855,12 @@ GetYearArray(pieCalendarPtr pCalendarArg)
 \todo replace XPath implementation by recursive procedure
  */
 BOOL_T
-RegisterDateNodes(pieCalendarPtr pCalendarArg, xmlChar *pucArg)
+RegisterAndParseDateNodes(pieCalendarPtr pCalendarArg, xmlChar *pucArg)
 {
   BOOL_T fResult = FALSE;
 
 #ifdef DEBUG
-  PrintFormatLog(2,"RegisterDateNodes(pCalendarArg=%0x)",pCalendarArg);
+  PrintFormatLog(2,"RegisterAndParseDateNodes(pCalendarArg=%0x)",pCalendarArg);
 #endif
 
   if (pCalendarArg != NULL && pCalendarArg->pdocCalendar != NULL) {
@@ -908,7 +919,6 @@ RegisterDateNodes(pieCalendarPtr pCalendarArg, xmlChar *pucArg)
 	    else {
 	      pceNew->pndEntry = nodeset->nodeTab[i];
 	    }
-	    pceNew->pucDate = xmlStrdup(pucT);
 
 	    /*! use ancestor col element for pucColId
 	    */
@@ -919,11 +929,23 @@ RegisterDateNodes(pieCalendarPtr pCalendarArg, xmlChar *pucArg)
 	      }
 	    }
 
-	    if (pCalendarArg->pceFirst) {
-	      CalendarElementListAdd(pCalendarArg->pceFirst, pceNew);
+	    if (ScanCalendarElementDate(pceNew)) {
+	      pieCalendarElementPtr pceList;
+
+	      if ((pceList = SplitCalendarElementRecurrences(pceNew))) {
+		CalendarElementFree(pceNew);
+		pceNew = pceList;
+	      }
+
+	      if (pCalendarArg->pceFirst) {
+		CalendarElementListAdd(pCalendarArg->pceFirst, pceNew);
+	      }
+	      else {
+		pCalendarArg->pceFirst = pceNew;
+	      }
 	    }
 	    else {
-	      pCalendarArg->pceFirst = pceNew;
+	      CalendarElementFree(pceNew);
 	    }
 	  }
 	}
@@ -937,28 +959,7 @@ RegisterDateNodes(pieCalendarPtr pCalendarArg, xmlChar *pucArg)
   }
 
   return fResult;
-} /* end of RegisterDateNodes() */
-
-
-/*! 
- */
-BOOL_T
-ParseDates(pieCalendarPtr pCalendarArg)
-{
-  BOOL_T fResult = FALSE;
-
-  if (pCalendarArg) {
-    pieCalendarElementPtr pceT;
-
-    for (pceT = pCalendarArg->pceFirst; pceT; pceT = pceT->pNext) {
-      if (ScanCalendarElementDate(pceT)) {
-      }
-    }
-    AddDateAttributes(pCalendarArg->pceFirst);
-    fResult = TRUE;
-  }
-  return fResult;
-} /* end of ParseDates() */
+} /* end of RegisterAndParseDateNodes() */
 
 
 #ifdef DEBUG
@@ -1247,8 +1248,7 @@ calProcessCalendarNode(xmlNodePtr pndArg, cxpContextPtr pccArg)
     if ((pCalendarResult = CalendarSetup(pndArg, pccArg)) != NULL) {
 
       if (ProcessCalendarColumns(pCalendarResult, pccArg)
-	  && RegisterDateNodes(pCalendarResult, NULL)
-	  && ParseDates(pCalendarResult)
+	  && RegisterAndParseDateNodes(pCalendarResult, NULL)
 	  && AddYears(pCalendarResult)) {
       
 	CalendarUpdate(pCalendarResult);
@@ -1286,8 +1286,7 @@ calProcessDoc(xmlDocPtr pdocArg, cxpContextPtr pccArg)
 
   if ((pCalendarResult = CalendarSetup(xmlDocGetRootElement(pdocArg), pccArg)) != NULL
     && ProcessCalendarColumns(pCalendarResult, pccArg)
-    && RegisterDateNodes(pCalendarResult, NULL)
-    && ParseDates(pCalendarResult)
+    && RegisterAndParseDateNodes(pCalendarResult, NULL)
     && AddYears(pCalendarResult)) {
     CalendarUpdate(pCalendarResult);
     CalendarSetToday(pCalendarResult);

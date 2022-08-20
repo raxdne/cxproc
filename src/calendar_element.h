@@ -139,6 +139,9 @@ PrintCalendarElement(pieCalendarElementPtr pceArg);
 extern BOOL_T
 ScanCalendarElementDate(pieCalendarElementPtr pceArgResult);
 
+extern pieCalendarElementPtr
+SplitCalendarElementRecurrences(pieCalendarElementPtr pceArg);
+
 extern BOOL_T
 AddNodeDateAttributes(xmlNodePtr pndArg, xmlChar* pucArg);
 
