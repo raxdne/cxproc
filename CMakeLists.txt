@@ -66,7 +66,7 @@ execute_process(COMMAND git branch --show-current
 string(STRIP "${GIT_BRANCH}" GIT_BRANCH)
 
 set(PROJECT_VERSION_MAJOR "1")
-set(PROJECT_VERSION_MINOR "3")
+set(PROJECT_VERSION_MINOR "4")
 set(PROJECT_VERSION_PATCH "")
 
 include(docs)

@@ -50,7 +50,7 @@ calTest(cxpContextPtr pccArg)
       n_ok++;
       printf("OK\n");
     }
-    PrintCalendarSetup(pCalendarT, pccArg);
+    //PrintCalendarSetup(pCalendarT, pccArg);
     CalendarFree(pCalendarT);
   }
 

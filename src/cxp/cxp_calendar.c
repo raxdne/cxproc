@@ -962,7 +962,7 @@ RegisterAndParseDateNodes(pieCalendarPtr pCalendarArg, xmlChar *pucArg)
 } /* end of RegisterAndParseDateNodes() */
 
 
-#ifdef DEBUG
+#ifdef DEBUG || defined(TESTCODE)
 /*! process all column definition elements of /calendar/meta/calendar/ and insert result at /calendar/
  */
 BOOL_T

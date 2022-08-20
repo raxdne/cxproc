@@ -1292,7 +1292,7 @@ pieTextBlocksTest(void)
       n_ok++;
       printf("OK\n");
     }
-    domPutNodeString(stderr, BAD_CAST"date result", pndPie);
+    //domPutNodeString(stderr, BAD_CAST"date result", pndPie);
     xmlFreeNode(pndPie);
   }
 
