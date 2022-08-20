@@ -228,16 +228,14 @@ main(int argc, char** argv, char** envp)
 
 	pccT = cxpCtxtDup(pccTest);
 	if (pccT) {
-#if 0
 	  iErrorCode += cxpCtxtTest(pccT);
 	  iErrorCode += cxpCtxtEncTest(pccT);
 	  iErrorCode += cxpCtxtCacheTest(pccT);
 	  iErrorCode += cxpSubstTest(pccT);
+	  iErrorCode += calTest(pccT);
 	  iErrorCode += pieTimezoneTest();
 	  iErrorCode += ceTest();	  
 	  iErrorCode += cxpTest(pccT);
-#endif
-	  iErrorCode += calTest(pccT);
 
 	  cxpCtxtIncrExitCode(pccTest, cxpCtxtGetExitCode(pccT));
 	  cxpCtxtFree(pccT);
