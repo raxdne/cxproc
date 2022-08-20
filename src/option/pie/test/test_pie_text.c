@@ -608,7 +608,9 @@ pieTextTest(cxpContextPtr pccArg)
     xmlFreeDoc(pdocT);
   }
 
-  
+
+#if 0
+
   if (RUNTEST) {
     xmlDocPtr pdocT;
     xmlNodePtr pndRoot;
@@ -638,7 +640,8 @@ pieTextTest(cxpContextPtr pccArg)
     xmlFree(pucHeader);
     xmlFreeDoc(pdocT);
   }
-
+  
+#endif
 
   if (RUNTEST) {
     /* TEST:
