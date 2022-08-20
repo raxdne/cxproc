@@ -696,6 +696,7 @@ AddNodeDateAttributes(xmlNodePtr pndArg, xmlChar* pucArg)
 
 	fResult = TRUE;
       }
+      CalendarElementFree(pceT);
     }
     
 #if 0

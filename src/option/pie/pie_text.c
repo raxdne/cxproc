@@ -1519,9 +1519,9 @@ pieGetSelfAncestorNodeList(xmlNodePtr pndArg)
   xmlNodePtr pndResult = NULL;
   xmlNodePtr pndI;
 
-  assert(IS_NODE_PIE_DATE(pndArg));
-
-  if ((pndResult = xmlNewNode(NULL,NAME_PIE_BLOCK)) == NULL) {
+  if (IS_NODE_PIE_DATE(pndArg)) {
+  }
+  else if ((pndResult = xmlNewNode(NULL,NAME_PIE_BLOCK)) == NULL) {
   }
   else if (IS_NODE_PIE_PAR(pndArg->parent)) { /* p/date */
     
@@ -1570,7 +1570,7 @@ pieGetSelfAncestorNodeList(xmlNodePtr pndArg)
     }
   }
   else {
-    assert(FALSE);
+    //assert(FALSE);
   }
 
 #if 0

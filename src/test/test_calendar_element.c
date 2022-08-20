@@ -391,6 +391,7 @@ ceTest(void)
       n_ok++;
       printf("OK\n");
     }
+    CalendarElementFree(pceT);
   }
 
   if (RUNTEST) {
@@ -522,6 +523,7 @@ ceTest(void)
       n_ok++;
       printf("OK\n");
     }
+    CalendarElementFree(pceT);
   }
 
 

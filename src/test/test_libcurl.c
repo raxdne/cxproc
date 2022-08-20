@@ -207,7 +207,7 @@ curlTest(void)
   }
 
   
-  if (RUNTEST) {
+  if (SKIPTEST) {
     /* TEST:
      */
     CURLU *h;

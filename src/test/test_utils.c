@@ -610,7 +610,7 @@ utilsTest(void)
     else if (dt_parse_iso_period("P1YM-4DT", 20, &y, &m, &d, NULL) != 0) {
       printf("ERROR dt_parse_iso_period()\n");
     }
-    else if (dt_parse_iso_period("P3Y6M4DT12H30M5S", BUFFER_LENGTH, &y, &m, &d, NULL) != 7) {
+    else if (dt_parse_iso_period("P3Y6M4DT12H30M5S", BUFFER_LENGTH, &y, &m, &d, NULL) != 16) {
       printf("ERROR dt_parse_iso_period()\n");
     }
     else if (y != 3 || m != 6 || d != 4) {
