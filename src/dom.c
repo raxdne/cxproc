@@ -235,6 +235,24 @@ domUnsetNs(xmlNodePtr pndArg)
 } /* end of domUnsetNs() */
 
 
+/*!
+*/
+xmlAttrPtr
+domCopyPropList(xmlNodePtr target, xmlNodePtr cur)
+{
+  if (target != NULL && target->type == XML_ELEMENT_NODE && cur != NULL && cur->type == XML_ELEMENT_NODE && target != cur) {
+    xmlAttrPtr p;
+
+    for (p = cur->properties; p; p = p->next) {
+      if (p->children != NULL && STR_IS_NOT_EMPTY(p->children->content)) {
+	xmlSetProp(target, p->name, p->children->content);
+      }
+    }
+  }
+  return(target->properties);
+} /* end of domCopyPropList() */
+
+
 /*! counts the number of elements with right name
 
   \param pndArg is the current node

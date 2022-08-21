@@ -117,6 +117,9 @@ domGetPropFlag(xmlNodePtr pndArg, xmlChar *pucNameAttr, BOOL_T fDefault);
 extern BOOL_T
 domPropIsEqual(xmlNodePtr pndArg, xmlChar *pucNameAttr, xmlChar *pucValueAttr);
 
+extern xmlAttrPtr
+domCopyPropList(xmlNodePtr target, xmlNodePtr cur);
+
 extern xmlNodePtr
 domGetNextNode(xmlNodePtr pndArg, xmlChar *pucNameElement);
 
