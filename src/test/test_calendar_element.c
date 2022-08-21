@@ -34,7 +34,7 @@ ceTest(void)
   i=0;
 
   if (RUNTEST) {
-    pieCalendarElementPtr pceT;
+    ceElementPtr pceT;
 
     i++;
     printf("TEST %i in '%s:%i': scan invalid calendar element = ", i, __FILE__, __LINE__);
@@ -71,7 +71,7 @@ ceTest(void)
   }
   
   if (RUNTEST) {
-    pieCalendarElementPtr pceT;
+    ceElementPtr pceT;
 
     i++;
     printf("TEST %i in '%s:%i': scan a calendar element = ",i,__FILE__,__LINE__);
@@ -108,7 +108,7 @@ ceTest(void)
   }
 
   if (RUNTEST) {
-    pieCalendarElementPtr pceT;
+    ceElementPtr pceT;
 
     i++;
     printf("TEST %i in '%s:%i': scan a system time calendar element = ",i,__FILE__,__LINE__);
@@ -139,7 +139,7 @@ ceTest(void)
   }
 
   if (RUNTEST) {
-    pieCalendarElementPtr pceT;
+    ceElementPtr pceT;
 
     i++;
     printf("TEST %i in '%s:%i': scan a week calendar element = ",i,__FILE__,__LINE__);
@@ -191,7 +191,7 @@ ceTest(void)
   }
 
   if (RUNTEST) {
-    pieCalendarElementPtr pceT;
+    ceElementPtr pceT;
 
     i++;
     printf("TEST %i in '%s:%i': scan a day calendar element = ",i,__FILE__,__LINE__);
@@ -234,7 +234,7 @@ ceTest(void)
   }
 
   if (RUNTEST) {
-    pieCalendarElementPtr pceT;
+    ceElementPtr pceT;
 
     i++;
     printf("TEST %i in '%s:%i': scan a list calendar element = ",i,__FILE__,__LINE__);
@@ -262,7 +262,7 @@ ceTest(void)
   }
 
   if (RUNTEST) {
-    pieCalendarElementPtr pceT;
+    ceElementPtr pceT;
 
     i++;
     printf("TEST %i in '%s:%i': scan a calendar element = ", i, __FILE__, __LINE__);
@@ -289,7 +289,7 @@ ceTest(void)
   /*\todo test time strings */
   
   if (RUNTEST) {
-    pieCalendarElementPtr pceT;
+    ceElementPtr pceT;
 
     i++;
     printf("TEST %i in '%s:%i': scan a calendar element = ", i, __FILE__, __LINE__);
@@ -316,7 +316,7 @@ ceTest(void)
   /* ISO 8601 Time intervals */
 
   if (RUNTEST) {
-    pieCalendarElementPtr pceT;
+    ceElementPtr pceT;
 
     i++;
     printf("TEST %i in '%s:%i': ", i, __FILE__, __LINE__);
@@ -395,7 +395,7 @@ ceTest(void)
   }
 
   if (RUNTEST) {
-    pieCalendarElementPtr pceT;
+    ceElementPtr pceT;
 
     i++;
     printf("TEST %i in '%s:%i': scan a calendar element = ", i, __FILE__, __LINE__);
@@ -421,7 +421,7 @@ ceTest(void)
 
 
   if (RUNTEST) {
-    pieCalendarElementPtr pceT;
+    ceElementPtr pceT;
 
     i++;
     printf("TEST %i in '%s:%i': scan a year interval calendar element = ",i,__FILE__,__LINE__);
@@ -443,7 +443,7 @@ ceTest(void)
   }
 
   if (RUNTEST) {
-    pieCalendarElementPtr pceT;
+    ceElementPtr pceT;
 
     i++;
     printf("TEST %i in '%s:%i': scan a month interval calendar element = ",i,__FILE__,__LINE__);
@@ -466,7 +466,7 @@ ceTest(void)
 
 
   if (RUNTEST) {
-    pieCalendarElementPtr pceT;
+    ceElementPtr pceT;
 
     i++;
     printf("TEST %i in '%s:%i': scan a week interval calendar element = ",i,__FILE__,__LINE__);
@@ -490,7 +490,7 @@ ceTest(void)
   /* ISO 8601 Repeating intervals */
 
   if (RUNTEST) {
-    pieCalendarElementPtr pceT;
+    ceElementPtr pceT;
 
     i++;
     printf("TEST %i in '%s:%i': ", i, __FILE__, __LINE__);
@@ -538,19 +538,19 @@ ceTest(void)
     else if (UpdateToday(BAD_CAST"2013-12-11T10:11:00CST ISO") < 0) {
       printf("ERROR UpdateToday()\n");
     }
-    else if (GetTodayYear() != 2013 || GetTodayMonth() != 12 || GetTodayDayOfMonth() != 11) {
+    else if (dt_year(GetToday()) != 2013 || dt_month(GetToday()) != 12 || dt_dom(GetToday()) != 11) {
       printf("ERROR GetToday*()\n");
     }
     else if (UpdateToday(BAD_CAST"2017") < 0) {
       printf("ERROR UpdateToday()\n");
     }
-    else if (GetTodayYear() != 2017 || GetTodayMonth() != 12 || GetTodayDayOfMonth() != 11) {
+    else if (dt_year(GetToday()) != 2017 || dt_month(GetToday()) != 12 || dt_dom(GetToday()) != 11) {
       printf("ERROR GetToday*()\n");
     }
     else if (UpdateToday(BAD_CAST"201703") < 0) {
       printf("ERROR UpdateToday()\n");
     }
-    else if (GetTodayYear() != 2017 || GetTodayMonth() != 3 || GetTodayDayOfMonth() != 11) {
+    else if (dt_year(GetToday()) != 2017 || dt_month(GetToday()) != 3 || dt_dom(GetToday()) != 11) {
       printf("ERROR GetToday*()\n");
     }
     else {

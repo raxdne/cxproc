@@ -262,6 +262,9 @@ cxpCtxtAddChild(cxpContextPtr pccArgParent, cxpContextPtr pccArgChild);
 extern xmlChar *
 cxpCtxtGetHostValueNamed(cxpContextPtr pccArgParent, const xmlChar *pucName);
 
+extern int
+GetRunningTime();
+
 
 #ifdef TESTCODE
 extern int

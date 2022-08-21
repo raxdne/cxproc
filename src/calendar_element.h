@@ -26,7 +26,7 @@
 
 /*! structure
  */
-struct pieCalendarElement {
+struct ceElement {
 
   xmlNodePtr pndEntry; /*!< pointer to anchor DOM node */
   xmlAttrPtr patAttr; /*!< pointer to descendant DOM attribute of pndEntry */
@@ -57,90 +57,57 @@ struct pieCalendarElement {
   int iTimezone;	/*!< numerical ID for timezone (UTC by default) */
   int iTimezoneOffset; /*!< offset to UTC in minutes */
 
-  struct pieCalendarElement *pNext;
+  struct ceElement *pNext;
 } ;
 
-typedef struct pieCalendarElement pieCalendarElementType;
+typedef struct ceElement ceElementType;
 
-typedef pieCalendarElementType *pieCalendarElementPtr;
+typedef ceElementType *ceElementPtr;
 
 
 extern const xmlChar *dow[];
 
-extern const xmlChar *dow_de[];
-
 extern const xmlChar *moy[];
-
-extern const xmlChar *moy_de[];
 
 extern BOOL_T
 ceInit(void);
 
-extern pieCalendarElementPtr
+extern ceElementPtr
 CalendarElementNew(xmlChar *pucArg);
 
-extern pieCalendarElementPtr
-CalendarElementUpdate(pieCalendarElementPtr pceArg, xmlChar* pucArg);
+extern ceElementPtr
+CalendarElementUpdate(ceElementPtr pceArg, xmlChar* pucArg);
 
 extern BOOL_T
-CalendarElementUpdateValues(pieCalendarElementPtr pceArg);
+CalendarElementUpdateValues(ceElementPtr pceArg);
 
 extern void
-CalendarElementFree(pieCalendarElementPtr pceArg);
+CalendarElementFree(ceElementPtr pceArg);
 
-extern pieCalendarElementPtr
-CalendarElementDup(pieCalendarElementPtr pceArg);
+extern ceElementPtr
+CalendarElementDup(ceElementPtr pceArg);
 
 extern BOOL_T
-CalendarElementListAdd(pieCalendarElementPtr pceArgList, pieCalendarElementPtr pceArg);
-
-extern int
-GetRunningTime();
+CalendarElementListAdd(ceElementPtr pceArgList, ceElementPtr pceArg);
 
 extern dt_t
 UpdateToday(xmlChar *pucArgToday);
 
-extern long int
+extern dt_t
 GetToday(void);
 
-extern int
-GetTodayYear(void);
-
-extern int
-GetTodayMonth(void);
-
-extern int
-GetTodayDayOfMonth(void);
-
-extern int
-GetTodayDayOfYear(void);
-
-extern int
-GetTodayWeek(void);
-
-extern xmlChar *
-GetTodayTag(void);
-
-extern int
-GetTodayTime(void);
-
-extern int
-GetTodayHour(void);
-
-extern int
-GetTodayMinute(void);
-
-extern int
-GetTodaySecond(void);
+#ifdef DEBUG || defined(TESTCODE)
 
 extern void
-PrintCalendarElement(pieCalendarElementPtr pceArg);
+PrintCalendarElement(ceElementPtr pceArg);
+
+#endif
 
 extern BOOL_T
-ScanCalendarElementDate(pieCalendarElementPtr pceArgResult);
+ScanCalendarElementDate(ceElementPtr pceArgResult);
 
-extern pieCalendarElementPtr
-SplitCalendarElementRecurrences(pieCalendarElementPtr pceArg);
+extern ceElementPtr
+SplitCalendarElementRecurrences(ceElementPtr pceArg);
 
 extern BOOL_T
 AddNodeDateAttributes(xmlNodePtr pndArg, xmlChar* pucArg);

@@ -48,34 +48,9 @@ static struct tm timeNow;
 
 dt_t dtToday = 0;
 
-pieCalendarElementType ceToday;
 
-xmlChar *pucTodayTag = NULL;
-
-xmlChar *pucTodayYear = NULL;
-
-xmlChar *pucTodayMonth = NULL;
-
-xmlChar *pucTodayWeek = NULL;
-
-xmlChar *pucTodayDayYear = NULL;
-
-xmlChar *pucTodayDayMonth = NULL;
-
-xmlChar *pucTodayHour = NULL;
-
-xmlChar *pucTodayMinute = NULL;
-
-xmlChar *pucTodaySecond = NULL;
-
-xmlChar *pucAbsoluteSecond = NULL;
-
-
-static void
-ceCleanup(void);
-
-static pieCalendarElementPtr
-CalendarElementReset(pieCalendarElementPtr pceArg);
+static ceElementPtr
+CalendarElementReset(ceElementPtr pceArg);
 
 
 /*!
@@ -88,48 +63,24 @@ ceInit(void)
   /* mit Systemzeit initialisieren */
   time(&system_zeit);
   memcpy(&timeNow, localtime(&system_zeit), sizeof(struct tm));
-  UpdateToday(NULL); /* update if CXP_DATE is set */
 
-  /* register for exit() */
-  if (atexit(ceCleanup) != 0) {
-    exit(EXIT_FAILURE);
-  }
+  UpdateToday(NULL); /* update if CXP_DATE is set */
   
   return fResult;
 }
 /* end of ceInit() */
 
 
-/*! release allocated memory of static variables
-*/
-void
-ceCleanup(void)
-{
-  /* release strings */
-  xmlFree(pucTodayTag);
-  xmlFree(pucTodayYear);
-  xmlFree(pucTodayMonth);
-  xmlFree(pucTodayWeek);
-  xmlFree(pucTodayDayMonth);
-  xmlFree(pucTodayDayYear);
-  xmlFree(pucTodayHour);
-  xmlFree(pucTodayMinute);
-  xmlFree(pucTodaySecond);
-  xmlFree(pucAbsoluteSecond);
-}
-/* end of utilsCleanup() */
-
-
 /*!\return a new allocated calendar element
  */
-pieCalendarElementPtr
+ceElementPtr
 CalendarElementNew(xmlChar *pucArg)
 {
-  pieCalendarElementPtr pceResult = NULL;
+  ceElementPtr pceResult = NULL;
 
-  pceResult = (pieCalendarElementPtr)xmlMalloc(sizeof(pieCalendarElementType));
+  pceResult = (ceElementPtr)xmlMalloc(sizeof(ceElementType));
   if (pceResult) {
-    memset(pceResult, 0, sizeof(pieCalendarElementType));
+    memset(pceResult, 0, sizeof(ceElementType));
     if (CalendarElementUpdate(pceResult, pucArg)) {
     }
     else {
@@ -143,8 +94,8 @@ CalendarElementNew(xmlChar *pucArg)
 
 /*!\return an updated calendar element
  */
-pieCalendarElementPtr
-CalendarElementUpdate(pieCalendarElementPtr pceArg, xmlChar* pucArg)
+ceElementPtr
+CalendarElementUpdate(ceElementPtr pceArg, xmlChar* pucArg)
 {
   if (pceArg) {
     CalendarElementReset(pceArg);
@@ -166,17 +117,17 @@ CalendarElementUpdate(pieCalendarElementPtr pceArg, xmlChar* pucArg)
 
 /*! \return a freshly allocated copy of pceArg
  */
-pieCalendarElementPtr
-CalendarElementDup(pieCalendarElementPtr pceArg)
+ceElementPtr
+CalendarElementDup(ceElementPtr pceArg)
 {
-  pieCalendarElementPtr pceResult = NULL;
+  ceElementPtr pceResult = NULL;
 
   if (pceArg) {
     assert(pceArg->pNext == NULL);
     
     pceResult = CalendarElementNew(NULL);
     if (pceResult) {
-      memcpy(pceResult,pceArg,sizeof(pieCalendarElementType));
+      memcpy(pceResult,pceArg,sizeof(ceElementType));
       if (pceArg->pucId) {
 	pceResult->pucId = xmlStrdup(pceArg->pucId);
       }
@@ -193,8 +144,8 @@ CalendarElementDup(pieCalendarElementPtr pceArg)
 
 /*! \return a freshly allocated copy of pceArg
  */
-pieCalendarElementPtr
-CalendarElementReset(pieCalendarElementPtr pceArg)
+ceElementPtr
+CalendarElementReset(ceElementPtr pceArg)
 {
   if (pceArg) {
 
@@ -209,7 +160,7 @@ CalendarElementReset(pieCalendarElementPtr pceArg)
       pceArg->pucDate = NULL;
     }
     
-    //memset(pceArg, 0, sizeof(pieCalendarElementType));
+    //memset(pceArg, 0, sizeof(ceElementType));
 
     pceArg->dtBegin = 0;
     pceArg->dtEnd   = pceArg->dtBegin;
@@ -228,7 +179,7 @@ CalendarElementReset(pieCalendarElementPtr pceArg)
 /*! \return a freshly allocated copy of pceArg
  */
 BOOL_T
-CalendarElementListAdd(pieCalendarElementPtr pceArgList, pieCalendarElementPtr pceArg)
+CalendarElementListAdd(ceElementPtr pceArgList, ceElementPtr pceArg)
 {
   if (pceArgList != NULL && pceArg != NULL) {
     if (pceArgList->pNext) {
@@ -246,7 +197,7 @@ CalendarElementListAdd(pieCalendarElementPtr pceArgList, pieCalendarElementPtr p
 /*! free a new allocated calendar element
  */
 void
-CalendarElementFree(pieCalendarElementPtr pceArg)
+CalendarElementFree(ceElementPtr pceArg)
 {
   if (pceArg) {
     if (pceArg->pNext) {
@@ -258,12 +209,14 @@ CalendarElementFree(pieCalendarElementPtr pceArg)
 } /* end of CalendarElementFree() */
 
 
+#ifdef DEBUG || defined(TESTCODE)
+
 /*! Prints
 
 \param pceArg
 */
 void
-PrintCalendarElement(pieCalendarElementPtr pceArg)
+PrintCalendarElement(ceElementPtr pceArg)
 {
   if (pceArg != NULL && pceArg->pndEntry != NULL) {
     PrintFormatLog(1, "Calendar element: %s/%s=%s, begin=%lu, end=%lu, repeat=%.1f",
@@ -276,6 +229,7 @@ PrintCalendarElement(pieCalendarElementPtr pceArg)
   }
 } /* end of PrintCalendarElement() */
 
+#endif
 
 
 /*! Scans 'pceArgResult' for a datum description and write the results to
@@ -287,18 +241,18 @@ PrintCalendarElement(pieCalendarElementPtr pceArg)
 \param pceArgResult
 \return NULL in case of error, else pointer to xmlChar after date expression string
  */
-pieCalendarElementPtr
-SplitCalendarElementRecurrences(pieCalendarElementPtr pceArg)
+ceElementPtr
+SplitCalendarElementRecurrences(ceElementPtr pceArg)
 {
-  pieCalendarElementPtr pceResult = NULL;
+  ceElementPtr pceResult = NULL;
 
   if (pceArg != NULL && pceArg->iRecurrence > 0) {
-    pieCalendarElementPtr pceI;
+    ceElementPtr pceI;
 
     assert(pceArg->pNext == NULL);
     
     for (pceI = CalendarElementDup(pceArg); pceI != NULL && pceI->iRecurrence > 0; pceI->iRecurrence--) {
-      pieCalendarElementPtr pceT;
+      ceElementPtr pceT;
 
       pceT = CalendarElementDup(pceI);
       if (pceT) {
@@ -355,7 +309,7 @@ SplitCalendarElementRecurrences(pieCalendarElementPtr pceArg)
 \return NULL in case of error, else pointer to xmlChar after date expression string
  */
 BOOL_T
-ScanCalendarElementDate(pieCalendarElementPtr pceArgResult)
+ScanCalendarElementDate(ceElementPtr pceArgResult)
 {
   BOOL_T fResult = FALSE;
 
@@ -609,13 +563,13 @@ AddNodeDateAttributes(xmlNodePtr pndArg, xmlChar* pucArg)
   if (pndArg != NULL
       && ((STR_IS_NOT_EMPTY(pucArg) && (pucDate = pucArg))
 	  || ((pndArg->children != NULL && (pucDate = pndArg->children->content) != NULL)))) {
-    pieCalendarElementPtr pceT;
+    ceElementPtr pceT;
 
     if ((pceT = CalendarElementNew(pucDate))) {
       time_t t;
       dt_t iDayToday;
       long int iDayDiff = 0;
-      pieCalendarElementPtr pceList;
+      ceElementPtr pceList;
 
       time(&t); /*!\todo reduce number of calls of time()/localtime() */
       iDayToday = dt_from_struct_tm(localtime(&t));
@@ -623,7 +577,7 @@ AddNodeDateAttributes(xmlNodePtr pndArg, xmlChar* pucArg)
       if (ScanCalendarElementDate(pceT)) {
 	xmlChar mpucT[BUFFER_LENGTH];
 	xmlChar* pucDisplay = NULL;
-	pieCalendarElementPtr pceI;
+	ceElementPtr pceI;
 
 	if ((pceList = SplitCalendarElementRecurrences(pceT))) {
 	  mpucT[0] = '\0';
@@ -770,13 +724,25 @@ AddNodeDateAttributes(xmlNodePtr pndArg, xmlChar* pucArg)
 /*!
 */
 dt_t
+GetToday(void)
+{
+  if (dtToday < 1) {
+    UpdateToday(NULL);
+  }
+  return dtToday;
+} /* End of GetToday() */
+
+
+/*!
+*/
+dt_t
 UpdateToday(xmlChar *pucArgToday)
 {
   xmlChar mpucT[BUFFER_LENGTH];
   xmlChar *pucEnvDate;
 
   if (STR_IS_NOT_EMPTY(pucArgToday)) {
-    pieCalendarElementPtr pceNew;
+    ceElementPtr pceNew;
 
     dt_parse_iso_date(pucArgToday, xmlStrlen(pucArgToday), &dtToday);
 
@@ -819,161 +785,8 @@ UpdateToday(xmlChar *pucArgToday)
     dtToday = dt_from_struct_tm(localtime(&system_zeit));
   }
 
-  /*
-  initialize strings
-  */
-  xmlFree(pucTodayTag);
-  pucTodayTag = GetDateIsoString(system_zeit);
-
-  xmlFree(pucTodayYear);
-  xmlStrPrintf(mpucT,BUFFER_LENGTH, "%i",GetTodayYear());
-  pucTodayYear = xmlStrdup(mpucT);
-
-  xmlFree(pucTodayMonth);
-  xmlStrPrintf(mpucT,BUFFER_LENGTH, "%02i",GetTodayMonth());
-  pucTodayMonth = xmlStrdup(mpucT);
-
-  xmlFree(pucTodayWeek);
-  xmlStrPrintf(mpucT,BUFFER_LENGTH, "%02i",GetTodayWeek());
-  pucTodayWeek = xmlStrdup(mpucT);
-
-  xmlFree(pucTodayDayYear);
-  xmlStrPrintf(mpucT,BUFFER_LENGTH, "%02i",GetTodayDayOfYear());
-  pucTodayDayYear = xmlStrdup(mpucT);
-
-  xmlFree(pucTodayDayMonth);
-  xmlStrPrintf(mpucT,BUFFER_LENGTH, "%02i",GetTodayDayOfMonth());
-  pucTodayDayMonth = xmlStrdup(mpucT);
-
-  xmlFree(pucTodayHour);
-  xmlStrPrintf(mpucT,BUFFER_LENGTH, "%02i",GetTodayHour());
-  pucTodayHour = xmlStrdup(mpucT);
-
-  xmlFree(pucTodayMinute);
-  xmlStrPrintf(mpucT,BUFFER_LENGTH, "%02i",GetTodayMinute());
-  pucTodayMinute = xmlStrdup(mpucT);
-
-  xmlFree(pucTodaySecond);
-  xmlStrPrintf(mpucT,BUFFER_LENGTH, "%02i",GetTodaySecond());
-  pucTodaySecond = xmlStrdup(mpucT);
-
-  xmlFree(pucAbsoluteSecond);
-  xmlStrPrintf(mpucT,BUFFER_LENGTH, "%lli",(long long)system_zeit);
-  pucAbsoluteSecond = xmlStrdup(mpucT);
-
   return dtToday;
-}
-/* end of UpdateToday() */
-
-
-/*!
-*/
-int
-GetTodayTime(void)
-{
-  return (int)system_zeit;
-}
-/* end of GetTodayTime() */
-
-
-/*!
-*/
-xmlChar *
-GetTodayTag(void)
-{
-  return pucTodayTag;
-}
-/* end of GetTodayTag() */
-
-
-/*!
-*/
-long int
-GetToday(void)
-{
-  return dtToday;
-}
-/* end of calGetToday() */
-
-
-/*!
-*/
-int
-GetTodayYear(void)
-{
-  return timeNow.tm_year + 1900;
-}
-/* end of GetTodayYear() */
-
-
-/*!
-*/
-int
-GetTodayMonth(void)
-{
-  return timeNow.tm_mon + 1;
-}
-/* end of GetTodayMonth() */
-
-
-/*!
-*/
-int
-GetTodayDayOfMonth(void)
-{
-  return timeNow.tm_mday;
-}
-/* end of GetTodayDayOfMonth() */
-
-
-/*!
-*/
-int
-GetTodayDayOfYear(void)
-{
-  return timeNow.tm_yday + 1;
-}
-/* end of GetTodayDayOfYear() */
-
-
-/*!
-*/
-int
-GetTodayWeek(void)
-{
-  return GetWeekOfYear(GetTodayDayOfMonth(),GetTodayMonth(),GetTodayYear());
-}
-/* end of GetTodayWeek() */
-
-
-/*!
-*/
-int
-GetTodayHour(void)
-{
-  return timeNow.tm_hour;
-}
-/* end of GetTodayHour() */
-
-
-/*!
-*/
-int
-GetTodayMinute(void)
-{
-  return timeNow.tm_min;
-}
-/* end of GetTodayMinute() */
-
-
-/*!
-*/
-int
-GetTodaySecond(void)
-{
-  return timeNow.tm_sec;
-}
-/* end of GetTodaySecond() */
+} /* end of UpdateToday() */
 
 
 #ifdef TESTCODE

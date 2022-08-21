@@ -73,25 +73,25 @@ const char *mpucNumber[] = {
 			    "60",NULL};
       
 
-#define PIE_CALENDAR_YEAR_MIN (1970)
+#define CXP_CALENDAR_YEAR_MIN (1970)
 
-#define PIE_CALENDAR_YEAR_MAX (PIE_CALENDAR_YEAR_MIN + 100)
+#define CXP_CALENDAR_YEAR_MAX (CXP_CALENDAR_YEAR_MIN + 100)
 
-#define PIE_CALENDAR_SIZE ((PIE_CALENDAR_YEAR_MAX - PIE_CALENDAR_YEAR_MIN + 1) * 366 * sizeof(xmlNodePtr))
+#define CXP_CALENDAR_SIZE ((CXP_CALENDAR_YEAR_MAX - CXP_CALENDAR_YEAR_MIN + 1) * 366 * sizeof(xmlNodePtr))
 
-#define pieCalendarIndex(I) (I - dt_from_yd(PIE_CALENDAR_YEAR_MIN, 1))
+#define cxpCalendarIndex(I) (I - dt_from_yd(CXP_CALENDAR_YEAR_MIN, 1))
 
 typedef enum {
-  PIE_CALENDAR_MDAY, 
-  PIE_CALENDAR_WDAY, 
-  PIE_CALENDAR_YDAY,
-  PIE_CALENDAR_MDAY_HOUR,
-  PIE_CALENDAR_WDAY_HOUR, 
-  PIE_CALENDAR_YDAY_HOUR,
-  PIE_CALENDAR_WEEK,
-  PIE_CALENDAR_MONTH, 
-  PIE_CALENDAR_YEAR
-} pieCalendarType;
+  CXP_CALENDAR_MDAY, 
+  CXP_CALENDAR_WDAY, 
+  CXP_CALENDAR_YDAY,
+  CXP_CALENDAR_MDAY_HOUR,
+  CXP_CALENDAR_WDAY_HOUR, 
+  CXP_CALENDAR_YDAY_HOUR,
+  CXP_CALENDAR_WEEK,
+  CXP_CALENDAR_MONTH, 
+  CXP_CALENDAR_YEAR
+} cxpCalendarType;
 
 /*! structure
  */
@@ -99,9 +99,9 @@ typedef struct {
   xmlDocPtr pdocCalendar; /*!< pointer to DOM of result calendar DOM */
   xmlNodePtr pndCalendarRoot;
   //xmlNode **mpndDay; /*!< array of pointers to day nodes of pdocCalendar (performance vector) */
-  xmlNodePtr mpndDay[PIE_CALENDAR_SIZE];
-  pieCalendarElementPtr pceFirst;
-  pieCalendarType eType;
+  xmlNodePtr mpndDay[CXP_CALENDAR_SIZE];
+  ceElementPtr pceFirst;
+  cxpCalendarType eType;
   
   unsigned int ciEntries;
   int *pmiYear; /*!< array of requiered years, derived from attributes in pdocSource */
@@ -112,9 +112,9 @@ typedef struct {
 
   int iTimezone;	/*!< numerical ID for timezone (UTC by default) */
   int iTimezoneOffset;  /*!< offset to UTC in minutes */
-} pieCalendar;
+} cxpCalendar;
 
-typedef pieCalendar *pieCalendarPtr;
+typedef cxpCalendar *cxpCalendarPtr;
 
 /* Global 
  */
@@ -135,65 +135,45 @@ const xmlChar *moy[] = {
   NULL
 };
 
-const xmlChar *moy_de[] = {
-  BAD_CAST "",
-  BAD_CAST "Januar",
-  BAD_CAST "Februar",
-  BAD_CAST "Maerz",
-  BAD_CAST "April",
-  BAD_CAST "Mai",
-  BAD_CAST "Juni",
-  BAD_CAST "Juli",
-  BAD_CAST "August",
-  BAD_CAST "September",
-  BAD_CAST "Oktober",
-  BAD_CAST "November",
-  BAD_CAST "Dezember",
-  NULL
-};
-
 /*!\todo
 BOOL_T
-CalendarSwitchTimezone(pieCalendarPtr pCalendarArg, pie_tz_t tzArg);
+CalendarSwitchTimezone(cxpCalendarPtr pCalendarArg, pie_tz_t tzArg);
  */
 
 static void
-GetYearArray(pieCalendarPtr pCalendarArg);
+GetYearArray(cxpCalendarPtr pCalendarArg);
 
 static BOOL_T
-AddTreeYear(pieCalendarPtr pCalendarArg, int year);
+AddTreeYear(cxpCalendarPtr pCalendarArg, int year);
 
 static void
-GetYearMinMax(pieCalendarPtr pCalendarArg, int *year_min, int *year_max);
+GetYearMinMax(cxpCalendarPtr pCalendarArg, int *year_min, int *year_max);
 
 static BOOL_T
-AddYears(pieCalendarPtr pCalendarArg);
+AddYears(cxpCalendarPtr pCalendarArg);
 
 static xmlNodePtr
 FindCalendarElementCol(xmlNodePtr pndArgParent, xmlChar *pucArgIdCol, xmlNodePtr pndArgInsert);
 
 static void
-CalendarUpdate(pieCalendarPtr pCalendarArg);
-
-static void
-AddDateAttributes(pieCalendarElementPtr pceArg);
+CalendarUpdate(cxpCalendarPtr pCalendarArg);
 
 static BOOL_T
-RegisterAndParseDateNodes(pieCalendarPtr pCalendarArg, xmlChar *pucArg);
+RegisterAndParseDateNodes(cxpCalendarPtr pCalendarArg, xmlChar *pucArg);
 
 static BOOL_T
-ProcessCalendarColumns(pieCalendarPtr pCalendarArg, cxpContextPtr pccArg);
+ProcessCalendarColumns(cxpCalendarPtr pCalendarArg, cxpContextPtr pccArg);
 
 static void
-CalendarColumnsFree(pieCalendarPtr pCalendarArg);
+CalendarColumnsFree(cxpCalendarPtr pCalendarArg);
 
 static void
-CalendarFree(pieCalendarPtr pCalendarArg);
+CalendarFree(cxpCalendarPtr pCalendarArg);
 
-static pieCalendarPtr
+static cxpCalendarPtr
 CalendarNew(void);
 
-static pieCalendarPtr
+static cxpCalendarPtr
 CalendarSetup(xmlNodePtr pndMakeCalendar, cxpContextPtr pccArg);
 
 static xmlNodePtr
@@ -225,8 +205,9 @@ IsFullMoonConway(int year, int month, int day);
 
 #if defined(DEBUG) || defined(TESTCODE)
 BOOL_T
-PrintCalendarSetup(pieCalendarPtr pCalendarArg, cxpContextPtr pccArg);
+PrintCalendarSetup(cxpCalendarPtr pCalendarArg, cxpContextPtr pccArg);
 #endif
+
 
 /*! Searches in a CALENDAR DOM for the next node with same name like pndArg.
 
@@ -251,7 +232,7 @@ GetCalendarNodeNext(const xmlNodePtr pndArg, int distance)
 
   if (pndArg && pndArg->type == XML_ELEMENT_NODE) {
 
-    if (IS_NODE_PIE_WEEK(pndArg)) {
+    if (IS_NODE_CXP_WEEK(pndArg)) {
       /* pndArg is a WEEK element 
        */
       if (distance == 0) {
@@ -272,7 +253,7 @@ GetCalendarNodeNext(const xmlNodePtr pndArg, int distance)
 	assert(FALSE);		/*!\todo backward movement */
       }
     }
-    else if (IS_NODE_PIE_DAY(pndArg)) {
+    else if (IS_NODE_CXP_DAY(pndArg)) {
       /* pndArg is a DAY element 
        */
       if (distance == 0) {
@@ -358,9 +339,9 @@ GetCalendarNodeNext(const xmlNodePtr pndArg, int distance)
 /*! sets the lower and upper values for year, according to registered calendar elements
  */
 void
-GetYearMinMax(pieCalendarPtr pCalendarArg, int *year_min, int *year_max)
+GetYearMinMax(cxpCalendarPtr pCalendarArg, int *year_min, int *year_max)
 {
-  pieCalendarElementPtr pceT;
+  ceElementPtr pceT;
 
   for (pceT = pCalendarArg->pceFirst; pceT; pceT = pceT->pNext) {
     int y1, y0;
@@ -396,7 +377,7 @@ syntax of \@YEAR
 
 */
 BOOL_T
-AddYears(pieCalendarPtr pCalendarArg)
+AddYears(cxpCalendarPtr pCalendarArg)
 {
   if (pCalendarArg != NULL && pCalendarArg->pdocCalendar != NULL) {
     GetYearArray(pCalendarArg);
@@ -404,10 +385,10 @@ AddYears(pieCalendarPtr pCalendarArg)
       int *piYear;
       
       for (piYear=pCalendarArg->pmiYear; *piYear != 0; piYear++) {
-	if (dt_from_yd(*piYear,1) < dt_from_yd(PIE_CALENDAR_YEAR_MIN + 1, 0)) {
+	if (dt_from_yd(*piYear,1) < dt_from_yd(CXP_CALENDAR_YEAR_MIN + 1, 0)) {
 	  PrintFormatLog(1,"Ignore year '%i', value to low", *piYear);
 	}
-	else if (dt_end_of_year(*piYear,0) > dt_from_yd(PIE_CALENDAR_YEAR_MAX + 1, 0)) {
+	else if (dt_end_of_year(*piYear,0) > dt_from_yd(CXP_CALENDAR_YEAR_MAX + 1, 0)) {
 	  PrintFormatLog(1,"Ignore year '%i', value to high", *piYear);
 	  break;
 	}
@@ -445,10 +426,10 @@ FindCalendarElementCol(xmlNodePtr pndArgParent, xmlChar *pucArgIdCol, xmlNodePtr
     xmlChar *pucHour;
 
 #if 0
-    if ((pndHour = domGetFirstChild(pndArgParent,NAME_PIE_HOUR))
+    if ((pndHour = domGetFirstChild(pndArgParent,NAME_CXP_HOUR))
 	&& (pucHour = domGetPropValuePtr(pndArgInsert, BAD_CAST "hour"))) {
       /*  */
-      for ( ; pndHour != NULL; pndHour = domGetNextNode(pndHour,NAME_PIE_HOUR)) {
+      for ( ; pndHour != NULL; pndHour = domGetNextNode(pndHour,NAME_CXP_HOUR)) {
 	/* step trough all existing hour elements */
 	if (xmlStrEqual(pucHour,domGetPropValuePtr(pndHour, BAD_CAST "nr"))) {
 	  return FindCalendarElementCol(pndHour, pucArgIdCol, pndArgInsert);
@@ -498,11 +479,11 @@ FindCalendarElementCol(xmlNodePtr pndArgParent, xmlChar *pucArgIdCol, xmlNodePtr
  \param pCalendarArg pointer to calendar
 */
 void
-CalendarUpdate(pieCalendarPtr pCalendarArg)
+CalendarUpdate(cxpCalendarPtr pCalendarArg)
 {
   if (pCalendarArg != NULL && pCalendarArg->pdocCalendar != NULL) {
     /*! insert COL entities */
-    pieCalendarElementPtr pceT;
+    ceElementPtr pceT;
 
     for (pceT = pCalendarArg->pceFirst; pceT; pceT = pceT->pNext) {
       xmlNodePtr pndAdd;
@@ -512,10 +493,10 @@ CalendarUpdate(pieCalendarPtr pCalendarArg)
 
 	xmlSetProp(pndAdd, BAD_CAST"idref", pceT->pucId);
 
-	if (pieCalendarIndex(pceT->dtBegin) > 0
-	  && pCalendarArg->mpndDay[pieCalendarIndex(pceT->dtBegin)] != NULL
-	  && pieCalendarIndex(pceT->dtEnd) > 0
-	  && pCalendarArg->mpndDay[pieCalendarIndex(pceT->dtEnd)] != NULL) {
+	if (cxpCalendarIndex(pceT->dtBegin) > 0
+	  && pCalendarArg->mpndDay[cxpCalendarIndex(pceT->dtBegin)] != NULL
+	  && cxpCalendarIndex(pceT->dtEnd) > 0
+	  && pCalendarArg->mpndDay[cxpCalendarIndex(pceT->dtEnd)] != NULL) {
 	  /* an interval is specified */
 	  dt_t dtI;
 
@@ -523,9 +504,9 @@ CalendarUpdate(pieCalendarPtr pCalendarArg)
 	    /* do iteration of this calendar interval */
 	    xmlNodePtr pndAddCopy;
 
-	    assert(pCalendarArg->mpndDay[pieCalendarIndex(dtI)]);
+	    assert(pCalendarArg->mpndDay[cxpCalendarIndex(dtI)]);
 
-	    if ((pndCol = FindCalendarElementCol(pCalendarArg->mpndDay[pieCalendarIndex(dtI)], pceT->pucColId, pceT->pndEntry)) != NULL
+	    if ((pndCol = FindCalendarElementCol(pCalendarArg->mpndDay[cxpCalendarIndex(dtI)], pceT->pucColId, pceT->pndEntry)) != NULL
 	      && (pndAddCopy = xmlCopyNode(pndAdd, 1))) {
 	      xmlAddChild(pndCol, pndAddCopy);
 	    }
@@ -533,14 +514,14 @@ CalendarUpdate(pieCalendarPtr pCalendarArg)
 	  }
 	  xmlFreeNode(pndAdd);
 	}
-	else if (pieCalendarIndex(pceT->dtBegin) > 0
-	  && pCalendarArg->mpndDay[pieCalendarIndex(pceT->dtBegin)] != NULL) {
+	else if (cxpCalendarIndex(pceT->dtBegin) > 0
+	  && pCalendarArg->mpndDay[cxpCalendarIndex(pceT->dtBegin)] != NULL) {
 	  /* an anchor is specified */
 	  dt_t dtI;
 
-	  assert(pCalendarArg->mpndDay[pieCalendarIndex(pceT->dtBegin)]);
+	  assert(pCalendarArg->mpndDay[cxpCalendarIndex(pceT->dtBegin)]);
 
-	  if ((pndCol = FindCalendarElementCol(pCalendarArg->mpndDay[pieCalendarIndex(pceT->dtBegin)], pceT->pucColId, pceT->pndEntry)) != NULL) {
+	  if ((pndCol = FindCalendarElementCol(pCalendarArg->mpndDay[cxpCalendarIndex(pceT->dtBegin)], pceT->pucColId, pceT->pndEntry)) != NULL) {
 	    xmlAddChild(pndCol, pndAdd);
 	  }
 
@@ -559,22 +540,22 @@ CalendarUpdate(pieCalendarPtr pCalendarArg)
 /*! set attribute today at calendar DOM of 'pCalendarArg'
 */
 void
-CalendarSetToday(pieCalendarPtr pCalendarArg)
+CalendarSetToday(cxpCalendarPtr pCalendarArg)
 {
   if (pCalendarArg != NULL && pCalendarArg->pdocCalendar != NULL) {
     xmlNodePtr pndToday = NULL;
     
-    if (pCalendarArg->eType == PIE_CALENDAR_YEAR) {      
-      pndToday = GetCalendarNodeYear(xmlDocGetRootElement(pCalendarArg->pdocCalendar),GetTodayYear());
+    if (pCalendarArg->eType == CXP_CALENDAR_YEAR) {      
+      pndToday = GetCalendarNodeYear(xmlDocGetRootElement(pCalendarArg->pdocCalendar),dt_year(GetToday()));
     }
-    else if (pCalendarArg->eType == PIE_CALENDAR_MONTH) {      
-      pndToday = GetCalendarNodeMonth(xmlDocGetRootElement(pCalendarArg->pdocCalendar),GetTodayYear(),GetTodayMonth());
+    else if (pCalendarArg->eType == CXP_CALENDAR_MONTH) {      
+      pndToday = GetCalendarNodeMonth(xmlDocGetRootElement(pCalendarArg->pdocCalendar),dt_year(GetToday()),dt_month(GetToday()));
     }
-    else if (pCalendarArg->eType == PIE_CALENDAR_WEEK) {      
-      pndToday = GetCalendarNodeWeek(xmlDocGetRootElement(pCalendarArg->pdocCalendar),GetTodayYear(),GetTodayWeek());
+    else if (pCalendarArg->eType == CXP_CALENDAR_WEEK) {      
+      pndToday = GetCalendarNodeWeek(xmlDocGetRootElement(pCalendarArg->pdocCalendar),dt_year(GetToday()),dt_woy(GetToday()));
     }
     else {      
-      pndToday = GetCalendarNodeDay(xmlDocGetRootElement(pCalendarArg->pdocCalendar),GetTodayYear(),GetTodayMonth(),GetTodayDayOfMonth());
+      pndToday = GetCalendarNodeDay(xmlDocGetRootElement(pCalendarArg->pdocCalendar),dt_year(GetToday()),dt_month(GetToday()),dt_dom(GetToday()));
     }
     
     if (pndToday) {
@@ -583,147 +564,6 @@ CalendarSetToday(pieCalendarPtr pCalendarArg)
   }
 }
 /* End of CalendarSetToday() */
-
-
-/*! insert a day diff attribute to all registered calendar elements of the according DOM.
-	
-  add an attribute with canonical ISO date (e.g. output of ICS format)
-
-  \deprecated due to AddNodeDateAttributes() ??
-*/
-void
-AddDateAttributes(pieCalendarElementPtr pceArg)
-{
-  if (pceArg) {
-    pieCalendarElementPtr pceT;
-    unsigned int i;
-    long int iDayAbsoluteMax = dt_from_ymd(1970, 1, 1);
-    long int iDayToday = GetToday();
-
-    for (pceT = pceArg, i=0; pceT; pceT = pceT->pNext, i++) {
-      xmlNodePtr pndCurrent = pceT->pndEntry;
-      xmlChar mpucT[BUFFER_LENGTH];
-      long int iDayAbsolute = 0;
-
-      if (pceT->dtBegin > 0 && (pceT->dtBegin > iDayAbsoluteMax)) {
-	iDayAbsoluteMax = pceT->dtBegin;
-      }
-
-      xmlStrPrintf(mpucT, BUFFER_LENGTH, "%li", pceT->dtBegin - iDayToday);
-      xmlSetProp(pndCurrent, BAD_CAST"diff", mpucT);
-	  
-#if 0
-
-      if (pceT->dtBegin > 0) {
-	long int iDayDiff = 0;
-	
-	if (pceT->dtEnd > pceT->dtBegin) {
-	  /* date interval */
-
-	  xmlStrPrintf(mpucT, BUFFER_LENGTH, "%li", pceT->dtEnd - pceT->dtBegin);
-	  xmlSetProp(pndCurrent, BAD_CAST"interval", mpucT);
-	  
-	  if (pceT->dtEnd < iDayToday) {
-	    /* date interval ends before today */
-	    iDayDiff = pceT->dtEnd - iDayToday;
-	  }
-	  else if (iDayToday < pceT->dtBegin) {
-	    /* date interval begins after today */
-	    iDayDiff = pceT->dtBegin - iDayToday;
-	  }
-	  else {
-	    /* today is in date interval */
-	  }
-	}
-	else {
-	  /* single date */
-	  iDayDiff = pceT->dtBegin - iDayToday;
-	}
-	xmlStrPrintf(mpucT, BUFFER_LENGTH, "%li", iDayDiff);
-	xmlSetProp(pndCurrent, BAD_CAST"diff", mpucT);
-      }
-      
-      /*!\todo concatenate sequential dates */
-
-      mpucT[0] = '\0';
-      
-      if (pceT->iYear > 1900) {
-	
-	if (pceT->iWeek > 0 && pceT->iDayWeek > 0) {
-	  CalendarElementUpdateValues(pceT);
-	}
-	
-	if (pceT->iMonth > 0 && pceT->iDay > 0) {
-	
-	  if (pceT->iHourA > -1 && pceT->iMinuteA > -1 && pceT->iSecondA > -1) {
-	    xmlStrPrintf(mpucT, BUFFER_LENGTH,
-			 "%04i-%02i-%02iT%02i:%02i:%02i",
-			 pceT->iYear,
-			 pceT->iMonth,
-			 pceT->iDay,
-			 pceT->iHourA,
-			 pceT->iMinuteA,
-			 pceT->iSecondA
-			 );
-	      
-	    if (pceT->iTimezoneOffset) {
-	      xmlChar* pucT = NULL;
-
-	      if (pceT->iTimezoneOffset < 0) {
-		pucT = xmlStrncatNew(mpucT, BAD_CAST STR_UTF8_MINUS, -1);
-	      }
-	      else if (pceT->iTimezoneOffset > 0) {
-		pucT = xmlStrncatNew(mpucT, BAD_CAST "+", -1);
-	      }
-
-	      xmlStrPrintf(mpucT, BUFFER_LENGTH - 1, "%s%02i:%02i", pucT, (abs(pceT->iTimezoneOffset) / 60), (abs(pceT->iTimezoneOffset) % 60));
-	      xmlFree(pucT);
-	    }
-	    
-	    if (pceT->iTimezone) {
-	      xmlSetProp(pndCurrent, BAD_CAST "tz", tzGetId(pceT->iTimezone));
-	    }
-	  }
-	  else {
-	    xmlStrPrintf(mpucT, BUFFER_LENGTH,
-			 "%04i-%02i-%02i",
-			 pceT->iYear,
-			 pceT->iMonth,
-			 pceT->iDay
-			 );
-	  }
-	}
-      }
-
-      if (STR_IS_NOT_EMPTY(mpucT)) {
-	xmlSetProp(pndCurrent, BAD_CAST"iso", mpucT);
-
-	if (pceT->iHourA > -1) {
-	  xmlStrPrintf(mpucT,BUFFER_LENGTH-1, "%02i", (pceT->iHourA > -1) ? pceT->iHourA : 0);
-	  xmlSetProp(pndCurrent, BAD_CAST "hour", mpucT);
-
-	  xmlStrPrintf(mpucT,BUFFER_LENGTH-1, "%02i", (pceT->iMinuteA > -1) ? pceT->iMinuteA : 0);
-	  xmlSetProp(pndCurrent, BAD_CAST "minute", mpucT);
-
-	  xmlStrPrintf(mpucT,BUFFER_LENGTH-1, "%02i", (pceT->iSecondA > -1) ? pceT->iSecondA : 0);
-	  xmlSetProp(pndCurrent, BAD_CAST "second", mpucT);
-
-	  if (pceT->iHourB > -1) {
-	    xmlStrPrintf(mpucT,BUFFER_LENGTH-1, "%02i", (pceT->iHourB > -1) ? pceT->iHourB : 0);
-	    xmlSetProp(pndCurrent, BAD_CAST "hour-end", mpucT);
-
-	    xmlStrPrintf(mpucT,BUFFER_LENGTH-1, "%02i", (pceT->iMinuteB > -1) ? pceT->iMinuteB : 0);
-	    xmlSetProp(pndCurrent, BAD_CAST "minute-end", mpucT);
-
-	    xmlStrPrintf(mpucT,BUFFER_LENGTH-1, "%02i", (pceT->iSecondB > -1) ? pceT->iSecondB : 0);
-	    xmlSetProp(pndCurrent, BAD_CAST "second-end", mpucT);
-	  }
-	}
-      }
-#endif
-    }
-  }
-} /* End of AddDateAttributes() */
 
 
 /*! \return an array of year numbers
@@ -735,7 +575,7 @@ syntax of \@YEAR
 
 */
 void
-GetYearArray(pieCalendarPtr pCalendarArg)
+GetYearArray(cxpCalendarPtr pCalendarArg)
 {
   if (pCalendarArg != NULL && pCalendarArg->pdocCalendar != NULL) {
     int *result = NULL;
@@ -815,12 +655,12 @@ GetYearArray(pieCalendarPtr pCalendarArg)
 
       if (year_min == 2999) {
 	/* no defined year found */
-	year_min = GetTodayYear();
+	year_min = dt_year(GetToday());
       }
 
       if (year_max == 0) {
 	/* no defined year found */
-	year_max = GetTodayYear();
+	year_max = dt_year(GetToday());
       }
 
       year_delta = year_max - year_min;
@@ -855,7 +695,7 @@ GetYearArray(pieCalendarPtr pCalendarArg)
 \todo replace XPath implementation by recursive procedure
  */
 BOOL_T
-RegisterAndParseDateNodes(pieCalendarPtr pCalendarArg, xmlChar *pucArg)
+RegisterAndParseDateNodes(cxpCalendarPtr pCalendarArg, xmlChar *pucArg)
 {
   BOOL_T fResult = FALSE;
 
@@ -867,7 +707,7 @@ RegisterAndParseDateNodes(pieCalendarPtr pCalendarArg, xmlChar *pucArg)
       int i;
       xmlNodeSetPtr nodeset;
       xmlXPathObjectPtr result;
-      pieCalendarElementPtr pceNew = NULL;
+      ceElementPtr pceNew = NULL;
 
       //domPutDocString(stderr, BAD_CAST"Document", pCalendarArg->pdocCalendar);
 
@@ -923,14 +763,14 @@ RegisterAndParseDateNodes(pieCalendarPtr pCalendarArg, xmlChar *pucArg)
 	    /*! use ancestor col element for pucColId
 	    */
 	    for (pndCol = pceNew->pndEntry; pndCol; pndCol = pndCol->parent) {
-	      if (IS_NODE_PIE_COL(pndCol)) {
+	      if (IS_NODE_CXP_COL(pndCol)) {
 		pceNew->pucColId = domGetPropValuePtr(pndCol, BAD_CAST "id");
 		break;
 	      }
 	    }
 
 	    if (ScanCalendarElementDate(pceNew)) {
-	      pieCalendarElementPtr pceList;
+	      ceElementPtr pceList;
 
 	      if ((pceList = SplitCalendarElementRecurrences(pceNew))) {
 		CalendarElementFree(pceNew);
@@ -966,12 +806,12 @@ RegisterAndParseDateNodes(pieCalendarPtr pCalendarArg, xmlChar *pucArg)
 /*! process all column definition elements of /calendar/meta/calendar/ and insert result at /calendar/
  */
 BOOL_T
-PrintCalendarSetup(pieCalendarPtr pCalendarArg, cxpContextPtr pccArg)
+PrintCalendarSetup(cxpCalendarPtr pCalendarArg, cxpContextPtr pccArg)
 {
   BOOL_T fResult = TRUE;
 
   if (pCalendarArg) {
-    pieCalendarElementPtr pceT;
+    ceElementPtr pceT;
     unsigned int i;
 
     PrintFormatLog(1, "Calendar");
@@ -988,7 +828,7 @@ PrintCalendarSetup(pieCalendarPtr pCalendarArg, cxpContextPtr pccArg)
 /*! process all column definition elements of /calendar/meta/calendar/ and insert result at /calendar/
  */
 BOOL_T
-ProcessCalendarColumns(pieCalendarPtr pCalendarArg, cxpContextPtr pccArg)
+ProcessCalendarColumns(cxpCalendarPtr pCalendarArg, cxpContextPtr pccArg)
 {
   BOOL_T fResult = FALSE;
   xmlNodePtr pndMeta;
@@ -998,7 +838,7 @@ ProcessCalendarColumns(pieCalendarPtr pCalendarArg, cxpContextPtr pccArg)
   PrintFormatLog(1, "ProcessCalendarColumns(pCalendarArg=%0x)", pCalendarArg);
 #endif
 
-  if (IS_NODE_PIE_CALENDAR(pCalendarArg->pndCalendarRoot)
+  if (IS_NODE_CXP_CALENDAR(pCalendarArg->pndCalendarRoot)
     && (pndMeta = domGetFirstChild(pCalendarArg->pndCalendarRoot, NAME_META)) != NULL
     && (pndCalendarConfiguration = domGetFirstChild(pndMeta, NAME_CALENDAR)) != NULL) {
     xmlNodePtr pndCol;
@@ -1060,10 +900,10 @@ ProcessCalendarColumns(pieCalendarPtr pCalendarArg, cxpContextPtr pccArg)
 /*! free all calendar related DOM attributes
  */
 void
-CalendarFree(pieCalendarPtr pCalendarArg)
+CalendarFree(cxpCalendarPtr pCalendarArg)
 {
   if (pCalendarArg) {
-    pieCalendarElementPtr pceT;
+    ceElementPtr pceT;
 
 #ifdef DEBUG
     PrintFormatLog(1,"CalendarFree(pCalendarArg=%0x)",pCalendarArg);
@@ -1074,8 +914,8 @@ CalendarFree(pieCalendarPtr pCalendarArg)
     xmlFreeDoc(pCalendarArg->pdocCalendar);
   
 #ifdef DEBUG
-    memset(pCalendarArg->mpndDay, 0, PIE_CALENDAR_SIZE);
-    memset(pCalendarArg,0,sizeof(pieCalendar));
+    memset(pCalendarArg->mpndDay, 0, CXP_CALENDAR_SIZE);
+    memset(pCalendarArg,0,sizeof(cxpCalendar));
 #endif
 
     xmlFree(pCalendarArg);
@@ -1086,7 +926,7 @@ CalendarFree(pieCalendarPtr pCalendarArg)
 /*! free all calendar column content
  */
 void
-CalendarColumnsFree(pieCalendarPtr pCalendarArg)
+CalendarColumnsFree(cxpCalendarPtr pCalendarArg)
 {
   if (pCalendarArg != NULL && pCalendarArg->pndCalendarRoot != NULL) {
     xmlNodePtr pndCol;
@@ -1106,16 +946,16 @@ CalendarColumnsFree(pieCalendarPtr pCalendarArg)
 
 /*!\return a new allocated calendar
  */
-pieCalendarPtr
+cxpCalendarPtr
 CalendarNew(void)
 {
-  pieCalendarPtr pCalendarResult = NULL;
+  cxpCalendarPtr pCalendarResult = NULL;
   
-  pCalendarResult = (pieCalendarPtr) xmlMalloc(sizeof(pieCalendar));
+  pCalendarResult = (cxpCalendarPtr) xmlMalloc(sizeof(cxpCalendar));
   if (pCalendarResult) {
-    memset(pCalendarResult,0,sizeof(pieCalendar));
-    memset(pCalendarResult->mpndDay, 0, PIE_CALENDAR_SIZE);
-    pCalendarResult->eType = PIE_CALENDAR_MDAY;
+    memset(pCalendarResult,0,sizeof(cxpCalendar));
+    memset(pCalendarResult->mpndDay, 0, CXP_CALENDAR_SIZE);
+    pCalendarResult->eType = CXP_CALENDAR_MDAY;
   }
   return pCalendarResult;
 }
@@ -1124,10 +964,10 @@ CalendarNew(void)
 
 /*!\return a new allocated calendar
  */
-pieCalendarPtr
+cxpCalendarPtr
 CalendarSetup(xmlNodePtr pndArg, cxpContextPtr pccArg)
 {
-  pieCalendarPtr pCalendarResult = NULL;
+  cxpCalendarPtr pCalendarResult = NULL;
 
   pCalendarResult = CalendarNew();
   if (pCalendarResult) {
@@ -1148,7 +988,7 @@ CalendarSetup(xmlNodePtr pndArg, cxpContextPtr pccArg)
     if (IS_NODE_CALENDAR(pndArg) && pndArg->doc != NULL && STR_IS_NOT_EMPTY(pndArg->doc->URL)) {
       pCalendarResult->pdocCalendar->URL = xmlStrdup(pndArg->doc->URL);
     }
-    pCalendarResult->pndCalendarRoot = xmlNewDocNode(pCalendarResult->pdocCalendar, NULL, NAME_PIE_CALENDAR, NULL);
+    pCalendarResult->pndCalendarRoot = xmlNewDocNode(pCalendarResult->pdocCalendar, NULL, NAME_CXP_CALENDAR, NULL);
     xmlDocSetRootElement(pCalendarResult->pdocCalendar, pCalendarResult->pndCalendarRoot);
 
     if (IS_NODE_CALENDAR(pndArg) && (pucAttrYear = domGetPropValuePtr(pndArg, BAD_CAST "year"))) {
@@ -1158,27 +998,27 @@ CalendarSetup(xmlNodePtr pndArg, cxpContextPtr pccArg)
     if (IS_NODE_CALENDAR(pndArg) && (pucAttrType = domGetPropValuePtr(pndArg, BAD_CAST "type"))) {
       
       if (xmlStrEqual(pucAttrType, BAD_CAST"week")) {
-	pCalendarResult->eType = PIE_CALENDAR_WEEK;
+	pCalendarResult->eType = CXP_CALENDAR_WEEK;
       }
       else if (xmlStrEqual(pucAttrType, BAD_CAST"wday")) {
-	pCalendarResult->eType = PIE_CALENDAR_WDAY;
+	pCalendarResult->eType = CXP_CALENDAR_WDAY;
       }
       else if (xmlStrEqual(pucAttrType, BAD_CAST"month")) {
-	pCalendarResult->eType = PIE_CALENDAR_MONTH;
+	pCalendarResult->eType = CXP_CALENDAR_MONTH;
       }
       else if (xmlStrEqual(pucAttrType, BAD_CAST"mday")) {
-	pCalendarResult->eType = PIE_CALENDAR_MDAY;
+	pCalendarResult->eType = CXP_CALENDAR_MDAY;
       }
 #if 0
       else if (xmlStrEqual(pucAttrType, BAD_CAST"hour")) {
-	pCalendarResult->eType = PIE_CALENDAR_MDAY_HOUR;
+	pCalendarResult->eType = CXP_CALENDAR_MDAY_HOUR;
       }
 #endif
       else if (xmlStrEqual(pucAttrType, BAD_CAST"year")) {
-	pCalendarResult->eType = PIE_CALENDAR_YEAR;
+	pCalendarResult->eType = CXP_CALENDAR_YEAR;
       }
       else if (xmlStrEqual(pucAttrType, BAD_CAST"yday")) {
-	pCalendarResult->eType = PIE_CALENDAR_YDAY;
+	pCalendarResult->eType = CXP_CALENDAR_YDAY;
       }
     }
 
@@ -1201,11 +1041,11 @@ CalendarSetup(xmlNodePtr pndArg, cxpContextPtr pccArg)
       pndCalendarCopy = xmlCopyNode(pndArg, 1);
       //pieValidateTree(pndCalendarCopy);
     }
-    else if ((pndCalendarCopy = xmlNewNode(NULL, NAME_PIE_CALENDAR)) == NULL
+    else if ((pndCalendarCopy = xmlNewNode(NULL, NAME_CXP_CALENDAR)) == NULL
 	     || xmlSetProp(pndCalendarCopy, BAD_CAST"subst", BAD_CAST "no") == NULL) {
       PrintFormatLog(1, "Cannot copy to new calendar");
     }
-    else if ((pndT = xmlNewChild(pndCalendarCopy, NULL, NAME_PIE_COL, NULL)) == NULL
+    else if ((pndT = xmlNewChild(pndCalendarCopy, NULL, NAME_CXP_COL, NULL)) == NULL
       || xmlSetProp(pndT, BAD_CAST"id", BAD_CAST "content") == NULL
       || xmlSetProp(pndT, BAD_CAST"name", BAD_CAST"Content") == NULL) {
       PrintFormatLog(1, "Cannot create new calendar");
@@ -1243,7 +1083,7 @@ calProcessCalendarNode(xmlNodePtr pndArg, cxpContextPtr pccArg)
   xmlDocPtr pdocResult = NULL;
 
   if (IS_NODE_CALENDAR(pndArg)) {
-    pieCalendarPtr pCalendarResult;
+    cxpCalendarPtr pCalendarResult;
 
     if ((pCalendarResult = CalendarSetup(pndArg, pccArg)) != NULL) {
 
@@ -1282,7 +1122,7 @@ xmlDocPtr
 calProcessDoc(xmlDocPtr pdocArg, cxpContextPtr pccArg)
 {
   xmlDocPtr pdocResult = NULL;
-  pieCalendarPtr pCalendarResult = NULL;
+  cxpCalendarPtr pCalendarResult = NULL;
 
   if ((pCalendarResult = CalendarSetup(xmlDocGetRootElement(pdocArg), pccArg)) != NULL
     && ProcessCalendarColumns(pCalendarResult, pccArg)
@@ -1317,7 +1157,7 @@ GetCalendarNodeYear(xmlNodePtr pndArg, unsigned int uiArgYear)
 
   xmlStrPrintf(mpucCompare,BUFFER_LENGTH, "%02i",uiArgYear);
 
-  for (pndYear = domGetFirstChild(pndArg,NAME_PIE_YEAR); pndYear; pndYear = domGetNextNode(pndYear,NAME_PIE_YEAR)) {
+  for (pndYear = domGetFirstChild(pndArg,NAME_CXP_YEAR); pndYear; pndYear = domGetNextNode(pndYear,NAME_CXP_YEAR)) {
     if (xmlStrcasecmp(mpucCompare,domGetPropValuePtr(pndYear,BAD_CAST "ad"))==0) {
       return pndYear;
     }
@@ -1343,7 +1183,7 @@ GetCalendarNodeMonth(xmlNodePtr pndArg, unsigned int uiArgYear, unsigned int uiA
 
     xmlStrPrintf(mpucCompare,BUFFER_LENGTH, "%02i",uiArgMonth);
 
-    for (pndMonth = domGetFirstChild(pndYear,NAME_PIE_MONTH); pndMonth; pndMonth = domGetNextNode(pndMonth,NAME_PIE_MONTH)) {
+    for (pndMonth = domGetFirstChild(pndYear,NAME_CXP_MONTH); pndMonth; pndMonth = domGetNextNode(pndMonth,NAME_CXP_MONTH)) {
       if (xmlStrEqual(mpucCompare,domGetPropValuePtr(pndMonth,BAD_CAST "nr"))) {
           return pndMonth;
       }
@@ -1397,7 +1237,7 @@ GetCalendarNodeDay(xmlNodePtr pndArg, unsigned int uiArgYear, unsigned int uiArg
 
     xmlStrPrintf(mpucCompare,BUFFER_LENGTH, "%02i",uiArgDay);
 
-    for (pndDay = domGetFirstChild(pndMonth,NAME_PIE_DAY); pndDay; pndDay = domGetNextNode(pndDay,NAME_PIE_DAY)) {
+    for (pndDay = domGetFirstChild(pndMonth,NAME_CXP_DAY); pndDay; pndDay = domGetNextNode(pndDay,NAME_CXP_DAY)) {
       if (xmlStrEqual(mpucCompare,domGetPropValuePtr(pndDay,BAD_CAST "om"))) {
 	return pndDay;
       }
@@ -1424,7 +1264,7 @@ GetCalendarNodeDayHour(xmlNodePtr pndArg, unsigned int uiArgYear, unsigned int u
 
     xmlStrPrintf(mpucCompare,BUFFER_LENGTH, "%02i",uiArgHour);
 
-    for (pndHour = domGetFirstChild(pndDay,NAME_PIE_DAY); pndHour; pndHour = domGetNextNode(pndHour,NAME_PIE_HOUR)) {
+    for (pndHour = domGetFirstChild(pndDay,NAME_CXP_DAY); pndHour; pndHour = domGetNextNode(pndHour,NAME_CXP_HOUR)) {
       if (xmlStrEqual(mpucCompare,domGetPropValuePtr(pndHour,BAD_CAST "om"))) {
 	return pndHour;
       }
@@ -1472,30 +1312,30 @@ SubstituteFormatStr(xmlNodePtr pndContext, xmlChar *fmt)
       if (pndYear == NULL) {
 	/* context nodes not yet initialized */
 	pndDay   = NULL;
-	if (IS_NODE_PIE_YEAR(pndContext->parent)) {
+	if (IS_NODE_CXP_YEAR(pndContext->parent)) {
 	  /* node for whole year */
 	  pndWeek  = NULL;
 	  pndMonth = NULL;
 	  pndYear  = pndContext->parent;
 	}
-	else if (IS_NODE_PIE_MONTH(pndContext->parent)) {
+	else if (IS_NODE_CXP_MONTH(pndContext->parent)) {
 	  pndWeek  = NULL;
 	  pndMonth = pndContext->parent;
 	  pndYear  = pndContext->parent->parent;
 	}
-	else if (IS_NODE_PIE_WEEK(pndContext->parent)) {
+	else if (IS_NODE_CXP_WEEK(pndContext->parent)) {
 	  pndWeek  = pndContext->parent;
 	  pndMonth = NULL;
 	  pndYear  = pndContext->parent->parent;
 	}
-	else if (IS_NODE_PIE_DAY(pndContext->parent)) {
+	else if (IS_NODE_CXP_DAY(pndContext->parent)) {
 	  pndDay   = pndContext->parent;
-	  if (IS_NODE_PIE_WEEK(pndContext->parent->parent)) {
+	  if (IS_NODE_CXP_WEEK(pndContext->parent->parent)) {
 	    pndWeek  = pndContext->parent->parent;
 	    pndMonth = NULL;
 	    pndYear  = pndContext->parent->parent->parent;
 	  }
-	  else if (IS_NODE_PIE_MONTH(pndContext->parent->parent)) {
+	  else if (IS_NODE_CXP_MONTH(pndContext->parent->parent)) {
 	    pndWeek  = NULL;
 	    pndMonth = pndContext->parent->parent;
 	    pndYear  = pndContext->parent->parent->parent;
@@ -1658,7 +1498,7 @@ SubstituteFormatStr(xmlNodePtr pndContext, xmlChar *fmt)
 	pucColId = domGetPropValuePtr(pndContext,BAD_CAST "name");
 
 	if (pndDay && pndYear) {
-	  for (pndTDay = domGetFirstChild(domGetFirstChild(pndYear,NAME_PIE_MONTH),NAME_PIE_DAY);
+	  for (pndTDay = domGetFirstChild(domGetFirstChild(pndYear,NAME_CXP_MONTH),NAME_CXP_DAY);
 	    pndTDay;
 	    pndTDay = GetCalendarNodeNext(pndTDay,+1)) {
 	    /* step over all day nodes */
@@ -1667,7 +1507,7 @@ SubstituteFormatStr(xmlNodePtr pndContext, xmlChar *fmt)
 	      pndCurrent;
 	      pndCurrent = pndCurrent->next) {
 	      /* step over all col nodes */
-	      for (pndPi = domGetFirstChild(pndCurrent,NAME_PIE_PAR);
+	      for (pndPi = domGetFirstChild(pndCurrent,NAME_CXP_PAR);
 		pndPi;
 		pndPi = pndPi->next) {
 		/* step over all p nodes */
@@ -1733,15 +1573,15 @@ SubstituteFormat(xmlNodePtr pndArg)
   if (pndArg==NULL || pndArg->type!=XML_ELEMENT_NODE) {
     return FALSE;
   }
-  else if (IS_NODE_PIE_META(pndArg)) {
+  else if (IS_NODE_META(pndArg)) {
     return FALSE;
   }
-  else if (IS_NODE_PIE_COL(pndArg)) {
+  else if (IS_NODE_CXP_COL(pndArg)) {
     /*
     all COL children nodes
     */
 
-    if (IS_NODE_PIE_CALENDAR(pndArg->parent)) {
+    if (IS_NODE_CXP_CALENDAR(pndArg->parent)) {
       /* this is the calendar definition */
       return FALSE;
     }
@@ -1792,7 +1632,7 @@ SubstituteFormat(xmlNodePtr pndArg)
 /*! creates a DOM for a whole 'year'
 */
 BOOL_T
-AddTreeYear(pieCalendarPtr pCalendarArg, int year)
+AddTreeYear(cxpCalendarPtr pCalendarArg, int year)
 {
 
 #ifdef DEBUG
@@ -1815,60 +1655,60 @@ AddTreeYear(pieCalendarPtr pCalendarArg, int year)
     int iDaysDiff;
     int i;
 
-    if (pCalendarArg->mpndDay[pieCalendarIndex(0)] == NULL) {
+    if (pCalendarArg->mpndDay[cxpCalendarIndex(0)] == NULL) {
     }
 
     domSetPropEat(pndParent, BAD_CAST"today", GetNowFormatStr(BAD_CAST"%Y%m%d"));
 
-    pndYear = xmlNewChild(pndParent, NULL, NAME_PIE_YEAR, NULL);
+    pndYear = xmlNewChild(pndParent, NULL, NAME_CXP_YEAR, NULL);
     xmlStrPrintf( buffer,BUFFER_LENGTH, "%i", year);
     xmlSetProp(pndYear, BAD_CAST "ad", buffer);
     xmlStrPrintf( bufferYear,BUFFER_LENGTH, " %s ", buffer);
 
     for( dti = dt0 = dt_from_yd(year,1), dt1 = dt_add_years(dt0,1, DT_EXCESS); dti < dt1; dti++) {
 
-      if (pCalendarArg->eType == PIE_CALENDAR_MDAY || pCalendarArg->eType == PIE_CALENDAR_MDAY_HOUR || pCalendarArg->eType == PIE_CALENDAR_MONTH) {
+      if (pCalendarArg->eType == CXP_CALENDAR_MDAY || pCalendarArg->eType == CXP_CALENDAR_MDAY_HOUR || pCalendarArg->eType == CXP_CALENDAR_MONTH) {
 	if (dt_dom(dti) == 1) {
-	  pndMonth = xmlNewChild(pndYear, NULL, NAME_PIE_MONTH, NULL);
+	  pndMonth = xmlNewChild(pndYear, NULL, NAME_CXP_MONTH, NULL);
 	  xmlSetProp(pndMonth, BAD_CAST "nr", BAD_CAST mpucNumber[dt_month(dti)]);
 	  xmlSetProp(pndMonth, BAD_CAST "name", moy[dt_month(dti)]);
 	  //xmlAddChild(pndMonth, xmlNewComment(bufferYear));
 	}
       }
-      else if (pCalendarArg->eType == PIE_CALENDAR_WDAY || pCalendarArg->eType == PIE_CALENDAR_WDAY_HOUR || pCalendarArg->eType == PIE_CALENDAR_WEEK) {
+      else if (pCalendarArg->eType == CXP_CALENDAR_WDAY || pCalendarArg->eType == CXP_CALENDAR_WDAY_HOUR || pCalendarArg->eType == CXP_CALENDAR_WEEK) {
 	if (pndWeek == NULL || dt_dow(dti) == 1) { /* New week on Monday */
-	  pndWeek = xmlNewChild(pndYear, NULL, NAME_PIE_WEEK, NULL);
+	  pndWeek = xmlNewChild(pndYear, NULL, NAME_CXP_WEEK, NULL);
 	  xmlSetProp(pndWeek, BAD_CAST "nr", BAD_CAST mpucNumber[dt_woy(dti)]);
 	}
       }
 
-      if (pCalendarArg->eType == PIE_CALENDAR_YEAR) {
-	pCalendarArg->mpndDay[pieCalendarIndex(dti)] = pndYear;
+      if (pCalendarArg->eType == CXP_CALENDAR_YEAR) {
+	pCalendarArg->mpndDay[cxpCalendarIndex(dti)] = pndYear;
       }
-      else if (pCalendarArg->eType == PIE_CALENDAR_MONTH) {
-	pCalendarArg->mpndDay[pieCalendarIndex(dti)] = pndMonth;
+      else if (pCalendarArg->eType == CXP_CALENDAR_MONTH) {
+	pCalendarArg->mpndDay[cxpCalendarIndex(dti)] = pndMonth;
       }
-      else if (pCalendarArg->eType == PIE_CALENDAR_WEEK) {
-	pCalendarArg->mpndDay[pieCalendarIndex(dti)] = pndWeek;
+      else if (pCalendarArg->eType == CXP_CALENDAR_WEEK) {
+	pCalendarArg->mpndDay[cxpCalendarIndex(dti)] = pndWeek;
       }
       else {
 	xmlNodePtr pndDay = NULL;
 
-	if (pCalendarArg->eType == PIE_CALENDAR_MDAY || pCalendarArg->eType == PIE_CALENDAR_MDAY_HOUR) {
-	  pndDay = xmlNewChild(pndMonth, NULL, NAME_PIE_DAY, NULL);
+	if (pCalendarArg->eType == CXP_CALENDAR_MDAY || pCalendarArg->eType == CXP_CALENDAR_MDAY_HOUR) {
+	  pndDay = xmlNewChild(pndMonth, NULL, NAME_CXP_DAY, NULL);
 	}
-	else if (pCalendarArg->eType == PIE_CALENDAR_WDAY || pCalendarArg->eType == PIE_CALENDAR_WDAY_HOUR) {
-	  pndDay = xmlNewChild(pndWeek, NULL, NAME_PIE_DAY, NULL);
+	else if (pCalendarArg->eType == CXP_CALENDAR_WDAY || pCalendarArg->eType == CXP_CALENDAR_WDAY_HOUR) {
+	  pndDay = xmlNewChild(pndWeek, NULL, NAME_CXP_DAY, NULL);
 	}
 	else {
-	  pndDay = xmlNewChild(pndYear, NULL, NAME_PIE_DAY, NULL);
+	  pndDay = xmlNewChild(pndYear, NULL, NAME_CXP_DAY, NULL);
 	}
 	  
-	if (pCalendarArg->eType == PIE_CALENDAR_MDAY_HOUR || pCalendarArg->eType == PIE_CALENDAR_WDAY_HOUR) {
+	if (pCalendarArg->eType == CXP_CALENDAR_MDAY_HOUR || pCalendarArg->eType == CXP_CALENDAR_WDAY_HOUR) {
 	  for (i = 0; i < 24; i++) {
 	    xmlNodePtr pndHour;
 
-	    pndHour = xmlNewChild(pndDay, NULL, NAME_PIE_HOUR, NULL);
+	    pndHour = xmlNewChild(pndDay, NULL, NAME_CXP_HOUR, NULL);
 	    xmlSetProp(pndHour, BAD_CAST "nr", BAD_CAST mpucNumber[i]);
 	  }
 	}
@@ -1931,7 +1771,7 @@ AddTreeYear(pieCalendarPtr pCalendarArg, int year)
 	/*
 	  add the time difference from today in days
 	*/
-	pCalendarArg->mpndDay[pieCalendarIndex(dti)] = pndDay;
+	pCalendarArg->mpndDay[cxpCalendarIndex(dti)] = pndDay;
 	xmlStrPrintf(buffer, BUFFER_LENGTH, "%i", dti - iDayToday);
 	xmlSetProp(pndDay, BAD_CAST "diffy", buffer);
       }

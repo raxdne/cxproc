@@ -32,7 +32,7 @@ calTest(cxpContextPtr pccArg)
 
 
   if (RUNTEST) {
-    pieCalendarPtr pCalendarT;
+    cxpCalendarPtr pCalendarT;
     
     i++;
     printf("TEST %i in '%s:%i': CalendarNew() = ", i, __FILE__, __LINE__);
