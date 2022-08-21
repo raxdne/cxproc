@@ -308,7 +308,7 @@ pieProcessPieNode(xmlNodePtr pndArgPie, cxpContextPtr pccArg)
     /*! \todo avoid copy of complete pie tree here */
     xmlAddChild(pndMeta, pndMakePieCopy);
     /* Get the current time. */
-    xmlSetProp(pndMeta, BAD_CAST"tzname", tzGetId(0));    
+    //xmlSetProp(pndMeta, BAD_CAST"tzname", tzGetId(0));    
     domSetPropEat(pndMeta, BAD_CAST "ctime", GetNowFormatStr(BAD_CAST "%s"));
     domSetPropEat(pndMeta, BAD_CAST "ctime2", GetDateIsoString(0));
 
@@ -1529,7 +1529,10 @@ pieGetSelfAncestorNodeList(xmlNodePtr pndArg)
 
 	pndPar = xmlCopyNode(pndA, 1);
 
-	for (; IS_NODE_PIE_LIST(pndA->parent); pndA = pndA->parent); /* skip all list parents */
+	for (; IS_NODE_PIE_LIST(pndA->parent); pndA = pndA->parent) {
+	  /* skip all list parents */
+	  /*!\todo handle parent p for context */
+	}
 
 	pndA = pndA->parent;
 	if (IS_NODE_PIE_SECTION(pndA) || IS_NODE_PIE_TASK(pndA)) { /* section/p/date or task/p/date */

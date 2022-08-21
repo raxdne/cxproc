@@ -201,7 +201,6 @@ SET(CXPROC_HEADERS
   ${CXPROC_SRC_DIR}/cxp/cxp_dir.h
   ${CXPROC_SRC_DIR}/calendar_element.h
   ${CXPROC_SRC_DIR}/cxp/cxp_calendar.h
-  ${CXPROC_SRC_DIR}/cxp/cxp_timezone.h
   ${CXPROC_SRC_DIR}/dom.h
   ${CXPROC_SRC_DIR}/res_node/res_node.h
   ${CXPROC_SRC_DIR}/res_node/res_node_list.h
@@ -223,7 +222,6 @@ SET(CXPROC_SOURCES
   ${CXPROC_SRC_DIR}/cxp/cxp_dir.c
   ${CXPROC_SRC_DIR}/calendar_element.c
   ${CXPROC_SRC_DIR}/cxp/cxp_calendar.c
-  ${CXPROC_SRC_DIR}/cxp/cxp_timezone.c
   ${CXPROC_SRC_DIR}/dom.c
   ${CXPROC_SRC_DIR}/res_node/res_node.c
   ${CXPROC_SRC_DIR}/res_node/res_node_list.c

@@ -1059,7 +1059,7 @@ CalendarSetup(xmlNodePtr pndArg, cxpContextPtr pccArg)
     /* Get the current time. */
     domSetPropEat(pndMeta, BAD_CAST "ctime", GetNowFormatStr(BAD_CAST "%s"));
     domSetPropEat(pndMeta, BAD_CAST "ctime2", GetDateIsoString(0));
-
+#if 0
     /* output timezone of XML */
     if ((pucAttrTimezone = domGetPropValuePtr(pndArg, BAD_CAST "timezone"))) {
       pCalendarResult->iTimezone = tzGetNumber(pucAttrTimezone);
@@ -1070,6 +1070,7 @@ CalendarSetup(xmlNodePtr pndArg, cxpContextPtr pccArg)
     xmlSetProp(pndTimezone, BAD_CAST "offset", mpucT);
     xmlSetProp(pndTimezone, BAD_CAST "id", tzGetId(pCalendarResult->iTimezone));
     PrintFormatLog(2, "Calendar timezone '%s' = %sh", tzGetName(pCalendarResult->iTimezone), domGetPropValuePtr(pndTimezone, BAD_CAST "offset"));
+#endif
   }
   return pCalendarResult;
 } /* end of CalendarSetup() */

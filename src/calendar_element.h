@@ -18,10 +18,6 @@
   Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 */
 
-#ifndef _TIMEZONE_H_
-#include <cxp/cxp_timezone.h>
-#endif
-
 #include <c-dt/dt.h>
 
 /*! structure

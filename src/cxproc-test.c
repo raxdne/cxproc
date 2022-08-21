@@ -203,6 +203,7 @@ main(int argc, char** argv, char** envp)
 	iErrorCode += threadTest();
 	iErrorCode += dtTest();
 	iErrorCode += utilsTest();
+	iErrorCode += ceTest();
       }
 
       if (pcTest == NULL || xmlStrEqual(BAD_CAST pcTest, BAD_CAST "res_node")) {
@@ -233,8 +234,6 @@ main(int argc, char** argv, char** envp)
 	  iErrorCode += cxpCtxtCacheTest(pccT);
 	  iErrorCode += cxpSubstTest(pccT);
 	  iErrorCode += calTest(pccT);
-	  iErrorCode += pieTimezoneTest();
-	  iErrorCode += ceTest();	  
 	  iErrorCode += cxpTest(pccT);
 
 	  cxpCtxtIncrExitCode(pccTest, cxpCtxtGetExitCode(pccT));
