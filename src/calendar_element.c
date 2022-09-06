@@ -209,7 +209,7 @@ CalendarElementFree(ceElementPtr pceArg)
 } /* end of CalendarElementFree() */
 
 
-#ifdef DEBUG || defined(TESTCODE)
+#if defined(DEBUG) || defined(TESTCODE)
 
 /*! Prints
 
@@ -400,8 +400,10 @@ ScanCalendarElementDate(ceElementPtr pceArgResult)
 #if 0
 	  else if (pucT[n] == 'T') {
 	    int s;
+	    
 	    n++;
-	    if ((j = dt_parse_iso_time_extended(&pucT[n], len - n, &s, NULL)) > 3) {
+	    if ((j = dt_parse_iso_time_extended(&pucT[n], xmlStrlen(&pucT[n]), &s, NULL)) > 3 && s > -1) {
+	      pceArgResult->iSecBegin = s;
 	      n += j;
 	    }
 	  }

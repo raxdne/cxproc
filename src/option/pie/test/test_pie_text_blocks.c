@@ -119,7 +119,9 @@ pieTextBlocksTest(void)
     i++;
     printf("TEST %i in '%s:%i': = ",i,__FILE__,__LINE__);
     
-    if (GetModeByExtension(NULL) != RMODE_PAR || GetModeByExtension(BAD_CAST"") != RMODE_PAR || GetModeByExtension(BAD_CAST"xyz") != RMODE_PAR) {
+    if (GetModeByExtension(NULL) != RMODE_UNDEFINED 
+      || GetModeByExtension(BAD_CAST"") != RMODE_UNDEFINED
+      || GetModeByExtension(BAD_CAST"xyz") != RMODE_UNDEFINED) {
       printf("Error 1\n");
     }
     else if (GetModeByExtension(BAD_CAST"csv") != RMODE_TABLE) {

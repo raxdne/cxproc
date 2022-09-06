@@ -144,7 +144,7 @@ Recognize(xmlNodePtr pndArg)
     RecognizeDates(pndArg, MIME_TEXT_PLAIN);
     RecognizeSymbols(pndArg, LANG_DEFAULT);
     RecognizeTasks(pndArg);
-    //RecognizeHashtags(pndArg, NULL, NULL);
+    RecognizeHashtags(pndArg, NULL, NULL);
     //InheritHashtags(pndArg, pndArg);
     //RecognizeGlobalTags(pndTags, pndArg);
     //CleanListTag(pndTags, FALSE);	

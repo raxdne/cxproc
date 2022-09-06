@@ -92,7 +92,7 @@ UpdateToday(xmlChar *pucArgToday);
 extern dt_t
 GetToday(void);
 
-#ifdef DEBUG || defined(TESTCODE)
+#if defined(DEBUG) || defined(TESTCODE)
 
 extern void
 PrintCalendarElement(ceElementPtr pceArg);

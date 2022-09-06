@@ -491,8 +491,6 @@ CalendarUpdate(cxpCalendarPtr pCalendarArg)
       if ((pndAdd = pieGetSelfAncestorNodeList(pceT->pndEntry))) {
 	xmlNodePtr pndCol;
 
-	xmlSetProp(pndAdd, BAD_CAST"idref", pceT->pucId);
-
 	if (cxpCalendarIndex(pceT->dtBegin) > 0
 	  && pCalendarArg->mpndDay[cxpCalendarIndex(pceT->dtBegin)] != NULL
 	  && cxpCalendarIndex(pceT->dtEnd) > 0
@@ -802,7 +800,7 @@ RegisterAndParseDateNodes(cxpCalendarPtr pCalendarArg, xmlChar *pucArg)
 } /* end of RegisterAndParseDateNodes() */
 
 
-#ifdef DEBUG || defined(TESTCODE)
+#if defined(DEBUG) || defined(TESTCODE)
 /*! process all column definition elements of /calendar/meta/calendar/ and insert result at /calendar/
  */
 BOOL_T
