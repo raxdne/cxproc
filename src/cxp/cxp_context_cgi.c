@@ -325,17 +325,7 @@ cxpCtxtCgiParse(cxpContextPtr pccArg)
   }
 #endif
 
-  if (STR_IS_NOT_EMPTY(pucCgiYear)) {
-    xmlNodePtr pndCalendar;
-    xmlNodePtr pndT;
-
-    pndXml = xmlNewChild(pndMake, NULL, NAME_XML, NULL);
-    xmlSetProp(pndXml, BAD_CAST "name", BAD_CAST "-");
-    pndCalendar = xmlNewChild(pndXml, NULL, NAME_CALENDAR, NULL);
-    domSetPropEat(pndCalendar, BAD_CAST "year", pucCgiYear);
-    //cxpCtxtCliAddXsl(pndXml, pccArg);
-  }
-  else if (prnPathTranslated) {
+  if (prnPathTranslated) {
     /* deliver the file content via CXP configuration */
     pndXml = xmlNewChild(pndMake, NULL, NAME_XML, NULL);
     xmlSetProp(pndXml, BAD_CAST "name", resNodeGetNameNormalized(prnPathTranslated));
@@ -438,6 +428,16 @@ cxpCtxtCgiParse(cxpContextPtr pccArg)
       pndPlain = xmlNewChild(pndMake, NULL, NAME_PLAIN, BAD_CAST "\n\n\nUnknown XML Stylesheet!");
       xmlSetProp(pndPlain, BAD_CAST "name", BAD_CAST "-");
     }
+  }
+  else if (STR_IS_NOT_EMPTY(pucCgiYear)) {
+    xmlNodePtr pndCalendar;
+    xmlNodePtr pndT;
+
+    pndXml = xmlNewChild(pndMake, NULL, NAME_XML, NULL);
+    xmlSetProp(pndXml, BAD_CAST "name", BAD_CAST "-");
+    pndCalendar = xmlNewChild(pndXml, NULL, NAME_CALENDAR, NULL);
+    domSetPropEat(pndCalendar, BAD_CAST "year", pucCgiYear);
+    //cxpCtxtCliAddXsl(pndXml, pccArg);
   }
   else if (prnDir) {
     if (cxpCtxtAccessIsPermitted(pccArg,prnDir) == FALSE) {

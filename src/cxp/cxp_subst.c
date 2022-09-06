@@ -843,9 +843,9 @@ cxpSubstGetPtr(cxpSubstPtr pcxpSubstArg)
   if ((pcxpSubstArg != NULL)
     &&
     ((pucResult = pcxpSubstArg->pucTo) != NULL
-    || (pucResult = pcxpSubstArg->pucNow) != NULL
-    || (pucResult = pcxpSubstArg->pucArgv) != NULL
     || (pucResult = pcxpSubstArg->pucCgi) != NULL
+    || (pucResult = pcxpSubstArg->pucArgv) != NULL
+    || (pucResult = pcxpSubstArg->pucNow) != NULL
     || (pucResult = pcxpSubstArg->pucDir) != NULL
     || (pucResult = pcxpSubstArg->pucFile) != NULL
     || (pucResult = pcxpSubstArg->pucExt) != NULL
