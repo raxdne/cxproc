@@ -22,9 +22,30 @@
 
 /*! structure
  */
+typedef struct {
+  int y;
+  int m;
+  int d;
+  int w;
+  int hour;
+  int minute;
+  int second;
+} iso8601PeriodType;
+
+/*! structure
+ */
+typedef struct {
+  dt_t dt; /*!< day index of Date */
+  int iSec; 			/*!< seconds of day */
+  dt_zone_t z;
+} iso8601DateType;
+
+/*! structure
+ */
 struct ceElement {
 
   xmlNodePtr pndEntry; /*!< pointer to anchor DOM node */
+  
   xmlAttrPtr patAttr; /*!< pointer to descendant DOM attribute of pndEntry */
 
   xmlChar *pucColId; /*!< pointer to column id of Date anchor */
@@ -32,26 +53,12 @@ struct ceElement {
   xmlChar *pucDate; /*!< pointer to single date string */
   xmlChar *pucSep; /*!< pointer to iteration separator string */
 
-  dt_t dtBegin; /*!< day index of Interval Begin Date */
-  int iSecBegin;
+  iso8601DateType dt0; /*!< day index of Interval Begin Date */ 
+  iso8601DateType dt1; /*!< day index of Interval End Date */
 
-  dt_t dtEnd;   /*!< day index of Interval End Date */
-  int iSecEnd;
-
-  struct {
-    int y;
-    int m;
-    int d;
-    int w;
-    int hour;
-    int minute;
-    int second;
-  } period;
+  iso8601PeriodType period;
 
   int iRecurrence;	/*! recurrences */
-
-  int iTimezone;	/*!< numerical ID for timezone (UTC by default) */
-  int iTimezoneOffset; /*!< offset to UTC in minutes */
 
   struct ceElement *pNext;
 } ;
