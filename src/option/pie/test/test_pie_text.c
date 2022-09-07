@@ -428,7 +428,7 @@ pieTextTest(cxpContextPtr pccArg)
 
       //domPutNodeString(stderr, BAD_CAST "pre include", pndPie);
       TraverseIncludeNodes(pndPie, pccArg);
-      if (IS_NODE_PIE(pndPie) == FALSE || domNumberOfChild(pndPie, NULL) != 10
+      if (IS_NODE_PIE(pndPie) == FALSE || domNumberOfChild(pndPie, NULL) != 11
 	|| domNumberOfChild(pndPie->children, NAME_PIE_INCLUDE) != 0) {
 	printf("Error 1 tree\n");
       }

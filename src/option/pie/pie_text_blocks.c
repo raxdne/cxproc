@@ -479,16 +479,13 @@ GetParentElement(pieTextElementPtr ppeArg, xmlNodePtr pndArgParent)
       xmlNodePtr pndT;
       xmlNodePtr pndList;
 
-      for (iDepth = 0, pndLast = pndList = NULL, pndT = pndArgParent;
+      for (iDepth = 0, pndList = NULL, pndLast = pndT = pndArgParent;
 	IS_ENODE(pndT) && iDepth < pieElementGetDepth(ppeArg);
 	pndT = pndT->last) {
 
 	if (IS_NODE_PIE_LIST(pndT)) {
-	  pndList = pndT;
-	  iDepth++;
-	}
-	else if (IS_NODE_PIE_PAR(pndT)) {
 	  pndLast = pndList = pndT;
+	  iDepth++;
 	}
 	else {
 	  pndLast = pndT;
@@ -502,6 +499,12 @@ GetParentElement(pieTextElementPtr ppeArg, xmlNodePtr pndArgParent)
 	  */
 	  pndList = xmlNewChild(pndList, NULL, NAME_PIE_LIST, NULL);
 	}
+	else if (pndLast == pndArgParent) {
+	  /*
+	  last element is parent element, create a child list element
+	  */
+	  pndList = xmlNewChild(pndArgParent, NULL, NAME_PIE_LIST, NULL);
+	}
 	else {
 	  /*
 	  last element is not a list, create a sibling list element
@@ -509,13 +512,7 @@ GetParentElement(pieTextElementPtr ppeArg, xmlNodePtr pndArgParent)
 	  assert(pndLast != NULL);
 
 	  pndList = xmlNewNode(NULL, NAME_PIE_LIST);
-
-	  if (IS_NODE_PIE_PAR(pndLast)) {
-	    xmlAddChild(pndLast, pndList);
-	  }
-	  else {
-	    xmlAddNextSibling(pndLast, pndList);
-	  }
+	  xmlAddNextSibling(pndLast, pndList);
 	}
       }
 

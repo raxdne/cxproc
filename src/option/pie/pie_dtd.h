@@ -91,7 +91,7 @@
 
 #define NAME_PIE_STRONG BAD_CAST "strong"
 
-#define NAME_PIE_TT BAD_CAST "tt"
+#define NAME_PIE_TT BAD_CAST "code"
 
 #define NAME_PIE_LINK BAD_CAST "link"
 
