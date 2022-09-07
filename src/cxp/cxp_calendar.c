@@ -346,8 +346,8 @@ GetYearMinMax(cxpCalendarPtr pCalendarArg, int *year_min, int *year_max)
   for (pceT = pCalendarArg->pceFirst; pceT; pceT = pceT->pNext) {
     int y1, y0;
 
-    y0 = dt_year(pceT->dtBegin);
-    y1 = dt_year(pceT->dtEnd);
+    y0 = dt_year(pceT->dt0.dt);
+    y1 = dt_year(pceT->dt1.dt);
 
     if (y0 > 0) {
       if (y0 < *year_min) {
@@ -491,14 +491,14 @@ CalendarUpdate(cxpCalendarPtr pCalendarArg)
       if ((pndAdd = pieGetSelfAncestorNodeList(pceT->pndEntry))) {
 	xmlNodePtr pndCol;
 
-	if (cxpCalendarIndex(pceT->dtBegin) > 0
-	  && pCalendarArg->mpndDay[cxpCalendarIndex(pceT->dtBegin)] != NULL
-	  && cxpCalendarIndex(pceT->dtEnd) > 0
-	  && pCalendarArg->mpndDay[cxpCalendarIndex(pceT->dtEnd)] != NULL) {
+	if (cxpCalendarIndex(pceT->dt0.dt) > 0
+	  && pCalendarArg->mpndDay[cxpCalendarIndex(pceT->dt0.dt)] != NULL
+	  && cxpCalendarIndex(pceT->dt1.dt) > 0
+	  && pCalendarArg->mpndDay[cxpCalendarIndex(pceT->dt1.dt)] != NULL) {
 	  /* an interval is specified */
 	  dt_t dtI;
 
-	  for (dtI = pceT->dtBegin; dtI <= pceT->dtEnd; dtI++) {
+	  for (dtI = pceT->dt0.dt; dtI <= pceT->dt1.dt; dtI++) {
 	    /* do iteration of this calendar interval */
 	    xmlNodePtr pndAddCopy;
 
@@ -512,14 +512,14 @@ CalendarUpdate(cxpCalendarPtr pCalendarArg)
 	  }
 	  xmlFreeNode(pndAdd);
 	}
-	else if (cxpCalendarIndex(pceT->dtBegin) > 0
-	  && pCalendarArg->mpndDay[cxpCalendarIndex(pceT->dtBegin)] != NULL) {
+	else if (cxpCalendarIndex(pceT->dt0.dt) > 0
+	  && pCalendarArg->mpndDay[cxpCalendarIndex(pceT->dt0.dt)] != NULL) {
 	  /* an anchor is specified */
 	  dt_t dtI;
 
-	  assert(pCalendarArg->mpndDay[cxpCalendarIndex(pceT->dtBegin)]);
+	  assert(pCalendarArg->mpndDay[cxpCalendarIndex(pceT->dt0.dt)]);
 
-	  if ((pndCol = FindCalendarElementCol(pCalendarArg->mpndDay[cxpCalendarIndex(pceT->dtBegin)], pceT->pucColId, pceT->pndEntry)) != NULL) {
+	  if ((pndCol = FindCalendarElementCol(pCalendarArg->mpndDay[cxpCalendarIndex(pceT->dt0.dt)], pceT->pucColId, pceT->pndEntry)) != NULL) {
 	    xmlAddChild(pndCol, pndAdd);
 	  }
 

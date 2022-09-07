@@ -2304,6 +2304,60 @@ dt_parse_iso_recurrance(const char *str, size_t len, int* deltad) {
 } /* end of dt_parse_iso_recurrance() */
 
 
+/*! parses a combined "YYYY-MM-DDTHH:MM:SS+hh:mm"
+ */
+size_t
+dt_parse_iso_date_time_zone(const char* str, size_t len, dt_t *dtp, int *sp) {
+  size_t n = 0;
+
+  if (str != NULL && len > 0) {
+    size_t j;
+    char* p = (char *)str;
+
+    if ((j = dt_parse_iso_date(&p[n], len, dtp)) > 3) {
+      n += j;
+
+      if (p[n] == 'T') {
+	int s;
+
+	n++;
+	if ((j = dt_parse_iso_time_extended(&p[n], len - n, &s, NULL)) > 3 && s > -1) {
+	  int t;
+	  int o = 0;
+	  dt_zone_t* pz;
+
+	  n += j;
+
+	  if ((j = dt_zone_lookup(&p[n], len - n, (const dt_zone_t**) &pz))) { // > 3 && abs(o) < 12
+	    o = pz->offset;
+	    n += j;
+	  }
+	  else if ((j = dt_parse_iso_zone_extended(&p[n], len - n, &o))) { // > 3 && abs(o) < 12
+	    n += j;
+	  }
+
+	  t = s + o * 60;
+
+	  if (t < 0) {
+	    (*dtp)--;
+	    *sp = (24 * 60 * 60) + t;
+	  }
+	  else if (t > (24 * 60 * 60)) {
+	    (*dtp)++;
+	    *sp = t - (24 * 60 * 60);
+	  }
+	  else {
+	    *sp = t;
+	  }
+	}
+      }
+    }
+  }
+
+  return n;
+} /* end of dt_parse_iso_date_time_zone() */
+
+
 /*
  *  "P3Y6M4DT12H30M5S" Calendar date period  (ISO 8601)
  * 
@@ -2318,7 +2372,7 @@ dt_parse_iso_period(const char *str, size_t len, int *yp, int *mp, int *dp, int*
     char *p;
     bool v;
 
-    for (p = str + 1, v = true,  y = m = d = w = 0; 
+    for (p = (char *)str + 1, v = true,  y = m = d = w = 0; 
       v && (n = p - str) < len && (v = (i = strtol(p, &p, 10)) > -1);
       p++) {
 

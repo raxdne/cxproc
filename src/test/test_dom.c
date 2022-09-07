@@ -560,7 +560,7 @@ domTest(void)
     i++;
     printf("TEST %i in '%s:%i': file XSL tree = ",i,__FILE__,__LINE__);
 
-    if ((pdocT = xmlParseFile(BAD_CAST TESTPREFIX "xsl/TestValidate.xsl")) == NULL) {
+    if ((pdocT = xmlParseFile(TESTPREFIX "xsl/TestValidate.xsl")) == NULL) {
     }
     else if ((pndRoot = xmlDocGetRootElement(pdocT)) == NULL) {
     }

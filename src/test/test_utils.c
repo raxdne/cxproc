@@ -327,7 +327,7 @@ utilsTest(void)
     else if ((pucResult2 = StringDecodeNumericCharsNew(pucTestA)) == NULL || xmlStrEqual(pucResult2, pucTestA) == FALSE) {
       printf("ERROR 3\n");
     }
-    else if ((pucResult3 = StringDecodeNumericCharsNew(pucTestB)) == NULL || xmlStrEqual(pucResult3, pucTestB) == TRUE || xmlStrlen(pucResult3) > xmlStrlen(pucTestB)) {
+    else if ((pucResult3 = StringDecodeNumericCharsNew(pucTestB)) == NULL || xmlStrEqual(pucResult3, pucTestB) != 0 || xmlStrlen(pucResult3) > xmlStrlen(pucTestB)) {
       printf("ERROR 4\n");
     }
     else {

@@ -808,7 +808,7 @@ cxpTest(cxpContextPtr pccArg)
 
 
   if (RUNTEST) {
-    xmlDocPtr pdocT;
+    xmlDocPtr pdocT = NULL;
     xmlNodePtr pndRoot;
 
     i++;
@@ -835,7 +835,7 @@ cxpTest(cxpContextPtr pccArg)
 
 
   if (RUNTEST) {
-    xmlDocPtr pdocT;
+    xmlDocPtr pdocT = NULL;
     xmlNodePtr pndRoot;
 
     i++;

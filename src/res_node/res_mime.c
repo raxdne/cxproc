@@ -172,7 +172,7 @@ static const char* resMimeTypeStr[] = {
 
 /*! \return a pointer to string of iArg or NULL in case of errors
 */
-char *
+const char *
 resMimeGetTypeStr(int iArg)
 {
   if (iArg >= MIME_UNDEFINED && iArg < MIME_END) {

@@ -177,7 +177,7 @@ dtTest(void)
     dt_t dtp;
     int sod, nsec;
     int l;
-    unsigned char *pucT = "2022-03-01T09:11:00.55 TEST";
+    char *pucT = "2022-03-01T09:11:00.55 TEST";
     
     i++;
     printf("TEST %i in '%s:%i': ",i,__FILE__,__LINE__);

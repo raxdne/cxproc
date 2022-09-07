@@ -239,9 +239,9 @@ SplitStringToTagNodes2(const xmlChar* pucArg, pcre2_code* preArg, const xmlChar*
 	element node
 	*/
 
-	if (StringBeginsWith(&pucArg[ovector[0]],"#include")
-	    || StringBeginsWith(&pucArg[ovector[0]],"#import")
-	    || StringBeginsWith(&pucArg[ovector[0]],"#subst")) {
+	if (StringBeginsWith((char*)&pucArg[ovector[0]],"#include")
+	    || StringBeginsWith((char*)&pucArg[ovector[0]],"#import")
+	    || StringBeginsWith((char*)&pucArg[ovector[0]],"#subst")) {
 	}
 	else {
 	  xmlChar* pucHashtag;

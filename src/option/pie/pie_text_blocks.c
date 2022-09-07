@@ -2635,7 +2635,7 @@ SubstNodeNew(xmlNodePtr pndArg)
 
   if (IS_NODE_PIE_PAR(pndArg) && IS_VALID_NODE(pndArg) && pndArg->children != NULL && pndArg->children == pndArg->last
       && xmlNodeIsText(pndArg->children) && (pucC = pndArg->children->content) != NULL
-      && (pucC = xmlStrcasestr(pucC,BAD_CAST"#subst")) != NULL && (pucC += xmlStrlen(BAD_CAST"#subst"))
+      && (pucC = BAD_CAST xmlStrcasestr(pucC,BAD_CAST"#subst")) != NULL && (pucC += xmlStrlen(BAD_CAST"#subst"))
       && STR_IS_NOT_EMPTY(pucC)) {
 
     int p;
@@ -2749,7 +2749,7 @@ IncludeNodeNew(xmlNodePtr pndArg)
 
   if (IS_NODE_PIE_PAR(pndArg) && IS_VALID_NODE(pndArg) && pndArg->children != NULL && pndArg->children == pndArg->last
       && xmlNodeIsText(pndArg->children) && (pucC = pndArg->children->content) != NULL
-      && (pucC = xmlStrcasestr(pucC,BAD_CAST"#include")) != NULL && (pucC += xmlStrlen(BAD_CAST"#include"))) {
+      && (pucC = BAD_CAST xmlStrcasestr(pucC,BAD_CAST"#include")) != NULL && (pucC += xmlStrlen(BAD_CAST"#include"))) {
 
     int i;
     int j;
@@ -2864,7 +2864,7 @@ ImportNodeNew(xmlNodePtr pndArg)
 
   if (IS_NODE_PIE_PAR(pndArg) && IS_VALID_NODE(pndArg) && pndArg->children != NULL && pndArg->children == pndArg->last
       && xmlNodeIsText(pndArg->children) && (pucC = pndArg->children->content) != NULL
-      && (pucC = xmlStrcasestr(pucC,BAD_CAST"#import")) != NULL && (pucC += xmlStrlen(BAD_CAST"#import"))) {
+      && (pucC = BAD_CAST xmlStrcasestr(pucC,BAD_CAST"#import")) != NULL && (pucC += xmlStrlen(BAD_CAST"#import"))) {
 
     int i;
     int j;
