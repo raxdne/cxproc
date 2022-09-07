@@ -2312,7 +2312,7 @@ dt_parse_iso_date_time_zone(const char* str, size_t len, dt_t *dtp, int *sp) {
 
   if (str != NULL && len > 0) {
     size_t j;
-    char* p = str;
+    char* p = (char *)str;
 
     if ((j = dt_parse_iso_date(&p[n], len, dtp)) > 3) {
       n += j;
@@ -2328,7 +2328,7 @@ dt_parse_iso_date_time_zone(const char* str, size_t len, dt_t *dtp, int *sp) {
 
 	  n += j;
 
-	  if ((j = dt_zone_lookup(&p[n], len - n, &pz))) { // > 3 && abs(o) < 12
+	  if ((j = dt_zone_lookup(&p[n], len - n, (const dt_zone_t**) &pz))) { // > 3 && abs(o) < 12
 	    o = pz->offset;
 	    n += j;
 	  }
@@ -2372,7 +2372,7 @@ dt_parse_iso_period(const char *str, size_t len, int *yp, int *mp, int *dp, int*
     char *p;
     bool v;
 
-    for (p = str + 1, v = true,  y = m = d = w = 0; 
+    for (p = (char *)str + 1, v = true,  y = m = d = w = 0; 
       v && (n = p - str) < len && (v = (i = strtol(p, &p, 10)) > -1);
       p++) {
 

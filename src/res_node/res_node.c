@@ -77,7 +77,7 @@
 #endif
 
 
-const xmlChar *mpucTypeNames[] = {
+const char *mpcTypeNames[] = {
 	     "rn_type_undef",
 	     "rn_type_stdout",
 	     "rn_type_stderr",
@@ -4275,10 +4275,10 @@ resNodeSetType(resNodePtr prnArg, RN_TYPE eArgType)
 xmlChar *
 resNodeGetTypeStr(resNodePtr prnArg)
 {
-  xmlChar *pucResult = mpucTypeNames[rn_type_undef];
+  xmlChar *pucResult = BAD_CAST mpcTypeNames[rn_type_undef];
 
   if (prnArg != NULL && prnArg->eType >= rn_type_undef && prnArg->eType <= rn_type_url) {
-    pucResult = mpucTypeNames[prnArg->eType];
+    pucResult = BAD_CAST mpcTypeNames[prnArg->eType];
   }
 
   return pucResult;

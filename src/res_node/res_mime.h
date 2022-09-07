@@ -177,7 +177,7 @@ resMimeGetTypeFromExt(const xmlChar *pucArg);
 extern RN_MIME_TYPE
 resMimeGetType(const char *pchArg);
 
-extern char *
+extern const char *
 resMimeGetTypeStr(int iArg);
 
 extern BOOL_T

@@ -25,6 +25,7 @@
 
 #include "basics.h"
 #include "utils.h"
+#include "dom.h"
 #include "calendar_element.h"
 
 /*\todo s. http://unicode.org/reports/tr35/tr35-dates.html */
@@ -350,7 +351,7 @@ ScanCalendarElementDate(ceElementPtr pceArgResult)
 	size_t n = 0;
 	int y, m, d, w, r;
 
-	if ((n = dt_parse_iso_recurrance(pucT, xmlStrlen(pceArgResult->pucSep), &pceArgResult->iRecurrence)) > 1) {
+	if ((n = dt_parse_iso_recurrance((const char *)pucT, xmlStrlen(pceArgResult->pucSep), &pceArgResult->iRecurrence)) > 1) {
 
 	  if (pucT[n] == '/') {
 	    n++;
@@ -358,17 +359,17 @@ ScanCalendarElementDate(ceElementPtr pceArgResult)
 
 	}
 
-	if ((j = dt_parse_iso_date_time_zone(&pucT[n], xmlStrlen(&pucT[n]), &pceArgResult->dt0.dt, &pceArgResult->dt0.iSec)) > 3) {
+	if ((j = dt_parse_iso_date_time_zone((const char*)&pucT[n], xmlStrlen(&pucT[n]), &pceArgResult->dt0.dt, &pceArgResult->dt0.iSec)) > 3) {
 	  n += j;
 
 	  if (pucT[n] == '/') { /* */
 	    n++;
-	    if ((j = dt_parse_iso_date_time_zone(&pucT[n], xmlStrlen(&pucT[n]), &pceArgResult->dt1.dt, &pceArgResult->dt1.iSec)) > 3) {
+	    if ((j = dt_parse_iso_date_time_zone((const char*)&pucT[n], xmlStrlen(&pucT[n]), &pceArgResult->dt1.dt, &pceArgResult->dt1.iSec)) > 3) {
 	      /* date/date */
 	      assert(pceArgResult->iRecurrence < 1);
 	      n += j;
 	    }
-	    else if ((j = dt_parse_iso_period(&pucT[n], xmlStrlen(&pucT[n]), &y, &m, &d, &w)) > 0) {
+	    else if ((j = dt_parse_iso_period((const char*)&pucT[n], xmlStrlen(&pucT[n]), &y, &m, &d, &w)) > 0) {
 
 	      if (pceArgResult->iRecurrence > 0) {
 		/* recurrance/date/period */
@@ -401,13 +402,13 @@ ScanCalendarElementDate(ceElementPtr pceArgResult)
 	  }
 
 	}
-	else if ((j = dt_parse_iso_period(&pucT[n], xmlStrlen(&pucT[n]), &y, &m, &d, &w)) > 0) {
+	else if ((j = dt_parse_iso_period((const char*)&pucT[n], xmlStrlen(&pucT[n]), &y, &m, &d, &w)) > 0) {
 	  n += j;
 
 	  if (pucT[n] == '/') {
 	    n++;
 
-	    if ((j = dt_parse_iso_date_time_zone(&pucT[n], xmlStrlen(&pucT[n]), &pceArgResult->dt1.dt, &pceArgResult->dt1.iSec)) > 3) {
+	    if ((j = dt_parse_iso_date_time_zone((const char*)&pucT[n], xmlStrlen(&pucT[n]), &pceArgResult->dt1.dt, &pceArgResult->dt1.iSec)) > 3) {
 
 	      if (pceArgResult->iRecurrence > 0) {
 		/* recurrance/date/period */
@@ -494,7 +495,7 @@ ScanCalendarElementDate(ceElementPtr pceArgResult)
 	    if (w > -1 && w < 54) {
 	      n += 4;
 	      pceArgResult->dt0.dt = dt_from_ywd(y, w, 1);
-	      pceArgResult->dt1.dt = dt_end_of_week(pceArgResult->dt0.dt, 1);
+	      pceArgResult->dt1.dt = dt_end_of_week(pceArgResult->dt0.dt, DT_MON);
 	    }
 	    else {
 	      n = 0;
@@ -579,14 +580,14 @@ AddNodeDateAttributes(xmlNodePtr pndArg, xmlChar* pucArg)
 
 	    if (pucDisplay) {
 	      if (pceI->dt0.dt > 0) {
-		pucDisplay = xmlStrcat(pucDisplay, ",");
+		pucDisplay = xmlStrcat(pucDisplay, BAD_CAST",");
 		pucDisplay = xmlStrcat(pucDisplay, mpucT);
 	      }
 	      else {
 		xmlChar* pucT;
 
 		pucT = xmlStrdup(mpucT);
-		pucT = xmlStrcat(pucT, ",");
+		pucT = xmlStrcat(pucT, BAD_CAST",");
 		pucDisplay = xmlStrcat(pucT, pucDisplay);
 		// xmlFree(pucDisplay);
 	      }
@@ -707,8 +708,8 @@ AddNodeDateAttributes(xmlNodePtr pndArg, xmlChar* pucArg)
     }
 #endif
 
-    return fResult;
   } 
+  return fResult;
 } /* End of AddNodeDateAttributes() */
 
   
@@ -736,7 +737,7 @@ UpdateToday(xmlChar *pucArgToday)
     ceElementPtr pceNew;
     int s;
 
-    if (dt_parse_iso_date_time_zone(pucArgToday, xmlStrlen(pucArgToday), &dtToday, &s) < 1) {
+    if (dt_parse_iso_date_time_zone((const char*)pucArgToday, xmlStrlen(pucArgToday), &dtToday, &s) < 1) {
       return -1;
     }
   }

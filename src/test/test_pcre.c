@@ -168,7 +168,7 @@ pcreTest(void)
       printf("PCRE2 compilation failed at offset %d: %s\n", (int)erroroffset, buffer);
       pcre2_code_free(preT);
     }
-    else if (strcmp(output, "A1B2C3 [www](http://www.www/www) D4E5F")) {
+    else if (strcmp((const char*)output, "A1B2C3 [www](http://www.www/www) D4E5F")) {
       printf("Error 2: '%s'\n", output);
     }
     else {
