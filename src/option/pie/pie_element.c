@@ -1297,6 +1297,7 @@ pieElementHasNext(pieTextElementPtr ppeArg)
 	    /* add line to buffer without linebreak */
 	    if (StrLineIsEmpty(pucLine, NULL)) {
 	      /* empty line */
+	      /*!\todo check if there are more than one empty lines to separate a list from its preceding paragraph */
 	      xmlFree(pucLine);
 	      fResult = TRUE;
 	    }

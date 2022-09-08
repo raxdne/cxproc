@@ -588,7 +588,7 @@ InheritHashtags(xmlNodePtr pndArgTop, xmlNodePtr pndArg)
 	  }
 	  else if ((IS_NODE_PIE_HTAG(pndT) || IS_NODE_PIE_ETAG(pndT)) && pndT->children != NULL) {
 	    for (pndTT = pndChild->parent->children; pndTT; pndTT = pndTT->next) {
-	      if (IS_NODE(pndTT,NULL)) {
+	      if (IS_NODE(pndTT,NULL) && IS_NODE_PIE_PRE(pndTT) == FALSE && IS_NODE_PIE_TT(pndTT) == FALSE) {
 		AddTagNodeNew(pndTT, pndT->children->content);
 	      }
 	    }

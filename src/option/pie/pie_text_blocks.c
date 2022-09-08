@@ -487,6 +487,9 @@ GetParentElement(pieTextElementPtr ppeArg, xmlNodePtr pndArgParent)
 	  pndLast = pndList = pndT;
 	  iDepth++;
 	}
+	else if (IS_NODE_PIE_PAR(pndT)) {
+	  pndLast = pndList = pndT;
+	}
 	else {
 	  pndLast = pndT;
 	}
@@ -512,7 +515,13 @@ GetParentElement(pieTextElementPtr ppeArg, xmlNodePtr pndArgParent)
 	  assert(pndLast != NULL);
 
 	  pndList = xmlNewNode(NULL, NAME_PIE_LIST);
-	  xmlAddNextSibling(pndLast, pndList);
+
+	  if (IS_NODE_PIE_PAR(pndLast)) {
+	    xmlAddChild(pndLast, pndList);
+	  }
+	  else {
+	    xmlAddNextSibling(pndLast, pndList);
+	  }
 	}
       }
 
@@ -1954,7 +1963,7 @@ RecognizeScripts(xmlNodePtr pndArg)
 {
   BOOL_T fResult = FALSE;
   
-  if (IS_NODE_META(pndArg) || IS_NODE_PIE_PRE(pndArg) || IS_NODE_PIE_LINK(pndArg) || IS_NODE_PIE_DATE(pndArg)) {
+  if (IS_NODE_META(pndArg) || IS_NODE_PIE_PRE(pndArg) || IS_NODE_PIE_TT(pndArg) || IS_NODE_PIE_LINK(pndArg) || IS_NODE_PIE_DATE(pndArg)) {
     /* skip */
   }
   else if (IS_VALID_NODE(pndArg) == FALSE || xmlHasProp(pndArg,BAD_CAST"hidden") != NULL) {
@@ -2550,7 +2559,7 @@ RecognizeInlines(xmlNodePtr pndArg)
     else if (IS_VALID_NODE(pndArg) == FALSE || xmlHasProp(pndArg, BAD_CAST"hidden") != NULL) {
       /* skip */
     }
-    else if (IS_NODE_META(pndArg) || IS_NODE_PIE_PRE(pndArg) || IS_NODE_PIE_LINK(pndArg) || IS_NODE_PIE_DATE(pndArg) || IS_NODE_SCRIPT(pndArg)) {
+    else if (IS_NODE_META(pndArg) || IS_NODE_PIE_PRE(pndArg) || IS_NODE_PIE_TT(pndArg) || IS_NODE_PIE_LINK(pndArg) || IS_NODE_PIE_DATE(pndArg) || IS_NODE_SCRIPT(pndArg)) {
       /* skip */
     }
     else if (IS_NODE_PIE_ETAG(pndArg) || IS_NODE_PIE_HTAG(pndArg) || IS_NODE_PIE_TTAG(pndArg) || IS_NODE_PIE_DATE(pndArg)) {
@@ -2591,7 +2600,7 @@ RecognizeDates(xmlNodePtr pndArg, RN_MIME_TYPE eMimeTypeArg)
 	xmlFreeNodeList(pndReplace);
       }
     }
-    else if (IS_NODE_META(pndArg) || IS_NODE_PIE_PRE(pndArg) || IS_NODE_PIE_LINK(pndArg) || IS_NODE_PIE_DATE(pndArg) || IS_NODE_SCRIPT(pndArg)) {
+    else if (IS_NODE_META(pndArg) || IS_NODE_PIE_PRE(pndArg) || IS_NODE_PIE_TT(pndArg) || IS_NODE_PIE_LINK(pndArg) || IS_NODE_PIE_DATE(pndArg) || IS_NODE_SCRIPT(pndArg)) {
       /* skip */
     }
     else if (IS_VALID_NODE(pndArg) == FALSE || xmlHasProp(pndArg,BAD_CAST"hidden") != NULL) {

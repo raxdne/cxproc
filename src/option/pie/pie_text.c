@@ -1533,7 +1533,7 @@ pieGetSelfAncestorNodeList(xmlNodePtr pndArg)
 
 	pndPar = xmlCopyNode(pndA, 1);
 
-	for (; IS_NODE_PIE_LIST(pndA->parent); pndA = pndA->parent) {
+	for ( ; IS_NODE_PIE_PAR(pndA->parent) || IS_NODE_PIE_LIST(pndA->parent); pndA = pndA->parent) {
 	  /* skip all list parents */
 	  /*!\todo handle parent p for context */
 	}
@@ -1580,9 +1580,8 @@ pieGetSelfAncestorNodeList(xmlNodePtr pndArg)
 	if (IS_NODE_PIE_SECTION(pndA) || IS_NODE_PIE_TASK(pndA)) { /* section/header/date */
 	  xmlNodePtr pndI, pndT;
 
-	  pndI = xmlNewNode(NULL, pndA->name);
-	  domCopyPropList(pndI, pndA);
-	  xmlAddChild(pndI, pndH);
+	  xmlFreeNode(pndH);
+	  pndI = xmlCopyNode(pndA, 1);
 
 	  pndA = pndA->parent;
 	  if (IS_NODE_PIE_SECTION(pndA)) { /* section/section/header/date */
