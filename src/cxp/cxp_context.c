@@ -141,7 +141,7 @@ cxpCtxtOutputSaveFormat(cxpContextPtr pccArg,resNodePtr prnOut,xmlDocPtr pdocArg
       */
       if (domDocIsHtml(pdocArgOutput)) {
 	/* workaround because htmlSaveFileFormat() skips the DTD nodes */
-	/*!\todo HTML Doctype fputs("<!DOCTYPE html>\n", stdout); problems with XHTTP request CgiPiejQEditor.cxp */
+	/*!\bug HTML Doctype fputs("<!DOCTYPE html>\n", stdout); problems with XHTTP request CgiPiejQEditor.cxp */
 #ifdef HAVE_CGI
 	if (resNodeIsStd(prnOut)) {
 	  fflush(stdout);

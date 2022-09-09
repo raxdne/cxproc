@@ -80,6 +80,10 @@ MdStrCountTrailingSpaces(xmlChar *pucArg);
 
 #endif
 
+static int
+pieElementWeight(pieTextElementPtr ppeArg);
+
+
 /*! constructor for pieTextElement
 */
 pieTextElementPtr
@@ -1147,7 +1151,12 @@ pieElementHasNext(pieTextElementPtr ppeArg)
 
 	      if (MdStrLineIsEmpty(&puc0[iNextBegin], &iEnd)) {
 		/* next line is empty */
-		pucContent = xmlStrcat(pucContent, BAD_CAST"\n");
+		if (ppeArg->eType == pre) {
+		  /* don't add a newline at a pre block */
+		}
+		else {
+		  pucContent = xmlStrcat(pucContent, BAD_CAST"\n");
+		}
 		iNextBegin += iEnd;
 		fResult = TRUE;
 	      }
