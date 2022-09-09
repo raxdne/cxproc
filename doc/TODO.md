@@ -5,6 +5,8 @@
 
 TODO: update descriptions in Doxygen format #v13
 
+s. `./option/*/TODO.md`
+
 ## Features
 
 REQ: shell environment
@@ -44,6 +46,19 @@ REQ: use environment variable `LANG` for localization of calendar, articles etc 
 DONE: cleanup use of cxpXslParamProcess(), params required? (script, XSL)
 
 DONE: cleanup AJAX code (not required on server side)
+
+#### calendar
+
+TEST: sunrise sunset with Shanghai, Berlin, Boston
+
+REQ: calculate different time zone values
+
+REQ: handle timezone in date node
+- TODO: code refactoring using libc database (s. https://en.wikipedia.org/wiki/Tz_database)
+
+### plain
+
+REQ: HTML to UTF-8 Plain text Renderer `<cxp:plain><cxp:html name="abc.html"/></cxp:plain>` like "w3m -dump"
 
 ## Security
 
@@ -110,6 +125,8 @@ REQ: Python bindings
 
 ## Web server
 
+Apache HTTPD ✔
+
 IIS
 
 HTTPS
@@ -118,7 +135,7 @@ nginx
 
 node.js
 
-## cxproc-httpd (Application Server)
+## cxproc-httpd (Application Server) ???
 
 Reverse Proxy
 
@@ -137,67 +154,6 @@ Authentification
 
 REST Principles
 
-## Options
-
-### pie
-
-#### pie_csv
-
-markup
-
-       #begin_of_csv
-       #import()
-       <import type="csv" sep=",">A;B;C</import>
-       <import name="a.csv" type="csv" sep=","/>
-       <file name="a.csv" verbosity="4"/>
-
-parse from UTF-8 memory buffer
-
-#### pie_calendar
-
-REQ: handle https://en.wikipedia.org/wiki/ISO_8601#Week_dates
-
-#### pie_text
-
-REQ: append XML attributes to text markup
-- `** TEST @assignee="abc" @date="1234567"`
-- additional generic attributes as `[class="abc" cluster="cad" effort="1"]`
-- JSON-like? `* Section json="[class:'abc', cluster:'cad', effort:1]"`
-
-decoding of RFC1738 URL with Umlaute to UTF-8
-
-TODO: change markup #v14
-
-    <pre></pre>
-    <script display="yes"></script>
-
-REQ: add a default XSL reference `pie2html.xsl` to DOM ?
-
-REQ: add meta element to every block element
-
-REQ: define regexp for tags as node attribute `<pie tags="(ABC|XYZ)">` or  `<import tags="(ABC|XYZ)">`
-
-BUG: Tag recognition fails (end of local regexp)
-
-- regexp error handling?? ✔
-
-#### pie_timezone
-
-TEST: sunrise sunset with Shanghai, Berlin, Boston
-
-REQ: calculate different time zone values
-
-REQ: handle timezone in date node
-- TODO: code refactoring using libc database (s. https://en.wikipedia.org/wiki/Tz_database)
-
-### sqlite
-
-REQ: transparent SQL to XML access  `xmlRead("sql:///tmp/abc.db3:SELECT * FROM table;")` ("xmlsqlio", similar to "xmlzipio")
-
-### plain
-
-REQ: HTML to UTF-8 Plain text Renderer `<cxp:plain><cxp:html name="abc.html"/></cxp:plain>` like "w3m -dump"
-
 ## Examples
 
 ### exifmover
@@ -213,32 +169,6 @@ TEST: on Linux and Windows
 TEST: on Linux and Windows
 
 ## Misc
-
-### markdown
-
-<https://daringfireball.net/projects/markdown/basics>
-
-Markdown parser <https://css-tricks.com/choosing-right-markdown-parser/>
-
-### image
-
-ImageMagick
-
-- use „VisualMagick configuration tool“ for VC++ Project setup on Windows
-- Magic Scripting Language <http://www.linux-nantes.org/~fmonnier/ocaml/ml-conjure/documentation.html>
-- Conjure <http://support.cs.nott.ac.uk/help/docs/image/ImageMagick/www/conjure.html>
-
-- additional image processing instructions as elements
-- embed comments into image files
-
-    <cxp:image to="result.png">
-      <cxp:image name="source.jpg" cache="yes"/>
-      <cxp:scale="0.5"/>
-      <cxp:orientation="auto"/>
-      <cxp:comment>This is a Test!</cxp:comment>
-      <cxp:scale="0.5"/>
-      <cxp:scale="300"/>
-    </cxp:image>
 
 ### gallery
 
@@ -276,17 +206,4 @@ see REST principles
 The [JasperReports Library](http://community.jaspersoft.com/project/jasperreports-library) is the world's most popular open source reporting engine.
 
 [XMLStarlet command line XML toolkit](https://sourceforge.net/projects/xmlstar/)
-
-### CSV
-
-<https://github.com/dinedal/textql>
-
-https://github.com/harelba/q
-
-<https://stackoverflow.com/questions/12911299/read-csv-file-in-c>
-
-<https://github.com/JamesRamm/csv_parser>
-
-<https://github.com/rgamble/libcsv>
-
 
