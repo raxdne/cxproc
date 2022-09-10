@@ -139,6 +139,7 @@ Recognize(xmlNodePtr pndArg)
   else {
     RecognizeInlines(pndArg);
     //RecognizeScripts(pndArg);
+    //RecognizeSubsts(pndArg);
     RecognizeFigures(pndArg);
     RecognizeUrls(pndArg);
     RecognizeDates(pndArg, MIME_TEXT_PLAIN);

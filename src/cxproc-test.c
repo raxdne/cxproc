@@ -301,10 +301,10 @@ main(int argc, char** argv, char** envp)
 
 	pccT = cxpCtxtDup(pccTest);
 	if (pccT) {
-	  //iErrorCode += pieElementTest();
-	  //iErrorCode += pieTextTagsTest();
+	  iErrorCode += pieElementTest();
+	  iErrorCode += pieTextTagsTest();
 	  iErrorCode += pieTextBlocksTest();
-	  //iErrorCode += pieTextTest(pccT);
+	  iErrorCode += pieTextTest(pccT);
 
 	  cxpCtxtIncrExitCode(pccTest,cxpCtxtGetExitCode(pccT));
 	  cxpCtxtFree(pccT);
