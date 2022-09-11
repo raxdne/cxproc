@@ -30,7 +30,7 @@ IF "0" == "1" (
   REM git pull
   .\vcpkg integrate install
 
-  .\vcpkg --triplet %CXPARCH% --x-install-root=%CXPBASE%..\.. install curl zlib liblzma libarchive pcre2 libxml2 libxslt libexif sqlite3 duktape
+  .\vcpkg --triplet %CXPARCH% --x-install-root=%CXPBASE%..\.. install curl zlib liblzma libarchive pcre2 libxml2 libxslt libexif sqlite3 duktape cmark
 
   REM imagemagick libgif libjpeg libpng libtiff
   

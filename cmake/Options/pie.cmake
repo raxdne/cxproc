@@ -2,13 +2,18 @@
 #
 #
 
+FIND_PACKAGE( LibCMark )
+
 # TODO: cmake_dependent_option(USE_FOO "Use Foo" ON "USE_BAR;NOT USE_ZOT" OFF)
 
 IF (CXPROC_PCRE2)
   OPTION(CXPROC_PIE "Include PIE code" ON)
+  OPTION(CXPROC_MARKDOWN "Compile MARKDOWN code" ON)
 ELSE ()
   SET(CXPROC_PIE OFF)
+  SET(CXPROC_MARKDOWN OFF)
 ENDIF ()
+
 
 ################################################################################
 #
@@ -64,6 +69,15 @@ IF (CXPROC_PIE)
       )
   ENDIF ()
 
+  IF (CXPROC_MARKDOWN)
+    SET(PIE_FILES
+      ${PIE_FILES}
+      #${LIBCMARK_INCLUDE_DIR}/buffer.c
+      ${CXPROC_SRC_DIR}/option/pie/pie_cmark.c
+      ${CXPROC_SRC_DIR}/option/pie/pie_cmark.h
+      )
+  ENDIF ()
+
   target_sources(cxproc PUBLIC ${PIE_FILES})
 
   target_sources(cxproc-cgi PUBLIC ${PIE_FILES})
@@ -75,8 +89,6 @@ IF (CXPROC_PIE)
   target_compile_definitions(cxproc      PUBLIC HAVE_PIE)
   target_compile_definitions(cxproc-cgi  PUBLIC HAVE_PIE)
   target_compile_definitions(cxproc-test PUBLIC HAVE_PIE)
-
-  OPTION(CXPROC_MARKDOWN "Compile MARKDOWN code" ON)
 
 IF (BUILD_TESTING)
   add_test(NAME pie-code
@@ -133,13 +145,7 @@ IF (BUILD_TESTING)
 
 ENDIF (BUILD_TESTING)
 
-ELSE ()
-  SET(CXPROC_MARKDOWN OFF)
 ENDIF (CXPROC_PIE)
-
-IF (CXPROC_MARKDOWN)
-  add_definitions(-DWITH_MARKDOWN)
-ENDIF (CXPROC_MARKDOWN)
 
 ################################################################################
 #
@@ -159,6 +165,17 @@ IF (CXPROC_LZMA)
 ENDIF (CXPROC_LZMA)
 
 target_link_libraries(pietextx ${LIBICONV_LIBRARY} ${LIBCHARSET_LIBRARY} ${LIBXML2_LIBRARY})
+
+IF (CXPROC_MARKDOWN)
+  add_definitions(-DWITH_MARKDOWN)
+  target_link_libraries(filex ${LIBCMARK_LIBRARY})
+  target_link_libraries(dir2csv ${LIBCMARK_LIBRARY})
+  target_link_libraries(dir2sqlite ${LIBCMARK_LIBRARY})
+  target_link_libraries(cxproc ${LIBCMARK_LIBRARY})
+  target_link_libraries(cxproc-test ${LIBCMARK_LIBRARY})
+  target_link_libraries(cxproc-cgi ${LIBCMARK_LIBRARY})
+ENDIF ()
+
 
 IF(MSVC)
 ELSE(MSVC)

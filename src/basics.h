@@ -105,6 +105,12 @@ typedef int index_t;
 #include "version.h"
 
 #ifdef _MSC_VER
+
+/* https://social.msdn.microsoft.com/Forums/vstudio/de-DE/e189173e-870d-440b-a416-340678481ed7/exclude-msxmlh?forum=vcgeneral */
+#ifndef __MSXML_LIBRARY_DEFINED__
+#define __MSXML_LIBRARY_DEFINED__
+#endif
+
 #include <windows.h>
 #include <WinBase.h>
 #include <WinDef.h>

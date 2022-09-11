@@ -108,6 +108,10 @@ ENDIF (CXPROC_JSON)
     MESSAGE(STATUS "  Link cxproc with libcurl .......... : ${CXPROC_CURL}")
   ENDIF ()
 
+  IF (CXPROC_LIBCMARK)
+    MESSAGE(STATUS "  Link cxproc with libcmark .......... : ${CXPROC_LIBCMARK}")
+  ENDIF ()
+
   MESSAGE(STATUS "")
   
   #IF (CXPROC_LIBMICROHTTPD)
