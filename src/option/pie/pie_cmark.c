@@ -313,7 +313,7 @@ _cmark_render_pie(xmlDocPtr pdocArg, cmark_node *root, int options)
 
 
 /*!
-drived from cmark_markdown_to_html()
+derived from cmark_markdown_to_html()
 */
 xmlDocPtr
 cmark_markdown_to_pie(const char* text, size_t len, int options)
@@ -343,6 +343,133 @@ cmark_markdown_to_pie(const char* text, size_t len, int options)
 
   return pdocResult;
 }
+
+
+/*! Append the parsed plain text to the given pndArgTop
+
+\param pndArgTop parent node to append import result nodes OR NULL if pndArgImport must be replaced by result
+\param pucArg pointer to an UTF-8 encoded buffer (not XML-conformant!)
+
+\return pointer to result node "block" or NULL in case of errors
+
+similar to ParsePlainBuffer()
+
+*/
+xmlNodePtr
+ParseMarkDownBuffer(xmlNodePtr pndArgTop, xmlChar* pucArg)
+{
+  xmlNodePtr pndResult = NULL;
+
+
+  CompileRegExpDefaults();
+
+  if (STR_IS_NOT_EMPTY(pucArg)) {
+    //index_t k;
+    //index_t iMax = -1;
+    //pieTextElementPtr ppeT = NULL;
+    xmlNodePtr pndParent; /*! */
+    xmlNodePtr pndBlock; /*! */
+    xmlChar* pucT;
+    xmlChar* pucText = NULL;
+
+    if (IS_NODE_PIE_BLOCK(pndArgTop)) { /* block element exists already */
+      pndBlock = pndArgTop;
+    }
+    else if (pndArgTop) { /* use as parent node for new block element */
+      pndBlock = xmlNewChild(pndArgTop, NULL, NAME_PIE_BLOCK, NULL);
+    }
+    else { /* there is nor parent element, return new block element */
+      pndBlock = xmlNewNode(NULL, NAME_PIE_BLOCK);
+    }
+    SetTypeAttr(pndBlock, RMODE_MD);
+
+#if 0
+    if ((ppeT = pieElementNew(pucArg, eArgMode))) {
+      /*\todo iMax = domGetPropValuePtr(pndArgImport, BAD_CAST "max"); */
+      iMax = 512 * 1024;
+    }
+
+    /*!\todo handling of date-leading formats */
+
+    /*!
+    main loop for reading pie text elements and building of DOM
+    */
+    for (k = 0, pndParent = pndBlock; k < iMax && pieElementHasNext(ppeT); k++) {
+      xmlNodePtr pndNew = NULL;
+
+      if (pieElementIsQuote(ppeT)) {
+	pndNew = xmlNewChild(pndParent, NULL, NAME_PIE_BLOCK, NULL);
+	xmlSetProp(pndNew, BAD_CAST "type", BAD_CAST"quote");
+	pndNew = ParsePlainBuffer(pndNew, pieElementGetBeginPtr(ppeT), eArgMode);
+      }
+      else if (pieElementIsMetaTags(ppeT)) {
+	if ((pucT = pieElementGetBeginPtr(ppeT)) != NULL) {
+	  pndNew = xmlNewPI(NAME_PIE_PI_TAG, &pucT[6]);
+	  /*! insert all PI nodes at the begin of block */
+	  if (pndBlock->children) {
+	    pndNew->parent = pndBlock;
+	    pndNew->next = pndBlock->children;
+	    pndNew->next->prev = pndNew;
+	    pndBlock->children = pndNew;
+	  }
+	  else {
+	    xmlAddChild(pndParent, pndNew);
+	  }
+	}
+      }
+      else if (pieElementIsMetaOrigin(ppeT)) {
+	if ((pucT = pieElementGetBeginPtr(ppeT)) != NULL) {
+	  xmlSetProp(pndBlock, BAD_CAST "context", &pucT[8]);
+	}
+      }
+      else {
+	pieElementParse(ppeT);
+
+	if ((pndNew = pieElementToDOM(ppeT))) {
+	  xmlNodePtr pndList = NULL;
+
+	  /* append to result DOM */
+	  if (pieElementGetMode(ppeT) == RMODE_TABLE) {
+	    if (IS_NODE_PIE_SECTION(pndParent) && xmlStrEqual(domGetPropValuePtr(pndParent, BAD_CAST"type"), BAD_CAST "table")) {
+	      /* there is a table parent already */
+	    }
+	    else {
+	      pndParent = xmlNewChild(pndParent, NULL, NAME_PIE_SECTION, NULL);
+	      xmlSetProp(pndParent, BAD_CAST "type", BAD_CAST "table");
+	      xmlSetProp(pndParent, BAD_CAST "sep", (pieElementGetSepPtr(ppeT) ? pieElementGetSepPtr(ppeT) : BAD_CAST ";"));
+	    }
+	    xmlAddChild(pndParent, pndNew);
+	  }
+	  else if (pieElementIsHeader(ppeT) && (pndParent = GetParentElement(ppeT, pndBlock)) != NULL) {
+	    pndParent = xmlAddChild(pndParent, pndNew);
+	  }
+	  else if (pieElementIsListItem(ppeT) && (pndList = GetParentElement(ppeT, pndParent)) != NULL) {
+	    xmlAddChild(pndList, pndNew);
+	  }
+	  else {
+	    xmlAddChild(pndParent, pndNew);
+	  }
+	}
+      }
+    }
+    xmlFree(pucText);
+    //domPutNodeString(stderr, BAD_CAST"", pndArgTop);
+
+    if (pieElementGetMode(ppeT) == RMODE_TABLE) {
+      TransformToTable(pndArgTop, pndParent, domGetPropValuePtr(pndParent, BAD_CAST"sep"));
+      CompressTable(pndParent);
+      AddTableCellsEmpty(pndParent);
+      xmlUnsetProp(pndParent, BAD_CAST "sep");
+      xmlUnsetProp(pndParent, BAD_CAST "type");
+    }
+    pieElementFree(ppeT);
+#endif
+
+    pndResult = pndBlock;
+  }
+
+  return pndResult;
+} /* end of ParseMarkDownBuffer() */
 
 
 #ifdef TESTCODE

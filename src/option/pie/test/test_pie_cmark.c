@@ -118,6 +118,80 @@ pieCmarkTest(void)
     xmlFreeDoc(pdocT);
   }
 
+
+
+  if (RUNTEST) {
+    xmlNodePtr pndPie;
+
+    i++;
+    printf("TEST %i in '%s:%i': parse empty markdown text = ", i, __FILE__, __LINE__);
+
+    if ((pndPie = xmlNewNode(NULL, NAME_PIE_PIE)) == NULL) {
+      printf("Error xmlNewNode()\n");
+    }
+    else if (ParseMarkDownBuffer(pndPie, NULL) != NULL) {
+      printf("Error 1 ParseMarkDownBuffer()\n");
+    }
+    else if (ParseMarkDownBuffer(pndPie, BAD_CAST"") != NULL) {
+      printf("Error 2 ParseMarkDownBuffer()\n");
+    }
+    else {
+      n_ok++;
+      printf("OK\n");
+    }
+    //domPutNodeString(stderr, BAD_CAST"import result", pndPie);
+    xmlFreeNode(pndPie);
+  }
+
+
+  if (RUNTEST) {
+    xmlNodePtr pndPie;
+    xmlNodePtr pndBlock;
+    xmlChar* pucContent = BAD_CAST
+      "# ABCDE #\n"
+      "## FGHI ##\n"
+      "### JKLM\n"
+      "AAA & >>BBB<<\n"
+      "- 1\n"
+      "- 2\n"
+      "- 3\n\n"
+      "CCC  \n\r\n"
+      "fig. abc.png: picture\n\n"
+      "NPQR\r\n"
+      "====\n"
+      "- 1\n"
+      "* 2\n"
+      "+ 3\n\n"
+      "##### STUV\n\r\n"
+      "TODO: task markup\n\n"
+      "WXYZ\n"
+      "----"
+      ;
+
+    i++;
+    printf("TEST %i in '%s:%i': parse markdown text and build list of import elements = ", i, __FILE__, __LINE__);
+
+    if ((pndPie = xmlNewNode(NULL, NAME_PIE_PIE)) == NULL) {
+      printf("Error xmlNewNode()\n");
+    }
+    else if (ParseMarkDownBuffer(pndPie, pucContent) == NULL) {
+      printf("Error 1 ParseMarkDownBuffer()\n");
+    }
+    else if ((pndBlock = pndPie->children) == NULL || IS_NODE_PIE_BLOCK(pndBlock) == FALSE) {
+      printf("Error 2 ParseMarkDownBuffer()\n");
+    }
+    else if (domNumberOfChild(pndBlock, NAME_PIE_SECTION) != 2) {
+      printf("Error 3 ParseMarkDownBuffer()\n");
+    }
+    else {
+      n_ok++;
+      printf("OK\n");
+    }
+    domPutNodeString(stderr, BAD_CAST"import result", pndPie);
+    xmlFreeNode(pndPie);
+  }
+
+
   printf("Result in '%s': %i/%i OK\n\n", __FILE__, n_ok, i);
 
   return (i - n_ok);
