@@ -49,9 +49,6 @@ extern void
 pieTextBlocksCleanup(void);
 
 extern xmlNodePtr
-GetParentElement(pieTextElementPtr ppeArg, xmlNodePtr pndArgParent);
-
-extern xmlNodePtr
 RecognizeFigures(xmlNodePtr pndArg);
 
 extern xmlNodePtr

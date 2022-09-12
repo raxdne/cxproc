@@ -117,6 +117,9 @@ static pcre2_code *re_task = NULL;
 
 xmlNsPtr pnsPie = NULL;
 
+static xmlNodePtr
+GetParentElement(pieTextElementPtr ppeArg, xmlNodePtr pndArgParent);
+
 static int
 GetTableColumns(xmlNodePtr pndArg);
 

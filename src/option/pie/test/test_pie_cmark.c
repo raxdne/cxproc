@@ -129,11 +129,11 @@ pieCmarkTest(void)
     if ((pndPie = xmlNewNode(NULL, NAME_PIE_PIE)) == NULL) {
       printf("Error xmlNewNode()\n");
     }
-    else if (ParseMarkDownBuffer(pndPie, NULL) != NULL) {
-      printf("Error 1 ParseMarkDownBuffer()\n");
+    else if (ParseMarkdownBuffer(pndPie, NULL) != NULL) {
+      printf("Error 1 ParseMarkdownBuffer()\n");
     }
-    else if (ParseMarkDownBuffer(pndPie, BAD_CAST"") != NULL) {
-      printf("Error 2 ParseMarkDownBuffer()\n");
+    else if (ParseMarkdownBuffer(pndPie, BAD_CAST"") != NULL) {
+      printf("Error 2 ParseMarkdownBuffer()\n");
     }
     else {
       n_ok++;
@@ -174,14 +174,14 @@ pieCmarkTest(void)
     if ((pndPie = xmlNewNode(NULL, NAME_PIE_PIE)) == NULL) {
       printf("Error xmlNewNode()\n");
     }
-    else if (ParseMarkDownBuffer(pndPie, pucContent) == NULL) {
-      printf("Error 1 ParseMarkDownBuffer()\n");
+    else if (ParseMarkdownBuffer(pndPie, pucContent) == NULL) {
+      printf("Error 1 ParseMarkdownBuffer()\n");
     }
     else if ((pndBlock = pndPie->children) == NULL || IS_NODE_PIE_BLOCK(pndBlock) == FALSE) {
-      printf("Error 2 ParseMarkDownBuffer()\n");
+      printf("Error 2 ParseMarkdownBuffer()\n");
     }
     else if (domNumberOfChild(pndBlock, NAME_PIE_SECTION) != 2) {
-      printf("Error 3 ParseMarkDownBuffer()\n");
+      printf("Error 3 ParseMarkdownBuffer()\n");
     }
     else {
       n_ok++;
