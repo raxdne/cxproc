@@ -2745,17 +2745,26 @@ resNodeContentToDOM(xmlNodePtr pndArg, resNodePtr prnArg)
 	    if (pndPie) {
 	      rmode_t m;
 
-	      if (iMimeType == MIME_TEXT_PLAIN) {
-		m = GetModeByExtension(resNodeGetExtension(prnArg));
+	      if (iMimeType == MIME_TEXT_MARKDOWN) {
+#ifdef WITH_MARKDOWN
+		if (ParseMarkdownBuffer(pndPie, pucContent)) {
+		  xmlSetProp(pndPie->children, BAD_CAST "context", resNodeGetURI(prnArg));
+		}
+#endif
 	      }
 	      else {
-		m = GetModeByMimeType(iMimeType);
-	      }
+		if (iMimeType == MIME_TEXT_PLAIN) {
+		  m = GetModeByExtension(resNodeGetExtension(prnArg));
+		}
+		else {
+		  m = GetModeByMimeType(iMimeType);
+		}
 
-	      if (ParsePlainBuffer(pndPie, pucContent, m)) {
-		xmlSetProp(pndPie->children, BAD_CAST "context", resNodeGetURI(prnArg));
-		SetTypeAttr(pndPie->children,m);
-		//domPutNodeString(stderr, BAD_CAST "pndPie", pndPie);
+		if (ParsePlainBuffer(pndPie, pucContent, m)) {
+		  xmlSetProp(pndPie->children, BAD_CAST "context", resNodeGetURI(prnArg));
+		  SetTypeAttr(pndPie->children,m);
+		  //domPutNodeString(stderr, BAD_CAST "pndPie", pndPie);
+		}
 	      }
 	    }
 	    //xmlNewTextChild(pndPie, NULL, BAD_CAST"meta", pucContent);

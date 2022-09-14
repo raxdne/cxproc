@@ -305,7 +305,9 @@ main(int argc, char** argv, char** envp)
 	  iErrorCode += pieTextTagsTest();
 	  iErrorCode += pieTextBlocksTest();
 	  iErrorCode += pieTextTest(pccT);
+#ifdef WITH_MARKDOWN
 	  iErrorCode += pieCmarkTest();
+#endif
 
 	  cxpCtxtIncrExitCode(pccTest,cxpCtxtGetExitCode(pccT));
 	  cxpCtxtFree(pccT);

@@ -23,6 +23,10 @@
 #include "calendar_element.h"
 #include <pie/pie_element.h>
 
+#ifdef WITH_MARKDOWN
+#include <pie/pie_cmark.h>
+#endif
+
 #ifdef PIE_STANDALONE
 #else
 #include "plain_text.h"

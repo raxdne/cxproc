@@ -79,6 +79,9 @@
 #include <cxp/cxp_calendar.h>
 #ifdef HAVE_PIE
 #include <pie/pie_text.h>
+#ifdef WITH_MARKDOWN
+#include <cmark.h>
+#endif
 #else
 #include <pie/pie_dtd.h>
 #endif
@@ -3337,6 +3340,16 @@ cxpProcessInfoNode(xmlNodePtr pndInfo, cxpContextPtr pccArg)
 #ifdef HAVE_LIBID3TAG
     xmlSetProp(nodeOption,BAD_CAST "select", BAD_CAST "yes");
     xmlSetProp(nodeOption,BAD_CAST "version", BAD_CAST ID3_VERSION);
+#else
+    xmlSetProp(nodeOption,BAD_CAST "select", BAD_CAST "no");
+#endif
+
+    nodeOption = xmlNewChild(nodeProgram, NULL, BAD_CAST"option", NULL);
+    xmlSetProp(nodeOption,BAD_CAST "name",BAD_CAST"cmark");
+    xmlSetProp(nodeOption,BAD_CAST "ns",BAD_CAST"https://github.com/commonmark/cmark");
+#ifdef WITH_MARKDOWN
+    xmlSetProp(nodeOption,BAD_CAST "select", BAD_CAST "yes");
+    xmlSetProp(nodeOption,BAD_CAST "version", BAD_CAST cmark_version_string());
 #else
     xmlSetProp(nodeOption,BAD_CAST "select", BAD_CAST "no");
 #endif

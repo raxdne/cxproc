@@ -70,9 +70,10 @@ IF (CXPROC_PIE)
   ENDIF ()
 
   IF (CXPROC_MARKDOWN)
+    target_sources(filex PUBLIC ${CXPROC_SRC_DIR}/option/pie/pie_cmark.c ${CXPROC_SRC_DIR}/option/pie/pie_cmark.h)
+    target_sources(pietextx PUBLIC ${CXPROC_SRC_DIR}/option/pie/pie_cmark.c ${CXPROC_SRC_DIR}/option/pie/pie_cmark.h)
     SET(PIE_FILES
       ${PIE_FILES}
-      #${LIBCMARK_INCLUDE_DIR}/buffer.c
       ${CXPROC_SRC_DIR}/option/pie/pie_cmark.c
       ${CXPROC_SRC_DIR}/option/pie/pie_cmark.h
       )
@@ -169,6 +170,7 @@ target_link_libraries(pietextx ${LIBICONV_LIBRARY} ${LIBCHARSET_LIBRARY} ${LIBXM
 IF (CXPROC_MARKDOWN)
   add_definitions(-DWITH_MARKDOWN)
   target_link_libraries(filex ${LIBCMARK_LIBRARY})
+  target_link_libraries(pietextx ${LIBCMARK_LIBRARY})
   target_link_libraries(dir2csv ${LIBCMARK_LIBRARY})
   target_link_libraries(dir2sqlite ${LIBCMARK_LIBRARY})
   target_link_libraries(cxproc ${LIBCMARK_LIBRARY})

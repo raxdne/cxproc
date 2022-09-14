@@ -30,94 +30,6 @@ pieCmarkTest(void)
 
   n_ok=0;
   i=0;
-  
-
-  if (SKIPTEST) {
-    cmark_parser *parser;
-    cmark_node *document;
-    xmlDocPtr pdocT = NULL;
-    xmlNodePtr pndRoot;
-    xmlChar* pucT = BAD_CAST"# TEST #\n\nThis is a Test!\n";
-    int options = CMARK_OPT_DEFAULT | CMARK_OPT_SMART;
-
-    i++;
-    printf("TEST %i in '%s:%i': cmark parser = ", i, __FILE__, __LINE__);
-
-    pdocT = xmlNewDoc(BAD_CAST "1.0");
-    pndRoot = xmlNewDocNode(pdocT, NULL, NAME_PIE, NULL);
-    xmlDocSetRootElement(pdocT, pndRoot);
-
-    parser = cmark_parser_new(options);
-
-    cmark_parser_feed(parser, (const char *)pucT, strlen((const char*)pucT));
-
-    document = cmark_parser_finish(parser);
-
-    cmark_parser_free(parser);
-
-    if (_cmark_render_pie(pdocT, document, options) == NULL) {
-      printf("Error _cmark_render_pie()");
-    }
-    else {
-      n_ok++;
-      printf("OK\n");
-    }
-
-    domPutDocString(stderr, BAD_CAST "parse result", pdocT);
-    cmark_node_free(document);
-    xmlFreeDoc(pdocT);
-  }
-  
-  if (SKIPTEST) {
-    cmark_node* document;
-    xmlDocPtr pdocT = NULL;
-    xmlNodePtr pndRoot;
-    xmlChar* pucT = BAD_CAST"# TEST #\n\nThis is a Test!\n";
-    int options = CMARK_OPT_DEFAULT | CMARK_OPT_SMART;
-
-    i++;
-    printf("TEST %i in '%s:%i': cmark parser = ", i, __FILE__, __LINE__);
-
-    pdocT = xmlNewDoc(BAD_CAST "1.0");
-    pndRoot = xmlNewDocNode(pdocT, NULL, NAME_PIE, NULL);
-    xmlDocSetRootElement(pdocT, pndRoot);
-
-    if ((document = cmark_parse_document((const char*)pucT, strlen((const char*)pucT), options)) == NULL) {
-      printf("Error cmark_parse_document()");
-    }
-    else if (_cmark_render_pie(pdocT, document, options) == NULL) {
-      printf("Error _cmark_render_pie()");
-    }
-    else {
-      n_ok++;
-      printf("OK\n");
-    }
-
-    domPutDocString(stderr, BAD_CAST "parse result", pdocT);
-    cmark_node_free(document);
-    xmlFreeDoc(pdocT);
-  }
-
-  if (RUNTEST) {
-    xmlDocPtr pdocT = NULL;
-    xmlChar* pucT = BAD_CAST"# TEST #\n\nThis is a Test!\n";
-    int options = CMARK_OPT_DEFAULT | CMARK_OPT_SMART;
-
-    i++;
-    printf("TEST %i in '%s:%i': cmark parser = ", i, __FILE__, __LINE__);
-
-    if ((pdocT = cmark_markdown_to_pie((const char*)pucT, strlen((const char*)pucT), options)) == NULL) {
-      printf("Error cmark_markdown_to_pie()");
-    }
-    else {
-      n_ok++;
-      printf("OK\n");
-    }
-
-    domPutDocString(stderr, BAD_CAST "parse result", pdocT);
-    xmlFreeDoc(pdocT);
-  }
-
 
 
   if (RUNTEST) {
@@ -151,21 +63,33 @@ pieCmarkTest(void)
       "# ABCDE #\n"
       "## FGHI ##\n"
       "### JKLM\n"
-      "AAA & >>BBB<<\n"
+      "AAA BBB\n\n"
       "- 1\n"
       "- 2\n"
       "- 3\n\n"
       "CCC  \n\r\n"
-      "fig. abc.png: picture\n\n"
+      /* "fig. abc.png: picture\n\n" */
       "NPQR\r\n"
       "====\n"
-      "- 1\n"
-      "* 2\n"
-      "+ 3\n\n"
+      "1) A\n"
+      "  1) A.1\n"
+      "  1) A.2\n"
+      "2) B\n"
+      "3) C\n\n"
       "##### STUV\n\r\n"
       "TODO: task markup\n\n"
-      "WXYZ\n"
-      "----"
+      "WXYZ\n\n"
+      "    QQQ\n"
+      "    QQQ\n"
+      "    QQQ\n"
+      "WXYZ `edoc` post\n\n"
+      "WXYZ __hpme__ post\n\n"
+      "WXYZ **gnorts** post\n\n"
+      "WXYZ [knil](https://) post\n\n"
+      "~~~ WXYZ post\n"
+      "jsflfkjsl\n"
+      "~~~\n"
+      //"----"
       ;
 
     i++;
@@ -180,9 +104,11 @@ pieCmarkTest(void)
     else if ((pndBlock = pndPie->children) == NULL || IS_NODE_PIE_BLOCK(pndBlock) == FALSE) {
       printf("Error 2 ParseMarkdownBuffer()\n");
     }
+#if 0 
     else if (domNumberOfChild(pndBlock, NAME_PIE_SECTION) != 2) {
       printf("Error 3 ParseMarkdownBuffer()\n");
     }
+#endif
     else {
       n_ok++;
       printf("OK\n");

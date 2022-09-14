@@ -19,10 +19,8 @@
 
 */
 
-#include <pie/pie_text_blocks.h>
-
-extern xmlDocPtr
-_cmark_render_pie(xmlDocPtr pdocArg, cmark_node *root, int options);
+extern xmlNodePtr
+ParseMarkdownBuffer(xmlNodePtr pndArgTop, xmlChar* pucArg);
 
 #ifdef TESTCODE
 extern int

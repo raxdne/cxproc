@@ -706,7 +706,14 @@ ImportNodeFile(xmlNodePtr pndArgImport, cxpContextPtr pccArg)
 	}
 
 	if (STR_IS_NOT_EMPTY(pucContent)) {
-	  if (ParsePlainBuffer(pndBlock, pucContent, m)) {
+
+	  if (iMimeType == MIME_TEXT_MARKDOWN) {
+#ifdef WITH_MARKDOWN
+	    if (ParseMarkdownBuffer(pndBlock, pucContent)) {
+	    }
+#endif
+	  }
+	  else if (ParsePlainBuffer(pndBlock, pucContent, m)) {
 
 	    if (domGetPropFlag(pndArgImport, BAD_CAST "locators", FALSE)) {
 	      SetPropBlockLocators(pndBlock, resNodeGetNameRelative(cxpCtxtRootGet(pccInput), prnInput), NULL);
