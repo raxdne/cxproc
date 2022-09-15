@@ -72,8 +72,8 @@ pieCmarkTest(void)
       "NPQR\r\n"
       "====\n"
       "1) A\n"
-      "  1) A.1\n"
-      "  1) A.2\n"
+      "   1) A.1\n"
+      "   1) A.2\n"
       "2) B\n"
       "3) C\n\n"
       "##### STUV\n\r\n"
@@ -113,7 +113,11 @@ pieCmarkTest(void)
       n_ok++;
       printf("OK\n");
     }
+#ifdef DEBUG
+    puts(pucContent);
     domPutNodeString(stderr, BAD_CAST"import result", pndPie);
+#endif
+    
     xmlFreeNode(pndPie);
   }
 

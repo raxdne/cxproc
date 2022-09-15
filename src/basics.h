@@ -213,9 +213,5 @@ typedef int index_t;
 
 #define STR_UTF8_HEAVY_BALLOT_X "\xE2\x9C\x98"
 
-#define STR_PIE_OK STR_UTF8_HEAVY_CHECK_MARK
-
-#define STR_PIE_CANCEL STR_UTF8_HEAVY_BALLOT_X
-
 #define STR_UTF8_MINUS "\xE2\x88\x92"
 

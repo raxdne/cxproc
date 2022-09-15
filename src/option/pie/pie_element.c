@@ -882,7 +882,7 @@ pieElementParse(pieTextElementPtr ppeArg)
       }
       while (isspace(*pucA)) pucA++; /* skip following spaces */
     }
-#ifdef EXPERIMENTAL
+#if 0
     else if (xmlStrstr(pucA, BAD_CAST STR_PIE_CANCEL)) {
       ppeArg->iDepthHidden++;
     }

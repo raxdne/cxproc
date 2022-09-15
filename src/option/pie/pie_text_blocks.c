@@ -2508,6 +2508,26 @@ RecognizeSymbols(xmlNodePtr pndArg, lang_t eLangArg)
       if ((pucT = StringDecodeNumericCharsNew(pndArg->content)) != NULL
 	  && (pucTT = StringDecodeCharMarkupNew(pucT, eLangArg)) != NULL) {
 
+	assert(pndArg->parent != NULL);
+	
+	if (StringBeginsWith(pucTT, STR_PIE_HIDDEN) != NULL) {
+	  xmlSetProp(pndArg->parent,BAD_CAST"hidden",BAD_CAST"1");
+	}
+
+	if (StringEndsWith(pucTT, STR_PIE_IMPACT_HIGH) != NULL) {
+	  xmlSetProp(pndArg->parent,BAD_CAST"impact",BAD_CAST"1");
+	}
+	else if (StringEndsWith(pucTT, STR_PIE_IMPACT_MEDIUM) != NULL) {
+	  xmlSetProp(pndArg->parent,BAD_CAST"impact",BAD_CAST"2");
+	}
+
+	if (xmlStrstr(pucTT, BAD_CAST STR_PIE_CANCEL)) {
+	  xmlSetProp(pndArg->parent,BAD_CAST"valid",BAD_CAST"no");
+	}
+	else if (xmlStrstr(pucTT, BAD_CAST STR_PIE_OK)) {
+	  xmlSetProp(pndArg->parent,BAD_CAST"done",BAD_CAST"yes");
+	}
+
 	xmlNodeSetContent(pndArg,pucTT);
       }
       xmlFree(pucTT);

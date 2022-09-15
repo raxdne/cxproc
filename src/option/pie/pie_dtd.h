@@ -21,6 +21,16 @@
 
 #include <cxp/cxp_dtd.h>
 
+#define STR_PIE_OK STR_UTF8_HEAVY_CHECK_MARK
+
+#define STR_PIE_CANCEL STR_UTF8_HEAVY_BALLOT_X
+
+#define STR_PIE_IMPACT_HIGH (BAD_CAST"+++")
+
+#define STR_PIE_IMPACT_MEDIUM (BAD_CAST"++")
+
+#define STR_PIE_HIDDEN (BAD_CAST";")
+
 /* 
    definition of element names (s. pie.dtd)
 */
@@ -34,6 +44,8 @@
 #define NAME_PIE_PIE BAD_CAST "pie"
 
 #define NAME_PIE_BLOCK BAD_CAST "block"
+
+#define NAME_PIE_BLOCKQUOTE BAD_CAST "blockquote"
 
 #define NAME_PIE_SPAN BAD_CAST "span"
 
@@ -52,6 +64,8 @@
 #define NAME_PIE_INCLUDE BAD_CAST "include"
 
 #define NAME_PIE_IMPORT BAD_CAST "import"
+
+#define NAME_PIE_HTML BAD_CAST "html"
 
 #define NAME_PIE_SECTION BAD_CAST "section"
 
@@ -131,6 +145,10 @@
 #define IS_NODE_PIE_PIE(NODE) (IS_NODE(NODE,NAME_PIE_PIE))
 
 #define IS_NODE_PIE_BLOCK(NODE) (IS_NODE(NODE,NAME_PIE_BLOCK))
+
+#define IS_NODE_PIE_BLOCKQUOTE(NODE) (IS_NODE(NODE,NAME_PIE_BLOCKQUOTE))
+
+#define IS_NODE_PIE_HTML(NODE) (IS_NODE(NODE,NAME_PIE_HTML))
 
 #define IS_NODE_PIE_SPAN(NODE) (IS_NODE(NODE,NAME_PIE_SPAN))
 

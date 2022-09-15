@@ -43,116 +43,26 @@
 #include <cmark.h>
 #include <node.h>
 
-#define pieElementGetBeginPtr(N) ((N != NULL) ? N->data : NULL)
 
-#define pieElementGetDepth(N) ((N != NULL) ? N->as.heading.level : 0)
+#define cmarkNodeGetBeginPtr(N) ((N != NULL) ? N->data : NULL)
+
+#define cmarkNodeGetDepth(N) ((N != NULL) ? N->as.heading.level : 0)
 
 
-#define pieElementIsHeader(N) (N != NULL && N->type == CMARK_NODE_HEADER)
+#define cmarkNodeIsHeader(N) (N != NULL && N->type == CMARK_NODE_HEADER)
 
-#define pieElementIsEnum(N) (N != NULL && N->type == CMARK_NODE_ITEM)
+#define cmarkNodeIsEnum(N) (N != NULL && N->type == CMARK_NODE_ITEM)
 
-#define pieElementIsList(N) (N != NULL && N->type == CMARK_NODE_LIST)
+#define cmarkNodeIsList(N) (N != NULL && N->type == CMARK_NODE_LIST)
 
-#define pieElementIsListItem(N) (N != NULL && N->type == CMARK_NODE_ITEM)
+#define cmarkNodeIsListItem(N) (N != NULL && N->type == CMARK_NODE_ITEM)
 
-#define pieElementIsRuler(N) (N != NULL && N->type == CMARK_NODE_HRULE)
-
-#define pieElementIsPre(N) (N != NULL && N->type == CMARK_NODE_CODE_BLOCK)
+#define cmarkNodeIsRuler(N) (N != NULL && N->type == CMARK_NODE_HRULE)
 
 
 
 static xmlNodePtr
 GetParentElement(cmark_node* pcmnArg, xmlNodePtr pndArgParent);
-
-#if 0
-unsigned char cmark_strbuf__initbuf[1];
-
-struct render_state {
-  cmark_strbuf* xml;
-  int indent;
-};
-
-
-/*! derived from "cmark/src/xml.c" */
-
-#define BUFFER_SIZE 100
-#define MAX_INDENT 40
-
-// Functions to convert cmark_nodes to XML strings.
-
-// C0 control characters, U+FFFE and U+FFF aren't allowed in XML.
-static const char XML_ESCAPE_TABLE[256] = {
-    /* 0x00 */ 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 0, 1, 1,
-    /* 0x10 */ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    /* 0x20 */ 0, 0, 2, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    /* 0x30 */ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 5, 0,
-    /* 0x40 */ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    /* 0x50 */ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    /* 0x60 */ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    /* 0x70 */ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    /* 0x80 */ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    /* 0x90 */ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    /* 0xA0 */ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    /* 0xB0 */ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9, 9,
-    /* 0xC0 */ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    /* 0xD0 */ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    /* 0xE0 */ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    /* 0xF0 */ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-};
-
-// U+FFFD Replacement Character encoded in UTF-8
-#define UTF8_REPL "\xEF\xBF\xBD"
-
-static const char *XML_ESCAPES[] = {
-  "", UTF8_REPL, "&quot;", "&amp;", "&lt;", "&gt;"
-};
-
-static void escape_xml(cmark_strbuf *ob, const unsigned char *src,
-                       bufsize_t size) {
-  bufsize_t i = 0, org, esc = 0;
-
-  while (i < size) {
-    org = i;
-    while (i < size && (esc = XML_ESCAPE_TABLE[src[i]]) == 0)
-      i++;
-
-    if (i > org)
-      cmark_strbuf_put(ob, src + org, i - org);
-
-    if (i >= size)
-      break;
-
-    if (esc == 9) {
-      // To replace U+FFFE and U+FFFF with U+FFFD, only the last byte has to
-      // be changed.
-      // We know that src[i] is 0xBE or 0xBF.
-      if (i >= 2 && src[i-2] == 0xEF && src[i-1] == 0xBF) {
-        cmark_strbuf_putc(ob, 0xBD);
-      } else {
-        cmark_strbuf_putc(ob, src[i]);
-      }
-    } else {
-      cmark_strbuf_puts(ob, XML_ESCAPES[esc]);
-    }
-
-    i++;
-  }
-}
-
-static void escape_xml_str(cmark_strbuf *dest, const unsigned char *source) {
-  if (source)
-    escape_xml(dest, source, strlen((char *)source));
-}
-
-static CMARK_INLINE void indent(struct render_state *state) {
-  int i;
-  for (i = 0; i < state->indent && i < MAX_INDENT; i++) {
-    cmark_strbuf_putc(state->xml, ' ');
-  }
-}
-
-#endif
 
 
 /*! \return the xmlNodePtr to an according section or block pcmnArg
@@ -167,7 +77,7 @@ GetParentElement(cmark_node* pcmnArg, xmlNodePtr pndArgParent)
 
   if (pcmnArg != NULL && pndArgParent != NULL) {
 
-    if (pieElementIsHeader(pcmnArg)) {
+    if (cmarkNodeIsHeader(pcmnArg)) {
       /* no new pointer needed */
       int iDepth;
 
@@ -178,13 +88,13 @@ GetParentElement(cmark_node* pcmnArg, xmlNodePtr pndArgParent)
 	    pndLast = pndLast->last;
 	  }
 
-	  if (pieElementGetDepth(pcmnArg) == 1) { /* top section pcmnArg */
+	  if (cmarkNodeGetDepth(pcmnArg) == 1) { /* top section pcmnArg */
 	    pndResult = pndLast;
 	    break;
 	  }
 	}
 	else if (IS_NODE_PIE_BLOCK(pndLast)) {
-	  if (pieElementGetDepth(pcmnArg) == 1) { /* top section pcmnArg */
+	  if (cmarkNodeGetDepth(pcmnArg) == 1) { /* top section pcmnArg */
 	    pndResult = pndLast;
 	    break;
 	  }
@@ -192,7 +102,7 @@ GetParentElement(cmark_node* pcmnArg, xmlNodePtr pndArgParent)
 	else if (IS_NODE_PIE_SECTION(pndLast)) {
 	  iDepth++;
 	  pndResult = pndLast;
-	  if (iDepth == pieElementGetDepth(pcmnArg) - 1) {
+	  if (iDepth == cmarkNodeGetDepth(pcmnArg) - 1) {
 	    /* section pcmnArg with parent depth found */
 	    break;
 	  }
@@ -203,7 +113,7 @@ GetParentElement(cmark_node* pcmnArg, xmlNodePtr pndArgParent)
 	}
       }
 
-      for (; iDepth < (pieElementGetDepth(pcmnArg) - 1); iDepth++) {
+      for (; iDepth < (cmarkNodeGetDepth(pcmnArg) - 1); iDepth++) {
 	/* create empty SECTION elements */
 	pndResult = xmlNewChild(pndResult, NULL, NAME_PIE_SECTION, NULL);
       }
@@ -213,20 +123,20 @@ GetParentElement(cmark_node* pcmnArg, xmlNodePtr pndArgParent)
       else {
 	int i;
 	pndResult = pndArgParent;
-	for (i = 1; i < pieElementGetDepth(pcmnArg); i++) {
+	for (i = 1; i < cmarkNodeGetDepth(pcmnArg); i++) {
 	  /* create empty SECTION elements */
 	  pndResult = xmlNewChild(pndResult, NULL, NAME_PIE_SECTION, NULL);
 	}
       }
     }
 #if 0
-    else if (pieElementIsListItem(pcmnArg)) {
+    else if (cmarkNodeIsListItem(pcmnArg)) {
       int iDepth;
       xmlNodePtr pndT;
       xmlNodePtr pndList;
 
       for (iDepth = 0, pndList = NULL, pndLast = pndT = pndArgParent;
-	IS_ENODE(pndT) && iDepth < pieElementGetDepth(pcmnArg);
+	IS_ENODE(pndT) && iDepth < cmarkNodeGetDepth(pcmnArg);
 	pndT = pndT->last) {
 
 	if (IS_NODE_PIE_LIST(pndT)) {
@@ -241,7 +151,7 @@ GetParentElement(cmark_node* pcmnArg, xmlNodePtr pndArgParent)
 	}
       }
 
-      for (; iDepth < pieElementGetDepth(pcmnArg); iDepth++) {
+      for (; iDepth < cmarkNodeGetDepth(pcmnArg); iDepth++) {
 	if (pndList) {
 	  /*
 	  last element is a list, create a child list element
@@ -271,7 +181,7 @@ GetParentElement(cmark_node* pcmnArg, xmlNodePtr pndArgParent)
 	}
       }
 
-      if (pieElementIsEnum(pcmnArg)) {
+      if (cmarkNodeIsEnum(pcmnArg)) {
 	xmlSetProp(pndList, BAD_CAST "enum", BAD_CAST "yes");
       }
       pndResult = pndList;
@@ -314,9 +224,10 @@ cmarkTreeToDOM(xmlNodePtr pndArgBlock, xmlNodePtr pndArg, cmark_node* pcmnArg)
   if (pcmnArg) {
     xmlChar* pucC;
     xmlNodePtr pndT = NULL;
+    xmlNodePtr pndTT = NULL;
     cmark_node* pcmnI;
 
-    pucC = pieElementGetBeginPtr(pcmnArg); /* shortcut */
+    pucC = cmarkNodeGetBeginPtr(pcmnArg); /* shortcut */
 
     /* Error status */
     if (pcmnArg->type == CMARK_NODE_NONE) {
@@ -327,14 +238,15 @@ cmarkTreeToDOM(xmlNodePtr pndArgBlock, xmlNodePtr pndArg, cmark_node* pcmnArg)
       pndResult = xmlNewChild(pndArg, NULL, NAME_PIE_BLOCK, NULL);
       SetTypeAttr(pndResult, RMODE_MD);
       for (pndT = pndResult,  pcmnI = pcmnArg->first_child; pcmnI; pcmnI = pcmnI->next) {
-	pndT = cmarkTreeToDOM(pndArgBlock, pndT, pcmnI);
+	pndT = cmarkTreeToDOM(pndResult, pndT, pcmnI);
       }
     }
     else if (pcmnArg->type == CMARK_NODE_FIRST_BLOCK) {
       xmlAddChild(pndArg, xmlNewComment(BAD_CAST"CMARK_NODE_FIRST_BLOCK"));
     }
     else if (pcmnArg->type == CMARK_NODE_BLOCK_QUOTE) {
-      pndT = xmlNewChild(pndArg, NULL, NAME_PIE_PRE, NULL);
+      pndT = xmlNewChild(pndArg, NULL, NAME_PIE_BLOCKQUOTE, NULL);
+      xmlAddChild(pndT, xmlNewComment(BAD_CAST"TODO: CMARK_NODE_BLOCK_QUOTE"));
       for (pcmnI = pcmnArg->first_child; pcmnI; pcmnI = pcmnI->next) {
 	cmarkTreeToDOM(pndArgBlock, pndT, pcmnI);
       }
@@ -342,7 +254,7 @@ cmarkTreeToDOM(xmlNodePtr pndArgBlock, xmlNodePtr pndArg, cmark_node* pcmnArg)
     else if (pcmnArg->type == CMARK_NODE_LIST) {
       pndT = xmlNewChild(pndArg, NULL, NAME_PIE_LIST, NULL);
       for (pcmnI = pcmnArg->first_child; pcmnI; pcmnI = pcmnI->next) {
-	cmarkTreeToDOM(pndArgBlock, pndT, pcmnI);
+	cmarkTreeToDOM(pndT, pndT, pcmnI);
       }
     }
     else if (pcmnArg->type == CMARK_NODE_ITEM) {
@@ -354,7 +266,8 @@ cmarkTreeToDOM(xmlNodePtr pndArgBlock, xmlNodePtr pndArg, cmark_node* pcmnArg)
       pndT = xmlNewChild(pndArg, NULL, NAME_PIE_PRE, pcmnArg->data);
     }
     else if (pcmnArg->type == CMARK_NODE_HTML_BLOCK) {
-      xmlAddChild(pndArg, xmlNewComment(BAD_CAST"CMARK_NODE_HTML_BLOCK"));
+      pndT = xmlNewChild(pndArg, NULL, NAME_PIE_HTML, NULL);
+      xmlAddChild(pndT, xmlNewComment(BAD_CAST"TODO: CMARK_NODE_HTML_BLOCK"));
     }
     else if (pcmnArg->type == CMARK_NODE_CUSTOM_BLOCK) {
       xmlAddChild(pndArg, xmlNewComment(BAD_CAST"CMARK_NODE_CUSTOM_BLOCK"));
@@ -376,15 +289,20 @@ cmarkTreeToDOM(xmlNodePtr pndArgBlock, xmlNodePtr pndArg, cmark_node* pcmnArg)
 	}
       }
     }
-    else if (pcmnArg->type == CMARK_NODE_THEMATIC_BREAK || pcmnArg->type == CMARK_NODE_LAST_BLOCK) {
+    else if (pcmnArg->type == CMARK_NODE_THEMATIC_BREAK) {
+      pndT = xmlNewChild(pndArg, NULL, NAME_PIE_RULER, NULL);
+    }
+    else if (pcmnArg->type == CMARK_NODE_LAST_BLOCK) {
     }
     /* Inline */
-    else if (pcmnArg->type == CMARK_NODE_TEXT || pcmnArg->type == CMARK_NODE_FIRST_INLINE) {
+    else if (pcmnArg->type == CMARK_NODE_TEXT) {
       if (STR_IS_NOT_EMPTY(pucC)) {
 	xmlAddChild(pndArg, xmlNewText(pucC));
       }
     }
-    else if (pcmnArg->type == CMARK_NODE_SOFTBREAK) {
+    else if (pcmnArg->type == CMARK_NODE_FIRST_INLINE) {
+    }
+     else if (pcmnArg->type == CMARK_NODE_SOFTBREAK) {
     }
     else if (pcmnArg->type == CMARK_NODE_LINEBREAK) {
     }
@@ -410,15 +328,19 @@ cmarkTreeToDOM(xmlNodePtr pndArgBlock, xmlNodePtr pndArg, cmark_node* pcmnArg)
       cmarkTreeToDOM(pndT, pndT, pcmnArg->first_child);
     }
     else if (pcmnArg->type == CMARK_NODE_IMAGE) {
-      xmlAddChild(pndArg, xmlNewComment(BAD_CAST"CMARK_NODE_IMAGE"));
+      pndT = xmlNewChild(pndArg, NULL, NAME_PIE_IMG, NULL);
+      xmlSetProp(pndT,BAD_CAST"src", pcmnArg->as.link.url);
+      cmarkTreeToDOM(pndT, pndT, pcmnArg->first_child);
     }
     else if (pcmnArg->type == CMARK_NODE_LAST_INLINE) {
       xmlAddChild(pndArg, xmlNewComment(BAD_CAST"CMARK_NODE_LAST_INLINE"));
     }
-    else {
-      //cmarkTreeToDOM(pndArgBlock, pndResult, pcmnArg->first_child);
+    else if (pcmnArg->type == CMARK_NODE_HRULE) {
+      pndT = xmlNewChild(pndArg, NULL, NAME_PIE_RULER, NULL);
     }
-    //cmarkTreeToDOM(pndArgBlock, pndArg, pcmnArg->next);
+    else {
+      cmarkTreeToDOM(pndArgBlock, pndArg, pcmnArg->first_child);
+    }
   }
   return pndResult;
 } /* end of cmarkTreeToDOM() */
@@ -444,15 +366,12 @@ ParseMarkdownBuffer(xmlNodePtr pndArgTop, xmlChar* pucArg)
   if (STR_IS_NOT_EMPTY(pucArg)) {
     cmark_node* doc;
 
-    doc = cmark_parse_document(pucArg, strlen(pucArg), CMARK_OPT_DEFAULT | CMARK_OPT_SMART);
-
-    cmarkTreeToDOM(pndArgTop, pndArgTop, doc);
-
-    cmark_node_free(doc);
-
-    pndResult = pndArgTop;
+    if ((doc = cmark_parse_document(pucArg, strlen(pucArg), CMARK_OPT_DEFAULT | CMARK_OPT_SMART)) != NULL) {
+      cmarkTreeToDOM(pndArgTop, pndArgTop, doc);
+      cmark_node_free(doc);
+      pndResult = pndArgTop;
+    }
   }
-
   return pndResult;
 } /* end of ParseMarkdownBuffer() */
 
