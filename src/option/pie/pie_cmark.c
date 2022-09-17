@@ -225,6 +225,7 @@ cmarkTreeToDOM(xmlNodePtr pndArgBlock, xmlNodePtr pndArg, cmark_node* pcmnArg)
 
   if (pcmnArg) {
     xmlChar* pucC;
+    xmlChar* pucT;
     xmlNodePtr pndT = NULL;
     xmlNodePtr pndTT = NULL;
     cmark_node* pcmnI;
@@ -274,8 +275,24 @@ cmarkTreeToDOM(xmlNodePtr pndArgBlock, xmlNodePtr pndArg, cmark_node* pcmnArg)
       pndT = xmlNewChild(pndArg, NULL, NAME_PIE_PRE, pcmnArg->data);
     }
     else if (pcmnArg->type == CMARK_NODE_HTML_BLOCK) {
-      pndT = xmlNewChild(pndArg, NULL, NAME_PIE_HTML, NULL);
-      xmlAddChild(pndT, xmlNewComment(BAD_CAST"TODO: CMARK_NODE_HTML_BLOCK"));
+      xmlDocPtr pdocHtml;
+      xmlNodePtr pndNew = NULL;
+
+      pucT = xmlStrdup(BAD_CAST"<html>");
+      pucT = xmlStrcat(pucT, BAD_CAST pcmnArg->data);
+      pucT = xmlStrcat(pucT, BAD_CAST"</html>");
+
+      pdocHtml = xmlParseMemory(pucT,xmlStrlen(pucT));
+      if ((pndNew = xmlDocGetRootElement(pdocHtml)) != NULL && IS_NODE_PIE_HTML(pndNew) && pndNew->children != NULL) {
+	xmlUnlinkNode(pndNew);
+	xmlNodeSetName(pndNew, BAD_CAST"block");
+	xmlSetProp(pndNew, BAD_CAST "type", BAD_CAST"text/html");
+	xmlAddChild(pndArg, pndNew);
+      }
+      else {
+	xmlAddChild(pndArg, xmlNewComment(BAD_CAST"HTML parser error"));
+      }
+      xmlFreeDoc(pdocHtml);
     }
     else if (pcmnArg->type == CMARK_NODE_CUSTOM_BLOCK) {
       xmlAddChild(pndArg, xmlNewComment(BAD_CAST"CMARK_NODE_CUSTOM_BLOCK"));

@@ -619,23 +619,23 @@ ParsePlainBuffer(xmlNodePtr pndArgTop, xmlChar* pucArg, rmode_t eArgMode)
 	  xmlSetProp(pndNew, BAD_CAST "type", BAD_CAST"quote");
 	  pndNew = ParsePlainBuffer(pndNew, pieElementGetBeginPtr(ppeT), eArgMode);
 	}
-#if 0
-	else if (pieElementIsMetaTags(ppeT)) {
-	  if ((pucT = pieElementGetBeginPtr(ppeT)) != NULL) {
-	    pndNew = xmlNewPI(NAME_PIE_PI_TAG, &pucT[6]);
-	    /*! insert all PI nodes at the begin of block */
-	    if (pndBlock->children) {
-	      pndNew->parent = pndBlock;
-	      pndNew->next = pndBlock->children;
-	      pndNew->next->prev = pndNew;
-	      pndBlock->children = pndNew;
-	    }
-	    else {
+	else if (ppeT->eType == html) {
+	  if (pieElementGetStrlen(ppeT) > 6) {
+	    xmlDocPtr pdocHtml;
+	    
+	    pdocHtml = xmlParseMemory(pieElementGetBeginPtr(ppeT),pieElementGetStrlen(ppeT));
+	    if ((pndNew = xmlDocGetRootElement(pdocHtml)) != NULL && IS_NODE_PIE_HTML(pndNew) && pndNew->children != NULL) {
+	      xmlUnlinkNode(pndNew);
+	      xmlNodeSetName(pndNew,BAD_CAST"block");
+	      xmlSetProp(pndNew, BAD_CAST "type", BAD_CAST"text/html");
 	      xmlAddChild(pndParent, pndNew);
 	    }
+	    else {
+	      xmlAddChild(pndParent, xmlNewComment(BAD_CAST"HTML parser error"));
+	    }
+	    xmlFreeDoc(pdocHtml);
 	  }
 	}
-#endif
 	else if (pieElementIsMetaOrigin(ppeT)) {
 	  if ((pucT = pieElementGetBeginPtr(ppeT)) != NULL) {
 	    xmlSetProp(pndBlock, BAD_CAST "context", &pucT[8]);

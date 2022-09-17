@@ -27,6 +27,7 @@ typedef enum {
   RMODE_UNDEFINED, /*! unknown content */
   RMODE_MD,     /*! markdown-formatted content */
   RMODE_PAR,    /*! paragraph content */
+  RMODE_HTML,   /*! HTML content */
   RMODE_LINE,   /*! line oriented content */
   RMODE_PRE,    /*! pre-formatted content */
   RMODE_TABLE   /*! table oriented content */
@@ -42,7 +43,8 @@ typedef enum {
   par,
   csv,
   pre,
-  cxp,
+  cxp, 				/*!\deprecated */
+  html,
   script,
   skip
 } pieTextElementType;

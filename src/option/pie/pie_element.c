@@ -239,7 +239,7 @@ pieElementIsScript(pieTextElementPtr ppeArg)
 /* end of pieElementIsScript() */
 
 
-/*!
+/*!\deprecated
 */
 BOOL_T
 pieElementIsCxp(pieTextElementPtr ppeArg)
@@ -619,6 +619,35 @@ pieElementHasNext(pieTextElementPtr ppeArg)
 
 	ppeArg->eType = cxp;
 	ppeArg->iLength = xmlStrlen(ppeArg->pucContent);
+	fResult = TRUE;
+      }
+#endif
+#ifdef EXPERIMENTAL
+      else if (pieElementGetMode(ppeArg) == RMODE_PAR && StringBeginsWith((char *)puc0, "<html>")) {
+	/*
+	handle HTML formatted markup in input file
+	*/
+	xmlChar *puc1;
+
+	if ((puc1 = BAD_CAST xmlStrstr(puc0, BAD_CAST"</html>")) != NULL) {
+	  /* copy string between markups */
+
+	  if (Strnstr(puc0 + 1, (puc1 - puc0), BAD_CAST"<html>") != NULL) {
+	    PrintFormatLog(1, "Unbalanced markup: '<html>'");
+	  }
+
+	  ppeArg->pucContent = xmlStrndup(puc0, (int)(puc1 + xmlStrlen(BAD_CAST"</html>")  - puc0));
+	  ppeArg->iBegin += (index_t)(puc1 + xmlStrlen(BAD_CAST"</html>") - puc0);
+	}
+	else {
+	  /* no end markup found, copy end of string */
+	  ppeArg->pucContent = xmlStrdup(puc0 + xmlStrlen(BAD_CAST"<html>"));
+	  ppeArg->iBegin = xmlStrlen(ppeArg->pucSource);
+	}
+
+	ppeArg->eType = html;
+	ppeArg->iLength = xmlStrlen(ppeArg->pucContent);
+	ppeArg->eMode = RMODE_HTML;
 	fResult = TRUE;
       }
 #endif
