@@ -34,9 +34,34 @@ s. https://www.emacswiki.org/emacs/OutlineMode
 
 http://www.gnu.org/software/emacs/manual/html_node/emacs/Outline-Mode.html
 
-*** Markdown
+*** PIE and Markdown/Commonmark
 
 https://spec.commonmark.org/0.29/
+
+*** Enhancements/Enrichments
+
+import and include of other resources
+
+substitution of strings/regexps
+
+tags
+
+tasks of type TODO|DONE|REQ|BUG|TARGET|TEST
+
+dates according to ISO 8601 (date, interval, period)
+
+hidden/remark
+
+impact
+
+*** not implemented
+
+scripts 
+
+mix of different blocks (e.g. text + csv + md)
+
+skip of blocks
+
 
 *** CSV
 
