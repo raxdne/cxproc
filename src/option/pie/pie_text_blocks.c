@@ -1292,121 +1292,6 @@ GetLinkDisplayNameNew(const xmlChar *pucArg)
 /* end of GetLinkDisplayNameNew() */
 
 
-/*! splits an UTF-8 string into a list of text and link element nodes (s. "Test/TestGood.txt")
-
-  https://en.wikipedia.org/wiki/Internationalized_Resource_Identifier
-
-  \deprecated to be replaced by SplitTupelToLinkNodesMd()
-*/
-xmlNodePtr
-SplitTupelToLinkNodes(const xmlChar *pucArg)
-{
-  int ducOrigin;
-  xmlNodePtr pndResult = NULL;
-
-  if (pucArg != NULL && (ducOrigin = xmlStrlen(pucArg)) > 0) {
-    int rc;
-    pcre2_match_data *match_data_link;
-    xmlNodePtr pndLink;
-    xmlNodePtr pndPostfix;
-
-    /* http://www.pcre.org/current/doc/html/pcre2demo.html */
-
-    match_data_link = pcre2_match_data_create_from_pattern(re_link, NULL);
-    rc = pcre2_match(
-	re_link,        /* result of pcre2_compile() */
-	(PCRE2_SPTR8)pucArg,  /* the subject string */
-	xmlStrlen(pucArg),             /* the length of the subject string */
-	0,              /* start at offset 0 in the subject */
-	0,              /* default options */
-	match_data_link,        /* vector of integers for substring information */
-	NULL);            /* number of elements (NOT size in bytes) */
-
-    if (rc > -1) {
-      /*
-	 the regexp match, assemble node list with a common dummy
-	 element node
-       */
-      xmlChar *pucPre;
-      xmlChar *pucUrl = NULL;
-      xmlChar *pucUrlDisplay = NULL;
-      PCRE2_SIZE *ovector;
-      int i = 0;
-
-      ovector = pcre2_get_ovector_pointer(match_data_link);
-
-      PrintFormatLog(3, "URL (%i..%i) in '%s'", ovector[i], ovector[i+1], pucArg);
-
-      pndResult = xmlNewNode(NULL, BAD_CAST "dummy");
-
-      i++;
-      if (ovector[i*2+1] - ovector[i*2] > 0) {
-	pucPre = xmlStrndup(&pucArg[ovector[0]], (int)(ovector[i*2+1] - ovector[i*2]));
-	PrintFormatLog(3, "URL pre '%s' (%i..%i) in '%s'", pucPre, ovector[i*2], ovector[i*2+1], pucArg);
-	xmlAddChild(pndResult, xmlNewText(pucPre));
-	xmlFree(pucPre);
-      }
-
-      i++;
-      if (ovector[i*2+1] - ovector[i*2] > 0) {
-	/*! \todo Percent-encode non-ASCII chars (s. https://en.wikipedia.org/wiki/Percent-encoding) */
-#if 1
-	pucUrl = xmlStrndup(&pucArg[ovector[i*2]], (int)(ovector[i*2+1] - ovector[i*2]));
-#else
-	xmlChar *pucT;
-
-	pucT = xmlStrndup(&pucArg[ovector[i*2]], ovector[i*2+1] - ovector[i*2]);
-	if (pucT) {
-	  if ((pucUrl = EncodeRFC1738(pucT))) {
-	    PrintFormatLog(3, "URL '%s' (%i..%i) in '%s'", pucUrl, ovector[i*2], ovector[i*2+1], pucArg);
-	  }
-	  else {
-	    PrintFormatLog(1, "EncodeRFC1738 error");
-	    pucUrl = NULL;
-	  }
-	  xmlFree(pucT);
-	}
-#endif
-      }
-
-      i++;
-      if (ovector[i*2+1] - ovector[i*2] > 0) {
-	pucUrlDisplay = xmlStrndup(&pucArg[ovector[i*2]], (int)(ovector[i*2+1] - ovector[i*2]));
-	PrintFormatLog(3, "URL display name '%s' (%i..%i) in '%s'", pucUrlDisplay, ovector[i*2], ovector[i*2+1], pucArg);
-      }
-      else {
-	pucUrlDisplay = GetLinkDisplayNameNew(pucUrl);
-      }
-      pndLink = xmlNewTextChild(pndResult, NULL, NAME_PIE_LINK, pucUrlDisplay);
-      xmlSetProp(pndLink, BAD_CAST "href", pucUrl);
-
-      if (xmlStrlen(&pucArg[ovector[1]]) > 0) {
-	PrintFormatLog(3, "URL post '%s' (%i..%i) in '%s'", &pucArg[ovector[1]], ovector[1], ovector[1] + xmlStrlen(&pucArg[ovector[1]]), pucArg);
-	/* the content ends with text, recursion */
-	pndPostfix = SplitTupelToLinkNodes(&pucArg[ovector[1]]);
-	if (pndPostfix) {
-	  xmlNodePtr pndT = pndPostfix->children;
-	  domUnlinkNodeList(pndT);
-	  xmlAddChildList(pndResult, pndT);
-	  xmlFreeNode(pndPostfix);
-	}
-	else {
-	  xmlChar *pucT = xmlStrdup(&pucArg[ovector[1]]);
-	  xmlAddChild(pndResult, xmlNewText(pucT));
-	  xmlFree(pucT);
-	}
-      }
-
-      xmlFree(pucUrlDisplay);
-      xmlFree(pucUrl);
-    }
-
-    pcre2_match_data_free(match_data_link);   /* Release memory used for the match */
-  }
-  return pndResult;
-}
-/* end of SplitTupelToLinkNodes() */
-
 #endif
 
 
@@ -1811,11 +1696,6 @@ RecognizeUrls(xmlNodePtr pndArg)
 	else if ((pndReplace = SplitTupelToLinkNodesMd(pucRelease))) {
 	  RecognizeUrls(pndReplace);
 	}
-#ifdef LEGACY
-	else if ((pndReplace = SplitTupelToLinkNodes(pucRelease))) {
-	  RecognizeUrls(pndReplace);
-	}
-#endif
 	else if ((pndReplace = SplitStringToLinkNodes(pucRelease))) {
 	}
 

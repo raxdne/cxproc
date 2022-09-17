@@ -33,46 +33,6 @@ pieTextTagsTest(void)
 
   ProcessTags(NULL,NULL);
   
-#ifdef LEGACY
-
-  if (RUNTEST) {
-    int w;
-    xmlChar* pucT;
-    xmlChar* pucTT = NULL;
-    xmlChar* pucTTT = NULL;
-    xmlChar* pucTTTT = NULL;
-
-    i++;
-    printf("TEST %i in '%s:%i': update legacy markup in string = ", i, __FILE__, __LINE__);
-
-    if ((pucT = StringUpdateMarkupNew(NULL,NULL)) != NULL) {
-    }
-    else if ((pucTT = StringUpdateMarkupNew(BAD_CAST"",&w)) == NULL
-      || xmlStrEqual(pucTT, BAD_CAST"") == FALSE) {
-    }
-    else if ((pucTTT = StringUpdateMarkupNew(BAD_CAST"TODO: aaa |||",&w)) == NULL
-      || xmlStrEqual(pucTTT, BAD_CAST"TODO: aaa ") == FALSE
-      || w != 1) {
-      printf("Error '%s'\n",pucTTT);
-    }
-    else if ((pucTTTT = StringUpdateMarkupNew(BAD_CAST"TODO: aaa || meyer doe_john",&w)) == NULL
-      || xmlStrEqual(pucTTTT, BAD_CAST"TODO: aaa  @meyer @doe_john") == FALSE
-      || w != 2) {
-      printf("Error '%s'\n",pucTTTT);
-    }
-    else {
-      n_ok++;
-      printf("OK\n");
-    }
-    //puts((const char *)pucTTT);
-    xmlFree(pucTTTT);
-    xmlFree(pucTTT);
-    xmlFree(pucTT);
-    xmlFree(pucT);
-  }
-#endif
-  
-
   if (RUNTEST) {
     xmlNodePtr pndPie = NULL;
     xmlNodePtr pndT = NULL;

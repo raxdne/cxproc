@@ -99,9 +99,6 @@ extern xmlChar *
 GetLinkDisplayNameNew(const xmlChar *pucArg);
 
 extern xmlNodePtr
-SplitTupelToLinkNodes(const xmlChar *pucArg);
-
-extern xmlNodePtr
 SplitTupelToLinkNodesMd(const xmlChar *pucArg);
 
 extern xmlNodePtr

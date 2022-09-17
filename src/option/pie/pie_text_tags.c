@@ -64,113 +64,6 @@ static BOOL_T
 RecognizeNodeTags(xmlNodePtr pndTags, xmlNodePtr pndArg, pcre2_code* preArg);
 
 
-#ifdef LEGACY
-
-static xmlChar*
-StringUpdateMarkupNew(xmlChar* pucArg, int* piArg);
-
-/*! update legacy markup in pucArg
-
-\param pucArg
-\return updated copy of pucArg or NULL in case of errors
-
-\deprecated for legacy markup only
-*/
-xmlChar*
-StringUpdateMarkupNew(xmlChar* pucArg, int* piArg)
-{
-  xmlChar* pucResult = NULL;
-
-  if (pucArg) {
-    int i, j, k;
-    xmlChar* pucT;
-
-    /* try to find backwards an 'ending' separator */
-    for (j=xmlStrlen(pucArg), k=0; j>0; j--) {
-      if (pucArg[j]==(xmlChar)'|') {
-	/* count separators backwards */
-	k++;
-      }
-      else if (pucArg[j] == (xmlChar)'.' || pucArg[j] == (xmlChar)',' || pucArg[j] == (xmlChar)';' || pucArg[j] == (xmlChar)':'
-	|| pucArg[j] == (xmlChar)'?' || pucArg[j] == (xmlChar)'!') {
-	k = 0; /* to be ignored */
-	break;
-      }
-      else if (k > 0) {
-	if (isspace(pucArg[j])) {
-	}
-	else {
-	  k = 0; /* to be ignored */
-	}
-	break;
-      }
-    }
-
-    if (k > 0) { /* there is more than one separator and a space char before */
-
-      j++;
-
-      pucResult = xmlStrndup(pucArg, j);
-
-      for (i=j+k; pucArg[i]; ) {
-	int l;
-
-	for (; isspace(pucArg[i]); i++);
-
-	for (j=i; ishashtag(&pucArg[i], &l); i += l);
-
-	if (i > j) { /* there are hashtag chars */
-
-	  if (pucArg[j] == (xmlChar)'#' || pucArg[j] == (xmlChar)'@') {
-	    /* there is hashtag markup already */
-	  }
-	  else {
-	    pucResult = xmlStrcat(pucResult, BAD_CAST" @");
-	    pucResult = xmlStrncat(pucResult, &pucArg[j], i-j);
-#if 1
-	    if ((pucT = BAD_CAST StringEndsWith((char*)pucResult, "_org")) != NULL
-	      || (pucT = BAD_CAST StringEndsWith((char*)pucResult, "_do")) != NULL
-	      || (pucT = BAD_CAST StringEndsWith((char*)pucResult, "_review")) != NULL
-	      || (pucT = BAD_CAST StringEndsWith((char*)pucResult, "_rejected")) != NULL) {
-	      /* split GTD categories '_org', '_do', '_review', '_rejected' */
-	      pucT[0] = (xmlChar)'#';
-	    }
-#endif
-	  }
-	}
-	else if (isend(pucArg[i])) { /* neither space nor hashtag chars */
-	  break;
-	}
-	else {
-	  i++;
-	}
-      }
-
-      if (piArg) {
-	*piArg = (k > 2) ? 1 : ((k > 1) ? 2 : 0);
-      }
-    }
-    else {
-      pucResult = xmlStrdup(pucArg);
-    }
-
-#if 0
-    if ((pucT = BAD_CAST StringEndsWith((char*)pucResult, "+++")) != NULL) {
-      if (piArg) *piArg = 1;
-      pucT[0] = (xmlChar)'\0';
-    }
-    else if ((pucT = BAD_CAST StringEndsWith((char*)pucResult, "++")) != NULL) {
-      if (piArg) *piArg = 2;
-      pucT[0] = (xmlChar)'\0';
-    }
-#endif
-  }
-  return pucResult;
-} /* end of StringUpdateMarkupNew() */
-
-#endif
-
-
 /*! add a new 'tag' element to pndArg if not yet exists
 */
 xmlNodePtr
@@ -444,13 +337,7 @@ RecognizeHashtags(xmlNodePtr pndArg, pcre2_code* preArgHashTag, pcre2_code* preA
       int iWeight = 0;
       xmlChar* pucT;
 
-      if (xmlNodeIsText(pndChild)
-#ifdef LEGACY
-	  && (pucT = StringUpdateMarkupNew(pndChild->content, &iWeight)) != NULL
-#else
-	  && (pucT = pndChild->content) != NULL
-#endif
-	  ) { /* pndChild is a text node */
+      if (xmlNodeIsText(pndChild) && (pucT = pndChild->content) != NULL) { /* pndChild is a text node */
 	xmlNodePtr pndReplace;
 
 	pndReplace = SplitStringToTagNodes(pucT, preArgHashTag, preArgBlockTag);
@@ -471,12 +358,6 @@ RecognizeHashtags(xmlNodePtr pndArg, pcre2_code* preArgHashTag, pcre2_code* preA
 	    pndChild = NULL;
 	  }
 	}
-#ifdef LEGACY
-	else {
-	  xmlNodeSetContent(pndChild,pucT); /* set updated string as content */
-	}
-	xmlFree(pucT);
-#endif
 
 	if (iWeight > 0 && iWeight < 3) {
 	  if (IS_NODE_PIE_LINK(pndArg)) {
@@ -781,30 +662,6 @@ RecognizeNodeTags(xmlNodePtr pndTags, xmlNodePtr pndArg, pcre2_code* preArg)
     xmlChar* pucTag;
     xmlNodePtr pndListTag = NULL;
     xmlNodePtr pndChild;
-
-    /*!\todo add tags also if PIE/XML is the input */
-#if 0
-    /*! append element name value as an additional tag */
-    if (IS_NODE_PIE_TASK(pndArg) || IS_NODE_PIE_FIG(pndArg)) {
-      xmlChar* pucT;
-
-      pucT = xmlStrdup(BAD_CAST"#");
-      pucT = xmlStrcat(pucT, pndArg->name);
-      pndListTag = AppendListTag(pndListTag, pucT);
-      xmlFree(pucT);
-    }
-
-    /*! append class attribute value as an additional tag */
-    pucTag = domGetPropValuePtr(pndArg, BAD_CAST"class");
-    if (STR_IS_NOT_EMPTY(pucTag)) {
-      xmlChar* pucT;
-
-      pucT = xmlStrdup(BAD_CAST"#");
-      pucT = xmlStrcat(pucT, pucTag);
-      pndListTag = AppendListTag(pndListTag, pucT);
-      xmlFree(pucT);
-    }
-#endif
 
     for (pndChild = pndArg->children; pndChild; pndChild=pndChild->next) {
       xmlChar* pucSubstr;

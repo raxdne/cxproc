@@ -508,7 +508,7 @@ ENDIF ()
 #SET(CXPROC_BUFSIZE 4096 CACHE NUMBER "Default size for buffers.")
 #OPTION(CXPROC_BUFSIZE "Default size for buffers." "4096")
 
-SET(CXPROC_LEGACY ON CACHE BOOL "Compile code for handling of legacy issues")
+SET(CXPROC_LEGACY OFF CACHE BOOL "Compile code for handling of legacy issues")
 MARK_AS_ADVANCED(CXPROC_LEGACY)
 IF (CXPROC_LEGACY)
   add_definitions(-DLEGACY)

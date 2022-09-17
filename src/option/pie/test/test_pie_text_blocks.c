@@ -315,47 +315,6 @@ pieTextBlocksTest(void)
   }
 
 
-#ifdef LEGACY
-
-  if (RUNTEST) {
-    xmlNodePtr pndPie;
-
-    i++;
-    printf("TEST %i in '%s:%i': split URL = ",i,__FILE__,__LINE__);
-
-    if ((pndPie = SplitTupelToLinkNodes(NULL)) != NULL) {
-      printf("Error 1 splitting URL\n");
-    }
-    else if ((pndPie = SplitTupelToLinkNodes(BAD_CAST"AAAA abc")) != NULL) {
-      printf("Error 2 splitting URL\n");
-    }
-    else if ((pndPie = SplitTupelToLinkNodes(BAD_CAST"AAAA ||b| abc")) != NULL) {
-      printf("Error 3 splitting URL\n");
-    }
-    else if ((pndPie = SplitTupelToLinkNodes(BAD_CAST "pre URL |http://www.abc.de|ABC| post URL")) == NULL) {
-      printf("Error 4 splitting URL\n");
-    }
-    else if (pndPie->children == NULL
-	|| pndPie->children->next == NULL
-	|| pndPie->children->next->properties == NULL
-	|| pndPie->children->next->properties->children == NULL
-	|| pndPie->children->next->properties->children->content == NULL) {
-      printf("Error 5 splitting URL\n");
-    }
-    else if (xmlStrEqual(pndPie->children->next->properties->children->content,BAD_CAST"http://www.abc.de") == NULL) {
-      printf("Error 6 splitting URL\n");
-    }
-    else {
-      n_ok++;
-      printf("OK\n");
-    }
-    //domPutNodeString(stderr, "import result", pndPie);
-    xmlFreeNode(pndPie);
-  }
-
-#endif
-  
-
   if (RUNTEST) {
     xmlNodePtr pndPie;
     xmlNodePtr pndTest;

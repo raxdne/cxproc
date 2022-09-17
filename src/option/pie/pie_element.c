@@ -38,10 +38,6 @@
 #include <pie/pie_element.h>
 #include "calendar_element.h"
 
-#ifdef LEGACY
-#define IS_CONTACT_CHAR_START(C) (C==(xmlChar)'|')
-#define IS_CONTACT_CHAR_SEP(C)   (C==(xmlChar)' ' || C==(xmlChar)',' || C==(xmlChar)';' || C==(xmlChar)'\t')
-#endif
 
 static xmlChar *
 DuplicateNextLine(char *pchArg, index_t *piArg);
