@@ -619,14 +619,31 @@ ParsePlainBuffer(xmlNodePtr pndArgTop, xmlChar* pucArg, rmode_t eArgMode)
 	  xmlSetProp(pndNew, BAD_CAST "type", BAD_CAST"quote");
 	  pndNew = ParsePlainBuffer(pndNew, pieElementGetBeginPtr(ppeT), eArgMode);
 	}
-	else if (ppeT->eType == html) {
+	else if (ppeT->eType == cxp) {
 	  if (pieElementGetStrlen(ppeT) > 6) {
 	    xmlDocPtr pdocHtml;
 	    
 	    pdocHtml = xmlParseMemory(pieElementGetBeginPtr(ppeT),pieElementGetStrlen(ppeT));
+	    if ((pndNew = xmlDocGetRootElement(pdocHtml)) != NULL && IS_NODE(pndNew,BAD_CAST"make") && pndNew->children != NULL) {
+	      xmlUnlinkNode(pndNew);
+	      xmlNodeSetName(pndNew,NAME_PIE_IMPORT);
+	      xmlSetProp(pndNew, BAD_CAST "type", BAD_CAST"cxp");
+	      xmlAddChild(pndParent, pndNew);
+	    }
+	    else {
+	      xmlAddChild(pndParent, xmlNewComment(BAD_CAST"XML parser error"));
+	    }
+	    xmlFreeDoc(pdocHtml);
+	  }
+	}
+	else if (ppeT->eType == html) {
+	  if (pieElementGetStrlen(ppeT) > 6) {
+	    xmlDocPtr pdocHtml;
+
+	    pdocHtml = xmlParseMemory(pieElementGetBeginPtr(ppeT), pieElementGetStrlen(ppeT));
 	    if ((pndNew = xmlDocGetRootElement(pdocHtml)) != NULL && IS_NODE_PIE_HTML(pndNew) && pndNew->children != NULL) {
 	      xmlUnlinkNode(pndNew);
-	      xmlNodeSetName(pndNew,BAD_CAST"block");
+	      xmlNodeSetName(pndNew, BAD_CAST"block");
 	      xmlSetProp(pndNew, BAD_CAST "type", BAD_CAST"text/html");
 	      xmlAddChild(pndParent, pndNew);
 	    }

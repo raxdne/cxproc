@@ -43,7 +43,7 @@ typedef enum {
   par,
   csv,
   pre,
-  cxp, 				/*!\deprecated */
+  cxp,
   html,
   script,
   skip

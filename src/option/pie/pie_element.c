@@ -514,6 +514,8 @@ pieElementHasNext(pieTextElementPtr ppeArg)
 	*/
 	xmlChar *puc1;
 
+	/*!\todo change markup to <skip> */
+
 	if ((puc1 = BAD_CAST xmlStrstr(puc0, BAD_CAST"#end_of_skip")) != NULL) {
 	  /* skip string between markups */
 
@@ -533,26 +535,26 @@ pieElementHasNext(pieTextElementPtr ppeArg)
 	ppeArg->pucContent = NULL;
 	//ppeArg->iLength = 0;
       }
-      else if (pieElementGetMode(ppeArg) == RMODE_PAR && StringBeginsWith((char *)puc0, "#begin_of_script")) {
+      else if (pieElementGetMode(ppeArg) == RMODE_PAR && StringBeginsWith((char *)puc0, "<script>")) {
 	/*
 	handle script formatted markup in input file
 	*/
 	xmlChar *puc1;
 	xmlChar *pucT;
 
-	if ((puc1 = BAD_CAST xmlStrstr(puc0, BAD_CAST"#end_of_script")) != NULL) {
+	if ((puc1 = BAD_CAST xmlStrstr(puc0, BAD_CAST"</script>")) != NULL) {
 	  /* copy string between markups */
 
-	  if (Strnstr(puc0 + 1, (puc1 - puc0), BAD_CAST"#begin_of_script") != NULL) {
-	    PrintFormatLog(1, "Unbalanced markup: '#begin_of_script'");
+	  if (Strnstr(puc0 + 1, (puc1 - puc0), BAD_CAST"<script>") != NULL) {
+	    PrintFormatLog(1, "Unbalanced markup: '<script>'");
 	  }
 
-	  ppeArg->pucContent = xmlStrndup(puc0 + xmlStrlen(BAD_CAST"#begin_of_script"), (int)(puc1 - (puc0 + xmlStrlen(BAD_CAST"#begin_of_script"))));
-	  ppeArg->iBegin += (index_t)(puc1 + xmlStrlen(BAD_CAST"#end_of_script") - puc0);
+	  ppeArg->pucContent = xmlStrndup(puc0 + xmlStrlen(BAD_CAST"<script>"), (int)(puc1 - (puc0 + xmlStrlen(BAD_CAST"<script>"))));
+	  ppeArg->iBegin += (index_t)(puc1 + xmlStrlen(BAD_CAST"</script>") - puc0);
 	}
 	else {
 	  /* no end markup found, copy end of string */
-	  ppeArg->pucContent = xmlStrdup(puc0 + xmlStrlen(BAD_CAST"#begin_of_script"));
+	  ppeArg->pucContent = xmlStrdup(puc0 + xmlStrlen(BAD_CAST"<script>"));
 	  ppeArg->iBegin = xmlStrlen(ppeArg->pucSource);
 	}
 
@@ -570,6 +572,8 @@ pieElementHasNext(pieTextElementPtr ppeArg)
 	if ((puc1 = BAD_CAST xmlStrstr(puc0, BAD_CAST"#end_of_pre")) != NULL) {
 	  /* copy string between markups */
 	  index_t l;
+
+	  /*!\todo change markup to <pre> */
 
 	  if (Strnstr(puc0 + 1, (puc1 - puc0), BAD_CAST"#begin_of_pre") != NULL) {
 	    PrintFormatLog(1, "Unbalanced markup: '#begin_of_pre'");
@@ -593,27 +597,26 @@ pieElementHasNext(pieTextElementPtr ppeArg)
 	ppeArg->iLength = xmlStrlen(ppeArg->pucContent);
 	fResult = TRUE;
       }
-#if 0
-      else if (pieElementGetMode(ppeArg) == RMODE_PAR && StringBeginsWith((char *)puc0, "#begin_of_cxp")) {
+#ifdef EXPERIMENTAL
+      else if (pieElementGetMode(ppeArg) == RMODE_PAR && StringBeginsWith((char *)puc0, "<make>")) {
 	/*
-	handle cxp formatted markup in input file
+	handle make formatted markup in input file
 	*/
 	xmlChar *puc1;
-	xmlChar *pucT;
 
-	if ((puc1 = BAD_CAST xmlStrstr(puc0, BAD_CAST"#end_of_cxp")) != NULL) {
+	if ((puc1 = BAD_CAST xmlStrstr(puc0, BAD_CAST"</make>")) != NULL) {
 	  /* copy string between markups */
 
-	  if (Strnstr(puc0 + 1, (puc1 - puc0), BAD_CAST"#begin_of_cxp") != NULL) {
-	    PrintFormatLog(1, "Unbalanced markup: '#begin_of_cxp'");
+	  if (Strnstr(puc0 + 1, (puc1 - puc0), BAD_CAST"<make>") != NULL) {
+	    PrintFormatLog(1, "Unbalanced markup: '<make>'");
 	  }
 
-	  ppeArg->pucContent = xmlStrndup(puc0 + xmlStrlen(BAD_CAST"#begin_of_cxp"), (int)(puc1 - (puc0 + xmlStrlen(BAD_CAST"#begin_of_cxp"))));
-	  ppeArg->iBegin += (index_t)(puc1 + xmlStrlen(BAD_CAST"#end_of_cxp") - puc0);
+	  ppeArg->pucContent = xmlStrndup(puc0, (int)(puc1 + xmlStrlen(BAD_CAST"</make>")  - puc0));
+	  ppeArg->iBegin += (index_t)(puc1 + xmlStrlen(BAD_CAST"</make>") - puc0);
 	}
 	else {
 	  /* no end markup found, copy end of string */
-	  ppeArg->pucContent = xmlStrdup(puc0 + xmlStrlen(BAD_CAST"#begin_of_cxp"));
+	  ppeArg->pucContent = xmlStrdup(puc0 + xmlStrlen(BAD_CAST"<make>"));
 	  ppeArg->iBegin = xmlStrlen(ppeArg->pucSource);
 	}
 
@@ -621,9 +624,7 @@ pieElementHasNext(pieTextElementPtr ppeArg)
 	ppeArg->iLength = xmlStrlen(ppeArg->pucContent);
 	fResult = TRUE;
       }
-#endif
-#ifdef EXPERIMENTAL
-      else if (pieElementGetMode(ppeArg) == RMODE_PAR && StringBeginsWith((char *)puc0, "<html>")) {
+      else if (pieElementGetMode(ppeArg) == RMODE_PAR && StringBeginsWith((char*)puc0, "<html>")) {
 	/*
 	handle HTML formatted markup in input file
 	*/
@@ -647,7 +648,6 @@ pieElementHasNext(pieTextElementPtr ppeArg)
 
 	ppeArg->eType = html;
 	ppeArg->iLength = xmlStrlen(ppeArg->pucContent);
-	ppeArg->eMode = RMODE_HTML;
 	fResult = TRUE;
       }
 #endif
@@ -678,6 +678,8 @@ pieElementHasNext(pieTextElementPtr ppeArg)
 	*/
 	xmlChar *puc1;
 	xmlChar *pucT;
+
+	/*!\todo change markup to <csv> */
 
 	for (pucT = puc0 + xmlStrlen(BAD_CAST"#begin_of_csv"); *pucT == (xmlChar)'\r' || *pucT == (xmlChar)'\n'; pucT++) {}
 
