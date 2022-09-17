@@ -286,7 +286,7 @@ pieElementIsEnum(pieTextElementPtr ppeArg)
 /*!
 */
 BOOL_T
-pieElementIsMetaTags(pieTextElementPtr ppeArg)
+_pieElementIsMetaTags(pieTextElementPtr ppeArg)
 {
   return (ppeArg != NULL && StringBeginsWith((char *)pieElementGetBeginPtr(ppeArg),"TAGS: "));
 }
@@ -597,72 +597,7 @@ pieElementHasNext(pieTextElementPtr ppeArg)
 	ppeArg->iLength = xmlStrlen(ppeArg->pucContent);
 	fResult = TRUE;
       }
-#ifdef WITH_MARKDOWN
-      else if (pieElementGetMode(ppeArg) == RMODE_MD && StringBeginsWith((char *)puc0, "```")) {
-	/*
-	  handle pre formatted markup in input file
-	*/
-	index_t l;
-	xmlChar *puc1;
-	xmlChar *pucT;
-
-	for (l = 3; puc0[l] != (xmlChar)'\n' && puc0[l] != (xmlChar)'\0'; l++); /* skip to end of line */
-	  
-	for ( ; puc0[l] == (xmlChar)'\n'; l++); /* skip leading empty lines */
-
-	if ((puc1 = BAD_CAST xmlStrstr(puc0+l, BAD_CAST"```")) != NULL) {
-	  /* copy string between markups */
-
-	  ppeArg->pucContent = xmlStrndup(puc0 + l, (int)(puc1 - (puc0 + l)));
-	  for (l = xmlStrlen(ppeArg->pucContent) - 1; l > 0 && (ppeArg->pucContent[l] == (xmlChar)'\n' || ppeArg->pucContent[l] == (xmlChar)'\r'); l--) {
-	    ppeArg->pucContent[l] = (xmlChar)'\0'; /* cut trailing empty lines */
-	  }
-
-	  ppeArg->iBegin += (index_t)(puc1 + 3 - puc0);
-	}
-	else {
-	  /* no end markup found, copy end of string */
-	  ppeArg->pucContent = xmlStrdup(puc0 + l);
-	  ppeArg->iBegin = xmlStrlen(ppeArg->pucSource);
-	}
-
-	ppeArg->eType = pre;
-	ppeArg->iLength = xmlStrlen(ppeArg->pucContent);
-	fResult = TRUE;
-      }
-      else if (pieElementGetMode(ppeArg) == RMODE_MD && StringBeginsWith((char *)puc0, "~~~")) {
-	/*
-	  handle pre formatted markup in input file
-	*/
-	index_t l;
-	xmlChar *puc1;
-	xmlChar *pucT;
-
-	for (l = 3; puc0[l] != (xmlChar)'\n' && puc0[l] != (xmlChar)'\0'; l++); /* skip to end of line */
-	  
-	for ( ; puc0[l] == (xmlChar)'\n'; l++); /* skip leading empty lines */
-
-	if ((puc1 = BAD_CAST xmlStrstr(puc0+l, BAD_CAST"~~~")) != NULL) {
-	  /* copy string between markups */
-
-	  ppeArg->pucContent = xmlStrndup(puc0 + l, (int)(puc1 - (puc0 + l)));
-	  for (l = xmlStrlen(ppeArg->pucContent) - 1; l > 0 && (ppeArg->pucContent[l] == (xmlChar)'\n' || ppeArg->pucContent[l] == (xmlChar)'\r'); l--) {
-	    ppeArg->pucContent[l] = (xmlChar)'\0'; /* cut trailing empty lines */
-	  }
-
-	  ppeArg->iBegin += (index_t)(puc1 + 3 - puc0);
-	}
-	else {
-	  /* no end markup found, copy end of string */
-	  ppeArg->pucContent = xmlStrdup(puc0 + l);
-	  ppeArg->iBegin = xmlStrlen(ppeArg->pucSource);
-	}
-
-	ppeArg->eType = pre;
-	ppeArg->iLength = xmlStrlen(ppeArg->pucContent);
-	fResult = TRUE;
-      }
-#endif
+#if 0
       else if (pieElementGetMode(ppeArg) == RMODE_PAR && StringBeginsWith((char *)puc0, "#begin_of_cxp")) {
 	/*
 	handle cxp formatted markup in input file
@@ -690,6 +625,7 @@ pieElementHasNext(pieTextElementPtr ppeArg)
 	ppeArg->iLength = xmlStrlen(ppeArg->pucContent);
 	fResult = TRUE;
       }
+#endif
       else if (pieElementGetMode(ppeArg) == RMODE_LINE && StringBeginsWith((char *)puc0, "#end_of_line")) {
 	/*
 	switch to line-based parsing

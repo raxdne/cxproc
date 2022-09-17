@@ -152,7 +152,7 @@ extern BOOL_T
 pieElementIsEnum(pieTextElementPtr ppeArg);
 
 extern BOOL_T
-pieElementIsMetaTags(pieTextElementPtr ppeArg);
+_pieElementIsMetaTags(pieTextElementPtr ppeArg);
 
 extern BOOL_T
 pieElementIsMetaOrigin(pieTextElementPtr ppeArg);

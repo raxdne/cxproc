@@ -80,10 +80,11 @@ extern xmlNodePtr
 RecognizeSubsts(xmlNodePtr pndArg);
 
 extern xmlNodePtr
-RecognizeIncludes(xmlNodePtr pndArg);
+RecognizeInserts(xmlNodePtr pndArg, int iArgMode);
 
-extern xmlNodePtr
-RecognizeImports(xmlNodePtr pndArg);
+#define RecognizeIncludes(N) RecognizeInserts(N,0)
+
+#define RecognizeImports(N) RecognizeInserts(N,1)
 
 extern xmlNodePtr
 RecognizeInlines(xmlNodePtr pndArg);

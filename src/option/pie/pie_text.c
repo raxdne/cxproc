@@ -706,14 +706,7 @@ ImportNodeFile(xmlNodePtr pndArgImport, cxpContextPtr pccArg)
 	}
 
 	if (STR_IS_NOT_EMPTY(pucContent)) {
-
-	  if (iMimeType == MIME_TEXT_MARKDOWN) {
-#ifdef WITH_MARKDOWN
-	    if (ParseMarkdownBuffer(pndBlock, pucContent)) {
-	    }
-#endif
-	  }
-	  else if (ParsePlainBuffer(pndBlock, pucContent, m)) {
+	  if (ParsePlainBuffer(pndBlock, pucContent, m)) {
 
 	    if (domGetPropFlag(pndArgImport, BAD_CAST "locators", FALSE)) {
 	      SetPropBlockLocators(pndBlock, resNodeGetNameRelative(cxpCtxtRootGet(pccInput), prnInput), NULL);
@@ -722,7 +715,7 @@ ImportNodeFile(xmlNodePtr pndArgImport, cxpContextPtr pccArg)
 	    RecognizeIncludes(pndBlock);
 	    TraverseIncludeNodes(pndBlock, pccInput);
 
-	    if (domGetPropFlag(pndArgImport, BAD_CAST "subst", FALSE)) {
+	    if (domGetPropFlag(pndArgImport, BAD_CAST "subst", TRUE)) {
 	      RecognizeSubsts(pndBlock);
 	    }
 
@@ -1259,6 +1252,8 @@ ProcessImportOptions(xmlNodePtr pndArgPie, xmlNodePtr pndArgImport, cxpContextPt
 
   if (pndArgPie) {
     
+    RecognizeSymbols(pndArgPie, GetPieNodeLang(pndArgPie, pccArg));
+
     if (domGetPropFlag(pndArgPie, BAD_CAST "figure", TRUE)) {
       cxpCtxtLogPrint(pccArg, 2, "Recognize Figures");
       RecognizeFigures(pndArgPie);
@@ -1277,8 +1272,6 @@ ProcessImportOptions(xmlNodePtr pndArgPie, xmlNodePtr pndArgImport, cxpContextPt
     }
 
     RecognizeDates(pndArgPie,MIME_TEXT_PLAIN);
-
-    RecognizeSymbols(pndArgPie, GetPieNodeLang(pndArgPie, pccArg));
 
     /*! \todo global cite recognition in scientific text */
 

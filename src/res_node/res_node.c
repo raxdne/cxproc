@@ -2745,26 +2745,17 @@ resNodeContentToDOM(xmlNodePtr pndArg, resNodePtr prnArg)
 	    if (pndPie) {
 	      rmode_t m;
 
-	      if (iMimeType == MIME_TEXT_MARKDOWN) {
-#ifdef WITH_MARKDOWN
-		if (ParseMarkdownBuffer(pndPie, pucContent)) {
-		  xmlSetProp(pndPie->children, BAD_CAST "context", resNodeGetURI(prnArg));
-		}
-#endif
+	      if (iMimeType == MIME_TEXT_PLAIN) {
+		m = GetModeByExtension(resNodeGetExtension(prnArg));
 	      }
 	      else {
-		if (iMimeType == MIME_TEXT_PLAIN) {
-		  m = GetModeByExtension(resNodeGetExtension(prnArg));
-		}
-		else {
-		  m = GetModeByMimeType(iMimeType);
-		}
+		m = GetModeByMimeType(iMimeType);
+	      }
 
-		if (ParsePlainBuffer(pndPie, pucContent, m)) {
-		  xmlSetProp(pndPie->children, BAD_CAST "context", resNodeGetURI(prnArg));
-		  SetTypeAttr(pndPie->children,m);
-		  //domPutNodeString(stderr, BAD_CAST "pndPie", pndPie);
-		}
+	      if (ParsePlainBuffer(pndPie, pucContent, m)) {
+		xmlSetProp(pndPie->children, BAD_CAST "context", resNodeGetURI(prnArg));
+		SetTypeAttr(pndPie->children,m);
+		//domPutNodeString(stderr, BAD_CAST "pndPie", pndPie);
 	      }
 	    }
 	    //xmlNewTextChild(pndPie, NULL, BAD_CAST"meta", pucContent);
@@ -2783,6 +2774,8 @@ resNodeContentToDOM(xmlNodePtr pndArg, resNodePtr prnArg)
 	  }
 	  pndTags = xmlNewChild(pndMeta, NULL, NAME_PIE_TAGLIST, NULL);
 
+	  RecognizeIncludes(pndPie);
+	  RecognizeSymbols(pndPie, LANG_DEFAULT);
 	  RecognizeSubsts(pndPie);
 	  RecognizeImports(pndPie);
 	  RecognizeInlines(pndPie);
@@ -2790,7 +2783,6 @@ resNodeContentToDOM(xmlNodePtr pndArg, resNodePtr prnArg)
 	  RecognizeFigures(pndPie);
 	  RecognizeUrls(pndPie);
 	  RecognizeDates(pndPie, iMimeType);
-	  RecognizeSymbols(pndPie, LANG_DEFAULT);
 	  RecognizeTasks(pndPie);
 	  RecognizeHashtags(pndPie,NULL, NULL);
 	  InheritHashtags(pndPie, pndPie);
@@ -2815,6 +2807,10 @@ resNodeContentToDOM(xmlNodePtr pndArg, resNodePtr prnArg)
     case MIME_TEXT_PLAIN_CALENDAR:
     case MIME_TEXT_CSV:
     case MIME_TEXT_VCARD:
+#ifdef WITH_MARKDOWN
+#else
+    case MIME_TEXT_MARKDOWN:
+#endif
     {
       xmlChar *pucT = NULL;
 

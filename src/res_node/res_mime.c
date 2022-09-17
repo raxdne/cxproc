@@ -321,9 +321,7 @@ resMimeIsPlain(int iMimeType)
     || iMimeType == MIME_TEXT_CSS
     || iMimeType == MIME_TEXT_CSV
     || iMimeType == MIME_TEXT_PLAIN_CALENDAR
-#ifdef WITH_MARKDOWN
     || iMimeType == MIME_TEXT_MARKDOWN
-#endif
     || iMimeType == MIME_TEXT_VCARD
     || iMimeType == MIME_TEXT_X_SCRIPT_TCL
     || iMimeType == MIME_TEXT_X_SCRIPT_PERL

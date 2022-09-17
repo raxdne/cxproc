@@ -60,6 +60,8 @@
 #define cmarkNodeIsRuler(N) (N != NULL && N->type == CMARK_NODE_HRULE)
 
 
+static xmlNodePtr
+cmarkTreeToDOM(xmlNodePtr pndArgBlock, xmlNodePtr pndArg, cmark_node* pcmnArg);
 
 static xmlNodePtr
 GetParentElement(cmark_node* pcmnArg, xmlNodePtr pndArgParent);
@@ -252,7 +254,13 @@ cmarkTreeToDOM(xmlNodePtr pndArgBlock, xmlNodePtr pndArg, cmark_node* pcmnArg)
       }
     }
     else if (pcmnArg->type == CMARK_NODE_LIST) {
-      pndT = xmlNewChild(pndArg, NULL, NAME_PIE_LIST, NULL);
+      if (IS_NODE_PIE_PAR(pndArg->last)) {
+	/* append this list to its preceeding paragraph */
+	pndT = xmlNewChild(pndArg->last, NULL, NAME_PIE_LIST, NULL);
+      }
+      else {
+	pndT = xmlNewChild(pndArg, NULL, NAME_PIE_LIST, NULL);
+      }
       for (pcmnI = pcmnArg->first_child; pcmnI; pcmnI = pcmnI->next) {
 	cmarkTreeToDOM(pndT, pndT, pcmnI);
       }

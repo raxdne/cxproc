@@ -31,6 +31,7 @@ pieCmarkTest(void)
   n_ok=0;
   i=0;
 
+#ifdef WITH_MARKDOWN
 
   if (RUNTEST) {
     xmlNodePtr pndPie;
@@ -121,6 +122,7 @@ pieCmarkTest(void)
     xmlFreeNode(pndPie);
   }
 
+#endif
 
   printf("Result in '%s': %i/%i OK\n\n", __FILE__, n_ok, i);
 
