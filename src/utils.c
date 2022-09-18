@@ -195,6 +195,7 @@ StringToUpper(char *pchArg)
 
 
 /*! \return TRUE if all chars of pchArgNeedle are the begin of pchArgBegin
+* \todo implement skipping of leading isspace(), returns pointer to begin of match
 */
 BOOL_T
 StringBeginsWith(char *pchArgBegin, const char *pchArgNeedle)

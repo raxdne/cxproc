@@ -2052,7 +2052,6 @@ SplitStringToDateNodes(const xmlChar *pucArg, RN_MIME_TYPE eMimeTypeArg)
 	xmlChar *pucA = (xmlChar *)pucArg + ovector[2];
 
 	if ((pucDate = xmlStrndup(pucA, (int)(ovector[3] - ovector[2]))) != NULL) {
-	  xmlChar *pucDateNext = NULL;
 
 	  PrintFormatLog(3, "Date '%s' (%i..%i) in '%s'", pucDate, ovector[2], ovector[3], pucArg);
 
@@ -2418,7 +2417,7 @@ RecognizeSymbols(xmlNodePtr pndArg, lang_t eLangArg)
 
 	assert(pndArg->parent != NULL);
 	
-	if (StringBeginsWith(pucTT, STR_PIE_HIDDEN) != NULL) {
+	if (StringBeginsWith(pucTT, STR_PIE_HIDDEN)) {
 	  xmlSetProp(pndArg->parent,BAD_CAST"hidden",BAD_CAST"1");
 	}
 
