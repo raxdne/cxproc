@@ -2585,7 +2585,9 @@ resNodeIsHidden(resNodePtr prnArg)
   /*!\bug check for ROOT */
   if (prnArg) {
     if (resNodeGetType(prnArg) == rn_type_undef || prnArg->fStat == FALSE) {
-      resNodeResetNameBase(prnArg); /* leading dot in basename */
+      if (prnArg->pucNameBase == NULL) {
+	resNodeResetNameBase(prnArg); /* leading dot in basename */
+      }
       resNodeReadStatus(prnArg);
     }
     fResult = prnArg->fHidden;

@@ -234,7 +234,7 @@ SplitNodeListToTagNodes(xmlNodePtr pndArg, pcre2_code* preArg, const xmlChar* pu
 } /* end of SplitNodeListToTagNodes() */
 
 
-/*! splits an UTF-8 string into a list of text and 'htag' element nodes
+/*! splits an UTF-8 string into a list of text and tag element nodes
 
 * \param pucArg pointer to string to be splitted
 * \param preArgHashTag pointer to regexp to be used for hashtags
@@ -273,9 +273,11 @@ SplitToTagNodes(const xmlChar* pucArg, pcre2_code* preArgHashTag, pcre2_code* pr
 } /* end of SplitToTagNodes() */
 
 
-/*! find all explicit Hashtags '#' and '@'
+/*! find all explicit Hashtags '#' and '@' and tags matching to preArgBlockTag
 
 http://microformats.org/wiki/twitter-syntax
+
+\return TRUE by default
 */
 BOOL_T
 RecognizeHashtags(xmlNodePtr pndArg, pcre2_code* preArgHashTag, pcre2_code* preArgBlockTag)
