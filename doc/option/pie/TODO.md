@@ -37,7 +37,7 @@ REQ: append XML attributes to text markup
 
 decoding of RFC1738 URL with Umlaute to UTF-8
 
-TODO: change markup #v14
+TODO: change markup #v14 ✔
 
     <pre></pre>
     <script display="yes"></script>
@@ -52,7 +52,7 @@ BUG: Tag recognition fails (end of local regexp) ✔
 
 - regexp error handling??
 
-Markdown
+Markdown ✔
 
 - <https://daringfireball.net/projects/markdown/basics>
 

@@ -47,7 +47,6 @@ int
 main(int argc, char *argv[], char *envp[])
 {
   int e = EXIT_FAILURE;
-  int i;
 
   SetLogLevel(1);
 
