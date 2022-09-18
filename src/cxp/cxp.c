@@ -79,9 +79,6 @@
 #include <cxp/cxp_calendar.h>
 #ifdef HAVE_PIE
 #include <pie/pie_text.h>
-#ifdef WITH_MARKDOWN
-#include <cmark.h>
-#endif
 #else
 #include <pie/pie_dtd.h>
 #endif

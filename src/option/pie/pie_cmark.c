@@ -80,7 +80,6 @@ GetParentElement(cmark_node* pcmnArg, xmlNodePtr pndArgParent)
   if (pcmnArg != NULL && pndArgParent != NULL) {
 
     if (cmarkNodeIsHeader(pcmnArg)) {
-      /* no new pointer needed */
       int iDepth;
 
       for (iDepth = 0, pndLast = pndArgParent; pndLast; pndLast = pndLast->last) {
@@ -131,66 +130,8 @@ GetParentElement(cmark_node* pcmnArg, xmlNodePtr pndArgParent)
 	}
       }
     }
-#if 0
-    else if (cmarkNodeIsListItem(pcmnArg)) {
-      int iDepth;
-      xmlNodePtr pndT;
-      xmlNodePtr pndList;
-
-      for (iDepth = 0, pndList = NULL, pndLast = pndT = pndArgParent;
-	IS_ENODE(pndT) && iDepth < cmarkNodeGetDepth(pcmnArg);
-	pndT = pndT->last) {
-
-	if (IS_NODE_PIE_LIST(pndT)) {
-	  pndLast = pndList = pndT;
-	  iDepth++;
-	}
-	else if (IS_NODE_PIE_PAR(pndT)) {
-	  pndLast = pndList = pndT;
-	}
-	else {
-	  pndLast = pndT;
-	}
-      }
-
-      for (; iDepth < cmarkNodeGetDepth(pcmnArg); iDepth++) {
-	if (pndList) {
-	  /*
-	  last element is a list, create a child list element
-	  */
-	  pndList = xmlNewChild(pndList, NULL, NAME_PIE_LIST, NULL);
-	}
-	else if (pndLast == pndArgParent) {
-	  /*
-	  last element is parent element, create a child list element
-	  */
-	  pndList = xmlNewChild(pndArgParent, NULL, NAME_PIE_LIST, NULL);
-	}
-	else {
-	  /*
-	  last element is not a list, create a sibling list element
-	  */
-	  assert(pndLast != NULL);
-
-	  pndList = xmlNewNode(NULL, NAME_PIE_LIST);
-
-	  if (IS_NODE_PIE_PAR(pndLast)) {
-	    xmlAddChild(pndLast, pndList);
-	  }
-	  else {
-	    xmlAddNextSibling(pndLast, pndList);
-	  }
-	}
-      }
-
-      if (cmarkNodeIsEnum(pcmnArg)) {
-	xmlSetProp(pndList, BAD_CAST "enum", BAD_CAST "yes");
-      }
-      pndResult = pndList;
-    }
-#endif
     else {
-
+      /* find very last node of a pie/block */
       for (pndResult = pndLast = pndArgParent; pndLast; pndLast = pndLast->last) {
 	if (IS_NODE_PIE_PIE(pndLast)) {
 	  if (IS_NODE_PIE_BLOCK(pndLast->last)) {

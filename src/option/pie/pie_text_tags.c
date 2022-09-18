@@ -409,11 +409,11 @@ GetBlockTagRegExpStr(xmlNodePtr pndArg, xmlChar *pucArg, BOOL_T fArgRecursion)
   xmlChar* pucResult = pucArg;
 
   if (IS_NODE(pndArg,NULL)) {
-    xmlNodePtr pndI;
+    xmlNodePtr pndIter;
     xmlChar* pucT = NULL;
     
-    for (pndI = pndArg->children; pndI != NULL; pndI = pndI->next) {
-      if (pndI->type == XML_PI_NODE && xmlStrEqual(pndI->name, NAME_PIE_PI_TAG) && (pucT = domNodeGetContentPtr(pndI)) != NULL) {
+    for (pndIter = pndArg->children; pndIter != NULL; pndIter = pndIter->next) {
+      if (pndIter->type == XML_PI_NODE && xmlStrEqual(pndIter->name, NAME_PIE_PI_TAG) && (pucT = domNodeGetContentPtr(pndIter)) != NULL) {
 	if (pucResult) {
 	  if (pucT[0] != (xmlChar)'|') {
 	    pucResult = xmlStrcat(pucResult,BAD_CAST"|");
@@ -426,7 +426,7 @@ GetBlockTagRegExpStr(xmlNodePtr pndArg, xmlChar *pucArg, BOOL_T fArgRecursion)
 	/*!\todo check regexp */
       }
       else if (fArgRecursion) {
-	pucResult = GetBlockTagRegExpStr(pndI, pucResult, fArgRecursion);
+	pucResult = GetBlockTagRegExpStr(pndIter, pucResult, fArgRecursion);
       }
     }
   }
@@ -565,25 +565,25 @@ CleanListTag(xmlNodePtr pndArg, BOOL_T fArgMerge)
       pndTagNext = pndTag->next;
 
       if (pndTag->children != NULL && pndTag->children->type == XML_TEXT_NODE && (pucTag = pndTag->children->content) != NULL) { /* there is text content */
-	xmlNodePtr pndI;
-	xmlNodePtr pndINext;
+	xmlNodePtr pndIter;
+	xmlNodePtr pndIterNext;
 
-	for (pndI = pndArg->children; pndI; pndI = pndINext) {
+	for (pndIter = pndArg->children; pndIter; pndIter = pndIterNext) {
 	  xmlChar* pucI;
 
-	  pndINext = pndI->next;
+	  pndIterNext = pndIter->next;
 
-	  if (pndI != pndTag
-	      && pndI->children != NULL && pndI->children->type == XML_TEXT_NODE && (pucI = pndI->children->content) != NULL
+	  if (pndIter != pndTag
+	      && pndIter->children != NULL && pndIter->children->type == XML_TEXT_NODE && (pucI = pndIter->children->content) != NULL
 	      && ((fArgMerge && (pucI[0] != (xmlChar)'@' && pucI[0] != (xmlChar)'#' && StringBeginsWith((char*)pucI, (char*)pucTag))) || xmlStrEqual(pucI, pucTag))) {
 	    /*!
-	      merge similar node pndI to pndTag
+	      merge similar node pndIter to pndTag
 	    */
 
 	    int iCountNeedle;
 	    xmlChar* pucAttrCount;
 
-	    if ((pucAttrCount = domGetPropValuePtr(pndI, BAD_CAST"count"))) {
+	    if ((pucAttrCount = domGetPropValuePtr(pndIter, BAD_CAST"count"))) {
 	      iCountNeedle = atoi((char*)pucAttrCount);
 	    }
 	    else {
@@ -591,11 +591,11 @@ CleanListTag(xmlNodePtr pndArg, BOOL_T fArgMerge)
 	    }
 	    domIncrProp(pndTag, BAD_CAST"count", iCountNeedle);
 
-	    if (pndI == pndTagNext) {
-	      pndTagNext = pndINext; /* fix pndTagNext before node will be removed */
+	    if (pndIter == pndTagNext) {
+	      pndTagNext = pndIterNext; /* fix pndTagNext before node will be removed */
 	    }
-	    xmlUnlinkNode(pndI);
-	    xmlFreeNode(pndI);
+	    xmlUnlinkNode(pndIter);
+	    xmlFreeNode(pndIter);
 	  }
 	}
       }
