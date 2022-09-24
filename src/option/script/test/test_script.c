@@ -18,6 +18,80 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 */
 
+/*!\return processed  the code of script 
+
+\param pndArg
+\param pccArg
+
+\return
+ */
+xmlChar *
+scriptProcessScriptBuffer(xmlChar *pucArgScript, xmlChar *pucArgBuffer, cxpContextPtr pccArg)
+{
+  xmlChar *pucResult = NULL;
+
+#ifdef DEBUG
+  cxpCtxtLogPrint(pccArg,1,"scriptProcessScriptBuffer(pndArg=%0x,pccArg=%0x)",pucArgScript,pccArg);
+#endif
+
+  if (STR_IS_NOT_EMPTY(pucArgScript)) {
+    xmlChar *pucScriptDecoded;
+
+    pucScriptDecoded = xmlStrdup(pucArgScript); /*!\bug decode XML entities to UTF-8 */
+
+    cxpCtxtLogPrint(pccArg, 4, "Run Script code '%s'", pucScriptDecoded);
+    duk_push_global_object(pDukContext);
+
+
+    if (STR_IS_NOT_EMPTY(pucArgBuffer)) {
+      void* p;
+      xmlChar* pucBufferDecoded;
+
+      pucBufferDecoded = xmlStrdup(pucArgBuffer); /*!\bug decode XML entities to UTF-8 */
+
+#if 0
+      // https://duktape.org/api.html#duk_push_buffer
+      //p = duk_push_buffer(ctx, 1024, 0);
+      //printf("allocated buffer, data area: %p\n", p);
+
+      duk_push_heapptr(pDukContext, (void*)pucBufferDecoded);
+      duk_push_external_buffer(pDukContext);
+      duk_config_buffer(pDukContext, -1, pucBufferDecoded, strlen(pucBufferDecoded));
+      //duk_call(pDukContext, 1);
+#else
+      duk_push_string(pDukContext, "var s = ");
+      duk_push_string(pDukContext, pucBufferDecoded);
+      duk_push_string(pDukContext, ";");
+      //duk_push_string(pDukContext, "s.replace(/A/,'YYY')");
+      duk_join(pDukContext, -1);
+      printf("result: %s\n", duk_get_string(pDukContext, -1));  /* "foo; 123; true" */
+      duk_peval(pDukContext);
+      printf("result: %s\n", duk_safe_to_string(pDukContext, -1));  /* "foo; 123; true" */
+      //duk_pop(pDukContext);
+
+#endif
+    }
+
+    duk_push_string(pDukContext, (const char*)pucScriptDecoded);
+
+    if (duk_peval(pDukContext) != 0) {
+      cxpCtxtLogPrint(pccArg, 1, "Script error: %s", duk_safe_to_string(pDukContext, -1));
+      pucResult = xmlStrdup(BAD_CAST duk_safe_to_string(pDukContext, -1));
+    }
+    else if (duk_check_type(pDukContext, -1, DUK_TYPE_NUMBER) || duk_check_type(pDukContext, -1, DUK_TYPE_STRING)) {
+      pucResult = xmlStrdup(BAD_CAST duk_to_string(pDukContext, -1));
+    }
+    else {
+      cxpCtxtLogPrint(pccArg, 1, "Script: undefined result");
+      pucResult = xmlStrdup(BAD_CAST "");
+    }
+    duk_pop(pDukContext);  /* pop result/error */
+    xmlFree(pucScriptDecoded);
+  }
+  return pucResult;
+} /* end of scriptProcessScriptBuffer() */
+
+
 /*! 
 */
 int
@@ -144,6 +218,31 @@ scriptTest(cxpContextPtr pccArg)
       printf("OK\n");
     }
     xmlFreeNode(pndScript);
+    xmlFree(pucT);
+  }
+
+  if (RUNTEST) {
+    xmlChar* pucT = NULL;
+
+    i++;
+    printf("TEST %i in '%s:%i': scriptProcessScriptBuffer() = ", i, __FILE__, __LINE__);
+
+    if (scriptProcessScriptBuffer(NULL, NULL, NULL) != NULL) {
+      printf("Error 1 ()\n");
+    }
+    else if (scriptProcessScriptBuffer(NULL, NULL, pccArg) != NULL) {
+      printf("Error 2 ()\n");
+    }
+    else if ((pucT = scriptProcessScriptBuffer(BAD_CAST"1 + 2 + 3 + 4", NULL, pccArg)) == NULL) {
+      printf("Error scriptProcessScriptBuffer()\n");
+    }
+    else if (xmlStrEqual(pucT,BAD_CAST"10") == FALSE) {
+      printf("Error scriptProcessScriptBuffer()\n");
+    }
+    else {
+      n_ok++;
+      printf("OK\n");
+    }
     xmlFree(pucT);
   }
 
