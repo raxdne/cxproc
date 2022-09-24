@@ -317,7 +317,7 @@ pieProcessPieNode(xmlNodePtr pndArgPie, cxpContextPtr pccArg)
 
     RecognizeInlines(pndPieRoot);
 
-#ifdef HAVE_SCRIPT
+#ifdef HAVE_JS
     if (domGetPropFlag(pndArgPie, BAD_CAST "script", TRUE)) {
       cxpCtxtLogPrint(pccArg, 2, "Recognize scripts");
       RecognizeScripts(pndPieRoot);
@@ -1375,6 +1375,7 @@ TraverseScriptNodes(xmlNodePtr pndCurrent, cxpContextPtr pccArg)
 
 #ifdef HAVE_JS
   if (IS_ENODE(pndCurrent)) {
+    xmlChar* pucT;
     xmlNodePtr pndChild;
     int iLengthStr;
 
@@ -1414,6 +1415,14 @@ TraverseScriptNodes(xmlNodePtr pndCurrent, cxpContextPtr pccArg)
 	    pndCurrent = NULL;
 	  }
 	  pndResult = pndReplace;
+	}
+      }
+    }
+    else if (IS_NODE_SCRIPT(pndCurrent)) {
+      if ((pucT = scriptProcessScriptNode(pndCurrent, pccArg)) != NULL) {
+	if ((pndResult = xmlNewText(pucT)) != NULL) {
+	  xmlReplaceNode(pndCurrent, pndResult);
+	  xmlFreeNode(pndCurrent);
 	}
       }
     }

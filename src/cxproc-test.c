@@ -339,6 +339,12 @@ main(int argc, char** argv, char** envp)
       }
 #endif
 
+      if (pcTest == NULL || xmlStrEqual(BAD_CAST pcTest, BAD_CAST "script")) {
+#ifdef HAVE_JS
+	iErrorCode += scriptTest(pccTest);
+#endif
+      }
+
       if (pcTest == NULL || xmlStrEqual(BAD_CAST pcTest, BAD_CAST "parser")) {
 
 #ifdef HAVE_LIBID3TAG
@@ -361,11 +367,8 @@ main(int argc, char** argv, char** envp)
 	iErrorCode += jsonTest();
 	iErrorCode += jsonCxpTest(pccTest);
 #endif
-
-#ifdef HAVE_JS
-	iErrorCode += scriptTest(pccTest);
-#endif
       }
+
       /*!\todo generate a more verbose error summary */
     }
     else {
