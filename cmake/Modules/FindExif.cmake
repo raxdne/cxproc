@@ -6,7 +6,7 @@
 find_path(LIBEXIF_INCLUDE_DIR NAMES libexif/exif-data.h) 
 
 IF (LIBEXIF_INCLUDE_DIR)
-  FIND_LIBRARY(LIBEXIF_LIBRARY NAMES libexif.so libexif.a libexif)
+  FIND_LIBRARY(LIBEXIF_LIBRARY NAMES libexif.so libexif.a libexif HINTS ${HINT_DIR_LIB})
   IF (LIBEXIF_LIBRARY)
     MESSAGE(STATUS "Found libexif: ${LIBEXIF_LIBRARY}")
   ELSE ()
