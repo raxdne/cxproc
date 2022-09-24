@@ -55,30 +55,38 @@ ENDIF ()
 # libmagick
 #
 
-#FIND_PACKAGE( ImageMagick )
+FIND_PACKAGE( ImageMagick COMPONENTS MagickCore )
 
-#OPTION(CXPROC_LIBMAGICK "Include ImageMagick code" OFF)
-SET(CXPROC_LIBMAGICK OFF)
+IF (ImageMagick_FOUND)
 
-IF (CXPROC_LIBMAGICK)
-  SET(IMAGE_FILES
-    ${CXPROC_SRC_DIR}/option/image/image.h
-    ${CXPROC_SRC_DIR}/option/image/image.c
-    )
+  OPTION(CXPROC_LIBMAGICK "Include ImageMagick code" OFF)
+  #SET(CXPROC_LIBMAGICK OFF)
 
-  target_sources(filex PUBLIC ${IMAGE_FILES})
+  IF (CXPROC_LIBMAGICK)
+    SET(IMAGE_FILES
+      ${CXPROC_SRC_DIR}/option/image/image.h
+      ${CXPROC_SRC_DIR}/option/image/image.c
+      )
 
-  target_sources(cxproc PUBLIC ${IMAGE_FILES})
+    #target_sources(filex PUBLIC ${IMAGE_FILES})
 
-  target_sources(cxproc-cgi PUBLIC ${IMAGE_FILES})
+    target_sources(cxproc PUBLIC ${IMAGE_FILES})
 
-  target_sources(cxproc-test PUBLIC ${IMAGE_FILES})
+    target_sources(cxproc-cgi PUBLIC ${IMAGE_FILES})
 
-  INCLUDE_DIRECTORIES(${LIBMAGICK_INCLUDE_DIR})
-  
-  target_compile_definitions(filex       PUBLIC HAVE_MAGICK)
-  target_compile_definitions(cxproc      PUBLIC HAVE_MAGICK)
-  target_compile_definitions(cxproc-cgi  PUBLIC HAVE_MAGICK)
-  target_compile_definitions(cxproc-test PUBLIC HAVE_MAGICK)
-ENDIF (CXPROC_LIBMAGICK)
+    target_sources(cxproc-test PUBLIC ${IMAGE_FILES})
+
+    INCLUDE_DIRECTORIES(${ImageMagick_INCLUDE_DIRS})
+    
+    target_compile_definitions(cxproc      PUBLIC HAVE_LIBMAGICK)
+    target_compile_definitions(cxproc-cgi  PUBLIC HAVE_LIBMAGICK)
+    target_compile_definitions(cxproc-test PUBLIC HAVE_LIBMAGICK)
+    
+    target_link_libraries(cxproc      ${ImageMagick_LIBRARIES})
+    target_link_libraries(cxproc-test ${ImageMagick_LIBRARIES})
+    target_link_libraries(cxproc-cgi  ${ImageMagick_LIBRARIES})
+    
+  ENDIF (CXPROC_LIBMAGICK)
+
+ENDIF ()
 

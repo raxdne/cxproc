@@ -25,7 +25,7 @@ extern BOOL_T
 imgParseFile(xmlNodePtr pndArg, resNodePtr prnArg);
 
 extern void
-imgMain(xmlNodePtr nodePath, cxpContextPtr pccArg);
+imgProcessImageNode(xmlNodePtr nodePath, cxpContextPtr pccArg);
 
 #ifdef TESTCODE
 extern int

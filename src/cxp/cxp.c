@@ -1727,7 +1727,7 @@ cxpProcessMakeNode(xmlNodePtr pndArg,cxpContextPtr pccArg)
 #endif
 #ifdef HAVE_LIBMAGICK
 	else if (IS_NODE_IMAGE(pndChild)) {
-	  imgMain(pndChild,pccHere);
+	  imgProcessImageNode(pndChild,pccHere);
 	}
 #endif
 #ifdef HAVE_LIBSQLITE3
@@ -1769,7 +1769,7 @@ cxpProcessMakeNode(xmlNodePtr pndArg,cxpContextPtr pccArg)
     }
 #ifdef HAVE_LIBMAGICK
     else if (IS_NODE_IMAGE(pndArg)) {
-      imgMain(pndArg,pccHere);
+      imgProcessImageNode(pndArg,pccHere);
     }
 #endif
     else if (IS_NODE_PLAIN(pndArg)) {

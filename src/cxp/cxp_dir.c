@@ -336,7 +336,7 @@ dirProcessDirNode(xmlNodePtr pndArgDir, resNodePtr prnArgContext, cxpContextPtr 
   /*!\todo xmlNewNs(pndPie, "http://", NULL); */ /* no prefix string for this ns */
 
 #ifdef HAVE_LIBMAGICK
-  if (iLevelVerbose > 2) {
+  if (iVerbosity > 2) {
     AddNameSpaces(pndPie);
   }
 #endif

@@ -31,7 +31,7 @@
 
 #include "basics.h"
 #include <res_node/res_node_ops.h>
-#include "cxp.h"
+#include <cxp/cxp.h>
 #include "dom.h"
 #include "utils.h"
 #include <cxp/cxp_dir.h>
@@ -355,16 +355,16 @@ imgProcessImage(xmlNodePtr pndArg, resNodePtr prnArgSrc, resNodePtr prnArgTo)
     if (resNodeIsStd(prnArgTo)) {
       /* write to stdout */
 
-      if (cxpRunmodeIsCgi()) {
-	xmlChar *pucFilename;
-	printf("Content-type: image/%s\n", pImage->magick);
-	if (pImage->filename != NULL
-	    && (pucFilename = resPathGetBasename(BAD_CAST pImage->filename)) != NULL) {
-	  printf("Content-Disposition: filename=\"%s\"\n",pucFilename);
-	  xmlFree(pucFilename);
-	}
-	printf("\n");
+#ifdef HAVE_CGI
+      xmlChar *pucFilename;
+      printf("Content-type: image/%s\n", pImage->magick);
+      if (pImage->filename != NULL
+	  && (pucFilename = resPathGetBasename(BAD_CAST pImage->filename)) != NULL) {
+	printf("Content-Disposition: filename=\"%s\"\n",pucFilename);
+	xmlFree(pucFilename);
       }
+      printf("\n");
+#endif
 
       pInfoImageWrite=CloneImageInfo(pInfoImage);
       SetImageInfoFile(pInfoImageWrite,stdout);
@@ -401,7 +401,7 @@ imgProcessImage(xmlNodePtr pndArg, resNodePtr prnArgSrc, resNodePtr prnArgTo)
 /*!
  */
 void
-imgMain(xmlNodePtr pndArg, cxpContextPtr pccArg)
+imgProcessImageNode(xmlNodePtr pndArg, cxpContextPtr pccArg)
 {
   xmlChar *pucAttrTo;
 
@@ -479,8 +479,7 @@ imgMain(xmlNodePtr pndArg, cxpContextPtr pccArg)
   else {
     PrintFormatLog(1,"No valid attributes in '%s'",pndArg->name);
   }
-}
-/* end of imgMain() */
+} /* end of imgProcessImageNode() */
 
 
 #ifdef TESTCODE

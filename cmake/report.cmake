@@ -15,6 +15,19 @@
   MESSAGE(STATUS "  Build type ........................ : ${CMAKE_BUILD_TYPE}")
   MESSAGE(STATUS "  C compiler ........................ : ${CMAKE_C_COMPILER}")
   MESSAGE(STATUS "  C compiler flags .................. : ${CMAKE_C_FLAGS} ${CMAKE_C_FLAGS_${buildtype}}")
+
+  MESSAGE(STATUS "")
+  get_directory_property( DirDefs COMPILE_DEFINITIONS )
+  foreach(def ${DirDefs})
+    MESSAGE(STATUS "  COMPILE_DEFINITIONS ............... : ${def}" )
+  endforeach()
+  
+  MESSAGE(STATUS "")
+  get_property(dirs DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY INCLUDE_DIRECTORIES)
+  foreach(dir ${dirs})
+    MESSAGE(STATUS "  INCLUDE_DIRECTORY ................. : ${dir}" )
+  endforeach()
+
   MESSAGE(STATUS "")
   MESSAGE(STATUS "  Test directory .................... : ${CXPROC_TEST_DIR}")
   MESSAGE(STATUS "")
