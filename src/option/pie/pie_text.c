@@ -1449,7 +1449,7 @@ TraverseScriptNodes(xmlNodePtr pndCurrent, cxpContextPtr pccArg)
 /*! \return a readable/identifiable sub-tree copy for pndArg
 */
 xmlNodePtr
-pieGetSelfAncestorNodeList(xmlNodePtr pndArg)
+pieGetSelfAncestorNodeList(xmlNodePtr pndArg, xmlChar *pucArgId)
 {
   xmlNodePtr pndResult = NULL;
 
@@ -1457,10 +1457,8 @@ pieGetSelfAncestorNodeList(xmlNodePtr pndArg)
     xmlNodePtr pndA = pndArg; /* ancestor axis */
 
     if ((pndResult = xmlNewNode(NULL, NAME_PIE_BLOCK))) {
-      xmlChar mucAdress[128];
 
-      xmlStrPrintf(mucAdress,sizeof(mucAdress),"%x",pndArg);
-      xmlSetProp(pndResult, BAD_CAST"idref", mucAdress);
+      xmlSetProp(pndResult, BAD_CAST"idref", pucArgId);
 
       pndA = pndA->parent;
       if (IS_NODE_PIE_PAR(pndA)) { /* p/date */

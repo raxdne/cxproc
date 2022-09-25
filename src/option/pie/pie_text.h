@@ -25,7 +25,7 @@ extern xmlDocPtr
 pieProcessPieNode(xmlNodePtr pndMakePie, cxpContextPtr pccArg);
 
 extern xmlNodePtr
-pieGetSelfAncestorNodeList(xmlNodePtr pndN);
+pieGetSelfAncestorNodeList(xmlNodePtr pndArg, xmlChar *pucArgId);
 
 extern xmlChar *
 pieGetAncestorContextStr(xmlNodePtr pndArg);

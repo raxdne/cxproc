@@ -484,11 +484,15 @@ CalendarUpdate(cxpCalendarPtr pCalendarArg)
   if (pCalendarArg != NULL && pCalendarArg->pdocCalendar != NULL) {
     /*! insert COL entities */
     ceElementPtr pceT;
+    xmlChar mucAdress[128];
 
     for (pceT = pCalendarArg->pceFirst; pceT; pceT = pceT->pNext) {
       xmlNodePtr pndAdd;
 
-      if ((pndAdd = pieGetSelfAncestorNodeList(pceT->pndEntry))) {
+      /* generate an id for origin node */
+      xmlStrPrintf(mucAdress,sizeof(mucAdress),"%x",pceT->pndEntry);
+      
+      if ((pndAdd = pieGetSelfAncestorNodeList(pceT->pndEntry,mucAdress))) {
 	xmlNodePtr pndCol;
 
 	if (cxpCalendarIndex(pceT->dt0.dt) > 0
@@ -530,6 +534,13 @@ CalendarUpdate(cxpCalendarPtr pCalendarArg)
 	  //xmlFreeNode(pceT->pndEntry);
 	}
       }
+    }
+
+    for (pceT = pCalendarArg->pceFirst; pceT; pceT = pceT->pNext) {
+      /* add id to origin node */
+      xmlStrPrintf(mucAdress,sizeof(mucAdress),"%x",pceT->pndEntry);
+
+      xmlSetProp(pceT->pndEntry, BAD_CAST"id", mucAdress);
     }
   }
 } /* end of CalendarUpdate() */
