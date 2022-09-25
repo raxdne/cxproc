@@ -166,6 +166,7 @@ resNodeOpen(resNodePtr prnArg, const char *pchArgMode)
 	prnArg->fExist = TRUE;
       }
     }
+    /*!\todo  else if (strchr(pchArgMode, (int)'i') && resNodeIsImage(prnArg)) ??? */
     else if (strchr(pchArgMode, (int)'d') && resNodeIsDatabase(prnArg)) {
       fResult = OpenSqlite(prnArg);
       if (fResult) {

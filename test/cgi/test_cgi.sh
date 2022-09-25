@@ -31,6 +31,7 @@ export CXP_LOG="4"
 #export QUERY_STRING="cxp=gallery&file=images/20090307-bild.jpg"
 #export QUERY_STRING="cxp=gallery&dir=images"
 #export QUERY_STRING="dir=/&cxp=PieUiDir"
+export QUERY_STRING="cxp=image&frame=80x80&path=Pictures/IMG_20220320_095854.jpg"
 
 TMP=$DIR_PREFIX/tmp
 
@@ -40,7 +41,7 @@ export CXP_LOGFILE="$TMP/cxproc-cgi.log"
 
 #$DIR_PREFIX/www/cgi-bin/cxproc-cgi 1> $TMP/cxproc-cgi.txt 2> $TMP/cxproc-cgi.err
 
-valgrind --leak-check=full --show-error-list=yes --show-reachable=yes --show-leak-kinds=all --log-file=$TMP/cxproc-cgi-valgrind.log $DIR_PREFIX/www/cgi-bin/cxproc-cgi 1> $TMP/cxproc-cgi.txt 2> $TMP/cxproc-cgi.err
+valgrind --leak-check=full --show-error-list=yes --show-reachable=yes --show-leak-kinds=all --log-file=$TMP/cxproc-cgi-valgrind.log $DIR_PREFIX/www/cgi-bin/cxproc-cgi 1> $TMP/cxproc-cgi.bin 2> $TMP/cxproc-cgi.err
 
 #valgrind --tool=callgrind --callgrind-out-file=$TMP/cxproc-cgi-callgrind.log --log-file=$TMP/cxproc-cgi-valgrind.log $DIR_PREFIX/www/cgi-bin/cxproc-cgi 1> $TMP/cxproc-cgi.txt 2> $TMP/cxproc-cgi.err
 

@@ -49,8 +49,8 @@ imgParseFile(xmlNodePtr pndArg, resNodePtr prnArg)
   xmlNodePtr pndInfo;
   xmlNodePtr pndInfoChild;
   ExceptionInfo *exception;
-  ImageInfo *image_info;
-  Image *image;
+  ImageInfo *pInfoImageRead;
+  Image *pImage;
 
   const char *property;
 
@@ -65,62 +65,62 @@ imgParseFile(xmlNodePtr pndArg, resNodePtr prnArg)
   }
 
   exception=AcquireExceptionInfo();
-  image_info=AcquireImageInfo();
+  pInfoImageRead=AcquireImageInfo();
 
-  CopyMagickString(image_info->filename,(const char*)resNodeGetNameNormalizedNative(prnArg),MaxTextExtent);
-  image = ReadImage(image_info,exception);
+  CopyMagickString(pInfoImageRead->filename,(const char*)resNodeGetNameNormalizedNative(prnArg),MaxTextExtent);
+  pImage = ReadImage(pInfoImageRead,exception);
   CatchException(exception);
   DestroyExceptionInfo(exception);
 
-  if (image == NULL) {
+  if (pImage == NULL) {
     PrintFormatLog(1,"Read Error");
     xmlSetProp(pndArg, BAD_CAST "type", BAD_CAST"error/format");
-    DestroyImageInfo(image_info);
+    DestroyImageInfo(pInfoImageRead);
     return FALSE;
   }
   else {
     xmlChar mpucValue[BUFFER_LENGTH];
     char *value;
 
-    xmlStrPrintf(mpucValue,sizeof(mpucValue),BAD_CAST"image/%s",image->magick);
+    xmlStrPrintf(mpucValue,sizeof(mpucValue),"image/%s",pImage->magick);
     xmlSetProp(pndArg, BAD_CAST "type", mpucValue);
 
-    pndInfo = xmlNewChild(pndArg, NULL, BAD_CAST"image", NULL);
+    pndInfo = xmlNewChild(pndArg, NULL, BAD_CAST"pImage", NULL);
     pndInfoChild = xmlNewChild(pndInfo, NULL, BAD_CAST"size",NULL);
     /*  */
-    xmlStrPrintf(mpucValue,sizeof(mpucValue),BAD_CAST"%i",image->columns);
+    xmlStrPrintf(mpucValue,sizeof(mpucValue),"%i",pImage->columns);
     xmlSetProp(pndInfoChild, BAD_CAST "col",mpucValue);
     /*  */
-    xmlStrPrintf(mpucValue,sizeof(mpucValue),BAD_CAST"%i",image->rows);
+    xmlStrPrintf(mpucValue,sizeof(mpucValue),"%i",pImage->rows);
     xmlSetProp(pndInfoChild, BAD_CAST "row",mpucValue);
 
     pndInfoChild = xmlNewChild(pndInfo, NULL, BAD_CAST"color",NULL);
     /*  */
-    xmlStrPrintf(mpucValue,sizeof(mpucValue),BAD_CAST"%i",image->depth);
+    xmlStrPrintf(mpucValue,sizeof(mpucValue),"%i",pImage->depth);
     xmlSetProp(pndInfoChild, BAD_CAST "depth",mpucValue);
     /*  */
-    xmlStrPrintf(mpucValue,sizeof(mpucValue),BAD_CAST"%i",image->colors);
+    xmlStrPrintf(mpucValue,sizeof(mpucValue),"%i",pImage->colors);
     xmlSetProp(pndInfoChild, BAD_CAST "colors",mpucValue);
 
     pndInfoChild = xmlNewChild(pndInfo, NULL, BAD_CAST"resolution",NULL);
     /*  */
-    xmlStrPrintf(mpucValue,sizeof(mpucValue),BAD_CAST"%.3f",image->x_resolution);
+    xmlStrPrintf(mpucValue,sizeof(mpucValue),"%.3f",pImage->x_resolution);
     xmlSetProp(pndInfoChild, BAD_CAST "x",mpucValue);
     /*  */
-    xmlStrPrintf(mpucValue,sizeof(mpucValue),BAD_CAST"%.3f",image->y_resolution);
+    xmlStrPrintf(mpucValue,sizeof(mpucValue),"%.3f",pImage->y_resolution);
     xmlSetProp(pndInfoChild, BAD_CAST "y",mpucValue);
 
     /* default is DPI */
     xmlSetProp(pndInfoChild,
 	       BAD_CAST "dotper",
-	       BAD_CAST ((image->units == PixelsPerCentimeterResolution) ? "cm" : "inch"));
+	       BAD_CAST ((pImage->units == PixelsPerCentimeterResolution) ? "cm" : "inch"));
 #if 0
     /*
       code derived from ImageMagick-6.4.3/magick/identify.c
     */
-    GetImageProperty(image,"exif:*");
-    ResetImagePropertyIterator(image);
-    property = GetNextImageProperty(image);
+    GetImageProperty(pImage,"exif:*");
+    ResetImagePropertyIterator(pImage);
+    property = GetNextImageProperty(pImage);
     if (property) {
       /*! Add image properties. */
       /* xmlNodePtr pndInfoExif; */
@@ -129,20 +129,20 @@ imgParseFile(xmlNodePtr pndArg, resNodePtr prnArg)
       /* pndInfoExif = xmlNewChild(pndInfo, NULL, BAD_CAST"exif",NULL); */
       while (property != (const char *) NULL) {
 	if (strlen(property) > 1 && xmlStrstr(BAD_CAST property,BAD_CAST"xmlns")==NULL) {
-	  value=(char *)GetImageProperty(image,property);
+	  value=(char *)GetImageProperty(pImage,property);
 	  if (value) {
 	    pndInfoProp = xmlNewChild(pndInfo, NULL, BAD_CAST property,NULL);
 	    xmlSetProp(pndInfoProp, BAD_CAST "value",BAD_CAST value);
 	  }
 	}
-	property=GetNextImageProperty(image);
+	property=GetNextImageProperty(pImage);
       }
     }
 #endif
 
-    DestroyImage(image);
+    DestroyImage(pImage);
   }
-  DestroyImageInfo(image_info);
+  DestroyImageInfo(pInfoImageRead);
 #endif
 
   return TRUE;
@@ -152,58 +152,60 @@ imgParseFile(xmlNodePtr pndArg, resNodePtr prnArg)
 
 /*! process the image
 
+  \param pndArg - DOM node with all processing attributes
+  \param prnArgSrc - resource node of source
+  \param pccArg - context for logging
+
   \return TRUE if success
  */
 BOOL_T
-imgProcessImage(xmlNodePtr pndArg, resNodePtr prnArgSrc, resNodePtr prnArgTo)
+imgProcessImage(xmlNodePtr pndArg, resNodePtr prnArgSrc, resNodePtr prnArgTo, cxpContextPtr pccArg)
 {
+  BOOL_T fResult = TRUE;
+  
 #ifdef HAVE_LIBMAGICK
-  ExceptionInfo *pException;
-  ImageInfo *pInfoImage;
-  ImageInfo *pInfoImageWrite;
-  MagickBooleanType fStatus;
 
-  pException=AcquireExceptionInfo();
-  pInfoImage=AcquireImageInfo();
+  assert(prnArgSrc != NULL);
+  assert(prnArgTo != NULL);
+  assert(prnArgSrc != prnArgTo);
 
-  PrintFormatLog(1,"Processing IMAGE");
-
-  if (resNodeIsReadable(prnArgSrc)) {
+#ifdef DEBUG
+  cxpCtxtLogPrint(pccArg,1,"Processing IMAGE");
+#endif
+  
+  if (resNodeGetContent(prnArgSrc,1024) != NULL && resNodeGetSize(prnArgSrc) > 0) {
     /*
       Read an image file.
-     */
+    */
+    char *pcResult = NULL;
     xmlChar *pucAttrFrame;
     xmlChar *pucAttrNote;
     unsigned long width_frame, height_frame;
     float scale;
     float scale_cmp;
     Image *pImage = NULL;
-    Image *pImageOrientated;
+    Image *pImageOrientated = NULL;
+    ExceptionInfo *pException;
+    ImageInfo *pInfoImageRead;
+    ImageInfo *pInfoImageWrite;
+    MagickBooleanType fStatus;
 
-    if (resNodeIsFileInArchive(prnArgSrc)) {
-      char *pcResult;
+    pException = AcquireExceptionInfo();
+    pInfoImageRead = AcquireImageInfo();
 
-      PrintFormatLog(2,"Read IMAGE from ZIP '%s'",resNodeGetNameNormalized(prnArgSrc));
-      if((pcResult = resNodeGetContent(prnArgSrc,1024))) {
-	pImage = BlobToImage(pInfoImage, pcResult, resNodeGetSize(prnArgSrc),pException);
-      }
-    }
-    else {    
-      PrintFormatLog(2,"Read IMAGE '%s'",resNodeGetNameNormalized(prnArgSrc));
-      CopyMagickString(pInfoImage->filename,resNodeGetNameNormalizedNative(prnArgSrc),MaxTextExtent);
-      pImage=ReadImage(pInfoImage,pException);
-    }
-    
+    pImage = BlobToImage(pInfoImageRead, resNodeGetContentPtr(prnArgSrc), resNodeGetSize(prnArgSrc), pException);
     CatchException(pException);
     if (pImage == NULL) {
       /*!\todo Error handling */
-      PrintFormatLog(1,"Read Error");
+      DestroyImageInfo(pInfoImageRead);
+      DestroyExceptionInfo(pException);
+      cxpCtxtLogPrint(pccArg,1,"Read Error");
       return FALSE;
     }
 
     /*
-	Write the image then destroy it.
-     */
+      Write the image then destroy it.
+    */
     height_frame = 0;
     width_frame  = 0;
     pucAttrFrame = domGetPropValuePtr(pndArg,BAD_CAST "frame");
@@ -213,10 +215,10 @@ imgProcessImage(xmlNodePtr pndArg, resNodePtr prnArgSrc, resNodePtr prnArgTo)
       if (*pcEnd=='x') {
 	pcEnd++;
 	height_frame = (unsigned long) strtol((const char *)pcEnd, &pcEnd, 10);
-	PrintFormatLog(2,"Frame for IMAGE '%ix%i'",width_frame,height_frame);
+	cxpCtxtLogPrint(pccArg,2,"Frame for IMAGE '%ix%i'",width_frame,height_frame);
       }
       else {
-	PrintFormatLog(1,"No usable frame definition for IMAGE '%s'",pucAttrFrame);
+	cxpCtxtLogPrint(pccArg,1,"No usable frame definition for IMAGE '%s'",pucAttrFrame);
       }
     }
 
@@ -228,14 +230,14 @@ imgProcessImage(xmlNodePtr pndArg, resNodePtr prnArgSrc, resNodePtr prnArgTo)
     scale = 1.1;
 
     scale_cmp = (float)((pImage->orientation == RightTopOrientation
-	|| pImage->orientation == LeftBottomOrientation)
-	? height_frame : width_frame) / (float)pImage->columns;
+			 || pImage->orientation == LeftBottomOrientation)
+			? height_frame : width_frame) / (float)pImage->columns;
     if (scale_cmp < scale) {
       scale = scale_cmp;
     }
     scale_cmp = (float)((pImage->orientation == RightTopOrientation
-	|| pImage->orientation == LeftBottomOrientation)
-	? width_frame : height_frame) / (float)pImage->rows;
+			 || pImage->orientation == LeftBottomOrientation)
+			? width_frame : height_frame) / (float)pImage->rows;
     if (scale_cmp < scale) {
       scale = scale_cmp;
     }
@@ -243,16 +245,16 @@ imgProcessImage(xmlNodePtr pndArg, resNodePtr prnArgSrc, resNodePtr prnArgTo)
     if (scale < 1.0) {
       Image *pImageResize;
 
-      PrintFormatLog(2,"Scale IMAGE '%.2f'",scale);
+      cxpCtxtLogPrint(pccArg,2,"Scale IMAGE '%.2f'",scale);
       pImageResize = ResizeImage(pImage,
-	  (unsigned long) ceil((double)pImage->columns * scale),
-	  (unsigned long) ceil((double)pImage->rows * scale),
-	  BoxFilter,
-	  1.0,
-	  pException);
+				 (unsigned long) ceil((double)pImage->columns * scale),
+				 (unsigned long) ceil((double)pImage->rows * scale),
+				 BoxFilter,
+				 1.0,
+				 pException);
       CatchException(pException);
       if (pImageResize == NULL) {
-	PrintFormatLog(1,"Error scaling IMAGE");
+	cxpCtxtLogPrint(pccArg,1,"Error scaling IMAGE");
       }
       else {
 	DestroyImage(pImage);
@@ -263,46 +265,46 @@ imgProcessImage(xmlNodePtr pndArg, resNodePtr prnArgSrc, resNodePtr prnArgTo)
     pImageOrientated = NULL;
     /* s. wand/mogrify.c */
     switch (pImage->orientation)
-    {
-    case TopRightOrientation:
-    {
-      pImageOrientated=FlopImage(pImage,pException);
-      break;
-    }
-    case BottomRightOrientation:
-    {
-      pImageOrientated=RotateImage(pImage,180.0,pException);
-      break;
-    }
-    case BottomLeftOrientation:
-    {
-      pImageOrientated=FlipImage(pImage,pException);
-      break;
-    }
-    case LeftTopOrientation:
-    {
-      pImageOrientated=TransposeImage(pImage,pException);
-      break;
-    }
-    case RightTopOrientation:
-    {
-      pImageOrientated=RotateImage(pImage,90.0,pException);
-      break;
-    }
-    case RightBottomOrientation:
-    {
-      pImageOrientated=TransverseImage(pImage,pException);
-      break;
-    }
-    case LeftBottomOrientation:
-    {
-      pImageOrientated=RotateImage(pImage,270.0,pException);
-      break;
-    }
-    default:
-      PrintFormatLog(2,"No rotation operation neccessary");
-      break;
-    }
+      {
+      case TopRightOrientation:
+	{
+	  pImageOrientated=FlopImage(pImage,pException);
+	  break;
+	}
+      case BottomRightOrientation:
+	{
+	  pImageOrientated=RotateImage(pImage,180.0,pException);
+	  break;
+	}
+      case BottomLeftOrientation:
+	{
+	  pImageOrientated=FlipImage(pImage,pException);
+	  break;
+	}
+      case LeftTopOrientation:
+	{
+	  pImageOrientated=TransposeImage(pImage,pException);
+	  break;
+	}
+      case RightTopOrientation:
+	{
+	  pImageOrientated=RotateImage(pImage,90.0,pException);
+	  break;
+	}
+      case RightBottomOrientation:
+	{
+	  pImageOrientated=TransverseImage(pImage,pException);
+	  break;
+	}
+      case LeftBottomOrientation:
+	{
+	  pImageOrientated=RotateImage(pImage,270.0,pException);
+	  break;
+	}
+      default:
+	cxpCtxtLogPrint(pccArg,2,"No rotation operation neccessary");
+	break;
+      }
     CatchException(pException);
     if (pImageOrientated) {
       DestroyImage(pImage);
@@ -313,44 +315,44 @@ imgProcessImage(xmlNodePtr pndArg, resNodePtr prnArgSrc, resNodePtr prnArgTo)
     /*! allow visible annotation of pImage */
 
     pucAttrNote = domGetPropValuePtr(pndArg,BAD_CAST "note");
-    if (pucAttrNote != NULL && xmlStrlen(pucAttrNote) > 0) {
+    if (STR_IS_NOT_EMPTY(pucAttrNote)) {
       DrawInfo *pDrawInfo;
       int res;
       char mcBuffer[BUFFER_LENGTH];
       xmlChar *pucT;
 
-      PrintFormatLog(2,"Add note '%s'",pucAttrNote);
+      cxpCtxtLogPrint(pccArg,2,"Add watermark '%s'",pucAttrNote);
 
-      pDrawInfo = AcquireDrawInfo();
-      GetDrawInfo(pInfoImage,pDrawInfo);
+      if ((pDrawInfo = AcquireDrawInfo()) != NULL ) {
+	GetDrawInfo(pInfoImageRead,pDrawInfo);
 
-      pucT = xmlStrdup(pucAttrNote);
-      if (pucT) {
-	NormalizeStringSpaces((char *)pucT);
-	pDrawInfo->text = (char *)pucT;
+	if ((pucT = xmlStrdup(pucAttrNote)) != NULL) {
+	  NormalizeStringSpaces((char *)pucT);
+	  pDrawInfo->text = xmlStrdup(pucT);
 
-	snprintf(mcBuffer,BUFFER_LENGTH, "%+d%+d", pImage->columns - 5, pImage->rows - 5);
-	pDrawInfo->geometry = mcBuffer;
-	pDrawInfo->gravity = NorthGravity;
-	pDrawInfo->pointsize = 11.0;
-	pDrawInfo->text_antialias = MagickTrue;
-	pDrawInfo->family = "helvetica";
-	pDrawInfo->style = ItalicStyle;
-	pDrawInfo->align = RightAlign;
-	/* 	draw_info->opacity = (Quantum) (QuantumRange* +0.5); */
+	  snprintf(mcBuffer,BUFFER_LENGTH, "%+d%+d", pImage->columns - 5, pImage->rows - 5);
+	  pDrawInfo->geometry = xmlStrdup(mcBuffer);
+	  pDrawInfo->gravity = NorthGravity;
+	  pDrawInfo->pointsize = 11.0;
+	  pDrawInfo->text_antialias = MagickTrue;
+	  pDrawInfo->family = xmlStrdup("helvetica");
+	  pDrawInfo->style = ItalicStyle;
+	  pDrawInfo->align = RightAlign;
+	  /* 	draw_info->opacity = (Quantum) (QuantumRange* +0.5); */
 
-	pDrawInfo->border_color.blue  = 0xff;
-	pDrawInfo->border_color.green = 0xff;
-	pDrawInfo->border_color.red   = 0xff;
+	  pDrawInfo->border_color.blue  = 0xff;
+	  pDrawInfo->border_color.green = 0xff;
+	  pDrawInfo->border_color.red   = 0xff;
 
-	res = AnnotateImage(pImage, pDrawInfo);
+	  res = AnnotateImage(pImage, pDrawInfo);
+	}
+	DestroyDrawInfo(pDrawInfo);
       }
-      //DestroyDrawInfo(pDrawInfo);
     }
 
-    /*!\bug the image_info doesnt fit for pImageOrientated */
+    /*!\bug the pInfoImageRead doesnt fit for pImageOrientated */
 
-    PrintFormatLog(2,"Write IMAGE to '%s'",resNodeGetNameNormalized(prnArgTo));
+    cxpCtxtLogPrint(pccArg,2,"Write IMAGE to '%s'",resNodeGetNameNormalized(prnArgTo));
 
     if (resNodeIsStd(prnArgTo)) {
       /* write to stdout */
@@ -366,36 +368,38 @@ imgProcessImage(xmlNodePtr pndArg, resNodePtr prnArgSrc, resNodePtr prnArgTo)
       printf("\n");
 #endif
 
-      pInfoImageWrite=CloneImageInfo(pInfoImage);
+      pInfoImageWrite = CloneImageInfo(pInfoImageRead);
       SetImageInfoFile(pInfoImageWrite,stdout);
-      pInfoImageWrite->adjoin=MagickTrue;
+      pInfoImageWrite->adjoin = MagickTrue;
 
-      fStatus=WriteImage(pInfoImageWrite,pImage);
-      pInfoImageWrite=DestroyImageInfo(pInfoImageWrite);
-      if (fStatus == MagickFalse)
+      fStatus = WriteImage(pInfoImageWrite,pImage);
+      (void) fflush(stdout);
+
+      pInfoImageWrite = DestroyImageInfo(pInfoImageWrite);
+      if (fStatus == MagickFalse) {
 	InheritException(pException,&pImage->exception);
+      }
     }
     else {
       /* create target directory first */
       if (resNodeMakeDirectoryStr(resNodeGetNameBaseDir(prnArgSrc),MODE_DIR_CREATE)) {
 	/* needed basedir created successfully */
       }
-      WriteImages(pInfoImage,pImage,resNodeGetNameNormalizedNative(prnArgTo),pException);
+      WriteImages(pInfoImageRead,pImage,resNodeGetNameNormalizedNative(prnArgTo),pException);
     }
     CatchException(pException);
 
     //DestroyExceptionInfo(exception);
-    MagickCoreTerminus();
     DestroyImage(pImage);
+    DestroyExceptionInfo(pException);
+    DestroyImageInfo(pInfoImageRead);
   }
-
-  DestroyExceptionInfo(pException);
-  DestroyImageInfo(pInfoImage);
+#else
+  fResult = FALSE;
 #endif
 
-  return TRUE;
-}
-/* end of imgProcessImage() */
+  return fResult;
+} /* end of imgProcessImage() */
 
 
 /*!
@@ -406,7 +410,7 @@ imgProcessImageNode(xmlNodePtr pndArg, cxpContextPtr pccArg)
   xmlChar *pucAttrTo;
 
   pucAttrTo  = domGetPropValuePtr(pndArg,BAD_CAST "to");
-  if ((pucAttrTo != NULL && xmlStrlen(pucAttrTo) > 0)) {
+  if (STR_IS_NOT_EMPTY(pucAttrTo)) {
     xmlNodePtr pndChild;
     resNodePtr prnTo;
 
@@ -416,25 +420,24 @@ imgProcessImageNode(xmlNodePtr pndArg, cxpContextPtr pccArg)
       xmlChar *pucAttrSrc;
 
       pucAttrSrc = domGetPropValuePtr(pndChild,BAD_CAST "src");
-      if ((pucAttrSrc != NULL && xmlStrlen(pucAttrSrc) > 0)) {
+      if (STR_IS_NOT_EMPTY(pucAttrSrc)) {
 	resNodePtr prnSrc;
 
 	prnSrc = resNodeConcatNew(cxpCtxtLocationGetStr(pccArg),pucAttrSrc);
-#ifdef HAVE_LIBMAGICK
-	imgProcessImage(pndArg,prnSrc,prnTo);
-#else
-	PrintFormatLog(1,"Copy IMAGE without image processing");
 #ifdef HAVE_CGI
+	imgProcessImage(pndArg,prnSrc,prnTo,pccArg);
+	/*!\todo extend and use resNodeOpen() and resNodeTransfer() ... ??? */
+#else
+	{
 	  xmlNodePtr pndCopy;
 
-	  pndCopy = xmlNewNode(NULL,BAD_CAST"copy");
+	  cxpCtxtLogPrint(pccArg,1,"No image processing of '%s' enabled",resNodeGetNameNormalized(prnSrc));
+	  pndCopy = xmlNewNode(NULL,NAME_FILECOPY);
 	  xmlSetProp(pndCopy, BAD_CAST "from", resNodeGetNameNormalized(prnSrc));
 	  xmlSetProp(pndCopy, BAD_CAST "to", resNodeGetNameNormalized(prnTo));
-	  //dirCopyFile(pndCopy,NULL);
+	  cxpProcessCopyNode(pndCopy,pccArg); /* to use full error handling/logging */
 	  xmlFreeNode(pndCopy);
-#else
-	  resNodeTransfer(prnSrc,prnTo,FALSE);
-#endif
+	}
 #endif
 	resNodeFree(prnSrc);
       }
@@ -451,25 +454,25 @@ imgProcessImageNode(xmlNodePtr pndArg, cxpContextPtr pccArg)
 
 	//NormalizeStringSpaces((char *)pucComment);
 
-	PrintFormatLog(2,"Comment IMAGE '%s'",resNodeGetNameNormalized(prnTo));
+	cxpCtxtLogPrint(pccArg,2,"Comment IMAGE '%s'",resNodeGetNameNormalized(prnTo));
 
 	prnComment = resNodeCommentNew(prnTo);
 	if (prnComment) {
 	  if (resNodeOpen(prnComment,"w")) {
 	    if (fputs((const char*)pucComment,(FILE *)resNodeGetHandleIO(prnComment)) == EOF) {
-	      PrintFormatLog(1,"Write error file '%s'", resNodeGetNameNormalized(prnComment));
+	      cxpCtxtLogPrint(pccArg,1,"Write error file '%s'", resNodeGetNameNormalized(prnComment));
 	    }
 	    else {
-	      PrintFormatLog(2,"Wrote comment file '%s'", resNodeGetNameNormalized(prnComment));
+	      cxpCtxtLogPrint(pccArg,2,"Wrote comment file '%s'", resNodeGetNameNormalized(prnComment));
 	    }
 	  }
 	  else {
-	    PrintFormatLog(1,"Error resNodeOpen()\n");
+	    cxpCtxtLogPrint(pccArg,1,"Error resNodeOpen()\n");
 	  }
 	  resNodeFree(prnComment);
 	}
 	else {
-	  PrintFormatLog(1,"Error resNodeCommentNew()\n");
+	  cxpCtxtLogPrint(pccArg,1,"Error resNodeCommentNew()\n");
 	}
       }
       xmlFree(pucComment);
@@ -477,7 +480,7 @@ imgProcessImageNode(xmlNodePtr pndArg, cxpContextPtr pccArg)
     resNodeFree(prnTo);
   }
   else {
-    PrintFormatLog(1,"No valid attributes in '%s'",pndArg->name);
+    cxpCtxtLogPrint(pccArg,1,"No valid attributes in '%s'",pndArg->name);
   }
 } /* end of imgProcessImageNode() */
 

@@ -70,6 +70,10 @@ CXP_ROOT=.../www/html/Documents
 #include <archive/cxp_archive.h>
 #endif
 
+#ifdef HAVE_LIBMAGICK
+#include <magick/ImageMagick.h>
+#endif
+
 
 int
 main(int argc, char *argv[], char *envp[])
@@ -136,6 +140,9 @@ main(int argc, char *argv[], char *envp[])
       || atexit(cgi_quit) != 0
 #ifdef HAVE_PIE
       || atexit(pieTextCleanup) != 0
+#endif
+#ifdef HAVE_LIBMAGICK
+      || atexit(MagickCoreTerminus) != 0
 #endif
     ) {
     exit(EXIT_FAILURE);

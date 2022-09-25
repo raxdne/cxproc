@@ -89,6 +89,9 @@
 #ifdef HAVE_LIBARCHIVE
 #include <archive/cxp_archive.h>
 #endif
+#ifdef HAVE_LIBMAGICK
+#include <magick/ImageMagick.h>
+#endif
 #ifdef HAVE_LIBEXIF
 #include <image/image_exif.h>
 #endif
@@ -150,6 +153,9 @@ main(int argc, char** argv, char** envp)
       || atexit(cxpCleanup) != 0
 #ifdef HAVE_PIE
       || atexit(pieTextCleanup) != 0
+#endif
+#ifdef HAVE_LIBMAGICK
+      || atexit(MagickCoreTerminus) != 0
 #endif
     ) {
     exit(EXIT_FAILURE);

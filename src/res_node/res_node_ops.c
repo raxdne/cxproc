@@ -105,6 +105,11 @@ resNodeTransfer(resNodePtr prnArgFrom, resNodePtr prnArgTo, BOOL_T fArgMove)
 
   //  assert(prnArgFrom != NULL);
 
+#ifdef HAVE_CGI
+  assert(resNodeIsStd(prnArgTo));
+  assert( ! fArgMove);  
+#endif
+  
   /********************************************************************************
      check source
   */

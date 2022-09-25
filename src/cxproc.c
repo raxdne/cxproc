@@ -54,6 +54,10 @@
 #include <archive/cxp_archive.h>
 #endif
 
+#ifdef HAVE_LIBMAGICK
+#include <magick/ImageMagick.h>
+#endif
+
 #ifdef HAVE_PETRINET
 #include <petrinet/petrinet.h>
 #endif
@@ -118,6 +122,9 @@ main(int argc, char *argv[], char *envp[])
 #endif
 #ifdef HAVE_PIE
       || atexit(pieTextCleanup) != 0
+#endif
+#ifdef HAVE_LIBMAGICK
+      || atexit(MagickCoreTerminus) != 0
 #endif
     ) {
     exit(EXIT_FAILURE);
