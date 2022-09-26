@@ -35,6 +35,11 @@ IF (LIBVORBIS_LIBRARY)
 ENDIF (LIBVORBIS_LIBRARY)
 
 
+################################################################################
+#
+# libvorbis
+#
+
 IF (CXPROC_LIBID3TAG)
   INCLUDE_DIRECTORIES(${LIBID3TAG_INCLUDE_DIR})
 ENDIF (CXPROC_LIBID3TAG)
@@ -48,10 +53,14 @@ IF (CXPROC_LIBVORBIS)
 ENDIF (CXPROC_LIBVORBIS)
 
 IF (CXPROC_LIBVORBIS OR CXPROC_LIBOGG OR CXPROC_LIBVORBIS)
-  SET(CXPROC_HEADERS ${CXPROC_HEADERS} ${CXPROC_SRC_DIR}/option/audio/audio.h)
-  SET(CXPROC_SOURCES ${CXPROC_SOURCES} ${CXPROC_SRC_DIR}/option/audio/audio.c)
-  SET(FILEX_HEADERS ${FILEX_HEADERS} ${CXPROC_SRC_DIR}/option/audio/audio.h)
-  SET(FILEX_SOURCES ${FILEX_SOURCES} ${CXPROC_SRC_DIR}/option/audio/audio.c)
+  target_sources(filex PUBLIC ${CXPROC_SRC_DIR}/option/audio/audio.h ${CXPROC_SRC_DIR}/option/audio/audio.c)
+
+  target_sources(cxproc PUBLIC ${CXPROC_SRC_DIR}/option/audio/audio.h ${CXPROC_SRC_DIR}/option/audio/audio.c)
+
+  target_sources(cxproc-cgi PUBLIC ${CXPROC_SRC_DIR}/option/audio/audio.h ${CXPROC_SRC_DIR}/option/audio/audio.c)
+
+  target_sources(cxproc-test PUBLIC ${CXPROC_SRC_DIR}/option/audio/audio.h ${CXPROC_SRC_DIR}/option/audio/audio.c)
+
 ENDIF ()
 
 ################################################################################

@@ -42,6 +42,8 @@
 
 #ifdef HAVE_LIBID3TAG
 
+#include <audio/audio.h>
+
 static xmlChar *
 input_id3_get_string(struct id3_tag *tag, char *frame_name);
 

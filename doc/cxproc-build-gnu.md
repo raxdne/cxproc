@@ -23,6 +23,12 @@ Development environment
 
     sudo apt install apache2 apache2-utils doxygen graphviz valgrind kcachegrind strace splint cflow mc screen w3m wget ssh rsync meld git gitk emacs samba samba-common smbclient cifs-utils
 
+to find missing libraries or header files on Debian/Ubuntu
+
+	sudo apt install apt-file
+	sudo apt-file update
+	apt-file find  ImageMagick.h
+
 ## Fedora (package names are not up-to-date)
 
 s. <http://rpmfind.net/linux/rpm2html/search.php>
