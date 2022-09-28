@@ -316,6 +316,9 @@ struct _resNode {
   struct _resNode *prev;     /*! next context in list */
 };
 
+extern resNodePtr
+resNodeNew(void);
+
 extern BOOL_T
 resNodeReset(resNodePtr prnArg, xmlChar *pucArgPath);
 
@@ -336,6 +339,13 @@ resNodeDup(resNodePtr prnArg, int iArgOptions);
 
 extern resNodePtr
 resNodeStrNew(xmlChar *pucArgPath);
+
+#ifdef HAVE_LIBCURL
+
+resNodePtr
+resNodeCurlNew(xmlChar *pucArgPath);
+
+#endif
 
 extern resNodePtr
 resNodeDirNew(xmlChar *pucArgPath);

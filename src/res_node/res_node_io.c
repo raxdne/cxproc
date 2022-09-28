@@ -87,6 +87,37 @@ static int
 resNodeResetUsageCount(resNodePtr prnArg);
 
 
+/*! set mode of context prnArg according to pchArgMode ("r|w|w+|wb|wb|rz|wz|a|aw|rd|wd|wd+")
+
+  \return TRUE if successful
+*/
+BOOL_T
+resNodeSetMode(resNodePtr prnArg, const char *pchArgMode)
+{
+  BOOL_T fResult = TRUE;
+
+  assert(pchArgMode != NULL && (strchr(pchArgMode, (int)'r') || strchr(pchArgMode, (int)'w')));
+
+  if (strchr(pchArgMode, (int)'w')) {
+    if (strchr(pchArgMode, (int)'+')) {
+      prnArg->eMode = mode_append;
+    }
+    else {
+      prnArg->eMode = mode_write;
+    }
+  }
+  else {
+    prnArg->eMode = mode_read;
+  }
+      
+  if (resNodeGetBlockSize(prnArg) < BUFFER_LENGTH) {
+    resNodeSetBlockSize(prnArg, BUFFER_LENGTH); /* default for blockwise reading */
+  }
+
+  return fResult;
+} /* end of resNodeSetMode() */
+
+
 /*! opens context prnArg according to pchArgMode ("r|w|w+|wb|wb|rz|wz|a|aw|rd|wd|wd+")
 
   set the context handle and access method for IO
@@ -98,28 +129,11 @@ resNodeOpen(resNodePtr prnArg, const char *pchArgMode)
 {
   BOOL_T fResult = FALSE;
 
-  assert(pchArgMode != NULL && (strchr(pchArgMode, (int)'r') || strchr(pchArgMode, (int)'w')));
-
   if (resNodeResetError(prnArg)) {
 
     assert(prnArg->handleIO == NULL || prnArg->handleIO == (void *)stdin || prnArg->handleIO == (void *)stdout);
+    resNodeSetMode(prnArg, pchArgMode);
     
-    if (strchr(pchArgMode, (int)'w')) {
-      if (strchr(pchArgMode, (int)'+')) {
-	prnArg->eMode = mode_append;
-      }
-      else {
-	prnArg->eMode = mode_write;
-      }
-    }
-    else {
-      prnArg->eMode = mode_read;
-    }
-      
-    if (resNodeGetBlockSize(prnArg) < BUFFER_LENGTH) {
-      resNodeSetBlockSize(prnArg, BUFFER_LENGTH); /* default for blockwise reading */
-    }
-
     PrintFormatLog(3, "Open file '%s' in '%s' mode", resNodeGetNameNormalized(prnArg), pchArgMode);
     
     if (resNodeIsStd(prnArg)) {
@@ -477,20 +491,20 @@ OpenURL(resNodePtr prnArg)
     resNodeSetError(prnArg, rn_error_open, "writing mode for URL not implemented yet '%s'", resNodeGetNameNormalized(prnArg));
     //prnArg->eAccess = rn_access_curl;
   }
-  else {
+  else if (prnArg->curlURL) {
     /* init the curl session */
     prnArg->handleIO = curl_easy_init();
     if (prnArg->handleIO) {
       CURLcode res;
 
-      if (prnArg->curlURL) {
-	curl_easy_setopt(prnArg->handleIO, CURLOPT_CURLU, prnArg->curlURL);
-      }
-      else {
-	/* specify URL to get */
-	curl_easy_setopt(prnArg->handleIO, CURLOPT_URL, resNodeGetNameNormalizedNative(prnArg));
-      }
-
+      //if (prnArg->curlURL) {
+      curl_easy_setopt(prnArg->handleIO, CURLOPT_CURLU, prnArg->curlURL);
+      //}
+      //else {
+      /* specify URL to get */
+      //curl_easy_setopt(prnArg->handleIO, CURLOPT_URL, resNodeGetNameNormalizedNative(prnArg));
+      //}
+      
       curl_easy_setopt(prnArg->handleIO, CURLOPT_CONNECT_ONLY, 1L);
       curl_easy_setopt(prnArg->handleIO, CURLOPT_TIMEOUT, 2L);
       res = curl_easy_perform(prnArg->handleIO);

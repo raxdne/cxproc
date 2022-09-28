@@ -411,16 +411,13 @@ resNodeTestInOut(void)
     i++;
     printf("TEST %i in '%s:%i': open and close an local HTTP file context = ",i,__FILE__,__LINE__);
 
-    if ((prnT = resNodeDirNew(BAD_CAST HTTPPREFIX)) == NULL) {
+    if ((prnT = resNodeCurlNew(BAD_CAST HTTPPREFIX)) == NULL) {
       printf("Error resNodeDirNew()\n");
     }
     else if (resNodeIsURL(prnT) == FALSE) {
       printf("Error resNodeIsURL()\n");
     }
-    else if (resNodeOpen(prnT, "w") == TRUE) {
-      printf("Error resNodeOpen()\n");
-    }
-    else if (resNodeOpen(prnT, "r") == FALSE) {
+    else if (OpenURL(prnT) == FALSE) {
       printf("Error resNodeOpen()\n");
     }
     else if (resNodeIsExist(prnT) == FALSE) {
@@ -435,8 +432,32 @@ resNodeTestInOut(void)
     else if (resNodeGetError(prnT) == TRUE) {
       printf("Error resNodeGetError(): %s\n",resNodeGetErrorMsg(prnT));
     }
-    else if (resNodeClose(prnT) == FALSE) {
+    else if (CloseURL(prnT) == FALSE) {
       printf("Error resNodeClose()\n");
+    }
+    else if ((pucContent = plainGetContextTextEat(prnT,8)) == NULL || xmlUTF8Strlen(pucContent) < 40) {
+      printf("Error plainGetContextTextEat()\n");
+    }
+    else {
+      n_ok++;
+      printf("OK\n");
+    }
+    xmlFree(pucContent);
+    resNodeFree(prnT);
+  }
+
+  if (RUNTEST) {
+    resNodePtr prnT = NULL;
+    xmlChar *pucContent = NULL;
+
+    i++;
+    printf("TEST %i in '%s:%i': open and close an local HTTP file context = ",i,__FILE__,__LINE__);
+
+    if ((prnT = resNodeDirNew(BAD_CAST HTTPPREFIX "Test/Documents/TestContent.txt")) == NULL) {
+      printf("Error resNodeDirNew()\n");
+    }
+    else if (resNodeGetContent(prnT,1024) == NULL) {
+      printf("Error resNodeReadContent(): there is no content\n");
     }
     else if ((pucContent = plainGetContextTextEat(prnT,8)) == NULL || xmlUTF8Strlen(pucContent) < 40) {
       printf("Error plainGetContextTextEat()\n");

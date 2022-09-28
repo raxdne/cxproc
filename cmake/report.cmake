@@ -98,7 +98,7 @@ ENDIF (CXPROC_JSON)
   ENDIF ()
 
   IF (CXPROC_LIBOGG)
-    MESSAGE(STATUS "  Link cxproc with libogg ........ : ${CXPROC_LIBOGG}")
+    MESSAGE(STATUS "  Link cxproc with libogg ........... : ${CXPROC_LIBOGG}")
   ENDIF ()
 
   IF (CXPROC_ARCHIVE)

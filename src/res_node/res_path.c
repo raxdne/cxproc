@@ -1262,6 +1262,27 @@ resPathGetNextSeparator(xmlChar *pucArgPath)
 /* end of resPathGetNextSeparator() */
 
 
+/*! \return the pointer to next path separator in pucArgPath or NULL if fails
+*/
+xmlChar *
+resPathGetNextPathPtr(xmlChar *pucArgPath)
+{
+  xmlChar *pucResult = NULL;
+
+  if (STR_IS_NOT_EMPTY(pucArgPath)) {
+    xmlChar *pucT;
+
+    for (pucT = pucArgPath; pucT != NULL && !isend(*pucT); pucT++) {
+      if (*pucT == PATHLIST_SEPARATOR) {
+	pucResult = pucT;
+	break;
+      }
+    }
+  }
+  return pucResult;
+} /* end of resPathGetNextPathPtr() */
+
+
 /*! \return search for first occurance of pucArgNeedle in pucArgPath
 */
 xmlChar *

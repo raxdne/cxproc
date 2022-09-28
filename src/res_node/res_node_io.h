@@ -22,6 +22,9 @@
 #include <res_node/res_node.h>
 
 extern BOOL_T
+resNodeSetMode(resNodePtr prnArg, const char *pchArgMode);
+
+extern BOOL_T
 resNodeOpen(resNodePtr prnArg, const char *pchMode);
 
 extern BOOL_T

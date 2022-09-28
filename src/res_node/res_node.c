@@ -103,9 +103,6 @@ const char *mpcTypeNames[] = {
 	     "rn_type_url"
 };
 
-static resNodePtr
-resNodeNew(void);
-
 static BOOL_T
 resNodeSetExtension(resNodePtr prnArg);
 
@@ -1093,14 +1090,103 @@ resNodeStrNew(xmlChar *pucArgPath)
     }
     xmlFree(pucPath);
   }
-  else {
-    prnResult = resNodeDirNew(pucArgPath);
+#ifdef HAVE_LIBCURL
+  else if ((prnResult = resNodeCurlNew(pucArgPath)) != NULL) {
+  }
+#endif
+  else if ((prnResult = resNodeDirNew(pucArgPath)) != NULL) {
   }
 
   return prnResult;
 } /* end of resNodeStrNew() */
 
 
+#ifdef HAVE_LIBCURL
+
+/*! Creates a new resource node according to pucArgPath.
+
+  \param pucArgPath pointer to a filesystem path
+  \return a freshly allocated 'resNode', string pointers set according to 'pucArgPath'
+*/
+resNodePtr
+resNodeCurlNew(xmlChar *pucArgPath)
+{
+  resNodePtr prnResult = NULL;
+
+  if (STR_IS_NOT_EMPTY(pucArgPath)) { /* a trailing separator indicates a directory */
+    xmlChar *pucPath = NULL;
+    CURLU *curlURL = NULL;
+
+    curlURL = curl_url(); /* get a handle to work with */
+    if (curlURL == NULL) {
+      PrintFormatLog(3, "This is not a valid URL '%s'\n", pucArgPath);
+    }
+    else if (curl_url_set(curlURL, CURLUPART_URL, (const char *)pucArgPath, 0) == CURLUE_OK) { /* parse a full URL */
+      prnResult = resNodeNew();
+      if (prnResult) {
+	xmlChar *pucT = NULL;
+	xmlChar *pucTT = NULL;
+
+	if (curl_url_get(curlURL, CURLUPART_HOST, (char **)&pucTT, 0) == CURLUE_NO_HOST) { /* no host name from the parsed URL */
+	  /* local file or directory, use pucURLPath but dont handle by curl */
+
+	  if (curl_url_get(curlURL, CURLUPART_PATH, (char **)&pucT, 0) == CURLUE_OK && STR_IS_NOT_EMPTY(pucT)) { /* extract the path from the parsed URL */
+	    xmlFree(pucPath);
+	    pucPath = xmlStrdup(pucT);
+	    DecodeRFC1738((char *)pucPath);
+
+	    prnResult->pucNameNormalized = pucPath;
+	  }
+	  curl_free(pucT);
+	  curl_url_cleanup(curlURL);
+	}
+	else {
+	  char* scheme;
+
+	  if (curl_url_get(curlURL, CURLUPART_URL, (char **)&pucT, 0) == CURLUE_OK) { /* extract the query from the parsed URL */
+	    if (STR_IS_NOT_EMPTY(pucT)) {
+	      prnResult->pucNameNormalized = xmlStrdup(pucT);
+	    }
+	  }
+	  curl_free(pucT);
+
+	  if (curl_url_get(curlURL, CURLUPART_QUERY, (char **)&pucT, 0) == CURLUE_OK) { /* extract the query from the parsed URL */
+	    if (STR_IS_NOT_EMPTY(pucT)) {
+	      prnResult->pucQuery = xmlStrdup(pucT);
+	    }
+	  }
+	  curl_free(pucT);
+
+	  if (curl_url_get(curlURL, CURLUPART_SCHEME, (char**)&pucT, 0) == CURLUE_OK) { /* extract the query from the parsed URL */
+	    if (xmlStrEqual(BAD_CAST"http", pucT) || xmlStrEqual(BAD_CAST"https", pucT)) {
+	      prnResult->eType = rn_type_url_http;
+	    }
+	    else {
+	      prnResult->eType = rn_type_url;
+	    }
+	  }
+	  curl_free(pucT);
+
+	  prnResult->eMode = mode_read; /* by default*/
+	  prnResult->curlURL = curlURL; /* use this handle */
+	}
+	curl_free(pucTT);
+      }
+      else {
+	curl_url_cleanup(curlURL);
+      }
+    }
+    else {
+      curl_url_cleanup(curlURL);
+    }
+  }
+  
+  return prnResult;
+} /* end of resNodeCurlNew() */
+
+#endif
+
+    
 /*! Creates a new resource node according to pucArgPath.
 
   \param pucArgPath pointer to a filesystem path

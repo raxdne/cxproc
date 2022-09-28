@@ -748,6 +748,8 @@ resNodeTest(void)
   }
 
 
+#ifdef HAVE_LIBCURL
+
   if (RUNTEST) {
     resNodePtr prnT = NULL;
     xmlChar *pucT;
@@ -758,8 +760,8 @@ resNodeTest(void)
     mucTestResult[0] = '\0';
 
 
-    if ((prnT = resNodeDirNew(BAD_CAST"https://www.test.com:8181/path/file.txt?a=b&c=123")) == NULL) {
-      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeDirNew(): %s\n",resNodeGetErrorMsg(prnT));
+    if ((prnT = resNodeCurlNew(BAD_CAST"https://www.test.com:8181/path/file.txt?a=b&c=123")) == NULL) {
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeCurlNew(): %s\n",resNodeGetErrorMsg(prnT));
     }
     else if (resNodeIsURL(prnT) == FALSE) {
       xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeIsURL(): %s\n",resNodeGetErrorMsg(prnT));
@@ -782,6 +784,7 @@ resNodeTest(void)
     resNodeFree(prnT);
   }
 
+#endif
 
   if (RUNTEST) {
     resNodePtr prnT = NULL;
@@ -792,7 +795,7 @@ resNodeTest(void)
     fputs((const char *)mucTestLabel,stderr);
     mucTestResult[0] = '\0';
 
-    if ((prnT = resNodeDirNew(BAD_CAST HTTPPREFIX "non-dir/test-zip-7.zip/path/test.txt")) == NULL) {
+    if ((prnT = resNodeCurlNew(BAD_CAST HTTPPREFIX "non-dir/test-zip-7.zip/path/test.txt")) == NULL) {
       xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeDirNew(): %s\n",resNodeGetErrorMsg(prnT));
     }
     else if (resNodeGetChild(prnT) == NULL) {
@@ -829,7 +832,7 @@ resNodeTest(void)
     fputs((const char *)mucTestLabel,stderr);
     mucTestResult[0] = '\0';
 
-    if ((prnT = resNodeDirNew(BAD_CAST TESTPREFIX "xml/config.cxp")) == NULL) {
+    if ((prnT = resNodeCurlNew(BAD_CAST "file:///" TESTPREFIX "xml/config.cxp")) == NULL) {
       xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"ERROR\n");
     }
     else if ((pucTT = resPathCollapse(BAD_CAST TESTPREFIX "xml",FS_PATH_FULL)) == NULL) {
@@ -866,8 +869,8 @@ resNodeTest(void)
 
     pucTest = resPathNormalize(BAD_CAST TESTPREFIX "plain/test-plain-3.xml");
 
-    if ((prnT = resNodeDirNew(BAD_CAST TESTPREFIX)) == NULL) {
-      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeDirNew()\n");
+    if ((prnT = resNodeCurlNew(BAD_CAST TESTPREFIX)) == NULL) {
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeCurlNew()\n");
     }
     else if ((prnDir = resNodeAddChildNew(prnT, BAD_CAST"plain/")) == NULL) {
       xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeAddChildNew()\n");

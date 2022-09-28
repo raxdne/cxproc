@@ -45,6 +45,116 @@
 #endif
 
 
+/*! split a prnArg into its single ancestor resource nodes
+
+\param prnArg a pointer to a resource node without a child node
+\return TRUE as splitting result
+*/
+resNodePtr
+resNodeListPathNew(xmlChar* pucArgPath)
+{
+  resNodePtr prnResult = NULL;
+
+  if (STR_IS_NOT_EMPTY(pucArgPath)) { /* a trailing separator indicates a directory */
+    xmlChar* pucSep;
+    xmlChar* pucStart;
+    xmlChar* pucT;
+    xmlChar* pucTT;
+    resNodePtr prnT;
+
+    if ((pucSep = resPathGetNextPathPtr(pucArgPath)) == NULL) {
+      pucSep = pucArgPath + xmlStrlen(pucArgPath);
+    }
+    pucTT = pucArgPath;
+    
+    do {
+      if (pucSep - pucTT < 2) {
+	/* ignore empty path */
+      }
+      else if ((pucT = xmlStrndup(pucTT, (int)(pucSep - pucTT)))) {
+
+	if (resPathIsURL(pucT)) {
+	  prnT = resNodeCurlNew(pucT);
+	}
+	else if (resPathIsAbsolute(pucT)) {
+	  prnT = resNodeDirNew(pucT);
+	}
+	else if (resPathIsRelative(pucT)) {
+	  prnT = resNodeDirNew(pucT);
+	}
+	else if ((prnT = resNodeNew())) {
+	  resNodeReset(prnT,pucT);
+	}
+	else {
+	  assert(TRUE);
+	}
+	resNodeSetType(prnResult, rn_type_root);
+
+	if (prnResult) {
+	  prnResult = prnT;
+	}
+	else {
+	  resNodeAddChild(prnT, prnT);
+	}
+	  
+	xmlFree(pucT);
+      }
+      else {
+	assert(TRUE);
+      }
+
+      pucTT = pucSep;
+      
+    } while ((pucSep = resPathGetNextPathPtr(pucSep)) != NULL);
+
+    
+    prnResult = resNodeNew();
+    if (prnResult) {
+
+      pucTT = pucStart = resPathCollapse(pucArgPath, FS_PATH_FULL);
+
+      if (resPathIsAbsolute(pucArgPath)) {
+	if (resPathIsDosDrive(pucTT)) {
+	  /* skip leading drive char */
+	  pucTT += 2;
+	}
+
+	while (STR_IS_NOT_EMPTY(pucTT) && issep(*pucTT)) { /* ignore leading slash */
+	  pucTT++;
+	}
+
+	pucT = xmlStrndup(pucStart, (int)(pucTT - pucStart)); /* root */
+	resNodeReset(prnResult, pucT);
+	resNodeSetType(prnResult, rn_type_root);
+	xmlFree(pucT);
+      }
+      else if ((pucTT = resPathGetNextSeparator(pucStart))) {
+
+	pucT = xmlStrndup(pucStart, (int)(pucTT - pucStart));
+	resNodeSetNameBase(prnResult, pucT);
+	xmlFree(pucT);
+
+	while (STR_IS_NOT_EMPTY(pucTT) && issep(*pucTT)) { /* ignore slash */
+	  pucTT++;
+	  resNodeSetType(prnResult, rn_type_dir);
+	}
+      }
+      else {
+	resNodeSetNameBase(prnResult, pucStart);
+	resNodeSetType(prnResult, rn_type_file); /* default */
+      }
+
+      if (xmlStrlen(pucTT) > 0) {
+	prnT = resNodeAddChildNew(prnT, pucTT);
+      }
+
+      xmlFree(pucStart);
+    }
+  }
+  return prnResult;
+} /* end of resNodeListPathNew() */
+
+
 /*! Resource Node List Parse  list different types of contexts
 
 \param prnArg -- new resNode to parse (directory, share, archive, file)

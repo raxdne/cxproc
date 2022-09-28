@@ -115,6 +115,9 @@ extern xmlChar *
 resPathChangeToSlashes(xmlChar *pucArgPath);
 
 extern xmlChar *
+resPathGetNextPathPtr(xmlChar *pucArgPath);
+
+extern xmlChar *
 resPathGetNextSeparator(xmlChar *pucArgPath);
 
 extern xmlChar *
