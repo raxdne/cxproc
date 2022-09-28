@@ -55,6 +55,7 @@ dbCxpTest(cxpContextPtr pccArg)
       n_ok++;
     }
 
+    //domPutNodeString(stderr, NULL, pndTestDb);
     xmlFreeNode(pndTestDb);
   }
 #endif

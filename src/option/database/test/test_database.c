@@ -33,20 +33,25 @@ dbTest(void)
 
 #ifdef HAVE_LIBSQLITE3
   if (RUNTEST) {
+    
     xmlChar *pucT;
 
     i++;
     printf("TEST %i in '%s:%i': ",i,__FILE__,__LINE__);
-    pucT = dbTextReadStatement(BAD_CAST"CREATE TABLE 'first' ('id' text,'title' text);INSERT INTO 'first' VALUES('0', 'Crash');INSERT INTO 'first' VALUES('1', 'Test');");
-    if (pucT != NULL && xmlStrlen(pucT)==46) {
+    
+    
+    if ((pucT = dbTextReadStatement(BAD_CAST"CREATE TABLE 'first' ('id' text,'title' text);INSERT INTO 'first' VALUES('0', 'Crash');INSERT INTO 'first' VALUES('1', 'Test');")) == NULL) {
+      printf("Error 1 dbTextReadStatement()\n");
+    }
+    else if (xmlStrlen(pucT) != 46) {
+      printf("Error 2 dbTextReadStatement()\n");
       PrintFormatLog(1,"%s",pucT);
-      printf("OK\n");
-      n_ok++;
-      xmlFree(pucT);
     }
     else {
-      printf("Error dbTextReadStatement()\n");
+      printf("OK\n");
+      n_ok++;
     }
+    xmlFree(pucT);
   }
 
   if (RUNTEST) {
@@ -70,12 +75,12 @@ dbTest(void)
       pucStatement = dbTextReadStatement(pucQueryTail);
     }
 
-    if (iQuery == 3) {
-      n_ok++;
-      printf("OK\n");
+    if (iQuery != 3) {
+      printf("Error dbTextReadStatement()\n");
     }
     else {
-      printf("Error dbTextReadStatement()\n");
+      n_ok++;
+      printf("OK\n");
     }
   }
 
@@ -85,21 +90,23 @@ dbTest(void)
 
     i++;
     printf("TEST %i in '%s:%i': dump an existing db to a DOM ",i,__FILE__,__LINE__);
-    prnDb = resNodeDirNew(BAD_CAST TESTPREFIX "option/sql/test.db3");
-    if (prnDb) {
-      resNodeOpen(prnDb,"rd");
-      pdocResult = dbDumpContextToDoc(prnDb,(DB_PROC_DECL|DB_PROC_ENTRIES));
-      resNodeFree(prnDb);
-      if (pdocResult) {
-	//domPutDocString(stderr, NULL, pdocResult);
-	printf("OK\n");
-	n_ok++;
-	xmlFreeDoc(pdocResult);
-      }
-      else {
+    
+    if ((prnDb = resNodeDirNew(BAD_CAST TESTPREFIX "option/sql/test.db3")) == NULL) {
 	printf("Error dbDumpContextToDoc()\n");
-      }
     }
+    else if (resNodeOpen(prnDb, "rd") == FALSE) {
+	printf("Error dbDumpContextToDoc()\n");
+    }
+    else if ((pdocResult = dbDumpContextToDoc(prnDb,(DB_PROC_DECL|DB_PROC_ENTRIES))) == NULL) {
+	printf("Error dbDumpContextToDoc()\n");
+    }
+    else {
+      printf("OK\n");
+      n_ok++;
+    }
+    //domPutDocString(stderr, NULL, pdocResult);
+    xmlFreeDoc(pdocResult);
+    resNodeFree(prnDb);
   }
 
   if (RUNTEST) {
@@ -107,18 +114,22 @@ dbTest(void)
 
     i++;
     printf("TEST %i in '%s:%i': try to insert into a readonly database ",i,__FILE__,__LINE__);
-    prnDb = resNodeDirNew(BAD_CAST TESTPREFIX "option/sql/test.db3");
-    if (prnDb) {
-      resNodeOpen(prnDb,"rd");
-      if (dbInsert(prnDb,BAD_CAST"insert into meta (timestamp,key,value) values (0,'ERROR','TEST')") == FALSE) {
-	printf("OK\n");
-	n_ok++;
-      }
-      else {
-	printf("Error resNodeOpenSqlite()\n");
-      }
-      resNodeFree(prnDb);
+    
+    
+    if ((prnDb = resNodeDirNew(BAD_CAST TESTPREFIX "option/sql/test.db3")) == NULL) {
+      printf("Error resNodeDirNew()\n");
     }
+    else if (resNodeOpen(prnDb, "rd") == FALSE) {
+      printf("Error resNodeOpen()\n");
+    }
+    else if (dbInsert(prnDb,BAD_CAST"insert into meta (timestamp,key,value) values (0,'ERROR','TEST')") == TRUE) {
+      printf("Error dbInsert() on read only database\n");
+    }
+    else {
+      printf("OK\n");
+      n_ok++;
+    }
+    resNodeFree(prnDb);
   }
 
   printf("Result in '%s': %i/%i OK\n\n",__FILE__,n_ok,i);

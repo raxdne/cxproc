@@ -646,13 +646,14 @@ xmlDocPtr
 dbDumpContextToDoc(resNodePtr prnArgDb, int iOptions)
 {
   xmlDocPtr pdocResult = NULL;
-  xmlNodePtr pndMeta;
-  xmlNodePtr pndSql;
-  xmlChar mpucT[BUFFER_LENGTH];
   sqlite3 *pdbContext;
 
   pdbContext = (sqlite3 *)resNodeGetHandleIO(prnArgDb);
   if (pdbContext != NULL && sqlite3_errcode(pdbContext) == SQLITE_OK) {
+    xmlChar *pucT = NULL;
+    xmlNodePtr pndMeta;
+    xmlNodePtr pndSql;
+    
     assert( pdbContext != NULL && sqlite3_errcode(pdbContext) == SQLITE_OK );
 
     /*! create DOM
@@ -663,10 +664,13 @@ dbDumpContextToDoc(resNodePtr prnArgDb, int iOptions)
 
     pndMeta = xmlNewChild(pndSql, NULL, NAME_META, NULL);
     //xmlAddChild(pndMeta,xmlCopyNode(pndMakeSql,1));
+    
     /* Get the current time. */
-    xmlStrPrintf(mpucT,BUFFER_LENGTH, "%i", GetTodayTime());
-    xmlSetProp(pndMeta, BAD_CAST "ctime", mpucT);
-    xmlSetProp(pndMeta, BAD_CAST "ctime2", GetTodayTag());
+    if ((pucT = GetNowFormatStr("%T"))) {
+      xmlSetProp(pndMeta, BAD_CAST "ctime", pucT);
+      xmlFree(pucT);
+    }
+    
     // cxpInfoProgram(pndMeta, NULL);
 
     dbDumpContextToNode(pndSql,prnArgDb,iOptions);
