@@ -426,7 +426,7 @@ pieTextTest(cxpContextPtr pccArg)
 
       //domPutNodeString(stderr, BAD_CAST "pre include", pndPie);
       TraverseIncludeNodes(pndPie, pccArg);
-      if (IS_NODE_PIE(pndPie) == FALSE || domNumberOfChild(pndPie, NULL) != 11
+      if (IS_NODE_PIE(pndPie) == FALSE || domNumberOfChild(pndPie, NULL) != 10
 	|| domNumberOfChild(pndPie->children, NAME_PIE_INCLUDE) != 0) {
 	printf("Error 1 tree\n");
       }
@@ -606,40 +606,6 @@ pieTextTest(cxpContextPtr pccArg)
     xmlFreeDoc(pdocT);
   }
 
-
-#if 0
-
-  if (RUNTEST) {
-    xmlDocPtr pdocT;
-    xmlNodePtr pndRoot;
-    xmlChar *pucHeader;
-
-    i++;
-    printf("TEST %i in '%s:%i': pieGetParentHeaderStr() = ",i,__FILE__,__LINE__);
-
-    if ((pdocT = xmlParseFile(TESTPREFIX "option/pie/text/test-pie-14.pie")) == NULL) {
-      printf("Error 1 xmlParseFile()\n");
-    }
-    else if ((pndRoot = xmlDocGetRootElement(pdocT)) == NULL
-	     || IS_NODE_PIE_PIE(pndRoot) == FALSE || pndRoot->children == NULL || pndRoot->children->children == NULL) {
-      printf("Error 1 tree\n");
-    }
-    else if ((pucHeader = pieGetParentHeaderStr(pndRoot->children->children->children)) == NULL) {
-      printf("Error 1 Header\n");
-    }
-    else if (xmlStrEqual(pucHeader,BAD_CAST"Logbook :: ") == FALSE) {
-      printf("Error 2 Header: '%s'\n",pucHeader);
-    }
-    else {
-      n_ok++;
-      printf("OK\n");
-    }
-    //domPutDocString(stderr, BAD_CAST "split result", pdocT);
-    xmlFree(pucHeader);
-    xmlFreeDoc(pdocT);
-  }
-  
-#endif
 
   if (RUNTEST) {
     /* TEST:

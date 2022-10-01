@@ -45,9 +45,6 @@ DuplicateNextLine(char *pchArg, index_t *piArg);
 static BOOL_T
 StrIncrementToNextLine(xmlChar *pucArg, int *piArgEnd);
 
-static int
-pieElementWeight(pieTextElementPtr ppeArg);
-
 
 /*! constructor for pieTextElement
 */
@@ -310,100 +307,6 @@ pieElementGetDepth(pieTextElementPtr ppeArg)
   return -1;
 }
 /* end of pieElementGetDepth() */
-
-
-/*! detect trailing weight markup
-* \return -1 in case of error, the current value or the detected value
-*/
-int
-pieElementWeight(pieTextElementPtr ppeArg)
-{
-  int iResult = -1;
-
-  if (ppeArg == NULL) {
-  }
-  else if (ppeArg->iWeight > 0) {
-    iResult = ppeArg->iWeight;
-  }
-  else if (STR_IS_NOT_EMPTY(ppeArg->pucContent)) {
-
-    int i;
-    int k = xmlStrlen(BAD_CAST STR_PIE_OK);
-    int l = 0;
-    int iCountImpact;
-    xmlChar *pucT;
-
-    iResult = 0;
-
-    for (pucT = ppeArg->pucContent, i = xmlStrlen(pucT)-1; isspace(pucT[i]); i--) ;
-
-    // "abc +++ \xE2\x9C\x94 \0"
-    //                  ^i
-      
-    // "def++ \0"
-    //      ^i
-      
-#ifdef EXPERIMENTAL
-
-    if (i > k && xmlStrncmp(&pucT[i-k+1],BAD_CAST STR_PIE_OK, k) == 0) {
-      /* string ends with a marker */
-
-      // "abc +++ \xE2\x9C\x94 \0"
-      //          ^i-k+1
-      
-      for (i -= k; isspace(pucT[i]); i--) ;
-      l = i;
-
-      // "abc +++ \xE2\x9C\x94 \0"
-      //        ^i
-      //        ^l
-    }
-#endif
-    
-    for (iCountImpact = 0; isimpact(pucT[i]); iCountImpact++, i--) ;
-
-    // "abc +++ \xE2\x9C\x94 \0"
-    //     ^i
-    //        ^l
-    
-    // "def++ \0"
-    //    ^i
-    
-    if (iCountImpact > 1) {
-      int j;
-      
-      iResult = ppeArg->iWeight = iCountImpact;
-      
-      for ( j=i; j>0 && isspace(pucT[j]); j--) ;
-      
-      // "abc +++ \xE2\x9C\x94 \0"
-      //     ^i
-      //    ^j
-      //        ^l
-    
-      // "def++ \0"
-      //    ^i
-      //    ^j
-
-#ifdef EXPERIMENTAL
-      if (l > 0) {
-	/* shift trailing chars over impact markup */
-	memmove((void *)&pucT[i], (void *)&pucT[l+1], xmlStrlen(&pucT[l]));
-      }
-      else {
-	/* cut impact markup and all trailing spaces */
-	pucT[i+1] = (xmlChar)'\0';
-      }
-#else
-      if (i > j) {
-	/* there are spaces between trailing impact chars and element content */
-	pucT[j+1] = (xmlChar)'\0'; 	/* cut all trailing spaces */
-      }
-#endif
-    }
-  }
-  return iResult;
-} /* end of pieElementWeight() */
 
 
 /*!
@@ -910,7 +813,6 @@ pieElementParse(pieTextElementPtr ppeArg)
       xmlFree(pucRelease);
     }
     ppeArg->iLength = xmlStrlen(ppeArg->pucContent);
-    pieElementWeight(ppeArg);
   }
   return TRUE;
 } /* end of pieElementParse() */

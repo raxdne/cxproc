@@ -115,8 +115,8 @@ pieCmarkTest(void)
       printf("OK\n");
     }
 #ifdef DEBUG
-    puts(pucContent);
-    domPutNodeString(stderr, BAD_CAST"import result", pndPie);
+    //puts(pucContent);
+    //domPutNodeString(stderr, BAD_CAST"import result", pndPie);
 #endif
     
     xmlFreeNode(pndPie);
