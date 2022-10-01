@@ -608,6 +608,8 @@ ParsePlainBuffer(xmlNodePtr pndArgTop, xmlChar* pucArg, rmode_t eArgMode)
 
       /*!\todo handling of date-leading formats */
 
+      /*!\todo autodetection line or paragraph input */
+
       /*!
       main loop for reading pie text elements and building of DOM
       */

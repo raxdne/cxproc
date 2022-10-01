@@ -21,17 +21,9 @@
 
 /*!\todo remove calls of cxpCtxtLogPrint() */
 
-/*!\todo remove XML-only features (@effort, @assignee,  ...), in XSL too */
-
-/*!\todo autodetection line or paragraph input */
-
 /*!\todo autodetection encoding (BOM) */
 
 /*!\todo autodetection input language */
-
-/*!\todo autodetection dates containing offsets, ranges etc */
-
-/*!\todo define an id markup for referencing, anchor for link target, local and global anchors: |#abc|TEST| */
 
 /*!\todo cite markup [] to <cite></cite> */
 

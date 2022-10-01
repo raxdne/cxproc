@@ -76,22 +76,6 @@
         </rng:choice>
       </rng:attribute>
     </rng:optional>
-    <rng:optional>
-      <rng:attribute name="prio">
-        <rng:choice>
-          <rng:value>1</rng:value>
-          <rng:value>2</rng:value>
-        </rng:choice>
-      </rng:attribute>
-    </rng:optional>
-    <rng:optional>
-      <rng:attribute name="effort">
-	<rng:data type="double"/>
-      </rng:attribute>
-    </rng:optional>
-    <rng:optional>
-      <rng:attribute name="pidref"/>
-    </rng:optional>
   </rng:define>
   <rng:define name="view-attrs">
     <rng:optional>
@@ -475,42 +459,6 @@
       <rng:ref name="time-attrs"/>
       <rng:ref name="prio-attrs"/>
       <rng:ref name="view-attrs"/>
-      <rng:optional>
-        <rng:attribute name="type"/>
-      </rng:optional>
-      <rng:optional>
-        <rng:attribute name="account"/>
-      </rng:optional>
-      <rng:optional>
-        <rng:attribute name="assignee"/>
-      </rng:optional>
-      <rng:optional>
-        <rng:attribute name="pid"/>
-      </rng:optional>
-      <rng:optional>
-        <rng:attribute name="begin"/>
-      </rng:optional>
-      <rng:optional>
-        <rng:attribute name="end"/>
-      </rng:optional>
-      <rng:optional>
-        <rng:attribute name="state">
-          <rng:choice>
-            <rng:value>0</rng:value>
-            <rng:value>1</rng:value>
-            <rng:value>2</rng:value>
-            <rng:value>x</rng:value>
-          </rng:choice>
-        </rng:attribute>
-      </rng:optional>
-      <rng:optional>
-        <rng:attribute name="class">
-          <rng:choice>
-            <rng:value>gantt-low</rng:value>
-            <rng:value>gantt-high</rng:value>
-          </rng:choice>
-        </rng:attribute>
-      </rng:optional>
       <rng:optional>
 	<rng:ref name="h"/>
       </rng:optional>

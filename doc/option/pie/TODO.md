@@ -31,9 +31,9 @@ parse from UTF-8 memory buffer
 REQ: handle https://en.wikipedia.org/wiki/ISO_8601#Week_dates ✔ 
 
 REQ: append XML attributes to text markup
-- `** TEST @assignee="abc" @date="1234567"`
-- additional generic attributes as `[class="abc" cluster="cad" effort="1"]`
-- JSON-like? `* Section json="[class:'abc', cluster:'cad', effort:1]"`
+- `** TEST @name="abc"
+- additional generic attributes as `[class="abc"]`
+- JSON-like? `* Section json="[class:'abc']"`
 
 decoding of RFC1738 URL with Umlaute to UTF-8
 
