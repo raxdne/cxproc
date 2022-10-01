@@ -746,7 +746,7 @@ cxpTest(cxpContextPtr pccArg)
     printf("TEST %i in '%s:%i': cxpProcessXml() using URL = ", i, __FILE__, __LINE__);
 
     if ((pndRoot = xmlNewNode(NULL, NAME_XML)) == NULL
-      || (xmlSetProp(pndRoot, BAD_CAST"name", BAD_CAST"http://www.tagesschau.de/newsticker.rdf")) == NULL) {
+      || (xmlSetProp(pndRoot, BAD_CAST"name", BAD_CAST HTTPPREFIX "cxproc/exe?path=")) == NULL) {
       printf("Error 1\n");
     }
     else if ((pdocT = cxpProcessXmlNode(pndRoot, pccArg)) == NULL) {

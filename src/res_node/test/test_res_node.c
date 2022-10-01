@@ -803,7 +803,7 @@ resNodeTest(void)
 
 #endif
 
-  if (RUNTEST) {
+  if (SKIPTEST) {
     resNodePtr prnT = NULL;
     xmlChar *pucT;
 

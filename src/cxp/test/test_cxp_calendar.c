@@ -211,7 +211,7 @@ calTest(cxpContextPtr pccArg)
 
 #endif
 
-  if (RUNTEST) {
+  if (SKIPTEST) {
     xmlDocPtr pdocTest = NULL;
     xmlDocPtr pdocDir = NULL;
     xmlNodePtr pndT;

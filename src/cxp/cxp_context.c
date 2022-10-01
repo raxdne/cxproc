@@ -1203,7 +1203,8 @@ cxpCtxtLogInfo(cxpContextPtr pccArg)
 {
   if (pccArg) {
     int i;
-
+    cxpContextPtr pccIter;
+    
     cxpCtxtLogPrint(pccArg, 1, "Location: '%s'", resNodeGetNameNormalized(pccArg->prnLocation));
 
       for (i = 0; i < cxpCtxtCliGetCount(pccArg); i++) {
@@ -1257,6 +1258,11 @@ cxpCtxtLogInfo(cxpContextPtr pccArg)
 
     cxpCtxtLogPrintDoc(pccArg, 1, "Context DOM:", NULL);
 
+    cxpCtxtLogPrint(pccArg, 1, "childs are: ");
+    for (pccIter = pccArg->children; pccIter; pccIter = pccIter->children) {
+      cxpCtxtLogPrint(pccArg, 1, " '%0x'", pccIter);
+    }
+    
     return TRUE;
   }
   return FALSE;

@@ -383,6 +383,7 @@ main(int argc, char** argv, char** envp)
 
     iExit = cxpCtxtGetExitCode(pccTest);
     cxpCtxtLogPrint(pccTest,1,"Test error code = %i\n", iErrorCode + iExit);
+    //cxpCtxtLogInfo(pccTest);
     cxpCtxtFree(pccTest);
     
     exit(iErrorCode + iExit);

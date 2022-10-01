@@ -128,7 +128,7 @@ dirTest(cxpContextPtr pccArg)
     else if ((k = domNumberOfChild(pndT, NAME_FILE)) != 1) {
       printf("Error domNumberOfChild(): %i\n", k);
     }
-    else if ((k = domNumberOfChild(pndT, NAME_DIR)) != 12) {
+    else if ((k = domNumberOfChild(pndT, NAME_DIR)) != 14) {
       printf("Error domNumberOfChild(): %i\n", k);
     }
     else {
