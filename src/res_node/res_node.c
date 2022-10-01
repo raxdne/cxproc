@@ -3055,10 +3055,6 @@ resNodeContentToDOM(xmlNodePtr pndArg, resNodePtr prnArg)
     case MIME_IMAGE_JPEG:
     case MIME_IMAGE_PNG:
     case MIME_IMAGE_TIFF:
-#ifdef EXPERIMENTAL
-    case MIME_UNKNOWN:
-    case MIME_UNDEFINED:
-#endif
 #ifdef HAVE_LIBEXIF
       /* get image information details via libexif */
       imgParseFileExif(pndArg, prnArg);

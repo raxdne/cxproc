@@ -747,6 +747,23 @@ resNodeTest(void)
     resNodeFree(prnT);
   }
 
+  /*!\todo tests
+
+"https://www.test.com/dir/sub/test.txt"
+"http://www.test.com/dir/sub/zip/archive.zip/sub/test.txt"
+"http://www.test.com/dir/sub/zip/archive.zip/sub/test.docx/word/content.xml"
+"http://www.test.com/dir/sub/zip/abc.zip/sub/def.tar/ghi.zip/sub/folder.png"
+"http://www.test.com/cxproc/exe?search=test.txt"
+"file:///c:/Temp/abc.txt"
+"file:///home/tester/tmp/"
+"file:///c:/Temp/abc.txt;c:\\Temp\\abc.zip/sub/test.xml;;http://www.test.com/dir/sub/zip/archive.zip/sub/test.txt;;"
+"mem://abc.db3?SELECT * FROM directory"
+"c:\\Temp\\abc.zip/sub/test.txt"
+"c:\\Temp\\abc.zip/sub/test.xml"
+"c:\\Temp\\abc.db3?SELECT * FROM directory"
+"Test/def.png"
+
+ */
 
 #ifdef HAVE_LIBCURL
 

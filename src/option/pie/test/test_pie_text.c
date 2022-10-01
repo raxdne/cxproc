@@ -167,12 +167,10 @@ pieTextTest(cxpContextPtr pccArg)
       "H,I,J\n"
       "#end_of_csv\n"
       "\n"
-#ifdef EXPERIMENTAL
-      "#begin_of_script\n"
+      "<script>\n"
       "128 * 2\n"
-      "#end_of_script\n"
+      "</script>\n"
       "\n"
-#endif
       "ABC def HIJ\n"
       "\n"
       "#import(\"def.txt\",root)\n"

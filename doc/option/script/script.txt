@@ -51,7 +51,7 @@ cxproc test.js abc.xsl
 
 Execute my script
 
-#begin_of_script
+<script>
 var strResult = '';
 
 for (i=0; i < 10; i++) {
@@ -59,7 +59,7 @@ for (i=0; i < 10; i++) {
 }
 
 strResult;
-#end_of_script
+</script>
 
 #end_of_pre
 
