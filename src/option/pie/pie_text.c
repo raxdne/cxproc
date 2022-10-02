@@ -669,11 +669,9 @@ ImportNodeFile(xmlNodePtr pndArgImport, cxpContextPtr pccArg)
 	|| xmlStrEqual(pucAttrType, BAD_CAST"csv")
 	|| xmlStrEqual(pucAttrType, BAD_CAST"log")
 	|| xmlStrEqual(pucAttrType, BAD_CAST"markdown")
-	|| xmlStrEqual(pucAttrType, BAD_CAST"cal")
 	|| xmlStrEqual(pucAttrType, BAD_CAST"par")))
 	|| iMimeType == MIME_TEXT_CSV
 	|| iMimeType == MIME_TEXT_PLAIN
-	|| iMimeType == MIME_TEXT_PLAIN_CALENDAR
 #ifdef WITH_MARKDOWN
 	|| iMimeType == MIME_TEXT_MARKDOWN
 #endif
@@ -1079,11 +1077,9 @@ IncludeNodeFile(xmlNodePtr pndArgInclude, cxpContextPtr pccArg)
 	|| xmlStrEqual(pucAttrType, BAD_CAST"csv")
 	|| xmlStrEqual(pucAttrType, BAD_CAST"log")
 	|| xmlStrEqual(pucAttrType, BAD_CAST"markdown")
-	|| xmlStrEqual(pucAttrType, BAD_CAST"cal")
 	|| xmlStrEqual(pucAttrType, BAD_CAST"par")))
 	|| iMimeType == MIME_TEXT_CSV
 	|| iMimeType == MIME_TEXT_PLAIN
-	|| iMimeType == MIME_TEXT_PLAIN_CALENDAR
 #ifdef WITH_MARKDOWN
 	|| iMimeType == MIME_TEXT_MARKDOWN
 #endif

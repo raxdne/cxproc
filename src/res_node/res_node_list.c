@@ -522,7 +522,6 @@ _resNodeIndexGetScore(resNodePtr prnArgList)
       switch (resNodeGetMimeType(prnT)) {
 
       case MIME_TEXT_PLAIN:
-      case MIME_TEXT_PLAIN_CALENDAR:
       case MIME_TEXT_CSV:
       case MIME_TEXT_VCARD:
       {

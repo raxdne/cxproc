@@ -283,7 +283,7 @@ pieTextTest(cxpContextPtr pccArg)
   }
 
 
-  if (RUNTEST) {
+  if (SKIPTEST) {
     xmlNodePtr pndPie;
     xmlNodePtr pndPieImport;
     xmlChar *pucData = BAD_CAST
@@ -294,18 +294,10 @@ pieTextTest(cxpContextPtr pccArg)
       "00000101 First of year\n"
       "00000101+124 125th day of year\n"
       "00000101-1 Last of year\n"
-      "; every monday\n"
-      "0000*w99mon KW %V/%Y\n"
-      "0000*w99mon,tue,wed,thu,fri work day %N\n"
-      "; weekend is @FREE\n"
-      ";0000*w99sat,sun +\n"
       "; every day\n"
       "00000000 %a %d.%m. (%j)\n"
       ";00000000 %Y-%m-%d (%j)\n"
-      "0000*w99 %V/%Y\n"
-      "000000 %Y %m\n"
-      "; every whole year\n"
-      "0000 %Y\n";
+      "000000 %Y %m\n";
 
     i++;
     printf("TEST %i in '%s:%i': parse text node content = ", i, __FILE__, __LINE__);

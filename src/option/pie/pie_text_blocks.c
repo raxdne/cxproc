@@ -2088,17 +2088,11 @@ SplitStringToDateNodes(const xmlChar *pucArg, RN_MIME_TYPE eMimeTypeArg)
 	    if (((pucSep > pucDate && !isend(*pucSep)) && (pucD = xmlStrndup(pucDate, (pucSep - pucDate))))
 	      || (pucD = xmlStrdup(pucDate))) {
 
-	      if (eMimeTypeArg == MIME_TEXT_PLAIN_CALENDAR) {
-		pndIn = xmlNewChild(pndResult, NULL, NAME_PIE_DATE, NULL);
-		xmlSetProp(pndIn, BAD_CAST"ref", pucD);
-	      }
-	      else {
-		pndIn = xmlNewTextChild(pndResult, NULL, NAME_PIE_DATE, pucD);
+	      pndIn = xmlNewTextChild(pndResult, NULL, NAME_PIE_DATE, pucD);
 #ifdef PIE_STANDALONE
 #else
-		AddNodeDateAttributes(pndIn,NULL);
+	      AddNodeDateAttributes(pndIn,NULL);
 #endif
-	      }
 
 	      if (pucSep > pucDate && !isend(*pucSep)) {
 		xmlAddChild(pndResult, xmlNewText(BAD_CAST","));
@@ -2113,15 +2107,6 @@ SplitStringToDateNodes(const xmlChar *pucArg, RN_MIME_TYPE eMimeTypeArg)
 	
 	if (pndIn != NULL && ducOrigin > ovector[1]) {
 	  /* the content ends with text, recursion */
-
-	  if (eMimeTypeArg == MIME_TEXT_PLAIN_CALENDAR) {
-	    while (*(pucArg + ovector[1]) == (xmlChar)' ') ovector[1]++;
-	    if (*(pucArg + ovector[1]) == (xmlChar)'+') {
-	      ovector[1]++;
-	      xmlSetProp(pndIn,BAD_CAST"holiday",BAD_CAST"yes");
-	      while (*(pucArg + ovector[1]) == (xmlChar)' ') ovector[1]++;
-	    }
-	  }
 
 	  pndPostfix = SplitStringToDateNodes(pucArg + ovector[1], eMimeTypeArg);
 	  if (pndPostfix) {
@@ -3186,10 +3171,6 @@ GetModeByMimeType(RN_MIME_TYPE tArg)
 
   switch (tArg) {
 
-  case MIME_TEXT_PLAIN_CALENDAR:
-    eResultMode = RMODE_LINE;
-  break;
-
   case MIME_TEXT_MARKDOWN:
     eResultMode = RMODE_MD;
   break;
@@ -3235,7 +3216,7 @@ GetModeByAttr(xmlNodePtr pndArgImport)
       }
 #endif
     }
-    else if (xmlStrEqual(pucAttrType, BAD_CAST "line") || xmlStrEqual(pucAttrType, BAD_CAST "cal")) {
+    else if (xmlStrEqual(pucAttrType, BAD_CAST "line")) {
       eResultMode = RMODE_LINE;
     }
     else if (xmlStrEqual(pucAttrType, BAD_CAST "log")) {
@@ -3280,7 +3261,7 @@ GetModeByExtension(xmlChar *pucArgExt)
   if (STR_IS_EMPTY(pucArgExt)) {
     /* no type is defined */
   }
-  else if (xmlStrEqual(pucArgExt, BAD_CAST "log") || xmlStrEqual(pucArgExt, BAD_CAST "cal")) {
+  else if (xmlStrEqual(pucArgExt, BAD_CAST "log")) {
     eResultMode = RMODE_LINE;
   }
   else if (xmlStrEqual(pucArgExt, BAD_CAST "csv")) {

@@ -19,27 +19,11 @@
 
 */
 
-/*!\todo sunrise/sunset as <subst string="%SS" now="sunrise"/> depending on XML context calendar/year/month/day and calendar/@timezone */
-
-/*!\bug test-calendar-003-002: calendar from Freemind map */
-
 /*!\todo display of database entries with one date formatted column */
-
-/*!\todo counter for occurance of a event (2009*w7mon.7x23) */
-
-/*!\todo comma separated dates of diffent types (2008*w47mon,20081128,2008*w47) ?? */
-
-/*!\todo Birthday in Days „20170719 %D days old“ */
 
 /*!\todo     „20170719 script="Date() - Date(1989-11-12T11:00:00Z)" days old“ */
 
 /*!\todo NameOfMonth in English, German ... (in calendar definition?) */
-
-/*!\todo processing of date and time values */
-
-/*!\bug <task date="20101202,03,201101"> */
-
-/*!\todo validate in calendar import */
 
 
 /*  */
@@ -222,13 +206,6 @@ GetCalendarNodeNext(const xmlNodePtr pndArg, int distance)
 {
   BOOL_T fForward = TRUE;
   xmlNodePtr pndN;
-
-  /*!\todo problems when a date definition starts before begin of
-    calendar DOM (maybe projection from past to present)
-
-    2005*w3mon:7 nor result in calendar starting 2006
-
-  */
 
   if (pndArg && pndArg->type == XML_ELEMENT_NODE) {
 

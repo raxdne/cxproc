@@ -146,7 +146,6 @@ static const char* resMimeTypeStr[] = {
   /* MIME_TEXT_CSV */ "text/csv",
   /* MIME_TEXT_HTML */ "text/html",
   /* MIME_TEXT_PLAIN */ "text/plain",
-  /* MIME_TEXT_PLAIN_CALENDAR */ "text/plain+calendar",
   /* MIME_TEXT_MARKDOWN */ "text/markdown",
   /* MIME_TEXT_VCARD */ "text/vcard",
   /* MIME_TEXT_XML */ "text/xml",
@@ -320,7 +319,6 @@ resMimeIsPlain(int iMimeType)
     || iMimeType == MIME_TEXT_CALENDAR
     || iMimeType == MIME_TEXT_CSS
     || iMimeType == MIME_TEXT_CSV
-    || iMimeType == MIME_TEXT_PLAIN_CALENDAR
     || iMimeType == MIME_TEXT_MARKDOWN
     || iMimeType == MIME_TEXT_VCARD
     || iMimeType == MIME_TEXT_X_SCRIPT_TCL
@@ -352,11 +350,6 @@ resMimeGetTypeFromExt(const xmlChar *pucArg)
   }
   else if (xmlStrcasecmp(pucArg, BAD_CAST"csv") == 0) {
     eMimeTypeResult = MIME_TEXT_CSV;
-  }
-  else if (xmlStrcasecmp(pucArg, BAD_CAST"cal") == 0
-    || xmlStrcasecmp(pucArg, BAD_CAST"gcal") == 0
-    || xmlStrcasecmp(pucArg, BAD_CAST"tdv") == 0) {
-    eMimeTypeResult = MIME_TEXT_PLAIN_CALENDAR;
   }
   else if (xmlStrcasecmp(pucArg, BAD_CAST"pie") == 0) {
 #ifdef HAVE_PIE

@@ -2797,7 +2797,6 @@ resNodeContentToDOM(xmlNodePtr pndArg, resNodePtr prnArg)
 #ifdef HAVE_PIE
     case MIME_APPLICATION_PIE_XML:
     case MIME_TEXT_PLAIN:
-    case MIME_TEXT_PLAIN_CALENDAR:
 #ifdef WITH_MARKDOWN
     case MIME_TEXT_MARKDOWN:
 #endif
@@ -2892,7 +2891,6 @@ resNodeContentToDOM(xmlNodePtr pndArg, resNodePtr prnArg)
 
 #else
     case MIME_TEXT_PLAIN:
-    case MIME_TEXT_PLAIN_CALENDAR:
     case MIME_TEXT_CSV:
     case MIME_TEXT_VCARD:
 #ifdef WITH_MARKDOWN
