@@ -346,9 +346,12 @@ GetYearMinMax(cxpCalendarPtr pCalendarArg, int *year_min, int *year_max)
   for (pceT = pCalendarArg->pceFirst; pceT; pceT = pceT->pNext) {
     int y1, y0;
 
-    y0 = dt_year(pceT->dt0.dt);
-    y1 = dt_year(pceT->dt1.dt);
+    if (pceT->iRecurrence == -1) {
+      /* this calendar element is resulting from a recurrence */
+      continue;
+    }
 
+    y0 = dt_year(pceT->dt0.dt);
     if (y0 > 0) {
       if (y0 < *year_min) {
 	*year_min = y0;
@@ -356,13 +359,30 @@ GetYearMinMax(cxpCalendarPtr pCalendarArg, int *year_min, int *year_max)
 	  *year_max = *year_min;
 	}
       }
-      else if (y1 > *year_max) {
+      if (y0 > *year_max) {
+	*year_max = y0;
+	if (*year_min == 2999) {
+	  *year_min = *year_max;
+	}
+      }
+    }
+
+    y1 = dt_year(pceT->dt1.dt);
+    if (y1 > 0) {
+      if (y1 < *year_min) {
+	*year_min = y1;
+	if (*year_max == 0) {
+	  *year_max = *year_min;
+	}
+      }
+      if (y1 > *year_max) {
 	*year_max = y1;
 	if (*year_min == 2999) {
 	  *year_min = *year_max;
 	}
       }
     }
+
   }
 }
 /* End of GetYearMinMax() */

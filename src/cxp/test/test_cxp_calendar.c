@@ -54,7 +54,7 @@ calTest(cxpContextPtr pccArg)
     CalendarFree(pCalendarT);
   }
 
-  if (SKIPTEST) {
+  if (RUNTEST) {
     xmlNodePtr pndMakeCalendar;
     xmlNodePtr pndCol;
     xmlNodePtr pndChild;
@@ -62,7 +62,7 @@ calTest(cxpContextPtr pccArg)
     xmlNodePtr pndPieImport;
     xmlNodePtr pndMonth;
     xmlDocPtr pdocCalendar;
-    xmlChar *pucData = BAD_CAST "00000000 %a %d.%m. (%j)\n0000*w99mon KW %V/%Y\n0000*w99 %V/%Y\n000000 Middle of the Month %Y-%m\n0000 Middle of the Year %Y";
+    xmlChar *pucData = BAD_CAST "R/2020-03-01/P1Y Birthday John Doe\n\nR10/20200301/P1000D 1000 Days Birthday John Doe\n\nEnd 20231231\n";
     xmlNodePtr pndDay;
     xmlChar *pucT = NULL;
 
@@ -71,10 +71,9 @@ calTest(cxpContextPtr pccArg)
 
     pndMakeCalendar = xmlNewNode(NULL, NAME_CALENDAR);
     //xmlSetProp(pndMakeCalendar, BAD_CAST "year", BAD_CAST"2015");
-    xmlSetProp(pndMakeCalendar, BAD_CAST "year", BAD_CAST"content");
     //xmlSetProp(pndMakeCalendar, BAD_CAST "type", BAD_CAST"year");
-    xmlSetProp(pndMakeCalendar, BAD_CAST "coordinate", BAD_CAST"5225+01234/");
-    xmlSetProp(pndMakeCalendar, BAD_CAST "timezone", BAD_CAST"CET");
+    //xmlSetProp(pndMakeCalendar, BAD_CAST "coordinate", BAD_CAST"5225+01234/");
+    //xmlSetProp(pndMakeCalendar, BAD_CAST "timezone", BAD_CAST"CET");
 
     pndCol = xmlNewChild(pndMakeCalendar, NULL, NAME_COL, NULL);
     xmlSetProp(pndCol, BAD_CAST"id", BAD_CAST"test");

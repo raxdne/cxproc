@@ -20,6 +20,9 @@
 
 #define LEVEL_MAX 4
 
+/* maximum value for ISO8601 recurrances */
+#define ISO_RECURRANCE_MAX 99
+
 /* 
    common header
 

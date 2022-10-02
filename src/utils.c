@@ -2277,7 +2277,7 @@ StringConcatNextDate(xmlChar* pucArgGcal)
 
 /*
  *  "R5/" Calendar date recurrence (ISO 8601)
- * 
+ * https://en.wikipedia.org/wiki/ISO_8601#Repeating_intervals
  * \bug floating values not used
  */
 size_t
@@ -2287,17 +2287,34 @@ dt_parse_iso_recurrance(const char *str, size_t len, int* deltad) {
   if (str != NULL && *str == 'R' && len > 0) {
     int d;
     char *p;
-    bool v;
 
     d = strtol(&str[1], &p, 10);
-    if (d > 0 && d < 100 && *p == '/') {
-      if (deltad) {
-	*deltad = d;
+    
+    if (*p == '/') {
+      if (p == &str[1] || d == -1) {
+	/* unbounded number of repetitions */
+	if (deltad) {
+	  *deltad = ISO_RECURRANCE_MAX;
+	}
+	n = p - str;
       }
-      n = p - str;
+      else if (d == 0) {
+	/* no repetition */
+	if (deltad) {
+	  *deltad = 0;
+	}
+	n = p - str;
+      }
+      else if (d > 0 && d < ISO_RECURRANCE_MAX) {
+	if (deltad) {
+	  *deltad = d;
+	}
+	n = p - str;
+      }
+      else {
+      }
     }
     else {
-      n = 0;
     }
   }
 

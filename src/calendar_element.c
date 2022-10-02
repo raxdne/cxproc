@@ -257,7 +257,7 @@ SplitCalendarElementRecurrences(ceElementPtr pceArg)
 
       pceT = CalendarElementDup(pceI);
       if (pceT) {
-	pceT->iRecurrence = 0;
+	pceT->iRecurrence = -1; /* this calendar element is resulting from a recurrence */
 	if (pceResult) {
 	  CalendarElementListAdd(pceResult, pceT);
 	}
@@ -272,8 +272,7 @@ SplitCalendarElementRecurrences(ceElementPtr pceArg)
 	  pceI->dt0.dt += pceI->period.w * 7;
 	}
 	else {
-	  pceI->dt0.dt = dt_add_years(pceI->dt0.dt, pceI->period.y, DT_EXCESS);
-	  pceI->dt0.dt = dt_add_months(pceI->dt0.dt, pceI->period.m, DT_EXCESS);
+	  pceI->dt0.dt = dt_add_months(pceI->dt0.dt, pceI->period.y * 12 + pceI->period.m, DT_EXCESS);
 	  pceI->dt0.dt += pceI->period.d;
 	}
       }
@@ -283,8 +282,7 @@ SplitCalendarElementRecurrences(ceElementPtr pceArg)
 	  pceI->dt1.dt -= pceI->period.w * 7;
 	}
 	else {
-	  pceI->dt1.dt = dt_add_years(pceI->dt1.dt, - pceI->period.y, DT_EXCESS);
-	  pceI->dt1.dt = dt_add_months(pceI->dt1.dt, - pceI->period.m, DT_EXCESS);
+	  pceI->dt1.dt = dt_add_months(pceI->dt1.dt, - (pceI->period.y * 12 + pceI->period.m), DT_EXCESS);
 	  pceI->dt1.dt -= pceI->period.d;
 	}
       }
@@ -351,7 +349,7 @@ ScanCalendarElementDate(ceElementPtr pceArgResult)
 	size_t n = 0;
 	int y, m, d, w, r;
 
-	if ((n = dt_parse_iso_recurrance((const char *)pucT, xmlStrlen(pceArgResult->pucSep), &pceArgResult->iRecurrence)) > 1) {
+	if ((n = dt_parse_iso_recurrance((const char *)pucT, xmlStrlen(pceArgResult->pucSep), &pceArgResult->iRecurrence)) > 0) {
 
 	  if (pucT[n] == '/') {
 	    n++;
