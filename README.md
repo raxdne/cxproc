@@ -3,7 +3,7 @@
 
 ## AUTHOR and HOMEPAGE
 
-Copyright (C) 2006,2007,2008,2013,2020 by Alexander Tenbusch <https://github.com/raxdne/cxproc>
+Copyright (C) 2006,2007,2008,2013,2020,2022 by Alexander Tenbusch <https://github.com/raxdne/cxproc>
 
 ## DESCRIPTION
 

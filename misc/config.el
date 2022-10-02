@@ -270,11 +270,8 @@
 ;; 			    (setq tag-list-i (cdr tag-list-i))
 ;; 			    )
 
-			  (query-replace "PIE - Personal Information Environment" 
-					 "cxproc - Configurable Xml PROCessor
+			  (query-replace "Copyright (C) 2006..2020 by Alexander Tenbusch" "Copyright (C) 2006..2022 by Alexander Tenbusch")
 
-  Copyright (C) 2006,2007,2008 by Alexander Tenbusch")
-			  ;(query-replace "printf_debug(" "printf_debug(1,")
 			  (save-buffer)
 			  ;(kill-buffer nil)
 			  )
@@ -505,9 +502,9 @@
       speedbar-frame (selected-frame)
       dframe-attached-frame (selected-frame)
       speedbar-select-frame-method 'attached
-      speedbar-verbosity-level 0
+      speedbar-verbosity-level 2
       speedbar-last-selected-file nil)
-(setq right-window (split-window-horizontally 24))
+(setq right-window (split-window-horizontally 34))
 (setq left-window (frame-first-window))
 ;(walk-windows (lambda (w) (setq left-window w)) "nominibuffer" t)
 (set-buffer speedbar-buffer)
