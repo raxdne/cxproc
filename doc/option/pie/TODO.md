@@ -20,7 +20,6 @@ Test with text files from Gutenberg Project <https://www.gutenberg.org/>
 
 markup
 
-       #begin_of_csv
        #import()
        <import type="csv" sep=",">A;B;C</import>
        <import name="a.csv" type="csv" sep=","/>

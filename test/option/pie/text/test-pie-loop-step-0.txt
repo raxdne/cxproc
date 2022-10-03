@@ -23,13 +23,13 @@ ABC
 
 ; hidden
 
-#begin_of_csv
+<csv>
 sep=,
 
 ABC
 ABC,ABC
 ABC
-#end_of_csv
+</csv>
 
 <script>
 2*2*2

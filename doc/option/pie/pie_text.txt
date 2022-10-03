@@ -546,20 +546,20 @@ This will be skipped!
 **** CSV
 
 #begin_of_pre
-#begin_of_csv
+<csv>
 sep=,
 A,B,C
 D,E,,F
-#end_of_csv
+</csv>
 #end_of_pre
 
 result
 
-#begin_of_csv
+<csv>
 sep=,
 A,B,C
 D,E,,F
-#end_of_csv
+</csv>
 
 *** Tagging
 

@@ -211,24 +211,47 @@ cmarkTreeToDOM(xmlNodePtr pndArgBlock, xmlNodePtr pndArg, cmark_node* pcmnArg)
       pndT = xmlNewChild(pndArg, NULL, NAME_PIE_PRE, pcmnArg->data);
     }
     else if (pcmnArg->type == CMARK_NODE_HTML_BLOCK) {
-      xmlDocPtr pdocHtml;
       xmlNodePtr pndNew = NULL;
 
-      pucT = xmlStrdup(BAD_CAST"<html>");
-      pucT = xmlStrcat(pucT, BAD_CAST pcmnArg->data);
-      pucT = xmlStrcat(pucT, BAD_CAST"</html>");
+      if (StringBeginsWith(pcmnArg->data,BAD_CAST"<csv>")) {
+	xmlChar *puc0;
+	xmlChar *puc1 = NULL;
 
-      pdocHtml = xmlParseMemory(pucT,xmlStrlen(pucT));
-      if ((pndNew = xmlDocGetRootElement(pdocHtml)) != NULL && IS_NODE_PIE_HTML(pndNew) && pndNew->children != NULL) {
-	xmlUnlinkNode(pndNew);
-	xmlNodeSetName(pndNew, BAD_CAST"block");
-	xmlSetProp(pndNew, BAD_CAST "type", BAD_CAST"text/html");
-	xmlAddChild(pndArg, pndNew);
+	pndNew = xmlNewChild(pndArg, NULL, NAME_PIE_IMPORT, NULL);
+	xmlSetProp(pndNew, BAD_CAST "type", BAD_CAST"csv");
+	
+	if ((puc0 = xmlStrstr(pcmnArg->data,BAD_CAST"<csv>")) != NULL) {
+	  puc0 += xmlStrlen(BAD_CAST"<csv>");
+	  if ((puc1 = xmlStrstr(pcmnArg->data,BAD_CAST"</csv>")) != NULL) {
+	    xmlChar *pucContent;
+
+	    if (puc1 > puc0 && (pucContent = xmlStrndup(puc0, puc1 - puc0)) != NULL) {
+	      xmlNodeSetContent(pndNew,pucContent);
+	      xmlFree(pucContent);
+	    }
+	  }
+	}
+	/*!\todo handle <script> in a similar way */
       }
       else {
-	xmlAddChild(pndArg, xmlNewComment(BAD_CAST"HTML parser error"));
+	xmlDocPtr pdocHtml;
+
+	pucT = xmlStrdup(BAD_CAST"<html>");
+	pucT = xmlStrcat(pucT, BAD_CAST pcmnArg->data);
+	pucT = xmlStrcat(pucT, BAD_CAST"</html>");
+
+	pdocHtml = xmlParseMemory(pucT,xmlStrlen(pucT));
+	if ((pndNew = xmlDocGetRootElement(pdocHtml)) != NULL && IS_NODE_PIE_HTML(pndNew) && pndNew->children != NULL) {
+	  xmlUnlinkNode(pndNew);
+	  xmlNodeSetName(pndNew, BAD_CAST"block");
+	  xmlSetProp(pndNew, BAD_CAST "type", BAD_CAST"text/html");
+	  xmlAddChild(pndArg, pndNew);
+	}
+	else {
+	  xmlAddChild(pndArg, xmlNewComment(BAD_CAST"HTML parser error"));
+	}
+	xmlFreeDoc(pdocHtml);
       }
-      xmlFreeDoc(pdocHtml);
     }
     else if (pcmnArg->type == CMARK_NODE_CUSTOM_BLOCK) {
       xmlAddChild(pndArg, xmlNewComment(BAD_CAST"CMARK_NODE_CUSTOM_BLOCK"));

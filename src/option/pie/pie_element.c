@@ -575,26 +575,24 @@ pieElementHasNext(pieTextElementPtr ppeArg)
 	ppeArg->eMode = RMODE_LINE;
 	fResult = TRUE;
       }
-      else if (pieElementGetMode(ppeArg) == RMODE_PAR && StringBeginsWith((char *)puc0, "#begin_of_csv")) {
+      else if (pieElementGetMode(ppeArg) == RMODE_PAR && StringBeginsWith((char *)puc0, "<csv>")) {
 	/*
 	handle csv formatted markup in input file
 	*/
 	xmlChar *puc1;
 	xmlChar *pucT;
 
-	/*!\todo change markup to <csv> */
+	for (pucT = puc0 + xmlStrlen(BAD_CAST"<csv>"); *pucT == (xmlChar)'\r' || *pucT == (xmlChar)'\n'; pucT++) {}
 
-	for (pucT = puc0 + xmlStrlen(BAD_CAST"#begin_of_csv"); *pucT == (xmlChar)'\r' || *pucT == (xmlChar)'\n'; pucT++) {}
-
-	if ((puc1 = BAD_CAST xmlStrstr(puc0, BAD_CAST"#end_of_csv")) != NULL) {
+	if ((puc1 = BAD_CAST xmlStrstr(puc0, BAD_CAST"</csv>")) != NULL) {
 	  /* copy string between markups */
 
-	  if (Strnstr(puc0 + 1, (puc1 - puc0), BAD_CAST"#begin_of_csv") != NULL) {
-	    PrintFormatLog(1, "Unbalanced markup: '#begin_of_csv'");
+	  if (Strnstr(puc0 + 1, (puc1 - puc0), BAD_CAST"<csv>") != NULL) {
+	    PrintFormatLog(1, "Unbalanced markup: '<csv>'");
 	  }
 
 	  ppeArg->pucContent = xmlStrndup(pucT, (int)(puc1 - pucT));
-	  ppeArg->iBegin += (index_t)(puc1 + xmlStrlen(BAD_CAST"#end_of_csv") - puc0);
+	  ppeArg->iBegin += (index_t)(puc1 + xmlStrlen(BAD_CAST"</csv>") - puc0);
 	}
 	else {
 	  /* no end markup found, copy end of string */
