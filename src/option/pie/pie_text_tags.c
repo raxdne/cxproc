@@ -760,7 +760,7 @@ RecognizeNodeTags(xmlNodePtr pndTags, xmlNodePtr pndArg, pcre2_code* preArg)
 
 
 /*! process the
-
+\todo handle "<import tags="[A-Z]{7}">"
 \todo optimize performance of RecognizeNodeTags(), CleanListTag() and use it
  */
 xmlNodePtr
