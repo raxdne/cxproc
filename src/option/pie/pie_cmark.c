@@ -198,6 +198,11 @@ cmarkTreeToDOM(xmlNodePtr pndArgBlock, xmlNodePtr pndArg, cmark_node* pcmnArg)
       else {
 	pndT = xmlNewChild(pndArg, NULL, NAME_PIE_LIST, NULL);
       }
+
+      if (pcmnArg->as.list.list_type == 2) {
+	xmlSetProp(pndT, BAD_CAST "enum", BAD_CAST"yes");
+      }
+      
       for (pcmnIter = pcmnArg->first_child; pcmnIter; pcmnIter = pcmnIter->next) {
 	cmarkTreeToDOM(pndT, pndT, pcmnIter);
       }
