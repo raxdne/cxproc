@@ -698,7 +698,7 @@ ImportNodeFile(xmlNodePtr pndArgImport, cxpContextPtr pccArg)
 	if (STR_IS_NOT_EMPTY(pucContent)) {
 	  if (ParsePlainBuffer(pndBlock, pucContent, m)) {
 
-	    if (domGetPropFlag(pndArgImport, BAD_CAST "locators", FALSE)) {
+	    if (domGetPropFlag(pndArgImport, BAD_CAST "locators", TRUE)) {
 	      SetPropBlockLocators(pndBlock, resNodeGetNameRelative(cxpCtxtRootGet(pccInput), prnInput), NULL);
 	    }
 
