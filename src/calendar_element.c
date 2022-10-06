@@ -381,12 +381,12 @@ ScanCalendarElementDate(ceElementPtr pceArgResult)
 		pceArgResult->dt1.dt = pceArgResult->dt0.dt;
 		if (w != 0) {
 		  /* date/week-period */
-		  pceArgResult->dt1.dt += w * 7;
+		  pceArgResult->dt1.dt += w * 7 - 1;
 		}
 		else {
 		  pceArgResult->dt1.dt = dt_add_years(pceArgResult->dt1.dt, y, DT_EXCESS);
 		  pceArgResult->dt1.dt = dt_add_months(pceArgResult->dt1.dt, m, DT_EXCESS);
-		  pceArgResult->dt1.dt += d;
+		  pceArgResult->dt1.dt += d - 1;
 		}
 	      }
 	      n += j;
