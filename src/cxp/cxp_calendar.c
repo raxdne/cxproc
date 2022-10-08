@@ -397,6 +397,10 @@ AddYears(cxpCalendarPtr pCalendarArg)
 	}
       }
     }
+    else {
+      /* add tree for current year if year array is empty */
+      AddTreeYear(pCalendarArg, dt_year(GetToday()));
+    }
   }
   return TRUE;
 }

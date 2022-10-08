@@ -557,6 +557,7 @@ AddNodeDateAttributes(xmlNodePtr pndArg, xmlChar* pucArg)
     if ((pceT = CalendarElementNew(pucDate))) {
       time_t t;
       dt_t iDayToday;
+      dt_t iDayEnd;
       long int iDayDiff = 0;
       ceElementPtr pceList;
 
@@ -606,12 +607,30 @@ AddNodeDateAttributes(xmlNodePtr pndArg, xmlChar* pucArg)
 	  xmlStrPrintf(mpucT, BUFFER_LENGTH, "%04i-%02i-%02i", dt_year(pceT->dt1.dt), dt_month(pceT->dt1.dt), dt_dom(pceT->dt1.dt));
 	  xmlSetProp(pndArg, BAD_CAST"end", mpucT);
 
+#ifdef EXPERIMENTAL
+	  xmlStrPrintf(mpucT, BUFFER_LENGTH, "%04i%02i%02i", dt_year(pceT->dt0.dt), dt_month(pceT->dt0.dt), dt_dom(pceT->dt0.dt));
+	  xmlSetProp(pndArg, BAD_CAST"DTSTART", mpucT);
+
+	  iDayEnd = pceT->dt1.dt + 1;
+	  xmlStrPrintf(mpucT, BUFFER_LENGTH, "%04i%02i%02i", dt_year(iDayEnd), dt_month(iDayEnd), dt_dom(iDayEnd));
+	  xmlSetProp(pndArg, BAD_CAST"DTEND", mpucT);
+#endif
+	  
 	  xmlStrPrintf(mpucT, BUFFER_LENGTH, "%li", pceT->dt1.dt - pceT->dt0.dt + 1);
 	  xmlSetProp(pndArg, BAD_CAST"interval", mpucT);
 	}
 	else {
 	  xmlStrPrintf(mpucT, BUFFER_LENGTH, "%04i-%02i-%02i", dt_year(pceT->dt0.dt), dt_month(pceT->dt0.dt), dt_dom(pceT->dt0.dt));
 	  xmlSetProp(pndArg, BAD_CAST"iso", mpucT);
+	  
+#ifdef EXPERIMENTAL
+	  xmlStrPrintf(mpucT, BUFFER_LENGTH, "%04i%02i%02i", dt_year(pceT->dt0.dt), dt_month(pceT->dt0.dt), dt_dom(pceT->dt0.dt));
+	  xmlSetProp(pndArg, BAD_CAST"DTSTART", mpucT);
+	  
+	  iDayEnd = pceT->dt0.dt + 1;
+	  xmlStrPrintf(mpucT, BUFFER_LENGTH, "%04i%02i%02i", dt_year(iDayEnd), dt_month(iDayEnd), dt_dom(iDayEnd));
+	  xmlSetProp(pndArg, BAD_CAST"DTEND", mpucT);
+#endif
 	}
 
 	//xmlStrPrintf(mpucT, BUFFER_LENGTH, "%li", pceT->dt0.dt);
