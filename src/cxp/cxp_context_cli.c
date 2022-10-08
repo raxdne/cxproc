@@ -645,12 +645,13 @@ cxpCtxtCliParse(cxpContextPtr pccArg)
 	      argv[1] is a valid name of a directory
 	    */
 	    int i;
-	    xmlNodePtr pndPlain;
+	    xmlNodePtr pndT;
 
-	    pndPlain = xmlNewChild(pndMake, NULL, NAME_PLAIN, NULL);
-	    xmlSetProp(pndPlain, BAD_CAST "name", BAD_CAST "-");
-	    pndXml = xmlNewChild(pndPlain, NULL, NAME_XML, NULL);
-	    pndDir = xmlNewChild(pndXml, NULL, NAME_DIR, NULL);
+	    pndXml = xmlNewChild(pndMake, NULL, NAME_XML, NULL);
+	    xmlSetProp(pndXml, BAD_CAST "name", BAD_CAST"-");
+	    
+	    pndT = xmlNewChild(pndXml, NULL, NAME_XML, NULL); /* because pndXml will be changed to "plain" if XSLT stylesheet it requires */
+	    pndDir = xmlNewChild(pndT, NULL, NAME_DIR, NULL);
 	    xmlSetProp(pndDir, BAD_CAST "verbosity", pucLevelDirVerbosity);
 	    //xmlSetProp(pndDir, BAD_CAST "index", BAD_CAST "skip"); /* skip index files in command line mode */
 	    xmlSetProp(pndDir, BAD_CAST "hidden", BAD_CAST "no"); /* skip hidden files in command line mode */
@@ -672,7 +673,7 @@ cxpCtxtCliParse(cxpContextPtr pccArg)
 	      resNodeFree(prnArgValue);
 	      xmlFree(pucRelease);
 	    }
-	    cxpCtxtCliAddXsl(pndPlain, pccArg);
+	    cxpCtxtCliAddXsl(pndXml, pccArg);
 	  }
 	  else if (resNodeIsURL(prnContent)) {
 	    /*
@@ -682,7 +683,8 @@ cxpCtxtCliParse(cxpContextPtr pccArg)
 
 	    pndXml = xmlNewChild(pndMake, NULL, NAME_XML, NULL);
 	    xmlSetProp(pndXml, BAD_CAST "name", BAD_CAST"-");
-	    pndT = xmlNewChild(pndXml, NULL, NAME_FILE, NULL);
+	    pndT = xmlNewChild(pndXml, NULL, NAME_XML, NULL); /* because pndXml will be changed to "plain" if XSLT stylesheet it requires */
+	    pndT = xmlNewChild(pndT, NULL, NAME_FILE, NULL);
 	    xmlSetProp(pndT, BAD_CAST "name", resNodeGetNameNormalized(prnContent));
 	    xmlSetProp(pndT, BAD_CAST "verbosity", pucLevelDirVerbosity);
 	    cxpCtxtCliAddXsl(pndXml, pccArg);
@@ -709,11 +711,13 @@ cxpCtxtCliParse(cxpContextPtr pccArg)
 	    /*
 	      argv[1] is a name of a pie file, existing or not!
 	    */
+	    xmlNodePtr pndT;
 
 	    pndXml = xmlNewChild(pndMake, NULL, NAME_XML, NULL);
 	    xmlSetProp(pndXml, BAD_CAST "name", BAD_CAST "-");
 
-	    pndPie = xmlNewChild(pndXml, pieGetNs(), NAME_PIE, NULL);
+	    pndT = xmlNewChild(pndXml, NULL, NAME_XML, NULL); /* because pndXml will be changed to "plain" if XSLT stylesheet it requires */
+	    pndPie = xmlNewChild(pndT, pieGetNs(), NAME_PIE, NULL);
 	    xmlSetProp(pndPie, BAD_CAST "tags", BAD_CAST "yes");
 	    xmlSetProp(pndPie, BAD_CAST "date", BAD_CAST "yes");
 	    xmlSetProp(pndPie, BAD_CAST "todo", BAD_CAST "yes");
@@ -918,14 +922,13 @@ cxpCtxtCliParse(cxpContextPtr pccArg)
 	    /*
 	      argv[1] exists as file, return detailed information meta an content
 	    */
-	    xmlNodePtr pndXmlChild;
 	    int i;
+	    xmlNodePtr pndT;
 
 	    pndXml = xmlNewChild(pndMake, NULL, NAME_XML, NULL);
-	    xmlSetProp(pndXml, BAD_CAST "name", BAD_CAST"-");
-	    xmlSetProp(pndXml, BAD_CAST "encoding", BAD_CAST"UTF-8");
-	    pndXmlChild = xmlNewChild(pndXml, NULL, NAME_XML, NULL);
-	    pndDir = xmlNewChild(pndXmlChild, NULL, NAME_DIR, NULL);
+	    xmlSetProp(pndXml, BAD_CAST "name", BAD_CAST "-");
+	    pndT = xmlNewChild(pndXml, NULL, NAME_XML, NULL); /* because pndXml will be changed to "plain" if XSLT stylesheet it requires */
+	    pndDir = xmlNewChild(pndT, NULL, NAME_DIR, NULL);
 	    xmlSetProp(pndDir, BAD_CAST "verbosity", pucLevelDirVerbosity);
 
 	    for (i = j; (pucRelease = cxpCtxtCliGetValue(pccArg, i)); i++) {
