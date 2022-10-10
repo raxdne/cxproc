@@ -97,7 +97,4 @@ cxpSubstGetRegExp(cxpSubstPtr pcxpSubstArg);
 #endif
 
 extern xmlChar *
-_cxpSubstGetDefaultPtr(cxpSubstPtr pcxpSubstArg);
-
-extern xmlChar *
 cxpSubstGetNamePtr(cxpSubstPtr pcxpSubstArg);

@@ -676,7 +676,7 @@ cxpSubstApply(xmlNodePtr pndArgTop, cxpSubstPtr pcxpSubstArg, cxpContextPtr pccA
   if (pcxpSubstArg) {
     /*!\todo substitute searchpath="pie.css" to whole filename */
 
-#if defined(EXPERIMENTAL) && defined(HAVE_PCRE2)
+#ifdef HAVE_PCRE2
     if (cxpSubstGetRegExp(pcxpSubstArg)) {
       if (cxpSubstGetPtr(pcxpSubstArg)) {
 	ApplySubstRegExp(pndArgTop, cxpSubstGetRegExp(pcxpSubstArg), cxpSubstGetPtr(pcxpSubstArg));
@@ -687,107 +687,8 @@ cxpSubstApply(xmlNodePtr pndArgTop, cxpSubstPtr pcxpSubstArg, cxpContextPtr pccA
     else {
       ApplySubstText(pndArgTop, cxpSubstGetNamePtr(pcxpSubstArg), cxpSubstGetPtr(pcxpSubstArg));
     }
-#elif 1
-    ApplySubstText(pndArgTop, cxpSubstGetNamePtr(pcxpSubstArg), cxpSubstGetPtr(pcxpSubstArg));
 #else
-    if (pcxpSubstArg->pucTo) {
-      if (pcxpSubstArg->pucName) {
-	ApplySubstText(pndArgTop, pcxpSubstArg->pucName, pcxpSubstArg->pucTo);
-      }
-      else {
-	xmlNodePtr pndNew;
-
-	pndNew = xmlNewText(pcxpSubstArg->pucTo);
-	xmlReplaceNode(pndArgTop,pndNew);
-      }
-    }
-    else if (pcxpSubstArg->pucCgi) {
-      ApplySubstText(pndArgTop, pcxpSubstArg->pucName, pcxpSubstArg->pucCgi);
-    }
-    else if (pcxpSubstArg->pucArgv) {
-      ApplySubstText(pndArgTop, pcxpSubstArg->pucName, pcxpSubstArg->pucArgv);
-    }
-    else if (pcxpSubstArg->pucEnv) {
-      if (pcxpSubstArg->pucName) {
-	ApplySubstText(pndArgTop, pcxpSubstArg->pucName, pcxpSubstArg->pucEnv);
-      }
-      else {
-	xmlNodePtr pndNew;
-
-	pndNew = xmlNewText(pcxpSubstArg->pucEnv);
-	xmlReplaceNode(pndArgTop,pndNew);
-      }
-    }
-    else if (pcxpSubstArg->pucHost) {
-      ApplySubstText(pndArgTop, pcxpSubstArg->pucName, pcxpSubstArg->pucHost);
-    }
-#ifdef HAVE_JS
-    else if (pcxpSubstArg->pucScriptResult) {
-      if (pcxpSubstArg->pucName) {
-	ApplySubstText(pndArgTop,pcxpSubstArg->pucName,pcxpSubstArg->pucScriptResult);
-      }
-      else {
-	xmlNodePtr pndNew;
-
-	pndNew = xmlNewText(pcxpSubstArg->pucScriptResult);
-	xmlReplaceNode(pndArgTop,pndNew);
-      }
-    }
-#endif
-    else if (pcxpSubstArg->pucNow) {
-      if (pcxpSubstArg->pucName) {
-	ApplySubstText(pndArgTop, pcxpSubstArg->pucName, pcxpSubstArg->pucNow);
-      }
-      else {
-	xmlNodePtr pndNew;
-
-	pndNew = xmlNewText(pcxpSubstArg->pucNow);
-	xmlReplaceNode(pndArgTop,pndNew);
-      }
-    }
-    else if (pcxpSubstArg->pucDir) {
-      ApplySubstText(pndArgTop, pcxpSubstArg->pucName, pcxpSubstArg->pucDir);
-    }
-    else if (pcxpSubstArg->pucFilename) {
-      ApplySubstText(pndArgTop, pcxpSubstArg->pucName, pcxpSubstArg->pucFilename);
-    }
-    else if (pcxpSubstArg->pucExt) {
-      ApplySubstText(pndArgTop, pcxpSubstArg->pucName, pcxpSubstArg->pucExt);
-    }
-    else if (pcxpSubstArg->pucType) {
-      ApplySubstText(pndArgTop, pcxpSubstArg->pucName, pcxpSubstArg->pucType);
-    }
-    else if (pcxpSubstArg->pucFile) {
-      xmlChar *pucTT;
-      xmlChar *pucT;
-      resNodePtr prnT;
-
-      prnT = resNodeFromNodeNew(cxpCtxtLocationGet(pccArg),pcxpSubstArg->pucFile);
-      if (prnT != NULL && resNodeIsFile(prnT)) {
-	pucT = BAD_CAST plainGetContextTextEat(prnT,16);
-	pucTT = xmlEncodeEntitiesReentrant(pndArgTop->doc,pucT);
-	xmlFree(pucT);
-	ApplySubstText(pndArgTop, pcxpSubstArg->pucName, pucTT);
-	xmlFree(pucTT);
-      }
-      resNodeFree(prnT);
-    }
-    else if (pcxpSubstArg->pucDefault) {
-      ApplySubstText(pndArgTop, pcxpSubstArg->pucName, pcxpSubstArg->pucDefault);
-    }
-    else {
-    }
-
-    /* substitute attribute values too */
-    if (pcxpSubstArg->fReplaceInAttr) {
-      xmlNodePtr pndProp;
-
-      for (pndProp = (xmlNodePtr)pndArgTop->properties; pndProp; pndProp = pndProp->next) {
-	cxpSubstApply(pndProp, pcxpSubstArg, pccArg);
-      }
-    }
-
-    /*!\todo remove processed subst node? */
+    ApplySubstText(pndArgTop, cxpSubstGetNamePtr(pcxpSubstArg), cxpSubstGetPtr(pcxpSubstArg));
 #endif
   }
   else {
@@ -814,23 +715,6 @@ cxpSubstGetNamePtr(cxpSubstPtr pcxpSubstArg)
   return pucResult;
 }
 /* end of cxpSubstGetNamePtr() */
-
-
-/*! \return a pointer to subst value if successful or NULL
-*/
-xmlChar *
-_cxpSubstGetDefaultPtr(cxpSubstPtr pcxpSubstArg)
-{
-  xmlChar *pucResult = NULL;
-
-  if ((pcxpSubstArg != NULL)
-    &&
-    ((pucResult = pcxpSubstArg->pucDefault))) {
-    /* OK */
-  }
-  return pucResult;
-}
-/* end of cxpSubstGetDefaultPtr() */
 
 
 /*! \return a pointer to subst value if successful or NULL
