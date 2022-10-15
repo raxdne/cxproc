@@ -2382,67 +2382,97 @@ dt_parse_iso_date_time_zone(const char* str, size_t len, dt_t *dtp, int *sp) {
  * \bug floating values not used
  */
 size_t
-dt_parse_iso_period(const char *str, size_t len, int *yp, int *mp, int *dp, int* wp) {
+dt_parse_iso_period(const char* str, size_t len, int* yp, int* mp, int* dp, int* wp, int* hp, int* mip, int* sp) {
   size_t n = 0;
 
   if (str != NULL && *str == 'P' && len > 0) {
-    int y, m, d, i, w;
-    char *p;
-    bool v;
+    int y, m, d, i, w, h, mi, s;
+    char* p;
+    bool v, t;
 
-    for (p = (char *)str + 1, v = true,  y = m = d = w = 0; 
+    for (p = (char*)str + 1, v = true, t = false, y = m = d = w = h = mi = s = 0;
       v && (n = p - str) < len && (v = (i = strtol(p, &p, 10)) > -1);
       p++) {
 
       /*!\todo check order of Y M D */
-	
+
       if (i < 0) {
 	break;
       }
-      else if (*p == 'W') {
-	if (w < 1 && y < 1 && m < 1 && d < 1) {
-	  w = i;
-	  //p++;
+      else if (t) { 	/*! time parsing only */
+	if (*p == 'H') {
+	  if (h < 1) {
+	    h = i;
+	  }
+	  else {
+	    v = false;
+	  }
+	}
+	else if (*p == 'M') {
+	  if (mi < 1) {
+	    mi = i;
+	  }
+	  else {
+	    v = false;
+	  }
+	}
+	else if (*p == 'S') {
+	  if (s < 1) {
+	    s = i;
+	  }
+	  else {
+	    v = false;
+	  }
 	}
 	else {
-	  v = false;
-	}
-	//break;
-      }
-      else if (*p == 'Y') {
-	if (y < 1 && m < 1 && d < 1) {
-	  y = i;
-	}
-	else {
-	  v = false;
-	}
-      }
-      else if (*p == 'M') {
-	if (m < 1 && d < 1) {
-	  m = i;
-	}
-	else {
-	  v = false;
-	}
-      }
-      else if (*p == 'D') {
-	if (d < 1) {
-	  d = i;
-	}
-	else {
-	  v = false;
+	  /* end of period string */
+	  break;
 	}
       }
       else if (*p == 'T') {
-	/*!\bug time parsing to be implemented */
-	for (; isiso8601(p[1]) && p[1] != '/'; p++);
+	/*! time parsing starts */
+	t = true;
       }
-      else {
-	/* end of period string */
-	break;
+      else { /* date parsing only */
+	if (*p == 'W') {
+	  if (w < 1 && y < 1 && m < 1 && d < 1) {
+	    w = i;
+	  }
+	  else {
+	    v = false;
+	  }
+	}
+	else if (*p == 'Y') {
+	  if (y < 1 && m < 1 && d < 1) {
+	    y = i;
+	  }
+	  else {
+	    v = false;
+	  }
+	}
+	else if (*p == 'M') {
+	  if (m < 1 && d < 1) {
+	    m = i;
+	  }
+	  else {
+	    v = false;
+	  }
+	}
+	else if (*p == 'D') {
+	  if (d < 1) {
+	    d = i;
+	  }
+	  else {
+	    v = false;
+	  }
+	}
+	else {
+	  /* end of period string */
+	  break;
+	}
       }
     }
-    
+
     if (v) {
       if (yp)
 	*yp = y;
@@ -2452,6 +2482,12 @@ dt_parse_iso_period(const char *str, size_t len, int *yp, int *mp, int *dp, int*
 	*dp = d;
       if (wp)
 	*wp = w;
+      if (hp)
+	*hp = h;
+      if (mip)
+	*mip = mi;
+      if (sp)
+	*sp = s;
     }
     else {
       n = 0;

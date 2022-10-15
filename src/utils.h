@@ -163,7 +163,7 @@ extern size_t
 dt_parse_iso_recurrance(const char *str, size_t len, int* deltad);
 
 extern size_t
-dt_parse_iso_period(const char *str, size_t len, int *yp, int *mp, int *dp, int *wp);
+dt_parse_iso_period(const char* str, size_t len, int* yp, int* mp, int* dp, int* wp, int* hp, int* mip, int* sp);
 
 extern size_t
 dt_parse_iso_date_time_zone(const char* str, size_t len, dt_t *dtp, int *sp);

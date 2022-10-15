@@ -599,36 +599,36 @@ utilsTest(void)
   /* ISO 8601 Durations */
   
   if (RUNTEST) {
-    int y, m, d, w;
+    int y, m, d, w, h, mi, s;
     
     i++;
     printf("TEST %i in '%s:%i': ",i,__FILE__,__LINE__);
 
-    if (dt_parse_iso_period(NULL, 20, NULL, NULL, NULL, NULL) != 0) {
+    if (dt_parse_iso_period(NULL, 20, NULL, NULL, NULL, NULL, NULL, NULL, NULL) != 0) {
       printf("ERROR dt_parse_iso_period()\n");
     }
-    else if (dt_parse_iso_period("P1YM-4DT", 20, &y, &m, &d, NULL) != 0) {
+    else if (dt_parse_iso_period("P1YM-4DT", 20, &y, &m, &d, NULL, NULL, NULL, NULL) != 0) {
       printf("ERROR dt_parse_iso_period()\n");
     }
-    else if (dt_parse_iso_period("P3Y6M4DT12H30M5S", BUFFER_LENGTH, &y, &m, &d, NULL) != 16) {
+    else if (dt_parse_iso_period("P3Y6M4DT12H30M5S", BUFFER_LENGTH, &y, &m, &d, NULL, &h, &mi, &s) != 16) {
       printf("ERROR dt_parse_iso_period()\n");
     }
     else if (y != 3 || m != 6 || d != 4) {
       printf("ERROR dt_parse_iso_period()\n");
     }
-    else if (dt_parse_iso_period("P7Y", BUFFER_LENGTH, &y, &m, &d, NULL) != 3) {
+    else if (dt_parse_iso_period("P7Y", BUFFER_LENGTH, &y, &m, &d, NULL, &h, &mi, &s) != 3) {
       printf("ERROR dt_parse_iso_period()\n");
     }
     else if (y != 7 || m != 0 || d != 0) {
       printf("ERROR dt_parse_iso_period()\n");
     }
-    else if (dt_parse_iso_period("P2W", BUFFER_LENGTH, &y, &m, &d, &w) != 3) {
+    else if (dt_parse_iso_period("P2W", BUFFER_LENGTH, &y, &m, &d, &w, &h, &mi, &s) != 3) {
       printf("ERROR dt_parse_iso_period()\n");
     }
     else if (w != 2 || m != 0 || d != 0) {
       printf("ERROR dt_parse_iso_period()\n");
     }
-    else if (dt_parse_iso_period("P", BUFFER_LENGTH, &y, &m, &d, &w) != 1) {
+    else if (dt_parse_iso_period("P", BUFFER_LENGTH, &y, &m, &d, &w, &h, &mi, &s) != 1) {
       printf("ERROR dt_parse_iso_period()\n");
     }
     else {
@@ -665,6 +665,28 @@ utilsTest(void)
     } 
     else if (dt_parse_iso_recurrance("R1999/20110803/P3M", BUFFER_LENGTH, &r) != 0 || r != 0) {
       printf("ERROR no repetitions\n");
+    }
+    else {
+      n_ok++;
+      printf("OK\n");
+    }
+  }
+
+
+  /* ISO 8601 combined */
+
+  if (RUNTEST) {
+    int y, m, d, r;
+    dt_t dt;
+
+    i++;
+    printf("TEST %i in '%s:%i': ", i, __FILE__, __LINE__);
+
+    if (dt_parse_iso_date_time_zone(NULL, 20, NULL, NULL) != 0) {
+      printf("ERROR 1 dt_parse_iso_date_time_zone()\n");
+    }
+    else if (dt_parse_iso_date_time_zone("2012-10-15T08:00:00", 40, &dt, &r) != 0 || r != 0) {
+      printf("ERROR 2 dt_parse_iso_date_time_zone()\n");
     }
     else {
       n_ok++;
