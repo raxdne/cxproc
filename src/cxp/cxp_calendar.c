@@ -770,6 +770,8 @@ RegisterAndParseDateNodes(cxpCalendarPtr pCalendarArg, xmlChar *pucArg)
 	      pceNew->pndEntry = nodeset->nodeTab[i];
 	    }
 
+	    /*!\bug avoid redundant entries */
+	    
 	    /*! use ancestor col element for pucColId
 	    */
 	    for (pndCol = pceNew->pndEntry; pndCol; pndCol = pndCol->parent) {

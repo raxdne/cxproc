@@ -1525,8 +1525,6 @@ pieGetSelfAncestorNodeList(xmlNodePtr pndArg, xmlChar *pucArgId)
 	  xmlAddChild(pndResult, pndH);
 	}
       }
-      else if (IS_NODE_PIE_TD(pndA) || IS_NODE_PIE_TH(pndA)) { /*!\todo td/date */
-      }
     }
     else {
     }
@@ -1539,7 +1537,33 @@ pieGetSelfAncestorNodeList(xmlNodePtr pndArg, xmlChar *pucArgId)
       pndResult = NULL;
     }
   }
+  else if (IS_NODE_PIE_TR(pndArg)) { /*! tr/td/date */
+    if ((pndResult = xmlCopyNode(pndArg, 1))) {
+      xmlNodePtr pndIter;
 
+      xmlNodeSetName(pndResult, NAME_PIE_BLOCK);
+      xmlSetProp(pndResult, BAD_CAST"idref", pucArgId);
+
+      for (pndIter=pndResult->children; pndIter; ) {
+	xmlNodePtr pndIterNext;
+	
+	pndIterNext = pndIter->next;
+	if (IS_NODE_PIE_TD(pndIter) || IS_NODE_PIE_TH(pndIter)) {
+	  if (pndIter->children == NULL) {
+	    xmlUnlinkNode(pndIter);
+	    xmlFreeNodeList(pndIter);
+	  }
+	  else {
+	    xmlNodeSetName(pndIter, NAME_PIE_PAR);
+	  }
+	}
+	else {
+	}
+	pndIter = pndIterNext;
+      }
+    }
+  }
+  
   return pndResult;
 } /* end of pieGetSelfAncestorNodeList() */
 
