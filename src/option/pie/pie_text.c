@@ -1603,11 +1603,7 @@ SetPropBlockLocators(xmlNodePtr pndArg, xmlChar* pucArgFileName, xmlChar* pucArg
 	    xmlSetProp(pndChild,BAD_CAST"blocator",pucArgFileName);
 	  }
 	  
-	  if (IS_NODE_PIE_BLOCK(pndChild)) {
-	  }
-	  else {
-	    SetPropBlockLocators(pndChild, pucArgFileName, mucT);
-	  }
+	  SetPropBlockLocators(pndChild, pucArgFileName, mucT);
 	}
       }
     }

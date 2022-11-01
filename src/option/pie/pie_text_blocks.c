@@ -825,6 +825,7 @@ SplitNodeToTableDataNodes(xmlNodePtr pndArgParent, xmlChar* pucPatternSep)
 
     xmlFreeNode(pndChild);
     xmlNodeSetName(pndArgParent,NAME_PIE_TR);
+    RecognizeSymbols(pndArgParent, LANG_DEFAULT);
     fResult = TRUE;
   }
   
@@ -2416,10 +2417,21 @@ RecognizeSymbols(xmlNodePtr pndArg, lang_t eLangArg)
 	}
 
 	if (xmlStrstr(pucTT, BAD_CAST STR_PIE_CANCEL)) {
-	  xmlSetProp(pndArg->parent,BAD_CAST"valid",BAD_CAST"no");
+
+	  if (IS_NODE_PIE_HEADER(pndArg->parent) && pndArg->parent->parent != NULL) {
+	    xmlSetProp(pndArg->parent->parent,BAD_CAST"valid",BAD_CAST"no");
+	  }
+	  else {
+	    xmlSetProp(pndArg->parent,BAD_CAST"valid",BAD_CAST"no");
+	  }
 	}
 	else if (xmlStrstr(pucTT, BAD_CAST STR_PIE_OK)) {
-	  xmlSetProp(pndArg->parent,BAD_CAST"done",BAD_CAST"yes");
+	  if (IS_NODE_PIE_HEADER(pndArg->parent) && pndArg->parent->parent != NULL) {
+	    xmlSetProp(pndArg->parent->parent,BAD_CAST"done",BAD_CAST"yes");
+	  }
+	  else {
+	    xmlSetProp(pndArg->parent,BAD_CAST"done",BAD_CAST"yes");
+	  }
 	}
 
 	xmlNodeSetContent(pndArg,pucTT);
