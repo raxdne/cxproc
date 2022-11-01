@@ -172,7 +172,9 @@ cmarkTreeToDOM(xmlNodePtr pndArgBlock, xmlNodePtr pndArg, cmark_node* pcmnArg)
     /* Error status */
     if (pcmnArg->type == CMARK_NODE_NONE) {
       if (STR_IS_NOT_EMPTY(pcmnArg->data)) {
-	xmlAddChild(pndArg, xmlNewComment(BAD_CAST pcmnArg->data));
+      pucT = StringEncodeXmlDefaultEntitiesNew(BAD_CAST pcmnArg->data);
+      xmlAddChild(pndArg, xmlNewComment(pucT));
+      xmlFree(pucT);
       }
     }
     /* Block */
@@ -213,7 +215,9 @@ cmarkTreeToDOM(xmlNodePtr pndArgBlock, xmlNodePtr pndArg, cmark_node* pcmnArg)
       }
     }
     else if (pcmnArg->type == CMARK_NODE_CODE_BLOCK) {
-      pndT = xmlNewChild(pndArg, NULL, NAME_PIE_PRE, pcmnArg->data);
+      pucT = StringEncodeXmlDefaultEntitiesNew(BAD_CAST pcmnArg->data);
+      pndT = xmlNewChild(pndArg, NULL, NAME_PIE_PRE, pucT);
+      xmlFree(pucT);
     }
     else if (pcmnArg->type == CMARK_NODE_HTML_BLOCK) {
       xmlNodePtr pndNew = NULL;
@@ -231,7 +235,9 @@ cmarkTreeToDOM(xmlNodePtr pndArgBlock, xmlNodePtr pndArg, cmark_node* pcmnArg)
 	    xmlChar *pucContent;
 
 	    if (puc1 > puc0 && (pucContent = xmlStrndup(puc0, puc1 - puc0)) != NULL) {
-	      xmlNodeSetContent(pndNew,pucContent);
+	      pucT = StringEncodeXmlDefaultEntitiesNew(pucContent);
+	      xmlNodeSetContent(pndNew,pucT);
+	      xmlFree(pucT);
 	      xmlFree(pucContent);
 	    }
 	  }
@@ -284,7 +290,9 @@ cmarkTreeToDOM(xmlNodePtr pndArgBlock, xmlNodePtr pndArg, cmark_node* pcmnArg)
     /* Inline */
     else if (pcmnArg->type == CMARK_NODE_TEXT) {
       if (STR_IS_NOT_EMPTY(pcmnArg->data)) {
-	xmlAddChild(pndArg, xmlNewText(BAD_CAST pcmnArg->data));
+	pucT = StringEncodeXmlDefaultEntitiesNew(BAD_CAST pcmnArg->data);
+	xmlAddChild(pndArg, xmlNewText(pucT));
+	xmlFree(pucT);
       }
       else {
 	xmlAddChild(pndArg, xmlNewComment(BAD_CAST"empty paragraph"));
@@ -300,7 +308,9 @@ cmarkTreeToDOM(xmlNodePtr pndArgBlock, xmlNodePtr pndArg, cmark_node* pcmnArg)
       cmarkTreeToDOM(pndArg, pndArg, pcmnArg->first_child);
     }
     else if (pcmnArg->type == CMARK_NODE_CODE) {
-      pndT = xmlNewChild(pndArg, NULL, NAME_PIE_TT, pcmnArg->data);
+      pucT = StringEncodeXmlDefaultEntitiesNew(BAD_CAST pcmnArg->data);
+      pndT = xmlNewChild(pndArg, NULL, NAME_PIE_TT, pucT);
+      xmlFree(pucT);
     }
     else if (pcmnArg->type == CMARK_NODE_HTML_INLINE) {
     }
