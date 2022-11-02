@@ -235,9 +235,8 @@ cmarkTreeToDOM(xmlNodePtr pndArgBlock, xmlNodePtr pndArg, cmark_node* pcmnArg)
 	    xmlChar *pucContent;
 
 	    if (puc1 > puc0 && (pucContent = xmlStrndup(puc0, puc1 - puc0)) != NULL) {
-	      pucT = StringEncodeXmlDefaultEntitiesNew(pucContent);
-	      xmlNodeSetContent(pndNew,pucT);
-	      xmlFree(pucT);
+	      /*!\bug XML entities, StringEncodeXmlDefaultEntitiesNew() would cause problems with ';' */
+	      xmlNodeSetContent(pndNew, pucContent);
 	      xmlFree(pucContent);
 	    }
 	  }
@@ -247,11 +246,7 @@ cmarkTreeToDOM(xmlNodePtr pndArgBlock, xmlNodePtr pndArg, cmark_node* pcmnArg)
       else {
 	xmlDocPtr pdocHtml;
 
-	pucT = xmlStrdup(BAD_CAST"<html>");
-	pucT = xmlStrcat(pucT, BAD_CAST pcmnArg->data);
-	pucT = xmlStrcat(pucT, BAD_CAST"</html>");
-
-	pdocHtml = xmlParseMemory(pucT,xmlStrlen(pucT));
+	pdocHtml = xmlParseMemory(BAD_CAST pcmnArg->data,xmlStrlen(BAD_CAST pcmnArg->data)); /* XHTML only */
 	if ((pndNew = xmlDocGetRootElement(pdocHtml)) != NULL && IS_NODE_PIE_HTML(pndNew) && pndNew->children != NULL) {
 	  xmlUnlinkNode(pndNew);
 	  xmlNodeSetName(pndNew, BAD_CAST"block");
@@ -290,9 +285,7 @@ cmarkTreeToDOM(xmlNodePtr pndArgBlock, xmlNodePtr pndArg, cmark_node* pcmnArg)
     /* Inline */
     else if (pcmnArg->type == CMARK_NODE_TEXT) {
       if (STR_IS_NOT_EMPTY(pcmnArg->data)) {
-	pucT = StringEncodeXmlDefaultEntitiesNew(BAD_CAST pcmnArg->data);
-	xmlAddChild(pndArg, xmlNewText(pucT));
-	xmlFree(pucT);
+	xmlAddChild(pndArg, xmlNewText(BAD_CAST pcmnArg->data));
       }
       else {
 	xmlAddChild(pndArg, xmlNewComment(BAD_CAST"empty paragraph"));
