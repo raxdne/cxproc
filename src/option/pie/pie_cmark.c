@@ -241,7 +241,28 @@ cmarkTreeToDOM(xmlNodePtr pndArgBlock, xmlNodePtr pndArg, cmark_node* pcmnArg)
 	    }
 	  }
 	}
-	/*!\todo handle <script> in a similar way */
+      }
+      else if (StringBeginsWith(pcmnArg->data,BAD_CAST"<script>")) {
+	xmlChar *puc0;
+	xmlChar *puc1 = NULL;
+
+	pndNew = xmlNewChild(pndArg, NULL, NAME_PIE_IMPORT, NULL);
+	xmlSetProp(pndNew, BAD_CAST "type", BAD_CAST"script");
+	
+	if ((puc0 = xmlStrstr(pcmnArg->data,BAD_CAST"<script>")) != NULL) {
+	  puc0 += xmlStrlen(BAD_CAST"<script>");
+	  if ((puc1 = xmlStrstr(pcmnArg->data,BAD_CAST"</script>")) != NULL) {
+	    xmlChar *pucContent;
+
+	    if (puc1 > puc0 && (pucContent = xmlStrndup(puc0, puc1 - puc0)) != NULL) {
+	      pucT = StringEncodeXmlDefaultEntitiesNew(pucContent);
+	      xmlNodeSetContent(pndNew, pucT);
+	      //xmlAddChild(pndArg, xmlNewComment(pucT));
+	      xmlFree(pucT);
+	      xmlFree(pucContent);
+	    }
+	  }
+	}
       }
       else {
 	xmlDocPtr pdocHtml;
@@ -361,7 +382,7 @@ ParseMarkdownBuffer(xmlNodePtr pndArgTop, xmlChar* pucArg)
   if (STR_IS_NOT_EMPTY(pucArg)) {
     cmark_node* doc;
 
-    if ((doc = cmark_parse_document(pucArg, strlen(pucArg), CMARK_OPT_DEFAULT | CMARK_OPT_SMART)) != NULL) {
+    if ((doc = cmark_parse_document(pucArg, strlen(pucArg), CMARK_OPT_DEFAULT)) != NULL) {
       cmarkTreeToDOM(pndArgTop, pndArgTop, doc);
       cmark_node_free(doc);
       pndResult = pndArgTop;

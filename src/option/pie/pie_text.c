@@ -309,16 +309,16 @@ pieProcessPieNode(xmlNodePtr pndArgPie, cxpContextPtr pccArg)
 
     RecognizeInlines(pndPieRoot);
 
-#ifdef HAVE_JS
     if (domGetPropFlag(pndArgPie, BAD_CAST "script", TRUE)) {
       cxpCtxtLogPrint(pccArg, 2, "Recognize scripts");
       RecognizeScripts(pndPieRoot);
+#ifdef HAVE_JS
       TraverseScriptNodes(pndPieRoot, pccArg);
+#endif
     }
     else {
       cxpCtxtLogPrint(pccArg, 3, "Ignoring scripts");
     }
-#endif
 
     /* process all child subst nodes */
     cxpCtxtLogPrint(pccArg, 2, "Start substitution");
@@ -852,7 +852,8 @@ ImportNodeContent(xmlNodePtr pndArgImport, cxpContextPtr pccArg)
 #ifdef HAVE_JS
     pucContent = scriptProcessScriptNode(pndBlock, pccArg);
 #else
-    /*\todo define fallback */
+    xmlAddChild(pndArgImport, xmlNewComment(domNodeEatContent(pndArgImport))); /* fallback */
+    return fResult;
 #endif
   }
   else {

@@ -288,7 +288,7 @@ scriptProcessScriptNode(xmlNodePtr pndArg, cxpContextPtr pccArg)
     if (STR_IS_NOT_EMPTY(pucScript) && domGetPropFlag(pndArg, BAD_CAST "eval", TRUE)) {
       xmlChar *pucScriptDecoded;
 
-      pucScriptDecoded = xmlStrdup(pucScript); /*!\bug decode XML entities to UTF-8 */
+      pucScriptDecoded = xmlStrdup(pucScript); /*!\bug decode XML entities to UTF-8 StringDecodeXmlDefaultEntitiesNew(pucScript) */
 
       cxpCtxtLogPrint(pccArg, 4, "Run Script code '%s'", pucScriptDecoded);
       duk_push_global_object(pDukContext);
