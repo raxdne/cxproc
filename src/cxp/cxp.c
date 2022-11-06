@@ -2971,7 +2971,7 @@ cxpProcessCopyNode(xmlNodePtr pndArgCopy, cxpContextPtr pccArg)
     if ((pucTo = domGetPropValuePtr(pndArgCopy, BAD_CAST "to")) == NULL || *pucTo == '\0'
       || (prnTo = cxpResNodeResolveNew(pccArg, pndArgCopy, pucTo, CXP_O_WRITE)) == NULL) {
 #ifdef HAVE_CGI
-      printf("Status: 501\r\n"
+      printf("Status: 507\r\n"
 	"Content-Type: text/plain\r\n\r\n"
 	"Cxproc write error '%s'\r\n", pucTo);
 #endif
@@ -2980,7 +2980,7 @@ cxpProcessCopyNode(xmlNodePtr pndArgCopy, cxpContextPtr pccArg)
     else if ((pucFrom = domGetPropValuePtr(pndArgCopy, BAD_CAST "from")) == NULL || *pucFrom == '\0'
       || (prnFrom = cxpResNodeResolveNew(pccArg, pndArgCopy, pucFrom, ((domGetPropFlag(pndArgCopy, BAD_CAST"search", FALSE)) ? CXP_O_SEARCH | CXP_O_READ : CXP_O_READ))) == NULL) {
 #ifdef HAVE_CGI
-      printf("Status: 501\r\n"
+      printf("Status: 507\r\n"
 	"Content-Type: text/plain\r\n\r\n"
 	"Cxproc read error '%s'\r\n", pucFrom);
 #endif

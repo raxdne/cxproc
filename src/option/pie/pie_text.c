@@ -825,7 +825,7 @@ ImportNodeFile(xmlNodePtr pndArgImport, cxpContextPtr pccArg)
 BOOL_T
 ImportNodeContent(xmlNodePtr pndArgImport, cxpContextPtr pccArg)
 {
-  BOOL_T fResult = FALSE;
+  BOOL_T fResult = TRUE;
   xmlChar *pucContent = NULL;
   xmlNodePtr pndBlock = NULL;
   BOOL_T fLocator;
@@ -842,25 +842,34 @@ ImportNodeContent(xmlNodePtr pndArgImport, cxpContextPtr pccArg)
   assert(IS_NODE_PIE_IMPORT(pndArgImport));
   assert(NodeHasSingleText(pndArgImport));
 
-  fResult = TRUE;
+#ifdef HAVE_JS
   pndBlock = pndArgImport;
   xmlSetNs(pndBlock,NULL);
   xmlNodeSetName(pndBlock, NAME_PIE_BLOCK);
   //xmlSetProp(pndBlock, BAD_CAST "context", resNodeGetURI(prnInput));
 
   if (xmlStrEqual(domGetPropValuePtr(pndBlock, BAD_CAST "type"), BAD_CAST"script")) {
-#ifdef HAVE_JS
     pucContent = scriptProcessScriptNode(pndBlock, pccArg);
-#else
-    xmlAddChild(pndArgImport, xmlNewComment(domNodeEatContent(pndArgImport))); /* fallback */
-    return fResult;
-#endif
   }
   else {
     pucContent = domNodeEatContent(pndArgImport);
   }
   xmlFreeNode(pndArgImport->children);
   pndArgImport->children = pndArgImport->last = NULL; /* unlink node content */
+#else
+  if (xmlStrEqual(domGetPropValuePtr(pndArgImport, BAD_CAST "type"), BAD_CAST"script")) {
+    xmlAddChild(pndArgImport, xmlNewComment(BAD_CAST"No script support"));
+    return fResult;
+  }
+  else {
+    pndBlock = pndArgImport;
+    xmlSetNs(pndBlock,NULL);
+    xmlNodeSetName(pndBlock, NAME_PIE_BLOCK);
+    pucContent = domNodeEatContent(pndArgImport);
+    xmlFreeNode(pndArgImport->children);
+    pndArgImport->children = pndArgImport->last = NULL; /* unlink node content */
+  }
+#endif
 
   /*!\todo change pndArgImport->children to a CDATA node? */
 
