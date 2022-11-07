@@ -75,21 +75,21 @@ AddTagNodeNew(xmlNodePtr pndArg, const xmlChar* pucArg)
   xmlNodePtr pndResult = NULL;
 
   if (pndArg != NULL && STR_IS_NOT_EMPTY(pucArg)) {
-    xmlNodePtr pndT;
+    xmlNodePtr pndIter;
 
     /* find an existing htag node with same content */
-    for (pndT = pndArg->children; pndT; pndT = pndT->next) {
-      if (IS_NODE_PIE_TTAG(pndT) && xmlStrEqual(pucArg, domNodeGetContentPtr(pndT))) {
+    for (pndIter = pndArg->children; pndIter; pndIter = pndIter->next) {
+      if (IS_NODE_PIE_TTAG(pndIter) && xmlStrEqual(pucArg, domNodeGetContentPtr(pndIter))) {
 	/* it's there already */
 	break;
       }
     }
 
-    if (pndT == NULL) {
+    if (pndIter == NULL) {
       pndResult = xmlNewTextChild(pndArg, NULL, NAME_PIE_TTAG, pucArg);
     }
     else {
-      domIncrProp(pndT, BAD_CAST"count", 1);
+      domIncrProp(pndIter, BAD_CAST"count", 1);
     }
   }
   return pndResult;
@@ -202,32 +202,23 @@ SplitNodeListToTagNodes(xmlNodePtr pndArg, pcre2_code* preArg, const xmlChar* pu
   if (pndArg != NULL && preArg != NULL && STR_IS_NOT_EMPTY(pucArgName)) {
     xmlNodePtr pndIter;
 
-    for (pndIter = pndArg; pndIter != NULL; pndIter = pndIter->next) {
+    for (pndIter = pndArg; pndIter != NULL; ) {
+      xmlNodePtr pndNext;
 
+      pndNext = pndIter->next;
       if (xmlNodeIsText(pndIter)) { /* pndIter is a text node */
 	xmlNodePtr pndReplace;
 
 	pndReplace = SplitStringToTagNodes(pndIter->content, preArg, pucArgName);
 	if (pndReplace) {
 	  /* there is a result list */
-	  xmlNodePtr pndT;
-
-	  pndT = pndIter->next;
 	  if (domReplaceNodeList(pndIter, pndReplace->children) == pndIter) {
 	    xmlFreeNodeList(pndIter);
 	  }
 	  xmlFreeNode(pndReplace);
-	  /*  */
-	  if (pndT != NULL && pndT->prev != NULL) {
-	    pndIter = pndT->prev;
-	  }
-	  else {
-	    pndIter = NULL;
-	  }
 	}
       }
-      else {
-      }
+      pndIter = pndNext;
     }
   }
   return pndResult;
@@ -260,8 +251,8 @@ SplitToTagNodes(const xmlChar* pucArg, pcre2_code* preArgHashTag, pcre2_code* pr
 
       if (preArgBlockTag) { /* there is also a block-specific tag regexp */
 	if (pndResult) {
-	  /* pucArg was splitted to a node list already */
-	  SplitNodeListToTagNodes(pndResult, preArgBlockTag, NAME_PIE_ETAG);
+	  /* pucArg was splitted to a node list already, top element is dummy only */
+	  SplitNodeListToTagNodes(pndResult->children, preArgBlockTag, NAME_PIE_ETAG);
 	}
 	else {
 	  pndResult = SplitStringToTagNodes(pucArg, preArgBlockTag, NAME_PIE_ETAG);
@@ -283,7 +274,7 @@ BOOL_T
 RecognizeHashtags(xmlNodePtr pndArg, pcre2_code* preArgHashTag, pcre2_code* preArgBlockTag)
 {
   BOOL_T fResult = TRUE;
-  xmlNodePtr pndChild;
+  xmlNodePtr pndIter;
   int errornumber = 0;
   size_t erroroffset;
 
@@ -346,8 +337,8 @@ RecognizeHashtags(xmlNodePtr pndArg, pcre2_code* preArgHashTag, pcre2_code* preA
       xmlFree(pucTT);
     }
 
-    for (pndChild = pndArg->children; fResult && pndChild != NULL; pndChild = pndChild->next) {
-      fResult = RecognizeHashtags(pndChild, preArgHashTag, preBlock);
+    for (pndIter = pndArg->children; fResult && pndIter != NULL; pndIter = pndIter->next) {
+      fResult = RecognizeHashtags(pndIter, preArgHashTag, preBlock);
     }
 
     if (preBlock != NULL && preBlock != preArgBlockTag) {
@@ -367,36 +358,28 @@ RecognizeHashtags(xmlNodePtr pndArg, pcre2_code* preArgHashTag, pcre2_code* preA
   else if ((IS_ENODE(pndArg) && (pndArg->ns==NULL /* || pndArg->ns==pnsPie */ )
 	    && (IS_NODE_PIE_LINK(pndArg) == FALSE || domGetPropValuePtr(pndArg, BAD_CAST"href") != NULL || domGetPropValuePtr(pndArg, BAD_CAST"id") != NULL))) {
 
-    for (pndChild = pndArg->children;
-      fResult && pndChild != NULL;
-      pndChild = (pndChild != NULL) ? pndChild->next : NULL) {
+    for (pndIter = pndArg->children; fResult && pndIter != NULL; ) {
       xmlChar* pucT;
+      xmlNodePtr pndNext;
 
-      if (xmlNodeIsText(pndChild) && (pucT = pndChild->content) != NULL) { /* pndChild is a text node */
+      pndNext = (pndIter != NULL) ? pndIter->next : NULL;
+
+      if (xmlNodeIsText(pndIter) && (pucT = pndIter->content) != NULL) { /* pndIter is a text node */
 	xmlNodePtr pndReplace;
 
 	pndReplace = SplitToTagNodes(pucT, preArgHashTag, preArgBlockTag);
 	if (pndReplace) {
 	  /* there is a result list */
-	  xmlNodePtr pndT;
-
-	  pndT = pndChild->next;
-	  if (domReplaceNodeList(pndChild, pndReplace->children) == pndChild) {
-	    xmlFreeNodeList(pndChild);
+	  if (domReplaceNodeList(pndIter, pndReplace->children) == pndIter) {
+	    xmlFreeNodeList(pndIter);
 	  }
 	  xmlFreeNode(pndReplace);
-	  /*  */
-	  if (pndT != NULL && pndT->prev != NULL) {
-	    pndChild = pndT->prev;
-	  }
-	  else {
-	    pndChild = NULL;
-	  }
 	}
       }
       else {
-	fResult = RecognizeHashtags(pndChild, preArgHashTag, preArgBlockTag);
+	fResult = RecognizeHashtags(pndIter, preArgHashTag, preArgBlockTag);
       }
+      pndIter = pndNext;
     }
   }
   return fResult;
