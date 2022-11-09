@@ -966,11 +966,10 @@ pieElementToDOM(pieTextElementPtr ppeT)
       }
 
       if (pndResult) {
-#ifdef EXPERIMENTAL
+
 	if (ppeT->fDone) {
 	  xmlSetProp(pndResult, BAD_CAST "state", BAD_CAST"done");
 	}
-#endif
 	
 	if (ppeT->iDepthHidden > 0) {
 	  xmlChar mpucHidden[BUFFER_LENGTH];

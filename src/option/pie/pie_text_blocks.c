@@ -51,7 +51,7 @@
 #define RE_LINK_MD "!*\\[([^\\]]*)\\]\\(([^\\)]+)\\)"
 #define RE_LINK_MD_AUTO "(<|&lt;|\\xE2\\x80\\x99)([^<> \\t]+)(>|&gt;|\\xE2\\x80\\x98)"
 
-/*
+/*!\bug extend regexp to markdown
 */
 #define RE_FIG "^[ \\t]*(Fig|Abb)\\.[ \\t]*([^ \\t]+)[ \\t]*(.+)*$"
 
@@ -2416,7 +2416,7 @@ RecognizeSymbols(xmlNodePtr pndArg, lang_t eLangArg)
 	  xmlSetProp(pndArg->parent,BAD_CAST"impact",BAD_CAST"2");
 	}
 
-	if (xmlStrstr(pucTT, BAD_CAST STR_PIE_CANCEL)) {
+	if (IS_PIE_CANCEL(pucTT)) {
 
 	  if (IS_NODE_PIE_HEADER(pndArg->parent) && pndArg->parent->parent != NULL) {
 	    xmlSetProp(pndArg->parent->parent,BAD_CAST"valid",BAD_CAST"no");
@@ -2425,7 +2425,7 @@ RecognizeSymbols(xmlNodePtr pndArg, lang_t eLangArg)
 	    xmlSetProp(pndArg->parent,BAD_CAST"valid",BAD_CAST"no");
 	  }
 	}
-	else if (xmlStrstr(pucTT, BAD_CAST STR_PIE_OK)) {
+	else if (IS_PIE_OK(pucTT)) {
 	  if (IS_NODE_PIE_HEADER(pndArg->parent) && pndArg->parent->parent != NULL) {
 	    xmlSetProp(pndArg->parent->parent,BAD_CAST"done",BAD_CAST"yes");
 	  }
@@ -2950,9 +2950,7 @@ TaskNodeNew(xmlNodePtr pndArg)
 	  
 	  pucTTT = xmlNodeListGetString(pndArg->doc,pndArg->children,0);
 	  StringToLower((char*)pucT);
-	  if (xmlStrEqual(pucT, BAD_CAST"done")
-	      || (xmlStrEqual(pucT, BAD_CAST"todo") && xmlStrcasestr(pucTTT, BAD_CAST STR_PIE_OK) != NULL)) {
-	    /* map 'DONE:' to a @class = 'todo' and @state='done' */
+	  if (xmlStrEqual(pucT, BAD_CAST"done") || (xmlStrEqual(pucT, BAD_CAST"todo") && IS_PIE_OK(pucTTT))) {
 	    xmlSetProp(pndResult, BAD_CAST"class", BAD_CAST"todo");
 	    xmlSetProp(pndResult, BAD_CAST"state", BAD_CAST"done");
 	    xmlNewTextChild(pndResult, NULL, NAME_PIE_TTAG, BAD_CAST"#done");
@@ -2961,14 +2959,12 @@ TaskNodeNew(xmlNodePtr pndArg)
 	    xmlChar* pucTT;
 
 	    xmlSetProp(pndResult, BAD_CAST"class", pucT);
-	    if (xmlStrcasestr(pucTTT, BAD_CAST STR_PIE_CANCEL) != NULL) {
+	    
+	    if (IS_PIE_CANCEL(pucTTT)) {
 	      xmlSetProp(pndResult, BAD_CAST"state", BAD_CAST"rejected");
 	      xmlNewTextChild(pndResult, NULL, NAME_PIE_TTAG, BAD_CAST"#rejected");
 	    }
-	    else if (xmlStrcasestr(pucTTT, BAD_CAST STR_PIE_OK) != NULL) {
-	      xmlSetProp(pndResult, BAD_CAST"state", BAD_CAST"done");
-	      xmlNewTextChild(pndResult, NULL, NAME_PIE_TTAG, BAD_CAST"#done");
-	    }
+
 	    pucTT = xmlStrdup(BAD_CAST"#");
 	    pucTT = xmlStrcat(pucTT, pucT);
 	    xmlNewTextChild(pndResult, NULL, NAME_PIE_TTAG, pucTT);

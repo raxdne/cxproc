@@ -21,9 +21,9 @@
 
 #include <cxp/cxp_dtd.h>
 
-#define STR_PIE_OK STR_UTF8_HEAVY_CHECK_MARK
+#define IS_PIE_OK(P) (xmlStrstr(P, BAD_CAST STR_UTF8_HEAVY_CHECK_MARK) != NULL || xmlStrstr(P, BAD_CAST "&#x2714;") != NULL)
 
-#define STR_PIE_CANCEL STR_UTF8_HEAVY_BALLOT_X
+#define IS_PIE_CANCEL(P) (xmlStrstr(P, BAD_CAST STR_UTF8_HEAVY_BALLOT_X) != NULL || xmlStrstr(P, BAD_CAST "&#x2718;") != NULL)
 
 #define STR_PIE_IMPACT_HIGH (BAD_CAST"+++")
 

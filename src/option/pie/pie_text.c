@@ -437,7 +437,7 @@ ImportNodeCxp(xmlNodePtr pndArgImport, cxpContextPtr pccArg)
 	    xmlUnlinkNode(pndPieProcRoot);
 	    xmlNodeSetName(pndPieProcRoot, NAME_PIE_BLOCK);
 	    xmlSetNs(pndPieProcRoot,NULL);
-	    SetPropBlockLocators(pndPieProcRoot,domGetPropValuePtr(pndArgImport, BAD_CAST"context"),NULL);
+	    ProcessImportOptions(pndPieProcRoot,pndPieRoot,pccArg);
 	    RecognizeIncludes(pndPieProcRoot);
 	    TraverseIncludeNodes(pndPieProcRoot, pccArg);
 	    RecognizeSubsts(pndPieProcRoot);
@@ -479,7 +479,7 @@ ImportNodeCxp(xmlNodePtr pndArgImport, cxpContextPtr pccArg)
       //xmlSetProp(pndBlock, BAD_CAST "context", resNodeGetURI(prnInput));
 
       if (ParsePlainBuffer(pndBlock, pucContent, GetModeByAttr(pndArgImport))) {
-	SetPropBlockLocators(pndBlock,domGetPropValuePtr(pndArgImport, BAD_CAST"context"),NULL);
+	ProcessImportOptions(pndBlock,pndChild,pccArg);
 	RecognizeIncludes(pndBlock);
 	TraverseIncludeNodes(pndBlock, pccArg);
 	RecognizeSubsts(pndBlock);
@@ -697,11 +697,7 @@ ImportNodeFile(xmlNodePtr pndArgImport, cxpContextPtr pccArg)
 
 	if (STR_IS_NOT_EMPTY(pucContent)) {
 	  if (ParsePlainBuffer(pndBlock, pucContent, m)) {
-
-	    if (domGetPropFlag(pndArgImport, BAD_CAST "locators", TRUE)) {
-	      SetPropBlockLocators(pndBlock, resNodeGetNameRelative(cxpCtxtRootGet(pccInput), prnInput), NULL);
-	    }
-
+	    ProcessImportOptions(pndBlock,pndArgImport,pccArg);
 	    RecognizeIncludes(pndBlock);
 	    TraverseIncludeNodes(pndBlock, pccInput);
 
@@ -788,7 +784,7 @@ ImportNodeFile(xmlNodePtr pndArgImport, cxpContextPtr pccArg)
 	    xmlAddChildList(pndBlock, pndT);
 	  }
 	  xmlFreeDoc(pdocPie);
-	  SetPropBlockLocators(pndBlock, resNodeGetNameRelative(cxpCtxtRootGet(pccInput), prnInput), NULL);
+	  ProcessImportOptions(pndBlock,pndArgImport,pccArg);
 	  RecognizeIncludes(pndBlock);
 	  TraverseIncludeNodes(pndBlock, pccInput);
 	  RecognizeSubsts(pndBlock);
@@ -875,13 +871,7 @@ ImportNodeContent(xmlNodePtr pndArgImport, cxpContextPtr pccArg)
 
   if (STR_IS_NOT_EMPTY(pucContent)) {
     if (ParsePlainBuffer(pndBlock, pucContent, GetModeByAttr(pndBlock))) {
-      resNodePtr prnDoc;
-      
-      if (domGetPropFlag(pndArgImport, BAD_CAST "locator", fLocator)
-	  && pndArgImport->doc != NULL && (prnDoc = resNodeDirNew(BAD_CAST pndArgImport->doc->URL)) != NULL) {
-	SetPropBlockLocators(pndBlock, resNodeGetNameRelative(cxpCtxtRootGet(pccArg), prnDoc), NULL);
-	resNodeFree(prnDoc);
-      }
+      ProcessImportOptions(pndBlock,pndArgImport,pccArg);
       RecognizeIncludes(pndBlock);
       TraverseIncludeNodes(pndBlock, pccArg);
       RecognizeSubsts(pndBlock);
@@ -1282,16 +1272,23 @@ ProcessImportOptions(xmlNodePtr pndArgPie, xmlNodePtr pndArgImport, cxpContextPt
     }
 
     if (domGetPropFlag(pndArgPie, BAD_CAST "locators", TRUE)) {
+      resNodePtr prnDoc;
+
       cxpCtxtLogPrint(pccArg, 2, "Add locator attribute");
-      SetPropBlockLocators(pndArgPie,NULL,NULL);
+      if (pndArgImport->doc != NULL && (prnDoc = resNodeDirNew(BAD_CAST pndArgImport->doc->URL)) != NULL) {
+	SetPropBlockLocators(pndArgPie, resNodeGetNameRelative(cxpCtxtRootGet(pccArg), prnDoc), NULL);
+	resNodeFree(prnDoc);
+      }
+      else {
+	SetPropBlockLocators(pndArgPie, NULL, NULL);
+      }
     }
     else {
       cxpCtxtLogPrint(pccArg, 3, "Skipping locators");
     }
   }
   return fResult;
-}
-/* end of ProcessImportOptions() */
+} /* end of ProcessImportOptions() */
 
 
 /*! process the single import node pndArgImport in context of pccArg and replace it
