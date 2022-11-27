@@ -605,31 +605,37 @@ utilsTest(void)
     printf("TEST %i in '%s:%i': ",i,__FILE__,__LINE__);
 
     if (dt_parse_iso_period(NULL, 20, NULL, NULL, NULL, NULL, NULL, NULL, NULL) != 0) {
-      printf("ERROR dt_parse_iso_period()\n");
+      printf("ERROR 1 dt_parse_iso_period()\n");
     }
     else if (dt_parse_iso_period("P1YM-4DT", 20, &y, &m, &d, NULL, NULL, NULL, NULL) != 0) {
-      printf("ERROR dt_parse_iso_period()\n");
+      printf("ERROR 2 dt_parse_iso_period()\n");
     }
     else if (dt_parse_iso_period("P3Y6M4DT12H30M5S", BUFFER_LENGTH, &y, &m, &d, NULL, &h, &mi, &s) != 16) {
-      printf("ERROR dt_parse_iso_period()\n");
+      printf("ERROR 3 dt_parse_iso_period()\n");
     }
-    else if (y != 3 || m != 6 || d != 4) {
-      printf("ERROR dt_parse_iso_period()\n");
+    else if (y != 3 || m != 6 || d != 4 || h != 12 || mi != 30 || s != 5) {
+      printf("ERROR 4 dt_parse_iso_period()\n");
+    }
+    else if (dt_parse_iso_period("PT30M", BUFFER_LENGTH, &y, &m, &d, NULL, &h, &mi, &s) != 5) {
+      printf("ERROR 5 dt_parse_iso_period()\n");
+    }
+    else if (y != 0 || m != 0 || d != 0 || h != 0 || mi != 30 || s != 0) {
+      printf("ERROR 6 dt_parse_iso_period()\n");
     }
     else if (dt_parse_iso_period("P7Y", BUFFER_LENGTH, &y, &m, &d, NULL, &h, &mi, &s) != 3) {
-      printf("ERROR dt_parse_iso_period()\n");
+      printf("ERROR 7 dt_parse_iso_period()\n");
     }
-    else if (y != 7 || m != 0 || d != 0) {
-      printf("ERROR dt_parse_iso_period()\n");
+    else if (y != 7 || m != 0 || d != 0 || h != 0 || mi != 0 || s != 0) {
+      printf("ERROR 8 dt_parse_iso_period()\n");
     }
     else if (dt_parse_iso_period("P2W", BUFFER_LENGTH, &y, &m, &d, &w, &h, &mi, &s) != 3) {
-      printf("ERROR dt_parse_iso_period()\n");
+      printf("ERROR 9 dt_parse_iso_period()\n");
     }
-    else if (w != 2 || m != 0 || d != 0) {
-      printf("ERROR dt_parse_iso_period()\n");
+    else if (w != 2 || m != 0 || d != 0 || h != 0 || mi != 0 || s != 0) {
+      printf("ERROR 10 dt_parse_iso_period()\n");
     }
     else if (dt_parse_iso_period("P", BUFFER_LENGTH, &y, &m, &d, &w, &h, &mi, &s) != 1) {
-      printf("ERROR dt_parse_iso_period()\n");
+      printf("ERROR 11 dt_parse_iso_period()\n");
     }
     else {
       n_ok++;
@@ -673,7 +679,10 @@ utilsTest(void)
   }
 
 
-  /* ISO 8601 combined */
+  /* ISO 8601 combined 
+  
+  https://en.wikipedia.org/wiki/Time_zone#List_of_UTC_offsets
+  */
 
   if (RUNTEST) {
     int y, m, d, r;
@@ -685,8 +694,26 @@ utilsTest(void)
     if (dt_parse_iso_date_time_zone(NULL, 20, NULL, NULL) != 0) {
       printf("ERROR 1 dt_parse_iso_date_time_zone()\n");
     }
-    else if (dt_parse_iso_date_time_zone("2012-10-15T08:00:00", 40, &dt, &r) != 0 || r != 0) {
+    else if (dt_parse_iso_date_time_zone("2012-10-15T08:00:00", 40, &dt, &r) != 19 || r != 25200) {
       printf("ERROR 2 dt_parse_iso_date_time_zone()\n");
+    }
+    else if (dt_parse_iso_date_time_zone("2012-10-15T08:00:00+05:00", 40, &dt, &r) != 25 || r != 10800) {
+      printf("ERROR 3 dt_parse_iso_date_time_zone()\n");
+    }
+    else if (dt_parse_iso_date_time_zone("2012-10-15T08:00:00−05:00", 40, &dt, &r) != 22 || r != 46800) {
+      printf("ERROR 4 dt_parse_iso_date_time_zone()\n");
+    }
+    else if (dt_parse_iso_date_time_zone("20121015T080000−0500", 40, &dt, &r) != 20 || r != 46800) {
+      printf("ERROR 4 dt_parse_iso_date_time_zone()\n");
+    }
+    else if (dt_parse_iso_date_time_zone("2012-10-15T08:00:00CST", 40, &dt, &r) != 22 || r != 50400) {
+      printf("ERROR 5 dt_parse_iso_date_time_zone()\n");
+    }
+    else if (dt_parse_iso_date_time_zone("2012-10-15T08:00:00PET", 40, &dt, &r) != 22 || r != 46800) {
+      printf("ERROR 6 dt_parse_iso_date_time_zone()\n");
+    }
+    else if (dt_parse_iso_date_time_zone("2012-10-15T08:00:00Z", 40, &dt, &r) != 20 || r != 28800) {
+      printf("ERROR 7 dt_parse_iso_date_time_zone()\n");
     }
     else {
       n_ok++;

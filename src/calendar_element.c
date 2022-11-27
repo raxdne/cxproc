@@ -635,7 +635,7 @@ AddNodeDateAttributes(xmlNodePtr pndArg, xmlChar* pucArg)
 	  domSetPropEat(pndArg, BAD_CAST"iso", pucDisplay);
 	}
 	else if (pceT->dt1.dt > pceT->dt0.dt || (pceT->dt0.iSec > 0 && pceT->dt1.iSec > 0)) {
-	  /* an interval end */
+	  /* an interval with begin and end */
 
 	  xmlStrPrintf(mpucT, BUFFER_LENGTH, "%04i-%02i-%02i",
 		       dt_year(pceT->dt0.dt), dt_month(pceT->dt0.dt), dt_dom(pceT->dt0.dt));
@@ -664,6 +664,12 @@ AddNodeDateAttributes(xmlNodePtr pndArg, xmlChar* pucArg)
 			 dt_year(pceT->dt1.dt), dt_month(pceT->dt1.dt), dt_dom(pceT->dt1.dt),
 			 pceT->dt1.iSec / 3600 , (pceT->dt1.iSec % 3600) / 60, pceT->dt1.iSec % 60);
 	  }
+	  else if (pceT->dt0.iSec > 0) {
+	    /*! use a 15 minutes "dummy" duration to display event in calendar */
+	    xmlStrPrintf(mpucT, BUFFER_LENGTH, "%04i%02i%02iT%02i%02i%02iZ",
+			 dt_year(pceT->dt0.dt), dt_month(pceT->dt0.dt), dt_dom(pceT->dt0.dt),
+			 pceT->dt0.iSec / 3600 , (pceT->dt0.iSec % 3600) / 60 + 15, pceT->dt0.iSec % 60);
+	  }
 	  else if (pceT->dt1.dt > pceT->dt0.dt) {
 	    iDayEnd = pceT->dt1.dt + 1;
 	    xmlStrPrintf(mpucT, BUFFER_LENGTH, "%04i%02i%02i",
@@ -681,18 +687,33 @@ AddNodeDateAttributes(xmlNodePtr pndArg, xmlChar* pucArg)
 	  xmlSetProp(pndArg, BAD_CAST"interval", mpucT);
 	}
 	else {
+	  /* single date only */
 	  xmlStrPrintf(mpucT, BUFFER_LENGTH, "%04i-%02i-%02i",
 		       dt_year(pceT->dt0.dt), dt_month(pceT->dt0.dt), dt_dom(pceT->dt0.dt));
 	  xmlSetProp(pndArg, BAD_CAST"iso", mpucT);
 	  
 #ifdef EXPERIMENTAL
-	  xmlStrPrintf(mpucT, BUFFER_LENGTH, "%04i%02i%02i",
-		       dt_year(pceT->dt0.dt), dt_month(pceT->dt0.dt), dt_dom(pceT->dt0.dt));
+	  if (pceT->dt0.iSec > 0) {
+	    xmlStrPrintf(mpucT, BUFFER_LENGTH, "%04i%02i%02iT%02i%02i%02iZ",
+			 dt_year(pceT->dt0.dt), dt_month(pceT->dt0.dt), dt_dom(pceT->dt0.dt),
+			 pceT->dt0.iSec / 3600 , (pceT->dt0.iSec % 3600) / 60, pceT->dt0.iSec % 60);
+	  }
+	  else {
+	    xmlStrPrintf(mpucT, BUFFER_LENGTH, "%04i%02i%02i",
+			 dt_year(pceT->dt0.dt), dt_month(pceT->dt0.dt), dt_dom(pceT->dt0.dt));
+	  }
 	  xmlSetProp(pndArg, BAD_CAST"DTSTART", mpucT);
 	  
-	  iDayEnd = pceT->dt0.dt + 1;
-	  xmlStrPrintf(mpucT, BUFFER_LENGTH, "%04i%02i%02i",
-		       dt_year(iDayEnd), dt_month(iDayEnd), dt_dom(iDayEnd));
+	  if (pceT->dt0.iSec > 0) {
+	    xmlStrPrintf(mpucT, BUFFER_LENGTH, "%04i%02i%02iT%02i%02i%02iZ",
+			 dt_year(pceT->dt0.dt), dt_month(pceT->dt0.dt), dt_dom(pceT->dt0.dt),
+			 pceT->dt0.iSec / 3600 , (pceT->dt0.iSec % 3600) / 60 + 15, pceT->dt0.iSec % 60);
+	  }
+	  else {
+	    iDayEnd = pceT->dt0.dt + 1;
+	    xmlStrPrintf(mpucT, BUFFER_LENGTH, "%04i%02i%02i",
+			 dt_year(iDayEnd), dt_month(iDayEnd), dt_dom(iDayEnd));
+	  }
 	  xmlSetProp(pndArg, BAD_CAST"DTEND", mpucT);
 
 	  /*!\todo process reccurancing dates in ICS */

@@ -27,6 +27,8 @@
 #include "basics.h"
 #include "utils.h"
 
+static int
+localtime_offset(void);
 
 /*! internal level for debug messages */
 static int level_set = -1;
@@ -2339,22 +2341,42 @@ dt_parse_iso_date_time_zone(const char* str, size_t len, dt_t *dtp, int *sp) {
 	int s;
 
 	n++;
-	if ((j = dt_parse_iso_time_extended(&p[n], len - n, &s, NULL)) > 3 && s > -1) {
-	  int t;
+	if ((j = dt_parse_iso_time(&p[n], len - n, &s, NULL)) > 3 && s > -1) {
+	  int t = s;
+	  int m = 0;
 	  int o = 0;
 	  dt_zone_t* pz;
 
 	  n += j;
 
-	  if ((j = dt_zone_lookup(&p[n], len - n, (const dt_zone_t**) &pz))) { // > 3 && abs(o) < 12
-	    o = pz->offset;
+	  if (StringBeginsWith(&p[n], BAD_CAST"CST")) {
+	    /* assumption "China Standard Time UTC+08:00" */
+	    o = 8 * 60 * 60;
+	    n += 3;
+	  }
+	  else if (StringBeginsWith(&p[n], BAD_CAST"IST")) {
+	    /* assumption "Indian Standard Time" UTC+05:30 */
+	    o = (5 * 60 + 30) * 60;
+	    n += 3;
+	  }
+	  else if ((j = dt_zone_lookup(&p[n], len - n, (const dt_zone_t**)&pz))) {
+	    if (j > 0 && j < 4 && pz->offset > -12 * 60 && pz->offset < 14 * 60) {
+	      o = pz->offset * 60;
+	    }
 	    n += j;
 	  }
-	  else if ((j = dt_parse_iso_zone_extended(&p[n], len - n, &o))) { // > 3 && abs(o) < 12
+	  else if ((j = dt_parse_iso_zone(&p[n], len - n, &m)) > 0) {
+	    if (m > -12 * 60 && m < 14 * 60) {
+	      o = m * 60;
+	    }
 	    n += j;
 	  }
-
-	  t = s + o * 60;
+	  else {
+	    /* default local time zone */
+	    o = localtime_offset();
+	  }
+	  
+	  t -= o;
 
 	  if (t < 0) {
 	    (*dtp)--;
@@ -2496,6 +2518,28 @@ dt_parse_iso_period(const char* str, size_t len, int* yp, int* mp, int* dp, int*
 
   return n;
 } /* end of dt_parse_iso_period() */
+
+
+/* https://stackoverflow.com/questions/13804095/get-the-time-zone-gmt-offset-in-c 
+*/
+int
+localtime_offset(void)
+{
+    time_t gmt, rawtime = time(NULL);
+    struct tm *ptm;
+
+#if !defined(WIN32)
+    struct tm gbuf;
+    ptm = gmtime_r(&rawtime, &gbuf);
+#else
+    ptm = gmtime(&rawtime);
+#endif
+    // Request that mktime() looksup dst in timezone database
+    ptm->tm_isdst = -1;
+    gmt = mktime(ptm);
+
+    return (int)difftime(rawtime, gmt);
+} /* end of localtime_offset() */
 
 
 #ifdef TESTCODE
