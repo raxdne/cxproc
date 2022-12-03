@@ -53,6 +53,8 @@ dt_t dtToday = 0;
 static ceElementPtr
 CalendarElementReset(ceElementPtr pceArg);
 
+xmlChar*
+GetISO8601DateStr(iso8601DateType *pdtArg);
 
 /*!
 */
@@ -114,6 +116,38 @@ CalendarElementUpdate(ceElementPtr pceArg, xmlChar* pucArg)
   }
   return pceArg;
 } /* end of CalendarElementUpdate() */
+
+
+/*!\return an ISO string for calendar element
+  \todo handle time zone
+ */
+xmlChar*
+GetISO8601DateStr(iso8601DateType *pdtArg)
+{
+  xmlChar *pucResult = NULL;
+  
+  if (pdtArg != NULL && pdtArg->dt > 0) {
+    xmlChar mpucT[BUFFER_LENGTH];
+
+    if (pdtArg->iSec > 0) {
+      xmlStrPrintf(mpucT, BUFFER_LENGTH, "%04i-%02i-%02iT%02i:%02i:%02iZ",
+		   dt_year(pdtArg->dt),
+		   dt_month(pdtArg->dt),
+		   dt_dom(pdtArg->dt),
+		   pdtArg->iSec / 3600 ,
+		   (pdtArg->iSec % 3600) / 60,
+		   pdtArg->iSec % 60);
+    }
+    else {
+      xmlStrPrintf(mpucT, BUFFER_LENGTH, "%04i-%02i-%02i",
+		   dt_year(pdtArg->dt), 
+		   dt_month(pdtArg->dt), 
+		   dt_dom(pdtArg->dt));
+    }
+    pucResult = xmlStrdup(mpucT);
+  }
+  return pucResult;
+} /* end of GetISO8601DateStr() */
 
 
 /*! \return a freshly allocated copy of pceArg
@@ -599,40 +633,44 @@ AddNodeDateAttributes(xmlNodePtr pndArg, xmlChar* pucArg)
 
       if (ScanCalendarElementDate(pceT)) {
 	xmlChar mpucT[BUFFER_LENGTH];
-	xmlChar* pucDisplay = NULL;
-	ceElementPtr pceI;
-
+	
+	/*! add separate date elements with own DTSTART/DTEND attributes */
 	if ((pceList = SplitCalendarElementRecurrences(pceT))) {
-	  mpucT[0] = '\0';
+	  xmlChar* pucDisplay = NULL;
+	  ceElementPtr pceI;
+	  
 	  for (pceI = pceList; pceI; pceI = pceI->pNext) {
-	    xmlStrPrintf(mpucT, BUFFER_LENGTH, "%04i-%02i-%02i",
-	      dt_year(pceI->dt0.dt > 0 ? pceI->dt0.dt : pceI->dt1.dt), 
-	      dt_month(pceI->dt0.dt > 0 ? pceI->dt0.dt : pceI->dt1.dt), 
-	      dt_dom(pceI->dt0.dt > 0 ? pceI->dt0.dt : pceI->dt1.dt));
+	    xmlChar* pucDateNew;
 
-	    if (pucDisplay) {
-	      if (pceI->dt0.dt > 0) {
+	    pucDateNew = GetISO8601DateStr(&pceI->dt0);
+	    if (pucDateNew) {
+	      xmlNodePtr pndDateNew;
+	      
+	      if ((pndDateNew = xmlNewNode(NULL,pndArg->name)) != NULL) {
+		AddNodeDateAttributes(pndDateNew,pucDateNew); /* recursion */
+		xmlAddSibling(pndArg,pndDateNew);
+	      }
+
+	      if (pucDisplay) {
 		/* concat at the end of pucDisplay */
-		pucDisplay = xmlStrcat(pucDisplay, BAD_CAST",");
-		pucDisplay = xmlStrcat(pucDisplay, mpucT);
+		pucDisplay = xmlStrcat(pucDisplay, BAD_CAST", ");
+		pucDisplay = xmlStrcat(pucDisplay, pucDateNew);
+		xmlFree(pucDateNew);
 	      }
 	      else {
-		/* concat pucDisplay at the end  */
-		xmlChar* pucT;
-
-		pucT = xmlStrdup(mpucT);
-		pucT = xmlStrcat(pucT, BAD_CAST",");
-		pucT = xmlStrcat(pucT, pucDisplay);
-		xmlFree(pucDisplay);
-		pucDisplay = pucT;
+		pucDisplay = pucDateNew;
 	      }
 	    }
 	    else {
-	      pucDisplay = xmlStrdup(mpucT);
+	      /* ignore empty value */
 	    }
 	  }
+
+	  if (STR_IS_NOT_EMPTY(pucDisplay)) {
+	    domSetPropEat(pndArg, BAD_CAST"iso", pucDisplay);
+	  }
+	  
 	  CalendarElementFree(pceList);
-	  domSetPropEat(pndArg, BAD_CAST"iso", pucDisplay);
 	}
 	else if (pceT->dt1.dt > pceT->dt0.dt || (pceT->dt0.iSec > 0 && pceT->dt1.iSec > 0)) {
 	  /* an interval with begin and end */

@@ -70,7 +70,7 @@
 //#define RE_DATE_HOUR   "[\t ]+[012]*[0-9][\\.:][0-5][0-9](-[012]*[0-9][\\.:][0-5][0-9])*"
 
 #define RE_ISO_RECURRENCE   "R[0-9]{0,2}"
-#define RE_ISO_PERIOD   "P(([0-9]+Y)*([0-9]+M)*([0-9]+D)*(T[0-9]+H[0-9]+M[0-9]+S)*|[0-9]+W)"
+#define RE_ISO_PERIOD   "P(([0-9]+[YMD]+)*(T([0-9]+[HMS]+))*|[0-9]+W)"
 #define RE_ISO_ORD      "-[0-9]{3}"
 #define RE_ISO_WEEK     "-W[0-5]*[0-9](-[1-7])*"
 //#define RE_ISO_QUATER  "-W[0-5]*[0-9](-[1-7])*"
