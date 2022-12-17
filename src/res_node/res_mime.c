@@ -132,6 +132,9 @@ static const char* resMimeTypeStr[] = {
   /* MIME_IMAGE_PNG */ "image/png",
   /* MIME_IMAGE_TIFF */ "image/tiff",
   /* MIME_IMAGE_WMF */ "image/x-wmf",
+  /* MIME_IMAGE_X_CANON_CRW */ "image/x-canon-crw",
+  /* MIME_IMAGE_X_PANASONIC_RAW */ "image/x-panasonic-raw",
+  /*!\todo add other raw formats https://raw.githubusercontent.com/angryziber/gnome-raw-thumbnailer/master/data/raw-thumbnailer.xml */
   /*
     Filesystem elements
   */
@@ -263,6 +266,8 @@ resMimeIsPicture(int iMimeType)
 	  || iMimeType == MIME_IMAGE_PNG
 	  || iMimeType == MIME_IMAGE_TIFF
 	  || iMimeType == MIME_IMAGE_WMF
+	  || iMimeType == MIME_IMAGE_X_CANON_CRW
+	  || iMimeType == MIME_IMAGE_X_PANASONIC_RAW
 	  );
 } /* end of resMimeIsPicture() */
 
@@ -516,6 +521,12 @@ resMimeGetTypeFromExt(const xmlChar *pucArg)
   }
   else if (xmlStrcasecmp(pucArg, BAD_CAST"tif") == 0) {
     eMimeTypeResult = MIME_IMAGE_TIFF;
+  }
+  else if (xmlStrcasecmp(pucArg, BAD_CAST"crw") == 0 || xmlStrcasecmp(pucArg, BAD_CAST"cr2") == 0) {
+    eMimeTypeResult = MIME_IMAGE_X_CANON_CRW;
+  }
+  else if (xmlStrcasecmp(pucArg, BAD_CAST"raw") == 0 || xmlStrcasecmp(pucArg, BAD_CAST"rw2") == 0) {
+    eMimeTypeResult = MIME_IMAGE_X_PANASONIC_RAW;
   }
   else if (xmlStrcasecmp(pucArg, BAD_CAST"wim") == 0 || xmlStrcasecmp(pucArg, BAD_CAST"swm") == 0) {
     eMimeTypeResult = MIME_IMAGE_WMF;

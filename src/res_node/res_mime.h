@@ -128,6 +128,8 @@ typedef enum {
   MIME_IMAGE_PNG,
   MIME_IMAGE_TIFF,
   MIME_IMAGE_WMF,
+  MIME_IMAGE_X_CANON_CRW,
+  MIME_IMAGE_X_PANASONIC_RAW,
   /*
     Filesystem elements
   */
