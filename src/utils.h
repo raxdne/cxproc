@@ -20,8 +20,8 @@
 
 #define LEVEL_MAX 4
 
-/* maximum value for ISO8601 recurrances */
-#define ISO_RECURRANCE_MAX 99
+/* maximum value for ISO8601 recurrences */
+#define ISO_RECURRENCE_MAX 99
 
 /* 
    common header
@@ -160,7 +160,7 @@ extern xmlChar *
 GetDateIsoString(time_t ArgTime);
 
 extern size_t
-dt_parse_iso_recurrance(const char *str, size_t len, int* deltad);
+dt_parse_iso_recurrence(const char *str, size_t len, int* deltad);
 
 extern size_t
 dt_parse_iso_period(const char* str, size_t len, int* yp, int* mp, int* dp, int* wp, int* hp, int* mip, int* sp);

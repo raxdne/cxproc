@@ -651,25 +651,25 @@ utilsTest(void)
     i++;
     printf("TEST %i in '%s:%i': ",i,__FILE__,__LINE__);
 
-    if (dt_parse_iso_recurrance(NULL, 20, NULL) != 0) {
-      printf("ERROR 1 dt_parse_iso_recurrance()\n");
+    if (dt_parse_iso_recurrence(NULL, 20, NULL) != 0) {
+      printf("ERROR 1 dt_parse_iso_recurrence()\n");
     }
-    else if (dt_parse_iso_recurrance("R-21/", 20, &r) != 0 || r != 0) {
-      printf("ERROR 2 dt_parse_iso_recurrance()\n");
+    else if (dt_parse_iso_recurrence("R-21/", 20, &r) != 0 || r != 0) {
+      printf("ERROR 2 dt_parse_iso_recurrence()\n");
     }
-    else if (dt_parse_iso_recurrance("R3/20110703/P3M2DT12H30M5S", BUFFER_LENGTH, &r) != 2 || r != 3) {
+    else if (dt_parse_iso_recurrence("R3/20110703/P3M2DT12H30M5S", BUFFER_LENGTH, &r) != 2 || r != 3) {
       printf("ERROR 3 repetitions\n");
     }
-    else if (dt_parse_iso_recurrance("R/20110803/P3M", BUFFER_LENGTH, &r) != 1 || r != ISO_RECURRANCE_MAX) {
+    else if (dt_parse_iso_recurrence("R/20110803/P3M", BUFFER_LENGTH, &r) != 1 || r != ISO_RECURRENCE_MAX) {
       printf("ERROR unbounded number of repetitions\n");
     } 
-    else if (dt_parse_iso_recurrance("R-1/20110804/P3M", BUFFER_LENGTH, &r) != 3 || r != ISO_RECURRANCE_MAX) {
+    else if (dt_parse_iso_recurrence("R-1/20110804/P3M", BUFFER_LENGTH, &r) != 3 || r != ISO_RECURRENCE_MAX) {
       printf("ERROR unbounded number of repetitions\n");
     } 
-    else if (dt_parse_iso_recurrance("R0/20110803/P3M", BUFFER_LENGTH, &r) != 2 || r != 0) {
+    else if (dt_parse_iso_recurrence("R0/20110803/P3M", BUFFER_LENGTH, &r) != 2 || r != 0) {
       printf("ERROR no repetitions\n");
     } 
-    else if (dt_parse_iso_recurrance("R1999/20110803/P3M", BUFFER_LENGTH, &r) != 0 || r != 0) {
+    else if (dt_parse_iso_recurrence("R1999/20110803/P3M", BUFFER_LENGTH, &r) != 0 || r != 0) {
       printf("ERROR no repetitions\n");
     }
     else {
@@ -706,7 +706,7 @@ utilsTest(void)
     else if (dt_parse_iso_date_time_zone("20121015T080000−0500", 40, &dt, &r) != 20 || r != 46800) {
       printf("ERROR 4 dt_parse_iso_date_time_zone()\n");
     }
-    else if (dt_parse_iso_date_time_zone("2012-10-15T08:00:00CST", 40, &dt, &r) != 22 || r != 50400) {
+    else if (dt_parse_iso_date_time_zone("2012-10-15T08:00:00CST", 40, &dt, &r) != 22 || r != 0) {
       printf("ERROR 5 dt_parse_iso_date_time_zone()\n");
     }
     else if (dt_parse_iso_date_time_zone("2012-10-15T08:00:00PET", 40, &dt, &r) != 22 || r != 46800) {

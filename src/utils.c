@@ -2283,7 +2283,7 @@ StringConcatNextDate(xmlChar* pucArgGcal)
  * \bug floating values not used
  */
 size_t
-dt_parse_iso_recurrance(const char *str, size_t len, int* deltad) {
+dt_parse_iso_recurrence(const char *str, size_t len, int* deltad) {
   size_t n = 0;
 
   if (str != NULL && *str == 'R' && len > 0) {
@@ -2296,7 +2296,7 @@ dt_parse_iso_recurrance(const char *str, size_t len, int* deltad) {
       if (p == &str[1] || d == -1) {
 	/* unbounded number of repetitions */
 	if (deltad) {
-	  *deltad = ISO_RECURRANCE_MAX;
+	  *deltad = ISO_RECURRENCE_MAX;
 	}
 	n = p - str;
       }
@@ -2307,7 +2307,7 @@ dt_parse_iso_recurrance(const char *str, size_t len, int* deltad) {
 	}
 	n = p - str;
       }
-      else if (d > 0 && d < ISO_RECURRANCE_MAX) {
+      else if (d > 0 && d < ISO_RECURRENCE_MAX) {
 	if (deltad) {
 	  *deltad = d;
 	}
@@ -2321,7 +2321,7 @@ dt_parse_iso_recurrance(const char *str, size_t len, int* deltad) {
   }
 
   return n;
-} /* end of dt_parse_iso_recurrance() */
+} /* end of dt_parse_iso_recurrence() */
 
 
 /*! parses a combined "YYYY-MM-DDTHH:MM:SS+hh:mm"
