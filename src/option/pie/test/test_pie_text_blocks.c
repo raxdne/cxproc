@@ -1336,7 +1336,7 @@ pieTextBlocksTest(void)
 
 
   if (RUNTEST) {
-    xmlNodePtr pndPie;
+    xmlNodePtr pndPie = NULL;
     xmlNodePtr pndP = NULL;
     xmlNodePtr pndT = NULL;
 
@@ -1368,7 +1368,7 @@ pieTextBlocksTest(void)
 
 
   if (RUNTEST) {
-    xmlNodePtr pndPie;
+    xmlNodePtr pndPie = NULL;
     xmlNodePtr pndP = NULL;
     xmlNodePtr pndT = NULL;
 

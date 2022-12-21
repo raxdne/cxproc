@@ -106,6 +106,9 @@ PrintCalendarElement(ceElementPtr pceArg);
 
 #endif
 
+extern xmlChar*
+FormatCalendarElementDateStr(ceElementPtr pceArg);
+
 extern BOOL_T
 ScanCalendarElementDate(ceElementPtr pceArgResult);
 
@@ -113,7 +116,7 @@ extern ceElementPtr
 SplitCalendarElementRecurrences(ceElementPtr pceArg);
 
 extern BOOL_T
-AddNodeDateAttributes(xmlNodePtr pndArg, xmlChar* pucArg);
+AddNodeDateAttributes(xmlNodePtr pndArg, ceElementPtr pceArg);
 
 #ifdef TESTCODE
 extern int

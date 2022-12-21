@@ -85,9 +85,17 @@
 //#define RE_DATE_GERMAN RE_DATE_DAY "\\." RE_DATE_MONTH "\\." RE_DATE_YEAR
 
 #define RE_DATE ("\\b("					       \
-  "(" RE_ISO_RECURRENCE "/)*(" RE_ISO_DATE ")/(" RE_ISO_DATE "|" RE_ISO_PERIOD ")" \
+  "(" RE_ISO_RECURRENCE "/)(" RE_ISO_DATE ")/(" RE_ISO_DATE ")/(" RE_ISO_PERIOD ")" \
   "|"									\
-  "(" RE_ISO_RECURRENCE "/)*(" RE_ISO_PERIOD ")/(" RE_ISO_DATE ")" \
+  "(" RE_ISO_RECURRENCE "/)(" RE_ISO_DATE ")/(" RE_ISO_PERIOD ")" \
+  "|"									\
+  "(" RE_ISO_RECURRENCE "/)(" RE_ISO_PERIOD ")/(" RE_ISO_DATE ")" \
+  "|"									\
+  "(" RE_ISO_PERIOD ")/(" RE_ISO_DATE ")" \
+  "|"									\
+  "(" RE_ISO_DATE ")/(" RE_ISO_DATE ")" \
+  "|"									\
+  "(" RE_ISO_DATE ")/(" RE_ISO_PERIOD ")" \
   "|"									\
   "(" RE_DATE_YEAR RE_DATE_MONTH RE_DATE_DAY "(," RE_DATE_MONTH RE_DATE_DAY "|," RE_DATE_DAY ")+" ")" \
   "|"									\
