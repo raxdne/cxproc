@@ -197,7 +197,7 @@ resNodeDup(resNodePtr prnArg, int iArgOptions)
 	  if (prnNew->pcNameNormalizedNative) prnNew->pcNameNormalizedNative = (char *)xmlStrdup(BAD_CAST prnNew->pcNameNormalizedNative);
 	  if (prnNew->pucNameBaseDir) prnNew->pucNameBaseDir = xmlStrdup(prnNew->pucNameBaseDir);
 	  if (prnNew->pucExtension) prnNew->pucExtension = xmlStrdup(prnNew->pucExtension);
-	  prnNew->pucNameAncestor = NULL;
+	  prnNew->pucNameShort = NULL;
 	  if (prnNew->pucURI) prnNew->pucURI = xmlStrdup(prnNew->pucURI);
 	  if (prnNew->pucOwner) prnNew->pucOwner = xmlStrdup(prnNew->pucOwner);
 	  if (prnNew->pucObject) prnNew->pucObject = xmlStrdup(prnNew->pucObject);
@@ -1017,6 +1017,21 @@ resNodeGetNameAlias(resNodePtr prnArg)
   }
   return NULL;
 } /* end of resNodeGetNameAlias() */
+
+
+/*! Sets and returns the pucAlias of this resource node.
+
+  \param prnArg a pointer to a resource node
+  \return pucNameShort or NULL in case of errors
+ */
+xmlChar*
+resNodeGetNameShort(resNodePtr prnArg)
+{
+  if (prnArg) {
+    return prnArg->pucNameShort;
+  }
+  return NULL;
+} /* end of resNodeGetNameShort() */
 
 
 /*! \return pointer to new resNode or NULL in case of error
@@ -1933,6 +1948,27 @@ resNodeSetNameBase(resNodePtr prnArg, xmlChar *pucArgPath)
 /*! Sets pucNameBase of an existing resource node to pucArgPath and keep prnArg->pucNameBaseDir etc.
 
 \param prnArg a pointer to a resource node
+\param pucArgPath pointer to a new native short name
+\return TRUE if existing resource node is set to new value (without encoding errors)
+*/
+BOOL_T
+resNodeSetNameShort(resNodePtr prnArg, xmlChar* pucArgShort)
+{
+  BOOL_T fResult = FALSE;
+
+  if (prnArg) {
+    xmlFree(prnArg->pucNameShort);
+    prnArg->pucNameShort = xmlStrdup(pucArgShort);
+    assert(StringEndsWith(resNodeGetNameNormalized(prnArg),prnArg->pucNameShort));
+    fResult = TRUE;
+  }
+  return fResult;
+} /* end of resNodeSetNameShort() */
+
+
+/*! Sets pucNameBase of an existing resource node to pucArgPath and keep prnArg->pucNameBaseDir etc.
+
+\param prnArg a pointer to a resource node
 \param pucArgPath pointer to a new native basename
 \return TRUE if existing resource node is set to new value (without encoding errors)
 */
@@ -2109,7 +2145,7 @@ resNodeReset(resNodePtr prnArg, xmlChar *pucArgPath)
     xmlFree(prnArg->pucNameBase);
     xmlFree(prnArg->pcNameBaseNative);
     xmlFree(prnArg->pucNameBaseDir);
-    xmlFree(prnArg->pucNameAncestor);
+    xmlFree(prnArg->pucNameShort);
     xmlFree(prnArg->pucURI);
     xmlFree(prnArg->pucExtension);
     xmlFree(prnArg->pcNameNormalizedNative);
@@ -2840,7 +2876,11 @@ resNodeContentToDOM(xmlNodePtr pndArg, resNodePtr prnArg)
 	      }
 
 	      if (ParsePlainBuffer(pndPie, pucContent, m)) {
+#ifdef HAVE_CGI
+		xmlSetProp(pndPie->children, BAD_CAST "context", resNodeGetNameShort(prnArg)); /* in CGI mode use short path only */
+#else
 		xmlSetProp(pndPie->children, BAD_CAST "context", resNodeGetURI(prnArg));
+#endif
 		SetTypeAttr(pndPie->children,m);
 		//domPutNodeString(stderr, BAD_CAST "pndPie", pndPie);
 	      }

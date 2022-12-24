@@ -212,7 +212,7 @@ struct _resNode {
 
   xmlChar *pucExtension;        /*! UTF-8 encoded entry extension */
 
-  xmlChar *pucNameAncestor;	/*! UTF-8 encoded ancestor path of entry name */
+  xmlChar *pucNameShort;	/*! UTF-8 encoded short path of entry name */
 
   xmlChar *pucQuery;	        /*! UTF-8 encoded entry query */
 
@@ -419,6 +419,9 @@ resNodeGetCountDescendants(resNodePtr prnArgList);
 extern xmlChar *
 resNodeGetNameAlias(resNodePtr prnArg);
 
+extern xmlChar*
+resNodeGetNameShort(resNodePtr prnArg);
+
 extern resNodePtr
 resNodeResolveLinkChildNew(resNodePtr prnArg);
 
@@ -436,6 +439,9 @@ resNodeSetNameBase(resNodePtr prnArg, xmlChar *pucArgPath);
 
 extern BOOL_T
 resNodeSetNameBaseDir(resNodePtr prnArg, xmlChar *pucArgPath);
+
+extern BOOL_T
+resNodeSetNameShort(resNodePtr prnArg, xmlChar* pucArgShort);
 
 extern void
 resNodeFree(resNodePtr prnArg);

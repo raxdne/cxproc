@@ -87,7 +87,7 @@ static BOOL_T
 ImportNodeStdin(xmlNodePtr pndArgImport, cxpContextPtr pccArg);
 
 static void
-SetPropBlockLocators(xmlNodePtr pndArg, xmlChar* pucArgFileName, xmlChar* pucArgPrefix);
+SetPropXpathInBlock(xmlNodePtr pndArg, xmlChar* pucArgPrefix);
 
 static lang_t
 GetPieNodeLang(xmlNodePtr pndArg, cxpContextPtr pccArg);
@@ -261,7 +261,11 @@ pieProcessPieNode(xmlNodePtr pndArgPie, cxpContextPtr pccArg)
 
       prnDoc = resNodeDirNew(BAD_CAST pndArgPie->doc->URL);
       if (prnDoc) {
+#ifdef HAVE_CGI
+	xmlSetProp(pndBlock, BAD_CAST"context", resNodeGetNameRelative(cxpCtxtRootGet(pccArg), prnDoc));
+#else
 	xmlSetProp(pndBlock, BAD_CAST"context", resNodeGetURI(prnDoc));
+#endif
 	resNodeFree(prnDoc);
       }
     }
@@ -609,7 +613,11 @@ ImportNodeFile(xmlNodePtr pndArgImport, cxpContextPtr pccArg)
     pndBlock = pndArgImport;
     xmlSetNs(pndBlock,NULL);
     xmlNodeSetName(pndBlock,NAME_PIE_BLOCK);
-    xmlSetProp(pndBlock, BAD_CAST "context", resNodeGetURI(prnInput));
+#ifdef HAVE_CGI
+    xmlSetProp(pndBlock, BAD_CAST"context", resNodeGetNameRelative(cxpCtxtRootGet(pccArg), prnInput));
+#else
+    xmlSetProp(pndBlock, BAD_CAST"context", resNodeGetURI(prnInput));
+#endif
 
     if (IsImportCircular(pndBlock, prnInput)) { /*! check circular reference */
       xmlSetProp(pndBlock, BAD_CAST"error", BAD_CAST"circular");
@@ -797,6 +805,7 @@ ImportNodeFile(xmlNodePtr pndArgImport, cxpContextPtr pccArg)
 	}
       }
 
+      xmlUnsetProp(pndBlock, BAD_CAST "name");
       xmlFree(pucAttrCache);
       if (pccArg == NULL) {
 	cxpCtxtFree(pccInput);
@@ -1034,7 +1043,12 @@ IncludeNodeFile(xmlNodePtr pndArgInclude, cxpContextPtr pccArg)
     pndBlock = xmlCopyNode(pndArgInclude,0);
     xmlSetNs(pndBlock,NULL);
     xmlNodeSetName(pndBlock,NAME_PIE_BLOCK);
-    xmlSetProp(pndBlock, BAD_CAST "context", resNodeGetURI(prnInput));
+#ifdef HAVE_CGI
+    xmlSetProp(pndBlock, BAD_CAST"context", resNodeGetNameRelative(cxpCtxtRootGet(pccArg), prnInput));
+#else
+    xmlSetProp(pndBlock, BAD_CAST"context", resNodeGetURI(prnInput));
+#endif
+
     //xmlSetProp(pndBlock, BAD_CAST "tags", BAD_CAST "no");
 
     if (IsImportCircular(pndBlock, prnInput)) { /*! check circular reference */
@@ -1276,11 +1290,11 @@ ProcessImportOptions(xmlNodePtr pndArgPie, xmlNodePtr pndArgImport, cxpContextPt
 
       cxpCtxtLogPrint(pccArg, 2, "Add locator attribute");
       if (pndArgImport->doc != NULL && (prnDoc = resNodeDirNew(BAD_CAST pndArgImport->doc->URL)) != NULL) {
-	SetPropBlockLocators(pndArgPie, resNodeGetNameRelative(cxpCtxtRootGet(pccArg), prnDoc), NULL);
+	SetPropXpathInBlock(pndArgPie, NULL);
 	resNodeFree(prnDoc);
       }
       else {
-	SetPropBlockLocators(pndArgPie, NULL, NULL);
+	SetPropXpathInBlock(pndArgPie, NULL);
       }
     }
     else {
@@ -1575,14 +1589,13 @@ pieGetSelfAncestorNodeList(xmlNodePtr pndArg, xmlChar *pucArgId)
 } /* end of pieGetSelfAncestorNodeList() */
 
 
-/*! Adds attributes bxpath and blocator to all descendant element nodes.
+/*! Adds attributes bxpath to all descendant element nodes.
 
 \param pndArg pointer to node to add attribute
-\param pucArgFileName pointer to value for blocator
-\param pucArgPrefix pointer to xpath prefix for childs
+\param pucArgPrefix pointer to XPath prefix for childs
  */
 void
-SetPropBlockLocators(xmlNodePtr pndArg, xmlChar* pucArgFileName, xmlChar* pucArgPrefix)
+SetPropXpathInBlock(xmlNodePtr pndArg, xmlChar* pucArgPrefix)
 {
   if (IS_NODE_META(pndArg) || IS_NODE_ERROR(pndArg)) {
   }
@@ -1590,32 +1603,24 @@ SetPropBlockLocators(xmlNodePtr pndArg, xmlChar* pucArgFileName, xmlChar* pucArg
     xmlNodePtr pndChild;
     int i=0;
 
-    for (pndChild = pndArg->children; pndChild != NULL; pndChild = pndChild->next) {
+    for (pndChild = pndArg->children;
+	 pndChild != NULL && IS_ENODE(pndChild) && xmlHasProp(pndChild, BAD_CAST"bxpath") == FALSE;
+	 pndChild = pndChild->next) {
+      i++;
+      if (IS_NODE_PIE_TTAG(pndChild) || IS_NODE_PIE_ETAG(pndChild) || IS_NODE_PIE_HTAG(pndChild) || IS_NODE_PIE_META(pndChild) || IS_NODE_ERROR(pndChild)) {
+	/* dont set xpath attribute here */
+      }
+      else {
+	xmlChar mucT[BUFFER_LENGTH];
 
-      if (IS_ENODE(pndChild)) {
-	i++;
-	if (IS_NODE_PIE_TTAG(pndChild) || IS_NODE_PIE_ETAG(pndChild) || IS_NODE_PIE_HTAG(pndChild) || IS_NODE_PIE_META(pndChild) || IS_NODE_ERROR(pndChild)) {
-	  /* dont set xpath attribute here */
-	}
-	else if (xmlHasProp(pndChild, BAD_CAST"blocator")) {
-	  /* there is an xpath attribute already */
-	}
-	else {
-	  xmlChar mucT[BUFFER_LENGTH];
-
-	  xmlStrPrintf(mucT, BUFFER_LENGTH, "%s/*[%i]", (pucArgPrefix==NULL ? BAD_CAST "/*" : pucArgPrefix), i);
-	  xmlSetProp(pndChild, BAD_CAST"bxpath", mucT);
-
-	  if (pucArgFileName) {
-	    xmlSetProp(pndChild,BAD_CAST"blocator",pucArgFileName);
-	  }
+	xmlStrPrintf(mucT, BUFFER_LENGTH, "%s/*[%i]", (pucArgPrefix==NULL ? BAD_CAST "/*" : pucArgPrefix), i);
+	xmlSetProp(pndChild, BAD_CAST"bxpath", mucT);
 	  
-	  SetPropBlockLocators(pndChild, pucArgFileName, mucT);
-	}
+	SetPropXpathInBlock(pndChild, mucT);
       }
     }
   }
-} /* end of SetPropBlockLocators() */
+} /* end of SetPropXpathInBlock() */
 
 
 /*! increments value of property "w" by iArg numerically

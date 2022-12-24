@@ -860,6 +860,22 @@ cxpResNodeResolveNew(cxpContextPtr pccArg, xmlNodePtr pndArg, xmlChar *pucArg, i
       if (STR_IS_NOT_EMPTY(pucAttrNameCacheAs)) {
 	resNodeSetNameAlias(prnResult, pucAttrNameCacheAs);
       }
+      
+#if HAVE_CGI
+      if (pccArg) {
+	xmlChar* pucT;
+	xmlChar* pucAttrPrefix;
+
+	/* cut a named root path from prefix attribute values */
+	if (((pucAttrPrefix = resNodeGetNameNormalized(cxpCtxtRootGet(pccArg))) != NULL)
+	    && (pucT = resPathDiffPtr(pucAttrPrefix, resNodeGetNameNormalized(prnResult))) != NULL) {
+	  resNodeSetNameShort(prnResult,pucT);
+	}
+	else {
+	  /* no prefix required */
+	}
+      }
+#endif
     }
     xmlFree(pucDocUrlDir);
   }

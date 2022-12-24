@@ -401,6 +401,23 @@ xmlChar *
 resPathDiffPtr(xmlChar *pucArgPath, xmlChar *pucArgPathDescendant)
 {
   if (STR_IS_NOT_EMPTY(pucArgPath) && STR_IS_NOT_EMPTY(pucArgPathDescendant)) {
+
+    if (StringBeginsWith(pucArgPath,BAD_CAST"file://")) {
+#ifdef _MSC_VER
+      for (pucArgPath += 7; issep(pucArgPath[0]); pucArgPath++);
+#else
+      pucArgPath += 7;
+#endif
+    }
+
+    if (StringBeginsWith(pucArgPathDescendant, BAD_CAST"file://")) {
+#ifdef _MSC_VER
+      for (pucArgPathDescendant += 7; issep(pucArgPathDescendant[0]); pucArgPathDescendant++);
+#else
+      pucArgPathDescendant += 7;
+#endif
+    }
+
     for ( ; ; pucArgPath++, pucArgPathDescendant++) {
       int iDeltaUpperLower = ('a' - 'A');
 

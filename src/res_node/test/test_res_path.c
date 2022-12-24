@@ -1096,8 +1096,11 @@ resNodeTestString(void)
     else if (xmlStrEqual(resPathDiffPtr(BAD_CAST"C:/User/", BAD_CAST"C:/User/Test"), BAD_CAST"Test") == FALSE) {
       printf("Error 4 resPathDiffPtr()\n");
     }
-    else if (resPathDiffPtr(BAD_CAST"C:/User/Test", BAD_CAST"C:/User") != NULL) {
+    else if (xmlStrEqual(resPathDiffPtr(BAD_CAST"file:///c:/User/", BAD_CAST"C:/User/Test"), BAD_CAST"Test") == FALSE) {
       printf("Error 5 resPathDiffPtr()\n");
+    }
+    else if (resPathDiffPtr(BAD_CAST"C:/User/Test", BAD_CAST"C:/User") != NULL) {
+      printf("Error 6 resPathDiffPtr()\n");
     }
     else if (resPathIsDescendant(BAD_CAST"C:/User/Test", BAD_CAST"C:/User") == TRUE) {
       printf("Error 1 resPathIsDescendant()\n");
