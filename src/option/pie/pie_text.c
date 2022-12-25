@@ -1590,7 +1590,7 @@ pieGetSelfAncestorNodeList(xmlNodePtr pndArg, xmlChar *pucArgId)
 
 
 /*! Adds attributes bxpath to all descendant element nodes.
-
+\todo restrict recursion depth
 \param pndArg pointer to node to add attribute
 \param pucArgPrefix pointer to XPath prefix for childs
  */
@@ -1603,11 +1603,11 @@ SetPropXpathInBlock(xmlNodePtr pndArg, xmlChar* pucArgPrefix)
     xmlNodePtr pndChild;
     int i=0;
 
-    for (pndChild = pndArg->children;
-	 pndChild != NULL && IS_ENODE(pndChild) && xmlHasProp(pndChild, BAD_CAST"bxpath") == FALSE;
-	 pndChild = pndChild->next) {
+    for (pndChild = pndArg->children; pndChild != NULL; pndChild = pndChild->next) {
       i++;
-      if (IS_NODE_PIE_TTAG(pndChild) || IS_NODE_PIE_ETAG(pndChild) || IS_NODE_PIE_HTAG(pndChild) || IS_NODE_PIE_META(pndChild) || IS_NODE_ERROR(pndChild)) {
+      if ( ! IS_ENODE(pndChild) || xmlHasProp(pndChild, BAD_CAST"bxpath")) {
+      }
+      else if (IS_NODE_PIE_TTAG(pndChild) || IS_NODE_PIE_ETAG(pndChild) || IS_NODE_PIE_HTAG(pndChild) || IS_NODE_PIE_META(pndChild) || IS_NODE_ERROR(pndChild)) {
 	/* dont set xpath attribute here */
       }
       else {
