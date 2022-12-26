@@ -1959,8 +1959,8 @@ resNodeSetNameShort(resNodePtr prnArg, xmlChar* pucArgShort)
   if (prnArg) {
     xmlFree(prnArg->pucNameShort);
     prnArg->pucNameShort = xmlStrdup(pucArgShort);
-    assert(StringEndsWith(resNodeGetNameNormalized(prnArg),prnArg->pucNameShort));
-    fResult = TRUE;
+    //assert(StringEndsWith(resNodeGetNameNormalized(prnArg),prnArg->pucNameShort));
+    fResult = (prnArg->pucNameShort != NULL);
   }
   return fResult;
 } /* end of resNodeSetNameShort() */
@@ -1978,7 +1978,6 @@ resNodeSetNameBaseDir(resNodePtr prnArg, xmlChar* pucArgPath)
   BOOL_T fResult = FALSE;
 
   if (prnArg) {
-#if 1
     if (resNodeIsDir(prnArg) || resNodeIsFile(prnArg)) {
       xmlFree(prnArg->pucNameNormalized);
       prnArg->pucNameNormalized = NULL;
@@ -1988,13 +1987,6 @@ resNodeSetNameBaseDir(resNodePtr prnArg, xmlChar* pucArgPath)
       prnArg->pucNameBaseDir = xmlStrdup(pucArgPath);
     }
     resNodeSetNameBaseDir(resNodeGetNext(prnArg), pucArgPath);
-#else
-    xmlChar* pucPathNew;
-
-    pucPathNew = resPathConcat(pucArgPath,resNodeGetNameBase(prnArg));
-    resNodeReset(prnArg, pucPathNew);
-    xmlFree(pucPathNew);
-#endif
     fResult = TRUE;
   }
   return fResult;
