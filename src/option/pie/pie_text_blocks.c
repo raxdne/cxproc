@@ -46,8 +46,7 @@
    s. https://www.regular-expressions.info/
 */
 #define RE_UNC "(?:\\b[a-z]:\\\\|\\\\\\\\[a-zäÄöÖüÜß0-9_.$\\-]+\\\\[a-zäÄöÖüÜß0-9_.$\\-]+)\\\\*(?:[^\\\\/:*?\"<>|\\r\\n]+\\\\)*[^\\\\/:*?\"<>|\\r\\n]*"
-#define RE_URL "(tel|onenote|file|http|https|ftp|ftps|mailto)(://+|%%3A%%2F%%2F|:|%%3A)([a-zäÄöÖüÜß0-9\\.\\-\\&\\#\\;\\:\\,\\+\\_%%\\~\\?\\!=\\@]+|[a-zäÄöÖüÜß0-9\\.\\-]+@)([/a-zäÄöÖüÜß0-9\\(\\)\\.\\-\\&\\#\\;\\,\\+\\:\\_%%\\~\\*\\?\\!=\\@]+)*"
-#define RE_LINK "([^\\|]*)\\| *([^\\|]+) *\\|([^\\|]*)\\|"
+#define RE_URL "(tel|onenote|file|http|https|ftp|ftps|mailto)(://+|%%3A%%2F%%2F|:|%%3A)([a-zäÄöÖüÜß0-9\\.\\-\\&\\#\\;\\:\\,\\+\\_%%\\~\\?\\!=\\@]+|[a-zäÄöÖüÜß0-9\\.\\-]+@)([/a-zäÄöÖüÜß0-9\\(\\)\\.\\-\\&\\#\\;\\,\\+\\:\\_%%\\~\\*\\?\\!=\\@\\{\\}]+)*"
 #define RE_LINK_MD "!*\\[([^\\]]*)\\]\\(([^\\)]+)\\)"
 #define RE_LINK_MD_AUTO "(<|&lt;|\\xE2\\x80\\x99)([^<> \\t]+)(>|&gt;|\\xE2\\x80\\x98)"
 
@@ -112,7 +111,6 @@
 
 
 static pcre2_code *re_unc    = NULL;
-static pcre2_code *re_link = NULL;
 static pcre2_code *re_link_md = NULL;
 static pcre2_code *re_link_md_auto = NULL;
 static pcre2_code *re_url = NULL;
@@ -199,11 +197,6 @@ pieTextBlocksCleanup(void)
     re_link_md_auto = NULL;
   }
 
- if (re_link) {
-    pcre2_code_free(re_link);
-    re_link = NULL;
-  }
-
   if (re_fig) {
     pcre2_code_free(re_fig);
     re_fig = NULL;
@@ -258,23 +251,6 @@ CompileRegExpDefaults(void)
     if (re_unc == NULL) {
       /* regexp error handling */
       PrintFormatLog(1, "UNC regexp '%s' error: '%i'", RE_UNC, errornumber);
-      fResult = FALSE;
-    }
-  }
-
-  if (re_link == NULL) {
-    PrintFormatLog(2, "Initialize URL block regexp '%s'", RE_LINK);
-    re_link = pcre2_compile(
-      (PCRE2_SPTR8)RE_LINK, /* the pattern */
-      PCRE2_ZERO_TERMINATED, /* indicates pattern is zero-terminated */
-      PCRE2_CASELESS,        /* default options */
-      &errornumber,          /* for error number */
-      &erroroffset,          /* for error offset */
-      NULL);                 /* use default compile context */
-
-    if (re_link == NULL) {
-      /* regexp error handling */
-      PrintFormatLog(1, "URL regexp '%s' error: '%i'", RE_LINK, errornumber);
       fResult = FALSE;
     }
   }
