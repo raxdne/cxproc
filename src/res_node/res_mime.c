@@ -409,6 +409,9 @@ resMimeGetTypeFromExt(const xmlChar *pucArg)
   else if (xmlStrcasecmp(pucArg, BAD_CAST"docx") == 0) {
     eMimeTypeResult = MIME_APPLICATION_VND_OPENXMLFORMATS_OFFICEDOCUMENT_WORDPROCESSINGML_DOCUMENT;
   }
+  else if (xmlStrcasecmp(pucArg, BAD_CAST"rels") == 0) { /* relations in Microsoft Office XML formats "abc.docx/word/_rels/document.xml.rels" */
+    eMimeTypeResult = MIME_TEXT_XML;
+  }
   else if (xmlStrcasecmp(pucArg, BAD_CAST"vsdx") == 0) {
     eMimeTypeResult = MIME_APPLICATION_VND_MS_VISIO_DRAWING_MAIN_XML_2013;
   }
