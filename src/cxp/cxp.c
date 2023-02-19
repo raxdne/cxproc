@@ -723,13 +723,13 @@ cxpResNodeResolveNew(cxpContextPtr pccArg, xmlNodePtr pndArg, xmlChar *pucArg, i
 	}
       }
 
-      if (resNodeIsReadable(prnResult) == FALSE && STR_IS_NOT_EMPTY(pucRootPath)) {
+      if (resNodeIsReadable(prnResult) == FALSE && STR_IS_NOT_EMPTY(pucLocation)) {
 	resNodeFree(prnResult);
-	if (resPathIsDescendant(pucRootPath, pucShortcut)) {
+	if (resPathIsDescendant(pucLocation, pucShortcut)) {
 	  prnResult = resNodeDirNew(pucShortcut);
 	}
 	else {
-	  prnResult = resNodeConcatNew(pucRootPath, pucShortcut);
+	  prnResult = resNodeConcatNew(pucLocation, pucShortcut);
 	}
       }
 
@@ -743,13 +743,13 @@ cxpResNodeResolveNew(cxpContextPtr pccArg, xmlNodePtr pndArg, xmlChar *pucArg, i
 	}
       }
 
-      if (resNodeIsReadable(prnResult) == FALSE && STR_IS_NOT_EMPTY(pucLocation)) {
+      if (resNodeIsReadable(prnResult) == FALSE && STR_IS_NOT_EMPTY(pucRootPath)) {
 	resNodeFree(prnResult);
-	if (resPathIsDescendant(pucLocation, pucShortcut)) {
+	if (resPathIsDescendant(pucRootPath, pucShortcut)) {
 	  prnResult = resNodeDirNew(pucShortcut);
 	}
 	else {
-	  prnResult = resNodeConcatNew(pucLocation, pucShortcut);
+	  prnResult = resNodeConcatNew(pucRootPath, pucShortcut);
 	}
       }
 
@@ -785,7 +785,7 @@ cxpResNodeResolveNew(cxpContextPtr pccArg, xmlNodePtr pndArg, xmlChar *pucArg, i
 	  prnResult = resNodeConcatNew(pucDocUrlDir, pucShortcut);
 	}
       }
-      else if ((pucRootPath = resNodeGetNameNormalized(cxpCtxtRootGet(pccArg)))) {
+      else if (STR_IS_NOT_EMPTY(pucRootPath)) {
 	if (resPathIsDescendant(pucRootPath, pucShortcut)) {
 	  prnResult = resNodeDirNew(pucShortcut);
 	}
