@@ -462,6 +462,33 @@ domNodeIsDescendant(xmlNodePtr pndArgTop, xmlNodePtr pndArg)
 /* end of domNodeIsDescendant() */
 
 
+/*! find all  matching to preArgBlockTag
+
+\todo test xmlSaveToBuffer()
+
+\return a new string containing all descendant text nodes of pndArg
+*/
+xmlChar*
+domNodeListGetString(xmlNodePtr pndArg, xmlChar* pucArg)
+{
+  xmlChar* pucResult = pucArg;
+
+  if (IS_ENODE(pndArg)) {
+    xmlNodePtr pndIter;
+
+    for (pndIter = pndArg->children; pndIter != NULL; pndIter = pndIter->next) {
+      pucResult = domNodeListGetString(pndIter, pucResult);
+    }
+  }
+  else if (xmlNodeIsText(pndArg) && STR_IS_NOT_EMPTY(pndArg->content)) {
+    pucResult = xmlStrcat(pucResult, BAD_CAST" ");
+    pucResult = xmlStrcat(pucResult, pndArg->content);
+  }
+
+  return pucResult;
+} /* end of domNodeListGetString() */
+
+
 /**
  * copy from libxml2-2.9.1/tree.c xmlNodeGetContent():
  *

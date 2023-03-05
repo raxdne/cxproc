@@ -385,6 +385,21 @@ pieProcessPieNode(xmlNodePtr pndArgPie, cxpContextPtr pccArg)
       }
       xmlFree(pucTT);
     }
+    else {
+      pucAttr = domGetPropValuePtr(pndArgPie, BAD_CAST "regexp"); /*  */
+      if (STR_IS_NOT_EMPTY(pucAttr)) {
+	cxpCtxtLogPrint(pccArg, 2, "Filter RegExp for '%s'", pucAttr);
+	if (pieWeightRegExpInDoc(pdocResult, pucAttr)) {
+	  /* some matching nodes found, remove others */
+	  CleanUpTree(pndPieRoot);
+	}
+	else {
+	  /* no matching nodes found */
+	  xmlFreeDoc(pdocResult);
+	  pdocResult = NULL;
+	}
+      }
+    }
 
     pieValidateTree(pndPieRoot);
   }
@@ -1729,6 +1744,165 @@ pieWeightXPathInDoc(xmlDocPtr pdocArg, xmlChar *pucArg)
   }
   return fResult;
 } /* end of pieWeightXPathInDoc() */
+
+
+/*! find all  matching to preArgBlockTag
+
+\return TRUE by default
+*/
+BOOL_T
+RecognizeRegExps(xmlNodePtr pndArg, pcre2_code* preArg)
+{
+  BOOL_T fResult = TRUE;
+  xmlNodePtr pndIter;
+  int errornumber = 0;
+  size_t erroroffset;
+
+  if (preArg == NULL) {
+    /* regexp error handling */
+    //PrintFormatLog(1, "hashtag regexp '%s' error: '%i'", RE_HASHTAG, errornumber);
+    fResult = FALSE;
+  }
+  else if (IS_VALID_NODE(pndArg) == FALSE || xmlHasProp(pndArg,BAD_CAST"hidden") != NULL) {
+    /* skip */
+  }
+  else if (IS_NODE_PIE_HEADER(pndArg) || IS_NODE_PIE_PAR(pndArg) || IS_NODE_PIE_LIST(pndArg) || IS_NODE_PIE_FIG(pndArg) || IS_NODE_PIE_TR(pndArg)) {
+    xmlChar* pucT;
+
+    pucT = domNodeListGetString(pndArg,NULL);
+    if (STR_IS_NOT_EMPTY(pucT)) { /* pndIter is a text node */
+      int rc;
+      pcre2_match_data* match_data;
+
+      match_data = pcre2_match_data_create_from_pattern(preArg, NULL);
+      rc = pcre2_match(
+		       preArg,        /* result of pcre2_compile() */
+		       (PCRE2_SPTR8)pucT,  /* the subject string */
+		       xmlStrlen(pucT),             /* the length of the subject string */
+		       0,              /* start at offset 0 in the subject */
+		       0,              /* default options */
+		       match_data,        /* vector of integers for substring information */
+		       NULL);            /* number of elements (NOT size in bytes) */
+
+      if (rc > -1) {
+	xmlNodePtr pndT;
+
+	if (IS_NODE_PIE_HEADER(pndArg)) {
+	  /* weight the tree of this section when element matches */
+	  IncrementWeightPropRecursive(pndArg->parent);
+	  /* weight all ancestors of this section */
+	  for (pndT = pndArg->parent->parent; pndT; pndT = pndT->parent) {
+	    IncrementWeightProp(pndT, 1);
+	  }
+	}
+	else {
+	  /* weight all ancestors and this element */
+	  for (pndT = pndArg; pndT; pndT = pndT->parent) {
+	    IncrementWeightProp(pndT, 1);
+	  }
+	}
+      }
+      else {
+      }
+      pcre2_match_data_free(match_data);   /* Release memory used for the match */
+    }
+    xmlFree(pucT);
+  }
+  else {
+    for (pndIter = pndArg->children; pndIter != NULL; pndIter = pndIter->next) {
+      fResult |= RecognizeRegExps(pndIter, preArg);
+    }
+  }
+  return fResult;
+} /* End of RecognizeRegExps() */
+
+
+/*! \return Regexp 'pucArg'
+\param pucArg pointer to Regexp string
+
+CASELESS, ignoring space, minus, underscore
+
+\todo order of terms
+*/
+pcre2_code* 
+GetFuzzyRegExp(xmlChar *pucArg)
+{
+  pcre2_code* preResult = NULL;
+
+  if (STR_IS_NOT_EMPTY(pucArg)) {
+    size_t l;
+    size_t erroroffset;
+    int errornumber = 0;
+    xmlChar *pucFuzzy = NULL;
+
+    l = xmlStrlen(pucArg) * 4;
+    if (l > 1) {
+
+      pucFuzzy = (xmlChar *) xmlMalloc(l);
+      if (pucFuzzy) {
+	size_t i, j;
+	
+	for (i=j=0; j < l; i++, j++) {
+	  if (isend(pucArg[i])) {
+	    pucFuzzy[j] = '\0';
+	    break;
+	  }
+	  else if (pucArg[i]==' ' || pucArg[i]=='-' || pucArg[i]=='_') {
+	    pucFuzzy[j++] = '.';
+	    pucFuzzy[j] = '*';
+	    for ( ; pucArg[i+1]==' ' || pucArg[i+1]=='-' || pucArg[i+1]=='_'; i++) ;
+	  }
+	  else {
+	    //pucFuzzy[j++] = '.';
+	    //pucFuzzy[j++] = '*';
+	    pucFuzzy[j] = pucArg[i];
+	  }
+	  assert(i<l);
+	}
+      }
+    }
+    
+    preResult = pcre2_compile(
+			      (PCRE2_SPTR8)pucFuzzy, /* the pattern */
+			      PCRE2_ZERO_TERMINATED, /* indicates pattern is zero-terminated */
+			      PCRE2_UTF | PCRE2_CASELESS | PCRE2_MULTILINE,        /* default options */
+			      &errornumber,          /* for error number */
+			      &erroroffset,          /* for error offset */
+			      NULL);                 /* use default compile context */
+  }
+
+  return preResult;
+} /* End of GetFuzzyRegExp() */
+
+
+/*! \return TRUE if a node according to Regexp 'pucArg' in pdocArg was found
+\param pdocArg source DOM
+\param pucArg pointer to Regexp string
+*/
+BOOL_T
+pieWeightRegExpInDoc(xmlDocPtr pdocArg, xmlChar *pucArg)
+{
+  BOOL_T fResult = FALSE;
+
+  if (pdocArg != NULL && STR_IS_NOT_EMPTY(pucArg)) {
+    xmlNodePtr pndRoot;    
+    if ((pndRoot = xmlDocGetRootElement(pdocArg))) {
+      pcre2_code* re_pattern = NULL;
+      
+      if ((re_pattern = GetFuzzyRegExp(pucArg)) != NULL) {
+	PrintFormatLog(2, "Initialized filter regexp with '%s'", pucArg);
+	RecognizeRegExps(pndRoot, re_pattern);
+	pcre2_code_free(re_pattern);
+	fResult = TRUE;
+      }
+      else {
+	/* regexp error handling */
+	PrintFormatLog(1, "Filter regexp '%s' error", pucArg);
+      }
+    }
+  }
+  return fResult;
+} /* end of pieWeightRegExpInDoc() */
 
 
 #ifdef TESTCODE

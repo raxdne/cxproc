@@ -29,17 +29,19 @@ to find missing libraries or header files on Debian/Ubuntu
 	sudo apt-file update
 	apt-file find  ImageMagick.h
 
-## Fedora (package names are not up-to-date)
+## Fedora
 
 s. <http://rpmfind.net/linux/rpm2html/search.php>
 
+Don't use packages `cmark cmark-devel`
+
 Core tools
 
-    sudo dnf install cpp gcc gcc-c++ gdb make strace patch pkg-config gawk cmake cmake-gui
+    sudo dnf install cpp gcc gcc-c++ gdb make patch pkg-config gawk cmake cmake-gui
 
 additional core libraries
 
-    sudo dnf install pcre2 pcre2-devel zip unzip libzip-devel libzip zlib zlib-devel libxml2 libxml2-devel libxslt libxslt-devel sqlite sqlite-devel libarchive libarchive-devel
+    sudo dnf install pcre2 pcre2-devel zip unzip libzip-devel libzip zlib zlib-devel libxml2 libxml2-devel libxslt libxslt-devel sqlite sqlite-devel libarchive libarchive-devel curl curl-devel
 
 Graphic libraries
 
@@ -51,7 +53,11 @@ Audio libraries
 
 Development environment
 
-    sudo dnf install httpd emacs doxygen graphviz graphviz-doc valgrind kcachegrind splint cflow mc screen w3m wget ssh rsync 
+    sudo dnf install httpd emacs doxygen graphviz valgrind mc screen w3m wget rsync meld git gitk samba-client samba-common cifs-utils openssh openssh-devel
+
+## Samba Share
+
+	
 
 ## Git
 

@@ -637,6 +637,60 @@ pieTextTest(cxpContextPtr pccArg)
     xmlFreeDoc(pdocResult);
   }
 
+
+  if (RUNTEST) {
+    /* TEST:
+    */
+    xmlDocPtr pdocResult = NULL;
+    xmlChar* pucT;
+    xmlNodePtr pndRoot;
+
+    i++;
+    printf("TEST %i in '%s:%i': Regexp nodeset ", i, __FILE__, __LINE__);
+
+    if ((pdocResult = xmlParseFile(TESTPREFIX "option/pie/text/test-pie-14.pie")) == NULL
+      || (pndRoot = xmlDocGetRootElement(pdocResult)) == NULL) {
+      printf("Error 1 xmlParseFile()\n");
+    }
+    else if ((pucT = domNodeListGetString(pndRoot, NULL)) == NULL) {
+      printf("Error 1 domNodeListGetString()\n");
+    }
+    else {
+      n_ok++;
+      printf("OK\n");
+    }
+    //domPutDocString(stderr, BAD_CAST "pieWeightRegExpInDoc(): ", pdocResult);
+
+    xmlFreeDoc(pdocResult);
+  }
+
+
+  if (RUNTEST) {
+    /* TEST:
+    */
+    xmlDocPtr pdocResult = NULL;
+    xmlChar *pucPattern = (xmlChar*) "SJI.*OUE";
+    xmlNodePtr pndRoot;
+
+    i++;
+    printf("TEST %i in '%s:%i': Regexp nodeset ", i, __FILE__, __LINE__);
+
+    if ((pdocResult = xmlParseFile(TESTPREFIX "option/pie/text/test-pie-14.pie")) == NULL
+      || (pndRoot = xmlDocGetRootElement(pdocResult)) == NULL) {
+      printf("Error 1 xmlParseFile()\n");
+    }
+    else if (pieWeightRegExpInDoc(pdocResult, pucPattern) == FALSE) {
+      printf("Error 1 pieWeightRegExpInDoc()\n");
+    }
+    else {
+	n_ok++;
+	printf("OK\n");
+    }
+    //domPutDocString(stderr, BAD_CAST "pieWeightRegExpInDoc(): ", pdocResult);
+
+    xmlFreeDoc(pdocResult);
+  }
+
   printf("Result in '%s': %i/%i OK\n\n", __FILE__, n_ok, i);
 
   return (i - n_ok);
