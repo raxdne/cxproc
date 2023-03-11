@@ -686,7 +686,60 @@ pieTextTest(cxpContextPtr pccArg)
 	n_ok++;
 	printf("OK\n");
     }
-    //domPutDocString(stderr, BAD_CAST "pieWeightRegExpInDoc(): ", pdocResult);
+    //domPutDocString(stderr, BAD_CAST "_pieWeightRegExpInDoc(): ", pdocResult);
+
+    xmlFreeDoc(pdocResult);
+  }
+
+  if (RUNTEST) {
+    /* TEST:
+    */
+    pcre2_code* preT = NULL;
+
+    i++;
+    printf("TEST %i in '%s:%i': Regexp nodeset ", i, __FILE__, __LINE__);
+
+    if ((preT = GetPositiveLookaheadRegExp(NULL)) != NULL) {
+      printf("Error 1 GetPositiveLookaheadRegExp()\n");
+    }
+    else if ((preT = GetPositiveLookaheadRegExp(BAD_CAST"")) != NULL) {
+      printf("Error 1 GetPositiveLookaheadRegExp()\n");
+    }
+    else if ((preT = GetPositiveLookaheadRegExp(BAD_CAST"X")) == NULL) {
+      printf("Error 1 GetPositiveLookaheadRegExp()\n");
+    }
+    else if ((preT = GetPositiveLookaheadRegExp(BAD_CAST"ABC ,,  DEF, HIJ")) == NULL) {
+      printf("Error 1 GetPositiveLookaheadRegExp()\n");
+    }
+    else {
+	n_ok++;
+	printf("OK\n");
+    }
+    pcre2_code_free(preT);
+  }
+
+  if (RUNTEST) {
+    /* TEST:
+    */
+    xmlDocPtr pdocResult = NULL;
+    xmlChar* pucPattern = (xmlChar*)"OUE, SJI";
+    xmlNodePtr pndRoot;
+
+    i++;
+    printf("TEST %i in '%s:%i': Regexp nodeset ", i, __FILE__, __LINE__);
+
+    if ((pdocResult = xmlParseFile(TESTPREFIX "option/pie/text/test-pie-14.pie")) == NULL
+      || (pndRoot = xmlDocGetRootElement(pdocResult)) == NULL) {
+      printf("Error 1 xmlParseFile()\n");
+    }
+    else if (pieWeightWordsInBlocks(pdocResult, pucPattern) == FALSE) {
+      printf("Error 1 pieWeightWordsInBlocks()\n");
+    }
+    else {
+      n_ok++;
+      printf("OK\n");
+    }
+    //domPutDocString(stderr, BAD_CAST "pieWeightWordsInBlocks(): ", pdocResult);
 
     xmlFreeDoc(pdocResult);
   }
