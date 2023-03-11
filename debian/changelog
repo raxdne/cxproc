@@ -1,0 +1,251 @@
+cxproc (2.0-rc2-1) stable; urgency=low
+
+  * v2.0 Release candidate 2
+
+ -- Alexander Tenbusch <raxdne@web.de>  Sat, 11 Mar 2023 12:03:50 +0100
+
+cxproc (1.2-rc1-1) stable; urgency=low
+
+  * v1.2 Release candidate 1
+
+ -- Alexander Tenbusch <raxdne@web.de>  Thu, 05 Jan 2015 19:32:20 +0200
+
+cxproc (1.1-1) stable; urgency=low
+
+  * v1.1 Release
+
+ -- Alexander Tenbusch <raxdne@web.de>  Sun, 19 Oct 2014 09:08:20 +0200
+
+cxproc (1.1-rc2-2) testing; urgency=low
+
+  * update of third v1.1 Release candiate with armhf
+
+ -- Alexander Tenbusch <raxdne@web.de>  Mon, 13 Oct 2014 18:44:01 +0000
+
+cxproc (1.1-rc2-1) testing; urgency=low
+
+  * update of second v1.1 Release candiate with armhf
+
+ -- Alexander Tenbusch <raxdne@web.de>  Sun, 12 Oct 2014 18:45:53 +0200
+
+cxproc (1.1-rc1-6) testing; urgency=low
+
+  * update of first v1.1 Release candiate with armhf
+
+ -- Alexander Tenbusch <raxdne@web.de>  Sat, 20 Sep 2014 05:57:11 +0000
+
+cxproc (1.1-rc1-5) testing; urgency=low
+
+  * update of first v1.1 Release candiate with armhf
+
+ -- Alexander Tenbusch <raxdne@web.de>  Sun, 10 Aug 2014 13:49:40 +0000
+
+cxproc (1.1-rc1-4) testing; urgency=low
+
+  * first v1.1 Release candiate with armhf
+
+ -- Alexander Tenbusch <raxdne@web.de>  Sun, 03 Aug 2014 10:14:28 +0000
+
+cxproc (1.1-rc1-3) testing; urgency=low
+
+  * first v1.1 Release candiate
+
+ -- Alexander Tenbusch <raxdne@web.de>  Thu, 19 Jun 2014 18:55:17 +0200
+
+cxproc (1.1-rc1-2) testing; urgency=low
+
+  * first v1.1 Release candiate
+
+ -- Alexander Tenbusch <raxdne@web.de>  Wed, 18 Jun 2014 18:12:19 +0200
+
+cxproc (1.1-rc1-1) testing; urgency=low
+
+  * first v1.1 Release candiate
+
+ -- Alexander Tenbusch <raxdne@web.de>  Sun, 01 Jun 2014 19:21:25 +0200
+
+cxproc (1.1-dev-2) unstable; urgency=low
+
+  * development release
+
+ -- Alexander Tenbusch <raxdne@web.de>  Fri, 18 Apr 2014 09:02:36 +0200
+
+cxproc (1.1-dev-1) unstable; urgency=low
+
+  * development release
+
+ -- Alexander Tenbusch <raxdne@web.de>  Fri, 16 Aug 2013 20:38:27 +0200
+
+cxproc (1.1-dev-0) unstable; urgency=low
+
+  * development release
+
+ -- Alexander Tenbusch <raxdne@web.de>  Mon, 04 Feb 2013 09:03:43 +0100
+
+cxproc (1.0-rc2-0) stable; urgency=low
+
+  * new release
+
+ -- Alexander Tenbusch <raxdne@web.de>  Sun, 05 Aug 2012 18:28:43 +0200
+
+cxproc (0.9.2-3) stable; urgency=low
+
+  * new update
+
+ -- Alexander Tenbusch <raxdne@web.de>  Thu, 29 Dec 2011 19:37:36 +0100
+
+cxproc (0.9.2-2) stable; urgency=low
+
+  * new update
+
+ -- Alexander Tenbusch <raxdne@web.de>  Wed, 28 Dec 2011 08:02:21 +0100
+
+cxproc (0.9.2-1) stable; urgency=low
+
+  * new release
+
+ -- Alexander Tenbusch <raxdne@web.de>  Sun, 18 Dec 2011 09:21:16 +0100
+
+cxproc (0.9-rc2-1) unstable; urgency=low
+
+  * second release candidate of v0.9
+
+ -- Alexander Tenbusch <raxdne@web.de>  Sat, 05 Jun 2010 09:02:19 +0200
+
+cxproc (0.7-8) stable; urgency=low
+
+  * first public release
+
+ -- Alexander Tenbusch <raxdne@web.de>  Fri, 29 May 2009 11:15:20 +0200
+
+cxproc (0.7-7) unstable; urgency=low
+
+  * RC6 prepared
+
+ -- Alexander Tenbusch <raxdne@web.de>  Fri, 15 May 2009 20:47:01 +0200
+
+cxproc (0.7-6) unstable; urgency=low
+
+  * id3tag added
+
+ -- Alexander Tenbusch <raxdne@web.de>  Wed, 06 May 2009 12:37:46 +0200
+
+cxproc (0.7-5) unstable; urgency=low
+
+  * package details
+
+ -- Alexander Tenbusch <raxdne@web.de>  Fri, 01 May 2009 09:49:53 +0200
+
+cxproc (0.7-4) unstable; urgency=low
+
+  * package details
+
+ -- Alexander Tenbusch <raxdne@web.de>  Sat, 18 Apr 2009 17:12:57 +0200
+
+cxproc (0.7-3) unstable; urgency=low
+
+  * package details
+
+ -- Alexander Tenbusch <raxdne@web.de>  Mon, 13 Apr 2009 11:48:28 +0200
+
+cxproc (0.7-2) unstable; urgency=low
+
+  * package details
+
+ -- Alexander Tenbusch <raxdne@web.de>  Sun, 05 Apr 2009 09:17:34 +0200
+
+cxproc (0.7-1) unstable; urgency=low
+
+  * major release
+
+ -- Alexander Tenbusch <raxdne@web.de>  Fri, 03 Apr 2009 20:15:14 +0200
+
+cxproc (0.5.3-5) unstable; urgency=low
+
+  * use of libmagick included
+
+ -- Alexander Tenbusch <raxdne@web.de>  Tue, 26 Aug 2008 21:09:02 +0200
+
+cxproc (0.5.3-4) unstable; urgency=low
+
+  * minor changes (index file in debian postinst package, CGI handling simplified)
+
+ -- Alexander Tenbusch <raxdne@web.de>  Mon, 18 Aug 2008 19:34:46 +0200
+
+cxproc (0.5.3-3) unstable; urgency=low
+
+  * lots of changes, but testing
+
+ -- Alexander Tenbusch <raxdne@web.de>  Sun, 17 Aug 2008 12:16:32 +0200
+
+cxproc (0.5.3-2) unstable; urgency=low
+
+  * 
+
+ -- Alexander Tenbusch <raxdne@web.de>  Sat, 21 Jun 2008 21:20:36 +0200
+
+cxproc (0.5.3-1) unstable; urgency=low
+
+  * 
+
+ -- Alexander Tenbusch <raxdne@web.de>  Sun, 27 Jan 2008 22:48:07 +0100
+
+cxproc (0.5.2-5) unstable; urgency=low
+
+  * package configure
+
+ -- Alexander Tenbusch <raxdne@web.de>  Fri, 11 Jan 2008 23:14:40 +0100
+
+cxproc (0.5.2-4) unstable; urgency=low
+
+  * cosmetics in package
+
+ -- Alexander Tenbusch <raxdne@web.de>  Fri, 04 Jan 2008 10:06:30 +0100
+
+cxproc (0.5.2-3) unstable; urgency=low
+
+  * cosmetics
+
+ -- Alexander Tenbusch <raxdne@web.de>  Tue, 01 Jan 2008 19:08:08 +0100
+
+cxproc (0.5.2-2) unstable; urgency=low
+
+  * man page added
+
+ -- Alexander Tenbusch <raxdne@web.de>  Mon, 31 Dec 2007 17:33:53 +0100
+
+cxproc (0.5.2-1) unstable; urgency=low
+
+  * MySQL support included
+
+ -- Alexander Tenbusch <raxdne@web.de>  Sun, 30 Dec 2007 11:38:56 +0100
+
+cxproc (0.5.1-4) unstable; urgency=low
+
+  * Desktop icons included
+
+ -- Alexander Tenbusch <raxdne@web.de>  Wed, 26 Dec 2007 20:42:22 +0100
+
+cxproc (0.5.1-3) unstable; urgency=low
+
+  * Desktop file included
+
+ -- Alexander Tenbusch <raxdne@web.de>  Wed, 26 Dec 2007 14:59:56 +0100
+
+cxproc (0.5.1-2) unstable; urgency=low
+
+  * 
+
+ -- Alexander Tenbusch <raxdne@web.de>  Sun, 16 Dec 2007 15:57:20 +0100
+
+cxproc (0.5.1-1) unstable; urgency=low
+
+  * second trial
+
+ -- Alexander Tenbusch <raxdne@web.de>  Sun, 16 Dec 2007 15:42:56 +0100
+
+cxproc (0.5-1) unstable; urgency=low
+
+  * erster Versuch
+
+ -- Alexander Tenbusch <raxdne@web.de>  Thu, 29 Jan 1998 19:39:27 +0100

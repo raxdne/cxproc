@@ -61,21 +61,39 @@ Development environment
 
 ## Git
 
+	mkdir -p ~/cxproc-build/
+	cd ~/cxproc-build/
     git clone https://github.com/raxdne/cxproc.git
+	cd ~/cxproc-build/cxproc
     git submodule update --remote
 
 ## CMake
 
 build directory is defined by `misc/prepare-cmake.sh`
 
-	cd cxproc
+	cd ~/cxproc-build/cxproc
 	. misc/prepare-cmake.sh
-	(cd $PREFIX/build && cmake ~/cxproc-build/cxproc/ "-GUnix Makefiles" -DCMAKE_BUILD_TYPE=Release -DCXPROC_DOC:BOOL=OFF -DCXPROC_EXPERIMENTAL:BOOL=OFF)
-	cmake --build $PREFIX/build
+	(cd $PREFIX/build && cmake ~/cxproc-build/cxproc/ "-GUnix Makefiles" -DCMAKE_BUILD_TYPE=Debug -DCXPROC_DOC:BOOL=OFF -DCXPROC_LEGACY:BOOL=ON -DCXPROC_EXPERIMENTAL:BOOL=ON -DCXPROC_MARKDOWN:BOOL=OFF)
+	cmake --build $PREFIX/build -j 4
 	(cd $PREFIX/build && ctest)
-	cmake --build $PREFIX/build --target package
+	cmake --install $PREFIX/build --prefix $PREFIX/
+	#cmake --build $PREFIX/build --target package
+	#(cd $PREFIX/build && cpack -V --debug)
+	cmake --build $PREFIX/build --target clean
 
 GUI
+
+## third party
+
+	cd ~/cxproc-build/cxproc
+	. misc/prepare-cmake.sh
+	git submodule update --init third-party/c-dt
+	cd ..
+	git clone https://github.com/commonmark/cmark.git
+	mkdir -p ~/cxproc-build/cmark/build
+	(cd ~/cxproc-build/cmark/build && cmake .. "-GUnix Makefiles" -DCMAKE_BUILD_TYPE=Release)
+	cmake --build ~/cxproc-build/cmark/build
+	cmake --install ~/cxproc-build/cmark/build --prefix $PREFIX/
 
 ## Doxygen
 
@@ -93,3 +111,14 @@ https://askubuntu.com/questions/250696/how-to-cross-compile-for-arm
 	cp -r $PREFIX/www/html/pie/test .
 	sudo chgrp -R www-data $PREFIX/www
 	
+## Packaging
+
+### Debian/Ubuntu
+
+	cd ~/cxproc-build/cxproc
+	sudo dpkg-buildpackage
+	dpkg --dry-run -i ../cxproc_2.0-rc2-1_amd64.deb
+	sudo rm -r debian/.debhelper/ debian/cxproc debian/cxproc.substvars debian/files
+
+### Fedora
+
