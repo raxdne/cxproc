@@ -88,7 +88,11 @@ GUI
 	cd ~/cxproc-build/cxproc
 	. misc/prepare-cmake.sh
 	git submodule update --init third-party/c-dt
-	cd ..
+
+	cd ~/cxproc-build/cxproc
+	. misc/prepare-cmake.sh
+	cd ~/cxproc-build/
+	sudo dpkg --remove cmark libcmark0.29.0 libcmark-dev
 	git clone https://github.com/commonmark/cmark.git
 	mkdir -p ~/cxproc-build/cmark/build
 	(cd ~/cxproc-build/cmark/build && cmake .. "-GUnix Makefiles" -DCMAKE_BUILD_TYPE=Release)
