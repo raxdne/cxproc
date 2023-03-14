@@ -2,8 +2,9 @@
 # Sample debian/rules that uses debhelper.
 # This file is public domain software, originally written by Joey Hess. 
 
-DIR_SRC=`pwd`
+DIR_SRC=$(shell pwd)
 DIR_PREFIX=/tmp/cxproc
+NAME=$(shell dh_listpackages)
 
 # Uncomment this to turn on verbose mode.
 export DH_VERBOSE=0
@@ -27,7 +28,7 @@ clean:
 	rm -f build-stamp
 
 #	Add here commands to clean up after the build process.
-	cmake --build $(DIR_PREFIX)/build --target clean
+#	cmake --build $(DIR_PREFIX)/build --target clean
 
 	dh_clean
 
@@ -38,7 +39,11 @@ install: build
 	dh_installdirs
 
 #	Add here commands to install the package into debian/<packagename>
-	cmake --install $(DIR_PREFIX)/build --prefix $(DIR_SRC)/debian/`dh_listpackages`/usr
+	cmake --install $(DIR_PREFIX)/build --prefix $(DIR_SRC)/debian/$(NAME)/usr
+	install -g www-data -d $(DIR_SRC)/debian/$(NAME)/etc/apache2/sites-available/
+	install -g www-data -m 0644 $(DIR_SRC)/www/conf/httpd/cxproc-template.conf $(DIR_SRC)/debian/$(NAME)/etc/apache2/sites-available/
+#	install -g www-data -d $(DIR_SRC)/debian/$(NAME)/var/www/html/test
+#	install -g www-data -m 0644 $(DIR_SRC)/www/html/Documents/index.* $(DIR_SRC)/debian/$(NAME)/var/www/html/test/
 
 # Build architecture-independent files here.
 binary-indep: build install

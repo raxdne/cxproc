@@ -6,7 +6,7 @@ Standards-Version: 4.0.0.0
 
 Package: cxproc
 Architecture: i386 amd64 armhf
-Depends: libc6 (>= 2.4), libxml2 (>= 2.2.20), libxslt1.1 (>= 1.1.15), libpcre3 (>= 7.0), zlib1g, libexif12, libmagickcore5 (>= 7:6.4), libid3tag0, libogg0, libvorbis0a, libsqlite3-0
+Depends: libc6 (>= 2.4), libxml2 (>= 2.2.20), libxslt1.1 (>= 1.1.15), libpcre3 (>= 7.0), zlib1g, libsqlite3-0
 Description: a Configurable Xml PROCessor
  This is a configurable command line processor for "XML-XSL fans". Its
  a portable frontend for the GNOME libraries libxml2 and libxslt.

@@ -85,14 +85,17 @@ GUI
 
 ## third party
 
+### c-dt
+
 	cd ~/cxproc-build/cxproc
-	. misc/prepare-cmake.sh
 	git submodule update --init third-party/c-dt
+
+### cmark
 
 	cd ~/cxproc-build/cxproc
 	. misc/prepare-cmake.sh
 	cd ~/cxproc-build/
-	sudo dpkg --remove cmark libcmark0.29.0 libcmark-dev
+	# sudo dpkg --remove cmark libcmark0.29.0 libcmark-dev
 	git clone https://github.com/commonmark/cmark.git
 	mkdir -p ~/cxproc-build/cmark/build
 	(cd ~/cxproc-build/cmark/build && cmake .. "-GUnix Makefiles" -DCMAKE_BUILD_TYPE=Release)
@@ -111,6 +114,10 @@ https://askubuntu.com/questions/250696/how-to-cross-compile-for-arm
 	
 ## Webserver runtime
 
+	sudo a2enmod cgi actions
+	sudo systemctl reload apache2
+	curl 'http://localhost/cgi-bin/cxproc-cgi?path=test'
+	
 	cd $PREFIX/www/html && git clone https://github.com/raxdne/pie.git
 	cp -r $PREFIX/www/html/pie/test .
 	sudo chgrp -R www-data $PREFIX/www
