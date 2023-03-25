@@ -52,11 +52,11 @@
 
 /*!\bug extend regexp to markdown
 */
-#define RE_FIG "^[ \\t]*(Fig|Abb)\\.[ \\t]*([^ \\t]+)[ \\t]*(.+)*$"
+#define RE_FIG "^[ \\t]*(FIG|ABB)[\\. \\t]+([^ \\t]+)[ \\t]*(.+)*$"
 
 /*
 */
-#define RE_SCRIPT "script=\\\"([^\\\"]+)\\\""
+#define RE_SCRIPT "SCRIPT=\\\"([^\\\"]+)\\\""
 
 /*! s https://en.wikipedia.org/wiki/ISO_8601
 */
@@ -107,7 +107,7 @@
 
 /*
 */
-#define RE_TASK "^(TODO|DONE|REQ|BUG|TARGET|TEST)(:[ \\t]*)"
+#define RE_TASK "^(TODO|DONE|REQ|BUG|TARGET|TEST)[: \\t]+"
 
 
 static pcre2_code *re_unc    = NULL;
@@ -243,7 +243,7 @@ CompileRegExpDefaults(void)
     re_unc = pcre2_compile(
       (PCRE2_SPTR8)RE_UNC, /* the pattern */
       PCRE2_ZERO_TERMINATED, /* indicates pattern is zero-terminated */
-      PCRE2_CASELESS,        /* default options */
+      PCRE2_UTF|PCRE2_CASELESS,        /* default options */
       &errornumber,          /* for error number */
       &erroroffset,          /* for error offset */
       NULL);                 /* use default compile context */
@@ -294,7 +294,7 @@ CompileRegExpDefaults(void)
     re_url = pcre2_compile(
       (PCRE2_SPTR8)RE_URL, /* the pattern */
       PCRE2_ZERO_TERMINATED, /* indicates pattern is zero-terminated */
-      PCRE2_CASELESS,        /* default options */
+      PCRE2_UTF|PCRE2_CASELESS,        /* default options */
       &errornumber,          /* for error number */
       &erroroffset,          /* for error offset */
       NULL);                 /* use default compile context */
@@ -328,7 +328,7 @@ CompileRegExpDefaults(void)
     re_inline = pcre2_compile(
       (PCRE2_SPTR8)RE_INLINE, /* the pattern */
       PCRE2_ZERO_TERMINATED, /* indicates pattern is zero-terminated */
-      PCRE2_CASELESS,        /* default options */
+      PCRE2_UTF|PCRE2_CASELESS,        /* default options */
       &errornumber,          /* for error number */
       &erroroffset,          /* for error offset */
       NULL);                 /* use default compile context */
@@ -346,7 +346,7 @@ CompileRegExpDefaults(void)
     re_fig = pcre2_compile(
       (PCRE2_SPTR8)RE_FIG, /* the pattern */
       PCRE2_ZERO_TERMINATED, /* indicates pattern is zero-terminated */
-      PCRE2_CASELESS,        /* default options */
+      PCRE2_UTF|PCRE2_CASELESS,        /* default options */
       &errornumber,          /* for error number */
       &erroroffset,          /* for error offset */
       NULL);                 /* use default compile context */
@@ -364,7 +364,7 @@ CompileRegExpDefaults(void)
     re_script = pcre2_compile(
       (PCRE2_SPTR8)RE_SCRIPT, /* the pattern */
       PCRE2_ZERO_TERMINATED, /* indicates pattern is zero-terminated */
-      0,		        /* default options */
+      PCRE2_UTF|PCRE2_CASELESS,		        /* default options */
       &errornumber,          /* for error number */
       &erroroffset,          /* for error offset */
       NULL);                 /* use default compile context */
@@ -381,7 +381,7 @@ CompileRegExpDefaults(void)
     re_task = pcre2_compile(
       (PCRE2_SPTR8)RE_TASK, /* the pattern */
       PCRE2_ZERO_TERMINATED, /* indicates pattern is zero-terminated */
-      0,        /* default options */
+      PCRE2_UTF|PCRE2_CASELESS,        /* default options */
       &errornumber,          /* for error number */
       &erroroffset,          /* for error offset */
       NULL);                 /* use default compile context */

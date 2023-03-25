@@ -1220,10 +1220,10 @@ pieTextBlocksTest(void)
     else if ((pndP = xmlNewChild(pndPie, NULL, NAME_PIE_PAR, BAD_CAST"")) == NULL || (pndT = TaskNodeNew(pndP)) != NULL) {
       printf("Error TaskNodeNew()\n");
     }
-    else if ((pndP = xmlNewChild(pndPie, NULL, NAME_PIE_PAR, BAD_CAST"todo: ERROR")) == NULL || (pndT = TaskNodeNew(pndP)) != NULL) {
+    else if ((pndP = xmlNewChild(pndPie, NULL, NAME_PIE_PAR, BAD_CAST"ToDoERROR")) == NULL || (pndT = TaskNodeNew(pndP)) != NULL) {
       printf("Error TaskNodeNew()\n");
     }
-    else if ((pndP = xmlNewChild(pndPie, NULL, NAME_PIE_HEADER, BAD_CAST"TODO: ERROR")) == NULL || (pndT = TaskNodeNew(pndP)) != NULL) {
+    else if ((pndP = xmlNewChild(pndPie, NULL, NAME_PIE_HEADER, BAD_CAST"TODOOO: ERROR")) == NULL || (pndT = TaskNodeNew(pndP)) != NULL) {
       printf("Error TaskNodeNew()\n");
     }
     else {
@@ -1283,6 +1283,11 @@ pieTextBlocksTest(void)
       || xmlStrEqual(domGetPropValuePtr(pndT, BAD_CAST"class"), BAD_CAST"todo") == FALSE
       || domNumberOfChild(pndT, NAME_PIE_HEADER) != 1) {
       printf("Error 2 TaskNodeNew()\n");
+    }
+    else if ((pndP = xmlNewChild(pndPie, NULL, NAME_PIE_PAR, BAD_CAST"ToDo also allowed")) == NULL
+      || (pndT = TaskNodeNew(pndP)) == NULL
+      || IS_NODE_PIE_TASK(pndT) == FALSE || domNumberOfChild(pndT, NAME_PIE_HEADER) != 1) {
+      printf("Error 3 TaskNodeNew()\n");
     }
     else if ((pndP = xmlNewChild(pndPie, NULL, NAME_PIE_PAR, BAD_CAST"DONE: finished")) == NULL
       || (pndT = TaskNodeNew(pndP)) == NULL || xmlAddChild(pndList, pndT) == NULL) {

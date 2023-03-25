@@ -58,8 +58,9 @@ plainTextTest(void)
   }
 
   
-#if TESTHTTP
+#if defined(TESTHTTP) && defined(HTTPPREFIX)
   if (RUNTEST) {
+    xmlChar *pucURL = BAD_CAST HTTPPREFIX "Test/Documents/TestMarkupUnicode.txt";
     xmlChar *pucContent = NULL;
     index_t iLength;
     resNodePtr prnT = NULL;
@@ -67,13 +68,13 @@ plainTextTest(void)
     i++;
     printf("TEST %i in '%s:%i': reads plain text http content = ",i,__FILE__,__LINE__);
 
-    if ((prnT = resNodeDirNew(BAD_CAST HTTPPREFIX "Test/Documents/TestMarkupUnicode.txt")) == NULL) {
-      printf("Error resNodeDirNew()\n");
+    if ((prnT = resNodeDirNew(pucURL)) == NULL) {
+      printf("Error resNodeDirNew(%s)\n",pucURL);
     }
     else if ((pucContent = plainGetContextTextEat(prnT, -1)) == NULL) {
-      printf("Error plainGetContextTextEat()\n");
+      printf("Error plainGetContextTextEat(%s)\n",pucURL);
     }
-    else if ((iLength = xmlStrlen(BAD_CAST pucContent)) != 1416) {
+    else if ((iLength = xmlStrlen(BAD_CAST pucContent)) != 1417) {
       printf("Error xmlStrlen(): %i\n", iLength);
     }
     else {
