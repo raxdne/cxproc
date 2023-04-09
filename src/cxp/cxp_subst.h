@@ -58,6 +58,8 @@ struct _cxpSubst {
   
   BOOL_T  fReplaceInAttr;
 
+  BOOL_T(*pPredicateSkip)(xmlNodePtr pndArg); /* pointer to a predicate function */
+
   /*! different encodings of subst */
   encoding_t eEncoding;
 
@@ -76,6 +78,9 @@ cxpSubstFree(cxpSubstPtr pcxpSubstArg);
 
 extern BOOL_T
 cxpSubstInChildNodes(xmlNodePtr pndArgTop, xmlNodePtr pndArgSubst, cxpContextPtr pccArg);
+
+extern BOOL_T
+cxpSubstApply(xmlNodePtr pndArgTop, cxpSubstPtr pcxpSubstArg, cxpContextPtr pccArg);
 
 extern BOOL_T
 cxpSubstReplaceNodes(xmlNodePtr pndArg, cxpContextPtr pccArg);

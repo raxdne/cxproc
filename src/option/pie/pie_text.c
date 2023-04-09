@@ -98,6 +98,9 @@ IncrementWeightPropRecursive(xmlNodePtr pndArg);
 static int
 IncrementWeightProp(xmlNodePtr pndArg, int iArg);
 
+static BOOL_T
+pieSubstSkip(xmlNodePtr pndArg);
+
 
 /*! exit procedure for this module
 */
@@ -217,6 +220,85 @@ GetPieNodeLang(xmlNodePtr pndArg, cxpContextPtr pccArg)
 } /* End of GetPieNodeLang() */
 
 
+/*! \return TRUE if subtree of pndArg has to be skipped
+ */
+BOOL_T
+pieSubstSkip(xmlNodePtr pndArg)
+{
+  return (pndArg == NULL || IS_NODE_PIE_META(pndArg) || IS_NODE_PIE_TAGS(pndArg) || IS_NODE_PIE_PRE(pndArg) || IS_NODE_PIE_TT(pndArg));
+} /* End of pieSubstSkip() */
+
+
+/*! apply the substitution of 'pndArgSubst' on 'pndArgTop' or all child substitutions of 'pndArgTop' if 'pndArgSubst' is NULL
+
+\param pndArgTop a xmlNodePtr to apply substitutions
+\param pndArgSubst a xmlNodePtr to a subst node to apply
+\param pccArg the context
+
+\return TRUE if successful
+ */
+BOOL_T
+pieSubstInChildNodes(xmlNodePtr pndArgTop, xmlNodePtr pndArgSubst, cxpContextPtr pccArg)
+{
+  BOOL_T fResult = FALSE;
+
+  if (IS_VALID_NODE(pndArgTop) == FALSE) {
+    /* ignore non-valid elements */
+  }
+  else if (pndArgSubst == NULL) {
+    /* subst nodes not yet detected */
+    xmlNodePtr pndT;
+    xmlNodePtr pndChild;
+    xmlNodePtr pndNextChild;
+
+    for (pndChild = pndArgTop->children; pndChild; pndChild = pndNextChild) {
+      pndNextChild = pndChild->next;
+
+      if (IS_NODE_SUBST(pndChild)) {
+	cxpCtxtLogPrint(pccArg, 2, "New substitution found ''");
+	fResult |= pieSubstInChildNodes(pndArgTop, pndChild, pccArg);
+      }
+      else if (IS_NODE_PIE_BLOCK(pndChild)
+	|| IS_NODE_PIE_SECTION(pndChild)
+	) {
+	fResult |= pieSubstInChildNodes(pndChild, NULL, pccArg);
+      }
+    }
+  }
+  else if (IS_NODE_SUBST(pndArgSubst) && IS_VALID_NODE(pndArgSubst)) {
+    cxpSubstPtr pcxpSubstT;
+
+    if ((pcxpSubstT = cxpSubstDetect(pndArgSubst, pccArg))) {
+      fResult = TRUE;
+      pcxpSubstT->pPredicateSkip = pieSubstSkip;
+
+      if (
+#ifdef HAVE_PCRE2
+	cxpSubstGetRegExp(pcxpSubstT) != NULL ||
+#endif
+	cxpSubstGetNamePtr(pcxpSubstT) != NULL
+	) {
+
+	if (pndArgTop->parent != NULL && pndArgTop->parent->type == XML_DOCUMENT_NODE) {
+	  if (IS_VALID_NODE(pndArgTop)) {
+	    cxpSubstApply(pndArgTop, pcxpSubstT, pccArg);
+	  }
+	}
+	else {
+	  if (IS_VALID_NODE(pndArgSubst->next)) {
+	    cxpSubstApply(pndArgSubst->next, pcxpSubstT, pccArg);
+	  }
+	}
+	xmlUnlinkNode(pndArgSubst);
+	xmlFreeNode(pndArgSubst);
+      }
+      cxpSubstFree(pcxpSubstT);
+    }
+  }
+  return fResult;
+} /* end of pieSubstInChildNodes() */
+
+
 /*! process the PIE child instructions of pndArgPie
 
 \param pdocArgPie DOM to process a pie tree
@@ -326,7 +408,7 @@ pieProcessPieNode(xmlNodePtr pndArgPie, cxpContextPtr pccArg)
 
     /* process all child subst nodes */
     cxpCtxtLogPrint(pccArg, 2, "Start substitution");
-    cxpSubstInChildNodes(pndBlock, NULL, pccArg);
+    pieSubstInChildNodes(pndBlock, NULL, pccArg);
 
     /* replace all subst nodes in tree by its result */
     cxpCtxtLogPrint(pccArg, 2, "Start node substitution");

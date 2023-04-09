@@ -56,7 +56,7 @@ cxpSubstTest(cxpContextPtr pccArg)
     i++;
     printf("TEST %i in '%s:%i': ApplySubstText() = ",i,__FILE__,__LINE__);
 
-    if (ApplySubstText(NULL,BAD_CAST"",NULL)) {
+    if (ApplySubstText(NULL,BAD_CAST"",NULL,NULL)) {
       printf("Error ApplySubstText()\n");
     }
     else {

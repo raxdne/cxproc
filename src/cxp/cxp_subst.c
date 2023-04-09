@@ -52,16 +52,19 @@
 #endif
 
 static BOOL_T
-ApplySubstText(const xmlNodePtr node, const xmlChar *pucFrom, const xmlChar *pucTo);
+ApplySubstText(const xmlNodePtr node, const xmlChar *pucFrom, const xmlChar *pucTo, BOOL_T(*pSkip)(xmlNodePtr pndArg));
+
+static BOOL_T
+ApplySubstRegExp(const xmlNodePtr pndArg, const pcre2_code* preArgFrom, const xmlChar* pucTo, BOOL_T(*pSkip)(xmlNodePtr pndArg));
+
+static BOOL_T
+cxpSubstSkip(xmlNodePtr pndArg);
 
 static cxpSubstPtr
 cxpSubstNew(void);
 
 static BOOL_T
 cxpSubstPrint(cxpSubstPtr pcxpSubstArg, cxpContextPtr pccArg);
-
-static BOOL_T
-cxpSubstApply(xmlNodePtr pndArgTop, cxpSubstPtr pcxpSubstArg, cxpContextPtr pccArg);
 
 
 /*! apply all substitutions recursively
@@ -73,12 +76,15 @@ cxpSubstApply(xmlNodePtr pndArgTop, cxpSubstPtr pcxpSubstArg, cxpContextPtr pccA
 \return TRUE if successful
 */
 BOOL_T
-ApplySubstText(const xmlNodePtr pndArg, const xmlChar *pucFrom, const xmlChar *pucTo)
+ApplySubstText(const xmlNodePtr pndArg, const xmlChar *pucFrom, const xmlChar *pucTo, BOOL_T (* pSkip)(xmlNodePtr pndArg))
 {
   BOOL_T fResult = FALSE;
 
   if (pndArg) {
-    if (pndArg->type == XML_TEXT_NODE || pndArg->type == XML_PI_NODE || pndArg->type == XML_COMMENT_NODE) {
+    if (pSkip != NULL && (*pSkip)(pndArg)) {
+      /* skip this branch */
+    }
+    else if (pndArg->type == XML_TEXT_NODE) {
       if (pndArg->content) {
 	xmlChar *pucNew;
 
@@ -92,13 +98,13 @@ ApplySubstText(const xmlNodePtr pndArg, const xmlChar *pucFrom, const xmlChar *p
       }
     }
     else if (pndArg->type == XML_ELEMENT_NODE || pndArg->type == XML_ATTRIBUTE_NODE) {
-      ApplySubstText((xmlNode *)pndArg->properties, pucFrom, pucTo);
-      ApplySubstText(pndArg->children, pucFrom, pucTo);
+      ApplySubstText((xmlNode *)pndArg->properties, pucFrom, pucTo, pSkip);
+      ApplySubstText(pndArg->children, pucFrom, pucTo,pSkip);
     }
     else {
       /* ignore */
     }
-    ApplySubstText(pndArg->next, pucFrom, pucTo);
+    ApplySubstText(pndArg->next, pucFrom, pucTo, pSkip);
   }
   return fResult;
 } /* end of ApplySubstText() */
@@ -115,12 +121,15 @@ ApplySubstText(const xmlNodePtr pndArg, const xmlChar *pucFrom, const xmlChar *p
 \return TRUE if successful
 */
 BOOL_T
-ApplySubstRegExp(const xmlNodePtr pndArg, const pcre2_code* preArgFrom, const xmlChar* pucTo)
+ApplySubstRegExp(const xmlNodePtr pndArg, const pcre2_code* preArgFrom, const xmlChar* pucTo, BOOL_T(*pSkip)(xmlNodePtr pndArg))
 {
   BOOL_T fResult = FALSE;
 
   if (pndArg) {
-    if (pndArg->type == XML_TEXT_NODE || pndArg->type == XML_PI_NODE || pndArg->type == XML_COMMENT_NODE) {
+    if (pSkip != NULL && (*pSkip)(pndArg)) {
+      /* skip this branch */
+    }
+    else if (pndArg->type == XML_TEXT_NODE || pndArg->type == XML_PI_NODE || pndArg->type == XML_COMMENT_NODE) {
       int rc;
       size_t sInput;
 
@@ -146,13 +155,13 @@ ApplySubstRegExp(const xmlNodePtr pndArg, const pcre2_code* preArgFrom, const xm
       }
     }
     else if (pndArg->type == XML_ELEMENT_NODE || pndArg->type == XML_ATTRIBUTE_NODE) {
-      ApplySubstRegExp((xmlNode*)pndArg->properties, preArgFrom, pucTo);
-      ApplySubstRegExp(pndArg->children, preArgFrom, pucTo);
+      ApplySubstRegExp((xmlNode*)pndArg->properties, preArgFrom, pucTo, pSkip);
+      ApplySubstRegExp(pndArg->children, preArgFrom, pucTo, pSkip);
     }
     else {
       /* ignore */
     }
-    ApplySubstRegExp(pndArg->next, preArgFrom, pucTo);
+    ApplySubstRegExp(pndArg->next, preArgFrom, pucTo, pSkip);
   }
   return fResult;
 } /* end of ApplySubstRegExp() */
@@ -663,6 +672,15 @@ cxpSubstDetect(xmlNodePtr pndArgSubst, cxpContextPtr pccArg)
 /* end of cxpSubstDetect() */
 
 
+/*! \return TRUE if subtree of pndArg has to be skipped
+ */
+BOOL_T
+cxpSubstSkip(xmlNodePtr pndArg)
+{
+  return (pndArg == NULL || pndArg->type == XML_PI_NODE || pndArg->type == XML_COMMENT_NODE || IS_NODE_PIE_META(pndArg));
+} /* End of cxpSubstSkip() */
+
+
 /*! Apply the pArgcxpSubst.
 
 \param pArgcxpSubst the context to apply
@@ -679,16 +697,16 @@ cxpSubstApply(xmlNodePtr pndArgTop, cxpSubstPtr pcxpSubstArg, cxpContextPtr pccA
 #ifdef HAVE_PCRE2
     if (cxpSubstGetRegExp(pcxpSubstArg)) {
       if (cxpSubstGetPtr(pcxpSubstArg)) {
-	ApplySubstRegExp(pndArgTop, cxpSubstGetRegExp(pcxpSubstArg), cxpSubstGetPtr(pcxpSubstArg));
+	ApplySubstRegExp(pndArgTop, cxpSubstGetRegExp(pcxpSubstArg), cxpSubstGetPtr(pcxpSubstArg), pcxpSubstArg->pPredicateSkip);
       }
       else {
       }
     }
     else {
-      ApplySubstText(pndArgTop, cxpSubstGetNamePtr(pcxpSubstArg), cxpSubstGetPtr(pcxpSubstArg));
+      ApplySubstText(pndArgTop, cxpSubstGetNamePtr(pcxpSubstArg), cxpSubstGetPtr(pcxpSubstArg), pcxpSubstArg->pPredicateSkip);
     }
 #else
-    ApplySubstText(pndArgTop, cxpSubstGetNamePtr(pcxpSubstArg), cxpSubstGetPtr(pcxpSubstArg));
+    ApplySubstText(pndArgTop, cxpSubstGetNamePtr(pcxpSubstArg), cxpSubstGetPtr(pcxpSubstArg), pcxpSubstArg->pPredicateSkip);
 #endif
   }
   else {
@@ -696,8 +714,7 @@ cxpSubstApply(xmlNodePtr pndArgTop, cxpSubstPtr pcxpSubstArg, cxpContextPtr pccA
   }
 
   return fResult;
-}
-/* end of cxpSubstApply() */
+} /* end of cxpSubstApply() */
 
 
 /*! \return a pointer to name if successful or NULL
@@ -941,13 +958,6 @@ cxpSubstInChildNodes(xmlNodePtr pndArgTop, xmlNodePtr pndArgSubst, cxpContextPtr
 	cxpCtxtLogPrint(pccArg, 2, "New substitution found ''");
 	fResult |= cxpSubstInChildNodes(pndArgTop, pndChild, pccArg);
       }
-#ifdef HAVE_PIE
-      else if (IS_NODE_PIE_BLOCK(pndChild)
-	|| IS_NODE_PIE_SECTION(pndChild)
-	) {
-	fResult |= cxpSubstInChildNodes(pndChild, NULL, pccArg);
-      }
-#endif
 #ifdef HAVE_PETRINET
       else if (IS_NODE_PKG2_STATE(pndChild)
 	|| IS_NODE_PKG2_TRANSITION(pndChild)
@@ -963,6 +973,8 @@ cxpSubstInChildNodes(xmlNodePtr pndArgTop, xmlNodePtr pndArgSubst, cxpContextPtr
 
     if ((pcxpSubstT = cxpSubstDetect(pndArgSubst, pccArg))) {
       fResult = TRUE;
+      pcxpSubstT->pPredicateSkip = cxpSubstSkip;
+
       if (
 #ifdef HAVE_PCRE2
 	cxpSubstGetRegExp(pcxpSubstT) != NULL ||
