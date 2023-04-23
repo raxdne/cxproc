@@ -650,7 +650,7 @@ cxpResNodeResolveNew(cxpContextPtr pccArg, xmlNodePtr pndArg, xmlChar *pucArg, i
       pucRootPath = resNodeGetNameNormalized(cxpCtxtRootGet(pccArg));
     }
 
-#ifdef HAVE_PIE
+#if 0
     if ((pucParentPath = pieGetAncestorContextStr(pndArg)) != NULL) {
       if ((prnParent = resNodeDirNew(pucParentPath)) != NULL) {
 	if ((iArgOptions & CXP_O_READ) && resNodeReadStatus(prnParent)) { /* find a readable ressource */

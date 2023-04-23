@@ -1416,6 +1416,7 @@ domGrepRegExpInTree(xmlNodePtr pndResultArg, xmlNodePtr pndArg, const pcre2_code
     */
     for (pndAttr = pndArg->properties; pndAttr != NULL; pndAttr = pndAttr->next) {
     
+      if (pndAttr->children != NULL && STR_IS_NOT_EMPTY(pndAttr->children->content)) {
 	pucText = pndAttr->children->content;
 	match_data = pcre2_match_data_create_from_pattern(re_grep, NULL);
 	rc = pcre2_match(
@@ -1437,6 +1438,7 @@ domGrepRegExpInTree(xmlNodePtr pndResultArg, xmlNodePtr pndArg, const pcre2_code
 	}
     
 	pcre2_match_data_free(match_data);   /* Release memory used for the match */
+      }
     }
 
     /*!
