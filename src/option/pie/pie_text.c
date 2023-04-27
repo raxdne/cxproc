@@ -393,8 +393,6 @@ pieProcessPieNode(xmlNodePtr pndArgPie, cxpContextPtr pccArg)
     /*! \todo add error logs to DOM */
     //pndError = xmlNewChild(pndPieRoot, NULL, NAME_ERROR, NULL);
 
-    RecognizeInlines(pndPieRoot);
-
     if (domGetPropFlag(pndArgPie, BAD_CAST "script", TRUE)) {
       cxpCtxtLogPrint(pccArg, 2, "Recognize scripts");
       RecognizeScripts(pndPieRoot);
@@ -1367,6 +1365,7 @@ ProcessImportOptions(xmlNodePtr pndArgPie, xmlNodePtr pndArgImport, cxpContextPt
   if (pndArgPie) {
     
     RecognizeSymbols(pndArgPie, GetPieNodeLang(pndArgPie, pccArg));
+    RecognizeInlines(pndArgPie);
 
     if (domGetPropFlag(pndArgPie, BAD_CAST "figure", TRUE)) {
       cxpCtxtLogPrint(pccArg, 2, "Recognize Figures");
