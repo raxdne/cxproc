@@ -107,7 +107,11 @@
 
 /*
 */
-#define RE_TASK "^(TODO|DONE|REQ|BUG|TARGET|TEST)[: \\t]+"
+#if 0
+  #define RE_TASK "^(TODO|DONE|REQ|BUG|TARGET|TEST)[: \\t]+"
+#else
+  #define RE_TASK "^(TODO|DONE|REQ|BUG|TARGET|TEST)(:[ \\t]*)"
+#endif
 
 
 static pcre2_code *re_unc    = NULL;

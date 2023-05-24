@@ -137,13 +137,13 @@ Recognize(xmlNodePtr pndArg)
   if (pndArg == NULL) {
   }
   else {
-    RecognizeInlines(pndArg);
     RecognizeScripts(pndArg);
     RecognizeSubsts(pndArg);
     RecognizeFigures(pndArg);
     RecognizeUrls(pndArg);
-    RecognizeDates(pndArg, MIME_TEXT_PLAIN);
+    RecognizeInlines(pndArg);
     RecognizeSymbols(pndArg, LANG_DEFAULT);
+    RecognizeDates(pndArg, MIME_TEXT_PLAIN);
     RecognizeTasks(pndArg);
     RecognizeHashtags(pndArg, NULL, NULL);
     //InheritHashtags(pndArg, pndArg);

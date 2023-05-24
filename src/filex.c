@@ -130,6 +130,11 @@ main(int argc, char *argv[], char *envp[])
 	  xmlDocSetRootElement(pdocResult,pndRootNew);
 	
 	  for (prnT=prnNew; prnT; prnT = resNodeGetNext(prnT)) {
+#if 1
+	    if (resNodeUpdate(prnT, RN_INFO_MAX, NULL, NULL)) {
+	      xmlAddChild(pndRootNew, resNodeToDOM(prnT, RN_INFO_MAX));
+	    }
+#else
 	    xmlNodePtr pndT;
 
 	    if (resNodeUpdate(prnT, RN_INFO_META | RN_INFO_STRUCT, NULL, NULL)) {
@@ -164,6 +169,7 @@ main(int argc, char *argv[], char *envp[])
 		xmlAddChild(pndRootNew, resNodeToDOM(prnT, RN_INFO_MAX));
 	      }
 	    }
+#endif
 	  }
 	  e = EXIT_SUCCESS;
 	}

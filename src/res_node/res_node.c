@@ -2894,13 +2894,13 @@ resNodeContentToDOM(xmlNodePtr pndArg, resNodePtr prnArg)
 	  pndTags = xmlNewChild(pndMeta, NULL, NAME_PIE_TAGLIST, NULL);
 
 	  RecognizeIncludes(pndPie);
-	  RecognizeSymbols(pndPie, LANG_DEFAULT);
 	  RecognizeSubsts(pndPie);
 	  RecognizeImports(pndPie);
-	  RecognizeInlines(pndPie);
 	  RecognizeScripts(pndPie);
 	  RecognizeFigures(pndPie);
 	  RecognizeUrls(pndPie);
+	  RecognizeSymbols(pndPie, LANG_DEFAULT);
+	  RecognizeInlines(pndPie);
 	  RecognizeDates(pndPie, iMimeType);
 	  RecognizeTasks(pndPie);
 	  RecognizeHashtags(pndPie,NULL, NULL);

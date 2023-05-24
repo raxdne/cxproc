@@ -1364,9 +1364,6 @@ ProcessImportOptions(xmlNodePtr pndArgPie, xmlNodePtr pndArgImport, cxpContextPt
 
   if (pndArgPie) {
     
-    RecognizeSymbols(pndArgPie, GetPieNodeLang(pndArgPie, pccArg));
-    RecognizeInlines(pndArgPie);
-
     if (domGetPropFlag(pndArgPie, BAD_CAST "figure", TRUE)) {
       cxpCtxtLogPrint(pccArg, 2, "Recognize Figures");
       RecognizeFigures(pndArgPie);
@@ -1384,6 +1381,8 @@ ProcessImportOptions(xmlNodePtr pndArgPie, xmlNodePtr pndArgImport, cxpContextPt
       cxpCtxtLogPrint(pccArg, 3, "Ignoring URLs");
     }
 
+    RecognizeSymbols(pndArgPie, GetPieNodeLang(pndArgPie, pccArg));
+    RecognizeInlines(pndArgPie);
     RecognizeDates(pndArgPie,MIME_TEXT_PLAIN);
 
     /*! \todo global cite recognition in scientific text */
