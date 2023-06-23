@@ -122,9 +122,6 @@ xmlNsPtr pnsCxp = NULL; /*!\todo use defined namespace "cxp" */
 #define IS_NODE_SOURCE(NODE) (IS_NODE_XML(NODE) || IS_NODE_XSL(NODE) || IS_NODE_INFO(NODE) || IS_NODE_XHTML(NODE) || IS_NODE_PLAIN(NODE) || IS_NODE_ZIP(NODE) || IS_NODE_IMAGE(NODE) || IS_NODE_DIR(NODE) || IS_NODE_FILE(NODE) || IS_NODE_PIE(NODE))
 
 static BOOL_T
-ValidateCxpTree(xmlNodePtr pndArg, cxpContextPtr pccArg);
-
-static BOOL_T
 ValidateSchema(const xmlDocPtr pdocArgXml, const xmlChar *pucArg, cxpContextPtr pccArg);
 
 static xmlDocPtr
@@ -1613,7 +1610,7 @@ cxpProcessMakeNode(xmlNodePtr pndArg,cxpContextPtr pccArg)
     if (fValidation == FALSE) {
       cxpCtxtLogPrint(pccArg, 3, "Skipping XML pre-substitution validation");
     }
-    else if (ValidateCxpTree(pndArg, pccArg)) {
+    else if (cxpValidateTree(pndArg, pccArg)) {
       cxpCtxtLogPrint(pccArg, 3, "pre-substitution validation of '%s' successful", pndArg->name);
     }
     else {
@@ -1653,7 +1650,7 @@ cxpProcessMakeNode(xmlNodePtr pndArg,cxpContextPtr pccArg)
       if (fValidation == FALSE) {
 	cxpCtxtLogPrint(pccArg, 4, "Skipping XML post-substitution validation");
       }
-      else if (ValidateCxpTree(pndArg, pccArg)) {
+      else if (cxpValidateTree(pndArg, pccArg)) {
 	cxpCtxtLogPrint(pccArg, 3, "post-substitution validation of '%s' successful", pndArg->name);
       }
       else {
@@ -2466,7 +2463,7 @@ cxpXslTransformToText(const xmlDocPtr pdocArgXml, const xmlDocPtr pdocArgXsl, cx
   for complete DOM see ValidateSchema()
   */
 BOOL_T
-ValidateCxpTree(xmlNodePtr pndArg, cxpContextPtr pccArg)
+cxpValidateTree(xmlNodePtr pndArg, cxpContextPtr pccArg)
 {
   BOOL_T fResult = TRUE;
   xmlNodePtr pndChild;
@@ -2501,7 +2498,7 @@ ValidateCxpTree(xmlNodePtr pndArg, cxpContextPtr pccArg)
 	/* e.g. placeholder for substitution */
       }
       else if (IS_NODE_MAKE_CHILD(pndChild)) {
-	fResult &= ValidateCxpTree(pndChild, pccArg);
+	fResult &= cxpValidateTree(pndChild, pccArg);
       }
       else {
 	cxpCtxtLogPrint(pccArg,1,"Validation error: '%s/%s[@name=\"%s\"]' is not allowed",
@@ -2540,7 +2537,7 @@ ValidateCxpTree(xmlNodePtr pndArg, cxpContextPtr pccArg)
       if (pndChild->type == XML_ELEMENT_NODE) {
 
 	if (IS_NODE_XSL(pndChild)) {
-	  fResult &= ValidateCxpTree(pndChild);
+	  fResult &= cxpValidateTree(pndChild);
 	}
 	else if (IS_NODE_MAKE(pndChild) || IS_NODE_THREAD(pndChild)
 	  || IS_NODE_FROM(pndChild) || IS_NODE_EACH(pndChild)) {
@@ -2549,7 +2546,7 @@ ValidateCxpTree(xmlNodePtr pndArg, cxpContextPtr pccArg)
 	  fResult = FALSE;
 	}
 	else {
-	  fResult &= ValidateCxpTree(pndChild);
+	  fResult &= cxpValidateTree(pndChild);
 	}
       }
     }
@@ -2564,7 +2561,7 @@ ValidateCxpTree(xmlNodePtr pndArg, cxpContextPtr pccArg)
 	}
 
 	if (IS_NODE_XSL(pndChild) || IS_NODE_SUBST(pndChild)) {
-	  fResult &= ValidateCxpTree(pndChild, pccArg);
+	  fResult &= cxpValidateTree(pndChild, pccArg);
 	}
 	else if (IS_NODE_MAKE(pndChild)
 	  || IS_NODE_FROM(pndChild) || IS_NODE_EACH(pndChild)) {
@@ -2575,7 +2572,7 @@ ValidateCxpTree(xmlNodePtr pndArg, cxpContextPtr pccArg)
 	}
 	else {
 	  iChildCount++;
-	  fResult &= ValidateCxpTree(pndChild, pccArg);
+	  fResult &= cxpValidateTree(pndChild, pccArg);
 	}
       }
       pndChild = pndChild->next;
@@ -2614,7 +2611,7 @@ ValidateCxpTree(xmlNodePtr pndArg, cxpContextPtr pccArg)
 	fResult = FALSE;
       }
       else {
-	fResult &= ValidateCxpTree(pndChild, pccArg);
+	fResult &= cxpValidateTree(pndChild, pccArg);
       }
       pndChild = pndChild->next;
     }
@@ -2641,7 +2638,7 @@ ValidateCxpTree(xmlNodePtr pndArg, cxpContextPtr pccArg)
       if (pndChild->type == XML_ELEMENT_NODE) {
 	if (IS_NODE_XML(pndChild) || IS_NODE_XSL(pndChild) || IS_NODE_PLAIN(pndChild) || IS_NODE_IMAGE(pndChild) || IS_NODE_SCRIPT(pndChild)
 	  || IS_NODE_DB(pndChild) || IS_NODE_QUERY(pndChild)) {
-	  fResult &= ValidateCxpTree(pndChild, pccArg);
+	  fResult &= cxpValidateTree(pndChild, pccArg);
 	}
 	else {
 		cxpCtxtLogPrint(pccArg,1,"Validation error: '%s/%s[@name=\"%s\"]' is not allowed",
@@ -2675,7 +2672,7 @@ ValidateCxpTree(xmlNodePtr pndArg, cxpContextPtr pccArg)
     for (pndChild = pndArg->children; pndChild;) {
       if (IS_NODE_XML(pndChild) || IS_NODE_XSL(pndChild) || IS_NODE_VARIABLE(pndChild) || xmlNodeIsText(pndChild) || IS_COMMENT(pndChild)) {
 	/* valid */
-	fResult &= ValidateCxpTree(pndChild, pccArg);
+	fResult &= cxpValidateTree(pndChild, pccArg);
       }
       else if (pndChild->type == XML_TEXT_NODE) {
 	/* valid */
@@ -2720,7 +2717,7 @@ ValidateCxpTree(xmlNodePtr pndArg, cxpContextPtr pccArg)
     for (pndChild = pndArg->children; pndChild;) {
       if (IS_NODE_FILE(pndChild) || IS_NODE_DIR(pndChild) || IS_COMMENT(pndChild)) {
 	/* valid */
-	fResult &= ValidateCxpTree(pndChild, pccArg);
+	fResult &= cxpValidateTree(pndChild, pccArg);
       }
       else if (pndChild->type == XML_TEXT_NODE) {
 	/* valid */
@@ -2748,7 +2745,7 @@ ValidateCxpTree(xmlNodePtr pndArg, cxpContextPtr pccArg)
     for (pndChild = pndArg->children; pndChild;) {
       if (IS_NODE_FROM(pndChild) || IS_NODE_MAKE_CHILD(pndChild) || IS_COMMENT(pndChild)) {
 	/* valid */
-	fResult &= ValidateCxpTree(pndChild, pccArg);
+	fResult &= cxpValidateTree(pndChild, pccArg);
       }
       else if (pndChild->type == XML_TEXT_NODE) {
 	/* valid */
@@ -2777,7 +2774,7 @@ ValidateCxpTree(xmlNodePtr pndArg, cxpContextPtr pccArg)
     for (pndChild = pndArg->children; NULL && pndChild;) {
       if (IS_NODE_PLAIN(pndChild) || IS_NODE_FILE(pndChild) || IS_NODE_DIR(pndChild) || IS_NODE_SCRIPT(pndChild) || IS_COMMENT(pndChild)) {
 	/* valid */
-	fResult &= ValidateCxpTree(pndChild, pccArg);
+	fResult &= cxpValidateTree(pndChild, pccArg);
       }
       else if (pndChild->type == XML_TEXT_NODE) {
 	/* valid */
@@ -2806,7 +2803,7 @@ ValidateCxpTree(xmlNodePtr pndArg, cxpContextPtr pccArg)
     for (pndChild = pndArg->children; pndChild;) {
       if (IS_NODE_XML(pndChild) || IS_NODE_PLAIN(pndChild) || IS_NODE_FILE(pndChild) || IS_NODE_DIR(pndChild) || IS_NODE_SCRIPT(pndChild) || IS_COMMENT(pndChild)) {
 	/* valid */
-	fResult &= ValidateCxpTree(pndChild, pccArg);
+	fResult &= cxpValidateTree(pndChild, pccArg);
       }
       else if(pndChild->type == XML_TEXT_NODE) {
 	/* valid */
@@ -2834,7 +2831,7 @@ ValidateCxpTree(xmlNodePtr pndArg, cxpContextPtr pccArg)
     for (pndChild = pndArg->children; pndChild;) {
       if (xmlNodeIsText(pndChild) || IS_COMMENT(pndChild) || IS_NODE_PLAIN(pndChild) || IS_NODE_QUERY(pndChild)) {
 	/* valid */
-	fResult &= ValidateCxpTree(pndChild, pccArg);
+	fResult &= cxpValidateTree(pndChild, pccArg);
       }
       else if (pndChild->type == XML_TEXT_NODE) {
 	/* valid */
@@ -2864,7 +2861,7 @@ ValidateCxpTree(xmlNodePtr pndArg, cxpContextPtr pccArg)
     for (pndChild = pndArg->children; pndChild;) {
       if (IS_NODE_COL(pndChild) || IS_COMMENT(pndChild)) {
 	/* valid */
-	fResult &= ValidateCxpTree(pndChild, pccArg);
+	fResult &= cxpValidateTree(pndChild, pccArg);
       }
       else if (pndChild->type == XML_TEXT_NODE) {
 	/* valid */
@@ -2892,7 +2889,7 @@ ValidateCxpTree(xmlNodePtr pndArg, cxpContextPtr pccArg)
     for (pndChild = pndArg->children; pndChild;) {
       if (IS_NODE_XML(pndChild) || IS_NODE_PIE(pndChild) || IS_COMMENT(pndChild)) {
 	/* valid */
-	fResult &= ValidateCxpTree(pndChild, pccArg);
+	fResult &= cxpValidateTree(pndChild, pccArg);
       }
       else if (pndChild->type == XML_TEXT_NODE) {
 	/* valid */
@@ -2907,7 +2904,7 @@ ValidateCxpTree(xmlNodePtr pndArg, cxpContextPtr pccArg)
   }
   return fResult;
 }
-/* end of ValidateCxpTree() */
+/* end of cxpValidateTree() */
 
 
 /*! test a node if \@view is set to "yes" and call the named file or directory
@@ -3463,6 +3460,34 @@ cxpProcessInfoNode(xmlNodePtr pndInfo, cxpContextPtr pccArg)
   return pdocResult;
 }
 /* end of cxpProcessInfoNode() */
+
+
+/*! unlinks all element trees containing attribute valid="no" (see also pieRemoveInvalidsFromTree())
+ */
+xmlNodePtr
+cxpRemoveInvalidsFromTree(xmlNodePtr pndArg)
+{
+  if (IS_ENODE(pndArg)) {
+    xmlChar* pucV;
+
+    if (IS_VALID_NODE(pndArg) == FALSE) {
+      xmlNodePtr pndRelease = pndArg;
+
+      xmlUnlinkNode(pndRelease);
+      xmlFreeNode(pndRelease);
+    }
+    else {
+      xmlNodePtr pndChild;
+      xmlNodePtr pndNext = NULL;
+
+      for (pndChild = pndArg->children; pndChild != NULL; pndChild = pndNext) {
+	pndNext = pndChild->next;
+	cxpRemoveInvalidsFromTree(pndChild);
+      }
+    }
+  }
+  return NULL;
+} /* end of cxpRemoveInvalidsFromTree() */
 
 
 #ifndef HAVE_PIE

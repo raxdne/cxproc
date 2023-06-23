@@ -2142,7 +2142,7 @@ GetNumberOfMatches(xmlNodePtr pndArg, xmlChar *pucArgPattern)
 /*! unlinks all element trees containing attribute valid="no"
  */
 xmlNodePtr
-pieValidateTree(xmlNodePtr pndArg)
+pieRemoveInvalidsFromTree(xmlNodePtr pndArg)
 {
   if (IS_ENODE(pndArg)) {
     xmlChar *pucV;
@@ -2161,13 +2161,13 @@ pieValidateTree(xmlNodePtr pndArg)
       
       for (pndChild = pndArg->children; pndChild != NULL; pndChild = pndNext) {
 	pndNext = pndChild->next;
-	pieValidateTree(pndChild);
+	pieRemoveInvalidsFromTree(pndChild);
       }
     }
   }
   return NULL;
 }
-/* end of pieValidateTree() */
+/* end of pieRemoveInvalidsFromTree() */
 
 
 /*! unlinks all element trees containing attribute valid="no" or has no attribute "w"

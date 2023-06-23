@@ -496,7 +496,7 @@ pieProcessPieNode(xmlNodePtr pndArgPie, cxpContextPtr pccArg)
       }
     }
 
-    pieValidateTree(pndPieRoot);
+    pieRemoveInvalidsFromTree(pndPieRoot);
   }
   else {
     /* no pie make instructions */

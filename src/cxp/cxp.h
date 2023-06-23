@@ -75,6 +75,13 @@ cxpResNodeResolveNew(cxpContextPtr pccArg, xmlNodePtr pndArg, xmlChar *pucArg, i
 extern resNodePtr
 cxpAttributeLocatorResNodeNew(cxpContextPtr pccArg, xmlNodePtr pndArg, xmlChar *pucArg);
 
+extern BOOL_T
+cxpValidateTree(xmlNodePtr pndArg, cxpContextPtr pccArg);
+
+extern xmlNodePtr
+cxpRemoveInvalidsFromTree(xmlNodePtr pndArg);
+
+
 #ifdef TESTCODE
 extern int
 cxpTest(cxpContextPtr pccArg);

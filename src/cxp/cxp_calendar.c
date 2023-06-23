@@ -1051,7 +1051,6 @@ CalendarSetup(xmlNodePtr pndArg, cxpContextPtr pccArg)
     cxpInfoProgram(pndMeta, pccArg);
     if (IS_NODE_CALENDAR(pndArg)) {
       pndCalendarCopy = xmlCopyNode(pndArg, 1);
-      //pieValidateTree(pndCalendarCopy);
     }
     else if ((pndCalendarCopy = xmlNewNode(NULL, NAME_CXP_CALENDAR)) == NULL
 	     || xmlSetProp(pndCalendarCopy, BAD_CAST"subst", BAD_CAST "no") == NULL) {
@@ -1063,10 +1062,13 @@ CalendarSetup(xmlNodePtr pndArg, cxpContextPtr pccArg)
       PrintFormatLog(1, "Cannot create new calendar");
     }
     else if ((pndTT = xmlCopyNode(pndArg, 1)) != NULL) {
-      //pieValidateTree(pndTT);
       xmlAddChild(pndT, pndTT);
     }
-    xmlAddChild(pndMeta, pndCalendarCopy);
+
+    if (pndCalendarCopy) {
+      cxpRemoveInvalidsFromTree(pndCalendarCopy);
+      xmlAddChild(pndMeta, pndCalendarCopy);
+    }
 
     /* Get the current time. */
     domSetPropEat(pndMeta, BAD_CAST "ctime", GetNowFormatStr(BAD_CAST "%s"));

@@ -90,7 +90,7 @@ extern xmlNodePtr
 RecognizeInlines(xmlNodePtr pndArg);
 
 extern xmlNodePtr
-pieValidateTree(xmlNodePtr pndArg);
+pieRemoveInvalidsFromTree(xmlNodePtr pndArg);
 
 extern xmlNodePtr
 CleanUpTree(xmlNodePtr pndArg);
