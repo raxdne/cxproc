@@ -140,8 +140,8 @@ Recognize(xmlNodePtr pndArg)
     RecognizeScripts(pndArg);
     RecognizeSubsts(pndArg);
     RecognizeFigures(pndArg);
-    RecognizeUrls(pndArg);
     RecognizeInlines(pndArg);
+    RecognizeUrls(pndArg);
     RecognizeSymbols(pndArg, LANG_DEFAULT);
     RecognizeDates(pndArg, MIME_TEXT_PLAIN);
     RecognizeTasks(pndArg);

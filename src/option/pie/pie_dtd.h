@@ -91,6 +91,8 @@
 
 #define NAME_PIE_PRE BAD_CAST "pre"
 
+#define NAME_PIE_CSV BAD_CAST "csv"
+
 #define NAME_PIE_TABLE BAD_CAST "table"
 
 #define NAME_PIE_TR BAD_CAST "tr"
@@ -197,6 +199,8 @@
 #define IS_NODE_PIE_PAR(N) (IS_NODE(N,NAME_PIE_PAR))
 
 #define IS_NODE_PIE_PRE(N) (IS_NODE(N,NAME_PIE_PRE))
+
+#define IS_NODE_PIE_CSV(N) (IS_NODE(N,NAME_PIE_CSV))
 
 #define IS_NODE_PIE_TABLE(N) (IS_NODE(N,NAME_PIE_TABLE))
 

@@ -1372,6 +1372,8 @@ ProcessImportOptions(xmlNodePtr pndArgPie, xmlNodePtr pndArgImport, cxpContextPt
       cxpCtxtLogPrint(pccArg, 3, "Ignoring Figures markup");
     }
 
+    RecognizeInlines(pndArgPie);
+
     if (domGetPropFlag(pndArgPie, BAD_CAST "url", TRUE)) {
       cxpCtxtLogPrint(pccArg, 2, "Recognize URLs");
       /*! \todo use an attribute for regexp?? */
@@ -1382,7 +1384,6 @@ ProcessImportOptions(xmlNodePtr pndArgPie, xmlNodePtr pndArgImport, cxpContextPt
     }
 
     RecognizeSymbols(pndArgPie, GetPieNodeLang(pndArgPie, pccArg));
-    RecognizeInlines(pndArgPie);
     RecognizeDates(pndArgPie,MIME_TEXT_PLAIN);
 
     /*! \todo global cite recognition in scientific text */

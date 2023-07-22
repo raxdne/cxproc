@@ -2898,9 +2898,9 @@ resNodeContentToDOM(xmlNodePtr pndArg, resNodePtr prnArg)
 	  RecognizeImports(pndPie);
 	  RecognizeScripts(pndPie);
 	  RecognizeFigures(pndPie);
+	  RecognizeInlines(pndPie);
 	  RecognizeUrls(pndPie);
 	  RecognizeSymbols(pndPie, LANG_DEFAULT);
-	  RecognizeInlines(pndPie);
 	  RecognizeDates(pndPie, iMimeType);
 	  RecognizeTasks(pndPie);
 	  RecognizeHashtags(pndPie,NULL, NULL);

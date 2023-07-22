@@ -2394,14 +2394,29 @@ RecognizeSymbols(xmlNodePtr pndArg, lang_t eLangArg)
 	assert(pndArg->parent != NULL);
 	
 	if (StringBeginsWith(pucTT, STR_PIE_HIDDEN)) {
-	  xmlSetProp(pndArg->parent,BAD_CAST"hidden",BAD_CAST"1");
+	  if (IS_NODE_PIE_IMPORT(pndArg->parent) && xmlStrEqual(domGetPropValuePtr(pndArg->parent,BAD_CAST "type"), NAME_PIE_CSV)) {
+	    /* it's a column separator */
+	  }
+	  else {
+	    xmlSetProp(pndArg->parent,BAD_CAST"hidden",BAD_CAST"1");
+	  }
 	}
 
 	if (StringEndsWith(pucTT, STR_PIE_IMPACT_HIGH) != NULL) {
-	  xmlSetProp(pndArg->parent,BAD_CAST"impact",BAD_CAST"1");
+	  if (IS_NODE_PIE_HEADER(pndArg->parent) && pndArg->parent->parent != NULL) {
+	    xmlSetProp(pndArg->parent->parent,BAD_CAST"impact",BAD_CAST"1");
+	  }
+	  else {
+	    xmlSetProp(pndArg->parent,BAD_CAST"impact",BAD_CAST"1");
+	  }
 	}
 	else if (StringEndsWith(pucTT, STR_PIE_IMPACT_MEDIUM) != NULL) {
-	  xmlSetProp(pndArg->parent,BAD_CAST"impact",BAD_CAST"2");
+	  if (IS_NODE_PIE_HEADER(pndArg->parent) && pndArg->parent->parent != NULL) {
+	    xmlSetProp(pndArg->parent->parent,BAD_CAST"impact",BAD_CAST"2");
+	  }
+	  else {
+	    xmlSetProp(pndArg->parent,BAD_CAST"impact",BAD_CAST"2");
+	  }
 	}
 
 	if (IS_PIE_CANCEL(pucTT)) {
