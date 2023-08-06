@@ -32,10 +32,6 @@
 
 #include <libxml/tree.h>
 
-#ifdef LEGACY
-#include <sunriset/sunriset.h>
-#endif
-
 /* 
  */
 #include "basics.h"
@@ -1130,36 +1126,6 @@ calProcessCalendarNode(xmlNodePtr pndArg, cxpContextPtr pccArg)
 } /* end of calProcessCalendarNode() */
 
 
-/*! process the required calendar files
-\deprecated ???
- */
-xmlDocPtr
-calProcessDoc(xmlDocPtr pdocArg, cxpContextPtr pccArg)
-{
-  xmlDocPtr pdocResult = NULL;
-  cxpCalendarPtr pCalendarResult = NULL;
-
-  if ((pCalendarResult = CalendarSetup(xmlDocGetRootElement(pdocArg), pccArg)) != NULL
-    && ProcessCalendarColumns(pCalendarResult, pccArg)
-    && RegisterAndParseDateNodes(pCalendarResult, NULL)
-    && AddYears(pCalendarResult)) {
-    CalendarUpdate(pCalendarResult);
-    CalendarSetToday(pCalendarResult);
-    SubstituteFormat(pCalendarResult->pndCalendarRoot);
-#if 0
-    if (domGetPropFlag(pndMakeCalendar, BAD_CAST"columns", FALSE) == FALSE) {
-      CalendarColumnsFree(pCalendarResult);
-    }
-#endif
-    pdocResult = pCalendarResult->pdocCalendar;
-    pCalendarResult->pdocCalendar = NULL;
-  }
-  CalendarFree(pCalendarResult);
-  
-  return pdocResult;
-} /* end of calProcessDoc() */
-
-
 /*! \return 
 
 \param 
@@ -1424,32 +1390,6 @@ SubstituteFormatStr(xmlNodePtr pndContext, xmlChar *fmt)
 	  puc0 = puc1 + 1;
 	}
       }
-#ifdef LEGACY
-      else if (puc1[1] == 'S') { /* sun */
-	if (puc1[2] == 'R') {
-	  pucValue = domGetPropValuePtr(pndDay,BAD_CAST "sunrise");
-	}
-	else if (puc1[2] == 'S') {
-	  pucValue = domGetPropValuePtr(pndDay,BAD_CAST "sunset");
-	}
-
-	if (pucValue) {
-	  if (puc1 - puc0 > 0) {
-	    pucResult = xmlStrncat(pucResult,puc0,puc1 - puc0);
-	  }
-
-	  if (pucResult) {
-	    pucResult = xmlStrcat(pucResult,pucValue);
-	  }
-	  else {
-	    pucResult = xmlStrdup(pucValue);
-	  }
-
-	  puc1 += 2;
-	  puc0 = puc1 + 1;
-	}
-      }
-#endif
       else if (puc1[1] == 'B') {
 	if (isdigit(puc1[2]) && isdigit(puc1[3]) && isdigit(puc1[4]) && isdigit(puc1[5]) && ! isdigit(puc1[6])) {
 	  /* difference in years */
@@ -1700,44 +1640,6 @@ AddTreeYear(cxpCalendarPtr pCalendarArg, int year)
 
 	xmlStrPrintf(buffer, BUFFER_LENGTH, "%i", dti);
 	xmlSetProp(pndDay, BAD_CAST "abs", buffer);
-
-#if 0
-	if (pCalendarArg->fCoordinate) {
-	  double dHourUTCSunrise;
-	  double dHourUTCSunset;
-	  int iMinute;
-
-	  sun_rise_set(t.tm_year + 1900, dt_mon(dti) + 1, dt_dom(dti),
-		       pCalendarArg->dLongitude, pCalendarArg->dLatitude,
-		       &dHourUTCSunrise,
-		       &dHourUTCSunset);
-
-	  // Sunrise
-	  dHourUTCSunrise += pCalendarArg->iTimezoneOffset / 60.0f;
-	  if (t.tm_isdst) {
-	    dHourUTCSunrise += 1.0f;
-	  }
-	  iMinute = RoundToInt(dHourUTCSunrise * 60.0);
-	  xmlStrPrintf(buffer, BUFFER_LENGTH, "%i:%02i", iMinute / 60, iMinute % 60);
-	  xmlSetProp(pndDay, BAD_CAST "sunrise", buffer);
-
-	  // Sunset
-	  dHourUTCSunset += pCalendarArg->iTimezoneOffset / 60.0f;
-	  if (t.tm_isdst) {
-	    dHourUTCSunset += 1.0f;
-	  }
-	  iMinute = RoundToInt(dHourUTCSunset * 60.0);
-	  xmlStrPrintf(buffer, BUFFER_LENGTH, "%i:%02i", iMinute / 60, iMinute % 60);
-	  xmlSetProp(pndDay, BAD_CAST "sunset", buffer);
-
-	  // Moon
-	  if (IsFullMoonConway(t.tm_year + 1900, dt_mon(dti) + 1, dt_dom(dti))) {
-	    xmlSetProp(pndDay, BAD_CAST "moon", BAD_CAST"full");
-	  }
-
-	  xmlSetProp(pndDay, BAD_CAST "dst", BAD_CAST(t.tm_isdst ? "yes" : "no"));
-	}
-#endif
 
 	/*
 	  add the time difference from today in days

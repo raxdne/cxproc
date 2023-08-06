@@ -22,9 +22,6 @@
 extern xmlDocPtr
 calProcessCalendarNode(xmlNodePtr pndMakeCalendar, cxpContextPtr pccArg);
 
-extern xmlDocPtr
-calProcessDoc(xmlDocPtr pdocArg, cxpContextPtr pccArg);
-
 
 #ifdef TESTCODE
 extern int

@@ -62,14 +62,6 @@ IF (CXPROC_PIE)
     ${CXPROC_SRC_DIR}/option/vcf/vcf.h
     )
 
-  IF (CXPROC_LEGACY)
-    SET(PIE_FILES
-      ${PIE_FILES}
-      ${CXPROC_SRCLIB_DIR}/option/sunriset/sunriset.c
-      ${CXPROC_SRCLIB_DIR}/option/sunriset/sunriset.h
-      )
-  ENDIF ()
-
   IF (CXPROC_MARKDOWN)
     target_sources(filex PUBLIC ${CXPROC_SRC_DIR}/option/pie/pie_cmark.c ${CXPROC_SRC_DIR}/option/pie/pie_cmark.h)
     target_sources(pietextx PUBLIC ${CXPROC_SRC_DIR}/option/pie/pie_cmark.c ${CXPROC_SRC_DIR}/option/pie/pie_cmark.h)

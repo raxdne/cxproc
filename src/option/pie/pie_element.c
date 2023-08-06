@@ -236,7 +236,7 @@ pieElementIsScript(pieTextElementPtr ppeArg)
 /* end of pieElementIsScript() */
 
 
-/*!\deprecated
+/*!
 */
 BOOL_T
 pieElementIsCxp(pieTextElementPtr ppeArg)

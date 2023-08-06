@@ -238,14 +238,14 @@ calTest(cxpContextPtr pccArg)
     else if ((pdocDir = dirProcessDirNode(pndDir, NULL, pccT)) == NULL) {
       printf("Error dirProcessDirNode()\n");
     }
-    else if ((pdocTest = calProcessDoc(pdocDir, pccT)) == NULL) {
-      printf("Error calProcessDoc()\n");
+    else if ((pdocTest = calProcessCalendarNode(pdocDir, pccT)) == NULL) {
+      printf("Error calProcessCalendarNode()\n");
     }
     else {
       n_ok++;
       printf("OK\n");
     }
-    //domPutDocString(stderr, BAD_CAST "calProcessDoc() result", pdocTest);
+    //domPutDocString(stderr, BAD_CAST "calProcessCalendarNode() result", pdocTest);
     cxpCtxtFree(pccT);
     xmlFreeDoc(pdocDir);
     xmlFreeDoc(pdocTest);
