@@ -193,7 +193,7 @@ scriptProcessScriptAttribute(xmlNodePtr pndArg, cxpContextPtr pccArg)
   xmlChar *pucResult = NULL;
   xmlChar *pucAttrScript;
 
-  pucAttrScript = domGetPropValuePtr(pndArg,BAD_CAST "script");
+  pucAttrScript = domGetPropValuePtr(pndArg,BAD_CAST NAME_PIE_SCRIPT);
   if (pucAttrScript) {
     cxpCtxtLogPrint(pccArg,4, "Run Script code '%s'",pucAttrScript);
     duk_push_global_object(pDukContext);
@@ -236,7 +236,7 @@ scriptProcessScriptNode(xmlNodePtr pndArg, cxpContextPtr pccArg)
     /* ignore NULL and invalid elements */
   }
   else if (IS_NODE_SCRIPT(pndArg)
-    || (xmlStrEqual(domGetPropValuePtr(pndArg, BAD_CAST "type"), BAD_CAST"script") && (IS_NODE_PIE_IMPORT(pndArg) || IS_NODE_PIE_BLOCK(pndArg)))) {
+    || (xmlStrEqual(domGetPropValuePtr(pndArg, BAD_CAST "type"), BAD_CAST NAME_PIE_SCRIPT) && (IS_NODE_PIE_IMPORT(pndArg) || IS_NODE_PIE_BLOCK(pndArg)))) {
     BOOL_T fCache = FALSE;
     //BOOL_T fSearch;
 

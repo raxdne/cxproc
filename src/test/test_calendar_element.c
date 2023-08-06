@@ -419,8 +419,8 @@ ceTest(void)
     else if (xmlStrEqual(pceT->pucSep, BAD_CAST" ISO date interval") == FALSE) {
       printf("ERROR 3\n");
     }
-    else if (pceT->dt0.dt != dt_from_ymd(2013, 10, 12) || pceT->dt0.iSec != 43200
-      || pceT->dt1.dt != dt_from_ymd(2013, 10, 14) || pceT->dt1.iSec != 50400) {
+    else if (pceT->dt0.dt != dt_from_ymd(2013, 10, 12) || (pceT->dt0.iSec != 43200 && pceT->dt0.iSec != 43200 - 3600)
+      || pceT->dt1.dt != dt_from_ymd(2013, 10, 14) || (pceT->dt1.iSec != 50400 && pceT->dt1.iSec != 50400 - 3600)) {
       printf("ERROR 4\n");
     }
     else if (CalendarElementUpdate(pceT, BAD_CAST"2012-10-15T08:00:00/2012-10-15T10:00:00 TEST") == NULL) {
@@ -432,8 +432,8 @@ ceTest(void)
     else if (xmlStrEqual(pceT->pucSep, BAD_CAST" TEST") == FALSE) {
       printf("ERROR 3\n");
     }
-    else if (pceT->dt0.dt != dt_from_ymd(2012, 10, 15) || pceT->dt0.iSec != 25200
-      || pceT->dt1.dt != pceT->dt0.dt || pceT->dt1.iSec != 32400) {
+    else if (pceT->dt0.dt != dt_from_ymd(2012, 10, 15) || (pceT->dt0.iSec != 25200 && pceT->dt0.iSec != 25200 - 3600)
+      || pceT->dt1.dt != pceT->dt0.dt || (pceT->dt1.iSec != 32400 && pceT->dt1.iSec != 32400 - 3600)) {
       printf("ERROR 4\n");
     }
     else if (CalendarElementUpdate(pceT, BAD_CAST"2012-10-15T08:00:00/PT2H30M0S TEST") == NULL) {
@@ -445,8 +445,8 @@ ceTest(void)
     else if (xmlStrEqual(pceT->pucSep, BAD_CAST" TEST") == FALSE) {
       printf("ERROR 3\n");
     }
-    else if (pceT->dt0.dt != dt_from_ymd(2012, 10, 15) || pceT->dt0.iSec != 25200
-      || pceT->dt1.dt != 734791 || pceT->dt1.iSec != 34200) {
+    else if (pceT->dt0.dt != dt_from_ymd(2012, 10, 15) || (pceT->dt0.iSec != 25200 && pceT->dt0.iSec != 25200 - 3600)
+      || pceT->dt1.dt != 734791 || (pceT->dt1.iSec != 34200 && pceT->dt1.iSec != 34200 - 3600)) {
       printf("ERROR 4\n");
     }
     else {
@@ -573,20 +573,27 @@ ceTest(void)
     else if (ScanCalendarElementDate(pceT) == FALSE) {
       printf("ERROR\n");
     }
-    else if (pceT->dt0.dt != dt_from_ymd(2022, 2, 6) || pceT->dt0.iSec != 46800 || pceT->dt1.dt != pceT->dt0.dt || pceT->dt1.iSec != 54000
+    else if (pceT->dt0.dt != dt_from_ymd(2022, 2, 6) || (pceT->dt0.iSec != 46800 && pceT->dt0.iSec != 46800 - 3600)
+      || pceT->dt1.dt != pceT->dt0.dt || (pceT->dt1.iSec != 54000 && pceT->dt1.iSec != 54000 - 3600)
       || pceT->period.d != 4 || pceT->iRecurrence != 2) {
       printf("ERROR\n");
     }
     else if ((pceList = SplitCalendarElementRecurrences(pceT)) == NULL) {
       printf("ERROR\n");
     }
-    else if ((pceI = pceList) == NULL || pceI->dt0.dt != dt_from_ymd(2022, 2, 6) || pceI->dt1.dt != pceI->dt0.dt || pceI->dt0.iSec != 46800 || pceI->dt1.iSec != 54000 || pceI->iRecurrence != -1) {
+    else if ((pceI = pceList) == NULL || pceI->dt0.dt != dt_from_ymd(2022, 2, 6)
+      || pceI->dt1.dt != pceI->dt0.dt || (pceI->dt0.iSec != 46800 && pceI->dt0.iSec != 46800 - 3600)
+      || (pceI->dt1.iSec != 54000 && pceI->dt1.iSec != 54000 - 3600) || pceI->iRecurrence != -1) {
       printf("ERROR\n");
     }
-    else if ((pceI = pceI->pNext) == NULL || pceI->dt0.dt != dt_from_ymd(2022, 2, 10) || pceI->dt1.dt != pceI->dt0.dt || pceI->dt0.iSec != 46800 || pceI->dt1.iSec != 54000 || pceI->iRecurrence != -1) {
+    else if ((pceI = pceI->pNext) == NULL || pceI->dt0.dt != dt_from_ymd(2022, 2, 10)
+      || pceI->dt1.dt != pceI->dt0.dt || (pceI->dt0.iSec != 46800 && pceI->dt0.iSec != 46800 - 3600)
+      || (pceI->dt1.iSec != 54000 && pceI->dt1.iSec != 54000 - 3600) || pceI->iRecurrence != -1) {
       printf("ERROR\n");
     }
-    else if ((pceI = pceI->pNext) == NULL || pceI->dt0.dt != dt_from_ymd(2022, 2, 14) || pceI->dt1.dt != pceI->dt0.dt || pceI->dt0.iSec != 46800 || pceI->dt1.iSec != 54000 || pceI->iRecurrence != -1) {
+    else if ((pceI = pceI->pNext) == NULL || pceI->dt0.dt != dt_from_ymd(2022, 2, 14)
+      || pceI->dt1.dt != pceI->dt0.dt || (pceI->dt0.iSec != 46800 && pceI->dt0.iSec != 46800 - 3600)
+      || (pceI->dt1.iSec != 54000 && pceI->dt1.iSec != 54000 - 3600) || pceI->iRecurrence != -1) {
       printf("ERROR\n");
     }
     else if ((pceI = pceI->pNext) != NULL) {

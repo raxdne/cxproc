@@ -1826,7 +1826,7 @@ SplitStringToScriptNode(const xmlChar *pucArg)
       i++;
       if (ovector[i*2+1] - ovector[i*2] > 0) {
 	pndScript = xmlNewNode(NULL,NAME_PIE_IMPORT);
-	xmlSetProp(pndScript, BAD_CAST "type", BAD_CAST "script");
+	xmlSetProp(pndScript, BAD_CAST "type", BAD_CAST  NAME_PIE_SCRIPT);
 
 	pucScript = xmlStrndup(&pucArg[ovector[i*2]], (int)(ovector[i*2+1] - ovector[i*2]));
 	xmlAddChild(pndScript,xmlNewText(pucScript));
@@ -3178,8 +3178,8 @@ SetTypeAttr(xmlNodePtr pndArgImport, rmode_t eArgMode)
 	|| (xmlStrEqual(pucAttrType, BAD_CAST "log") && eArgMode == RMODE_LINE)
 	|| (xmlStrEqual(pucAttrType, BAD_CAST "logpar") && eArgMode == RMODE_PAR)
 	|| (xmlStrEqual(pucAttrType, BAD_CAST "pre") && eArgMode == RMODE_PRE)
-	|| (xmlStrEqual(pucAttrType, BAD_CAST "script") && eArgMode == RMODE_PRE)
-	|| (xmlStrEqual(pucAttrType, BAD_CAST "csv") && eArgMode == RMODE_TABLE)
+	|| (xmlStrEqual(pucAttrType, BAD_CAST NAME_PIE_SCRIPT) && eArgMode == RMODE_PRE)
+	|| (xmlStrEqual(pucAttrType, BAD_CAST NAME_PIE_CSV) && eArgMode == RMODE_TABLE)
 	|| (xmlStrEqual(pucAttrType, BAD_CAST "par") && eArgMode == RMODE_PAR);
     }
     else if (eArgMode == RMODE_LINE) {
@@ -3271,10 +3271,10 @@ GetModeByAttr(xmlNodePtr pndArgImport)
     else if (xmlStrEqual(pucAttrType, BAD_CAST "markdown")) {
       eResultMode = RMODE_MD;
     }
-    else if (xmlStrEqual(pucAttrType, BAD_CAST "script")) {
+    else if (xmlStrEqual(pucAttrType, BAD_CAST  NAME_PIE_SCRIPT)) {
       eResultMode = RMODE_PAR; /* result of script must be parsed paragraph-oriented */
     }
-    else if (xmlStrEqual(pucAttrType, BAD_CAST "csv")) {
+    else if (xmlStrEqual(pucAttrType, BAD_CAST NAME_PIE_CSV)) {
       eResultMode = RMODE_TABLE;
     }
     else if (xmlStrEqual(pucAttrType, BAD_CAST "par")) {
@@ -3305,7 +3305,7 @@ GetModeByExtension(xmlChar *pucArgExt)
   else if (xmlStrEqual(pucArgExt, BAD_CAST "log")) {
     eResultMode = RMODE_LINE;
   }
-  else if (xmlStrEqual(pucArgExt, BAD_CAST "csv")) {
+  else if (xmlStrEqual(pucArgExt, BAD_CAST NAME_PIE_CSV)) {
     eResultMode = RMODE_TABLE;
   }
   else if (xmlStrEqual(pucArgExt, BAD_CAST "js")) {

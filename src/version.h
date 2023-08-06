@@ -7,9 +7,9 @@
 #define STR_INDIR(x) #x
 #define STR(x) STR_INDIR(x)
 
-#define CXP_VERSION_MAJOR    1
+#define CXP_VERSION_MAJOR    2
 
-#define CXP_VERSION_MINOR    4
+#define CXP_VERSION_MINOR    0
 
 #define CXP_VERSION_STR      "v" STR(CXP_VERSION_MAJOR) "." STR(CXP_VERSION_MINOR)
 
@@ -46,7 +46,7 @@
 #define CXP_VER_PRODUCT_VERSION_STR     CXP_VER_FILE_VERSION_STR
 #define CXP_VER_ORIGINAL_FILENAME_STR   CXP_VER_PRODUCTNAME_STR ".exe"
 #define CXP_VER_INTERNAL_NAME_STR       CXP_VER_ORIGINAL_FILENAME_STR
-#define CXP_VER_COPYRIGHT_STR           "(C) 2006..2022 by Alexander Tenbusch"
+#define CXP_VER_COPYRIGHT_STR           "(C) 2006..2023 by Alexander Tenbusch"
 
 #define CXP_VER_URL			CXP_VERSION_URL
 

@@ -1284,7 +1284,7 @@ pieTextBlocksTest(void)
       || domNumberOfChild(pndT, NAME_PIE_HEADER) != 1) {
       printf("Error 2 TaskNodeNew()\n");
     }
-    else if ((pndP = xmlNewChild(pndPie, NULL, NAME_PIE_PAR, BAD_CAST"ToDo also allowed")) == NULL
+    else if ((pndP = xmlNewChild(pndPie, NULL, NAME_PIE_PAR, BAD_CAST"ToDo: also allowed")) == NULL
       || (pndT = TaskNodeNew(pndP)) == NULL
       || IS_NODE_PIE_TASK(pndT) == FALSE || domNumberOfChild(pndT, NAME_PIE_HEADER) != 1) {
       printf("Error 3 TaskNodeNew()\n");

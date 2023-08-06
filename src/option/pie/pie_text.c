@@ -393,7 +393,7 @@ pieProcessPieNode(xmlNodePtr pndArgPie, cxpContextPtr pccArg)
     /*! \todo add error logs to DOM */
     //pndError = xmlNewChild(pndPieRoot, NULL, NAME_ERROR, NULL);
 
-    if (domGetPropFlag(pndArgPie, BAD_CAST "script", TRUE)) {
+    if (domGetPropFlag(pndArgPie, BAD_CAST  NAME_PIE_SCRIPT, TRUE)) {
       cxpCtxtLogPrint(pccArg, 2, "Recognize scripts");
       RecognizeScripts(pndPieRoot);
 #ifdef HAVE_JS
@@ -838,7 +838,7 @@ ImportNodeFile(xmlNodePtr pndArgImport, cxpContextPtr pccArg)
 	xmlFree(pucContent);
       }
       else if (resNodeGetNameNormalized(prnInput) != NULL
-	       && (pucAttrType != NULL && (xmlStrEqual(pucAttrType, BAD_CAST"script")
+	       && (pucAttrType != NULL && (xmlStrEqual(pucAttrType, BAD_CAST NAME_PIE_SCRIPT)
 					   || iMimeType == MIME_APPLICATION_X_JAVASCRIPT))) {
 
 	cxpCtxtLogPrint(pccInput, 2, "Importing '%s' Javascript result as PIE '%s'", pucAttrType, resNodeGetNameNormalized(prnInput));
@@ -853,7 +853,7 @@ ImportNodeFile(xmlNodePtr pndArgImport, cxpContextPtr pccArg)
 	if (STR_IS_NOT_EMPTY(pucContent)) {
 	  xmlChar *pucScriptResult = NULL;
 
-	  xmlSetProp(pndBlock, BAD_CAST"type", BAD_CAST"script");
+	  xmlSetProp(pndBlock, BAD_CAST"type", BAD_CAST NAME_PIE_SCRIPT);
 #ifdef HAVE_JS
 	  pucScriptResult = scriptProcessScriptNode(pndBlock, pccInput);
 #endif
@@ -875,7 +875,7 @@ ImportNodeFile(xmlNodePtr pndArgImport, cxpContextPtr pccArg)
 	}
 	else {
 	  cxpCtxtLogPrint(pccInput, 1, "Cant read from '%s'", resNodeGetNameNormalized(prnInput));
-	  xmlSetProp(pndBlock, BAD_CAST"error", BAD_CAST"script");
+	  xmlSetProp(pndBlock, BAD_CAST"error", BAD_CAST NAME_PIE_SCRIPT);
 	}
 	xmlFree(pucContent);
       }
@@ -963,7 +963,7 @@ ImportNodeContent(xmlNodePtr pndArgImport, cxpContextPtr pccArg)
   xmlNodeSetName(pndBlock, NAME_PIE_BLOCK);
   //xmlSetProp(pndBlock, BAD_CAST "context", resNodeGetURI(prnInput));
 
-  if (xmlStrEqual(domGetPropValuePtr(pndBlock, BAD_CAST "type"), BAD_CAST"script")) {
+  if (xmlStrEqual(domGetPropValuePtr(pndBlock, BAD_CAST "type"), BAD_CAST NAME_PIE_SCRIPT)) {
     pucContent = scriptProcessScriptNode(pndBlock, pccArg);
   }
   else {
@@ -972,7 +972,7 @@ ImportNodeContent(xmlNodePtr pndArgImport, cxpContextPtr pccArg)
   xmlFreeNode(pndArgImport->children);
   pndArgImport->children = pndArgImport->last = NULL; /* unlink node content */
 #else
-  if (xmlStrEqual(domGetPropValuePtr(pndArgImport, BAD_CAST "type"), BAD_CAST"script")) {
+  if (xmlStrEqual(domGetPropValuePtr(pndArgImport, BAD_CAST "type"), BAD_CAST NAME_PIE_SCRIPT)) {
     xmlAddChild(pndArgImport, xmlNewComment(BAD_CAST"No script support"));
     return fResult;
   }
@@ -1133,6 +1133,7 @@ IncludeNodeFile(xmlNodePtr pndArgInclude, cxpContextPtr pccArg)
 #ifdef DEBUG
   cxpCtxtLogPrint(pccArg, 1, "IncludeNodeFile(pndArgInclude=%0x,pccArg=%0x)", pndArgInclude, pccArg);
 #endif
+  assert(pndArgInclude->parent != NULL);
   assert(IS_NODE_PIE_INCLUDE(pndArgInclude));
 
   prnInput = cxpResNodeResolveNew(pccArg, pndArgInclude, NULL, CXP_O_READ);
@@ -1499,7 +1500,7 @@ TraverseScriptNodes(xmlNodePtr pndCurrent, cxpContextPtr pccArg)
     xmlNodePtr pndChild;
     int iLengthStr;
 
-    if (IS_NODE_PIE_IMPORT(pndCurrent) && xmlStrEqual(domGetPropValuePtr(pndCurrent,BAD_CAST"type"),BAD_CAST"script")) {
+    if (IS_NODE_PIE_IMPORT(pndCurrent) && xmlStrEqual(domGetPropValuePtr(pndCurrent,BAD_CAST"type"),BAD_CAST NAME_PIE_SCRIPT)) {
       if ((pndChild = pndCurrent->children) != NULL
 	&& xmlNodeIsText(pndChild)
 	&& pndChild->content != NULL

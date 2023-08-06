@@ -222,16 +222,16 @@ cmarkTreeToDOM(xmlNodePtr pndArgBlock, xmlNodePtr pndArg, cmark_node* pcmnArg)
     else if (pcmnArg->type == CMARK_NODE_HTML_BLOCK) {
       xmlNodePtr pndNew = NULL;
 
-      if (StringBeginsWith(pcmnArg->data,BAD_CAST"<csv>")) {
+      if (StringBeginsWith(pcmnArg->data,BAD_CAST "<" NAME_PIE_CSV ">")) {
 	xmlChar *puc0;
 	xmlChar *puc1 = NULL;
 
 	pndNew = xmlNewChild(pndArg, NULL, NAME_PIE_IMPORT, NULL);
-	xmlSetProp(pndNew, BAD_CAST "type", BAD_CAST"csv");
+	xmlSetProp(pndNew, BAD_CAST "type", BAD_CAST NAME_PIE_CSV);
 	
-	if ((puc0 = xmlStrstr(pcmnArg->data,BAD_CAST"<csv>")) != NULL) {
-	  puc0 += xmlStrlen(BAD_CAST"<csv>");
-	  if ((puc1 = xmlStrstr(pcmnArg->data,BAD_CAST"</csv>")) != NULL) {
+	if ((puc0 = xmlStrstr(pcmnArg->data,BAD_CAST "<" NAME_PIE_CSV ">")) != NULL) {
+	  puc0 += xmlStrlen(BAD_CAST "<" NAME_PIE_CSV ">");
+	  if ((puc1 = xmlStrstr(pcmnArg->data,BAD_CAST "</" NAME_PIE_CSV ">")) != NULL) {
 	    xmlChar *pucContent;
 
 	    if (puc1 > puc0 && (pucContent = xmlStrndup(puc0, puc1 - puc0)) != NULL) {
@@ -242,16 +242,16 @@ cmarkTreeToDOM(xmlNodePtr pndArgBlock, xmlNodePtr pndArg, cmark_node* pcmnArg)
 	  }
 	}
       }
-      else if (StringBeginsWith(pcmnArg->data,BAD_CAST"<script>")) {
+      else if (StringBeginsWith(pcmnArg->data,BAD_CAST "<" NAME_PIE_SCRIPT ">")) {
 	xmlChar *puc0;
 	xmlChar *puc1 = NULL;
 
 	pndNew = xmlNewChild(pndArg, NULL, NAME_PIE_IMPORT, NULL);
-	xmlSetProp(pndNew, BAD_CAST "type", BAD_CAST"script");
+	xmlSetProp(pndNew, BAD_CAST "type", BAD_CAST NAME_PIE_SCRIPT);
 	
-	if ((puc0 = xmlStrstr(pcmnArg->data,BAD_CAST"<script>")) != NULL) {
-	  puc0 += xmlStrlen(BAD_CAST"<script>");
-	  if ((puc1 = xmlStrstr(pcmnArg->data,BAD_CAST"</script>")) != NULL) {
+	if ((puc0 = xmlStrstr(pcmnArg->data,BAD_CAST "<" NAME_PIE_SCRIPT ">")) != NULL) {
+	  puc0 += xmlStrlen(BAD_CAST "<" NAME_PIE_SCRIPT ">");
+	  if ((puc1 = xmlStrstr(pcmnArg->data,BAD_CAST "</" NAME_PIE_SCRIPT ">")) != NULL) {
 	    xmlChar *pucContent;
 
 	    if (puc1 > puc0 && (pucContent = xmlStrndup(puc0, puc1 - puc0)) != NULL) {

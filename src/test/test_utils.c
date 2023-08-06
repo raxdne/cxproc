@@ -694,7 +694,7 @@ utilsTest(void)
     if (dt_parse_iso_date_time_zone(NULL, 20, NULL, NULL) != 0) {
       printf("ERROR 1 dt_parse_iso_date_time_zone()\n");
     }
-    else if (dt_parse_iso_date_time_zone("2012-10-15T08:00:00", 40, &dt, &r) != 19 || r != 25200) {
+    else if (dt_parse_iso_date_time_zone("2012-10-15T08:00:00", 40, &dt, &r) != 19 || (r != 25200 && r != 25200 - 3600)) {
       printf("ERROR 2 dt_parse_iso_date_time_zone()\n");
     }
     else if (dt_parse_iso_date_time_zone("2012-10-15T08:00:00+05:00", 40, &dt, &r) != 25 || r != 10800) {

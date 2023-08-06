@@ -124,7 +124,7 @@
    comparison of element names
 */
 
-#define IS_NODE(NODE,NAME) (NODE != NULL && NODE->type == XML_ELEMENT_NODE && NODE->name != NULL && (NAME==NULL || xmlStrEqual(NODE->name,BAD_CAST NAME)))
+#define IS_NODE(NODE,NAME) (NODE != NULL && NODE->type == XML_ELEMENT_NODE && NODE->name != NULL && (BAD_CAST NAME==NULL || xmlStrEqual(NODE->name,BAD_CAST NAME)))
 
 #define IS_TEXT(NODE) (NODE != NULL && NODE->type == XML_TEXT_NODE && NODE->content != NULL)
 

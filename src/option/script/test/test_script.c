@@ -174,7 +174,7 @@ scriptTest(cxpContextPtr pccArg)
     else if (scriptProcessScriptAttribute(NULL, pccArg) != NULL) {
       printf("Error 2 ()\n");
     }
-    else if ((pndSubst = xmlNewNode(NULL, NAME_SUBST)) == NULL || xmlSetProp(pndSubst,BAD_CAST"script",BAD_CAST"'A' + 'B' + 'C'") == NULL) {
+    else if ((pndSubst = xmlNewNode(NULL, NAME_SUBST)) == NULL || xmlSetProp(pndSubst,BAD_CAST NAME_PIE_SCRIPT,BAD_CAST"'A' + 'B' + 'C'") == NULL) {
       printf("Error xmlNewNode()\n");
     }
     else if ((pucT = scriptProcessScriptAttribute(pndSubst, pccArg)) == NULL) {

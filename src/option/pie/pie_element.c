@@ -438,26 +438,26 @@ pieElementHasNext(pieTextElementPtr ppeArg)
 	ppeArg->pucContent = NULL;
 	//ppeArg->iLength = 0;
       }
-      else if (pieElementGetMode(ppeArg) == RMODE_PAR && StringBeginsWith((char *)puc0, "<script>")) {
+      else if (pieElementGetMode(ppeArg) == RMODE_PAR && StringBeginsWith((char *)puc0, "<" NAME_PIE_SCRIPT ">")) {
 	/*
 	handle script formatted markup in input file
 	*/
 	xmlChar *puc1;
 	xmlChar *pucT;
 
-	if ((puc1 = BAD_CAST xmlStrstr(puc0, BAD_CAST"</script>")) != NULL) {
+	if ((puc1 = BAD_CAST xmlStrstr(puc0, BAD_CAST "</" NAME_PIE_SCRIPT ">")) != NULL) {
 	  /* copy string between markups */
 
-	  if (Strnstr(puc0 + 1, (puc1 - puc0), BAD_CAST"<script>") != NULL) {
-	    PrintFormatLog(1, "Unbalanced markup: '<script>'");
+	  if (Strnstr(puc0 + 1, (puc1 - puc0), BAD_CAST "<" NAME_PIE_SCRIPT ">") != NULL) {
+	    PrintFormatLog(1, "Unbalanced markup: '<" NAME_PIE_SCRIPT ">'");
 	  }
 
-	  ppeArg->pucContent = xmlStrndup(puc0 + xmlStrlen(BAD_CAST"<script>"), (int)(puc1 - (puc0 + xmlStrlen(BAD_CAST"<script>"))));
-	  ppeArg->iBegin += (index_t)(puc1 + xmlStrlen(BAD_CAST"</script>") - puc0);
+	  ppeArg->pucContent = xmlStrndup(puc0 + xmlStrlen(BAD_CAST "<" NAME_PIE_SCRIPT ">"), (int)(puc1 - (puc0 + xmlStrlen(BAD_CAST "<" NAME_PIE_SCRIPT ">"))));
+	  ppeArg->iBegin += (index_t)(puc1 + xmlStrlen(BAD_CAST"</" NAME_PIE_SCRIPT ">") - puc0);
 	}
 	else {
 	  /* no end markup found, copy end of string */
-	  ppeArg->pucContent = xmlStrdup(puc0 + xmlStrlen(BAD_CAST"<script>"));
+	  ppeArg->pucContent = xmlStrdup(puc0 + xmlStrlen(BAD_CAST "<" NAME_PIE_SCRIPT ">"));
 	  ppeArg->iBegin = xmlStrlen(ppeArg->pucSource);
 	}
 
@@ -501,22 +501,20 @@ pieElementHasNext(pieTextElementPtr ppeArg)
 	fResult = TRUE;
       }
 #ifdef EXPERIMENTAL
-      else if (StringBeginsWith((char *)puc0, "<skip>")) {
+      else if (StringBeginsWith((char *)puc0, "<" NAME_PIE_SKIP ">")) {
 	/*
 	handle skip markup in input file
 	*/
 	xmlChar *puc1;
 
-	/*!\todo change markup to <skip> */
-
-	if ((puc1 = BAD_CAST xmlStrstr(puc0, BAD_CAST"</skip>")) != NULL) {
+	if ((puc1 = BAD_CAST xmlStrstr(puc0, BAD_CAST"</" NAME_PIE_SKIP ">")) != NULL) {
 	  /* skip string between markups */
 
-	  if (Strnstr(puc0 + 1, (puc1 - puc0), BAD_CAST"<skip>") != NULL) {
-	    PrintFormatLog(1, "Unbalanced markup: '<skip>'");
+	  if (Strnstr(puc0 + 1, (puc1 - puc0), BAD_CAST"<" NAME_PIE_SKIP ">") != NULL) {
+	    PrintFormatLog(1, "Unbalanced markup: '<" NAME_PIE_SKIP ">'");
 	  }
 
-	  ppeArg->iBegin = (index_t)(puc1 + xmlStrlen(BAD_CAST"</skip>") - ppeArg->pucSource);
+	  ppeArg->iBegin = (index_t)(puc1 + xmlStrlen(BAD_CAST"</" NAME_PIE_SKIP ">") - ppeArg->pucSource);
 	  fResult = TRUE;
 	}
 	else {
@@ -528,34 +526,32 @@ pieElementHasNext(pieTextElementPtr ppeArg)
 	ppeArg->pucContent = NULL;
 	//ppeArg->iLength = 0;
       }
-      else if (pieElementGetMode(ppeArg) == RMODE_PAR && StringBeginsWith((char *)puc0, "<pre>")) {
+      else if (pieElementGetMode(ppeArg) == RMODE_PAR && StringBeginsWith((char *)puc0, "<" NAME_PIE_PRE ">")) {
 	/*
 	handle pre formatted markup in input file
 	*/
 	xmlChar *puc1;
 	xmlChar *pucT;
 
-	if ((puc1 = BAD_CAST xmlStrstr(puc0, BAD_CAST"</pre>")) != NULL) {
+	if ((puc1 = BAD_CAST xmlStrstr(puc0, BAD_CAST"</" NAME_PIE_PRE ">")) != NULL) {
 	  /* copy string between markups */
 	  index_t l;
 
-	  /*!\todo change markup to <pre> */
-
-	  if (Strnstr(puc0 + 1, (puc1 - puc0), BAD_CAST"<pre>") != NULL) {
-	    PrintFormatLog(1, "Unbalanced markup: '<pre>'");
+	  if (Strnstr(puc0 + 1, (puc1 - puc0), BAD_CAST"<" NAME_PIE_PRE ">") != NULL) {
+	    PrintFormatLog(1, "Unbalanced markup: '<" NAME_PIE_PRE ">'");
 	  }
 
-	  for (l = xmlStrlen(BAD_CAST"<pre>"); puc0[l] == (xmlChar)'\n'; l++); /* skip leading empty lines */
+	  for (l = xmlStrlen(BAD_CAST"<" NAME_PIE_PRE ">"); puc0[l] == (xmlChar)'\n'; l++); /* skip leading empty lines */
 	  ppeArg->pucContent = xmlStrndup(puc0 + l, (int)(puc1 - (puc0 + l)));
 	  for (l = xmlStrlen(ppeArg->pucContent) - 1; l > 0 && (ppeArg->pucContent[l] == (xmlChar)'\n' || ppeArg->pucContent[l] == (xmlChar)'\r'); l--) {
 	    ppeArg->pucContent[l] = (xmlChar)'\0'; /* cut trailing empty lines */
 	  }
 
-	  ppeArg->iBegin += (index_t)(puc1 + xmlStrlen(BAD_CAST"</pre>") - puc0);
+	  ppeArg->iBegin += (index_t)(puc1 + xmlStrlen(BAD_CAST"</" NAME_PIE_PRE ">") - puc0);
 	}
 	else {
 	  /* no end markup found, copy end of string */
-	  ppeArg->pucContent = xmlStrdup(puc0 + xmlStrlen(BAD_CAST"<pre>"));
+	  ppeArg->pucContent = xmlStrdup(puc0 + xmlStrlen(BAD_CAST"<" NAME_PIE_PRE ">"));
 	  ppeArg->iBegin = xmlStrlen(ppeArg->pucSource);
 	}
 
@@ -637,24 +633,24 @@ pieElementHasNext(pieTextElementPtr ppeArg)
 	ppeArg->eMode = RMODE_LINE;
 	fResult = TRUE;
       }
-      else if (pieElementGetMode(ppeArg) == RMODE_PAR && StringBeginsWith((char *)puc0, "<csv>")) {
+      else if (pieElementGetMode(ppeArg) == RMODE_PAR && StringBeginsWith((char *)puc0, "<" NAME_PIE_CSV ">")) {
 	/*
 	handle csv formatted markup in input file
 	*/
 	xmlChar *puc1;
 	xmlChar *pucT;
 
-	for (pucT = puc0 + xmlStrlen(BAD_CAST"<csv>"); *pucT == (xmlChar)'\r' || *pucT == (xmlChar)'\n'; pucT++) {}
+	for (pucT = puc0 + xmlStrlen(BAD_CAST"<" NAME_PIE_CSV ">"); *pucT == (xmlChar)'\r' || *pucT == (xmlChar)'\n'; pucT++) {}
 
-	if ((puc1 = BAD_CAST xmlStrstr(puc0, BAD_CAST"</csv>")) != NULL) {
+	if ((puc1 = BAD_CAST xmlStrstr(puc0, BAD_CAST"</" NAME_PIE_CSV ">")) != NULL) {
 	  /* copy string between markups */
 
-	  if (Strnstr(puc0 + 1, (puc1 - puc0), BAD_CAST"<csv>") != NULL) {
-	    PrintFormatLog(1, "Unbalanced markup: '<csv>'");
+	  if (Strnstr(puc0 + 1, (puc1 - puc0), BAD_CAST"<" NAME_PIE_CSV ">") != NULL) {
+	    PrintFormatLog(1, "Unbalanced markup: '<" NAME_PIE_CSV ">'");
 	  }
 
 	  ppeArg->pucContent = xmlStrndup(pucT, (int)(puc1 - pucT));
-	  ppeArg->iBegin += (index_t)(puc1 + xmlStrlen(BAD_CAST"</csv>") - puc0);
+	  ppeArg->iBegin += (index_t)(puc1 + xmlStrlen(BAD_CAST"</" NAME_PIE_CSV ">") - puc0);
 	}
 	else {
 	  /* no end markup found, copy end of string */
@@ -980,14 +976,14 @@ pieElementToDOM(pieTextElementPtr ppeT)
 	else if (pieElementIsCsv(ppeT)) {
 	  if (STR_IS_NOT_EMPTY(pucC)) {
 	    pndResult = xmlNewNode(NULL, NAME_PIE_IMPORT);
-	    xmlSetProp(pndResult, BAD_CAST "type", BAD_CAST"csv");
+	    xmlSetProp(pndResult, BAD_CAST "type", BAD_CAST NAME_PIE_CSV);
 	    xmlAddChild(pndResult, xmlNewText(pucC));
 	  }
 	}
 	else if (pieElementIsScript(ppeT)) {
 	  if (STR_IS_NOT_EMPTY(pucC)) {
 	    pndResult = xmlNewNode(NULL, NAME_PIE_IMPORT);
-	    xmlSetProp(pndResult, BAD_CAST "type", BAD_CAST"script");
+	    xmlSetProp(pndResult, BAD_CAST "type", BAD_CAST NAME_PIE_SCRIPT);
 	    xmlAddChild(pndResult, xmlNewText(pucC));
 	  }
 	}
@@ -1017,9 +1013,10 @@ pieElementToDOM(pieTextElementPtr ppeT)
 	  }
 	}
 	else if (STR_IS_NOT_EMPTY(pucC)) {
-	  if (pndResult) {
-	    xmlNewTextChild(pndResult, NULL, NAME_PIE_PAR, xmlNewText(pucC));
+	  if (pndResult == NULL) {
+	    pndResult = xmlNewNode(NULL, NAME_PIE_PAR);
 	  }
+	  xmlAddChild(pndResult, xmlNewText(pucC));
 	}
 	else {
 	  //pndResult = xmlNewPI(BAD_CAST"error", BAD_CAST"encoding");
