@@ -1265,7 +1265,7 @@ GetCalendarNodeDay(xmlNodePtr pndArg, unsigned int uiArgYear, unsigned int uiArg
 
 /*! \return 
 
-\param 
+\deprecated
 */
 xmlNodePtr
 GetCalendarNodeDayHour(xmlNodePtr pndArg, unsigned int uiArgYear, unsigned int uiArgMonth, unsigned int uiArgDay, unsigned int uiArgHour)
@@ -1453,17 +1453,26 @@ SubstituteFormatStr(xmlNodePtr pndContext, xmlChar *fmt)
       else if (puc1[1] == 'B') {
 	if (isdigit(puc1[2]) && isdigit(puc1[3]) && isdigit(puc1[4]) && isdigit(puc1[5]) && ! isdigit(puc1[6])) {
 	  /* difference in years */
+	  int iYearStart;
+	  int iYearEnd;
+	  
 	  if (puc1 - puc0 > 0) {
 	    pucResult = xmlStrncat(pucResult, puc0, (int)(puc1 - puc0));
 	  }
 
-	  pucValue = GetDiffYearsStrNew(domGetPropValuePtr(pndYear,BAD_CAST "ad"),&puc1[2]);
-	  if (pucResult) {
-	    pucResult = xmlStrcat(pucResult,pucValue);
-	    xmlFree(pucValue);
-	  }
-	  else {
-	    pucResult = pucValue;
+	  iYearStart = (int)strtol((char *)domGetPropValuePtr(pndYear,BAD_CAST "ad"),NULL,10);
+	  iYearEnd   = (int)strtol((char *)&puc1[2],NULL,10);
+
+	  if (iYearStart - iYearEnd > 0) {
+	    xmlChar mpucT[BUFFER_LENGTH];
+
+	    xmlStrPrintf(mpucT,BUFFER_LENGTH, "%i",iYearStart - iYearEnd);
+	    if (pucResult) {
+	      pucResult = xmlStrcat(pucResult,mpucT);
+	    }
+	    else {
+	      pucResult = xmlStrdup(mpucT);
+	    }
 	  }
 	  puc1 += 6;
 	  for (puc0 = puc1; *puc0 == ' '; puc0++) ; /* trailing spaces */
@@ -1476,86 +1485,33 @@ SubstituteFormatStr(xmlNodePtr pndContext, xmlChar *fmt)
       }
       else if (puc1[1] == 'D') {
 	if (isdigit(puc1[2]) && isdigit(puc1[3]) && isdigit(puc1[4]) && isdigit(puc1[5])
-	  && isdigit(puc1[6]) && isdigit(puc1[7]) && isdigit(puc1[8]) && isdigit(puc1[9]) && isspace(puc1[10])) {
+	    && isdigit(puc1[6]) && isdigit(puc1[7]) && isdigit(puc1[8]) && isdigit(puc1[9]) && isspace(puc1[10])) {
+	  int l, t;
+	  dt_t dtpAbs;
+	  dt_t dtpDate;
+	  
 	  /* difference in days */
 	  if (puc1 - puc0 > 0) {
 	    pucResult = xmlStrncat(pucResult, puc0, (int)(puc1 - puc0));
 	  }
 
-	  pucValue = GetDiffDaysStrNew(domGetPropValuePtr(pndDay,BAD_CAST "abs"),&puc1[2]);
-	  if (pucResult) {
-	    pucResult = xmlStrcat(pucResult,pucValue);
-	    xmlFree(pucValue);
-	  }
-	  else {
-	    pucResult = pucValue;
+	  if (dt_parse_iso_date((const char *)domGetPropValuePtr(pndDay,BAD_CAST "abs"), 20, &dtpAbs) > 4
+	      && dt_parse_iso_date((const char *)&puc1[2], 20, &dtpDate) > 4) {
+	    xmlChar mpucT[BUFFER_LENGTH];
+	    
+	    xmlStrPrintf(mpucT,BUFFER_LENGTH, "%i", dtpAbs - dtpDate);
+	    if (pucResult) {
+	      pucResult = xmlStrcat(pucResult,mpucT);
+	    }
+	    else {
+	      pucResult = xmlStrdup(mpucT);
+	    }
 	  }
 	  puc1 += 9;
 	  puc0 = puc1 + 1;
 	}
       }
       /*!\todo substitute '%N' */
-#if 0
-      /* non-@free day of year */
-      pucT = pucResult;
-      if ((pucFormating = BAD_CAST xmlStrstr(pucT,BAD_CAST "%N"))) {
-	/* search for all preceeding siblings in same COL in same
-	YEAR
-	*/
-	int iDayCount = 0;
-	xmlNodePtr pndTDay;
-	xmlNodePtr pndCurrent;
-	xmlNodePtr pndPi;
-	xmlChar *pucFree;
-	xmlChar *pucHoliday;
-	xmlChar *pucColId;
-
-	pucColId = domGetPropValuePtr(pndContext,BAD_CAST "name");
-
-	if (pndDay && pndYear) {
-	  for (pndTDay = domGetFirstChild(domGetFirstChild(pndYear,NAME_CXP_MONTH),NAME_CXP_DAY);
-	    pndTDay;
-	    pndTDay = GetCalendarNodeNext(pndTDay,+1)) {
-	    /* step over all day nodes */
-	    /*!\todo set pndArg for every col separately, perfomance? */
-	    for (pndCurrent = domGetFirstChild(pndTDay,NAME_COL);
-	      pndCurrent;
-	      pndCurrent = pndCurrent->next) {
-	      /* step over all col nodes */
-	      for (pndPi = domGetFirstChild(pndCurrent,NAME_CXP_PAR);
-		pndPi;
-		pndPi = pndPi->next) {
-		/* step over all p nodes */
-		if (((pucFree = domGetPropValuePtr(pndPi,BAD_CAST "free"))
-		  && !xmlStrcasecmp(pucFree,BAD_CAST "yes")
-		  && !xmlStrcasecmp(domGetPropValuePtr(pndCurrent,BAD_CAST "name"),pucColId))
-		  ||
-		  ((pucHoliday = domGetPropValuePtr(pndPi,BAD_CAST "holiday"))
-		  && !xmlStrcasecmp(pucHoliday,BAD_CAST "yes"))) {
-		  /* a p[@free='yes'] in a col[@id=pucColId] found */
-		  /* or */
-		  /* a p[@holiday='yes'] found */
-		  /* dont count this day */
-		  goto skip_day;
-		}
-	      }
-	    }
-	    iDayCount++;
-	  skip_day:
-	    if (pndTDay == pndDay) {
-	      /* day node itself found */
-	      break;
-	    }
-	  }
-	}
-
-	if (iDayCount > 0) {
-	  xmlStrPrintf(mpucT,BUFFER_LENGTH, "%i",iDayCount);
-	  pucResult = ReplaceStr(pucT,BAD_CAST "%N",mpucT);
-	}
-	xmlFree(pucT);
-      }
-#endif
     }
     else if (puc1[0] == '\0') {
       /* end of string */

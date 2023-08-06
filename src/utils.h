@@ -142,18 +142,6 @@ extern long int
 GetDayAbsoluteStr(xmlChar *pucGcal);
 
 extern xmlChar *
-GetDiffDaysStrNew(xmlChar *pucArgStart,xmlChar *pucArgEnd);
-
-extern xmlChar *
-GetDiffYearsStrNew(xmlChar *pucArgStart,xmlChar *pucArgEnd);
-
-extern int
-GetDayOfWeek(int day, int month, int year);
-
-extern int
-GetWeekOfYear(int day, int month, int year);
-
-extern xmlChar *
 GetNowFormatStr(xmlChar *pucArgFormat);
 
 extern xmlChar *

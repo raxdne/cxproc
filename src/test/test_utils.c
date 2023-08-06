@@ -723,20 +723,6 @@ utilsTest(void)
 
 
   if (RUNTEST) {
-
-    i++;
-    printf("TEST %i in '%s:%i': = ",i,__FILE__,__LINE__);
-
-    if (GetWeekOfYear(3, 6, 2013) != 23) {
-      printf("ERROR GetWeekOfYear()\n");
-    }
-    else {
-      n_ok++;
-      printf("OK\n");
-    }
-  }
-
-  if (RUNTEST) {
     xmlChar *pucTest;
 
     i++;

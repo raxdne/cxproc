@@ -1767,67 +1767,6 @@ GetDayAbsoluteStr(xmlChar *pucGcal)
 /* end of GetDayAbsoluteStr() */
 
 
-/*! \return a string 
-*/
-xmlChar *
-GetDiffDaysStrNew(xmlChar *pucArgAbs,xmlChar *pucArgDate)
-{
-  xmlChar *pucResult = NULL;
-
-  if (pucArgAbs != NULL && pucArgDate != NULL) {
-    xmlChar mpucT[BUFFER_LENGTH];
-
-#if 1
-    dt_t dtpAbs;
-    dt_t dtpDate;
-    //int sod, nsec;
-    int l, t;
-
-    if (dt_parse_iso_date((const char *)pucArgAbs, 20, &dtpAbs) > 4 && dt_parse_iso_date((const char *)pucArgDate, 20, &dtpDate) > 4) {
-      xmlStrPrintf(mpucT,BUFFER_LENGTH, "%i", dtpAbs - dtpDate);
-    }
-    else {
-    }
-#else
-    int iDayStart = (int)GetDayAbsoluteStr(pucArgDate);
-    int iDayEnd   = (int)strtol((char *)pucArgAbs,NULL,10);
-    
-    xmlStrPrintf(mpucT,BUFFER_LENGTH, "%i", iDayEnd - iDayStart);
-#endif
-    
-    pucResult = xmlStrdup(mpucT);
-  }
-
-  return pucResult;
-}
-/* end of GetDiffDaysStrNew() */
-
-
-/*! \return a string
-*/
-xmlChar *
-GetDiffYearsStrNew(xmlChar *pucArgStart,xmlChar *pucArgEnd)
-{
-  xmlChar *pucResult = NULL;
-
-  if (pucArgStart != NULL && pucArgEnd != NULL) {
-
-    int iYearStart = (int)strtol((char *)pucArgStart,NULL,10);
-    int iYearEnd   = (int)strtol((char *)pucArgEnd,NULL,10);
-
-    if (iYearStart - iYearEnd > 0) {
-      xmlChar mpucT[BUFFER_LENGTH];
-
-      xmlStrPrintf(mpucT,BUFFER_LENGTH, "%i",iYearStart - iYearEnd);
-      pucResult = xmlStrdup(mpucT);
-    }
-  }
-
-  return pucResult;
-}
-/* end of GetDiffYearsStrNew() */
-
-
 /* compute the sequential number of a day in the year
 (1-Jan = 1, 31-Dec = 365/366)
 J.D. Robertson: Remark on Algorithm 398,
@@ -1846,90 +1785,6 @@ int _GetDayOfYear(int day, int month, int year)
     ) * lmon + day);
 }
 /* end of GetDayOfYear() */
-
-
-/* compute the day in the week,
-1 = Monday, 7 = Sunday
-J.D. Robertson: Remark on Algorithm 398,
-Comm. ACM 13, 10 (Oct. 1972), p. 918
-"Zeller's congruence"
-*/
-int GetDayOfWeek(int day, int month, int year)
-{
-#if 1
-  int y, result, d;
-  dt_to_ywd(dt_from_ywd(year, month, day), &y, &d, &result);
-  return result;
-#else
-  int  lmon; /* derived from month */
-  int  mmon; /* derived from month */
-
-  lmon = month + 10;
-  mmon = (month - 14) / 12 + year;
-  return ((((13 * (lmon - (lmon /  13) *  12) - 1) / 5 + day + 77
-    + 5 * (mmon - (mmon / 100) * 100) / 4
-    + mmon / 400 - (mmon / 100) *   2)
-    - 1) % 7 + 1
-    );
-#endif
-}
-/* end of GetDayOfWeek() */
-
-
-/* Compute the week number (0..52) for a given date.
-The weeks start at monday, and some days at the beginning
-of January may be in week "0"
-which means week 52 of the previous year.
-
-\deprecated to be replaced by  dt_from_ywd()/dt_from_ymd()
-*/
-int
-GetWeekOfYear(int day, int month, int year)
-{
-#if 1
-  int y, result, d;
-  dt_to_ywd(dt_from_ymd(year, month, day), &y, &result, &d);
-  return result;
-#elif 0
-  // http://www.nord-com.net/h-g.mekelburg/kalender/kal-64.htm
-  int Woche = 0;
-  int Wchtag1Jan = GetDayOfWeek(1, 1, year) - 1;
-  int Tage = GetDayOfYear(day, month, year) - 1;
-
-  if (Wchtag1Jan > 3)
-    Tage = Tage - (7 - Wchtag1Jan);
-  else Tage = Tage + Wchtag1Jan;
-
-  if (Tage < 0)
-    if ((Wchtag1Jan == 4)
-      || (GetDayOfWeek(1, 1, year - 1) - 1 == 3))
-      Woche = 53;
-    else Woche = 52;
-  else Woche = (int)floor((float)Tage / 7.0f) + 1;
-
-  if ((Tage > 360) && (Woche > 52)) {
-    if (Wchtag1Jan == 3)
-      Woche = 53;
-    else if (GetDayOfWeek(1, 1, year + 1) - 1 == 4)
-      Woche = 53;
-    else Woche = 1;
-  }
-  return Woche;
-#else
-  int  wjan1; /* week day of January 1st */
-  int  day_num; /* number of day in year */
-
-  wjan1 = GetDayOfWeek(1, 1, year);
-  day_num = GetDayOfYear(day, month, year);
-  if (wjan1 > 1)
-    day_num -= (8 - wjan1);
-  if (day_num <= 0)
-    return 0; /* before 1st Monday in January */
-  else
-    return (day_num - 1) / 7 + 1;
-#endif
-}
-/* end of GetWeekOfYear() */
 
 
 /*! a subset of linux date command format
@@ -2009,6 +1864,7 @@ GetNowFormatStr(xmlChar *pucArgFormat)
 	pucResult = xmlStrdup(pucArgFormat);
 	if (pucResult) {
 	  int i;
+	  int y, w, d;
 	  xmlChar mucBuffer[BUFFER_LENGTH];
 
 	  for (i = 0, mucBuffer[0] = 0; pucResult[i]; i++) {
@@ -2047,7 +1903,8 @@ GetNowFormatStr(xmlChar *pucArgFormat)
 		break;
 
 	      case 'V':
-		xmlStrPrintf(mucBuffer, BUFFER_LENGTH, "%02i", GetWeekOfYear(pTime->tm_mday, pTime->tm_mon + 1, pTime->tm_year + 1900));
+		dt_to_ywd(dt_from_ymd(pTime->tm_year + 1900, pTime->tm_mon + 1, pTime->tm_mday), &y, &w, &d);
+		xmlStrPrintf(mucBuffer, BUFFER_LENGTH, "%02i", w);
 		break;
 
 	      case 'H':
