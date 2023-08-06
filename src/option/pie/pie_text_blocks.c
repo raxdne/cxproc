@@ -160,6 +160,9 @@ SubstNodeNew(xmlNodePtr pndArg);
 xmlNodePtr
 ImportNodeNew(xmlNodePtr pndArg, int iArgMode);
 
+xmlAttrPtr
+SetPropInherit(xmlNodePtr pndArg, const xmlChar *pucArgName, const xmlChar *pucArgValue);
+
 
 /*! exit procedure for this module
 */
@@ -2372,6 +2375,28 @@ StringDecodeCharMarkupNew(xmlChar *pucArg, lang_t eLangArg)
 } /* end of StringDecodeCharMarkupNew() */
 
 
+/*! inherit pattArg to all "section|task|p" descendants of pndArgTop
+*/
+xmlAttrPtr
+SetPropInherit(xmlNodePtr pndArg, const xmlChar *pucArgName, const xmlChar *pucArgValue)
+{
+  xmlAttrPtr pattResult = NULL;
+  
+  if ((IS_NODE_PIE_PAR(pndArg) || IS_NODE_PIE_TASK(pndArg)) || IS_NODE_PIE_TARGET(pndArg) || IS_NODE_PIE_SECTION(pndArg)) {
+    pattResult = xmlSetProp(pndArg,pucArgName,pucArgValue);
+  }
+
+  if (IS_NODE_PIE_PIE(pndArg) || IS_NODE_PIE_BLOCK(pndArg) || IS_NODE_PIE_SECTION(pndArg) || IS_NODE_PIE_TASK(pndArg) || IS_NODE_PIE_TARGET(pndArg) || IS_NODE_PIE_LIST(pndArg)) {
+    xmlNodePtr pndT;
+    for (pndT = pndArg->children; pndT; pndT = pndT->next) {
+      pattResult = SetPropInherit(pndT,pucArgName,pucArgValue);
+    }
+  }
+  
+  return pattResult;
+} /* end of SetPropInherit() */
+
+
 /*! 
 */
 xmlNodePtr
@@ -2390,6 +2415,7 @@ RecognizeSymbols(xmlNodePtr pndArg, lang_t eLangArg)
 
       if ((pucT = StringDecodeNumericCharsNew(pndArg->content)) != NULL
 	  && (pucTT = StringDecodeCharMarkupNew(pucT, eLangArg)) != NULL) {
+	xmlAttrPtr pAttr;
 
 	assert(pndArg->parent != NULL);
 	
@@ -2404,7 +2430,8 @@ RecognizeSymbols(xmlNodePtr pndArg, lang_t eLangArg)
 
 	if (StringEndsWith(pucTT, STR_PIE_IMPACT_HIGH) != NULL) {
 	  if (IS_NODE_PIE_HEADER(pndArg->parent) && pndArg->parent->parent != NULL) {
-	    xmlSetProp(pndArg->parent->parent,BAD_CAST"impact",BAD_CAST"1");
+	    /*! inherit this attribute to all childs */
+	    SetPropInherit(pndArg->parent->parent,BAD_CAST"impact",BAD_CAST"1");
 	  }
 	  else {
 	    xmlSetProp(pndArg->parent,BAD_CAST"impact",BAD_CAST"1");
@@ -2413,6 +2440,8 @@ RecognizeSymbols(xmlNodePtr pndArg, lang_t eLangArg)
 	else if (StringEndsWith(pucTT, STR_PIE_IMPACT_MEDIUM) != NULL) {
 	  if (IS_NODE_PIE_HEADER(pndArg->parent) && pndArg->parent->parent != NULL) {
 	    xmlSetProp(pndArg->parent->parent,BAD_CAST"impact",BAD_CAST"2");
+	    /*! inherit this attribute to all childs */
+	    SetPropInherit(pndArg->parent->parent,BAD_CAST"impact",BAD_CAST"2");
 	  }
 	  else {
 	    xmlSetProp(pndArg->parent,BAD_CAST"impact",BAD_CAST"2");
@@ -2429,8 +2458,9 @@ RecognizeSymbols(xmlNodePtr pndArg, lang_t eLangArg)
 	  }
 	}
 	else if (IS_PIE_OK(pucTT)) {
-	  if (IS_NODE_PIE_HEADER(pndArg->parent) && pndArg->parent->parent != NULL) {
-	    xmlSetProp(pndArg->parent->parent,BAD_CAST"done",BAD_CAST"yes");
+	  if (IS_NODE_PIE_HEADER(pndArg->parent) && pndArg->parent->parent != NULL) {	    
+	    /*! inherit this attribute to all childs */
+	    SetPropInherit(pndArg->parent->parent,BAD_CAST"done",BAD_CAST"yes");
 	  }
 	  else {
 	    xmlSetProp(pndArg->parent,BAD_CAST"done",BAD_CAST"yes");

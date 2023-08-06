@@ -501,6 +501,68 @@ pieElementHasNext(pieTextElementPtr ppeArg)
 	fResult = TRUE;
       }
 #ifdef EXPERIMENTAL
+      else if (StringBeginsWith((char *)puc0, "<skip>")) {
+	/*
+	handle skip markup in input file
+	*/
+	xmlChar *puc1;
+
+	/*!\todo change markup to <skip> */
+
+	if ((puc1 = BAD_CAST xmlStrstr(puc0, BAD_CAST"</skip>")) != NULL) {
+	  /* skip string between markups */
+
+	  if (Strnstr(puc0 + 1, (puc1 - puc0), BAD_CAST"<skip>") != NULL) {
+	    PrintFormatLog(1, "Unbalanced markup: '<skip>'");
+	  }
+
+	  ppeArg->iBegin = (index_t)(puc1 + xmlStrlen(BAD_CAST"</skip>") - ppeArg->pucSource);
+	  fResult = TRUE;
+	}
+	else {
+	  /* no end markup found, end of string */
+	  ppeArg->iBegin = xmlStrlen(ppeArg->pucSource);
+	}
+
+	ppeArg->eType = skip;
+	ppeArg->pucContent = NULL;
+	//ppeArg->iLength = 0;
+      }
+      else if (pieElementGetMode(ppeArg) == RMODE_PAR && StringBeginsWith((char *)puc0, "<pre>")) {
+	/*
+	handle pre formatted markup in input file
+	*/
+	xmlChar *puc1;
+	xmlChar *pucT;
+
+	if ((puc1 = BAD_CAST xmlStrstr(puc0, BAD_CAST"</pre>")) != NULL) {
+	  /* copy string between markups */
+	  index_t l;
+
+	  /*!\todo change markup to <pre> */
+
+	  if (Strnstr(puc0 + 1, (puc1 - puc0), BAD_CAST"<pre>") != NULL) {
+	    PrintFormatLog(1, "Unbalanced markup: '<pre>'");
+	  }
+
+	  for (l = xmlStrlen(BAD_CAST"<pre>"); puc0[l] == (xmlChar)'\n'; l++); /* skip leading empty lines */
+	  ppeArg->pucContent = xmlStrndup(puc0 + l, (int)(puc1 - (puc0 + l)));
+	  for (l = xmlStrlen(ppeArg->pucContent) - 1; l > 0 && (ppeArg->pucContent[l] == (xmlChar)'\n' || ppeArg->pucContent[l] == (xmlChar)'\r'); l--) {
+	    ppeArg->pucContent[l] = (xmlChar)'\0'; /* cut trailing empty lines */
+	  }
+
+	  ppeArg->iBegin += (index_t)(puc1 + xmlStrlen(BAD_CAST"</pre>") - puc0);
+	}
+	else {
+	  /* no end markup found, copy end of string */
+	  ppeArg->pucContent = xmlStrdup(puc0 + xmlStrlen(BAD_CAST"<pre>"));
+	  ppeArg->iBegin = xmlStrlen(ppeArg->pucSource);
+	}
+
+	ppeArg->eType = pre;
+	ppeArg->iLength = xmlStrlen(ppeArg->pucContent);
+	fResult = TRUE;
+      }
       else if (pieElementGetMode(ppeArg) == RMODE_PAR && StringBeginsWith((char *)puc0, "<make>")) {
 	/*
 	handle make formatted markup in input file
@@ -955,9 +1017,8 @@ pieElementToDOM(pieTextElementPtr ppeT)
 	  }
 	}
 	else if (STR_IS_NOT_EMPTY(pucC)) {
-	  pndResult = xmlNewNode(NULL, NAME_PIE_PAR);
 	  if (pndResult) {
-	    xmlAddChild(pndResult, xmlNewText(pucC));
+	    xmlNewTextChild(pndResult, NULL, NAME_PIE_PAR, xmlNewText(pucC));
 	  }
 	}
 	else {

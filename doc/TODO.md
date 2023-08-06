@@ -1,13 +1,29 @@
 
 # TODO
 
+## v2.0 #v20
+
+TODO: remove legacy code
+
+TODO: fix testing code
+
+TODO: review code internal tags
+
+TODO: update Windows libraries and vcpkg
+
 ## Documentation
 
-TODO: update descriptions in Doxygen format #v13
+TODO: update descriptions in Doxygen format #v20
 
 s. `./option/*/TODO.md`
 
+TODO: update program description #v20
+
 ## Features
+
+TODO: remove legacy element names #v20
+
+REQ: element `<skip>` #v20
 
 REQ: shell environment
 
@@ -62,7 +78,7 @@ REQ: HTML to UTF-8 Plain text Renderer `<cxp:plain><cxp:html name="abc.html"/></
 
 ## Security
 
-TEST: check security #v13 ++
+TEST: check security #v20 ++
 - access control in CGI mode
 - HTTP Status message if access denied
 
@@ -78,23 +94,23 @@ REQ: flags for permissions
 
 ## Profiling
 
-TODO: gprof and valgrind/cachegrind (KCachegrind) #v13
+TODO: gprof and valgrind/cachegrind (KCachegrind) #v20
 
 ## Building
 
 DONE: Binary without Microsoft Runtime DLL (at all requiered libs??)
 
-TODO: statically linked binaries for ARMv7, x64_linux, x64_windows (using `vcpkg`) #v13
+TODO: statically linked binaries for ARMv7, x64_linux, x64_windows (using `vcpkg`) #v20
 
-TODO: provide a Flatpack
+TODO: provide a Flatpack #v20
 
-TODO: detail information in binaries #v13
+TODO: detail information in binaries #v20
 
 TODO: MacOS binaries
 
 ## XML
 
-TODO: Update of RELAX NG schemas (translation by [trang](http://www.thaiopensource.com/relaxng/trang-manual.html) ) #v14
+TODO: Update of RELAX NG schemas (translation by [trang](http://www.thaiopensource.com/relaxng/trang-manual.html) ) #v20
 
 ## Testing
 
@@ -107,7 +123,7 @@ Test with text files from Gutenberg Project <https://www.gutenberg.org/>
 
 DONE: CMake packaging (tar.gz, zip) #v13
 
-TODO: CMake packaging (deb, rpm, NSI) #v14
+TODO: CMake packaging (deb, rpm, NSI) #v20
 
 ## Scripting
 
@@ -200,8 +216,8 @@ TEST: on Linux and Windows
 see REST principles
 
 „XProc: An XML Pipeline Language“ <http://www.w3.org/TR/xproc/>
-
-- s. <https://transpect.github.io/index.html>
+- https://github.com/topics/xproc
+- <https://transpect.github.io/index.html>
 
 The [JasperReports Library](http://community.jaspersoft.com/project/jasperreports-library) is the world's most popular open source reporting engine.
 
