@@ -342,14 +342,38 @@ resNodeListFindPath(resNodePtr prnArg, xmlChar *pucArgPath, int iArgOptions)
 {
   resNodePtr prnResult = NULL;
 
-  if (prnArg) {
+  if (prnArg && STR_IS_NOT_EMPTY(pucArgPath)) {
     xmlChar *pucT;
     resNodePtr prnI;
+    pcre2_code *re_match = NULL;
+    pcre2_match_data *match_data = NULL;
 
 #ifdef DEBUG
     PrintFormatLog(4, "resNodeListFindPath('%s','%s')", resNodeGetNameNormalized(prnArg), pucArgPath);
 #endif
 
+    if (iArgOptions & RN_FIND_REGEXP) {
+      size_t erroroffset;
+      int errornumber;
+      int opt_match_pcre = PCRE2_UTF | PCRE2_CASELESS;
+
+      re_match = pcre2_compile(
+			       (PCRE2_SPTR8)pucArgPath, /* the pattern */
+			       PCRE2_ZERO_TERMINATED, /* indicates pattern is zero-terminated */
+			       opt_match_pcre,         /* default options */
+			       &errornumber,          /* for error number */
+			       &erroroffset,          /* for error offset */
+			       NULL);                 /* use default compile context */
+
+      if (re_match) {
+	match_data = pcre2_match_data_create_from_pattern(re_match, NULL);
+      }
+      else {
+	PrintFormatLog(1, "error regexp: '%s'", pucArgPath);
+	return prnResult;
+      }
+    }
+    
     if (resPathIsAbsolute(pucArgPath)) {
       xmlChar* pucTT;
 
@@ -364,7 +388,17 @@ resNodeListFindPath(resNodePtr prnArg, xmlChar *pucArgPath, int iArgOptions)
     else if (resNodeIsHidden(prnArg)) {
       /* ignore this node and its childs */
     }
-    else if (resPathIsMatchingEnd(resNodeGetNameNormalized(prnArg), pucArgPath)) { /* match or not? */
+    else if (((iArgOptions & RN_FIND_REGEXP)
+	      &&
+	      pcre2_match(re_match,
+			  (PCRE2_SPTR8)resNodeGetNameNormalized(prnArg),
+			  strlen((const char*)resNodeGetNameNormalized(prnArg)),
+			  0,
+			  0,
+			  match_data,
+			  NULL) > -1)
+	     ||
+	     resPathIsMatchingEnd(resNodeGetNameNormalized(prnArg), pucArgPath)) { /* match or not? */
       if (((iArgOptions & RN_FIND_DIR) && resNodeGetType(prnArg) == rn_type_dir)
           ||
           ((iArgOptions & RN_FIND_IN_ARCHIVE) && resNodeGetType(prnArg) == rn_type_dir_in_archive)
@@ -402,6 +436,11 @@ resNodeListFindPath(resNodePtr prnArg, xmlChar *pucArgPath, int iArgOptions)
 	prnResult = resNodeListFindPath(prnI, pucArgPath, iArgOptions & ~RN_FIND_NEXT);
       }
     }
+
+    if (re_match) {
+      pcre2_match_data_free(match_data);   /* Release memory used for the match */
+      pcre2_code_free(re_match);
+    }    
   }
   return prnResult;
 } /* end of resNodeListFindPath() */

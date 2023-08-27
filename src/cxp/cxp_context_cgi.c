@@ -231,19 +231,16 @@ cxpCtxtCgiParse(cxpContextPtr pccArg)
     /*!
       search for this file name in CXP_ROOT
     */
-    if ((prnFile = resNodeRootNew(cxpCtxtRootGet(pccArg), pucCgiPath)) != NULL && resNodeReadStatus(prnFile) && resNodeIsFile(prnFile)) {
-    }
-    else if (resNodeReadStatus(prnFile) && resNodeIsDir(prnFile)) {
-      /* ignoring searches for directories */
-      resNodeFree(prnFile);
-      prnFile = NULL;
-    }
-    else if ((prnFile = resNodeListFindPath(cxpCtxtRootGet(pccArg), pucCgiPath, (RN_FIND_FILE | RN_FIND_IN_SUBDIR))) != NULL) {
+    if ((prnFile = resNodeListFindPath(cxpCtxtRootGet(pccArg), pucCgiPath, (RN_FIND_FILE | RN_FIND_IN_SUBDIR))) != NULL) {
       prnFile = resNodeDup(prnFile, RN_DUP_THIS);
     }
-    else if ((prnFile = cxpResNodeResolveNew(pccArg, NULL, pucCgiPath, (CXP_O_FILE | CXP_O_READ | CXP_O_SEARCH))) != NULL) {
-    }
-    else {
+  }
+  else if ((pucCgiPath = cxpCtxtCgiGetValueByName(pccArg, BAD_CAST"research")) != NULL) {
+    /*!
+      search for this file name in CXP_ROOT using 'pucCgiPath' as regexp
+    */
+    if ((prnFile = resNodeListFindPath(cxpCtxtRootGet(pccArg), pucCgiPath, (RN_FIND_FILE | RN_FIND_IN_SUBDIR | RN_FIND_REGEXP))) != NULL) {
+      prnFile = resNodeDup(prnFile, RN_DUP_THIS);
     }
   }
   else if ((pucCgiPath = cxpCtxtCgiGetValueByName(pccArg, BAD_CAST"spath")) != NULL) {

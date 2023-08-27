@@ -212,6 +212,9 @@ resNodeTestList(void)
     else if (resNodeListFindPath(prnT, BAD_CAST"Podcasts/Blah Blah", (RN_FIND_DIR | RN_FIND_IN_SUBDIR | RN_FIND_IN_ARCHIVE)) != prnNeedleDir) {
       printf("Error 5 resNodeListFindPath() ...\n");
     }
+    else if (resNodeListFindPath(prnT, BAD_CAST"^.*567891\\.jpg", (RN_FIND_FILE | RN_FIND_IN_SUBDIR | RN_FIND_REGEXP)) == NULL) {
+      printf("Error 5b resNodeListFindPath() ...\n");
+    }
     else if ((prnFound = resNodeListFindPath(prnT, BAD_CAST"Dummy/", (RN_FIND_DIR | RN_FIND_IN_SUBDIR))) == NULL) {
       printf("Error 6 resNodeListFindPath() ...\n");
     }
