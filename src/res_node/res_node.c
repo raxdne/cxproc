@@ -1401,6 +1401,12 @@ resNodeDirNew(xmlChar *pucArgPath)
       }
     }
 #ifdef _MSC_VER
+    else if (resPathIsUNC(pucPath)) {
+      prnResult->pucNameNormalized = xmlStrdup(pucPath);
+      if (resPathIsTrailingSeparator(pucPath)) { /*  */
+	eType = rn_type_dir;
+      }
+    }
     else if (resPathIsLeadingSeparator(pucPath)) { /* without drive letter */
       pucT = resPathGetCwd();
       prnResult->pucNameNormalized = xmlStrndup(pucT, 3);
