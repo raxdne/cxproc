@@ -306,11 +306,16 @@ cmarkTreeToDOM(xmlNodePtr pndArgBlock, xmlNodePtr pndArg, cmark_node* pcmnArg)
     /* Inline */
     else if (pcmnArg->type == CMARK_NODE_TEXT) {
       if (STR_IS_NOT_EMPTY(pcmnArg->data)) {
+	if (IS_NODE_PIE_PAR(pndArg) && xmlNodeIsText(pndArg->last)) {
+	  xmlAddChild(pndArg, xmlNewText(BAD_CAST " ")); /* concatenation of two text lines */
+	}
 	xmlAddChild(pndArg, xmlNewText(BAD_CAST pcmnArg->data));
       }
+#ifdef DEBUG
       else {
 	xmlAddChild(pndArg, xmlNewComment(BAD_CAST"empty paragraph"));
       }
+#endif
     }
     else if (pcmnArg->type == CMARK_NODE_FIRST_INLINE) {
       cmarkTreeToDOM(pndArg, pndArg, pcmnArg->first_child);

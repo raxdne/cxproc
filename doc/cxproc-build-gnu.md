@@ -73,13 +73,14 @@ build directory is defined by `misc/prepare-cmake.sh`
 
 	cd ~/cxproc-build/cxproc
 	. misc/prepare-cmake.sh
-	(cd $PREFIX/build && cmake ~/cxproc-build/cxproc/ "-GUnix Makefiles" -DCMAKE_BUILD_TYPE=Debug -DCXPROC_DOC:BOOL=OFF -DCXPROC_LEGACY:BOOL=ON -DCXPROC_EXPERIMENTAL:BOOL=ON -DCXPROC_MARKDOWN:BOOL=OFF)
-	cmake --build $PREFIX/build -j 4
-	(cd $PREFIX/build && ctest)
-	cmake --install $PREFIX/build --prefix $PREFIX/
-	#cmake --build $PREFIX/build --target package
-	#(cd $PREFIX/build && cpack -V --debug)
-	cmake --build $PREFIX/build --target clean
+	cmake -S `pwd` -B $DIR_BUILD -G 'Unix Makefiles' -DCMAKE_BUILD_TYPE=Release -DCXPROC_DOC:BOOL=OFF -DCXPROC_LEGACY:BOOL=ON -DCXPROC_EXPERIMENTAL:BOOL=ON -DCXPROC_MARKDOWN:BOOL=OFF
+	# cmake-gui -S `pwd` -B $DIR_BUILD &
+	cmake --build $DIR_BUILD -j 4 --target all
+	(cd $DIR_BUILD && ctest)
+	cmake --install $DIR_BUILD --prefix $PREFIX/
+	#cmake --build $DIR_BUILD --target package
+	#(cd $DIR_BUILD && cpack -V --debug)
+	cmake -B $DIR_BUILD --target clean
 
 GUI
 

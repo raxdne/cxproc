@@ -5,7 +5,7 @@
 
 TODO: remove legacy code
 
-TODO: fix testing code
+TODO: fix testing code #v20
 
 TODO: review code internal tags
 
@@ -21,9 +21,9 @@ TODO: update program description #v20
 
 ## Features
 
-TODO: remove legacy element names #v20
+TODO: remove legacy element names #v20 ✔
 
-REQ: element `<skip>` #v20
+REQ: element `<skip>` #v20 ✔
 
 REQ: shell environment
 
@@ -138,6 +138,8 @@ Javascript
 REQ: Tcl bindings "Tcxproc"
 
 REQ: Python bindings
+- lxml
+- http://xmlsoft.org/xslt/python.html
 
 ## Web server
 
