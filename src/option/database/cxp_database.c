@@ -329,6 +329,7 @@ dbParseDirTraverse(resNodePtr prnArgDb, resNodePtr prnArgContext, int iDepthArg,
     }
     else if (resNodeListParse(prnArgContext, 1, re_match)) { /*! read Resource Node as list of childs */
       for (prnT = resNodeGetChild(prnArgContext); iDepthArg > 0 && prnT != NULL && fResult; prnT = resNodeGetNext(prnT)) {
+    	resNodeIncrRecursiveSize(prnArgContext, resNodeGetSize(prnT));
 	fResult &= dbParseDirTraverse(prnArgDb, prnT, iDepthArg - 1, iLevelVerboseArg, iOptions, re_match, pccArg);
       }
       resNodeFree(resNodeGetChild(prnArgContext)); /* release the context list of current directory */

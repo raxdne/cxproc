@@ -806,7 +806,7 @@ AddNodeDateAttributes(xmlNodePtr pndArg, ceElementPtr pceArg)
 	xmlSetProp(pndArg, BAD_CAST"DTEND", mpucT);
 #endif
 
-	xmlStrPrintf(mpucT, BUFFER_LENGTH, "%li", pceArg->dt1.dt - pceArg->dt0.dt + 1);
+	xmlStrPrintf(mpucT, BUFFER_LENGTH, "%i", pceArg->dt1.dt - pceArg->dt0.dt + 1);
 	xmlSetProp(pndArg, BAD_CAST"interval", mpucT);
       }
       else if (pceArg->dt1.dt > 0 || pceArg->dt0.dt > 0) {
@@ -848,7 +848,7 @@ AddNodeDateAttributes(xmlNodePtr pndArg, ceElementPtr pceArg)
 #endif
       }
 
-      //xmlStrPrintf(mpucT, BUFFER_LENGTH, "%li", pceArg->dt0.dt);
+      //xmlStrPrintf(mpucT, BUFFER_LENGTH, "%i", pceArg->dt0.dt);
       //xmlSetProp(pndArg, BAD_CAST"abs", mpucT);
 
       if (pceArg->dt1.dt > pceArg->dt0.dt) {

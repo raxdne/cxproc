@@ -953,7 +953,7 @@ resNodeGetSiblingsCount(resNodePtr prnArgList, RN_TYPE eArgType)
       }
     }
 
-    for (prnT = prnT = prnArgList->next; prnT; prnT = prnT->next) {
+    for (prnT = prnArgList->next; prnT; prnT = prnT->next) {
       if (resNodeGetType(prnT) == eArgType) {
 	iResult++;
       }
@@ -3731,15 +3731,15 @@ resNodeToSQL(resNodePtr prnArg, int iArgOptions)
 	pucSqlValues = xmlStrcat(pucSqlValues,BAD_CAST"\",");
 #endif
 	
-	xmlStrPrintf(pucResult, BUFFER_LENGTH, "%li,", resNodeGetSize(prnArg));
-	pucSqlValues = xmlStrcat(pucSqlValues,pucResult);
-		     
 	if (resNodeIsDir(prnArg)) {
-	  xmlStrPrintf(pucResult, BUFFER_LENGTH, "%li,\"\",\"\",", (long)(resNodeGetRecursiveSize(prnArg) / SIZE_MEGA));
+	  xmlStrPrintf(pucResult, BUFFER_LENGTH, "%li,\"\",\"\",", resNodeGetRecursiveSize(prnArg));
 	  pucSqlValues = xmlStrcat(pucSqlValues,pucResult);
 	}
 	else {
-	  pucSqlValues = xmlStrcat(pucSqlValues,BAD_CAST"0,\"");
+	  xmlStrPrintf(pucResult, BUFFER_LENGTH, "%li,", resNodeGetSize(prnArg));
+	  pucSqlValues = xmlStrcat(pucSqlValues,pucResult);
+		     
+	  pucSqlValues = xmlStrcat(pucSqlValues,BAD_CAST"\"");
 	  if ((pucT = resNodeGetExtension(prnArg))) {
 	    pucSqlValues = xmlStrcat(pucSqlValues,pucT);
 	  }
@@ -5262,7 +5262,6 @@ resNodeDatabaseSchemaStr(void)
     "owner text, "
 #endif
     "size INTEGER, "
-    "rsize INTEGER, "
     "ext text, "
     "object text, "
     "path text, "
@@ -5298,6 +5297,7 @@ resNodeDatabaseSchemaStr(void)
     "INSERT INTO 'queries' VALUES (\"SELECT * FROM meta;\");\n"
     "INSERT INTO 'queries' VALUES (\"SELECT DISTINCT name FROM directory;\");\n"
     "INSERT INTO 'queries' VALUES (\"SELECT sum(size)/(1024*1024*1024) AS GB FROM directory;\");\n"
+    "INSERT INTO 'queries' VALUES (\"SELECT sum(size)/1024 AS KBytes, path FROM directory WHERE path in (SELECT DISTINCT path FROM directory) GROUP BY path ORDER BY KBytes DESC;\");\n"
     "INSERT INTO 'queries' VALUES (\"SELECT path || '/' || name AS File,(size / 1048576) AS MB,mtime2 AS MTime FROM directory WHERE (size > 1048576) ORDER BY MB DESC;\");\n"
     "INSERT INTO 'queries' VALUES (\"SELECT count() AS Count, name AS Name FROM directory GROUP BY name ORDER BY Count DESC;\");\n"
     "\n");
