@@ -266,7 +266,7 @@ pieTextBlocksTest(void)
       || pndT->children->next->properties->children->content == NULL) {
       printf("Error 5 splitting URL\n");
     }
-    else if (xmlStrEqual(pndT->children->next->properties->children->content, BAD_CAST"http://www.abc.de") == NULL) {
+    else if (xmlStrEqual(pndT->children->next->properties->children->content, BAD_CAST"http://www.abc.de") == 0) {
       printf("Error 6 splitting URL\n");
     }
     else {
@@ -303,7 +303,7 @@ pieTextBlocksTest(void)
 	|| pndPie->children->next->properties->children->content == NULL) {
       printf("Error 5 splitting URL\n");
     }
-    else if (xmlStrEqual(pndPie->children->next->properties->children->content,BAD_CAST"http://www.abc.de") == NULL) {
+    else if (xmlStrEqual(pndPie->children->next->properties->children->content,BAD_CAST"http://www.abc.de") == 0) {
       printf("Error 6 splitting URL\n");
     }
     else {

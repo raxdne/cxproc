@@ -8,10 +8,11 @@
 set(CPACK_PACKAGE_DIRECTORY "${PROJECT_SOURCE_DIR}/..")
 
 INSTALL(TARGETS filex dir2csv dir2sqlite pietextx cxproc RUNTIME DESTINATION bin)
-INSTALL(TARGETS cxproc-cgi test-cgi RUNTIME DESTINATION lib/cgi-bin)
+INSTALL(TARGETS cxproc-cgi RUNTIME DESTINATION lib/cgi-bin)
 
 if (MSVC)
   set(CPACK_GENERATOR ZIP)
+  INSTALL(FILES ${CXPROC_PREFIX}/bin/sqlite3.exe ${CXPROC_PREFIX}/bin/cmark.exe ${CXPROC_PREFIX}/bin/xsltproc.exe ${CXPROC_PREFIX}/bin/xmllint.exe ${CXPROC_PREFIX}/bin/curl.exe DESTINATION bin)
   IF(NOT CXPROC_STATIC)
     file(GLOB DLL_DEPS ${CXPROC_PREFIX}/bin/*.dll)
     MESSAGE(STATUS "Dependencies: ${DLL_DEPS}")

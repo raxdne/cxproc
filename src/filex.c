@@ -65,10 +65,6 @@ main(int argc, char *argv[], char *envp[])
   xmlInitParser();
   LIBXML_TEST_VERSION
 
-  if (xmlInitMemory()==0) {
-    exit(EXIT_FAILURE);
-  }
-
   /* code for xmlzipio http://hal.iwr.uni-heidelberg.de/~christi/projects/xmlzipio.html */
   xmlKeepBlanksDefault(0);
   xmlRegisterDefaultInputCallbacks();

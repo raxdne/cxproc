@@ -133,9 +133,6 @@ main(int argc, char *argv[], char *envp[])
   xmlInitParser();
   LIBXML_TEST_VERSION
 
-  if (xmlInitMemory()==0) {
-    exit(EXIT_FAILURE);
-  }
   xmlKeepBlanksDefault(0);
   xmlRegisterDefaultInputCallbacks();
   xmlRegisterDefaultOutputCallbacks();
