@@ -328,25 +328,34 @@ cxpCtxtSaveFileNode(cxpContextPtr pccArg,xmlNodePtr pndArg,xmlDocPtr pdocArgOutp
     }
   }
   else if (resNodeGetType(prnOutput) == rn_type_stdout) {
-    /* s. RFC 1806 */
-    xmlChar *pucAttrType = domGetPropValuePtr(pndArg,BAD_CAST "type");
-    xmlChar *pucAttrDisposition = domGetPropValuePtr(pndArg,BAD_CAST "disposition");
-    printf("Content-Type: ");
-    if (pucAttrType && xmlStrlen(pucAttrType)>5) {
-      printf("%s;",pucAttrType);
-    }
-    else if (IS_NODE_XML(pndArg)) {
-      printf(domDocIsHtml(pdocArgOutput) ? "text/html;" : "text/xml;");
+    xmlChar *pucAttrStatus = domGetPropValuePtr(pndArg,BAD_CAST "status");
+    if (STR_IS_NOT_EMPTY(pucAttrStatus)) {
+      printf("Status: %s\r\n",pucAttrStatus);
+      if (STR_IS_NOT_EMPTY(pucArgOutput)) {
+	puts(pucArgOutput);
+      }
     }
     else {
-      printf("text/plain;");
-    }
-    printf(" charset=UTF-8\n");
+      /* s. RFC 1806 */
+      xmlChar *pucAttrType = domGetPropValuePtr(pndArg,BAD_CAST "type");
+      xmlChar *pucAttrDisposition = domGetPropValuePtr(pndArg,BAD_CAST "disposition");
+      printf("Content-Type: ");
+      if (pucAttrType && xmlStrlen(pucAttrType)>5) {
+	printf("%s;",pucAttrType);
+      }
+      else if (IS_NODE_XML(pndArg)) {
+	printf(domDocIsHtml(pdocArgOutput) ? "text/html;" : "text/xml;");
+      }
+      else {
+	printf("text/plain;");
+      }
+      printf(" charset=UTF-8\n");
 
-    if (pucAttrDisposition && xmlStrlen(pucAttrDisposition)>5) {
-      printf("Content-Disposition: %s\n",pucAttrDisposition);
+      if (pucAttrDisposition && xmlStrlen(pucAttrDisposition)>5) {
+	printf("Content-Disposition: %s\n",pucAttrDisposition);
+      }
+      printf("Content-Description: Dynamic cxproc content\n\n");
     }
-    printf("Content-Description: Dynamic cxproc content\n\n");
   }
   fflush(stdout); /*! because problems with VC++ (reverse order in stdout) */
 #else

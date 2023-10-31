@@ -1250,6 +1250,11 @@ cxpProcessXmlNode(xmlNodePtr pndArg, cxpContextPtr pccArg)
   if (IS_VALID_NODE(pndArg) == FALSE) {
     /* ignore NULL and invalid elements */
   }
+  else if (IS_NODE_XML(pndArg) && domGetPropFlag(pndArg,BAD_CAST"eval",TRUE) == FALSE) {
+    /* make a recursive copy of pndArg */
+    pdocResult = domDocFromNodeNew(pndArg);
+    xmlUnsetProp(xmlDocGetRootElement(pdocResult),BAD_CAST"eval");
+  }
   else if (IS_NODE_XML(pndArg)) {
     xmlChar *pucSchema;
     xmlChar *pucT = NULL;
@@ -3085,6 +3090,7 @@ cxpInfoProgram(xmlNodePtr pndArg, cxpContextPtr pccArg)
     xmlNodePtr nodeOption;
     xmlNodePtr nodeSource;
 
+    xmlSetNs(pndResult,cxpGetNs());
     xmlSetProp(pndResult, BAD_CAST "name", BAD_CAST CXP_VER_PRODUCTNAME_STR);
 
     nodeSource = xmlNewChild(pndResult, NULL, BAD_CAST"source", NULL);
