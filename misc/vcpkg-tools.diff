@@ -1,0 +1,58 @@
+ ports/cmark/portfile.cmake   | 1 +
+ ports/curl/portfile.cmake    | 2 +-
+ ports/libxml2/portfile.cmake | 2 ++
+ ports/sqlite3/portfile.cmake | 3 +--
+ 4 files changed, 5 insertions(+), 3 deletions(-)
+
+diff --git a/ports/cmark/portfile.cmake b/ports/cmark/portfile.cmake
+index 352a6b50a..f95e01a58 100644
+--- a/ports/cmark/portfile.cmake
++++ b/ports/cmark/portfile.cmake
+@@ -20,6 +20,7 @@ vcpkg_cmake_configure(
+     SOURCE_PATH ${SOURCE_PATH}
+     OPTIONS
+         ${FEATURE_OPTIONS}
++        -DBUILD_TOOLS=ON
+         -DCMARK_TESTS=OFF
+         -DCMARK_SHARED=${CMARK_SHARED}
+         -DCMARK_STATIC=${CMARK_STATIC}
+diff --git a/ports/curl/portfile.cmake b/ports/curl/portfile.cmake
+index bdc544e9e..7b48dddab 100644
+--- a/ports/curl/portfile.cmake
++++ b/ports/curl/portfile.cmake
+@@ -61,7 +61,7 @@ if(VCPKG_TARGET_IS_UWP)
+ endif()
+ 
+ if(VCPKG_TARGET_IS_WINDOWS)
+-    list(APPEND OPTIONS -DENABLE_UNICODE=ON)
++    list(APPEND OPTIONS -DBUILD_CURL_EXE=ON -DENABLE_UNICODE=ON)
+ endif()
+ 
+ vcpkg_cmake_configure(
+diff --git a/ports/libxml2/portfile.cmake b/ports/libxml2/portfile.cmake
+index 9f1cb2c3a..0dca77d68 100644
+--- a/ports/libxml2/portfile.cmake
++++ b/ports/libxml2/portfile.cmake
+@@ -24,6 +24,8 @@ vcpkg_cmake_configure(
+     SOURCE_PATH "${SOURCE_PATH}"
+     OPTIONS
+         ${FEATURE_OPTIONS}
++        -DLIBXML2_WITH_PROGRAMS=ON
++        -DLIBXML2_WITH_HTTP=ON
+         -DLIBXML2_WITH_TESTS=OFF
+         -DLIBXML2_WITH_HTML=ON
+         -DLIBXML2_WITH_C14N=ON
+diff --git a/ports/sqlite3/portfile.cmake b/ports/sqlite3/portfile.cmake
+index 5d4a6f987..d3332a33d 100644
+--- a/ports/sqlite3/portfile.cmake
++++ b/ports/sqlite3/portfile.cmake
+@@ -68,8 +68,7 @@ vcpkg_cmake_configure(
+     OPTIONS
+         ${FEATURE_OPTIONS}
+         -DPKGCONFIG_VERSION=${VERSION}
+-    OPTIONS_DEBUG
+-        -DSQLITE3_SKIP_TOOLS=ON
++        -DSQLITE3_SKIP_TOOLS=OFF
+ )
+ 
+ vcpkg_cmake_install()
