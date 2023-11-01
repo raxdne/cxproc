@@ -2347,7 +2347,7 @@ resNodeIsMemory(resNodePtr prnArg)
   BOOL_T fResult = FALSE;
 
   if (prnArg) {
-    fResult = (prnArg->pdocContent != NULL || prnArg->pContent != NULL);
+    fResult = (prnArg->pdocContent != NULL || prnArg->pContent != NULL || prnArg->eType == rn_type_memory);
   }
   return fResult;
 } /* end of resNodeIsMemory() */
@@ -4796,6 +4796,8 @@ resNodeGetNameNormalized(resNodePtr prnArg)
       }
       else {
       }
+    }
+    else if (resNodeIsMemory(prnArg)) {
     }
     else if (resPathIsRelative(prnArg->pucNameNormalized)) {
       prnArg->pucNameNormalized = resPathConcatNormalized(resNodeGetNameNormalized(prnArg->parent), prnArg->pucNameNormalized);

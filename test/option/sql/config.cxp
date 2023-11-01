@@ -10,9 +10,7 @@ INSERT INTO test(number,dummy) VALUES (2,"TEST");
 </cxp:plain>
   </cxp:db>
   <cxp:system message="TEST 1b: append INSERT into database"/>
-  <cxp:db name="result/test-db-1.db3" append="yes" write="yes">
-INSERT INTO test(number,dummy) VALUES (3,"TEST");
-  </cxp:db>
+  <cxp:db name="result/test-db-1.db3" append="yes" write="yes">INSERT INTO test(number,dummy) VALUES (3,"TEST");</cxp:db>
   <cxp:system message="TEST 1c: append INSERT into a readonly database"/>
   <cxp:db name="result/test-db-1.db3">INSERT INTO test(number,dummy) VALUES (4,"TEST");</cxp:db>
   <cxp:system message="TEST 2: DUMP database"/>
@@ -35,26 +33,21 @@ INSERT INTO test(number,dummy) VALUES (3,"TEST");
   <cxp:xml name="result/test-db-3-verbosity-max.xml">
     <file name="result/test-db-1.db3" verbosity="4"/>
   </cxp:xml>
-  <cxp:system message="TEST 4a: database queries, plain result"/>
-  <cxp:plain name="result/test-db-4a.txt">
-    <cxp:db name="result/test-db-1.db3">SELECT number FROM test;SELECT dummy FROM test;</cxp:db>
-  </cxp:plain>
   <cxp:system message="TEST 4b: database queries, plain result"/>
   <cxp:plain name="result/test-db-4b.txt">
-    <cxp:db name="result/test-db-1.db3">
-      <cxp:query declaration="yes">SELECT number FROM test;</cxp:query>
-      <cxp:query>SELECT dummy FROM test;</cxp:query>
-    </cxp:db>
+    <cxp:db name="result/test-db-1.db3"/>
+    <cxp:query declaration="yes">SELECT number FROM test;</cxp:query>
+    <cxp:query>SELECT dummy FROM test;</cxp:query>
   </cxp:plain>
   <cxp:system message="TEST 4c: error query database"/>
   <cxp:plain name="result/test-db-4c.txt">
-    <cxp:db name="result/test-db-1.db3">SELECT XYZ * FROM test</cxp:db>
+    <cxp:db name="result/test-db-1.db3"/>
+    <cxp:query declaration="yes">SELECT XYZ FROM test;</cxp:query>
   </cxp:plain>
   <cxp:system message="TEST 4d: database query, XML result"/>
   <cxp:xml name="result/test-db-4d.xml">
-    <cxp:db name="result/test-db-1.db3">
-      <cxp:query>SELECT dummy FROM test</cxp:query>
-    </cxp:db>
+    <cxp:db name="result/test-db-1.db3"/>
+    <cxp:query>SELECT dummy FROM test</cxp:query>
   </cxp:xml>
   <cxp:system message="TEST 5-1: parse directory '../pie' into database"/>
   <cxp:db name="result/test-db-5-verbosity-default.db3" write="yes">
@@ -84,27 +77,24 @@ INSERT INTO test(number,dummy) VALUES (3,"TEST");
   </cxp:db>
   <cxp:system message="TEST 6a: nested database query to Plain"/>
   <cxp:plain name="result/test-db-6a.csv">
-    <cxp:db name="result/test-db-5-verbosity-max.db3">
-      <cxp:query declaration="yes">
-	<cxp:query>SELECT 'SELECT * FROM mimetypes WHERE mime = ' || mime || ';' FROM mimetypes WHERE mime &lt; 20;</cxp:query>
-      </cxp:query>
-    </cxp:db>
+    <cxp:db name="result/test-db-5-verbosity-max.db3"/>
+    <cxp:query declaration="yes">
+      <cxp:query>SELECT 'SELECT * FROM mimetypes WHERE mime = ' || mime || ';' FROM mimetypes WHERE mime &lt; 20;</cxp:query>
+    </cxp:query>
   </cxp:plain>
   <cxp:system message="TEST 6b: nested database query to XML"/>
   <cxp:xml name="result/test-db-6b.xml">
-    <cxp:db name="result/test-db-5-verbosity-max.db3">
-      <cxp:query declaration="yes">
-	<cxp:query>SELECT 'SELECT * FROM mimetypes WHERE mime = ' || mime || ';' FROM mimetypes WHERE mime &lt; 20;</cxp:query>
-      </cxp:query>
-    </cxp:db>
+    <cxp:db name="result/test-db-5-verbosity-max.db3"/>
+    <cxp:query declaration="yes">
+      <cxp:query>SELECT 'SELECT * FROM mimetypes WHERE mime = ' || mime || ';' FROM mimetypes WHERE mime &lt; 20;</cxp:query>
+    </cxp:query>
   </cxp:xml>
   <cxp:system message="TEST 6c: use stored database queries"/>
   <cxp:plain name="result/test-db-6c.csv">
-    <cxp:db name="result/test-db-5-verbosity-max.db3">
-      <cxp:query declaration="yes">
-	<cxp:query>SELECT query FROM queries;</cxp:query>
-      </cxp:query>
-    </cxp:db>
+    <cxp:db name="result/test-db-5-verbosity-max.db3"/>
+    <cxp:query declaration="yes">
+      <cxp:query>SELECT query FROM queries;</cxp:query>
+    </cxp:query>
   </cxp:plain>
   <cxp:system message="TEST 7: Get the tables and declarations from database"/>
   <cxp:xml name="result/test-db-7-decl.html">
@@ -114,24 +104,20 @@ INSERT INTO test(number,dummy) VALUES (3,"TEST");
     <cxp:xsl name="sqlite2html.xsl"/>
   </cxp:xml>
   <cxp:system message="TEST 8: parse directory '../pie' into a memory database"/>
-  <cxp:xml name="result/test-db-8-in-memory.xml" context="..">
+  <cxp:xml name="result/test-db-8-in-memory.xml">
     <cxp:db>
-      <cxp:dir>
-        <cxp:dir name="pie" depth="2"/>
-      </cxp:dir>
+      <cxp:dir name="../pie" depth="2"/>
     </cxp:db>
-    <cxp:query>SELECT path, name FROM directory WHERE ext LIKE 'txt';</cxp:query>
+    <cxp:query>SELECT DISTINCT name FROM directory;</query>
   </cxp:xml>
-  <cxp:plain name="result/test-db-8-in-memory.csv" context="..">
+  <cxp:plain name="result/test-db-8-in-memory.csv">
     <cxp:db>
-      <cxp:dir>
-        <cxp:dir name="pie" depth="2"/>
-      </cxp:dir>
+      <cxp:dir name="../pie" depth="2"/>
     </cxp:db>
     <cxp:query>SELECT path, name FROM directory WHERE ext LIKE 'txt';</cxp:query>
   </cxp:plain>
   <cxp:system message="TEST 9: database query from script"/>
-  <cxp:db name="result/test-db-9.db3" append="no" write="yes" valid="no">
+  <cxp:db name="result/test-db-9.db3">
     <cxp:script>
 var strQuery = 'CREATE TABLE IF NOT EXISTS test(number int, dummy text);'
  + 'INSERT INTO test(number,dummy) VALUES (1,"TEST");'

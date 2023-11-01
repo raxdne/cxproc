@@ -46,12 +46,18 @@
 #include <database/cxp_database.h>
 #include "plain_text.h"
 
+#ifdef HAVE_JS
+#include <script/script.h>
+#endif
+
 static resNodePtr
 dbResNodeDatabaseOpenNew(xmlNodePtr pndArg, cxpContextPtr pccArg);
 
 static BOOL_T
 dbProcessDirNode(resNodePtr prnArgDb, xmlNodePtr pndArgDir, cxpContextPtr pccArg);
 
+static resNodePtr
+dbProcessDbSourceNode(xmlNodePtr pndArg, cxpContextPtr pccArg);
 
 /*!
 */
@@ -59,6 +65,7 @@ xmlDocPtr
 dbProcessDbNodeToDoc(xmlNodePtr pndArgDb, cxpContextPtr pccArg)
 {
   xmlDocPtr pdocResult = NULL;
+  resNodePtr prnDb = NULL; /* The database */
 
 #ifdef DEBUG
   cxpCtxtLogPrint(pccArg,1, "dbProcessDbNodeToDoc(pndArg=%0x,pccArg=%0x)", pndArgDb, pccArg);
@@ -67,47 +74,56 @@ dbProcessDbNodeToDoc(xmlNodePtr pndArgDb, cxpContextPtr pccArg)
   if (pndArgDb == NULL) {
     /*! ignore NULL pointer */
   }
-  else {
-    resNodePtr prnDb = NULL; /* The database */
+  else if ((prnDb = dbProcessDbSourceNode(pndArgDb,pccArg)) != NULL) {
 
-    prnDb = dbResNodeDatabaseOpenNew(pndArgDb,pccArg);
-    if (prnDb) {
-      if (domGetPropFlag(pndArgDb, BAD_CAST "dump", FALSE)) {
-	/* dump */
-	pdocResult = dbDumpContextToDoc(prnDb, (DB_PROC_DECL|DB_PROC_ENTRIES));
-      }
-      else {
-	xmlNodePtr pndQuery;
-	xmlChar mpucT[BUFFER_LENGTH];
-	xmlNodePtr pndMeta;
-	xmlNodePtr pndSql;
+    if (domGetPropFlag(pndArgDb, BAD_CAST "dump", FALSE)) {
+      /* dump */
+      pdocResult = dbDumpContextToDoc(prnDb, (DB_PROC_DECL|DB_PROC_ENTRIES));
+    }
+    else {
+      xmlNodePtr pndQuery;
+      xmlChar mpucT[BUFFER_LENGTH];
+      xmlNodePtr pndMeta;
+      xmlNodePtr pndSql;
 
-	/*! create result DOM
-	*/
-	pdocResult = xmlNewDoc(BAD_CAST "1.0");
-	pndSql = xmlNewDocNode(pdocResult, NULL, BAD_CAST "sql", NULL);
-	xmlDocSetRootElement(pdocResult, pndSql);
+      /*! create result DOM
+       */
+      pdocResult = xmlNewDoc(BAD_CAST "1.0");
+      pndSql = xmlNewDocNode(pdocResult, NULL, BAD_CAST "sql", NULL);
+      xmlDocSetRootElement(pdocResult, pndSql);
 
-	pndMeta = xmlNewChild(pndSql, NULL, NAME_META, NULL);
-	//xmlAddChild(pndMeta,xmlCopyNode(pndMakeSql,1));
-	/* Get the current time. */
-	domSetPropEat(pndMeta, BAD_CAST "ctime", GetNowFormatStr(BAD_CAST "%s"));
-	domSetPropEat(pndMeta, BAD_CAST "ctime2", GetDateIsoString(0));
-	cxpInfoProgram(pndMeta, pccArg);
+      pndMeta = xmlNewChild(pndSql, NULL, NAME_META, NULL);
+      //xmlAddChild(pndMeta,xmlCopyNode(pndMakeSql,1));
+      /* Get the current time. */
+      domSetPropEat(pndMeta, BAD_CAST "ctime", GetNowFormatStr(BAD_CAST "%s"));
+      domSetPropEat(pndMeta, BAD_CAST "ctime2", GetDateIsoString(0));
+      cxpInfoProgram(pndMeta, pccArg);
 
-	for (pndQuery = pndArgDb->children; pndQuery; pndQuery = pndQuery->next) {
-	  if (IS_NODE_QUERY(pndQuery)) {
-	    dbProcessQueryNodeToNode(pndSql, prnDb, pndQuery, (DB_PROC_DECL|DB_PROC_ENTRIES), pccArg);
+      for (pndQuery = pndArgDb->next; pndQuery; pndQuery = pndQuery->next) {
+	if (IS_VALID_NODE(pndQuery) && IS_NODE_QUERY(pndQuery)) {
+	  xmlNodePtr pndQueryQuery = pndQuery->children;
+
+	  if (IS_VALID_NODE(pndQueryQuery) && IS_NODE_QUERY(pndQueryQuery)) { /* result of first query is the query */
+	    xmlChar *pucQueryResult;
+
+	    pucQueryResult = dbProcessQueryNodeToPlain(prnDb, pndQueryQuery, (DB_PROC_ENTRIES|DB_PROC_LINES), pccArg);
+	    if (pucQueryResult) {
+	      pndQuery = xmlNewNode(NULL, NAME_QUERY);
+	      xmlAddChild(pndQuery, xmlNewText(pucQueryResult));
+	      xmlFree(pucQueryResult);
+	    }
 	  }
-	  else {
-	    cxpCtxtLogPrint(pccArg,1, "Query is invalid");
-	  }
+
+	  dbProcessQueryNodeToNode(pndSql, prnDb, pndQuery, (DB_PROC_DECL|DB_PROC_ENTRIES), pccArg);
+	}
+	else {
+	  cxpCtxtLogPrint(pccArg,1, "Query is invalid");
 	}
       }
-      resNodeClose(prnDb);
-      resNodeFree(prnDb);
     }
+    resNodeFree(prnDb);
   }
+
   return pdocResult;
 }
 /* end of dbProcessDbNodeToDoc() */
@@ -252,57 +268,73 @@ xmlChar *
 dbProcessDbNodeToPlain(xmlNodePtr pndArgDb, cxpContextPtr pccArg)
 {
   xmlChar* pucResult = NULL;
+  resNodePtr prnDb = NULL;
 
-  if (pndArgDb) {
-    resNodePtr prnDb = NULL;
-    
-    prnDb = dbResNodeDatabaseOpenNew(pndArgDb,pccArg);
-    if (prnDb) {
-      xmlChar *pucQueryResult = NULL;
-      xmlNodePtr pndQuery = pndArgDb->children;
+  if (pndArgDb == NULL) {
+    /*! ignore NULL pointer */
+  }
+  else if ((prnDb = dbProcessDbSourceNode(pndArgDb,pccArg)) != NULL) {
+    xmlChar *pucQueryResult = NULL;
+    xmlNodePtr pndQuery = pndArgDb->next;
 
-      if (pndQuery != NULL && pndQuery == pndArgDb->last
-	  && pndQuery->type == XML_TEXT_NODE && STR_IS_NOT_EMPTY(pndQuery->content)) { /* single text node */
-	pucQueryResult = dbProcessQueryNodeToPlain(prnDb, pndQuery, (DB_PROC_ENTRIES|DB_PROC_LINES), pccArg);
-	if (pucQueryResult) {
-	  if (pucResult) {
-	    /*! concatenate query result strings */
-	    pucResult = xmlStrcat(pucResult, BAD_CAST "\n");
-	    pucResult = xmlStrcat(pucResult, pucQueryResult);
-	    xmlFree(pucQueryResult);
+    if (domGetPropFlag(pndArgDb, BAD_CAST "dump", FALSE)) {
+      /* dump */
+      cxpCtxtLogPrint(pccArg,1, "Plain dump of db '%s' is not implemented (use '.dump' in sqlite3 shell)",pucQueryResult);
+    }
+    else if (pndQuery != NULL && pndQuery == pndArgDb->last
+	     && pndQuery->type == XML_TEXT_NODE && STR_IS_NOT_EMPTY(pndQuery->content)) { /* single text node */
+      pucQueryResult = dbProcessQueryNodeToPlain(prnDb, pndQuery, (DB_PROC_ENTRIES|DB_PROC_LINES), pccArg);
+      if (pucQueryResult) {
+	if (pucResult) {
+	  /*! concatenate query result strings */
+	  pucResult = xmlStrcat(pucResult, BAD_CAST "\n");
+	  pucResult = xmlStrcat(pucResult, pucQueryResult);
+	  xmlFree(pucQueryResult);
+	}
+	else {
+	  pucResult = pucQueryResult;
+	}
+      }
+      else {
+	cxpCtxtLogPrint(pccArg,1, "No usable query: '%s'",pucQueryResult);
+      }
+    }
+    else {
+      while (pndQuery) {
+	if (IS_VALID_NODE(pndQuery) && IS_NODE_QUERY(pndQuery)) {
+	  xmlNodePtr pndQueryQuery = pndQuery->children;
+
+	  if (IS_VALID_NODE(pndQueryQuery) && IS_NODE_QUERY(pndQueryQuery)) { /* result of first query is the query */
+	    xmlChar *pucQueryResult;
+
+	    pucQueryResult = dbProcessQueryNodeToPlain(prnDb, pndQueryQuery, (DB_PROC_ENTRIES|DB_PROC_LINES), pccArg);
+	    if (pucQueryResult) {
+	      pndQuery = xmlNewNode(NULL, NAME_QUERY);
+	      xmlAddChild(pndQuery, xmlNewText(pucQueryResult));
+	      xmlFree(pucQueryResult);
+	    }
 	  }
-	  else {
-	    pucResult = pucQueryResult;
+
+	  pucQueryResult = dbProcessQueryNodeToPlain(prnDb, pndQuery, (DB_PROC_ENTRIES|DB_PROC_LINES), pccArg);
+	  if (pucQueryResult) {
+	    if (pucResult) {
+	      /*! concatenate query result strings */
+	      pucResult = xmlStrcat(pucResult, BAD_CAST "\n");
+	      pucResult = xmlStrcat(pucResult, pucQueryResult);
+	      xmlFree(pucQueryResult);
+	    }
+	    else {
+	      pucResult = pucQueryResult;
+	    }
 	  }
 	}
 	else {
 	  cxpCtxtLogPrint(pccArg,1, "No usable query: '%s'",pucQueryResult);
 	}
+	pndQuery = pndQuery->next;
       }
-      else {
-	while (pndQuery) {
-	  if (IS_VALID_NODE(pndQuery) && IS_NODE_QUERY(pndQuery)) {
-	    pucQueryResult = dbProcessQueryNodeToPlain(prnDb, pndQuery, (DB_PROC_ENTRIES|DB_PROC_LINES), pccArg);
-	    if (pucQueryResult) {
-	      if (pucResult) {
-		/*! concatenate query result strings */
-		pucResult = xmlStrcat(pucResult, BAD_CAST "\n");
-		pucResult = xmlStrcat(pucResult, pucQueryResult);
-		xmlFree(pucQueryResult);
-	      }
-	      else {
-		pucResult = pucQueryResult;
-	      }
-	    }
-	  }
-	  else {
-	    cxpCtxtLogPrint(pccArg,1, "No usable query: '%s'",pucQueryResult);
-	  }
-	  pndQuery = pndQuery->next;
-	}
-      }
-      resNodeFree(prnDb);
     }
+    resNodeFree(prnDb);
   }
   return pucResult;
 } /* end of dbProcessDbNodeToPlain() */
@@ -421,7 +453,8 @@ dbResNodeDatabaseOpenNew(xmlNodePtr pndArg, cxpContextPtr pccArg)
 
   if (STR_IS_EMPTY(pucNameDb) || resPathIsInMemory(pucNameDb)) {
     /*!\bug in-memory database not usable (test/sql "test-db-8-in-memory.xml") */
-    // prnResult = resNodeInMemoryNew();
+    prnResult = resNodeInMemoryNew();
+    fWrite = TRUE;
   }
   else {
     prnResult = resNodeConcatNew(cxpCtxtLocationGetStr(pccArg), pucNameDb);
@@ -585,54 +618,41 @@ dbProcessDbNode(xmlNodePtr pndArg, cxpContextPtr pccArg)
   if (IS_VALID_NODE(pndArg)) {
     resNodePtr prnDb;
     
+    if ((prnDb = dbProcessDbSourceNode(pndArg,pccArg)) != NULL) {
+      fResult = TRUE;
+      resNodeFree(prnDb);
+    }
+  } 
+  return fResult;
+} /* end of dbProcessDbNode() */
+
+
+/*! process database node an his childs without any return value
+*/
+resNodePtr
+dbProcessDbSourceNode(xmlNodePtr pndArg, cxpContextPtr pccArg)
+{
+  resNodePtr prnDb = NULL;
+
+  if (IS_VALID_NODE(pndArg)) {
+    
     prnDb = dbResNodeDatabaseOpenNew(pndArg,pccArg);
     if (resNodeIsWriteable(prnDb)) {
       xmlChar *pucQuery = NULL;
       xmlNodePtr pndChild = NULL;
 
-      fResult = TRUE;
-      
-      if (domGetFirstChild(pndArg, NAME_DIR) != NULL) { /* dir and file nodes will be parsed */
-	dbParseDirCreateTables(prnDb);
-	dbInsertMetaLog(prnDb, NULL, NULL);
-	for (pndChild = pndArg->children; pndChild; pndChild = pndChild->next) {
-	  dbProcessDirNode(prnDb, pndChild, pccArg);
-	}
-      }
-      else if (domGetFirstChild(pndArg, NAME_QUERY)) { /* SQL statements to insert data */
-	for (pndChild = pndArg->children; pndChild; pndChild = pndChild->next) {
-	  if (IS_NODE_QUERY(pndChild)) {
-	    pucQuery = cxpProcessPlainNode(pndChild, pccArg);
-	    if (STR_IS_NOT_EMPTY(pucQuery)) {
-	      dbInsert(prnDb, pucQuery);
-	    }
-	    xmlFree(pucQuery);
+      if ((pndChild = domGetFirstChild(pndArg, NAME_PLAIN)) != NULL) { /* plain element, containing SQL statements */
+	for ( ; pndChild; pndChild = pndChild->next) {
+	  pucQuery = cxpProcessPlainNode(pndChild, pccArg);
+	  if (STR_IS_NOT_EMPTY(pucQuery)) {
+	    dbInsert(prnDb, pucQuery);
 	  }
+	  xmlFree(pucQuery);
 	}
       }
-      else if (domGetFirstChild(pndArg, NAME_PLAIN)) { /* plain text SQL statements to insert data */
-	for (pndChild = pndArg->children; pndChild; pndChild = pndChild->next) {
-	  if (IS_NODE_PLAIN(pndChild)) {
-	    pucQuery = cxpProcessPlainNode(pndChild, pccArg);
-	    if (STR_IS_NOT_EMPTY(pucQuery)) {
-	      dbInsert(prnDb, pucQuery);
-	    }
-	    xmlFree(pucQuery);
-	  }
-	}
-      }
-      else if (pndArg->children != NULL && pndArg->children == pndArg->last && pndArg->children->type == XML_TEXT_NODE) { /* single text node */
-	pucQuery = xmlStrdup(pndArg->children->content);
-	if (STR_IS_NOT_EMPTY(pucQuery)) {
-	  dbInsert(prnDb, pucQuery);
-	}
-	else {
-	  cxpCtxtLogPrint(pccArg,1, "No usable query: '%s'",pucQuery);
-	}
-	xmlFree(pucQuery);
-      }
+      else if (domGetFirstChild(pndArg, NAME_XML)) { /* XML to insert data */
+	/*!\todo handle XML input for DB*/
 #if 0
-      else if (pndArg->children) { /* different child nodes */
 	xmlNodePtr pndChild;
 
 	for (pndChild = pndArg->children; pndChild; pndChild = pndChild->next) {
@@ -664,16 +684,60 @@ dbProcessDbNode(xmlNodePtr pndArg, cxpContextPtr pccArg)
 	  }
 	  xmlFree(pucQuery);
 	}
+#endif
+      }
+      else if ((pndChild = domGetFirstChild(pndArg, NAME_DIR)) != NULL) { /* dir and file nodes will be parsed */
+	dbParseDirCreateTables(prnDb);
+	dbInsertMetaLog(prnDb, NULL, NULL);
+	for (pndChild = pndArg->children; pndChild; pndChild = pndChild->next) {
+	  dbProcessDirNode(prnDb, pndChild, pccArg);
+	}
+      }
+      else if (domGetFirstChild(pndArg, NAME_QUERY)) { /* SQL statements to insert data */
+	for (pndChild = pndArg->children; pndChild; pndChild = pndChild->next) {
+	  if (IS_NODE_QUERY(pndChild)) {
+	    pucQuery = cxpProcessPlainNode(pndChild, pccArg);
+	    if (STR_IS_NOT_EMPTY(pucQuery)) {
+	      dbInsert(prnDb, pucQuery);
+	    }
+	    xmlFree(pucQuery);
+	  }
+	}
+      }
+#ifdef HAVE_JS
+      else if ((pndChild = domGetFirstChild(pndArg, NAME_SCRIPT)) != NULL) { /* script element, containing SQL statements */
+	for ( ; pndChild; pndChild = pndChild->next) {
+	  pucQuery = scriptProcessScriptNode(pndChild, pccArg);
+	  if (STR_IS_NOT_EMPTY(pucQuery)) {
+	    dbInsert(prnDb, pucQuery);
+	  }
+	  xmlFree(pucQuery);
+	}
       }
 #endif
+      else if (pndArg->children != NULL && pndArg->children == pndArg->last && pndArg->children->type == XML_TEXT_NODE) { /* single text node, containing SQL statements */
+	pucQuery = xmlStrdup(pndArg->children->content);
+	if (STR_IS_NOT_EMPTY(pucQuery)) {
+	  dbInsert(prnDb, pucQuery);
+	}
+	else {
+	  cxpCtxtLogPrint(pccArg,1, "No usable query: '%s'",pucQuery);
+	}
+	xmlFree(pucQuery);
+      }
       else { /* node without any childs */
       }
     }
-    resNodeClose(prnDb);
-    resNodeFree(prnDb);
+#if 0
+    if (resNodeIsMemory(prnDb)) {
+      xmlDocPtr pdocT = dbDumpContextToDoc(prnDb, (DB_PROC_ENTRIES));
+      domPutDocString(stderr,NULL,pdocT);
+      xmlFreeDoc(pdocT);
+    }
+#endif
   }  
-  return fResult;
-} /* end of dbProcessDbNode() */
+  return prnDb;
+} /* end of dbProcessDbSourceNode() */
 
 
 #ifdef TESTCODE
