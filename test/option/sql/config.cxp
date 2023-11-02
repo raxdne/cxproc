@@ -108,7 +108,7 @@ INSERT INTO test(number,dummy) VALUES (2,"TEST");
     <cxp:db>
       <cxp:dir name="../pie" depth="2"/>
     </cxp:db>
-    <cxp:query>SELECT DISTINCT name FROM directory;</query>
+    <cxp:query>SELECT DISTINCT name FROM directory;</cxp:query>
   </cxp:xml>
   <cxp:plain name="result/test-db-8-in-memory.csv">
     <cxp:db>
@@ -125,6 +125,17 @@ var strQuery = 'CREATE TABLE IF NOT EXISTS test(number int, dummy text);'
  
  strQuery;
 </cxp:script>
+  </cxp:db>
+  <cxp:db name="result/test-db-9b.db3">
+    <cxp:script>
+      var strQuery = 'CREATE TABLE IF NOT EXISTS test(number int, dummy text);\n'
+
+      for (i=0; i &lt; 1000; i++) {
+        strQuery += 'INSERT INTO test(number,dummy) VALUES (' + i + ',"TEST");\n'
+      }
+ 
+     strQuery;
+    </cxp:script>
   </cxp:db>
   <cxp:system message="TEST 10: database from DOM"/>
   <cxp:db name="result/test-db-10-insert-dom.db3" write="yes">

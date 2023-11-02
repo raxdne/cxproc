@@ -448,7 +448,7 @@ dbResNodeDatabaseOpenNew(xmlNodePtr pndArg, cxpContextPtr pccArg)
     detect the necessary connection informations
   */
   pucNameDb = domGetPropValuePtr(pndArg, BAD_CAST "name");
-  fWrite = domGetPropFlag(pndArg, BAD_CAST"write", FALSE);
+  fWrite = domGetPropFlag(pndArg, BAD_CAST"write", TRUE);
   fAppend = domGetPropFlag(pndArg, BAD_CAST"append", fWrite);
 
   if (STR_IS_EMPTY(pucNameDb) || resPathIsInMemory(pucNameDb)) {
@@ -493,6 +493,11 @@ dbProcessDirNode(resNodePtr prnArgDb, xmlNodePtr pndArgDir, cxpContextPtr pccArg
   xmlChar mpucT[BUFFER_LENGTH];
   pcre2_code *re_match = NULL;
   
+  if (resNodeIsWriteable(prnArgDb)) {
+    cxpCtxtLogPrint(pccArg,1, "read only database: '%s'",resNodeGetNameNormalized(prnArgDb));
+    return FALSE;
+  }
+
   if (IS_VALID_NODE(pndArgDir) == FALSE) {
     return FALSE;
   }
@@ -500,11 +505,11 @@ dbProcessDirNode(resNodePtr prnArgDb, xmlNodePtr pndArgDir, cxpContextPtr pccArg
   /*!\todo set depth attribute per single dir element, instead of global */
   if ((pucAttrDepth = domGetPropValuePtr(pndArgDir,BAD_CAST "depth"))!=NULL
       && ((iDepth = atoi((char *)pucAttrDepth)) > 0)) {
+    cxpCtxtLogPrint(pccArg,2,"Set DIR depth to '%i'", iDepth);
   }
   else {
     iDepth = 9999;
   }
-  cxpCtxtLogPrint(pccArg,2,"Set DIR depth to '%i'", iDepth);
 
   iLevelVerbose = dirMapInfoVerbosity(pndArgDir,pccArg);
   
@@ -641,71 +646,15 @@ dbProcessDbSourceNode(xmlNodePtr pndArg, cxpContextPtr pccArg)
       xmlChar *pucQuery = NULL;
       xmlNodePtr pndChild = NULL;
 
-      if ((pndChild = domGetFirstChild(pndArg, NAME_PLAIN)) != NULL) { /* plain element, containing SQL statements */
-	for ( ; pndChild; pndChild = pndChild->next) {
-	  pucQuery = cxpProcessPlainNode(pndChild, pccArg);
-	  if (STR_IS_NOT_EMPTY(pucQuery)) {
-	    dbInsert(prnDb, pucQuery);
-	  }
-	  xmlFree(pucQuery);
-	}
-      }
-      else if (domGetFirstChild(pndArg, NAME_XML)) { /* XML to insert data */
-	/*!\todo handle XML input for DB*/
-#if 0
-	xmlNodePtr pndChild;
-
-	for (pndChild = pndArg->children; pndChild; pndChild = pndChild->next) {
-	  if (IS_ENODE(pndChild)) { /* a generic DOM, try to get queries via XSLT */
-	    xmlDocPtr pdocXsl;
-	    xmlDocPtr pdocT;
-
-	    pdocXsl = GetXslInsertAsPlain();
-	    if (pdocXsl == NULL) {
-	      cxpCtxtLogPrint(pccArg,1, "No DOM built");
-	      return fResult;
-	    }
-	    cxpCtxtLogPrintDoc(pccArg, 4, "SQL", pdocXsl);
-
-	    pdocT = domDocFromNodeNew(pndArg->children);
-	    if (pdocT) {
-	      cxpCtxtLogPrintDoc(pccArg, 4, "Data", pdocT);
-	      cxpProcessTransformations(pdocT, pdocXsl, NULL, &pucQuery, pccArg);
-	      xmlFreeDoc(pdocT);
-	    }
-	    xmlFreeDoc(pdocXsl);
-	  }
-
-	  if (STR_IS_NOT_EMPTY(pucQuery)) {
-	    dbInsert(prnDb, pucQuery);
-	  }
-	  else {
-	    cxpCtxtLogPrint(pccArg,1, "No usable query: '%s'",pucQuery);
-	  }
-	  xmlFree(pucQuery);
-	}
-#endif
-      }
-      else if ((pndChild = domGetFirstChild(pndArg, NAME_DIR)) != NULL) { /* dir and file nodes will be parsed */
+      if ((pndChild = domGetFirstChild(pndArg, NAME_DIR)) != NULL) { /* dir and file nodes will be parsed */
 	dbParseDirCreateTables(prnDb);
 	dbInsertMetaLog(prnDb, NULL, NULL);
 	for (pndChild = pndArg->children; pndChild; pndChild = pndChild->next) {
 	  dbProcessDirNode(prnDb, pndChild, pccArg);
 	}
       }
-      else if (domGetFirstChild(pndArg, NAME_QUERY)) { /* SQL statements to insert data */
-	for (pndChild = pndArg->children; pndChild; pndChild = pndChild->next) {
-	  if (IS_NODE_QUERY(pndChild)) {
-	    pucQuery = cxpProcessPlainNode(pndChild, pccArg);
-	    if (STR_IS_NOT_EMPTY(pucQuery)) {
-	      dbInsert(prnDb, pucQuery);
-	    }
-	    xmlFree(pucQuery);
-	  }
-	}
-      }
-#ifdef HAVE_JS
-      else if ((pndChild = domGetFirstChild(pndArg, NAME_SCRIPT)) != NULL) { /* script element, containing SQL statements */
+#if defined(HAVE_JS) && defined(EXPERIMENTAL)
+      else if ((pndChild = domGetFirstChild(pndArg, NAME_SCRIPT)) != NULL) { /* script element, generating SQL statements */
 	for ( ; pndChild; pndChild = pndChild->next) {
 	  pucQuery = scriptProcessScriptNode(pndChild, pccArg);
 	  if (STR_IS_NOT_EMPTY(pucQuery)) {
@@ -715,10 +664,22 @@ dbProcessDbSourceNode(xmlNodePtr pndArg, cxpContextPtr pccArg)
 	}
       }
 #endif
+      else if ((pndChild = domGetFirstChild(pndArg, NAME_PLAIN)) != NULL) { /* plain element, containing SQL statements */
+	for ( ; pndChild; pndChild = pndChild->next) {
+	  pucQuery = cxpProcessPlainNode(pndChild, pccArg);
+	  if (STR_IS_NOT_EMPTY(pucQuery)) {
+	    dbInsert(prnDb, pucQuery);
+	  }
+	  xmlFree(pucQuery);
+	}
+      }
       else if (pndArg->children != NULL && pndArg->children == pndArg->last && pndArg->children->type == XML_TEXT_NODE) { /* single text node, containing SQL statements */
 	pucQuery = xmlStrdup(pndArg->children->content);
-	if (STR_IS_NOT_EMPTY(pucQuery)) {
-	  dbInsert(prnDb, pucQuery);
+	if (STR_IS_EMPTY(pucQuery)) {
+	  cxpCtxtLogPrint(pccArg,1, "Empty query");
+	}
+	else if (dbInsert(prnDb, pucQuery)) {
+	  /* OK */
 	}
 	else {
 	  cxpCtxtLogPrint(pccArg,1, "No usable query: '%s'",pucQuery);
@@ -727,6 +688,10 @@ dbProcessDbSourceNode(xmlNodePtr pndArg, cxpContextPtr pccArg)
       }
       else { /* node without any childs */
       }
+      /*!\todo switch database to read only */
+    }
+    else {
+      cxpCtxtLogPrint(pccArg,1, "read only database: '%s'",resNodeGetNameNormalized(prnDb));
     }
 #if 0
     if (resNodeIsMemory(prnDb)) {
