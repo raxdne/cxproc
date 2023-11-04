@@ -375,12 +375,12 @@ dbParseDirTraverse(resNodePtr prnArgDb, resNodePtr prnArgContext, int iDepthArg,
     xmlFree(pucStatement);
   }
 #ifdef HAVE_LIBARCHIVE
-  else if (resNodeIsArchive(prnArgContext)) {
+  else if (resNodeIsArchive(prnArgContext) && (iLevelVerboseArg & RN_INFO_STRUCT)) {
 
     if (resNodeIsReadable(prnArgContext) == FALSE) {
       dbInsertMetaLog(prnArgDb, BAD_CAST"error/read", resNodeGetNameNormalized(prnArgContext));
     }
-    else if (resNodeListParse(prnArgContext, 1, re_match)) { /*! read Resource Node as list of childs */
+    else if (resNodeListParse(prnArgContext, 99, re_match)) { /*! read Resource Node as list of childs */
       xmlChar *pucStatement;
 
       pucStatement = resNodeListToSQL(prnArgContext, iOptions);
@@ -493,7 +493,7 @@ dbProcessDirNode(resNodePtr prnArgDb, xmlNodePtr pndArgDir, cxpContextPtr pccArg
   xmlChar mpucT[BUFFER_LENGTH];
   pcre2_code *re_match = NULL;
   
-  if (resNodeIsWriteable(prnArgDb)) {
+  if (resNodeIsWriteable(prnArgDb) == FALSE) {
     cxpCtxtLogPrint(pccArg,1, "read only database: '%s'",resNodeGetNameNormalized(prnArgDb));
     return FALSE;
   }
@@ -580,6 +580,8 @@ dbProcessDirNode(resNodePtr prnArgDb, xmlNodePtr pndArgDir, cxpContextPtr pccArg
       resNodePtr prnT;
 
       prnT = resNodeConcatNew(cxpCtxtLocationGetStr(pccArg),pucPath);
+      dbInsertMetaLog(prnArgDb, BAD_CAST "log/process", resNodeGetNameNormalized(prnT));
+
       if (cxpCtxtAccessIsPermitted(pccArg,prnT) == FALSE) {
 	dbInsertMetaLog(prnArgDb, BAD_CAST "error/access", resNodeGetNameNormalized(prnT));
       }

@@ -838,9 +838,9 @@ cxpCtxtCliParse(cxpContextPtr pccArg)
 	      xmlSetProp(pndDatabase, BAD_CAST "append", BAD_CAST"yes");
 	      xmlSetProp(pndDatabase, BAD_CAST "write", BAD_CAST"yes");
 	      pndDir = xmlNewChild(pndDatabase, NULL, NAME_DIR, NULL);
-	      xmlSetProp(pndDir, BAD_CAST "verbosity", pucLevelDirVerbosity);
-	      xmlSetProp(pndDir, BAD_CAST "index", BAD_CAST "skip"); /* skip index files in command line mode */
-	      xmlSetProp(pndDir, BAD_CAST "hidden", BAD_CAST "no"); /* skip hidden files in command line mode */
+	      //xmlSetProp(pndDir, BAD_CAST "verbosity", pucLevelDirVerbosity);
+	      //xmlSetProp(pndDir, BAD_CAST "index", BAD_CAST "skip"); /* skip index files in command line mode */
+	      xmlSetProp(pndDir, BAD_CAST "hidden", BAD_CAST "no"); /* skip hidden files in command line mode (due to Git, SVN etc) */
 
 	      for (i = j + 1; (pucRelease = cxpCtxtCliGetValue(pccArg,i)); i++) {
 		BOOL_T fRecursion;
