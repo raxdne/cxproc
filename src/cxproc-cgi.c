@@ -187,8 +187,11 @@ main(int argc, char *argv[], char *envp[])
 
     cxpCtxtCacheEnable(pccMain, TRUE);
     cxpCtxtCgiParse(pccMain);
-    //cxpCtxtLogInfo(pccMain);
+#if 0
+    cxpCtxtLogInfo(pccMain);
+#else
     cxpCtxtCgiProcess(pccMain);    /*!\todo use thread */
+#endif
     iExit = cxpCtxtGetExitCode(pccMain);
     cxpCtxtFree(pccMain);
     if (cxperr) {

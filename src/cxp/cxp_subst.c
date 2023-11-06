@@ -371,8 +371,8 @@ cxpSubstDetect(xmlNodePtr pndArgSubst, cxpContextPtr pccArg)
 
       if ((pucT = domGetPropValuePtr(pndArgSubst, BAD_CAST "dir"))) {
 	/*
-  	       this is a substitution with current directories
-	 */
+	  this is a substitution with current directories
+	*/
 	if (xmlStrcasecmp(pucT, BAD_CAST "pwd")==0) {
 	  pcxpSubstResult->pucDir = resPathGetCwd();
 	}
@@ -394,9 +394,9 @@ cxpSubstDetect(xmlNodePtr pndArgSubst, cxpContextPtr pccArg)
 	  prnDir = resNodeFromNodeNew(cxpCtxtLocationGet(pccArg),pucT);
 	  if (prnDir) {
 #ifdef HAVE_CGI
-	      pcxpSubstResult->pucDir = resPathGetBasedir(resNodeGetNameRelative(cxpCtxtRootGet(pccArg),prnDir));
+	    pcxpSubstResult->pucDir = resPathGetBasedir(resNodeGetNameRelative(cxpCtxtRootGet(pccArg),prnDir));
 #else
-	      pcxpSubstResult->pucDir = xmlStrdup(resNodeGetNameBaseDir(prnDir));
+	    pcxpSubstResult->pucDir = xmlStrdup(resNodeGetNameBaseDir(prnDir));
 #endif
 	    resNodeFree(prnDir);
 	  }
@@ -417,7 +417,7 @@ cxpSubstDetect(xmlNodePtr pndArgSubst, cxpContextPtr pccArg)
       if (STR_IS_NOT_EMPTY(pucT)) {
 	/*
           this is a substitution with file name
-	 */
+	*/
 	if (xmlStrEqual(pucT,BAD_CAST".") && pccArg != NULL && pndArgSubst->doc != NULL) {
 	  pcxpSubstResult->pucFilename = resPathGetBasename(BAD_CAST pndArgSubst->doc->URL);
 	}
@@ -443,7 +443,7 @@ cxpSubstDetect(xmlNodePtr pndArgSubst, cxpContextPtr pccArg)
       if (STR_IS_NOT_EMPTY(pucT)) {
 	/*
           this is a substitution with file extension
-	 */
+	*/
 	if (xmlStrEqual(pucT,BAD_CAST".") && pccArg != NULL && pndArgSubst->doc != NULL) {
 	  pcxpSubstResult->pucExt = resPathGetExtension(BAD_CAST pndArgSubst->doc->URL);
 	}
@@ -460,8 +460,8 @@ cxpSubstDetect(xmlNodePtr pndArgSubst, cxpContextPtr pccArg)
 
       if ((pucT = domGetPropValuePtr(pndArgSubst, BAD_CAST "type")) != NULL) {
 	/*
-  	    this is a substitution with symbolic MIME type string
-	 */
+	  this is a substitution with symbolic MIME type string
+	*/
 	if (xmlStrEqual(pucT,BAD_CAST".") && pccArg != NULL && pndArgSubst->doc != NULL) {
 	  pucTT = resPathGetExtension(BAD_CAST pndArgSubst->doc->URL);
 	}
@@ -497,42 +497,38 @@ cxpSubstDetect(xmlNodePtr pndArgSubst, cxpContextPtr pccArg)
 	pcxpSubstResult->pucHost = cxpCtxtGetHostValueNamed(pccArg,pucT);
       }
 
-#ifdef HAVE_CGI
       if ((pucT = domGetPropValuePtr(pndArgSubst, BAD_CAST "cgi"))) {
-	/* dont restrict to cxpContextRunmodeIsCgi() because offline testing */
-	//fAccess = FALSE;
+	/* there is an according named value, check access permission to value of "file" or "dir" and map the path */
 	if ((pcxpSubstResult->pucCgi = cxpCtxtCgiGetValueByName(pccArg,pucT)) == NULL && (pcxpSubstResult->pucCgi = cxpCtxtCliGetValueByName(pccArg, pucT)) == NULL) {
 	  cxpCtxtLogPrint(pccArg,2,"No value for '%s'",pucT);
 	}
-	else {
-	  /* there is an according named value, check access
-  		 permission to value of "file" or "dir" and map the
-  		 path */
-	  if (xmlStrEqual(pucT,BAD_CAST"dir") || xmlStrEqual(pucT,BAD_CAST"file")) {
-	    resNodePtr prnT;
+	else if (xmlStrEqual(pucT,BAD_CAST"dir") || xmlStrEqual(pucT,BAD_CAST"file") || xmlStrEqual(pucT,BAD_CAST"path")) {
+	  resNodePtr prnTest;
 
-	    prnT = resNodeRootNew(cxpCtxtRootGet(pccArg),pcxpSubstResult->pucCgi);
-	    if (cxpCtxtAccessIsPermitted(pccArg,prnT)) {
-	      //fAccess = TRUE;
-	      xmlFree(pcxpSubstResult->pucCgi);
+	  if ((prnTest = resNodeRootNew(cxpCtxtRootGet(pccArg), pcxpSubstResult->pucCgi)) == NULL || resNodeIsReadable(prnTest) == FALSE) {
+	    prnTest = resNodeListFindPath(cxpCtxtRootGet(pccArg), pcxpSubstResult->pucCgi, (RN_FIND_FILE | RN_FIND_IN_SUBDIR | RN_FIND_REGEXP));
+	  }
+	  
+	  if (cxpCtxtAccessIsPermitted(pccArg,prnTest)) {
+	    xmlFree(pcxpSubstResult->pucCgi);
 
-	      if (domGetPropFlag(pndArgSubst, BAD_CAST "normalize", FALSE)) {
-		pcxpSubstResult->pucCgi = xmlStrdup(resNodeGetNameNormalized(prnT));
-	      }
-	      else {
-		pcxpSubstResult->pucCgi = xmlStrdup(resNodeGetNameRelative(cxpCtxtRootGet(pccArg),prnT)); // file access is checked, use CGI value without path
-	      }
-	      resPathChangeToSlashes(pcxpSubstResult->pucCgi);
+	    if (domGetPropFlag(pndArgSubst, BAD_CAST "normalize", FALSE)) {
+	      pcxpSubstResult->pucCgi = xmlStrdup(resNodeGetNameNormalized(prnTest));
 	    }
 	    else {
-	      cxpCtxtLogPrint(pccArg,2,"No file '%s'",pcxpSubstResult->pucCgi);
+	      pcxpSubstResult->pucCgi = xmlStrdup(resNodeGetNameRelative(cxpCtxtRootGet(pccArg),prnTest)); // file access is checked, use CGI value without path
 	    }
-	    resNodeFree(prnT);
+	    resPathChangeToSlashes(pcxpSubstResult->pucCgi);
 	  }
-	  NormalizeStringNewLines((char *) pcxpSubstResult->pucCgi);
+	  else {
+	    cxpCtxtLogPrint(pccArg,2,"No file '%s'",pcxpSubstResult->pucCgi);
+	  }
+	  resNodeFree(prnTest);
+	}
+	else {
+	  //NormalizeStringNewLines((char *) pcxpSubstResult->pucCgi);
 	}
       }
-#endif
 
       if ((IS_NODE_SUBST(pndArgSubst) || IS_NODE_VARIABLE(pndArgSubst)) && pcxpSubstResult->pucDefault != NULL) {
 	/*
@@ -947,7 +943,6 @@ cxpSubstInChildNodes(xmlNodePtr pndArgTop, xmlNodePtr pndArgSubst, cxpContextPtr
   }
   else if (pndArgSubst == NULL) {
     /* subst nodes not yet detected */
-    xmlNodePtr pndT;
     xmlNodePtr pndChild;
     xmlNodePtr pndNextChild;
 
