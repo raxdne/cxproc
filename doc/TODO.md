@@ -9,7 +9,9 @@ TODO: fix testing code #v20
 
 TODO: review code internal tags
 
-TODO: update Windows libraries and vcpkg
+TODO: update Windows libraries and vcpkg ✔
+
+TODO: prepare as a package for `vcpkg` #v20
 
 ## Documentation
 
@@ -65,7 +67,7 @@ DONE: cleanup AJAX code (not required on server side)
 
 #### calendar
 
-TEST: sunrise sunset with Shanghai, Berlin, Boston
+TEST: sunrise sunset with Shanghai, Berlin, Boston ✘
 
 REQ: calculate different time zone values
 
