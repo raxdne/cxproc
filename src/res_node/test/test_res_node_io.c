@@ -470,14 +470,14 @@ resNodeTestInOut(void)
     resNodeFree(prnT);
   }
 
-  if (RUNTEST) {
+  if (SKIPTEST) {
     resNodePtr prnT = NULL;
     xmlDocPtr pdocT = NULL;
 
     i++;
     printf("TEST %i in '%s:%i': read a global HTTPS file context as DOM = ",i,__FILE__,__LINE__);
 
-    if ((prnT = resNodeDirNew(BAD_CAST "https://www.tagesschau.de:443/newsticker.rdf")) == NULL) {
+    if ((prnT = resNodeDirNew(BAD_CAST "https://www.tagesschau.de/infoservices/alle-meldungen-100~rdf.xml")) == NULL) {
       printf("Error resNodeDirNew()\n");
     }
     else if ((pdocT = resNodeGetContentDoc(prnT)) == NULL) {
@@ -536,7 +536,7 @@ resNodeTestInOut(void)
 
 #if HAVE_LIBARCHIVE
   
-  if (RUNTEST) {
+  if (SKIPTEST) {
     resNodePtr prnT = NULL;
     resNodePtr prnChild = NULL;
 

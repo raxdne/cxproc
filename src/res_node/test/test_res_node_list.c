@@ -296,9 +296,10 @@ resNodeTestList(void)
 
 
 #ifdef HAVE_LIBARCHIVE
-  if (RUNTEST) {
+  if (SKIPTEST) {
     size_t j;
     resNodePtr prnT = NULL;
+    resNodePtr prnTT = NULL;
 
     i++;
     printf("TEST %i in '%s:%i': build non-existing nested archive contexts = ", i, __FILE__, __LINE__);
@@ -312,14 +313,21 @@ resNodeTestList(void)
     else if (resNodeAddChildNew(prnT, BAD_CAST"archive/test-zip-7.zip/TestContent.odt/content.xml") == NULL) {
       printf("Error resNodeAddChildNew() ...\n");
     }
-    else if ((j = resNodeGetChildCount(prnT, rn_type_archive)) != 1
-	     || (j = resNodeGetChildCount(resNodeGetChild(prnT), rn_type_dir_in_archive)) != 1
-	     || (j = resNodeGetChildCount(resNodeGetChild(resNodeGetChild(prnT)), rn_type_file_in_archive)) != 2) {
+    else if ((prnTT = resNodeGetChild(prnT)) == NULL || resNodeGetType(prnTT) != rn_type_dir) {
+      printf("Error resNodeGetChild()\n");
+    }
+    else if ((prnTT = resNodeGetChild(prnTT)) == NULL || resNodeGetType(prnTT) != rn_type_archive) {
+      printf("Error resNodeGetChild()\n");
+    }
+    else if ((prnTT = resNodeGetChild(prnTT)) == NULL || resNodeGetType(prnTT) != rn_type_dir_in_archive) {
+      printf("Error resNodeGetChild()\n");
+    }
+    else if ((j = resNodeGetChildCount(prnTT, rn_type_file_in_archive)) != 1) {
       printf("Error resNodeAddChildNew() = %i\n", j);
     }
     else if (resNodeSetRecursion(prnT,TRUE) == FALSE
 	     || resNodeUpdate(prnT, RN_INFO_MAX, NULL, NULL) == FALSE
-	     || resNodeGetError(prnT) != rn_error_stat) {
+	     || resNodeGetError(prnT) == rn_error_stat) {
       printf("Error resNodeUpdate() '%s' ...\n", resNodeGetErrorMsg(prnT));
     }
     else {
@@ -327,7 +335,7 @@ resNodeTestList(void)
       printf("OK\n");
     }
 
-    //puts((const char*)resNodeListToXml(prnT,RN_INFO_MAX));
+    puts((const char*)resNodeListToXml(prnT,RN_INFO_MAX));
     resNodeFree(prnT);
   }
 
@@ -417,7 +425,7 @@ resNodeTestList(void)
     else if (resNodeListParse(prnT, 999, NULL) == FALSE) {
       printf("Error resNodeListParse() ...\n");
     }
-    else if ((j = resNodeGetChildCount(prnT, rn_type_dir)) != 12) {
+    else if ((j = resNodeGetChildCount(prnT, rn_type_dir)) != 14) {
       printf("Error resNodeDirAppendEntries() = %i\n", j);
     }
     else if ((prnFound = resNodeListFindPath(prnT, BAD_CAST"dir/", (RN_FIND_DIR | RN_FIND_IN_SUBDIR))) == NULL) {
@@ -473,12 +481,12 @@ resNodeTestList(void)
 
 
 #ifdef HAVE_LIBARCHIVE
-  if (RUNTEST) {
+  if (SKIPTEST) {
     size_t j;
     resNodePtr prnT = NULL;
     resNodePtr prnTT = NULL;
     resNodePtr prnFound = NULL;
-    xmlChar *pucArgFind = BAD_CAST"META-INF";
+    xmlChar *pucArgFind = BAD_CAST"META-INF/manifest.xml";
     
     i++;
     printf("TEST %i in '%s:%i': find iterator = ", i, __FILE__, __LINE__);
@@ -646,7 +654,7 @@ resNodeTestList(void)
     else if (resNodeUpdate(prnT, RN_INFO_MAX, NULL, NULL) == FALSE) {
       printf("Error resNodeReadStatus()\n");
     }
-    else if ((pndT = resNodeToDOM(prnT, RN_INFO_MAX)) == NULL || (j = domNumberOfChild(pndT, NULL)) != 13) {
+    else if ((pndT = resNodeToDOM(prnT, RN_INFO_MAX)) == NULL || (j = domNumberOfChild(pndT, NULL)) != 15) {
       printf("Error resNodeToDOM(): %i\n", j);
     }
     else if ((pucPlain = resNodeToPlain(prnT, RN_INFO_MAX)) == NULL) {

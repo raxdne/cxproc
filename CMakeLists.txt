@@ -362,9 +362,8 @@ ELSE ()
   SET(CXPROC_CURL OFF)
 ENDIF ()
 
-IF (CXPROC_CURL)
-  SET(CXPROC_HTTPPREFIX CACHE STRING "http://localhost:8183/")
-ENDIF ()
+# default value for Testing
+SET(CXPROC_HTTPPREFIX CACHE STRING "http://localhost:8183/")
 
 ################################################################################
 #

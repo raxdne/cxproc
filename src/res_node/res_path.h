@@ -103,6 +103,9 @@ extern BOOL_T
 resPathIsDescendant(xmlChar *pucArgPath, xmlChar *pucArgPathDescendant);
 
 extern xmlChar *
+resPathSkipPrefixFilePtr(xmlChar *pucArgPath);
+
+extern xmlChar *
 resPathDiffPtr(xmlChar *pucArgPath, xmlChar *pucArgPathDescendant);
 
 extern xmlChar *

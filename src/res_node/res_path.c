@@ -392,6 +392,44 @@ resPathIsMatchingEnd(xmlChar *pucArgPath, xmlChar *pucArgNameFile)
 /* end of resPathIsMatchingEnd() */
 
 
+/*! \return pucArgPath 
+
+\param pucArgPath
+*/
+xmlChar *
+resPathSkipPrefixFilePtr(xmlChar *pucArgPath)
+{
+  xmlChar *pucResult = pucArgPath;
+
+  if (STR_IS_NOT_EMPTY(pucResult)) {
+
+    if (StringBeginsWith(pucResult, "file://")) {
+      pucResult += 7;
+    }
+    
+    if (issep(pucResult[0]) && issep(pucResult[1])) {
+      /* Windows UNC path */
+    }
+    else if (issep(pucResult[0]) && isalpha(pucResult[1]) && pucResult[2] == ':' && issep(pucResult[3])) {
+      /* local Windows path with leading separator */
+#ifdef _MSC_VER
+      pucResult++;
+#else
+      pucResult += 3;
+#endif
+    }
+    else if (isalpha(pucResult[0]) && pucResult[1] == ':' && issep(pucResult[2])) {
+      /* local Windows path */
+#ifdef _MSC_VER
+#else
+      pucResult += 2;
+#endif
+    }
+  }
+  return pucResult;
+} /* end of resPathSkipPrefixFilePtr() */
+
+
 /*! \return TRUE if pucArgPathDescendant is a descendant of pucArgPath ("pucArgPathDescendant starts with pucArgPath")
 
 \param pucArgPath
@@ -402,21 +440,8 @@ resPathDiffPtr(xmlChar *pucArgPath, xmlChar *pucArgPathDescendant)
 {
   if (STR_IS_NOT_EMPTY(pucArgPath) && STR_IS_NOT_EMPTY(pucArgPathDescendant)) {
 
-    if (StringBeginsWith(pucArgPath,BAD_CAST"file://")) {
-#ifdef _MSC_VER
-      for (pucArgPath += 7; issep(pucArgPath[0]); pucArgPath++);
-#else
-      pucArgPath += 7;
-#endif
-    }
-
-    if (StringBeginsWith(pucArgPathDescendant, BAD_CAST"file://")) {
-#ifdef _MSC_VER
-      for (pucArgPathDescendant += 7; issep(pucArgPathDescendant[0]); pucArgPathDescendant++);
-#else
-      pucArgPathDescendant += 7;
-#endif
-    }
+    pucArgPath = resPathSkipPrefixFilePtr(pucArgPath);
+    pucArgPathDescendant = resPathSkipPrefixFilePtr(pucArgPathDescendant);
 
     for ( ; ; pucArgPath++, pucArgPathDescendant++) {
       int iDeltaUpperLower = ('a' - 'A');
@@ -497,24 +522,12 @@ resPathIsEquivalent(xmlChar *pucArgA, xmlChar *pucArgB)
 
     eProtocolA = resPathGetProtocol(pucA); /* detect protocol prefix */
     if (eProtocolA == PROTOCOL_FILE) { /* file access */
-      assert(xmlStrlen(pucA) > 7);
-      /* cut "file://" prefix */
-#ifdef _MSC_VER
-      for (pucA += 5; issep(*pucA); pucA++); /* skip separators */
-#else
-      for (pucA += 5; issep(pucA[1]); pucA++); /* skip separators */
-#endif
+      pucA = resPathSkipPrefixFilePtr(pucA);
     }
 
     eProtocolB = resPathGetProtocol(pucB); /* detect protocol prefix */
     if (eProtocolB == PROTOCOL_FILE) { /* file access */
-      assert(xmlStrlen(pucB) > 7);
-      /* cut "file://" prefix */
-#ifdef _MSC_VER
-      for (pucB += 5; issep(*pucB); pucB++); /* skip separators */
-#else
-      for (pucB += 5; issep(pucB[1]); pucB++); /* skip separators */
-#endif
+      pucB = resPathSkipPrefixFilePtr(pucB);
     }
 
     if ((eProtocolA == PROTOCOL_FILE && eProtocolB == PROTOCOL_NIL) || (eProtocolB == PROTOCOL_FILE && eProtocolA == PROTOCOL_NIL)) {
@@ -1711,12 +1724,8 @@ resPathCollapse(xmlChar *pucArg, int iArgOpts)
       xmlFree(pucResult);
       return NULL;
     }
-    else { /* cut "file://" prefix */
-#ifdef _MSC_VER
-      for (pucA += 5; issep(*pucA); pucA++); /* skip separators */
-#else
-      for (pucA += 5; issep(pucA[1]); pucA++); /* skip separators */
-#endif
+    else {
+      pucA = resPathSkipPrefixFilePtr(pucA); /* cut "file://" prefix */
       pucB = pucResult;
     }
   }

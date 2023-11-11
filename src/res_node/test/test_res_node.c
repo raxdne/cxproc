@@ -353,7 +353,7 @@ resNodeTest(void)
     fputs((const char *)mucTestLabel,stderr);
     mucTestResult[0] = '\0';
 
-    if ((prnT = resNodeDirNew(BAD_CAST "file:/" TESTPREFIX "option/pie/")) == NULL) {
+    if ((prnT = resNodeDirNew(BAD_CAST "file://" TESTPREFIX "option/pie/")) == NULL) {
       xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeDirNew(): %s\n", resNodeGetErrorMsg(prnT));
     }
     else if (resNodeGetType(prnT) != rn_type_dir) {
@@ -886,7 +886,7 @@ resNodeTest(void)
 
     pucTest = resPathNormalize(BAD_CAST TESTPREFIX "plain/test-plain-3.xml");
 
-    if ((prnT = resNodeCurlNew(BAD_CAST TESTPREFIX)) == NULL) {
+    if ((prnT = resNodeCurlNew(BAD_CAST "file://" TESTPREFIX)) == NULL) {
       xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeCurlNew()\n");
     }
     else if ((prnDir = resNodeAddChildNew(prnT, BAD_CAST"plain/")) == NULL) {
