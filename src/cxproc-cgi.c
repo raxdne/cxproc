@@ -144,9 +144,18 @@ main(int argc, char *argv[], char *envp[])
 #ifdef HAVE_LIBMAGICK
       || atexit(MagickCoreTerminus) != 0
 #endif
+#ifdef HAVE_LIBCURL
+      || atexit(curl_global_cleanup) != 0
+#endif
     ) {
     exit(EXIT_FAILURE);
   }
+
+#ifdef HAVE_LIBCURL
+  curl_global_init(CURL_GLOBAL_DEFAULT);
+  /* log all details, except SSL handling */
+  //curl_global_trace("all,-ssl");
+#endif
 
   xmlInitParser();
   LIBXML_TEST_VERSION
