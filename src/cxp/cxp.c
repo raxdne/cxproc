@@ -2601,13 +2601,6 @@ cxpValidateTree(xmlNodePtr pndArg, cxpContextPtr pccArg)
       pndAttr = pndAttr->next;
     }
 
-#if 0
-#elif 0
-    if (pndArg->children != NULL && cxpGetXmlSourceNode(pndArg) == NULL) {
-      cxpCtxtLogPrint(pccArg,1,"Validation error: cant find the source child of xml node");
-      fResult = FALSE;
-    }
-#else
     for (pndChild = pndArg->children; pndChild;) {
       if (IS_NODE_MAKE(pndChild)
 	|| IS_NODE_FROM(pndChild) || IS_NODE_EACH(pndChild)) {
@@ -2620,7 +2613,6 @@ cxpValidateTree(xmlNodePtr pndArg, cxpContextPtr pccArg)
       }
       pndChild = pndChild->next;
     }
-#endif
   }
   else if (IS_NODE_PLAIN(pndArg)) {
     /* main format nodes (with foreign content) */
@@ -3245,18 +3237,6 @@ cxpProcessInfoNode(xmlNodePtr pndInfo, cxpContextPtr pccArg)
     xmlSetProp(nodeOption,BAD_CAST "select",BAD_CAST "yes");
 #else
     xmlSetProp(nodeOption,BAD_CAST "select",BAD_CAST "no");
-#endif
-
-#if 0
-    nodeOption = xmlNewChild(nodeProgram, NULL, BAD_CAST"module", NULL);
-    xmlSetProp(nodeOption,BAD_CAST "name",BAD_CAST"admesh");
-    xmlSetProp(nodeOption,BAD_CAST "ns",BAD_CAST"http://www.varlog.com/");
-#ifdef WITH_RP
-    xmlSetProp(nodeOption,BAD_CAST "select", BAD_CAST "yes");
-    //xmlSetProp(nodeOption,BAD_CAST "version",BAD_CAST SQLITE_VERSION);
-#else
-    xmlSetProp(nodeOption,BAD_CAST "select", BAD_CAST "no");
-#endif
 #endif
 
     nodeOption = xmlNewChild(nodeProgram, NULL, BAD_CAST"module", NULL);

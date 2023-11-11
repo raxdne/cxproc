@@ -386,11 +386,6 @@ cxpSubstTest(cxpContextPtr pccArg)
     else if ((pucT = cxpSubstInStringNew(BAD_CAST"Abc Def hij", NULL, pccArg)) != NULL) {
       printf("Error 2 cxpSubstInStringNew()\n");
     }
-#if 0
-    else if ((pucT = cxpSubstInStringNew(BAD_CAST"Abc Def hij", pT, pccArg)) != NULL) {
-      printf("Error 2 cxpSubstInStringNew()\n");
-    }
-#endif
     else {
       n_ok++;
       printf("OK\n");

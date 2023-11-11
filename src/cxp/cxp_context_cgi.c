@@ -283,9 +283,7 @@ cxpCtxtCgiParse(cxpContextPtr pccArg)
     xmlNodePtr pndSource = NULL;
 
     pucCgiEncoding = cxpCtxtCgiGetValueByName(pccArg,BAD_CAST"encoding");
-
     pucCgiXpath = cxpCtxtCgiGetValueByName(pccArg,BAD_CAST"xpath");
-
     pucCgiXsl = cxpCtxtCgiGetValueByName(pccArg,BAD_CAST"xsl");
 
     pndXml = xmlNewNode(pnsCxp, NAME_XML);
@@ -317,7 +315,7 @@ cxpCtxtCgiParse(cxpContextPtr pccArg)
 	  xmlSetProp(pndDir, BAD_CAST "depth", BAD_CAST (resNodeIsRecursive(prnTest) ? "99" : "1"));
 	  xmlSetProp(pndDir, BAD_CAST "urlencode", BAD_CAST "yes");
 	  pndDir = xmlNewChild(pndDir, NULL, NAME_DIR, NULL);
-	  xmlSetProp(pndDir, BAD_CAST "name", resNodeGetNameNormalized(prnTest));
+	  xmlSetProp(pndDir, BAD_CAST "name", resNodeGetNameRelative(cxpCtxtRootGet(pccArg),prnTest));
 	}
       }
       else if (resNodeReadStatus(prnTest) && resNodeIsFile(prnTest)) {
@@ -335,13 +333,14 @@ cxpCtxtCgiParse(cxpContextPtr pccArg)
 	  /* path is a name of a script */
 	  xmlNodePtr pndScript;
 
-	  pndPlain = xmlNewChild(pndMake, NULL, NAME_PLAIN, NULL);
-	  xmlSetProp(pndPlain, BAD_CAST "name", BAD_CAST"-");
-	  xmlSetProp(pndPlain, BAD_CAST "encoding", pucCgiEncoding);
-	  pndScript = xmlNewChild(pndPlain, NULL, NAME_SCRIPT, NULL);
+	  pndScript = xmlNewChild(pndXml, NULL, NAME_SCRIPT, NULL);
+	  xmlNodeSetName(pndXml, NAME_PLAIN);
+	  if (STR_IS_NOT_EMPTY(pucCgiEncoding)) {
+	    xmlSetProp(pndXml, BAD_CAST "encoding", pucCgiEncoding);
+	  }
 
 	  if (resNodeIsFile(prnTest)) {
-	    xmlSetProp(pndScript, BAD_CAST "name", pucCgiPath);
+	    xmlSetProp(pndScript, BAD_CAST "name", resNodeGetNameRelative(cxpCtxtRootGet(pccArg),prnTest));
 	  }
 	  else {
 	    xmlSetProp(pndScript, BAD_CAST "name", pucCgiPath);
@@ -349,24 +348,6 @@ cxpCtxtCgiParse(cxpContextPtr pccArg)
 	    cxpCtxtLogPrint(pccArg, 2, "Search later for '%s'", pucCgiPath);
 	  }
 	  /*!\todo append additional arguments */
-	}
-#endif
-#if 0
-	else if (iMimeType == MIME_TEXT_PLAIN) {
-	  xmlNodePtr pndPie;
-
-	  pndPie = xmlNewChild(pndXml, NULL, NAME_PIE, NULL);
-	  pndImport = xmlNewChild(pndPie, NULL, NAME_PIE_IMPORT, NULL);
-	  xmlSetProp(pndImport, BAD_CAST "locator", BAD_CAST "yes");
-	  xmlSetProp(pndImport, BAD_CAST "name", resNodeGetNameNormalized(prnFile));
-	}
-	else if (iMimeType == MIME_TEXT_HTML) {
-	  xmlNodePtr pndXhtml;
-
-	  pndXhtml = xmlNewChild(pndXml, NULL, NAME_XHTML, NULL);
-	  xmlSetProp(pndXhtml, BAD_CAST "name", resNodeGetNameNormalized(prnFile));
-	}
-	else if (iMimeType == MIME_TEXT_XSL) {
 	}
 #endif
 	else {
@@ -377,7 +358,7 @@ cxpCtxtCgiParse(cxpContextPtr pccArg)
 
 	  pndFile = xmlNewChild(pndXml, NULL, NAME_FILE, NULL);
 	  xmlSetProp(pndFile, BAD_CAST "verbosity", BAD_CAST "4");
-	  xmlSetProp(pndFile, BAD_CAST "name", resNodeGetNameNormalized(prnTest));
+	  xmlSetProp(pndFile, BAD_CAST "name", resNodeGetNameRelative(cxpCtxtRootGet(pccArg),prnTest));
 	}
 
       }
