@@ -76,7 +76,7 @@ REQ: handle timezone in date node
 
 ### plain
 
-REQ: HTML to UTF-8 Plain text Renderer `<cxp:plain><cxp:html name="abc.html"/></cxp:plain>` like "w3m -dump"
+REQ: HTML to UTF-8 Plain text Renderer `<cxp:plain><cxp:html name="abc.html"/></cxp:plain>` like "w3m -dump" ✘
 
 ## Security
 
@@ -102,7 +102,7 @@ TODO: gprof and valgrind/cachegrind (KCachegrind) #v20
 
 DONE: Binary without Microsoft Runtime DLL (at all requiered libs??)
 
-TODO: statically linked binaries for ARMv7, x64_linux, x64_windows (using `vcpkg`) #v20
+TODO: statically linked binaries for ARMv7, x64_linux, x64_windows (using `vcpkg`) ✘
 
 TODO: provide a Flatpack #v20
 
@@ -204,7 +204,7 @@ TEST: on Linux and Windows
 - playlist formats xspf, m3u
 - playlist from Archive file
 
-### STL/librp
+### STL/librp ✘
 
 - integrate [admesh](https://github.com/admesh)
 - output of

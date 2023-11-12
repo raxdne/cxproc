@@ -285,28 +285,34 @@ scriptProcessScriptNode(xmlNodePtr pndArg, cxpContextPtr pccArg)
       pucScript = xmlStrdup(pucContent);
     }
 
-    if (STR_IS_NOT_EMPTY(pucScript) && domGetPropFlag(pndArg, BAD_CAST "eval", TRUE)) {
+    if (STR_IS_NOT_EMPTY(pucScript)) {
       xmlChar *pucScriptDecoded;
 
       pucScriptDecoded = xmlStrdup(pucScript); /*!\bug decode XML entities to UTF-8 StringDecodeXmlDefaultEntitiesNew(pucScript) */
+      if (domGetPropFlag(pndArg, BAD_CAST "eval", TRUE)) {
 
-      cxpCtxtLogPrint(pccArg, 4, "Run Script code '%s'", pucScriptDecoded);
-      duk_push_global_object(pDukContext);
-      duk_push_string(pDukContext, (const char*)pucScriptDecoded);
-      if (duk_peval(pDukContext) != 0) {
-	cxpCtxtLogPrint(pccArg, 1, "Script error: %s", duk_safe_to_string(pDukContext, -1));
-	pucResult = xmlStrdup(BAD_CAST duk_safe_to_string(pDukContext, -1));
-      }
-      else if (duk_check_type(pDukContext, -1, DUK_TYPE_NUMBER) || duk_check_type(pDukContext, -1, DUK_TYPE_STRING)) {
-	pucResult = xmlStrdup(BAD_CAST duk_to_string(pDukContext, -1));
+	cxpCtxtLogPrint(pccArg, 4, "Run Script code '%s'", pucScriptDecoded);
+	duk_push_global_object(pDukContext);
+	duk_push_string(pDukContext, (const char *)pucScriptDecoded);
+	if (duk_peval(pDukContext) != 0) {
+	  cxpCtxtLogPrint(pccArg, 1, "Script error: %s", duk_safe_to_string(pDukContext, -1));
+	  pucResult = xmlStrdup(BAD_CAST duk_safe_to_string(pDukContext, -1));
+	}
+	else if (duk_check_type(pDukContext, -1, DUK_TYPE_NUMBER) || duk_check_type(pDukContext, -1, DUK_TYPE_STRING)) {
+	  pucResult = xmlStrdup(BAD_CAST duk_to_string(pDukContext, -1));
+	}
+	else {
+	  cxpCtxtLogPrint(pccArg, 1, "Script: undefined result");
+	  pucResult = xmlStrdup(BAD_CAST "");
+	}
+	duk_pop(pDukContext); /* pop result/error */
+	xmlFree(pucScriptDecoded);
       }
       else {
-	cxpCtxtLogPrint(pccArg, 1, "Script: undefined result");
-	pucResult = xmlStrdup(BAD_CAST "");
+	pucResult = pucScriptDecoded;
       }
-      duk_pop(pDukContext);  /* pop result/error */
-      xmlFree(pucScriptDecoded);
     }
+
     /*!\todo keep script code after eval as display attribute or title */
 
     xmlFree(pucScript);
