@@ -300,76 +300,73 @@ addLine(xmlNodePtr pndArg, char* pchArg)
 }
 /* end of addLine() */
 
-
 /*! \return a pointer to the begin of first next block
-*/
-char*
-getNextBlock(xmlNodePtr pndArg, char* pchArg, int iArgLength)
+ */
+char *
+getNextBlock(xmlNodePtr pndArg, char *pchArg, int iArgLength)
 {
-  char* pchBlockBegin = NULL;
+  char *pchBlockBegin = NULL;
 
   if (iArgLength > 10) {
-    char* pchBlockEnd;
+    int i;
+    char *pchBlockEnd;
+    int iSearchLength = iArgLength;
 
     /*
     all block siblings
     */
-    for (pchBlockBegin = pchArg; (pchBlockBegin = (char*)Strnstr(BAD_CAST pchBlockBegin, iArgLength, BAD_CAST"BEGIN:")); pchBlockBegin=pchBlockEnd) {
+    for (i = 0, pchBlockBegin = pchArg; (pchBlockBegin = (char *)Strnstr(BAD_CAST pchBlockBegin, iSearchLength, BAD_CAST "BEGIN:"));
+	 i++, pchBlockBegin = pchBlockEnd) {
+      char *pchBlockContent;
 
-      pchBlockEnd = getBlockEnd(pchBlockBegin, iArgLength);
+      pchBlockContent = pchBlockBegin + getLineLength(pchBlockBegin);
+      while (*pchBlockContent == '\n' || *pchBlockContent == '\r') { pchBlockContent++; /* skip leading linebreaks */ }
+
+      iSearchLength = iArgLength - (pchBlockBegin - pchArg);
+
+      pchBlockEnd = getBlockEnd(pchBlockBegin, iSearchLength);
       if (pchBlockEnd) {
-	int iBlockLength = (int)(pchBlockEnd - pchBlockBegin); /* set "return" value */
+	int iBlockLength = (int)(pchBlockEnd - pchBlockContent); /* set "return" value */
 	if (iBlockLength > 0) {
-	  char* pchLineNext;
-	  char* pchBlockContent;
+	  char *pchLineNext;
 	  int ciDepth;
 	  size_t iLengthName = getLineLength(pchBlockEnd) - 4;
-	  xmlChar* pucName;
+	  xmlChar *pucName;
 	  xmlNodePtr pndNew;
 	  xmlNodePtr pndProperties;
 	  xmlNodePtr pndComponents;
 
 	  pucName = xmlStrndup(BAD_CAST(pchBlockEnd + 4), (int)iLengthName);
-#if 1
-	  PrintFormatLog(3, "Element %s %i Byte", pucName, iBlockLength);
-#else
-	  xmlChar* pucTT;
-	  pucTT = xmlStrndup(pchBlockBegin, 20);
-	  fprintf(stderr, pucTT);
-	  xmlFree(pucTT);
-#endif
-	  StringToLower((char*)pucName);
+	  StringToLower((char *)pucName);
+	  PrintFormatLog(3, "* Block %i Element %s %i Byte", i, pucName, iBlockLength);
 	  pndNew = xmlNewChild(pndArg, NULL, pucName, NULL);
 	  xmlFree(pucName);
-	  pndProperties = xmlNewChild(pndNew, NULL, BAD_CAST"properties", NULL);
-	  pndComponents = xmlNewChild(pndNew, NULL, BAD_CAST"components", NULL);
 
-	  pchBlockContent = pchBlockBegin + getLineLength(pchBlockBegin);
-	  while (*pchBlockContent == '\n' || *pchBlockContent == '\r') {
-	    pchBlockContent++; /* skip leading linebreaks */
-	  }
+#if 0
+{
+	  xmlChar *pucTT;
+	  pucTT = xmlStrndup(pchBlockContent,iBlockLength);
+	  fprintf(stderr,pucTT);
+	  fprintf(stderr,"\n\n");
+	  xmlFree(pucTT);
+}
+#endif
+
+#if 1
 	  /*
 	    all lines of current block
 	  */
-	  for (ciDepth=0, pchLineNext=pchBlockContent;
-	    pchLineNext != NULL && pchLineNext < pchBlockEnd;
-	    (pchLineNext = getNextLine(pchLineNext))) {
-	    if (pchLineNext[0]=='B'
-	      && pchLineNext[1]=='E'
-	      && pchLineNext[2]=='G'
-	      && pchLineNext[3]=='I'
-	      && pchLineNext[4]=='N'
-	      && pchLineNext[5]==':') {
+	  pndProperties = xmlNewChild(pndNew, NULL, BAD_CAST "properties", NULL);
+	  for (ciDepth = 0, pchLineNext = pchBlockContent; pchLineNext != NULL && pchLineNext < pchBlockEnd; (pchLineNext = getNextLine(pchLineNext))) {
+	    if (pchLineNext[0] == 'B' && pchLineNext[1] == 'E' && pchLineNext[2] == 'G' && pchLineNext[3] == 'I' && pchLineNext[4] == 'N' &&
+		pchLineNext[5] == ':') {
 	      ciDepth++;
 	    }
-	    else if (pchLineNext[0]=='E'
-	      && pchLineNext[1]=='N'
-	      && pchLineNext[2]=='D'
-	      && pchLineNext[3]==':') {
+	    else if (pchLineNext[0] == 'E' && pchLineNext[1] == 'N' && pchLineNext[2] == 'D' && pchLineNext[3] == ':') {
 	      ciDepth--;
 	    }
-	    else if (ciDepth==0) {
-	      if (pchLineNext[0]=='X' && pchLineNext[1]=='-' && fExtensions == FALSE) {
+	    else if (ciDepth == 0) {
+	      if (pchLineNext[0] == 'X' && pchLineNext[1] == '-' && fExtensions == FALSE) {
 		/* ignore */
 	      }
 	      else {
@@ -377,15 +374,16 @@ getNextBlock(xmlNodePtr pndArg, char* pchArg, int iArgLength)
 	      }
 	    }
 	  }
+#endif
 	  /* all block childs */
-	  getNextBlock(pndComponents, pchBlockContent, (int)(pchBlockEnd - pchBlockContent));
+	  pndComponents = xmlNewChild(pndNew, NULL, BAD_CAST "components", NULL);
+	  getNextBlock(pndComponents, pchBlockContent, iBlockLength);
 	}
       }
     }
   }
   return pchBlockBegin;
-}
-/* end of getNextBlock() */
+} /* end of getNextBlock() */
 
 
 /*! parse an vCard formatted buffer, append tree to the given pndArg

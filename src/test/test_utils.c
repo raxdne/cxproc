@@ -306,6 +306,36 @@ utilsTest(void)
 
 
   if (RUNTEST) {
+
+    i++;
+    printf("TEST %i in '%s:%i': Strnstr() = ", i, __FILE__, __LINE__);
+
+    if (Strnstr(NULL,-1,NULL) != NULL) {
+      printf("ERROR 1\n");
+    }
+    else if (Strnstr("ABC",3,"") == NULL) {
+      printf("ERROR 2\n");
+    }
+    else if (Strnstr("ABC DEF",7,"DE") == NULL) {
+      printf("ERROR 3\n");
+    }
+    else if (Strnstr("AB AB ABC",-1,"ABC") == NULL) {
+      printf("ERROR 3\n");
+    }
+    else if (Strnstr("AB:ABC",-1,":") == NULL) {
+      printf("ERROR 3\n");
+    }
+    else if (Strnstr("DE",2,"ABC DEF") != NULL) {
+      printf("ERROR 3\n");
+    }
+    else {
+      n_ok++;
+      printf("OK\n");
+    }
+  }
+
+
+  if (RUNTEST) {
     /* static references */
     xmlChar* pucTestA = BAD_CAST"invalid: &#; or &#x; or \\u \\U &#144;";
     xmlChar* pucTestB = BAD_CAST"valid: &#13; <= &#x21D2; <=> \\u21D2 => &#x2014; \\U2014";

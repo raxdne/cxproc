@@ -71,6 +71,35 @@ icsTest(void)
     resNodeFree(prnIcs);
   }
 
+  if (RUNTEST) {
+    xmlDocPtr pdocResult = NULL;
+    xmlNodePtr pndFile;
+    resNodePtr prnIcs = NULL;
+    
+    i++;
+    printf("TEST %i in '%s:%i': icsParse() = ",i,__FILE__,__LINE__);
+
+    pdocResult = xmlNewDoc(BAD_CAST "1.0");
+    pndFile = xmlNewDocNode(pdocResult, NULL, NAME_FILE, NULL); 
+    xmlDocSetRootElement(pdocResult,pndFile);
+    pdocResult->encoding = xmlStrdup(BAD_CAST "UTF-8"); /* according to conversion in ParseImportNodePlainContent() */
+
+    if ((prnIcs = resNodeConcatNew(BAD_CAST TESTPREFIX, BAD_CAST "option/ics/2446-corrupt.ics")) == NULL) {
+      printf("Error icsParse()\n");
+    }
+    else if (icsParse(pndFile,prnIcs) == FALSE) {
+      printf("Error icsParse()\n");
+    }
+    else {
+      n_ok++;
+      printf("OK\n");
+    }
+
+    xmlSaveFormatFileEnc(TEMPPREFIX "2446-corrupt.pie", pdocResult, "UTF-8", 1);
+    xmlFreeDoc(pdocResult);
+    resNodeFree(prnIcs);
+  }
+
   printf("Result in '%s': %i/%i OK\n\n",__FILE__,n_ok,i);
 
   return (i - n_ok);

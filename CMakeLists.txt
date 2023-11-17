@@ -12,7 +12,8 @@ set(CMAKE_CONFIGURATION_TYPES "Debug;Release;Profile" CACHE STRING "" FORCE)
 # for profiling s. https://stackoverflow.com/questions/26491948/how-to-use-gprof-with-cmake
 # or see test/main.sh and https://github.com/jrfonseca/gprof2dot
 # http://gernotklingler.com/blog/gprof-valgrind-gperftools-evaluation-tools-application-level-cpu-profiling-linux/
-#set(CMAKE_BUILD_TYPE "Profile")
+#set(CMAKE_BUILD_TYPE RelWithDebInfow)
+#set(CMAKE_BUILD_TYPE Debug)
 
 # s. https://cmake.org/Wiki/CMake_Useful_Variables
 

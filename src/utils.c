@@ -574,7 +574,98 @@ HasStringPairQuotes(xmlChar *pucArg)
  */
 
 xmlChar *
-Strnstr(const xmlChar *str, const int l, const xmlChar *val) {
+Strnstr(const xmlChar *str, const int l, const xmlChar *val)
+{
+#if 0
+  int i;
+  int m;
+
+  if (str == NULL || val == NULL) {
+    return (NULL);
+  }
+
+  if (*val == '\0') {
+    return (BAD_CAST str);
+  }
+
+  m = (l < 0) ? xmlStrlen(str) : l;
+
+  for (i = 0; i < m; i++) { /*  */
+    if (*str == '\0') {
+      return (NULL);
+    }
+    else if (*val == *str) {
+      int j;
+      int k;
+
+      k = i;
+      for (j = 0;; i++, j++) { /*  */
+	if (*val == '\0') {
+	  return (BAD_CAST str);
+	}
+	else if (*str == '\0') {
+	  return (NULL);
+	}
+	else if (i == m) {
+	  return (NULL);
+	}
+	else if (*val == *str) {
+	  // continue
+	  val++;
+	  str++;
+	}
+	else {
+	  break;
+	}
+      }
+    }
+    else {
+      str++;
+    }
+  }
+#elif 0
+  int i;
+  int m;
+
+  if (str == NULL || val == NULL) {
+    return (NULL);
+  }
+
+  if (*val == '\0') {
+    return (BAD_CAST str);
+  }
+
+  m = (l < 0) ? xmlStrlen(str) : l;
+
+  for (i = 0; i < m; i++) { /*  */
+    if (str[i] == '\0') {
+      return (NULL);
+    }
+    else if (val[0] == str[i]) {
+      int j;
+      int k;
+
+      k = i;
+      for (j = 0;; i++, j++) { /*  */
+	if (val[j] == '\0') {
+	  return (BAD_CAST & str[k]);
+	}
+	else if (str[i] == '\0') {
+	  return (NULL);
+	}
+	else if (i == m) {
+	  return (NULL);
+	}
+	else if (val[j] == str[i]) {
+	  // continue
+	}
+	else {
+	  break;
+	}
+      }
+    }
+  }
+#else
     int n;
     int i;
     
@@ -589,7 +680,8 @@ Strnstr(const xmlChar *str, const int l, const xmlChar *val) {
 	}
 	str++;
     }
-    return(BAD_CAST NULL);
+#endif
+  return (BAD_CAST NULL);
 }
 
 
