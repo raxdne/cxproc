@@ -39,9 +39,12 @@
 #include <res_node/res_node.h>
 #include <cxp/cxp.h>
 #include <cxp/cxp_dir.h>
+#include <cxp/cxp_calendar.h>
 #include "dom.h"
 
+#ifdef HAVE_PIE
 #include <pie/pie_text.h>
+#endif
 
 const char *mpucNumber[] = {
 			    "00","01","02","03","04","05","06","07","08","09",
@@ -488,7 +491,8 @@ CalendarUpdate(cxpCalendarPtr pCalendarArg)
 
       /* generate an id for origin node */
       xmlStrPrintf(mucAdress,sizeof(mucAdress),"%x",pceT->pndEntry);
-      
+
+#ifdef HAVE_PIE
       if ((pndAdd = pieGetSelfAncestorNodeList(pceT->pndEntry,mucAdress))) {
 	xmlNodePtr pndCol;
 
@@ -531,6 +535,7 @@ CalendarUpdate(cxpCalendarPtr pCalendarArg)
 	  //xmlFreeNode(pceT->pndEntry);
 	}
       }
+#endif
     }
 
     for (pceT = pCalendarArg->pceFirst; pceT; pceT = pceT->pNext) {
@@ -728,6 +733,7 @@ RegisterAndParseDateNodes(cxpCalendarPtr pCalendarArg, xmlChar *pucArg)
 	for (nodeset = result->nodesetval, i=0; i < nodeset->nodeNr; i++) {
 	  xmlChar *pucT = NULL;
 
+#ifdef HAVE_PIE
 	  if (IS_NODE_PIE_DATE(nodeset->nodeTab[i])) {
 	    if (IS_NODE_PIE_TD(nodeset->nodeTab[i]->parent) || IS_NODE_PIE_TH(nodeset->nodeTab[i]->parent)) {
 	      pucT = domNodeGetContentPtr(nodeset->nodeTab[i]);
@@ -753,10 +759,12 @@ RegisterAndParseDateNodes(cxpCalendarPtr pCalendarArg, xmlChar *pucArg)
 	  else {
 	  }
 #endif
+#endif
 
 	  if (STR_IS_NOT_EMPTY(pucT) && (pceNew = CalendarElementNew(pucT)) != NULL) {
 	    xmlNodePtr pndCol;
 
+#ifdef HAVE_PIE
 	    if (IS_NODE_PIE_DATE(nodeset->nodeTab[i])
 	      && (IS_NODE_PIE_TD(nodeset->nodeTab[i]->parent) || IS_NODE_PIE_TH(nodeset->nodeTab[i]->parent))
 	      && IS_NODE_PIE_TR(nodeset->nodeTab[i]->parent->parent)) {
@@ -765,6 +773,9 @@ RegisterAndParseDateNodes(cxpCalendarPtr pCalendarArg, xmlChar *pucArg)
 	    else {
 	      pceNew->pndEntry = nodeset->nodeTab[i];
 	    }
+#else
+	    pceNew->pndEntry = nodeset->nodeTab[i];
+#endif
 
 	    /*!\bug avoid redundant entries */
 	    
@@ -1499,6 +1510,7 @@ SubstituteFormat(xmlNodePtr pndArg)
 
     pndCol = pndArg;
 
+#ifdef HAVE_PIE
     for (pndPar = pndCol->children; pndPar; pndPar = pndPar->next) {
       if (IS_NODE_PIE_LINK(pndPar) || IS_NODE_PIE_PAR(pndPar)) {
 	/* all P children nodes */
@@ -1528,6 +1540,7 @@ SubstituteFormat(xmlNodePtr pndArg)
 	}
       }
     }
+#endif
   }
   else {
     /*!\todo other elements than p ? */

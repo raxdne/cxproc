@@ -41,6 +41,7 @@
 #include "utils.h"
 #include <res_node/res_node_ops.h>
 #include <cxp/cxp.h>
+#include <cxp/cxp_calendar.h>
 #include "plain_text.h"
 #include <cxp/cxp_dir.h>
 #include <rp/rp.h>
@@ -64,7 +65,6 @@
 
 #ifdef HAVE_PIE
 #include <pie/pie_text.h>
-#include <cxp/cxp_calendar.h>
 #endif
 
 /*!\todo named args */

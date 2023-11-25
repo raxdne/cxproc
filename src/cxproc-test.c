@@ -60,6 +60,7 @@
 #include "utils.h"
 #include <res_node/res_node_ops.h>
 #include <cxp/cxp.h>
+#include <cxp/cxp_calendar.h>
 #include <cxp/cxp_threadp.h>
 #include "dom.h"
 #include "plain_text.h"
@@ -69,7 +70,6 @@
 #include <pie/pie_text.h>
 #include <ics/ics.h>
 #include <vcf/vcf.h>
-#include <cxp/cxp_calendar.h>
 #endif
 #ifdef HAVE_PETRINET
 #include <petrinet/petrinet.h>

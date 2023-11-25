@@ -801,7 +801,6 @@ resNodeTest(void)
     resNodeFree(prnT);
   }
 
-#endif
 
   if (SKIPTEST) {
     resNodePtr prnT = NULL;
@@ -813,7 +812,7 @@ resNodeTest(void)
     mucTestResult[0] = '\0';
 
     if ((prnT = resNodeCurlNew(BAD_CAST HTTPPREFIX "non-dir/test-zip-7.zip/path/test.txt")) == NULL) {
-      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeDirNew(): %s\n",resNodeGetErrorMsg(prnT));
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeCurlNew(): %s\n",resNodeGetErrorMsg(prnT));
     }
     else if (resNodeGetChild(prnT) == NULL) {
       xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeDirNew(): %s\n",resNodeGetErrorMsg(prnT));
@@ -839,6 +838,8 @@ resNodeTest(void)
     resNodeFree(prnT);
   }
 
+#endif
+
 
   if (RUNTEST) {
     xmlChar *pucTT;
@@ -849,7 +850,7 @@ resNodeTest(void)
     fputs((const char *)mucTestLabel,stderr);
     mucTestResult[0] = '\0';
 
-    if ((prnT = resNodeCurlNew(BAD_CAST "file:///" TESTPREFIX "xml/config.cxp")) == NULL) {
+    if ((prnT = resNodeDirNew(BAD_CAST "file:///" TESTPREFIX "xml/config.cxp")) == NULL) {
       xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"ERROR\n");
     }
     else if ((pucTT = resPathCollapse(BAD_CAST TESTPREFIX "xml",FS_PATH_FULL)) == NULL) {
@@ -886,8 +887,8 @@ resNodeTest(void)
 
     pucTest = resPathNormalize(BAD_CAST TESTPREFIX "plain/test-plain-3.xml");
 
-    if ((prnT = resNodeCurlNew(BAD_CAST "file://" TESTPREFIX)) == NULL) {
-      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeCurlNew()\n");
+    if ((prnT = resNodeDirNew(BAD_CAST "file://" TESTPREFIX)) == NULL) {
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeDirNew()\n");
     }
     else if ((prnDir = resNodeAddChildNew(prnT, BAD_CAST"plain/")) == NULL) {
       xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeAddChildNew()\n");

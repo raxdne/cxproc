@@ -75,6 +75,7 @@
 #include <cxp/cxp.h>
 #include <cxp/cxp_threadp.h>
 #include "dom.h"
+#include "plain_text.h"
 #include <cxp/cxp_dir.h>
 #include <cxp/cxp_calendar.h>
 #ifdef HAVE_PIE

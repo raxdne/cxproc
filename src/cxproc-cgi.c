@@ -51,6 +51,7 @@ CXP_ROOT=.../www/html/Documents
 #include "utils.h"
 #include <res_node/res_node_ops.h>
 #include <cxp/cxp.h>
+#include <cxp/cxp_calendar.h>
 #include <cxp/cxp_context_cgi.h>
 #include "plain_text.h"
 #include <cxp/cxp_dir.h>
@@ -59,7 +60,6 @@ CXP_ROOT=.../www/html/Documents
 
 #ifdef HAVE_PIE
 #include <pie/pie_text.h>
-#include <cxp/cxp_calendar.h>
 #endif
 
 #ifdef HAVE_JS

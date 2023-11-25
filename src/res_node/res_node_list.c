@@ -74,7 +74,11 @@ resNodeListPathNew(xmlChar* pucArgPath)
       else if ((pucT = xmlStrndup(pucTT, (int)(pucSep - pucTT)))) {
 
 	if (resPathIsURL(pucT)) {
+#ifdef HAVE_LIBCURL
 	  prnT = resNodeCurlNew(pucT);
+#else
+	  prnT = resNodeDirNew(pucT);
+#endif
 	}
 	else if (resPathIsAbsolute(pucT)) {
 	  prnT = resNodeDirNew(pucT);
@@ -345,12 +349,10 @@ resNodeListFindPath(resNodePtr prnArg, xmlChar *pucArgPath, int iArgOptions)
   if (prnArg && STR_IS_NOT_EMPTY(pucArgPath)) {
     xmlChar *pucT;
     resNodePtr prnI;
-    pcre2_code *re_match = NULL;
-    pcre2_match_data *match_data = NULL;
 
-#ifdef DEBUG
-    PrintFormatLog(4, "resNodeListFindPath('%s','%s')", resNodeGetNameNormalized(prnArg), pucArgPath);
-#endif
+#ifdef HAVE_PCRE2
+    pcre2_match_data *match_data = NULL;
+    pcre2_code *re_match = NULL;
 
     if (iArgOptions & RN_FIND_REGEXP) {
       size_t erroroffset;
@@ -373,7 +375,8 @@ resNodeListFindPath(resNodePtr prnArg, xmlChar *pucArgPath, int iArgOptions)
 	return prnResult;
       }
     }
-    
+#endif
+
     if (resPathIsAbsolute(pucArgPath)) {
       xmlChar* pucTT;
 
@@ -388,7 +391,9 @@ resNodeListFindPath(resNodePtr prnArg, xmlChar *pucArgPath, int iArgOptions)
     else if (resNodeIsHidden(prnArg)) {
       /* ignore this node and its childs */
     }
-    else if (((iArgOptions & RN_FIND_REGEXP)
+    else if (
+#ifdef HAVE_PCRE2
+      ((iArgOptions & RN_FIND_REGEXP)
 	      &&
 	      pcre2_match(re_match,
 			  (PCRE2_SPTR8)resNodeGetNameNormalized(prnArg),
@@ -398,6 +403,7 @@ resNodeListFindPath(resNodePtr prnArg, xmlChar *pucArgPath, int iArgOptions)
 			  match_data,
 			  NULL) > -1)
 	     ||
+#endif
 	     resPathIsMatchingEnd(resNodeGetNameNormalized(prnArg), pucArgPath)) { /* match or not? */
       if (((iArgOptions & RN_FIND_DIR) && resNodeGetType(prnArg) == rn_type_dir)
           ||
@@ -437,10 +443,12 @@ resNodeListFindPath(resNodePtr prnArg, xmlChar *pucArgPath, int iArgOptions)
       }
     }
 
+#ifdef HAVE_PCRE2
     if (re_match) {
       pcre2_match_data_free(match_data);   /* Release memory used for the match */
       pcre2_code_free(re_match);
     }    
+#endif
   }
   return prnResult;
 } /* end of resNodeListFindPath() */

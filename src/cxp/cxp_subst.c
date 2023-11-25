@@ -673,7 +673,7 @@ cxpSubstDetect(xmlNodePtr pndArgSubst, cxpContextPtr pccArg)
 BOOL_T
 cxpSubstSkip(xmlNodePtr pndArg)
 {
-  return (pndArg == NULL || pndArg->type == XML_PI_NODE || pndArg->type == XML_COMMENT_NODE || IS_NODE_PIE_META(pndArg));
+  return (pndArg == NULL || pndArg->type == XML_PI_NODE || pndArg->type == XML_COMMENT_NODE || IS_NODE_META(pndArg));
 } /* End of cxpSubstSkip() */
 
 

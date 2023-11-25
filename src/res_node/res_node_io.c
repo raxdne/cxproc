@@ -933,8 +933,8 @@ resNodeReadContent(resNodePtr prnArg, int iArgMax)
       resNodeSetBlockSize(prnArg,BUFFER_LENGTH);
     }
 
-    if (prnArg->eAccess == rn_access_curl && prnArg->handleIO != NULL) {
 #ifdef HAVE_LIBCURL
+    if (prnArg->eAccess == rn_access_curl && prnArg->handleIO != NULL) {
       CURLcode res;
 
       /* get it! */
@@ -979,9 +979,10 @@ resNodeReadContent(resNodePtr prnArg, int iArgMax)
       else if (resNodeGetType(prnArg) == rn_type_url_ftp) {
 	cchReadInput = xmlIOFTPRead(resNodeGetHandleIO(prnArg), &(pchInput[cchResult]), resNodeGetBlockSize(prnArg));
       }
-#endif
     }
-    else if (resNodeGetSize(prnArg) > 0) { /* content size is known already */
+    else
+#endif
+      if (resNodeGetSize(prnArg) > 0) { /* content size is known already */
       void *pInput;  /*! pointer to buffer */
 
       pInput = xmlMalloc(resNodeGetSize(prnArg) + 1);

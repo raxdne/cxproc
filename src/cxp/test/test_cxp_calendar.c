@@ -54,6 +54,7 @@ calTest(cxpContextPtr pccArg)
     CalendarFree(pCalendarT);
   }
 
+#ifdef HAVE_PIE
   if (RUNTEST) {
     xmlNodePtr pndMakeCalendar;
     xmlNodePtr pndCol;
@@ -185,6 +186,7 @@ calTest(cxpContextPtr pccArg)
     xmlFreeDoc(pdocCalendar);
     xmlFreeDoc(pdocCalendarDefinition);
   }
+#endif
 
 #if 0
   
