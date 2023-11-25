@@ -19,8 +19,6 @@
 
 */
 
-#include "calendar_element.h"
-
 extern xmlDocPtr
 calProcessCalendarNode(xmlNodePtr pndMakeCalendar, cxpContextPtr pccArg);
 

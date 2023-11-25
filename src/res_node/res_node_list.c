@@ -782,8 +782,9 @@ resNodeListDumpRecursively(FILE *argout, resNodePtr prnArg, xmlChar *(*pfArg)(re
     
       for (prnEntry = resNodeGetChild(prnArg); prnEntry; prnEntry = resNodeGetNext(prnEntry)) {
 	resNodeListDumpRecursively(argout,prnEntry,pfArg);
-	resNodeIncrRecursiveSize(prnArg, resNodeGetRecursiveSize(prnEntry) + resNodeGetSize(prnEntry));
+	resNodeIncrRecursiveSize(prnArg, resNodeGetRecursiveSize(prnEntry));
       }
+      resNodeIncrRecursiveSize(prnArg, resNodeGetSize(prnArg));
     }
 
     if ((pucT = (*pfArg)(prnArg, RN_INFO_META))) {

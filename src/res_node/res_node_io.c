@@ -971,6 +971,8 @@ resNodeReadContent(resNodePtr prnArg, int iArgMax)
 	resNodeSetError(prnArg,rn_error_memory, "curl_easy_perform() failed: %s", curl_easy_strerror(res));
 	fResult = FALSE;
       }
+    }
+    else
 #elif 0
       /*\bug fix code */
       if (resNodeGetType(prnArg) == rn_type_url_http) {

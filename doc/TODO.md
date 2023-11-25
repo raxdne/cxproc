@@ -21,6 +21,12 @@ s. `./option/*/TODO.md`
 
 TODO: update program description #v20
 
+## Refactoring
+
+TODO: in `res_path.c` change 
+- `resPathGetBasename()` to `resPathGetBasenameStr()` due to allocated string result
+- to `*Ptr()` if it's a pointer
+
 ## Features
 
 TODO: remove legacy element names #v20 ✔

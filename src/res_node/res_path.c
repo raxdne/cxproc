@@ -1117,10 +1117,6 @@ resPathGetBasename(xmlChar *pucArgNameFile)
     return NULL;
   }
 
-  if (resPathIsDir(pucArgNameFile)) {
-    return NULL;
-  }
-
   /* ignore trailing separators */
   l = xmlStrlen(pucArgNameFile);
   for (pucEnd = BAD_CAST &pucArgNameFile[l-1];

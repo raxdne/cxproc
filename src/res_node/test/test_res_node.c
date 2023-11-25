@@ -155,6 +155,8 @@ resNodeTest(void)
 
   if (RUNTEST) {
     xmlChar *pucT = BAD_CAST TESTPREFIX "Base.Ext";
+    xmlChar *pucTT = NULL;
+    xmlChar *pucTTT = NULL;
     resNodePtr prnT = NULL;
 
     i++;
@@ -168,11 +170,53 @@ resNodeTest(void)
     else if (resNodeReset(prnT, pucT) == FALSE) {
       xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeReset(): %s\n",resNodeGetErrorMsg(prnT));
     }
-    else if (resNodeResetNameBase(prnT) == FALSE || resNodeGetNameBase(prnT) == NULL) {
+    else if (resNodeResetNameBase(prnT) == FALSE || (pucTT = resNodeGetNameBase(prnT)) == NULL) {
       xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeResetNameBase()\n");
     }
-    else if (resNodeResetNameBase(prnT) == FALSE || resNodeGetNameBase(prnT) == NULL) {
+    else if (resNodeResetNameBase(prnT) == FALSE || (pucTTT = resNodeGetNameBase(prnT)) == NULL) {
       xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeResetNameBase()\n");
+    }
+    else if (resPathIsEquivalent(pucTTT, pucTT) == FALSE) {
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resPathIsEquivalent()\n");
+    }
+    else {
+      n_ok++;
+    }
+
+    if (xmlStrlen(mucTestResult) > 0) {
+      pucModuleTestReport = xmlStrcat(pucModuleTestReport,mucTestLabel);
+      pucModuleTestReport = xmlStrcat(pucModuleTestReport,mucTestResult);
+    }
+    
+    resNodeFree(prnT);
+  }
+
+
+  if (RUNTEST) {
+    xmlChar *pucT = BAD_CAST TESTPREFIX "/abc/def//";
+    xmlChar *pucTT = NULL;
+    xmlChar *pucTTT = NULL;
+    resNodePtr prnT = NULL;
+
+    i++;
+    xmlStrPrintf(mucTestLabel,BUFFER_LENGTH,"\nTEST %i in '%s:%i': redundant reset of new filesystem context = ", i, __FILE__, __LINE__);
+    fputs((const char *)mucTestLabel,stderr);
+    mucTestResult[0] = '\0';
+
+    if ((prnT = resNodeDirNew(pucT)) == NULL) {
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeDirNew(): %s\n",resNodeGetErrorMsg(prnT));
+    }
+    else if (resNodeReset(prnT, pucT) == FALSE) {
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeReset(): %s\n",resNodeGetErrorMsg(prnT));
+    }
+    else if (resNodeResetNameBase(prnT) == FALSE || (pucTT = resNodeGetNameBase(prnT)) == NULL) {
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeResetNameBase()\n");
+    }
+    else if (resNodeResetNameBase(prnT) == FALSE || (pucTTT = resNodeGetNameBase(prnT)) == NULL) {
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeResetNameBase()\n");
+    }
+    else if (resPathIsEquivalent(pucTTT, pucTT) == FALSE) {
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resPathIsEquivalent()\n");
     }
     else {
       n_ok++;
@@ -441,6 +485,42 @@ resNodeTest(void)
   }
 
   
+  if (RUNTEST) {
+    resNodePtr prnT = NULL;
+    xmlChar* pucT;
+
+    i++;
+    xmlStrPrintf(mucTestLabel,BUFFER_LENGTH,"\nTEST %i in '%s:%i': resNodeSetToParent() = ",i,__FILE__,__LINE__);
+    fputs((const char *)mucTestLabel,stderr);
+    mucTestResult[0] = '\0';
+
+
+    if ((pucT = resPathCollapse(BAD_CAST TEMPPREFIX, FS_PATH_FULL)) == NULL) {
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error\n");
+    }
+    else if ((prnT = resNodeDirNew(BAD_CAST TEMPPREFIX "/AAA/./BBB///")) == NULL) {
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error\n");
+    }
+    else if (resNodeSetToParent(prnT) == FALSE || resNodeSetToParent(prnT) == FALSE) {
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error\n");
+    }
+    else if (resPathIsEquivalent(resNodeGetNameNormalized(prnT), pucT) == FALSE) {
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error\n");
+    }
+    else {
+      n_ok++;
+    }
+
+    if (xmlStrlen(mucTestResult) > 0) {
+      pucModuleTestReport = xmlStrcat(pucModuleTestReport,mucTestLabel);
+      pucModuleTestReport = xmlStrcat(pucModuleTestReport,mucTestResult);
+    }
+    
+    resNodeFree(prnT);
+    xmlFree(pucT);
+  }
+
+
   if (RUNTEST) {
     resNodePtr prnT = NULL;
 
@@ -1365,42 +1445,6 @@ resNodeTest(void)
 
   if (RUNTEST) {
     resNodePtr prnT = NULL;
-    xmlChar* pucT;
-
-    i++;
-    xmlStrPrintf(mucTestLabel,BUFFER_LENGTH,"\nTEST %i in '%s:%i': resNodeSetToParent() = ",i,__FILE__,__LINE__);
-    fputs((const char *)mucTestLabel,stderr);
-    mucTestResult[0] = '\0';
-
-
-    if ((pucT = resPathCollapse(BAD_CAST TEMPPREFIX, FS_PATH_FULL)) == NULL) {
-      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error\n");
-    }
-    else if ((prnT = resNodeDirNew(BAD_CAST TEMPPREFIX "/AAA/BBB")) == NULL) {
-      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error\n");
-    }
-    else if (resNodeSetToParent(prnT) == FALSE || resNodeSetToParent(prnT) == FALSE) {
-      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error\n");
-    }
-    else if (resPathIsEquivalent(resNodeGetNameNormalized(prnT), pucT) == FALSE) {
-      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error\n");
-    }
-    else {
-      n_ok++;
-    }
-
-    if (xmlStrlen(mucTestResult) > 0) {
-      pucModuleTestReport = xmlStrcat(pucModuleTestReport,mucTestLabel);
-      pucModuleTestReport = xmlStrcat(pucModuleTestReport,mucTestResult);
-    }
-    
-    resNodeFree(prnT);
-    xmlFree(pucT);
-  }
-
-
-  if (RUNTEST) {
-    resNodePtr prnT = NULL;
 
     i++;
     xmlStrPrintf(mucTestLabel,BUFFER_LENGTH,"\nTEST %i in '%s:%i': resNodeIsURL() = ",i,__FILE__,__LINE__);
@@ -1563,7 +1607,7 @@ resNodeTest(void)
     resNodePtr prnT = NULL;
 
     i++;
-    xmlStrPrintf(mucTestLabel,BUFFER_LENGTH,"\nTEST %i in '%s:%i': rebuild existing filesystem context = ",i,__FILE__,__LINE__);
+    xmlStrPrintf(mucTestLabel,BUFFER_LENGTH,"\nTEST %i in '%s:%i': rebuild existing filesystem context of a file = ",i,__FILE__,__LINE__);
     fputs((const char *)mucTestLabel,stderr);
     mucTestResult[0] = '\0';
 
@@ -1590,6 +1634,64 @@ resNodeTest(void)
     else if (resNodeReadStatus(prnT) == FALSE) {
     }
     else if (resNodeIsDir(prnT) == TRUE && resNodeIsFile(prnT) == FALSE) {
+    }
+    else {
+      n_ok++;
+    }
+
+    if (xmlStrlen(mucTestResult) > 0) {
+      pucModuleTestReport = xmlStrcat(pucModuleTestReport,mucTestLabel);
+      pucModuleTestReport = xmlStrcat(pucModuleTestReport,mucTestResult);
+    }
+    
+    xmlFree(pucC);
+    resNodeFree(prnT);
+  }
+
+
+  if (RUNTEST) {
+    xmlChar *pucA;
+    xmlChar *pucB;
+    xmlChar *pucC = NULL;
+    resNodePtr prnT = NULL;
+
+    i++;
+    xmlStrPrintf(mucTestLabel,BUFFER_LENGTH,"\nTEST %i in '%s:%i': rebuild existing filesystem context of a directory = ",i,__FILE__,__LINE__);
+    fputs((const char *)mucTestLabel,stderr);
+    mucTestResult[0] = '\0';
+
+    if ((prnT = resNodeDirNew(BAD_CAST TESTPREFIX "thread//")) == NULL) {
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeDirNew()\n");
+    }
+    else if (resNodeReadStatus(prnT) == FALSE) {
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error 1 resNodeReadStatus()\n");
+    }
+    else if (resNodeIsDir(prnT) == FALSE) {
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error 1 resNodeIsDir()\n");
+    }
+    else if (resNodeIsFile(prnT) == TRUE) {
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeIsFile()\n");
+    }
+    else if ((pucA = resNodeGetNameBaseDir(prnT)) == NULL) {
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeGetNameBaseDir()\n");
+    }
+    else if ((pucB = resNodeGetNameBase(prnT)) == NULL) {
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeGetNameBase()\n");
+    }
+    else if ((pucC = resPathConcatNormalized(pucA,pucB)) == NULL) {
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resPathConcatNormalized()\n");
+    }
+    else if (resPathIsEquivalent(BAD_CAST TESTPREFIX "thread",pucC) == FALSE) {
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resPathIsEquivalent()\n");
+    }
+    else if (resNodeReset(prnT,pucC) == FALSE) {
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeReset()\n");
+    }
+    else if (resNodeReadStatus(prnT) == FALSE) {
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error 2 resNodeReadStatus()\n");
+    }
+    else if (resNodeIsDir(prnT) == FALSE && resNodeIsFile(prnT) == TRUE) {
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error 2 resNodeIsDir()\n");
     }
     else {
       n_ok++;

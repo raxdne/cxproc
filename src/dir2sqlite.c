@@ -63,6 +63,7 @@ main(int argc, char *argv[], char *envp[])
   else {
     int i;
     xmlChar *pucT;
+    resNodePtr prnI;
     time_t system_zeit_1;
 
     /*! write sqlite declarations first */
@@ -79,52 +80,40 @@ main(int argc, char *argv[], char *envp[])
     if (argc > 1) {
       /* use program arguments as paths */
 
-      for (i = 1; i < argc; i++) {
-	resNodePtr prnArgv;
+      for (i = 1, prnI = resNodeDirNew(NULL); i < argc; i++) {
 
 	PrintFormatLog(4, "%s\n", argv[i]);
 
-	if ((prnArgv = resNodeDirNew(BAD_CAST argv[i])) == NULL) {
-	  PrintFormatLog(1, "Error: '%s'\n", resNodeGetErrorMsg(prnArgv));
+	if (resNodeReset(prnI, BAD_CAST argv[i]) == FALSE) {
+	  PrintFormatLog(1, "%s\n", resNodeGetErrorMsg(prnI));
+	}
+	else if (resNodeUpdate(prnI, RN_INFO_INFO, NULL, NULL) == FALSE) {
+	  PrintFormatLog(1, "%s\n", resNodeGetErrorMsg(prnI));
 	}
 	else {
-#if 0
-	  if (resNodeListParse(prnArgv,999,NULL) == FALSE) {
-	  }
-	  else if ((pucT = resNodeListToSQL(prnArgv, RN_INFO_META)) == NULL) {
-	  }
-	  else {
-	    fputs((const char *)pucT,stdout);
-	    xmlFree(pucT);
-	  }
-#else
-	  resNodeListDumpRecursively(stdout,prnArgv,resNodeToSQL);
-#endif
+	  resNodeListDumpRecursively(stdout, prnI, resNodeToSQL);
 	}
-
-	resNodeListFree(prnArgv);
       }
     }
     else {
       /* read paths from stdin */
       char mcLine[BUFFER_LENGTH];
-      resNodePtr prnLine;
 
-      for ( prnLine = resNodeDirNew(NULL); fgets(mcLine,BUFFER_LENGTH,stdin) == mcLine ; ) {
+      for (prnI = resNodeDirNew(NULL); fgets(mcLine, BUFFER_LENGTH, stdin) == mcLine; ) {
     
 	for (i=strlen(mcLine); i > 0 && (mcLine[i] == '\0' || mcLine[i] == '\n' || mcLine[i] == '\r'); i--) {
 	  mcLine[i] = '\0';
 	}
 	PrintFormatLog(3,"%s\n",mcLine);
     
-	if (resNodeReset(prnLine,BAD_CAST mcLine) == FALSE) {
-	  PrintFormatLog(1,"%s\n",resNodeGetErrorMsg(prnLine));
+	if (resNodeReset(prnI, BAD_CAST mcLine) == FALSE) {
+	  PrintFormatLog(1, "%s\n", resNodeGetErrorMsg(prnI));
 	}
-	else if ((pucT = resNodeToSQL(prnLine, RN_INFO_META)) == NULL) {
+	else if (resNodeUpdate(prnI, RN_INFO_INFO, NULL, NULL) == FALSE) {
+	  PrintFormatLog(1, "%s\n", resNodeGetErrorMsg(prnI));
 	}
 	else {
-	  fputs((const char *)pucT,stdout);
-	  xmlFree(pucT);
+	  resNodeListDumpRecursively(stdout, prnI, resNodeToSQL);
 	}
 	fflush(stdout);
       }

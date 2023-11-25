@@ -600,6 +600,9 @@ extern size_t
 resNodeSetSize(resNodePtr prnArg, size_t iArg);
 
 extern size_t
+resNodeIncrSize(resNodePtr prnArg, size_t iArg);
+
+extern size_t
 resNodeGetRecursiveSize(resNodePtr prnArg);
 
 extern size_t

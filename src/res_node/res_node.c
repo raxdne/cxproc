@@ -2011,43 +2011,38 @@ resNodeResetNameBase(resNodePtr prnArg)
 
   if (prnArg != NULL && STR_IS_NOT_EMPTY(prnArg->pucNameNormalized)) {
     /*
-    UTF-8 normalized path is leading, build basenames
+      UTF-8 normalized path is leading, build basenames
     */
+    xmlChar *pucT;
+
     xmlFree(prnArg->pucNameBaseDir);
     prnArg->pucNameBaseDir = resPathGetBasedir(prnArg->pucNameNormalized);
 
-    if (resPathIsDir(prnArg->pucNameNormalized)) {
-      fResult = TRUE;
-    }
-    else {
-      xmlChar *pucT;
+    xmlFree(prnArg->pucNameBase);
+    prnArg->pucNameBase = NULL;
 
-      xmlFree(prnArg->pucNameBase);
-      prnArg->pucNameBase = NULL;
+    xmlFree(prnArg->pcNameBaseNative);
+    prnArg->pcNameBaseNative = NULL;
 
-      xmlFree(prnArg->pcNameBaseNative);
-      prnArg->pcNameBaseNative = NULL;
-
-      pucT = resPathGetBasename(prnArg->pucNameNormalized);
-      if (pucT) {
-	if (xmlStrlen(pucT) > 0) {
-	  prnArg->pucNameBase = pucT;
-	  prnArg->pcNameBaseNative = resPathDecode(prnArg->pucNameBase);
-	  if (STR_IS_NOT_EMPTY(prnArg->pcNameBaseNative)) {
-	    fResult = TRUE;
-	  }
-	  else {
-	    resNodeSetError(prnArg,rn_error_encoding,"encoding");
-	  }
+    pucT = resPathGetBasename(prnArg->pucNameNormalized);
+    if (pucT) {
+      if (xmlStrlen(pucT) > 0) {
+	prnArg->pucNameBase = pucT;
+	prnArg->pcNameBaseNative = resPathDecode(prnArg->pucNameBase);
+	if (STR_IS_NOT_EMPTY(prnArg->pcNameBaseNative)) {
+	  fResult = TRUE;
 	}
 	else {
-	  xmlFree(pucT);
-	  resNodeSetError(prnArg,rn_error_name,"name");
+	  resNodeSetError(prnArg,rn_error_encoding,"encoding");
 	}
       }
       else {
+	xmlFree(pucT);
 	resNodeSetError(prnArg,rn_error_name,"name");
       }
+    }
+    else {
+      resNodeSetError(prnArg,rn_error_name,"name");
     }
     
 #ifdef _MSC_VER
@@ -2075,12 +2070,8 @@ resNodeSetToParent(resNodePtr prnArg)
   BOOL_T fResult = FALSE;
 
   if (prnArg) {
-      xmlChar *pucBaseDirOld = resNodeGetNameBaseDir(prnArg);
-      prnArg->pucNameBaseDir = NULL;
-      resNodeReset(prnArg,pucBaseDirOld);
-      prnArg->eType = rn_type_dir;
-      xmlFree(pucBaseDirOld);
-      fResult = TRUE;
+    fResult = resNodeReset(prnArg, resNodeGetNameBaseDir(prnArg));
+    prnArg->eType = rn_type_dir; /*\bug if rn_type_dir_in_archive */
   }
   return fResult;
 } /* end of resNodeSetToParent() */
@@ -2098,16 +2089,21 @@ resNodeReset(resNodePtr prnArg, xmlChar *pucArgPath)
   BOOL_T fResult = FALSE;
 
   if (prnArg) {
+    xmlChar *pucArgPathCopy = NULL;
     resNodePtr prnChild;
     resNodePtr prnChildNext;
     
+    if (STR_IS_NOT_EMPTY(pucArgPath)) {
+      pucArgPathCopy = xmlStrdup(pucArgPath); /* if pucArgPath is prnArg->pucNameBaseDir ... */
+    }
+
 #ifdef HAVE_LIBCURL
      /*! - free url handle */
     if (prnArg->curlURL != NULL) {
       curl_url_cleanup(prnArg->curlURL);
     }
 #endif
-    
+
     /*! - close file and directory handle */
     if (prnArg->handleIO != NULL) {
       resNodeClose(prnArg);
@@ -2153,32 +2149,37 @@ resNodeReset(resNodePtr prnArg, xmlChar *pucArgPath)
     memset(prnArg,0,sizeof(resNode));
 
     /*! - set new normalized path */
-    if (STR_IS_NOT_EMPTY(pucArgPath)) {
+    if (STR_IS_NOT_EMPTY(pucArgPathCopy)) {
       int iLength = 0;
+      xmlChar *pucCwd;
+      xmlChar *pucT;
 
-      iLength = xmlStrlen(pucArgPath);
-      if (resPathIsURL(pucArgPath)) {
-	/*!\todo use new fsURLNormalize(pucArgPath,NULL) */
-	prnArg->pucNameNormalized = xmlStrdup(pucArgPath);
+      iLength = xmlStrlen(pucArgPathCopy);
+      if (resPathIsURL(pucArgPathCopy)) {
+	/*!\todo use new fsURLNormalize(pucArgPathCopy,NULL) */
+	prnArg->pucNameNormalized = xmlStrdup(pucArgPathCopy);
       }
-      else if (resPathIsUNC(pucArgPath)) {
-	prnArg->pucNameNormalized = resPathNormalize(pucArgPath);
+      else if (resPathIsUNC(pucArgPathCopy)) {
+	prnArg->pucNameNormalized = resPathNormalize(pucArgPathCopy);
       }
-      else if (resPathIsRelative(pucArgPath)) {
-	prnArg->pucNameNormalized = resPathGetCwd();
-	resNodeConcat(prnArg,pucArgPath);
+      else if (resPathIsRelative(pucArgPathCopy)) {
+	if ((pucCwd = resPathGetCwd())) {
+	  prnArg->pucNameNormalized = resPathConcatNormalized(pucCwd, pucArgPathCopy);
+	  xmlFree(pucCwd);
+	}
       }
 #ifdef _MSC_VER
-      else if (issep(pucArgPath[0])) { /* without drive letter */
-	xmlChar *pucT;
-
-	pucT = resPathGetCwd();
-	prnArg->pucNameNormalized = xmlStrndup(pucT,3);
-	resNodeConcat(prnArg,pucArgPath);
+      else if (issep(pucArgPathCopy[0])) { /* DOS path without drive letter */
+	if ((pucCwd = resPathGetCwd())) {
+	  pucT = xmlStrndup(pucCwd, 3); /* drive letter + ':' + '\' */
+	  prnArg->pucNameNormalized = resPathConcatNormalized(pucT, pucArgPathCopy);
+	  xmlFree(pucT);
+	  xmlFree(pucCwd);
+	}
       }
 #endif
       else {
-	prnArg->pucNameNormalized = resPathNormalize(pucArgPath);
+	prnArg->pucNameNormalized = resPathNormalize(pucArgPathCopy);
       }
 
 #ifdef _MSC_VER
@@ -2191,7 +2192,7 @@ resNodeReset(resNodePtr prnArg, xmlChar *pucArgPath)
       }
 #endif
 
-      resNodeSetRecursion(prnArg,resPathIsDirRecursive(pucArgPath));
+      resNodeSetRecursion(prnArg,resPathIsDirRecursive(pucArgPathCopy));
 
       /*! - convert UTF-8 name (is leading) into native, build normalized path */
       if ((prnArg->pcNameNormalizedNative = resPathDecode(prnArg->pucNameNormalized)) == NULL) {
@@ -2215,6 +2216,7 @@ resNodeReset(resNodePtr prnArg, xmlChar *pucArgPath)
 	}
       }
 #endif
+      xmlFree(pucArgPathCopy);
     }
     fResult = TRUE;
   }
@@ -3483,12 +3485,14 @@ resNodeToCSV(resNodePtr prnArg, int iArgOptions)
 	xmlStrPrintf(pucResult, BUFFER_LENGTH, "stdin\n");
 	break;
       case rn_type_dir:
+#if 1
       case rn_type_dir_in_archive:
       case rn_type_file:
       case rn_type_file_in_archive:
       case rn_type_symlink:
+#endif
 	xmlStrPrintf(pucResult, BUFFER_LENGTH,
-	  "\"%c%c%c%c%c\";%li;%li;%li;\"%s\";%li;\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\"\n",
+	  "\"%c%c%c%c%c\";%lu;%lu;%lu;\"%s\";%lu;\"%s\";\"%s\";=HYPERLINK(\"%s\");\"%s\";\"%s\";\"%s\"\n",
 	  (resNodeIsDir(prnArg) ? 'd' : resNodeIsLink(prnArg) ? 'l' : '-'),
 	  resNodeIsReadable(prnArg) ? 'r' : '-',
 	  resNodeIsWriteable(prnArg) ? 'w' : '-',
@@ -4103,7 +4107,7 @@ resNodeReadStatus(resNodePtr prnArg)
 
       if (resNodeGetNameNormalized(prnArg) != NULL && resNodeGetNameNormalizedNative(prnArg) != NULL) {
 	if (resNodeIsURL(prnArg)) {
-	  prnArg->liSize = -1;
+	  prnArg->liSize = 0;
 
 	  if (resNodeIsMemory(prnArg)) {
 	    /* content was fetched already */
@@ -4141,21 +4145,25 @@ resNodeReadStatus(resNodePtr prnArg)
 	  char *pcName;
 #ifdef _MSC_VER
 	  struct _stat s;
+
+	  resPathCutTrailingChars(BAD_CAST prnArg->pcNameNormalizedNative);
+	  pcName = prnArg->pcNameNormalizedNative; /* use 'pcName' as shortcut only */
+	  if (isalpha(pcName[0]) && pcName[1] == ':' && isend(pcName[2])) { /* root of a drive */
+	    pcName = strncat(strdup(pcName),"\\",3);
+	    xmlFree(prnArg->pcNameNormalizedNative);
+	    prnArg->pcNameNormalizedNative = pcName;
+	  }
+
+	  err = _stat(pcName,&s);
 #else
 	  struct stat s;
-#endif
 
 	  resPathCutTrailingChars(BAD_CAST prnArg->pcNameNormalizedNative);
 	  pcName = prnArg->pcNameNormalizedNative; /* use 'pcName' as shortcut only */
 
-	  /* call of OS stat() */
-#ifdef _MSC_VER
-	  err = _stat(pcName,&s);
-#elif defined WIN32
-	  err = stat(pcName,&s);
-#else
-	  err = lstat(pcName,&s);
+	  err = lstat(pcName, &s);
 #endif
+
 	  if (err == -1) {
 	    resNodeSetError(prnArg,rn_error_stat,"Cant stat() '%s'",pcName);
 	    prnArg->fExist = FALSE;
@@ -4593,6 +4601,22 @@ resNodeSetSize(resNodePtr prnArg, size_t iArg)
   }
   return 0;
 } /* end of resNodeSetSize() */
+
+
+/*! Sets and returns the liSize of this resource node.
+
+  \param prnArg a pointer to a resource node
+  \return recursive value of liSize or -1 in case of errors
+*/
+size_t
+resNodeIncrSize(resNodePtr prnArg, size_t iArg)
+{
+  if (prnArg) {
+    prnArg->liSize += iArg;
+    return prnArg->liSize;
+  }
+  return 0;
+} /* end of resNodeIncrSize() */
 
 
 /*! Sets and returns the liSize of this resource node.
@@ -5065,7 +5089,7 @@ resNodeDirAppendEntries(resNodePtr prnArgDir, const pcre2_code *re_match)
       //warning empty dir ???
     }
     else {
-      do {
+      for (fResult = TRUE;;) {
 	if (strlen(FindFileData.cFileName) < 1 || strcmp(FindFileData.cFileName, ".")==0 || strcmp(FindFileData.cFileName, "..")==0) {
 	  /* ignoring empty or symbolic entries */
 	}
@@ -5073,46 +5097,42 @@ resNodeDirAppendEntries(resNodePtr prnArgDir, const pcre2_code *re_match)
 	  xmlChar *pucName;
 
 	  if ((pucName = resPathEncode(FindFileData.cFileName))) {
-	    if (FindFileData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
-	      resNodePtr prnDir;
+	    int rc = 1;
+	    resNodePtr prnI;
 
-	      prnDir = resNodeAddChildNew(prnArgDir, pucName);
-	      resNodeSetType(prnDir, rn_type_dir);
+#ifdef HAVE_PCRE2
+	    if (re_match) { /* filename matching */
+	      pcre2_match_data *match_data;
+
+	      match_data = pcre2_match_data_create_from_pattern(re_match, NULL);
+	      rc = pcre2_match(re_match,		      /* result of pcre2_compile() */
+			       (PCRE2_SPTR8)pucName,	      /* the subject string */
+			       strlen((const char *)pucName), /* the length of the subject string */
+			       0,			      /* start at offset 0 in the subject */
+			       0,			      /* default options */
+			       match_data,		      /* vector of integers for substring information */
+			       NULL);			      /* number of elements (NOT size in bytes) */
+
+	      pcre2_match_data_free(match_data); /* Release memory used for the match */
+	    }
+#endif
+
+	    if (rc < 0) {
+	      PrintFormatLog(4, "%s ignore '%s'", NAME_FILE, pucName);
+	    }
+	    else if (FindFileData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
+	      prnI = resNodeAddChildNew(prnArgDir, pucName);
+	      resNodeSetType(prnI, rn_type_dir);
 	    }
 	    else {
-#ifdef HAVE_PCRE2
-	      int rc = 1;
-
-	      if (re_match) {   /* filename matching */
-		pcre2_match_data *match_data;
-
-		match_data = pcre2_match_data_create_from_pattern(re_match, NULL);
-		rc = pcre2_match(
-		  re_match,        /* result of pcre2_compile() */
-		  (PCRE2_SPTR8)pucName,  /* the subject string */
-		  strlen((const char *)pucName),             /* the length of the subject string */
-		  0,              /* start at offset 0 in the subject */
-		  0,              /* default options */
-		  match_data,        /* vector of integers for substring information */
-		  NULL);            /* number of elements (NOT size in bytes) */
-
-		pcre2_match_data_free(match_data);   /* Release memory used for the match */
-	      }
-
-	      if (rc < 0) {
-		PrintFormatLog(4, "%s ignore '%s'", NAME_FILE, pucName);
-	      }
-	      else {
-		resNodeAddChildNew(prnArgDir, pucName);
-	      }
-#else
-	      resNodeAddChildNew(prnArgDir, pucName);
-#endif
+	      prnI = resNodeAddChildNew(prnArgDir, pucName);
+	      resNodeIncrSize(prnArgDir, resNodeGetSize(prnI));
 	    }
 	    xmlFree(pucName);
 	  }
 	  else {
 	    /*!\todo handle encoding errors */
+	    fResult = FALSE;
 	  }
 	}
 
@@ -5120,14 +5140,14 @@ resNodeDirAppendEntries(resNodePtr prnArgDir, const pcre2_code *re_match)
 	  iResultErr = GetLastError();
 	  if (iResultErr == ERROR_NO_MORE_FILES) {
 	    iResultErr = ENOENT;
-	    fResult = TRUE;
 	  }
 	  else {
 	    resNodeSetError(prnArgDir, rn_error_find, "find");
+	    fResult = FALSE;
 	  }
 	  break;
 	}
-      } while (TRUE);
+      }
     }
     FindClose(phFind);
   }
@@ -5141,7 +5161,7 @@ resNodeDirAppendEntries(resNodePtr prnArgDir, const pcre2_code *re_match)
 \param prnArgDir the resource node
 \param re_match -- regexp
 
-\return the string of mime attribute
+\return FALSE if there are any errors
 */
 BOOL_T
 resNodeDirAppendEntries(resNodePtr prnArgDir, const pcre2_code *re_match)
@@ -5165,76 +5185,65 @@ resNodeDirAppendEntries(resNodePtr prnArgDir, const pcre2_code *re_match)
       }
     }
 
-    while (prnArgDir->handleIO) {
+    if (prnArgDir->handleIO) {
       struct dirent *pEntity;
 
-      pEntity = readdir((DIR *)prnArgDir->handleIO); /* CAUTION: readdir() is not thread safe */
-      if (pEntity == NULL) {
-	//iResultErr = ENOENT;
-	fResult = TRUE;
-	break;
-      }
-      else if (errno == EBADF) {
-	//iResultErr = errno;
-	resNodeSetError(prnArgDir,rn_error_find,"find");
-	break;
-      }
-      else if (pEntity->d_ino == 0 || strcmp(pEntity->d_name,".")==0 || strcmp(pEntity->d_name,"..")==0) {
-	/* ignoring empty or symbolic entries */
-      }
-      else {
-	xmlChar *pucName;
+      for (fResult = TRUE; (pEntity = readdir((DIR *)prnArgDir->handleIO));) { /* CAUTION: readdir() is not thread safe */
+	if (errno == EBADF) {
+	  resNodeSetError(prnArgDir, rn_error_find, "find");
+	  fResult = FALSE;
+	}
+	else if (pEntity->d_ino == 0 || strcmp(pEntity->d_name, ".") == 0 || strcmp(pEntity->d_name, "..") == 0) {
+	  /* ignoring empty or symbolic entries */
+	}
+	else {
+	  xmlChar *pucName;
 
-	if ((pucName = resPathEncode(pEntity->d_name))) {
+	  if ((pucName = resPathEncode(pEntity->d_name))) {
+	    int rc = 1;
+	    resNodePtr prnI;
 
-	  if (pEntity->d_type & DT_DIR) {
-	    /*  */
-	    resNodePtr prnDir;
-
-	    prnDir = resNodeAddChildNew(prnArgDir, pucName);
-	    resNodeSetType(prnDir,rn_type_dir);
-	  }
-	  else {
 #ifdef HAVE_PCRE2
-	    if (re_match) {   /* filename matching */
-	      int rc;
+	    if (re_match) { /* filename matching */
 	      pcre2_match_data *match_data;
 
 	      match_data = pcre2_match_data_create_from_pattern(re_match, NULL);
-	      rc = pcre2_match(
-		re_match,        /* result of pcre2_compile() */
-		(PCRE2_SPTR8)pucName,  /* the subject string */
-		xmlStrlen(pucName),             /* the length of the subject string */
-		0,              /* start at offset 0 in the subject */
-		0,              /* default options */
-		match_data,        /* vector of integers for substring information */
-		NULL);            /* number of elements (NOT size in bytes) */
+	      rc = pcre2_match(re_match,	     /* result of pcre2_compile() */
+			       (PCRE2_SPTR8)pucName, /* the subject string */
+			       xmlStrlen(pucName),   /* the length of the subject string */
+			       0,		     /* start at offset 0 in the subject */
+			       0,		     /* default options */
+			       match_data,	     /* vector of integers for substring information */
+			       NULL);		     /* number of elements (NOT size in bytes) */
 
-	      pcre2_match_data_free(match_data);   /* Release memory used for the match */
+	      pcre2_match_data_free(match_data); /* Release memory used for the match */
+	    }
+#endif
 
-	      if (rc < 0) {
-		//PrintFormatLog(4, "%s ignore '%s'", NAME_FILE, pcNameBase);
-	      }
-	      else {
-		resNodeAddChildNew(prnArgDir, pucName);
-	      }
+	    if (rc < 0) {
+	      // PrintFormatLog(4, "%s ignore '%s'", NAME_FILE, pcNameBase);
+	    }
+	    else if (pEntity->d_type & DT_DIR) {
+	      /*  */
+	      prnI = resNodeAddChildNew(prnArgDir, pucName);
+	      resNodeSetType(prnI, rn_type_dir);
 	    }
 	    else {
-	      resNodeAddChildNew(prnArgDir, pucName);
+	      prnI = resNodeAddChildNew(prnArgDir, pucName);
+	      resNodeIncrSize(prnArgDir, resNodeGetSize(prnI));
 	    }
-#else
-	    resNodeAddChildNew(prnArgDir, pucName);
-#endif
+	    xmlFree(pucName);
 	  }
-	  xmlFree(pucName);
-	}
-	else {
-	  /*!\todo handle encoding errors */
+	  else {
+	    /*!\todo handle encoding errors */
+	    fResult = FALSE;
+	  }
 	}
       }
+
+      closedir((DIR *)prnArgDir->handleIO);
+      prnArgDir->handleIO = NULL;
     }
-    closedir((DIR *)prnArgDir->handleIO);
-    prnArgDir->handleIO = NULL;
   }
   return fResult;
 } /* end of resNodeDirAppendEntries() */

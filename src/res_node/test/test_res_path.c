@@ -498,7 +498,7 @@ resNodeTestString(void)
     printf("TEST %i in '%s:%i': detect current working dir = ", i, __FILE__, __LINE__);
 
     pucT = resPathGetCwd();
-    pucTT = resPathCollapse(BAD_CAST BUILDPREFIX, FS_PATH_FULL);
+    pucTT = resPathCollapse(BAD_CAST TESTPREFIX "/../", FS_PATH_FULL);
 
     if (resPathIsEquivalent(pucT, pucTT) == FALSE) {
       printf("Error resPathGetCwd()\n");
@@ -872,6 +872,23 @@ resNodeTestString(void)
 
     i++;
     printf("TEST %i in '%s:%i': detecting file basename = ",i,__FILE__,__LINE__);
+    pucTest = resPathGetBasename(BAD_CAST"/..///.\\\\./");
+    if (pucTest == NULL) {
+      n_ok++;
+      printf("OK\n");
+    }
+    else {
+      printf("Error resPathGetBasename() '%s'\n",pucTest);
+    }
+    if (pucTest) xmlFree(pucTest);
+  }
+
+
+  if (RUNTEST) {
+    xmlChar *pucTest;
+
+    i++;
+    printf("TEST %i in '%s:%i': detecting file basename = ",i,__FILE__,__LINE__);
     pucTest = resPathGetBasename(BAD_CAST"/tmp/abc/1");
     if (xmlStrcasecmp(pucTest,BAD_CAST"1")==0) {
       n_ok++;
@@ -889,8 +906,8 @@ resNodeTestString(void)
 
     i++;
     printf("TEST %i in '%s:%i': detecting file basename with trailing separator = ",i,__FILE__,__LINE__);
-    pucTest = resPathGetBasename(BAD_CAST"/tmp/abc/1/");
-    if (pucTest == NULL) {
+    pucTest = resPathGetBasename(BAD_CAST"/tmp/abc/1///");
+    if (xmlStrcasecmp(pucTest,BAD_CAST"1")==0) {
       n_ok++;
       printf("OK\n");
     }
@@ -925,6 +942,23 @@ resNodeTestString(void)
     printf("TEST %i in '%s:%i': detecting file basedir with trailing separator = ",i,__FILE__,__LINE__);
     pucTest = resPathGetBasedir(BAD_CAST"/tmp/abc/");
     if (xmlStrcasecmp(pucTest,BAD_CAST"/tmp/abc")==0) {
+      n_ok++;
+      printf("OK\n");
+    }
+    else {
+      printf("Error resPathGetBasedir() '%s'\n",pucTest);
+    }
+    if (pucTest) xmlFree(pucTest);
+  }
+
+
+  if (RUNTEST) {
+    xmlChar *pucTest;
+
+    i++;
+    printf("TEST %i in '%s:%i': detecting file basedir = ",i,__FILE__,__LINE__);
+    pucTest = resPathGetBasedir(BAD_CAST"/..///.\\\\./");
+    if (pucTest == NULL) {
       n_ok++;
       printf("OK\n");
     }

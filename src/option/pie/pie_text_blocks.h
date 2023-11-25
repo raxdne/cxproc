@@ -20,7 +20,6 @@
 */
 
 #include <pie/pie_dtd.h>
-#include "calendar_element.h"
 #include <pie/pie_element.h>
 
 #ifdef WITH_MARKDOWN
@@ -29,6 +28,7 @@
 
 #ifdef PIE_STANDALONE
 #else
+#include "calendar_element.h"
 #include "plain_text.h"
 #endif
 
