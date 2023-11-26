@@ -2591,8 +2591,8 @@ RecognizeDates(xmlNodePtr pndArg, RN_MIME_TYPE eMimeTypeArg)
 #else
       if (IS_NODE_PIE_BLOCK(pndArg)
 	&& (pndArg->ns == NULL || pndArg->ns == pnsPie)
-	&& ((pucExt = resPathGetExtension(domGetPropValuePtr(pndArg, BAD_CAST"name"))) != NULL
-	  || (pucExt = resPathGetExtension(domGetPropValuePtr(pndArg, BAD_CAST"context"))) != NULL)) {
+	&& ((pucExt = resPathGetExtensionStr(domGetPropValuePtr(pndArg, BAD_CAST"name"))) != NULL
+	  || (pucExt = resPathGetExtensionStr(domGetPropValuePtr(pndArg, BAD_CAST"context"))) != NULL)) {
 	eMimeTypeHere = resMimeGetTypeFromExt(pucExt);
 	xmlFree(pucExt);
       }
@@ -3133,7 +3133,7 @@ RecognizeFigures(xmlNodePtr pndArg)
 	      }
 	      else {
 		/* use filename as header */
-		//pucT = resPathGetBasename(pucRelease);
+		//pucT = resPathGetBasenameStr(pucRelease);
 	      }
 	      if (pucT != NULL && xmlStrlen(pucT) > 0) {
 		xmlNewChild(pndArg, NULL, NAME_PIE_HEADER, pucT);
@@ -3250,7 +3250,7 @@ GetModeByAttr(xmlNodePtr pndArgImport)
       /* no type is defined */
       
       if ((pucAttrName = domGetPropValuePtr(pndArgImport, BAD_CAST "name")) != NULL
-	  && (pucAttrNameExt = resPathGetExtension(pucAttrName)) != NULL) {
+	  && (pucAttrNameExt = resPathGetExtensionStr(pucAttrName)) != NULL) {
 	PrintFormatLog(1, "Ext '%s'", pucAttrNameExt);
 	eResultMode = GetModeByExtension(pucAttrNameExt);
 	xmlFree(pucAttrNameExt);

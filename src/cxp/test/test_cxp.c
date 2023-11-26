@@ -76,8 +76,8 @@ cxpTest(cxpContextPtr pccArg)
     pndRoot = xmlNewNode(NULL,NAME_PLAIN);
     xmlSetProp(pndRoot,BAD_CAST"context",BAD_CAST TESTPREFIX);
 
-    if ((pucT = resPathCollapse(BAD_CAST TESTPREFIX,FS_PATH_SEP | FS_PATH_SELF | FS_PATH_UP)) == NULL) {
-      printf("Error resPathCollapse()\n");
+    if ((pucT = resPathCollapseStr(BAD_CAST TESTPREFIX,FS_PATH_SEP | FS_PATH_SELF | FS_PATH_UP)) == NULL) {
+      printf("Error resPathCollapseStr()\n");
     }
     else if ((prnT = cxpAttributeLocatorResNodeNew(pccArg,pndRoot,NULL)) == NULL) {
       printf("Error cxpAttributeLocatorResNodeNew()\n");

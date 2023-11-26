@@ -374,7 +374,7 @@ cxpSubstDetect(xmlNodePtr pndArgSubst, cxpContextPtr pccArg)
   	       this is a substitution with current directories
 	 */
 	if (xmlStrcasecmp(pucT, BAD_CAST "pwd")==0) {
-	  pcxpSubstResult->pucDir = resPathGetCwd();
+	  pcxpSubstResult->pucDir = resPathGetCwdStr();
 	}
 	else if (xmlStrcasecmp(pucT, BAD_CAST "ofFile")==0) {
 	  if (pccArg) {
@@ -394,7 +394,7 @@ cxpSubstDetect(xmlNodePtr pndArgSubst, cxpContextPtr pccArg)
 	  prnDir = resNodeFromNodeNew(cxpCtxtLocationGet(pccArg),pucT);
 	  if (prnDir) {
 #ifdef HAVE_CGI
-	      pcxpSubstResult->pucDir = resPathGetBasedir(resNodeGetNameRelative(cxpCtxtRootGet(pccArg),prnDir));
+	      pcxpSubstResult->pucDir = resPathGetBasedirStr(resNodeGetNameRelative(cxpCtxtRootGet(pccArg),prnDir));
 #else
 	      pcxpSubstResult->pucDir = xmlStrdup(resNodeGetNameBaseDir(prnDir));
 #endif
@@ -419,7 +419,7 @@ cxpSubstDetect(xmlNodePtr pndArgSubst, cxpContextPtr pccArg)
           this is a substitution with file name
 	 */
 	if (xmlStrEqual(pucT,BAD_CAST".") && pccArg != NULL && pndArgSubst->doc != NULL) {
-	  pcxpSubstResult->pucFilename = resPathGetBasename(BAD_CAST pndArgSubst->doc->URL);
+	  pcxpSubstResult->pucFilename = resPathGetBasenameStr(BAD_CAST pndArgSubst->doc->URL);
 	}
 #ifdef HAVE_CGI
 #else
@@ -428,7 +428,7 @@ cxpSubstDetect(xmlNodePtr pndArgSubst, cxpContextPtr pccArg)
 	}
 #endif
 	else {
-	  pcxpSubstResult->pucFilename = resPathGetBasename(pucT);
+	  pcxpSubstResult->pucFilename = resPathGetBasenameStr(pucT);
 	}
 
 	if (pcxpSubstResult->pucFilename != NULL && pcxpSubstResult->eEncoding == rfc1738) {
@@ -445,10 +445,10 @@ cxpSubstDetect(xmlNodePtr pndArgSubst, cxpContextPtr pccArg)
           this is a substitution with file extension
 	 */
 	if (xmlStrEqual(pucT,BAD_CAST".") && pccArg != NULL && pndArgSubst->doc != NULL) {
-	  pcxpSubstResult->pucExt = resPathGetExtension(BAD_CAST pndArgSubst->doc->URL);
+	  pcxpSubstResult->pucExt = resPathGetExtensionStr(BAD_CAST pndArgSubst->doc->URL);
 	}
 	else {
-	  pcxpSubstResult->pucExt = resPathGetExtension(pucT);
+	  pcxpSubstResult->pucExt = resPathGetExtensionStr(pucT);
 	}
 
 	if (pcxpSubstResult->pucExt != NULL && pcxpSubstResult->eEncoding == rfc1738) {
@@ -463,10 +463,10 @@ cxpSubstDetect(xmlNodePtr pndArgSubst, cxpContextPtr pccArg)
   	    this is a substitution with symbolic MIME type string
 	 */
 	if (xmlStrEqual(pucT,BAD_CAST".") && pccArg != NULL && pndArgSubst->doc != NULL) {
-	  pucTT = resPathGetExtension(BAD_CAST pndArgSubst->doc->URL);
+	  pucTT = resPathGetExtensionStr(BAD_CAST pndArgSubst->doc->URL);
 	}
 	else {
-	  pucTT = resPathGetExtension(pucT);
+	  pucTT = resPathGetExtensionStr(pucT);
 	}
 
 	if (STR_IS_NOT_EMPTY(pucTT)) {

@@ -632,7 +632,7 @@ cxpResNodeResolveNew(cxpContextPtr pccArg, xmlNodePtr pndArg, xmlChar *pucArg, i
 
       if (pndArg->doc != NULL && STR_IS_NOT_EMPTY(pndArg->doc->URL)) {
 	/* derive path prefix from DOM */
-	pucDocUrlDir = resPathGetBasedir(BAD_CAST pndArg->doc->URL);
+	pucDocUrlDir = resPathGetBasedirStr(BAD_CAST pndArg->doc->URL);
       }
     }
 
@@ -683,7 +683,7 @@ cxpResNodeResolveNew(cxpContextPtr pccArg, xmlNodePtr pndArg, xmlChar *pucArg, i
     else if (resPathIsInArchive(pucShortcut)) {
       xmlChar *pucRelease;
 
-      pucRelease = resPathGetPathOfArchive(pucShortcut);
+      pucRelease = resPathGetPathOfArchiveStr(pucShortcut);
       if (STR_IS_NOT_EMPTY(pucRelease)) {
 	xmlChar *pucT;
 
@@ -3387,7 +3387,7 @@ cxpProcessInfoNode(xmlNodePtr pndInfo, cxpContextPtr pccArg)
 
     //domSetPropEat(nodeRuntime,BAD_CAST "platform",GetHostValueNamed(BAD_CAST "os"));
     /* working dir */
-    domSetPropEat(nodeRuntime,BAD_CAST "cwd",resPathGetCwd());
+    domSetPropEat(nodeRuntime,BAD_CAST "cwd",resPathGetCwdStr());
     xmlSetProp(nodeRuntime, BAD_CAST "context", cxpCtxtLocationGetStr(pccArg));
 
     pucT = GetDateIsoString(0);

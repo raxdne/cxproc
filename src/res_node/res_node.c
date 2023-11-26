@@ -338,7 +338,7 @@ resNodeAddChildNew(resNodePtr prnArg, xmlChar *pucArgPath)
 	xmlChar *pucSep;
 	xmlChar *pucBase = NULL;
 
-	pucSep = resPathGetNextSeparator(pucT);
+	pucSep = resPathGetNextSeparatorPtr(pucT);
 	if (pucSep) {
 	  if (isdot(pucT[0]) && isdot(pucT[1]) && (pucSep - pucT) == 2) {
 	    resNodePtr prnParent;
@@ -1042,7 +1042,7 @@ resNodeCwdNew(void)
   resNodePtr prnResult = NULL;
   xmlChar *pucT;
 
-  pucT = resPathGetCwd();
+  pucT = resPathGetCwdStr();
   if (STR_IS_NOT_EMPTY(pucT)) {
     prnResult = resNodeDirNew(pucT);
     resNodeSetType(prnResult, rn_type_dir);
@@ -1222,7 +1222,7 @@ resNodeDirNew(xmlChar *pucArgPath)
     BOOL_T fRecursion = FALSE;
     
     if (STR_IS_NOT_EMPTY(pucArgPath)) { /* a trailing separator indicates a directory */
-      pucPath = resPathCollapse(pucArgPath, FS_PATH_FULL);
+      pucPath = resPathCollapseStr(pucArgPath, FS_PATH_FULL);
 #ifdef HAVE_LIBCURL
       CURLU *curlURL = NULL;
 
@@ -1288,9 +1288,9 @@ resNodeDirNew(xmlChar *pucArgPath)
 
     if (STR_IS_EMPTY(pucPath)) {
 #ifdef HAVE_CGI
-      pucT = resPathGetCwd();
+      pucT = resPathGetCwdStr();
 #else
-      pucT = resPathGetCwd();
+      pucT = resPathGetCwdStr();
 #endif
       resNodeReset(prnResult, pucT);
       xmlFree(pucT);
@@ -1341,12 +1341,12 @@ resNodeDirNew(xmlChar *pucArgPath)
       xmlChar *pucZip = NULL;
 
 #ifdef HAVE_CGI
-      pucT = resPathGetCwd();
+      pucT = resPathGetCwdStr();
 #else
-      pucT = resPathGetCwd();
+      pucT = resPathGetCwdStr();
 #endif
 
-      pucZip = resPathGetPathOfArchive(pucPath);
+      pucZip = resPathGetPathOfArchiveStr(pucPath);
       if (pucZip) {
 	xmlChar *pucTT = NULL;
 
@@ -1378,7 +1378,7 @@ resNodeDirNew(xmlChar *pucArgPath)
       eType = rn_type_stdout;
     }
     else if (resPathIsRelative(pucPath)) {
-      pucT = resPathGetCwd();
+      pucT = resPathGetCwdStr();
       resNodeReset(prnResult,pucT);
       resNodeConcat(prnResult,pucPath);
       xmlFree(pucT);
@@ -1408,7 +1408,7 @@ resNodeDirNew(xmlChar *pucArgPath)
       }
     }
     else if (resPathIsLeadingSeparator(pucPath)) { /* without drive letter */
-      pucT = resPathGetCwd();
+      pucT = resPathGetCwdStr();
       prnResult->pucNameNormalized = xmlStrndup(pucT, 3);
       resNodeConcat(prnResult, pucPath);
       xmlFree(pucT);
@@ -1528,7 +1528,7 @@ resNodeSplitStrNew(xmlChar* pucArgPath)
       xmlChar* pucT;
       xmlChar* pucTT;
 
-      pucTT = pucStart = resPathCollapse(pucArgPath, FS_PATH_FULL);
+      pucTT = pucStart = resPathCollapseStr(pucArgPath, FS_PATH_FULL);
 
       if (resPathIsAbsolute(pucArgPath)) {
 	if (resPathIsDosDrive(pucTT)) {
@@ -1545,7 +1545,7 @@ resNodeSplitStrNew(xmlChar* pucArgPath)
 	resNodeSetType(prnResult, rn_type_root);
 	xmlFree(pucT);
       }
-      else if ((pucTT = resPathGetNextSeparator(pucStart))) {
+      else if ((pucTT = resPathGetNextSeparatorPtr(pucStart))) {
 
 	pucT = xmlStrndup(pucStart, (int)(pucTT - pucStart));
 	resNodeSetNameBase(prnResult, pucT);
@@ -1561,7 +1561,7 @@ resNodeSplitStrNew(xmlChar* pucArgPath)
 	resNodeSetType(prnResult, rn_type_file); /* default */
       }
 
-      for (prnT = prnResult, pucSep = pucTT; (pucSep = resPathGetNextSeparator(pucSep)) != NULL; pucTT = pucSep) {
+      for (prnT = prnResult, pucSep = pucTT; (pucSep = resPathGetNextSeparatorPtr(pucSep)) != NULL; pucTT = pucSep) {
 	while (issep(*pucSep) || isquot(*pucSep)) {
 	  pucSep++;
 	}
@@ -1687,23 +1687,23 @@ resNodeConcatNew(xmlChar *pucArgPathA, xmlChar *pucArgPathB)
       xmlChar *pucTT;
 
       if (resPathIsFileURL(pucArgPathB)) {
-	pucT = resPathNormalize(pucArgPathB);
+	pucT = resPathCollapseStr(pucArgPathB, FS_PATH_FULL);
       }
       else if (resPathIsURL(pucArgPathB)) {
 	pucT = xmlStrdup(pucArgPathB);
       }
       else if (resPathIsUNC(pucArgPathB)) {
-	pucT = resPathNormalize(pucArgPathB);
+	pucT = resPathCollapseStr(pucArgPathB, FS_PATH_FULL);
       }
       else if (resPathIsAbsolute(pucArgPathB)) {
 	/* value of pucArgPathB is absolute */
-	pucT = resPathNormalize(pucArgPathB);
+	pucT = resPathCollapseStr(pucArgPathB, FS_PATH_FULL);
       }
       else if (STR_IS_NOT_EMPTY(pucArgPathA)) {
-	pucT = resPathConcatNormalized(pucArgPathA, pucArgPathB);
+	pucT = resPathConcatNormalizedStr(pucArgPathA, pucArgPathB);
       }
 
-      if ((pucTT = resPathGetPathOfArchive(pucT))) {
+      if ((pucTT = resPathGetPathOfArchiveStr(pucT))) {
 	xmlChar *pucTTT;
 
 	pucTTT = resPathGetPathInNextArchivePtr(pucT);
@@ -1784,11 +1784,11 @@ resNodeConcat(resNodePtr prnArg, xmlChar *pucArgPath)
     if (resPathIsInArchive(pucArgPath)) {
       xmlChar *pucRelease;
 
-      pucRelease = resPathGetPathOfArchive(pucArgPath);
+      pucRelease = resPathGetPathOfArchiveStr(pucArgPath);
       if (pucRelease) {
 	xmlChar *pucTT;
 
-	pucT = resPathConcatNormalized(resNodeGetNameNormalized(prnArg),pucRelease);
+	pucT = resPathConcatNormalizedStr(resNodeGetNameNormalized(prnArg),pucRelease);
 	resNodeReset(prnArg,pucT);
 
 	pucTT = pucArgPath + xmlStrlen(pucRelease);
@@ -1800,7 +1800,7 @@ resNodeConcat(resNodePtr prnArg, xmlChar *pucArgPath)
       }
     } 
     else {
-      pucT = resPathConcatNormalized(resNodeGetNameNormalized(prnArg),pucArgPath);
+      pucT = resPathConcatNormalizedStr(resNodeGetNameNormalized(prnArg),pucArgPath);
       resNodeReset(prnArg,pucT);
       if (resPathIsDir(pucArgPath)) { /* value of pucArgPath is has a trailing separator */
 	resNodeSetType(prnArg, rn_type_dir);
@@ -1835,7 +1835,7 @@ resNodeFromNodeNew(resNodePtr prnArg, xmlChar *pucArgPath)
     else if (resPathIsInArchive(pucArgPath)) {
       xmlChar *pucRelease;
       
-      pucRelease = resPathGetPathOfArchive(pucArgPath);
+      pucRelease = resPathGetPathOfArchiveStr(pucArgPath);
       if (STR_IS_NOT_EMPTY(pucRelease)) {
 	xmlChar *pucT;
 
@@ -1888,7 +1888,7 @@ resNodeSetNameBaseNative(resNodePtr prnArg, char *pcArg)
     if (STR_IS_NOT_EMPTY(pcBaseNativeNew)) {
       xmlChar *pucBaseNew;
 
-      pucBaseNew = resPathEncode(pcBaseNativeNew);
+      pucBaseNew = resPathEncodeStr(pcBaseNativeNew);
       if (STR_IS_NOT_EMPTY(pucBaseNew)) {
 	resNodeSetNameBase(prnArg,pucBaseNew);
 	fResult = (resNodeGetError(prnArg) == rn_error_none);
@@ -1940,7 +1940,7 @@ resNodeSetNameBase(resNodePtr prnArg, xmlChar *pucArgPath)
   if (prnArg) {
     xmlChar *pucPathNew;
 
-    pucPathNew = resPathConcat(resNodeGetNameBaseDir(prnArg), pucArgPath);
+    pucPathNew = resPathConcatStr(resNodeGetNameBaseDir(prnArg), pucArgPath);
     resNodeReset(prnArg, pucPathNew);
     xmlFree(pucPathNew);
     prnArg->pucNameBase = xmlStrdup(pucArgPath);
@@ -2016,7 +2016,7 @@ resNodeResetNameBase(resNodePtr prnArg)
     xmlChar *pucT;
 
     xmlFree(prnArg->pucNameBaseDir);
-    prnArg->pucNameBaseDir = resPathGetBasedir(prnArg->pucNameNormalized);
+    prnArg->pucNameBaseDir = resPathGetBasedirStr(prnArg->pucNameNormalized);
 
     xmlFree(prnArg->pucNameBase);
     prnArg->pucNameBase = NULL;
@@ -2024,11 +2024,11 @@ resNodeResetNameBase(resNodePtr prnArg)
     xmlFree(prnArg->pcNameBaseNative);
     prnArg->pcNameBaseNative = NULL;
 
-    pucT = resPathGetBasename(prnArg->pucNameNormalized);
+    pucT = resPathGetBasenameStr(prnArg->pucNameNormalized);
     if (pucT) {
       if (xmlStrlen(pucT) > 0) {
 	prnArg->pucNameBase = pucT;
-	prnArg->pcNameBaseNative = resPathDecode(prnArg->pucNameBase);
+	prnArg->pcNameBaseNative = resPathDecodeStr(prnArg->pucNameBase);
 	if (STR_IS_NOT_EMPTY(prnArg->pcNameBaseNative)) {
 	  fResult = TRUE;
 	}
@@ -2160,26 +2160,26 @@ resNodeReset(resNodePtr prnArg, xmlChar *pucArgPath)
 	prnArg->pucNameNormalized = xmlStrdup(pucArgPathCopy);
       }
       else if (resPathIsUNC(pucArgPathCopy)) {
-	prnArg->pucNameNormalized = resPathNormalize(pucArgPathCopy);
+	prnArg->pucNameNormalized = resPathCollapseStr(pucArgPathCopy, FS_PATH_FULL);
       }
       else if (resPathIsRelative(pucArgPathCopy)) {
-	if ((pucCwd = resPathGetCwd())) {
-	  prnArg->pucNameNormalized = resPathConcatNormalized(pucCwd, pucArgPathCopy);
+	if ((pucCwd = resPathGetCwdStr())) {
+	  prnArg->pucNameNormalized = resPathConcatNormalizedStr(pucCwd, pucArgPathCopy);
 	  xmlFree(pucCwd);
 	}
       }
 #ifdef _MSC_VER
       else if (issep(pucArgPathCopy[0])) { /* DOS path without drive letter */
-	if ((pucCwd = resPathGetCwd())) {
+	if ((pucCwd = resPathGetCwdStr())) {
 	  pucT = xmlStrndup(pucCwd, 3); /* drive letter + ':' + '\' */
-	  prnArg->pucNameNormalized = resPathConcatNormalized(pucT, pucArgPathCopy);
+	  prnArg->pucNameNormalized = resPathConcatNormalizedStr(pucT, pucArgPathCopy);
 	  xmlFree(pucT);
 	  xmlFree(pucCwd);
 	}
       }
 #endif
       else {
-	prnArg->pucNameNormalized = resPathNormalize(pucArgPathCopy);
+	prnArg->pucNameNormalized = resPathCollapseStr(pucArgPathCopy, FS_PATH_FULL);
       }
 
 #ifdef _MSC_VER
@@ -2195,7 +2195,7 @@ resNodeReset(resNodePtr prnArg, xmlChar *pucArgPath)
       resNodeSetRecursion(prnArg,resPathIsDirRecursive(pucArgPathCopy));
 
       /*! - convert UTF-8 name (is leading) into native, build normalized path */
-      if ((prnArg->pcNameNormalizedNative = resPathDecode(prnArg->pucNameNormalized)) == NULL) {
+      if ((prnArg->pcNameNormalizedNative = resPathDecodeStr(prnArg->pucNameNormalized)) == NULL) {
 	resNodeSetError(prnArg,rn_error_encoding,"encoding");
       }
 
@@ -4299,7 +4299,7 @@ resNodeSetExtension(resNodePtr prnArg)
     case rn_type_database:
     case rn_type_file_in_database:
     case rn_type_symlink:
-      prnArg->pucExtension = resPathGetExtension(resNodeGetNameBase(prnArg));
+      prnArg->pucExtension = resPathGetExtensionStr(resNodeGetNameBase(prnArg));
       break;
     default:
       break;
@@ -4810,13 +4810,13 @@ resNodeGetNameNormalized(resNodePtr prnArg)
   if (prnArg) {
     if (prnArg->pucNameNormalized == NULL) {
       if (prnArg->pcNameNormalizedNative != NULL) {
-	prnArg->pucNameNormalized = resPathEncode(prnArg->pcNameNormalizedNative);
+	prnArg->pucNameNormalized = resPathEncodeStr(prnArg->pcNameNormalizedNative);
       }
       else if (prnArg->pucNameBaseDir != NULL) {
-	prnArg->pucNameNormalized = resPathConcatNormalized(prnArg->pucNameBaseDir, prnArg->pucNameBase);
+	prnArg->pucNameNormalized = resPathConcatNormalizedStr(prnArg->pucNameBaseDir, prnArg->pucNameBase);
       }
       else if (prnArg->parent != NULL) {
-	prnArg->pucNameNormalized = resPathConcatNormalized(resNodeGetNameNormalized(prnArg->parent), prnArg->pucNameBase);
+	prnArg->pucNameNormalized = resPathConcatNormalizedStr(resNodeGetNameNormalized(prnArg->parent), prnArg->pucNameBase);
       }
       else {
       }
@@ -4824,7 +4824,7 @@ resNodeGetNameNormalized(resNodePtr prnArg)
     else if (resNodeIsMemory(prnArg)) {
     }
     else if (resPathIsRelative(prnArg->pucNameNormalized)) {
-      prnArg->pucNameNormalized = resPathConcatNormalized(resNodeGetNameNormalized(prnArg->parent), prnArg->pucNameNormalized);
+      prnArg->pucNameNormalized = resPathConcatNormalizedStr(resNodeGetNameNormalized(prnArg->parent), prnArg->pucNameNormalized);
     }
     pucResult = prnArg->pucNameNormalized;
   }
@@ -4842,7 +4842,7 @@ resNodeGetNameNormalizedNative(resNodePtr prnArg)
 {
   if (prnArg) {
     if (prnArg->pcNameNormalizedNative == NULL) {
-      prnArg->pcNameNormalizedNative = resPathDecode(resNodeGetNameNormalized(prnArg));
+      prnArg->pcNameNormalizedNative = resPathDecodeStr(resNodeGetNameNormalized(prnArg));
     }
     return prnArg->pcNameNormalizedNative;
   }
@@ -4874,7 +4874,7 @@ resNodeResetMimeType(resNodePtr prnArg)
       if ((prnChild = resNodeGetChild(prnArg)) != NULL) {
 	xmlChar *pucE;
 
-	pucE = resPathGetExtension(resNodeGetNameObject(prnArg));
+	pucE = resPathGetExtensionStr(resNodeGetNameObject(prnArg));
 	prnChild->eMimeType = resMimeGetTypeFromExt(pucE);
 	xmlFree(pucE);
       }
@@ -5018,7 +5018,7 @@ resNodeGetNameObject(resNodePtr prnArg)
       case MIME_APPLICATION_X_BZIP:
       case MIME_APPLICATION_GZIP:
 	/* add a property for internal object name, without iteration suffix */
-	pucT = resPathGetRootname(prnArg->pucNameBase);
+	pucT = resPathGetRootnameStr(prnArg->pucNameBase);
 	/*!\todo handle ".tgz" */
 	break;
 
@@ -5096,7 +5096,7 @@ resNodeDirAppendEntries(resNodePtr prnArgDir, const pcre2_code *re_match)
 	else {
 	  xmlChar *pucName;
 
-	  if ((pucName = resPathEncode(FindFileData.cFileName))) {
+	  if ((pucName = resPathEncodeStr(FindFileData.cFileName))) {
 	    int rc = 1;
 	    resNodePtr prnI;
 
@@ -5199,7 +5199,7 @@ resNodeDirAppendEntries(resNodePtr prnArgDir, const pcre2_code *re_match)
 	else {
 	  xmlChar *pucName;
 
-	  if ((pucName = resPathEncode(pEntity->d_name))) {
+	  if ((pucName = resPathEncodeStr(pEntity->d_name))) {
 	    int rc = 1;
 	    resNodePtr prnI;
 

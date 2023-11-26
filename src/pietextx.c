@@ -73,7 +73,7 @@ AppendBufferToDoc(xmlNodePtr pndArg, xmlChar *pucArgFileName, xmlChar* pucArgCon
       else {
       }
     }
-    else if ((pucT = resPathGetExtension(pucArgFileName)) == NULL) {
+    else if ((pucT = resPathGetExtensionStr(pucArgFileName)) == NULL) {
       xmlAddChild(pndArg, xmlNewPI(BAD_CAST "error", BAD_CAST"extension"));
     }
     else if (xmlStrEqual(pucT, BAD_CAST"pie")) {

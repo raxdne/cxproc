@@ -132,17 +132,17 @@ cxpCtxtCliNew(int argc, char *argv[], char *envp[])
       xmlChar* pucExecutablePath;
 
       pucT = cxpCtxtCliGetValue(pccResult, 0);
-      pucExecutablePath = resPathNormalize(pucT);
+      pucExecutablePath = resPathCollapseStr(pucT, FS_PATH_FULL);
       xmlFree(pucT);
 
-      pucT = resPathGetDirFind(pucExecutablePath, BAD_CAST"bin");
+      pucT = resPathFindDirStr(pucExecutablePath, BAD_CAST"bin");
       if (STR_IS_NOT_EMPTY(pucT)) {
 	cxpCtxtLogPrint(pccResult, 2, "Use executable directory '%s' in '%s'", pucT, pucExecutablePath);
-	pucPathValue = resPathGetBasedir(pucT);
+	pucPathValue = resPathGetBasedirStr(pucT);
 	xmlFree(pucT);
       }
       else {
-	pucT = resPathGetDirFind(pucExecutablePath, BAD_CAST"cxproc");
+	pucT = resPathFindDirStr(pucExecutablePath, BAD_CAST"cxproc");
 	if (STR_IS_NOT_EMPTY(pucT)) {
 	  cxpCtxtLogPrint(pccResult, 2, "Use executable directory '%s' in '%s'", pucT, pucExecutablePath);
 	  pucPathValue = pucT;
@@ -206,7 +206,7 @@ cxpCtxtCliPrintHelp(cxpContextPtr pccArg)
   xmlChar *pucExecutable = NULL;
 
   if ((pucValue = cxpCtxtCliGetValue(pccArg, 0)) != NULL) {
-    pucExecutable = resPathGetBasename(pucValue);
+    pucExecutable = resPathGetBasenameStr(pucValue);
     assert(pucExecutable);
     xmlFree(pucValue);
   }
@@ -500,8 +500,8 @@ cxpCtxtCliParse(cxpContextPtr pccArg)
 	xmlSetProp(pndT, BAD_CAST "verbosity", pucLevelDirVerbosity);
 	if ((pucDir = cxpCtxtCliGetValue(pccArg,j + 1))) {
 	  if (xmlStrlen(pucDir) > 0) {
-	    //cxpCtxtLogPrint(pccArg, 2, "Indexing '%s'", resPathNormalize(pucDir));
-	    xmlSetProp(pndT, BAD_CAST "name", resPathNormalize(pucDir));
+	    //cxpCtxtLogPrint(pccArg, 2, "Indexing '%s'", resPathCollapseStr(pucDir, FS_PATH_FULL));
+	    xmlSetProp(pndT, BAD_CAST "name", resPathCollapseStr(pucDir, FS_PATH_FULL));
 	    //xmlSetProp(pndT, BAD_CAST "depth", BAD_CAST(resNodeIsRecursive(pucDir) ? "99" : "1"));
 	  }
 	  xmlFree(pucDir);
@@ -531,7 +531,7 @@ cxpCtxtCliParse(cxpContextPtr pccArg)
 	      int i;
 	      for (i = j; i < iArgCount; i++) {
 		pucRelease = cxpCtxtCliGetValue(pccArg,i);
-		if ((pucT = resPathNormalize(pucRelease))) {
+		if ((pucT = resPathCollapseStr(pucRelease, FS_PATH_FULL))) {
 		  pndDir = xmlNewChild(pndXml, NULL, NAME_DIR, NULL);
 		  domSetPropEat(pndDir, BAD_CAST "name", pucT);
 		  xmlSetProp(pndDir, BAD_CAST "depth", BAD_CAST"99");

@@ -318,7 +318,7 @@ cxpCtxtTest(cxpContextPtr pccArg)
     if ((pccT = cxpCtxtFromAttr(pccArg, pndMake)) == NULL) {
       printf("Error 1\n");
     }
-    else if ((pucTTT = resPathCollapse(BAD_CAST BUILDPREFIX, FS_PATH_FULL)) == NULL) {
+    else if ((pucTTT = resPathCollapseStr(BAD_CAST BUILDPREFIX, FS_PATH_FULL)) == NULL) {
       printf("Error 4\n");
     }
     else if (resPathIsEquivalent(resNodeGetNameNormalized(cxpCtxtLocationGet(pccT)), pucTTT) == FALSE) {
@@ -327,7 +327,7 @@ cxpCtxtTest(cxpContextPtr pccArg)
     else if ((pccTT = cxpCtxtFromAttr(pccT, pndXml)) == NULL) {
       printf("Error 3\n");
     }
-    else if ((pucTT = resPathCollapse(BAD_CAST BUILDPREFIX "../..", FS_PATH_FULL)) == NULL) {
+    else if ((pucTT = resPathCollapseStr(BAD_CAST BUILDPREFIX "../..", FS_PATH_FULL)) == NULL) {
       printf("Error 4\n");
     }
     else if (resPathIsEquivalent(resNodeGetNameNormalized(cxpCtxtLocationGet(pccTT)), pucTT) == FALSE) {

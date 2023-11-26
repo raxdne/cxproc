@@ -326,12 +326,12 @@ resNodeTestString(void)
     i++;
     printf("TEST %i in '%s:%i': path into ZIP = ", i, __FILE__, __LINE__);
 
-    if (resPathGetPathOfArchive(NULL) != NULL || resPathGetPathOfArchive(BAD_CAST"") != NULL || resPathGetPathOfArchive(BAD_CAST"C:/User/Dummy") != NULL) {
-      printf("Error resPathGetPathOfArchive()\n");
+    if (resPathGetPathOfArchiveStr(NULL) != NULL || resPathGetPathOfArchiveStr(BAD_CAST"") != NULL || resPathGetPathOfArchiveStr(BAD_CAST"C:/User/Dummy") != NULL) {
+      printf("Error resPathGetPathOfArchiveStr()\n");
     }
-    else if ((pucT = resPathGetPathOfArchive(BAD_CAST"C:/User/Dummy.zip/abc/def.zip/abc hij/def.tar/sub/Text.docx/word")) == NULL
+    else if ((pucT = resPathGetPathOfArchiveStr(BAD_CAST"C:/User/Dummy.zip/abc/def.zip/abc hij/def.tar/sub/Text.docx/word")) == NULL
       || resPathIsEquivalent(pucT, BAD_CAST"C:/User/Dummy.zip") == FALSE) {
-      printf("Error resPathGetPathOfArchive()\n");
+      printf("Error resPathGetPathOfArchiveStr()\n");
     }
     else {
       n_ok++;
@@ -387,7 +387,7 @@ resNodeTestString(void)
 
     i++;
     printf("TEST %i in '%s:%i': concatenating of an unicode filename = ", i, __FILE__, __LINE__);
-    pucTest = resPathConcat(BAD_CAST"/tmp//abc/Def", BAD_CAST"sjhÄköf/fslj fslfjl");
+    pucTest = resPathConcatStr(BAD_CAST"/tmp//abc/Def", BAD_CAST"sjhÄköf/fslj fslfjl");
     if (
 #ifdef _WIN32
       xmlStrcasecmp(pucTest, BAD_CAST"/tmp//abc/Def\\sjhÄköf/fslj fslfjl") == 0
@@ -399,7 +399,7 @@ resNodeTestString(void)
       printf("OK\n");
     }
     else {
-      printf("Error resPathConcat() '%s'\n", pucTest);
+      printf("Error resPathConcatStr() '%s'\n", pucTest);
     }
     if (pucTest) xmlFree(pucTest);
   }
@@ -410,7 +410,7 @@ resNodeTestString(void)
 
     i++;
     printf("TEST %i in '%s:%i': concatenating of an unicode filename with invalid chars = ",i,__FILE__,__LINE__);
-    pucTest = resPathConcat(BAD_CAST"/tmp//a = c//Def", BAD_CAST";;/sjhÄköf + fslj fslfjl/");
+    pucTest = resPathConcatStr(BAD_CAST"/tmp//a = c//Def", BAD_CAST";;/sjhÄköf + fslj fslfjl/");
     if (
 #ifdef _WIN32
       xmlStrcasecmp(pucTest,BAD_CAST"/tmp//a _ c//Def\\__/sjhÄköf + fslj fslfjl/")==0
@@ -422,7 +422,7 @@ resNodeTestString(void)
       printf("OK\n");
     }
     else {
-      printf("Error resPathConcat() '%s'\n",pucTest);
+      printf("Error resPathConcatStr() '%s'\n",pucTest);
     }
     if (pucTest) xmlFree(pucTest);
   }
@@ -433,7 +433,7 @@ resNodeTestString(void)
 
     i++;
     printf("TEST %i in '%s:%i': concatenating of an unicode filename = ",i,__FILE__,__LINE__);
-    pucTest = resPathConcat(BAD_CAST"/tmp//abc//Def",BAD_CAST"c:/sjhÄköf/fslj fslfjl/");
+    pucTest = resPathConcatStr(BAD_CAST"/tmp//abc//Def",BAD_CAST"c:/sjhÄköf/fslj fslfjl/");
     if (
 #ifdef _WIN32
       xmlStrcasecmp(pucTest,BAD_CAST"/tmp//abc//Def\\sjhÄköf/fslj fslfjl/")==0
@@ -445,7 +445,7 @@ resNodeTestString(void)
       printf("OK\n");
     }
     else {
-      printf("Error resPathConcat() '%s'\n",pucTest);
+      printf("Error resPathConcatStr() '%s'\n",pucTest);
     }
     if (pucTest) xmlFree(pucTest);
   }
@@ -478,13 +478,13 @@ resNodeTestString(void)
 
     i++;
     printf("TEST %i in '%s:%i': normalizing of a NULL file name = ", i, __FILE__, __LINE__);
-    pucTest = resPathCollapse(NULL, FS_PATH_NUL);
+    pucTest = resPathCollapseStr(NULL, FS_PATH_NUL);
     if (pucTest == NULL)   {
       n_ok++;
       printf("OK\n");
     }
     else {
-      printf("Error resPathCollapse()\n");
+      printf("Error resPathCollapseStr()\n");
     }
     if (pucTest) xmlFree(pucTest);
   }
@@ -497,11 +497,11 @@ resNodeTestString(void)
     i++;
     printf("TEST %i in '%s:%i': detect current working dir = ", i, __FILE__, __LINE__);
 
-    pucT = resPathGetCwd();
-    pucTT = resPathCollapse(BAD_CAST TESTPREFIX "/../", FS_PATH_FULL);
+    pucT = resPathGetCwdStr();
+    pucTT = resPathCollapseStr(BAD_CAST TESTPREFIX "/../", FS_PATH_FULL);
 
     if (resPathIsEquivalent(pucT, pucTT) == FALSE) {
-      printf("Error resPathGetCwd()\n");
+      printf("Error resPathGetCwdStr()\n");
     }
     else {
       n_ok++;
@@ -518,13 +518,13 @@ resNodeTestString(void)
 
     i++;
     printf("TEST %i in '%s:%i': normalizing of an absolute filename = ",i,__FILE__,__LINE__);
-    pucTest = resPathCollapse(BAD_CAST"/TMP", FS_PATH_FULL);
+    pucTest = resPathCollapseStr(BAD_CAST"/TMP", FS_PATH_FULL);
     if (xmlStrlen(pucTest) == 4 || resPathGetDepth(pucTest) == 1 || resPathIsEquivalent(pucTest,BAD_CAST"\\TMP")) {
       n_ok++;
       printf("OK\n");
     }
     else {
-      printf("Error resPathCollapse() '%s'\n",pucTest);
+      printf("Error resPathCollapseStr() '%s'\n",pucTest);
     }
     if (pucTest) xmlFree(pucTest);
   }
@@ -535,13 +535,13 @@ resNodeTestString(void)
 
     i++;
     printf("TEST %i in '%s:%i': normalizing of a mixed filename = ",i,__FILE__,__LINE__);
-    pucTest = resPathCollapse(BAD_CAST"\"c:\\Program Files\"\\cxproc/contrib/../test 3/../test 4/bin", FS_PATH_FULL);
+    pucTest = resPathCollapseStr(BAD_CAST"\"c:\\Program Files\"\\cxproc/contrib/../test 3/../test 4/bin", FS_PATH_FULL);
     if (resPathGetDepth(pucTest) == 1 || resPathIsEquivalent(pucTest,BAD_CAST"/Program Files")) {
       n_ok++;
       printf("OK\n");
     }
     else {
-      printf("Error resPathCollapse() '%s'\n",pucTest);
+      printf("Error resPathCollapseStr() '%s'\n",pucTest);
     }
     if (pucTest) xmlFree(pucTest);
   }
@@ -552,13 +552,13 @@ resNodeTestString(void)
 
     i++;
     printf("TEST %i in '%s:%i': normalizing of a Windows UNC filename = ",i,__FILE__,__LINE__);
-    pucTest = resPathCollapse(BAD_CAST"\\\\host/share\\abc//Def", FS_PATH_FULL);
+    pucTest = resPathCollapseStr(BAD_CAST"\\\\host/share\\abc//Def", FS_PATH_FULL);
     if (xmlStrlen(pucTest) == 20 || resPathGetDepth(pucTest) == 4 || resPathIsEquivalent(pucTest,BAD_CAST"//host/share/abc/Def")) {
       n_ok++;
       printf("OK\n");
     }
     else {
-      printf("Error resPathCollapse() '%s'\n",pucTest);
+      printf("Error resPathCollapseStr() '%s'\n",pucTest);
     }
     if (pucTest) xmlFree(pucTest);
   }
@@ -569,13 +569,13 @@ resNodeTestString(void)
 
     i++;
     printf("TEST %i in '%s:%i': normalizing of a relative filename = ",i,__FILE__,__LINE__);
-    pucTest = resPathCollapse(BAD_CAST TEMPPREFIX "/../..//abc\\Def/Hij", FS_PATH_FULL);
+    pucTest = resPathCollapseStr(BAD_CAST TEMPPREFIX "/../..//abc\\Def/Hij", FS_PATH_FULL);
     if (resPathGetDepth(pucTest) == 6) {
       n_ok++;
       printf("OK\n");
     }
     else {
-      printf("Error resPathCollapse() '%s'\n",pucTest);
+      printf("Error resPathCollapseStr() '%s'\n",pucTest);
     }
     if (pucTest) xmlFree(pucTest);
   }
@@ -589,14 +589,14 @@ resNodeTestString(void)
     printf("TEST %i in '%s:%i': normalizing of an invalid relative filename = ",i,__FILE__,__LINE__);
 
     pucT = xmlStrdup(BAD_CAST"\"/tmp/../..//..\\abc/Def\"");
-    pucTest = resPathCollapse(pucT, FS_PATH_FULL);
+    pucTest = resPathCollapseStr(pucT, FS_PATH_FULL);
     if (xmlStrlen(pucTest) == 21 && resPathGetDepth(pucTest) == 6
       && resPathIsEquivalent(pucTest,BAD_CAST"\\tmp\\..\\..\\..\\abc\\Def")) {
       n_ok++;
       printf("OK\n");
     }
     else {
-      printf("Error resPathCollapse() '%s'\n",pucTest);
+      printf("Error resPathCollapseStr() '%s'\n",pucTest);
     }
     xmlFree(pucTest);
     xmlFree(pucT);
@@ -611,13 +611,13 @@ resNodeTestString(void)
     printf("TEST %i in '%s:%i': normalizing of a valid relative filename = ", i, __FILE__, __LINE__);
 
     pucT = xmlStrdup(BAD_CAST"\"/tmp/aaa/bbb/../..//ccccc///../..\\abc/Def\"");
-    pucTest = resPathCollapse(pucT, FS_PATH_FULL);
+    pucTest = resPathCollapseStr(pucT, FS_PATH_FULL);
     if (xmlStrlen(pucTest) == 8 || resPathGetDepth(pucTest) == 2 || resPathIsEquivalent(pucTest, BAD_CAST"\\abc\\Def")) {
       n_ok++;
       printf("OK\n");
     }
     else {
-      printf("Error resPathCollapse() '%s'\n", pucTest);
+      printf("Error resPathCollapseStr() '%s'\n", pucTest);
     }
     xmlFree(pucTest);
     xmlFree(pucT);
@@ -629,13 +629,13 @@ resNodeTestString(void)
 
     i++;
     printf("TEST %i in '%s:%i': normalizing of a strange path = ",i,__FILE__,__LINE__);
-    pucTest = resPathCollapse(BAD_CAST"\"/././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././abc.txt\"", FS_PATH_SELF);
+    pucTest = resPathCollapseStr(BAD_CAST"\"/././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././abc.txt\"", FS_PATH_SELF);
     if (resPathIsEquivalent(pucTest,BAD_CAST"\\abc.txt")) {
       n_ok++;
       printf("OK\n");
     }
     else {
-      printf("Error resPathCollapse() '%s'\n",pucTest);
+      printf("Error resPathCollapseStr() '%s'\n",pucTest);
     }
     if (pucTest) xmlFree(pucTest);
   }
@@ -646,13 +646,13 @@ resNodeTestString(void)
 
     i++;
     printf("TEST %i in '%s:%i': normalizing of a mixed relative filename = ",i,__FILE__,__LINE__);
-    pucTest = resPathCollapse(BAD_CAST"c:\\tmp//abc/Def", FS_PATH_FULL);
+    pucTest = resPathCollapseStr(BAD_CAST"c:\\tmp//abc/Def", FS_PATH_FULL);
     if (resPathIsEquivalent(pucTest,BAD_CAST"/tmp/abc/Def")) {
       n_ok++;
       printf("OK\n");
     }
     else {
-      printf("Error resPathCollapse() '%s'\n",pucTest);
+      printf("Error resPathCollapseStr() '%s'\n",pucTest);
     }
     if (pucTest) xmlFree(pucTest);
   }
@@ -663,13 +663,13 @@ resNodeTestString(void)
 
     i++;
     printf("TEST %i in '%s:%i': normalizing of an URL filename = ",i,__FILE__,__LINE__);
-    pucTest = resPathCollapse(BAD_CAST"file:////c:/tmp//abc//Def", FS_PATH_FULL);
+    pucTest = resPathCollapseStr(BAD_CAST"file:////c:/tmp//abc//Def", FS_PATH_FULL);
     if (resPathIsEquivalent(pucTest,BAD_CAST"/tmp/abc/Def")) {
       n_ok++;
       printf("OK\n");
     }
     else {
-      printf("Error resPathCollapse() '%s'\n",pucTest);
+      printf("Error resPathCollapseStr() '%s'\n",pucTest);
     }
     if (pucTest) xmlFree(pucTest);
   }
@@ -680,13 +680,13 @@ resNodeTestString(void)
 
     i++;
     printf("TEST %i in '%s:%i': normalizing of a mixed relative filename = ",i,__FILE__,__LINE__);
-    pucTest = resPathCollapse(BAD_CAST TESTPREFIX "..//..///contrib/pie//REadme.txt", FS_PATH_FULL);
+    pucTest = resPathCollapseStr(BAD_CAST TESTPREFIX "..//..///contrib/pie//REadme.txt", FS_PATH_FULL);
     if (resPathGetDepth(pucTest) == 6) {
       n_ok++;
       printf("OK\n");
     }
     else {
-      printf("Error resPathCollapse() '%s'\n",pucTest);
+      printf("Error resPathCollapseStr() '%s'\n",pucTest);
     }
     if (pucTest) xmlFree(pucTest);
   }
@@ -696,13 +696,13 @@ resNodeTestString(void)
 
     i++;
     printf("TEST %i in '%s:%i': normalizing of a mixed relative filename = ",i,__FILE__,__LINE__);
-    pucTest = resPathCollapse(BAD_CAST TESTPREFIX "abc/def/..//../..///contrib/pie//REadme.txt", FS_PATH_FULL);
+    pucTest = resPathCollapseStr(BAD_CAST TESTPREFIX "abc/def/..//../..///contrib/pie//REadme.txt", FS_PATH_FULL);
     if (resPathGetDepth(pucTest) == 7) {
       n_ok++;
       printf("OK\n");
     }
     else {
-      printf("Error resPathCollapse() '%s'\n",pucTest);
+      printf("Error resPathCollapseStr() '%s'\n",pucTest);
     }
     if (pucTest) xmlFree(pucTest);
   }
@@ -713,13 +713,13 @@ resNodeTestString(void)
 
     i++;
     printf("TEST %i in '%s:%i': normalizing of a mixed DOS filename = ",i,__FILE__,__LINE__);
-    pucTest = resPathCollapse(BAD_CAST"/tmp/Trash/ABC/../..", FS_PATH_FULL);
+    pucTest = resPathCollapseStr(BAD_CAST"/tmp/Trash/ABC/../..", FS_PATH_FULL);
     if (resPathIsEquivalent(pucTest,BAD_CAST "\\tmp")) {
       n_ok++;
       printf("OK\n");
     }
     else {
-      printf("Error resPathCollapse() '%s'\n",pucTest);
+      printf("Error resPathCollapseStr() '%s'\n",pucTest);
     }
     if (pucTest) xmlFree(pucTest);
   }
@@ -730,13 +730,13 @@ resNodeTestString(void)
 
     i++;
     printf("TEST %i in '%s:%i': normalizing of a mixed DOS filename = ",i,__FILE__,__LINE__);
-    pucTest = resPathCollapse(BAD_CAST"c:\\tmp//c:/abc\\\\../Def//c:/1234\\/SERT/../CERT\\.", FS_PATH_FULL);
+    pucTest = resPathCollapseStr(BAD_CAST"c:\\tmp//c:/abc\\\\../Def//c:/1234\\/SERT/../CERT\\.", FS_PATH_FULL);
     if (resPathIsEquivalent(pucTest,BAD_CAST"c:\\tmp\\Def\\1234\\CERT\\") || resPathIsEquivalent(pucTest,BAD_CAST"/tmp/Def/1234/CERT/")) {
       n_ok++;
       printf("OK\n");
     }
     else {
-      printf("Error resPathCollapse() '%s'\n",pucTest);
+      printf("Error resPathCollapseStr() '%s'\n",pucTest);
     }
     if (pucTest) xmlFree(pucTest);
   }
@@ -748,14 +748,14 @@ resNodeTestString(void)
 
     i++;
     printf("TEST %i in '%s:%i': normalizing current directory with recursion = ",i,__FILE__,__LINE__);
-    pucN = resPathCollapse(BAD_CAST TEMPPREFIX, FS_PATH_FULL);
-    pucTest = resPathNormalize(BAD_CAST TEMPPREFIX "//");
+    pucN = resPathCollapseStr(BAD_CAST TEMPPREFIX, FS_PATH_FULL);
+    pucTest = resPathCollapseStr(BAD_CAST TEMPPREFIX "//", FS_PATH_FULL);
     if (resPathIsEquivalent(pucTest,pucN)) {
       n_ok++;
       printf("OK\n");
     }
     else {
-      printf("Error resPathNormalize() '%s'\n",pucTest);
+      printf("Error resPathCollapseStr() '%s'\n",pucTest);
     }
     if (pucN) xmlFree(pucN);
     if (pucTest) xmlFree(pucTest);
@@ -780,13 +780,13 @@ resNodeTestString(void)
 
     i++;
     printf("TEST %i in '%s:%i': normalizing of an unicode filename = ",i,__FILE__,__LINE__);
-    pucTest = resPathNormalize(BAD_CAST"/tmp//abc/Def//sjhÄköf/fslj fslfjl");
+    pucTest = resPathCollapseStr(BAD_CAST"/tmp//abc/Def//sjhÄköf/fslj fslfjl", FS_PATH_FULL);
     if (resPathIsEquivalent(pucTest,BAD_CAST"/tmp/abc/Def/sjhÄköf/fslj fslfjl")) {
       n_ok++;
       printf("OK\n");
     }
     else {
-      printf("Error resPathNormalize() '%s'\n",pucTest);
+      printf("Error resPathCollapseStr() '%s'\n",pucTest);
     }
     if (pucTest) xmlFree(pucTest);
   }
@@ -797,13 +797,13 @@ resNodeTestString(void)
 
     i++;
     printf("TEST %i in '%s:%i': normalizing of a FTP URL = ",i,__FILE__,__LINE__);
-    pucTest = resPathNormalize(BAD_CAST"ftp://ftp.test.de\\///qwert");
+    pucTest = resPathCollapseStr(BAD_CAST"ftp://ftp.test.de\\///qwert", FS_PATH_FULL);
     if (resPathIsEquivalent(pucTest,BAD_CAST"ftp://ftp.test.de/qwert")) {
       n_ok++;
       printf("OK\n");
     }
     else {
-      printf("Error resPathNormalize() '%s'\n",pucTest);
+      printf("Error resPathCollapseStr() '%s'\n",pucTest);
     }
     if (pucTest) xmlFree(pucTest);
   }
@@ -814,13 +814,13 @@ resNodeTestString(void)
 
     i++;
     printf("TEST %i in '%s:%i': normalizing of a HTTP URL = ",i,__FILE__,__LINE__);
-    pucTest = resPathNormalize(BAD_CAST"http://www.test.de:8080/abc.html//qwert");
+    pucTest = resPathCollapseStr(BAD_CAST"http://www.test.de:8080/abc.html//qwert", FS_PATH_FULL);
     if (resPathIsEquivalent(pucTest,BAD_CAST"http://www.test.de:8080/abc.html/qwert")) {
       n_ok++;
       printf("OK\n");
     }
     else {
-      printf("Error resPathNormalize() '%s'\n",pucTest);
+      printf("Error resPathCollapseStr() '%s'\n",pucTest);
     }
     if (pucTest) xmlFree(pucTest);
   }
@@ -833,16 +833,16 @@ resNodeTestString(void)
 
     i++;
     printf("TEST %i in '%s:%i': concate two path strings = ",i,__FILE__,__LINE__);
-    pucTest = resPathConcat(BAD_CAST TESTPREFIX, BAD_CAST"contrib/pie/html/blue_bright/presentation.css");
+    pucTest = resPathConcatStr(BAD_CAST TESTPREFIX, BAD_CAST"contrib/pie/html/blue_bright/presentation.css");
     pucRelease = pucTest;
-    pucN = resPathCollapse(pucRelease,FS_PATH_FULL);
-    pucTest = resPathNormalize(pucRelease);
+    pucN = resPathCollapseStr(pucRelease,FS_PATH_FULL);
+    pucTest = resPathCollapseStr(pucRelease, FS_PATH_FULL);
     if (resPathIsEquivalent(pucTest,pucN)) {
       n_ok++;
       printf("OK\n");
     }
     else {
-      printf("Error resPathConcat() '%s'\n",pucTest);
+      printf("Error resPathConcatStr() '%s'\n",pucTest);
     }
     if (pucTest) xmlFree(pucTest);
     if (pucN) xmlFree(pucN);
@@ -855,13 +855,13 @@ resNodeTestString(void)
 
     i++;
     printf("TEST %i in '%s:%i': detecting of file extension = ",i,__FILE__,__LINE__);
-    pucTest = resPathGetExtension(BAD_CAST"html/blue_bright/presentation.css");
+    pucTest = resPathGetExtensionStr(BAD_CAST"html/blue_bright/presentation.css");
     if (xmlStrcasecmp(pucTest,BAD_CAST"css")==0) {
       n_ok++;
       printf("OK\n");
     }
     else {
-      printf("Error resPathGetExtension()\n");
+      printf("Error resPathGetExtensionStr()\n");
     }
     if (pucTest) xmlFree(pucTest);
   }
@@ -872,13 +872,13 @@ resNodeTestString(void)
 
     i++;
     printf("TEST %i in '%s:%i': detecting file basename = ",i,__FILE__,__LINE__);
-    pucTest = resPathGetBasename(BAD_CAST"/..///.\\\\./");
+    pucTest = resPathGetBasenameStr(BAD_CAST"/..///.\\\\./");
     if (pucTest == NULL) {
       n_ok++;
       printf("OK\n");
     }
     else {
-      printf("Error resPathGetBasename() '%s'\n",pucTest);
+      printf("Error resPathGetBasenameStr() '%s'\n",pucTest);
     }
     if (pucTest) xmlFree(pucTest);
   }
@@ -889,13 +889,13 @@ resNodeTestString(void)
 
     i++;
     printf("TEST %i in '%s:%i': detecting file basename = ",i,__FILE__,__LINE__);
-    pucTest = resPathGetBasename(BAD_CAST"/tmp/abc/1");
+    pucTest = resPathGetBasenameStr(BAD_CAST"/tmp/abc/1");
     if (xmlStrcasecmp(pucTest,BAD_CAST"1")==0) {
       n_ok++;
       printf("OK\n");
     }
     else {
-      printf("Error resPathGetBasename() '%s'\n",pucTest);
+      printf("Error resPathGetBasenameStr() '%s'\n",pucTest);
     }
     if (pucTest) xmlFree(pucTest);
   }
@@ -906,13 +906,13 @@ resNodeTestString(void)
 
     i++;
     printf("TEST %i in '%s:%i': detecting file basename with trailing separator = ",i,__FILE__,__LINE__);
-    pucTest = resPathGetBasename(BAD_CAST"/tmp/abc/1///");
+    pucTest = resPathGetBasenameStr(BAD_CAST"/tmp/abc/1///");
     if (xmlStrcasecmp(pucTest,BAD_CAST"1")==0) {
       n_ok++;
       printf("OK\n");
     }
     else {
-      printf("Error resPathGetBasename() '%s'\n",pucTest);
+      printf("Error resPathGetBasenameStr() '%s'\n",pucTest);
     }
     if (pucTest) xmlFree(pucTest);
   }
@@ -923,13 +923,13 @@ resNodeTestString(void)
 
     i++;
     printf("TEST %i in '%s:%i': detecting file basedir with = ",i,__FILE__,__LINE__);
-    pucTest = resPathGetBasedir(BAD_CAST"/tmp/abc/1");
+    pucTest = resPathGetBasedirStr(BAD_CAST"/tmp/abc/1");
     if (xmlStrcasecmp(pucTest,BAD_CAST"/tmp/abc")==0) {
       n_ok++;
       printf("OK\n");
     }
     else {
-      printf("Error resPathGetBasedir() '%s'\n",pucTest);
+      printf("Error resPathGetBasedirStr() '%s'\n",pucTest);
     }
     if (pucTest) xmlFree(pucTest);
   }
@@ -940,13 +940,13 @@ resNodeTestString(void)
 
     i++;
     printf("TEST %i in '%s:%i': detecting file basedir with trailing separator = ",i,__FILE__,__LINE__);
-    pucTest = resPathGetBasedir(BAD_CAST"/tmp/abc/");
+    pucTest = resPathGetBasedirStr(BAD_CAST"/tmp/abc/");
     if (xmlStrcasecmp(pucTest,BAD_CAST"/tmp/abc")==0) {
       n_ok++;
       printf("OK\n");
     }
     else {
-      printf("Error resPathGetBasedir() '%s'\n",pucTest);
+      printf("Error resPathGetBasedirStr() '%s'\n",pucTest);
     }
     if (pucTest) xmlFree(pucTest);
   }
@@ -957,13 +957,13 @@ resNodeTestString(void)
 
     i++;
     printf("TEST %i in '%s:%i': detecting file basedir = ",i,__FILE__,__LINE__);
-    pucTest = resPathGetBasedir(BAD_CAST"/..///.\\\\./");
+    pucTest = resPathGetBasedirStr(BAD_CAST"/..///.\\\\./");
     if (pucTest == NULL) {
       n_ok++;
       printf("OK\n");
     }
     else {
-      printf("Error resPathGetBasedir() '%s'\n",pucTest);
+      printf("Error resPathGetBasedirStr() '%s'\n",pucTest);
     }
     if (pucTest) xmlFree(pucTest);
   }
@@ -974,13 +974,13 @@ resNodeTestString(void)
 
     i++;
     printf("TEST %i in '%s:%i': detecting of empty file basedir = ",i,__FILE__,__LINE__);
-    pucTest = resPathGetBasedir(BAD_CAST"Validate.xsl");
+    pucTest = resPathGetBasedirStr(BAD_CAST"Validate.xsl");
     if (pucTest==NULL) {
       n_ok++;
       printf("OK\n");
     }
     else {
-      printf("Error resPathGetBasedir()\n");
+      printf("Error resPathGetBasedirStr()\n");
     }
     if (pucTest) xmlFree(pucTest);
   }
@@ -996,9 +996,9 @@ resNodeTestString(void)
     printf("TEST %i in '%s:%i': encoding of filenames = ", i, __FILE__, __LINE__);
 
     pucTest = xmlStrdup(BAD_CAST"Test_öäüß_abc.txt");
-    pchTest = resPathDecode(pucTest);
-    pucTestEncoded = resPathEncode(pchTest);
-    pchTestFail = resPathDecode(BAD_CAST pchTest);
+    pchTest = resPathDecodeStr(pucTest);
+    pucTestEncoded = resPathEncodeStr(pchTest);
+    pchTestFail = resPathDecodeStr(BAD_CAST pchTest);
 
     if (
 #ifdef _WIN32
@@ -1011,7 +1011,7 @@ resNodeTestString(void)
       printf("OK\n");
     }
     else {
-      printf("Error resPathDecode()\n");
+      printf("Error resPathDecodeStr()\n");
     }
 
     if (pucTest) xmlFree(pucTest);

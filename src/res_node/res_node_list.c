@@ -115,7 +115,7 @@ resNodeListPathNew(xmlChar* pucArgPath)
     prnResult = resNodeNew();
     if (prnResult) {
 
-      pucTT = pucStart = resPathCollapse(pucArgPath, FS_PATH_FULL);
+      pucTT = pucStart = resPathCollapseStr(pucArgPath, FS_PATH_FULL);
 
       if (resPathIsAbsolute(pucArgPath)) {
 	if (resPathIsDosDrive(pucTT)) {
@@ -132,7 +132,7 @@ resNodeListPathNew(xmlChar* pucArgPath)
 	resNodeSetType(prnResult, rn_type_root);
 	xmlFree(pucT);
       }
-      else if ((pucTT = resPathGetNextSeparator(pucStart))) {
+      else if ((pucTT = resPathGetNextSeparatorPtr(pucStart))) {
 
 	pucT = xmlStrndup(pucStart, (int)(pucTT - pucStart));
 	resNodeSetNameBase(prnResult, pucT);
@@ -380,7 +380,7 @@ resNodeListFindPath(resNodePtr prnArg, xmlChar *pucArgPath, int iArgOptions)
     if (resPathIsAbsolute(pucArgPath)) {
       xmlChar* pucTT;
 
-      pucTT = resPathCollapse(pucArgPath, FS_PATH_FULL);
+      pucTT = resPathCollapseStr(pucArgPath, FS_PATH_FULL);
       pucT = resPathDiffPtr(resNodeGetNameNormalized(prnArg), pucTT);
       if (STR_IS_NOT_EMPTY(pucT)) {
 	while (issep(*pucT)) pucT++;

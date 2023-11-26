@@ -495,7 +495,7 @@ resNodeTest(void)
     mucTestResult[0] = '\0';
 
 
-    if ((pucT = resPathCollapse(BAD_CAST TEMPPREFIX, FS_PATH_FULL)) == NULL) {
+    if ((pucT = resPathCollapseStr(BAD_CAST TEMPPREFIX, FS_PATH_FULL)) == NULL) {
       xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error\n");
     }
     else if ((prnT = resNodeDirNew(BAD_CAST TEMPPREFIX "/AAA/./BBB///")) == NULL) {
@@ -809,8 +809,8 @@ resNodeTest(void)
     else if ((pucT = resNodeGetURI(prnT)) == NULL) {
       xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeGetURI(): %s\n",resNodeGetErrorMsg(prnT));
     }
-    else if ((pucTT = resPathCollapse(BAD_CAST"file://///" TESTPREFIX "config-test.cxp", FS_PATH_FULL)) == NULL) {
-      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resPathCollapse(): %s\n",resNodeGetErrorMsg(prnT));
+    else if ((pucTT = resPathCollapseStr(BAD_CAST"file://///" TESTPREFIX "config-test.cxp", FS_PATH_FULL)) == NULL) {
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resPathCollapseStr(): %s\n",resNodeGetErrorMsg(prnT));
     }
     else if (resPathIsEquivalent(pucT,pucTT) == FALSE) {
     }
@@ -933,7 +933,7 @@ resNodeTest(void)
     if ((prnT = resNodeDirNew(BAD_CAST "file:///" TESTPREFIX "xml/config.cxp")) == NULL) {
       xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"ERROR\n");
     }
-    else if ((pucTT = resPathCollapse(BAD_CAST TESTPREFIX "xml",FS_PATH_FULL)) == NULL) {
+    else if ((pucTT = resPathCollapseStr(BAD_CAST TESTPREFIX "xml",FS_PATH_FULL)) == NULL) {
     }
     else if (xmlStrcasecmp(resNodeGetNameBase(prnT),BAD_CAST"config.cxp") != 0) {
     }
@@ -965,7 +965,7 @@ resNodeTest(void)
     fputs((const char *)mucTestLabel,stderr);
     mucTestResult[0] = '\0';
 
-    pucTest = resPathNormalize(BAD_CAST TESTPREFIX "plain/test-plain-3.xml");
+    pucTest = resPathCollapseStr(BAD_CAST TESTPREFIX "plain/test-plain-3.xml", FS_PATH_FULL);
 
     if ((prnT = resNodeDirNew(BAD_CAST "file://" TESTPREFIX)) == NULL) {
       xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeDirNew()\n");
@@ -1006,7 +1006,7 @@ resNodeTest(void)
     resNodePtr prnT = NULL;
     resNodePtr prnChild = NULL;
     xmlChar *pucT = xmlStrdup(BAD_CAST TESTPREFIX "option/archive/test-zip-7.zip/sub/plain.txt");
-    xmlChar *pucTT = resPathNormalize(BAD_CAST TESTPREFIX "option/archive/test-zip-7.zip");
+    xmlChar *pucTT = resPathCollapseStr(BAD_CAST TESTPREFIX "option/archive/test-zip-7.zip", FS_PATH_FULL);
 
     i++;
     xmlStrPrintf(mucTestLabel,BUFFER_LENGTH,"\nTEST %i in '%s:%i': set internal path = ", i, __FILE__, __LINE__);
@@ -1344,7 +1344,7 @@ resNodeTest(void)
     else if ((prnT = resNodeFromNodeNew(prnContext,BAD_CAST"thread/config.cxp")) == NULL) {
       xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeDirNew()\n");
     }
-    else if ((pucTT = resPathCollapse(BAD_CAST TESTPREFIX "thread\\config.cxp",FS_PATH_FULL)) == NULL) {
+    else if ((pucTT = resPathCollapseStr(BAD_CAST TESTPREFIX "thread\\config.cxp",FS_PATH_FULL)) == NULL) {
       xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeAddChildNew()\n");
     }
     else if (resPathIsEquivalent(resNodeGetNameNormalized(prnT),pucTT) == FALSE) {
@@ -1627,7 +1627,7 @@ resNodeTest(void)
     }
     else if ((pucB = resNodeGetNameBase(prnT)) == NULL) {
     }
-    else if ((pucC = resPathConcatNormalized(pucA,pucB)) == NULL) {
+    else if ((pucC = resPathConcatNormalizedStr(pucA,pucB)) == NULL) {
     }
     else if (resNodeReset(prnT,pucC) == FALSE) {
     }
@@ -1678,8 +1678,8 @@ resNodeTest(void)
     else if ((pucB = resNodeGetNameBase(prnT)) == NULL) {
       xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeGetNameBase()\n");
     }
-    else if ((pucC = resPathConcatNormalized(pucA,pucB)) == NULL) {
-      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resPathConcatNormalized()\n");
+    else if ((pucC = resPathConcatNormalizedStr(pucA,pucB)) == NULL) {
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resPathConcatNormalizedStr()\n");
     }
     else if (resPathIsEquivalent(BAD_CAST TESTPREFIX "thread",pucC) == FALSE) {
       xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resPathIsEquivalent()\n");
@@ -1725,12 +1725,12 @@ resNodeTest(void)
     else if (xmlStrcasecmp(resNodeGetNameBase(prnT),BAD_CAST"test.mak") != 0) {
       xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeDirNew()\n");
     }
-    else if ((pucT = resPathCollapse(BAD_CAST TESTPREFIX,FS_PATH_FULL)) == NULL) {
+    else if ((pucT = resPathCollapseStr(BAD_CAST TESTPREFIX,FS_PATH_FULL)) == NULL) {
       xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeDirNew()\n");
     }
     else if (resPathIsEquivalent(resNodeGetNameBaseDir(prnT), pucT) == FALSE) {
     }
-    else if ((pucTT = resPathCollapse(BAD_CAST TESTPREFIX "test.mak",FS_PATH_FULL)) == NULL) {
+    else if ((pucTT = resPathCollapseStr(BAD_CAST TESTPREFIX "test.mak",FS_PATH_FULL)) == NULL) {
     }
     else if (resPathIsEquivalent(resNodeGetNameNormalized(prnT), pucTT) == FALSE) {
     }
@@ -1738,11 +1738,11 @@ resNodeTest(void)
     }
     else if (xmlStrcasecmp(resNodeGetNameBase(prnT),BAD_CAST"t.txt") != 0) {
     }
-    else if ((pucTTT = resPathCollapse(BAD_CAST TESTPREFIX,FS_PATH_FULL)) == NULL) {
+    else if ((pucTTT = resPathCollapseStr(BAD_CAST TESTPREFIX,FS_PATH_FULL)) == NULL) {
     }
     else if (resPathIsEquivalent(resNodeGetNameBaseDir(prnT), pucTTT) == FALSE) {
     }
-    else if ((pucTTTT = resPathCollapse(BAD_CAST TESTPREFIX "t.txt",FS_PATH_FULL)) == NULL) {
+    else if ((pucTTTT = resPathCollapseStr(BAD_CAST TESTPREFIX "t.txt",FS_PATH_FULL)) == NULL) {
     }
     else if (resPathIsEquivalent(resNodeGetNameNormalized(prnT), pucTTTT) == FALSE) {
     }

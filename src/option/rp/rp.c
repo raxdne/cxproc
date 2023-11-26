@@ -303,7 +303,7 @@ rpProcessImage(xmlNodePtr pndArg, resNodePtr prnArgSrc, resNodePtr prnArgTo)
 	xmlChar *pucFilename;
 	printf("Content-type: pImage/%s\n", pImage->magick);
 	if (pImage->filename != NULL
-	    && (pucFilename = resPathGetBasename(BAD_CAST pImage->filename)) != NULL) {
+	    && (pucFilename = resPathGetBasenameStr(BAD_CAST pImage->filename)) != NULL) {
 	  printf("Content-Disposition: filename=\"%s\"\n",pucFilename);
 	  xmlFree(pucFilename);
 	}

@@ -756,7 +756,7 @@ OpenSqlite(resNodePtr prnArg)
     pucFilename = xmlStrdup(resNodeGetNameNormalized(prnArg));
   }
   else {
-    pucFilename = resPathGetQuoted(resNodeGetNameNormalized(prnArg));
+    pucFilename = resPathGetQuotedStr(resNodeGetNameNormalized(prnArg));
   }
 
   /*\todo test if database file exists or is open */
@@ -1367,7 +1367,7 @@ resNodeReadDoc(resNodePtr prnArg)
     }
 #endif
 
-    pcT = resPathDecode(pucPath); /* handle non-ASCII paths */
+    pcT = resPathDecodeStr(pucPath); /* handle non-ASCII paths */
     options = XML_PARSE_RECOVER | XML_PARSE_NOENT | XML_PARSE_NOERROR | XML_PARSE_NOWARNING | XML_PARSE_NSCLEAN | XML_PARSE_NODICT;
     pdocResult = xmlReadFile((const char*)pcT, NULL, options);
     /*!\todo re-implement using libarchive, to remove xmlzipio module */

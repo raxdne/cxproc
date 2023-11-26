@@ -23,9 +23,13 @@ TODO: update program description #v20
 
 ## Refactoring
 
-TODO: in `res_path.c` change 
+TODO: in `res_path.c` change  ✔
 - `resPathGetBasename()` to `resPathGetBasenameStr()` due to allocated string result
 - to `*Ptr()` if it's a pointer
+
+[C Coding Standard](https://users.ece.cmu.edu/~eno/coding/CCodingStandard.html)
+
+[Linux kernel coding style](https://www.kernel.org/doc/html/v4.10/process/coding-style.html)
 
 ## Features
 

@@ -132,7 +132,7 @@ pieGetAncestorContextStr(xmlNodePtr pndArg)
     }
 
     if (STR_IS_EMPTY(pucResult) &&  pndArg != NULL && pndArg->doc != NULL && STR_IS_NOT_EMPTY(pndArg->doc->URL)) {
-      pucResult = resPathGetBasedir(BAD_CAST pndArg->doc->URL);
+      pucResult = resPathGetBasedirStr(BAD_CAST pndArg->doc->URL);
     }
   }
   return pucResult;
