@@ -1680,7 +1680,7 @@ SplitStringToAutoLinkNodes(const xmlChar *pucArg)
 xmlNodePtr
 RecognizeUrls(xmlNodePtr pndArg)
 {
-  if (IS_NODE_META(pndArg) || IS_NODE_PIE_PRE(pndArg) || IS_NODE_PIE_TT(pndArg) || IS_NODE_PIE_TABLE(pndArg) || IS_NODE_PIE_LINK(pndArg)) {
+  if (IS_NODE_META(pndArg) || IS_NODE_PIE_PRE(pndArg) || IS_NODE_PIE_TT(pndArg) || IS_NODE_PIE_TABLE(pndArg) || IS_NODE_PIE_LINK(pndArg) || IS_NODE_PIE_SCRIPT(pndArg)) {
     /* skip */
   }
   else if (IS_VALID_NODE(pndArg) == FALSE || xmlHasProp(pndArg,BAD_CAST"hidden") != NULL) {
@@ -2763,7 +2763,7 @@ RecognizeSubsts(xmlNodePtr pndArg)
     if (pndArg->ns != NULL && pndArg->ns != pnsPie) {
       /* skip nodes from other namespaces */
     }
-    else if (IS_VALID_NODE(pndArg) == FALSE || xmlHasProp(pndArg,BAD_CAST"hidden") != NULL) {
+    else if (IS_VALID_NODE(pndArg) == FALSE || IS_NODE_PIE_SCRIPT(pndArg) || IS_NODE_PIE_PRE(pndArg) || xmlHasProp(pndArg,BAD_CAST"hidden") != NULL) {
       /* skip */
     }
     else if ((pndSubst = SubstNodeNew(pndArg)) != NULL) {
@@ -3027,7 +3027,7 @@ RecognizeTasks(xmlNodePtr pndArg)
     if (pndArg->ns != NULL && pndArg->ns != pnsPie) {
       /* skip nodes from other namespaces */
     }
-    else if (IS_VALID_NODE(pndArg) == FALSE || xmlHasProp(pndArg,BAD_CAST"hidden") != NULL) {
+    else if (IS_VALID_NODE(pndArg) == FALSE || IS_NODE_PIE_SCRIPT(pndArg) || IS_NODE_PIE_PRE(pndArg) || xmlHasProp(pndArg,BAD_CAST"hidden") != NULL) {
       /* skip */
     }
     else if (IS_ENODE(pndArg)) {
@@ -3082,7 +3082,7 @@ RecognizeFigures(xmlNodePtr pndArg)
   if (pndArg) {
     pndResult = pndArg->next;
 
-    if (IS_VALID_NODE(pndArg) == FALSE || xmlHasProp(pndArg,BAD_CAST"hidden") != NULL) {
+    if (IS_VALID_NODE(pndArg) == FALSE || IS_NODE_PIE_SCRIPT(pndArg) || IS_NODE_PIE_PRE(pndArg) || xmlHasProp(pndArg,BAD_CAST"hidden") != NULL) {
       /* skip */
     }
     else if (IS_ENODE(pndArg)) {
@@ -3241,7 +3241,7 @@ GetModeByAttr(xmlNodePtr pndArgImport)
 
   if (IS_NODE_PIE_IMPORT(pndArgImport) || IS_NODE_PIE_BLOCK(pndArgImport)) {
     xmlChar *pucAttrType;
-    
+
     if ((pucAttrType = domGetPropValuePtr(pndArgImport, BAD_CAST "type")) == NULL) {
 #ifdef PIE_STANDALONE
 #else
@@ -3271,19 +3271,24 @@ GetModeByAttr(xmlNodePtr pndArgImport)
     else if (xmlStrEqual(pucAttrType, BAD_CAST "markdown")) {
       eResultMode = RMODE_MD;
     }
-    else if (xmlStrEqual(pucAttrType, BAD_CAST  NAME_PIE_SCRIPT)) {
-      eResultMode = RMODE_PAR; /* result of script must be parsed paragraph-oriented */
-    }
     else if (xmlStrEqual(pucAttrType, BAD_CAST NAME_PIE_CSV)) {
       eResultMode = RMODE_TABLE;
     }
     else if (xmlStrEqual(pucAttrType, BAD_CAST "par")) {
     }
+    else if (pndArgImport->parent != NULL) {
+      /* try to detect mode from ancestors */
+      eResultMode = GetModeByAttr(pndArgImport->parent);
+    }
     else {
       PrintFormatLog(2, "No valid import format '%s'", pucAttrType);
     }
   }
-  
+  else if (pndArgImport != NULL && pndArgImport->parent != NULL) {
+    /* try to detect mode from ancestors */
+    eResultMode = GetModeByAttr(pndArgImport->parent);
+  }
+
   return eResultMode;
 } /* end of GetModeByAttr() */
 

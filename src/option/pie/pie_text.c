@@ -943,13 +943,6 @@ ImportNodeContent(xmlNodePtr pndArgImport, cxpContextPtr pccArg)
   BOOL_T fResult = TRUE;
   xmlChar *pucContent = NULL;
   xmlNodePtr pndBlock = NULL;
-  BOOL_T fLocator;
-
-#ifdef HAVE_CGI
-  fLocator = TRUE;
-#else
-  fLocator = FALSE;
-#endif
 
 #ifdef DEBUG
   cxpCtxtLogPrint(pccArg, 3, "ImportNodeContent(pndArgImport=%0x,pccArg=%0x)", pndArgImport, pccArg);
@@ -957,36 +950,31 @@ ImportNodeContent(xmlNodePtr pndArgImport, cxpContextPtr pccArg)
   assert(IS_NODE_PIE_IMPORT(pndArgImport));
   assert(NodeHasSingleText(pndArgImport));
 
-#ifdef HAVE_JS
   pndBlock = pndArgImport;
-  xmlSetNs(pndBlock,NULL);
-  xmlNodeSetName(pndBlock, NAME_PIE_BLOCK);
-  //xmlSetProp(pndBlock, BAD_CAST "context", resNodeGetURI(prnInput));
+  xmlSetNs(pndBlock, NULL);
 
-  if (xmlStrEqual(domGetPropValuePtr(pndBlock, BAD_CAST "type"), BAD_CAST NAME_PIE_SCRIPT)) {
-    pucContent = scriptProcessScriptNode(pndBlock, pccArg);
+#ifdef HAVE_JS
+  if (xmlStrEqual(domGetPropValuePtr(pndBlock, BAD_CAST "type"), BAD_CAST NAME_PIE_SCRIPT) &&
+      domGetAncestorsPropFlag(pndBlock, BAD_CAST "script", TRUE) == FALSE) {
+    xmlNodeSetName(pndBlock, BAD_CAST "pre");
   }
-  else {
-    pucContent = domNodeEatContent(pndArgImport);
-  }
-  xmlFreeNode(pndArgImport->children);
-  pndArgImport->children = pndArgImport->last = NULL; /* unlink node content */
-#else
-  if (xmlStrEqual(domGetPropValuePtr(pndArgImport, BAD_CAST "type"), BAD_CAST NAME_PIE_SCRIPT)) {
-    xmlAddChild(pndArgImport, xmlNewComment(BAD_CAST"No script support"));
-    return fResult;
-  }
-  else {
-    pndBlock = pndArgImport;
-    xmlSetNs(pndBlock,NULL);
+  else if (xmlStrEqual(domGetPropValuePtr(pndBlock, BAD_CAST "type"), BAD_CAST NAME_PIE_SCRIPT)) {
     xmlNodeSetName(pndBlock, NAME_PIE_BLOCK);
-    pucContent = domNodeEatContent(pndArgImport);
+    pucContent = scriptProcessScriptNode(pndBlock, pccArg);
     xmlFreeNode(pndArgImport->children);
     pndArgImport->children = pndArgImport->last = NULL; /* unlink node content */
   }
+  else {
+    pucContent = domNodeEatContent(pndArgImport);
+    xmlNodeSetName(pndBlock, NAME_PIE_BLOCK);
+    xmlFreeNode(pndArgImport->children);
+    pndArgImport->children = pndArgImport->last = NULL; /* unlink node content */
+  }
+#else
+  if (xmlStrEqual(domGetPropValuePtr(pndBlock, BAD_CAST "type"), BAD_CAST NAME_PIE_SCRIPT)) {
+    xmlNodeSetName(pndBlock, BAD_CAST "pre");
+  }
 #endif
-
-  /*!\todo change pndArgImport->children to a CDATA node? */
 
   if (STR_IS_NOT_EMPTY(pucContent)) {
     if (ParsePlainBuffer(pndBlock, pucContent, GetModeByAttr(pndBlock))) {
@@ -1000,15 +988,11 @@ ImportNodeContent(xmlNodePtr pndArgImport, cxpContextPtr pccArg)
     else {
       xmlSetProp(pndBlock, BAD_CAST"error", BAD_CAST"parse");
     }
-    //domPutNodeString(stderr,BAD_CAST "ImportNodeFile()",pndArgResult);
   }
   else {
-    //cxpCtxtLogPrint(pccInput, 1, "Cant read from '%s'", resNodeGetNameNormalized(prnInput));
     xmlSetProp(pndBlock, BAD_CAST"result", BAD_CAST"empty");
   }
   xmlFree(pucContent);
-
-  /*! \todo parse CDATA content */
 
   return fResult;
 }
@@ -1026,6 +1010,9 @@ TraverseIncludeNodes(xmlNodePtr pndArg, cxpContextPtr pccArg)
 {
   if (IS_VALID_NODE(pndArg) == FALSE) {
     /* ignore NULL and invalid elements */
+  }
+  else if (IS_NODE_PIE_SCRIPT(pndArg) || IS_NODE_PIE_PRE(pndArg) ) {
+    /* skip */
   }
   else if (IS_NODE_PIE_INCLUDE(pndArg)) {
     if (ProcessIncludeNode(pndArg, pccArg)) {
@@ -1308,6 +1295,9 @@ TraverseImportNodes(xmlNodePtr pndArg, cxpContextPtr pccArg)
   if (IS_VALID_NODE(pndArg) == FALSE) {
     /* ignore NULL and invalid elements */
   }
+  else if (IS_NODE_PIE_SCRIPT(pndArg) || IS_NODE_PIE_PRE(pndArg) ) {
+    /* skip */
+  }
   else if (IS_NODE_PIE_IMPORT(pndArg)) {
     if (ProcessImportNode(pndArg, pccArg)) {
     }
@@ -1365,7 +1355,7 @@ ProcessImportOptions(xmlNodePtr pndArgPie, xmlNodePtr pndArgImport, cxpContextPt
 
   if (pndArgPie) {
     
-    if (domGetPropFlag(pndArgPie, BAD_CAST "figure", TRUE)) {
+    if (domGetPropFlag(pndArgImport, BAD_CAST "figure", TRUE)) {
       cxpCtxtLogPrint(pccArg, 2, "Recognize Figures");
       RecognizeFigures(pndArgPie);
     }
@@ -1375,7 +1365,7 @@ ProcessImportOptions(xmlNodePtr pndArgPie, xmlNodePtr pndArgImport, cxpContextPt
 
     RecognizeInlines(pndArgPie);
 
-    if (domGetPropFlag(pndArgPie, BAD_CAST "url", TRUE)) {
+    if (domGetPropFlag(pndArgImport, BAD_CAST "url", TRUE)) {
       cxpCtxtLogPrint(pccArg, 2, "Recognize URLs");
       /*! \todo use an attribute for regexp?? */
       RecognizeUrls(pndArgPie);
@@ -1389,7 +1379,7 @@ ProcessImportOptions(xmlNodePtr pndArgPie, xmlNodePtr pndArgImport, cxpContextPt
 
     /*! \todo global cite recognition in scientific text */
 
-    if (domGetPropFlag(pndArgPie, BAD_CAST "todo", TRUE)) {
+    if (domGetPropFlag(pndArgImport, BAD_CAST "todo", TRUE)) {
       cxpCtxtLogPrint(pccArg, 2, "Recognize tasks markup");
       RecognizeTasks(pndArgPie);
     }
@@ -1397,7 +1387,7 @@ ProcessImportOptions(xmlNodePtr pndArgPie, xmlNodePtr pndArgImport, cxpContextPt
       cxpCtxtLogPrint(pccArg, 3, "Ignoring tasks markup");
     }
 
-    if (domGetPropFlag(pndArgPie, BAD_CAST "locators", TRUE)) {
+    if (domGetPropFlag(pndArgImport, BAD_CAST "locators", TRUE)) {
       resNodePtr prnDoc;
 
       cxpCtxtLogPrint(pccArg, 2, "Add locator attribute");

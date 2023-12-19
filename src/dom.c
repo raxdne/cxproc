@@ -352,6 +352,28 @@ domGetPropFlag(xmlNodePtr pndArg, xmlChar *pucNameAttr, BOOL_T fDefault)
 /* End of domGetPropFlag() */
 
 
+/*! domGetAncestorsPropFlag
+\param pndArg parent node for attributes
+\param pucNameAttr name of wanted attribute
+\param fDefault default return value if attribute not found
+\return a flag value according to attribute value
+*/
+BOOL_T
+domGetAncestorsPropFlag(xmlNodePtr pndArg, xmlChar *pucNameAttr, BOOL_T fDefault)
+{
+  xmlChar *pucAttr = domGetPropValuePtr(pndArg,pucNameAttr);
+
+  if (pucAttr) {
+    return domGetPropFlag(pndArg, pucNameAttr, fDefault);
+  }
+  else if  (pndArg != NULL && pndArg->parent != NULL) {
+    return domGetAncestorsPropFlag(pndArg->parent, pucNameAttr, fDefault);
+  }
+  return fDefault;
+}
+/* End of domGetAncestorsPropFlag() */
+
+
 /*! domPropIsEqual
 \param pndArg parent node for attributes
 \param pucNameAttr name of wanted attribute

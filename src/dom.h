@@ -118,6 +118,9 @@ extern BOOL_T
 domGetPropFlag(xmlNodePtr pndArg, xmlChar *pucNameAttr, BOOL_T fDefault);
 
 extern BOOL_T
+domGetAncestorsPropFlag(xmlNodePtr pndArg, xmlChar *pucNameAttr, BOOL_T fDefault);
+
+extern BOOL_T
 domPropIsEqual(xmlNodePtr pndArg, xmlChar *pucNameAttr, xmlChar *pucValueAttr);
 
 extern xmlAttrPtr

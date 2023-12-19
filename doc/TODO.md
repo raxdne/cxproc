@@ -31,6 +31,13 @@ TODO: in `res_path.c` change  ✔
 
 [Linux kernel coding style](https://www.kernel.org/doc/html/v4.10/process/coding-style.html)
 
+TODO: check need of `res_node/res_node_properties.c` #v20
+
+TODO: check usage of `ProcessImportOptions()` #v20 ++
+- replacing URLs in `<script>` etc
+
+TODO: unify usage of `scriptProcessScriptNode()` `TraverseScriptNodes()` and add test code #v20
+
 ## Features
 
 TODO: remove legacy element names #v20 ✔

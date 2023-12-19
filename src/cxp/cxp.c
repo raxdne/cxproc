@@ -446,8 +446,7 @@ cxpProcessXmlNodeEmbedded(xmlNodePtr pndArg, cxpContextPtr pccArg)
   assert(pndArg);
   
   if (IS_NODE_XML(pndArg)) {
-    if (IS_VALID_NODE(pndArg)
-      && domGetPropFlag(pndArg, BAD_CAST "eval", TRUE) == TRUE) {
+    if (IS_VALID_NODE(pndArg) && domGetPropFlag(pndArg, BAD_CAST "eval", TRUE) == TRUE) {
       /*! 'pndArg' is a processing node 'xml', not marked as eval="no"  */
       xmlDocPtr pdocT;
 
@@ -486,6 +485,17 @@ cxpProcessXmlNodeEmbedded(xmlNodePtr pndArg, cxpContextPtr pccArg)
 	}
 	xmlFreeDoc(pdocT);
       }
+    }
+  }
+  else if (IS_NODE_PLAIN(pndArg)) {
+    if (IS_VALID_NODE(pndArg) && domGetPropFlag(pndArg, BAD_CAST "eval", TRUE) == TRUE) {
+      xmlChar *pucT;
+
+      pucT = cxpProcessPlainNode(pndArg, pccArg);
+      if (STR_IS_NOT_EMPTY(pucT)) {
+	domReplaceNodeList(pndArg, xmlNewText(pucT));
+      }
+      xmlFree(pucT);
     }
   }
   else if (pndArg != NULL && pndArg->children != NULL) {
