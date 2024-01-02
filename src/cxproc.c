@@ -35,6 +35,9 @@
 #include <libxslt/transform.h>
 #include <libxslt/variables.h>
 
+#include <libexslt/exslt.h>
+#include <libexslt/exsltconfig.h>
+
 /* 
  */
 #include "basics.h"
@@ -151,7 +154,8 @@ main(int argc, char *argv[], char *envp[])
   /* it's importend to xmlzipio after the default handlers, so xmlzipio is asked first. */
   xmlZipRegisterOutputCallback();
 #endif
-
+  exsltRegisterAll();
+  
   ceInit();
 
 #ifdef _WIN32
