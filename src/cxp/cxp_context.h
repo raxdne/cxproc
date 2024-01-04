@@ -116,6 +116,7 @@ struct _cxpContext {
   struct _cxpContext *parent; /*! parent context in list */
 };
 
+#define NAME_ROOT (BAD_CAST "CXP_ROOT")
 
 extern cxpContextPtr
 cxpCtxtNew(void);

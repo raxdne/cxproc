@@ -744,15 +744,10 @@ cxpCtxtEnvGetValueByName(cxpContextPtr pccArg, xmlChar *pucArgName)
 {
   index_t i;
   xmlChar* pucResult = NULL;
-  xmlChar *pucArgv;
 
-  for (i = 0; (pucArgv = cxpCtxtEnvGetName(pccArg, i)); i++) {
-    if (xmlStrEqual(pucArgv, pucArgName)) {
-      pucResult = cxpCtxtEnvGetValue(pccArg, i);
-      xmlFree(pucArgv);
-      break;
-    }
-    xmlFree(pucArgv);
+  i = cxpCtxtEnvGetIndexByName(pccArg, pucArgName);
+  if (i > -1) {
+    pucResult = cxpCtxtEnvGetValue(pccArg, i);
   }
 
   if (pucResult) {
@@ -760,12 +755,52 @@ cxpCtxtEnvGetValueByName(cxpContextPtr pccArg, xmlChar *pucArgName)
     cxpCtxtLogPrint(pccArg, 4, "env[%s]='%s'", pucArgName, pucResult);
 #endif
   }
+#if defined(HAVE_CGI) && defined(EXPERIMENTAL)
+  else if (xmlStrEqual(pucArgName,BAD_CAST"CXP_PATH")) {
+    /* a fixed mapping when using Apache suexec (sub-set of environment) */
+    xmlChar *pucT;
+    
+    cxpCtxtLogPrint(pccArg, 2, "trying to detect '%s'", pucArgName);
+    pucT = cxpCtxtEnvGetValueByName(pccArg,BAD_CAST"DOCUMENT_ROOT");
+    if (STR_IS_NOT_EMPTY(pucT)) {
+      pucResult = resPathConcatNormalizedStr(pucT,BAD_CAST"/../pie//");
+      cxpCtxtLogPrint(pccArg, 4, "%s='%s'", pucArgName, pucResult);
+    }
+    xmlFree(pucT);
+  }
+#endif
   else {
     cxpCtxtLogPrint(pccArg, 3, "No valid environment variable named '%s'", pucArgName);
   }
 
   return pucResult;
 } /* end of cxpCtxtEnvGetValueByName() */
+
+
+/*! cxp Ctxt Env Get ValueByName
+
+\param pccArg -- pointer to context
+\param *pucArgName -- name of environment variable
+\return pointer to string value of environment variable with name 'pucArgName' or NULL in case of error
+*/
+int
+cxpCtxtEnvGetIndexByName(cxpContextPtr pccArg, xmlChar *pucArgName)
+{
+  int iResult = -1;
+  int i;
+  xmlChar *pucI;
+
+  for (i = 0; (pucI = cxpCtxtEnvGetName(pccArg, i)); i++) {
+    if (xmlStrEqual(pucI, pucArgName)) {
+      xmlFree(pucI);
+      iResult = i;
+      break;
+    }
+    xmlFree(pucI);
+  }
+
+  return iResult;
+} /* end of cxpCtxtEnvGetIndexByName() */
 
 
 /*! cxp Ctxt Env Get BoolByName
@@ -789,41 +824,77 @@ cxpCtxtEnvGetBoolByName(cxpContextPtr pccArg, xmlChar *pucArgName, BOOL_T fDefau
 } /* end of cxpCtxtEnvGetBoolByName() */
 
 
+/*! Set value of the named environment variable (TESTING!!!)
+
+\param pccArg -- pointer to context
+\param *pucArgName -- name of environment variable
+\return index of environment variable with name 'pucArgName' or NULL in case of error
+*/
+int
+cxpCtxtEnvSet(cxpContextPtr pccArg, xmlChar *pucArgName, xmlChar *pucArgValue)
+{
+  index_t iResult;
+  xmlChar *pucArgv;
+
+  if ((iResult = cxpCtxtEnvGetIndexByName(pccArg,pucArgName)) > -1) {
+    /* variable exists already */
+  }
+  else if ((iResult = cxpCtxtEnvGetCount(pccArg)) > 0) {
+    /* environment is not empty, there are already variables */
+    cxpCtxtEnvDup(pccArg,pccArg->ppcEnv);
+  }
+  else {
+    /* environment is empty */
+    char mucNew[BUFFER_LENGTH];
+
+    if (pccArg->ppcEnv == NULL) {
+      cxpCtxtEnvDup(pccArg,NULL);
+    }
+   
+#ifdef DEBUG
+    cxpCtxtLogPrint(pccArg, 2, " Append env[%s]='%s'", pucArgName, pucArgValue);
+#endif
+
+    xmlStrPrintf(mucNew,BUFFER_LENGTH,"%s=%s",pucArgName,pucArgValue);
+    pccArg->ppcEnv[iResult] = mucNew;
+    pccArg->ppcEnv[iResult+1] = NULL;
+    pccArg->iCountEnv = iResult;
+  }
+
+  return pccArg->iCountEnv;
+} /* end of cxpCtxtEnvSet() */
+
+
 /*! cxp Ctxt Env Get BoolByName
 
+  allocates one additional pointer as reserve!!
+  
 \param pccArg -- pointer to context
 \return value of environment variable with name 'pucArgName' as TRUE/FALSE
 */
 BOOL_T
 cxpCtxtEnvDup(cxpContextPtr pccArg, char *envp[])
 {
-  BOOL_T fResult = TRUE;
+  BOOL_T fResult = FALSE;
 
   if (pccArg != NULL) {
-    if (envp != NULL) {
-      int i;
+    int i;
+    
+    xmlFree(pccArg->ppcEnv);
 
-      /*! duplicate environment values */
-      for (i = 0; envp[i]; i++) {}
-
-      if (i > 0) {
-	pccArg->iCountEnv = i;
-
-	pccArg->ppcEnv = (char**)xmlMalloc(sizeof(char*) * (size_t)(i + 1));
-	if (pccArg->ppcEnv) {
-	  pccArg->ppcEnv[i] = NULL; /* terminator */
-	  for (i--; i > -1; i--) {
-	    pccArg->ppcEnv[i] = (char*)xmlStrdup(BAD_CAST envp[i]);
-	  }
-	}
+    for (i=0; envp != NULL && envp[i] != NULL; i++) ;
+    
+    pccArg->iCountEnv = i;
+    pccArg->ppcEnv = (char**)xmlMalloc(sizeof(char*) * (size_t)(i + 1 + 1));
+    if (pccArg->ppcEnv) {
+      pccArg->ppcEnv[i+1] = NULL;
+      pccArg->ppcEnv[i] = NULL; /* terminator */
+      for (i--; i > -1; i--) {
+	/*! duplicate environment values */
+	pccArg->ppcEnv[i] = (char*)xmlStrdup(BAD_CAST envp[i]);
       }
     }
-    else {
-      pccArg->ppcEnv = NULL;
-    }
-  }
-  else {
-    fResult = FALSE;
+    fResult = TRUE;
   }
   return fResult;
 } /* end of cxpCtxtEnvDup() */

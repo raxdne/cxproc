@@ -55,8 +55,6 @@
 #include <cxp/cxp_dir.h>
 #include "dom.h"
 
-#define NAME_ROOT (BAD_CAST "CXP_ROOT")
-
 /*! creates a new empty cxproc Context
 
 \return pointer to new allocated context
@@ -774,10 +772,8 @@ cxpCtxtRootSet(cxpContextPtr pccArg, resNodePtr prnArg)
       pccArg->prnRoot = NULL;
     }
 
-    pucRoot = cxpCtxtEnvGetValueByName(pccArg,NAME_ROOT);
 #ifdef HAVE_CGI
-    if (((pucDocumentRoot = cxpCtxtEnvGetValueByName(pccArg, BAD_CAST"DOCUMENT_ROOT")) == NULL || xmlStrlen(pucDocumentRoot) < 1)
-      && ((pucDocumentRoot = cxpCtxtEnvGetValueByName(pccArg, NAME_ROOT)) == NULL || xmlStrlen(pucDocumentRoot) < 1)) {
+    if ((pucDocumentRoot = cxpCtxtEnvGetValueByName(pccArg, BAD_CAST"DOCUMENT_ROOT")) == NULL || xmlStrlen(pucDocumentRoot) < 1) {
       cxpCtxtLogPrint(pccArg, 1, "No usable value of '%s' '%s'", BAD_CAST"DOCUMENT_ROOT", pucDocumentRoot);
     }
     else if (resPathIsRelative(pucDocumentRoot)) {
@@ -794,8 +790,8 @@ cxpCtxtRootSet(cxpContextPtr pccArg, resNodePtr prnArg)
       resNodeFree(prnDocumentRoot);
       prnDocumentRoot = NULL;
     }
-    else if (STR_IS_EMPTY(pucRoot)) {
-      cxpCtxtLogPrint(pccArg, 4, "No usable value of '%s' using value of '%s'", NAME_ROOT, BAD_CAST"DOCUMENT_ROOT");
+    else if ((pucRoot = cxpCtxtEnvGetValueByName(pccArg,NAME_ROOT)) == NULL || xmlStrlen(pucRoot) < 1) {
+      cxpCtxtLogPrint(pccArg, 4, "No usable value of '%s', using value of '%s'", NAME_ROOT, BAD_CAST"DOCUMENT_ROOT");
       prnRoot = resNodeDup(prnDocumentRoot, RN_DUP_THIS);
     }
     else if ((prnRoot = resNodeRootNew(NULL,pucRoot)) == NULL) {
@@ -811,6 +807,7 @@ cxpCtxtRootSet(cxpContextPtr pccArg, resNodePtr prnArg)
     /*!\todo handle single file CXP_ROOT */
     resNodeFree(prnDocumentRoot);
 #else
+    pucRoot = cxpCtxtEnvGetValueByName(pccArg,NAME_ROOT);
     if (STR_IS_EMPTY(pucRoot)) {
       cxpCtxtLogPrint(pccArg, 3, "No usable value of '%s'", NAME_ROOT);
       prnRoot = prnArg;
@@ -1381,11 +1378,11 @@ cxpCtxtGetHostValueNamed(cxpContextPtr pccArgParent, const xmlChar *pucName)
 
   if (pucResult) {
 #ifdef DEBUG
-    PrintFormatLog(4, "host[%s]='%s'", pucName, pucResult);
+    cxpCtxtLogPrint(pccArgParent, 4, "host[%s]='%s'", pucName, pucResult);
 #endif
   }
   else {
-    PrintFormatLog(2, "No valid host variable named '%s'", pucName);
+    cxpCtxtLogPrint(pccArgParent, 2, "No valid host variable named '%s'", pucName);
   }
 
   return pucResult;

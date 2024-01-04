@@ -246,7 +246,7 @@ main(int argc, char** argv, char** envp)
 	pccT = cxpCtxtDup(pccTest);
 	if (pccT) {
 	  iErrorCode += cxpCtxtTest(pccT);
-	  iErrorCode += cxpCtxtEncTest(pccT);
+	  iErrorCode += cxpCtxtEncTest(pccT, argv, envp);
 	  iErrorCode += cxpCtxtCacheTest(pccT);
 	  iErrorCode += cxpSubstTest(pccT);
 	  iErrorCode += calTest(pccT);

@@ -126,7 +126,7 @@ cxpCtxtCgiNew(int argc, char *argv[], char *envp[])
     else {
       cxpCtxtLogSetLevel(pccResult,
 #if defined(DEBUG) || defined(TESTCODE)
-			 LEVEL_MAX
+			 LEVEL_MAX - 1
 #else
 			 2
 #endif

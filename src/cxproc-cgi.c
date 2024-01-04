@@ -86,20 +86,43 @@ main(int argc, char *argv[], char *envp[])
   */
   int res;
   cxpContextPtr pccMain = NULL;
-  xmlChar *pucT;
-  resNodePtr prnNew = NULL;
+  xmlChar *pucT = NULL;
+  xmlChar *pucTT = NULL;
   FILE *cxperr = NULL;
 
-#if 1
-  pucT = BAD_CAST getenv("CXP_LOGFILE");
-  if ((STR_IS_NOT_EMPTY(pucT) && (prnNew = resNodeDirNew(pucT)))
-      ||
-      (prnNew = resNodeDirNew(BAD_CAST "cxproc.err"))) {
-    /*!\todo check file permission */
-    cxperr = freopen(resNodeGetNameNormalizedNative(prnNew),"w",stderr);
+  if ((pucTT = BAD_CAST getenv("CXP_LOGFILE")) != NULL) {
+    /* use defined value as log file location */
+    pucT = xmlStrdup(pucTT);
   }
-  resNodeFree(prnNew);
-#endif
+  else if ((pucTT = BAD_CAST getenv("DOCUMENT_ROOT")) != NULL) {
+    /* derive log file location from HTTP server configuration */
+    pucT = resPathConcatNormalizedStr(pucTT, BAD_CAST "/cxproc-cgi.log");
+  }
+  else if ((pucTT = resPathGetCwdStr()) != NULL) {
+    /* try a default value */
+    pucT = resPathConcatNormalizedStr(pucTT, BAD_CAST "/cxproc-cgi.log");
+    xmlFree(pucTT);
+  }
+  else {
+    fprintf(stderr, "using stderr\n");
+  }
+
+  if (STR_IS_NOT_EMPTY(pucT)) {
+    resNodePtr prnNew;
+
+    if ((prnNew = resNodeDirNew(pucT)) != NULL) {
+      if (resNodeIsWriteable(prnNew) && (cxperr = freopen((const char *)resNodeGetNameNormalizedNative(prnNew), "w", stderr)) != NULL) {
+	fprintf(stderr, "using '%s' as error output\n", pucT);
+      }
+      else {
+	//fprintf(stderr, "using stderr\n");
+      }
+      resNodeFree(prnNew);
+    }
+  }
+  xmlFree(pucT);
+
+  SetLogLevel(2); /* default value */
 
 #ifdef _MSC_VER
   if (_setmode(_fileno(stdout), _O_BINARY) == -1) {
@@ -207,9 +230,11 @@ main(int argc, char *argv[], char *envp[])
 #endif
     iExit = cxpCtxtGetExitCode(pccMain);
     cxpCtxtFree(pccMain);
-    if (cxperr) {
+
+    if (cxperr != NULL && cxperr != stderr) {
       fclose(cxperr);
     }
+
     exit(iExit);
   }
 

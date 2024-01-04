@@ -86,8 +86,14 @@ cxpCtxtEnvGetValue(cxpContextPtr pccArg, index_t iIndex);
 extern xmlChar*
 cxpCtxtEnvGetValueByName(cxpContextPtr pccArg, xmlChar *pucArgName);
 
+extern int
+cxpCtxtEnvGetIndexByName(cxpContextPtr pccArg, xmlChar *pucArgName);
+
 extern BOOL_T
 cxpCtxtEnvGetBoolByName(cxpContextPtr pccArg, xmlChar *pucArgName, BOOL_T fDefault);
+
+extern int
+cxpCtxtEnvSet(cxpContextPtr pccArg, xmlChar *pucArgName, xmlChar *pucArgValue);
 
 
 extern char*
@@ -135,5 +141,5 @@ cxpCtxtEncError(cxpContextPtr pccArg, int int_errno, size_t nconv);
 
 #ifdef TESTCODE
 extern int
-cxpCtxtEncTest(cxpContextPtr pccArg);
+cxpCtxtEncTest(cxpContextPtr pccArg, char** argv, char** envp);
 #endif

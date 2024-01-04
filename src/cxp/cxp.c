@@ -19,6 +19,11 @@
 
 */
 
+#ifdef _MSC_VER
+#else
+#include <unistd.h>
+#endif
+
 /* 
  */
 #include <libxml/xmlversion.h>
@@ -175,7 +180,7 @@ ValidateSchema(const xmlDocPtr pdocArgXml, const xmlChar *pucArg, cxpContextPtr 
   resNodePtr prnFile = NULL; /* resource node according to pucAttrFile */
 
 #ifdef DEBUG
-  PrintFormatLog(3, "ValidateSchema(pdocArgXml=%0x,pucArg=\"%s\",pccArg=%0x);", pdocArgXml, pucArg, pccArg);
+  cxpCtxtLogPrint(pccArg, 3, "ValidateSchema(pdocArgXml=%0x,pucArg=\"%s\",pccArg=%0x);", pdocArgXml, pucArg, pccArg);
 #endif
 
   /*! find according relaxng file */
@@ -198,10 +203,10 @@ ValidateSchema(const xmlDocPtr pdocArgXml, const xmlChar *pucArg, cxpContextPtr 
 	    /*! validate DOM */
 	    fResult = (xmlRelaxNGValidateDoc(validctxt, pdocArgXml) == 0);
 	    if (fResult) {
-	      PrintFormatLog(2, "Validation against '%s' successful", resNodeGetNameNormalizedNative(prnFile));
+	      cxpCtxtLogPrint(pccArg, 2, "Validation against '%s' successful", resNodeGetNameNormalizedNative(prnFile));
 	    }
 	    else {
-	      PrintFormatLog(2, "Validation against '%s' failed", resNodeGetNameNormalizedNative(prnFile));
+	      cxpCtxtLogPrint(pccArg, 2, "Validation against '%s' failed", resNodeGetNameNormalizedNative(prnFile));
 	    }
 	    /*!\todo cache schema? */
 	    xmlRelaxNGFreeValidCtxt(validctxt);
@@ -3391,9 +3396,18 @@ cxpProcessInfoNode(xmlNodePtr pndInfo, cxpContextPtr pccArg)
   nodeRuntime = xmlNewChild(pndRoot, NULL, BAD_CAST"runtime", NULL);
   if (nodeRuntime) {
     xmlChar *pucT;
+    xmlChar mpucIndex[BUFFER_LENGTH];
     xmlNodePtr nodeDate;
     resNodePtr prnTest;
     cxpContextPtr pccI;
+#ifdef _MSC_VER
+#else
+    uid_t u;
+
+    u = geteuid();
+    xmlStrPrintf(mpucIndex,BUFFER_LENGTH-1,"%i",u);
+    xmlSetProp(nodeRuntime,BAD_CAST "uid",mpucIndex);
+#endif
 
     //domSetPropEat(nodeRuntime,BAD_CAST "platform",GetHostValueNamed(BAD_CAST "os"));
     /* working dir */
@@ -3406,7 +3420,6 @@ cxpProcessInfoNode(xmlNodePtr pndInfo, cxpContextPtr pccArg)
 
     /*! program arguments */
     for (i = 0; (pucArgv = cxpCtxtCliGetValue(pccArg, i)); i++) {
-      xmlChar mpucIndex[BUFFER_LENGTH];
       xmlNodePtr pndArgv;
       pndArgv = xmlNewChild(nodeRuntime, NULL, BAD_CAST"arg", NULL);
       xmlStrPrintf(mpucIndex,BUFFER_LENGTH-1,"%i",i);
