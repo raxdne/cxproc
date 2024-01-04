@@ -201,12 +201,12 @@ arcAddResNode(resNodePtr prnArgZip, resNodePtr prnArgAdd, xmlChar* pucArg, cxpCo
     resPathChangeToSlashes(pucT);
 
     if (arcGetFileNameEncoded(pucT, &pcPathInZip) == FALSE || pcPathInZip == NULL) {
-      PrintFormatLog(1, "Skipping file because of context encoding error");
+      cxpCtxtLogPrint(pccArg, 1, "Skipping file because of context encoding error");
     }
     else {
 
 #ifdef DEBUG
-      PrintFormatLog(3, "Compress '%s' as '%s' to '%s'",
+      cxpCtxtLogPrint(pccArg, 3, "Compress '%s' as '%s' to '%s'",
 	resNodeGetNameNormalizedNative(prnArgAdd),
 	pucT,
 	resNodeGetNameNormalizedNative(prnArgZip));
@@ -236,7 +236,7 @@ arcAddResNode(resNodePtr prnArgZip, resNodePtr prnArgAdd, xmlChar* pucArg, cxpCo
 	    }
 	  }
 	  else {
-	    PrintFormatLog(1, "Error writing header file '%s' to '%s': %s",
+	    cxpCtxtLogPrint(pccArg, 1, "Error writing header file '%s' to '%s': %s",
 	      resNodeGetNameNormalizedNative(prnArgAdd), resNodeGetNameNormalizedNative(prnArgZip), archive_error_string((arcPtr)resNodeGetHandleIO(prnArgZip)));
 	  }
 	}
@@ -258,13 +258,13 @@ arcAddResNode(resNodePtr prnArgZip, resNodePtr prnArgAdd, xmlChar* pucArg, cxpCo
 
 	      m = archive_write_data((arcPtr)resNodeGetHandleIO(prnArgZip), resNodeGetContent(prnArgAdd, 1024), l);
 	      if (m != l) {
-		PrintFormatLog(1, "Error writing file '%s' to '%s'",
+		cxpCtxtLogPrint(pccArg, 1, "Error writing file '%s' to '%s'",
 		  resNodeGetNameNormalizedNative(prnArgAdd), resNodeGetNameNormalizedNative(prnArgZip));
 	      }
 	    }
 	  }
 	  else {
-	    PrintFormatLog(1, "Error writing header file '%s' to '%s': %s",
+	    cxpCtxtLogPrint(pccArg, 1, "Error writing header file '%s' to '%s': %s",
 	      resNodeGetNameNormalizedNative(prnArgAdd), resNodeGetNameNormalizedNative(prnArgZip), archive_error_string((arcPtr)resNodeGetHandleIO(prnArgZip)));
 	  }
 	}

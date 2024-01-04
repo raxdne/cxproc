@@ -833,7 +833,7 @@ PrintCalendarSetup(cxpCalendarPtr pCalendarArg, cxpContextPtr pccArg)
     ceElementPtr pceT;
     unsigned int i;
 
-    PrintFormatLog(1, "Calendar");
+    cxpCtxtLogPrint(pccArg, 1, "Calendar");
     for (pceT = pCalendarArg->pceFirst, i=0; pceT != NULL; pceT = pceT->pNext, i++) {
       assert((pceT->patAttr != NULL && pceT->patAttr->parent != NULL) || (pceT->pndEntry != NULL && pceT->pndEntry->parent != NULL));
       PrintCalendarElement(pceT);
@@ -854,7 +854,7 @@ ProcessCalendarColumns(cxpCalendarPtr pCalendarArg, cxpContextPtr pccArg)
   xmlNodePtr pndCalendarConfiguration;
 
 #ifdef DEBUG
-  PrintFormatLog(1, "ProcessCalendarColumns(pCalendarArg=%0x)", pCalendarArg);
+  cxpCtxtLogPrint(pccArg, 1, "ProcessCalendarColumns(pCalendarArg=%0x)", pCalendarArg);
 #endif
 
   if (IS_NODE_CXP_CALENDAR(pCalendarArg->pndCalendarRoot)
@@ -888,7 +888,7 @@ ProcessCalendarColumns(cxpCalendarPtr pCalendarArg, cxpContextPtr pccArg)
 	    xmlNodePtr pndRoot = xmlDocGetRootElement(pdocInput);
 	    if (pndRoot) {
 	      domFreeNodeByName(pndRoot, NAME_META);
-	      PrintFormatLog(2, "Insert XML DOM into calendar");
+	      cxpCtxtLogPrint(pccArg, 2, "Insert XML DOM into calendar");
 	      /*!\todo avoid copy of DOM, replace instead (respect the used namespaces) */
 #if 0
 	      xmlUnlinkNode(pndRoot);
@@ -900,7 +900,7 @@ ProcessCalendarColumns(cxpCalendarPtr pCalendarArg, cxpContextPtr pccArg)
 #endif
 	    }
 	    else {
-	      PrintFormatLog(1, "This DOM is empty");
+	      cxpCtxtLogPrint(pccArg, 1, "This DOM is empty");
 	    }
 	    xmlFreeDoc(pdocInput);
 	  }
@@ -910,7 +910,7 @@ ProcessCalendarColumns(cxpCalendarPtr pCalendarArg, cxpContextPtr pccArg)
     fResult = TRUE;
   }
   else {
-    PrintFormatLog(1, "Wrong structure");
+    cxpCtxtLogPrint(pccArg, 1, "Wrong structure");
   }
   return fResult;
 } /* end of ProcessCalendarColumns() */
@@ -1049,7 +1049,7 @@ CalendarSetup(xmlNodePtr pndArg, cxpContextPtr pccArg)
 	/* error */
       }
       else {
-	PrintFormatLog(2, "Calendar Coordinate %f/%f", pCalendarResult->dLatitude, pCalendarResult->dLongitude);
+	cxpCtxtLogPrint(pccArg, 2, "Calendar Coordinate %f/%f", pCalendarResult->dLatitude, pCalendarResult->dLongitude);
 	pCalendarResult->fCoordinate = TRUE;
       }
     }
@@ -1061,12 +1061,12 @@ CalendarSetup(xmlNodePtr pndArg, cxpContextPtr pccArg)
     }
     else if ((pndCalendarCopy = xmlNewNode(NULL, NAME_CXP_CALENDAR)) == NULL
 	     || xmlSetProp(pndCalendarCopy, BAD_CAST"subst", BAD_CAST "no") == NULL) {
-      PrintFormatLog(1, "Cannot copy to new calendar");
+      cxpCtxtLogPrint(pccArg, 1, "Cannot copy to new calendar");
     }
     else if ((pndT = xmlNewChild(pndCalendarCopy, NULL, NAME_CXP_COL, NULL)) == NULL
       || xmlSetProp(pndT, BAD_CAST"id", BAD_CAST "content") == NULL
       || xmlSetProp(pndT, BAD_CAST"name", BAD_CAST"Content") == NULL) {
-      PrintFormatLog(1, "Cannot create new calendar");
+      cxpCtxtLogPrint(pccArg, 1, "Cannot create new calendar");
     }
     else if ((pndTT = xmlCopyNode(pndArg, 1)) != NULL) {
       xmlAddChild(pndT, pndTT);

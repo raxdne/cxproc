@@ -326,7 +326,7 @@ cxpSubstDetect(xmlNodePtr pndArgSubst, cxpContextPtr pccArg)
 	  PCRE2_UCHAR buffer[256];
 	
 	  pcre2_get_error_message(errornumber, buffer, sizeof(buffer));
-	  PrintFormatLog(1,"PCRE2 compilation failed at offset %d: %s", (int)erroroffset, buffer);
+	  cxpCtxtLogPrint(pccArg,1,"PCRE2 compilation failed at offset %d: %s", (int)erroroffset, buffer);
 	}
 
 	/*!\todo check pcre2_compile() of pucTo once ??? */

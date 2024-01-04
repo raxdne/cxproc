@@ -3,7 +3,7 @@
 # (p) 2016,2023 A. Tenbusch
 #
 
-ARCH=$(uname -i)"-"$(uname -o | tr '[:upper:]' '[:lower:]' | tr '[:punct:]' '-')
+ARCH=$(uname -m)"-"$(uname -o | tr '[:upper:]' '[:lower:]' | tr '[:punct:]' '-')
 
 PREFIX=`pwd`/../$ARCH
 
