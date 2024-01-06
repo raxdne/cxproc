@@ -757,13 +757,13 @@ cxpCtxtEnvGetValueByName(cxpContextPtr pccArg, xmlChar *pucArgName)
   }
 #if defined(HAVE_CGI) && defined(EXPERIMENTAL)
   else if (xmlStrEqual(pucArgName,BAD_CAST"CXP_PATH")) {
-    /* a fixed mapping when using Apache suexec (sub-set of environment) */
+    /* a fallback when using Apache suexec (sub-set of environment) */
     xmlChar *pucT;
     
     cxpCtxtLogPrint(pccArg, 2, "trying to detect '%s'", pucArgName);
     pucT = cxpCtxtEnvGetValueByName(pccArg,BAD_CAST"DOCUMENT_ROOT");
     if (STR_IS_NOT_EMPTY(pucT)) {
-      pucResult = resPathConcatNormalizedStr(pucT,BAD_CAST"/../pie//");
+      pucResult = resPathConcatNormalizedStr(pucT,BAD_CAST"/../../www/html/pie//");
       cxpCtxtLogPrint(pccArg, 4, "%s='%s'", pucArgName, pucResult);
     }
     xmlFree(pucT);

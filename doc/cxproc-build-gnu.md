@@ -113,16 +113,48 @@ https://askubuntu.com/questions/250696/how-to-cross-compile-for-arm
 
 	sudo apt-get install gcc-arm-linux-gnueabihf g++-arm-linux-gnueabihf
 	
-## Webserver runtime
+## Apache Webserver runtime
 
 	sudo a2enmod cgi actions
 	sudo systemctl reload apache2
-	curl 'http://localhost/cgi-bin/cxproc-cgi?path=test'
+	curl 'http://localhost/cxproc/exe'
 	
 	cd $PREFIX/www/html && git clone https://github.com/raxdne/pie.git
 	cp -r $PREFIX/www/html/pie/test .
 	sudo chgrp -R www-data $PREFIX/www
-	
+
+### Virtualhost + [suexec](https://httpd.apache.org/docs/trunk/suexec.html)
+
+When suexec is used to launch CGI scripts, the environment will be cleaned down to a set of safe variables before CGI scripts are launched. The list of safe variables is defined at compile-time in `suexec.c`.
+
+use of Apache `suexec` on Debian GNU/Linux
+
+	sudo apt install apache2-suexec-custom
+	ls -l /usr/lib/apache2/suexec-custom
+	/usr/lib/apache2/suexec -V
+	sudo a2enmod suexec
+	sudo systemctl restart apache2
+
+To define suexec document root and the suexec userdir suffix insert into `/etc/apache2/suexec/www-data`
+
+	/srv
+
+In `/etc/apache2/apache2.conf` turn
+
+	Suexec On
+
+and in VirtualHost
+
+	SuexecUserGroup developer developer
+
+TODO: Suggested setup
+
+	PREFIX=/tmp ; for N in test john krita ; do (mkdir -p $PREFIX/srv/$N/cgi-bin $PREFIX/srv/$N/Notes ; cp /etc/apache2/sites-available/cxproc-pie-test.conf $PREFIX/srv/$N/cxproc-pie-$N.conf ; cp /srv/www/cgi-bin/cxproc-cgi $PREFIX/srv/$N/cgi-bin ; cp /srv/www/test/index.html $PREFIX/srv/$N/Notes/ ; chown -R $N:$N $PREFIX/srv/$N) ; done ; (cd $PREFIX ; zip -r srv-cxproc srv )
+
+### [userdir](https://httpd.apache.org/docs/2.4/howto/public_html.html)
+
+is not a good option, due to public and generic approach
+
 ## Packaging
 
 ### Debian/Ubuntu

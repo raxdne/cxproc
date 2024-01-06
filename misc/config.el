@@ -14,7 +14,10 @@
 					;(package-initialize)
 					;(package-list-packages)
 					;(package-refresh-contents)
+
 ;(package-install "markdown-mode+")
+(setq markdown-command "~/cxproc-build/x86_64-gnu-linux/bin/cmark")
+
 ;(package-install "move-text")
 
 ;(setq load-path (cons "~/cxproc-build/site-lisp/ecb" load-path))

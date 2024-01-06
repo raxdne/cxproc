@@ -91,6 +91,32 @@ cxpSubstTest(cxpContextPtr pccArg)
   }
 
   if (RUNTEST) {
+    xmlNodePtr pndTest;
+    xmlNodePtr pndInclude;
+
+    i++;
+    printf("TEST %i in '%s:%i': cxpSubstIncludeNodes() = ",i,__FILE__,__LINE__);
+
+    pndTest = xmlNewNode(NULL,NAME_MAKE);
+    pndInclude = xmlNewChild(pndTest,NULL,NAME_INCLUDE,NULL);
+    xmlSetProp(pndInclude,BAD_CAST "name",BAD_CAST TESTPREFIX "xml/config-xml-subst.cxp");
+    pndInclude = xmlNewChild(pndTest,NULL,NAME_INCLUDE,NULL);
+    xmlSetProp(pndInclude,BAD_CAST "name",BAD_CAST TESTPREFIX "xml/config-xml-cache.cxp");
+    xmlNewChild(pndTest,NULL,NAME_DIR,NULL);
+    domPutNodeString(stderr, BAD_CAST"include", pndTest);
+
+    if (cxpSubstIncludeNodes(pndTest,pccArg) == FALSE) {
+      printf("Error 2 cxpSubstIncludeNodes()\n");
+    }
+    else {
+      n_ok++;
+      printf("OK\n");
+    }
+    domPutNodeString(stderr, BAD_CAST"include", pndTest);
+    xmlFreeNode(pndTest);
+  }
+
+  if (RUNTEST) {
     cxpSubstPtr pT;
     xmlNodePtr pndSubst;
 

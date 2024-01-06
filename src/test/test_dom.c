@@ -371,10 +371,11 @@ domTest(void)
     xmlNodePtr pndCur;
 
     i++;
-    printf("TEST %i in '%s:%i': domReplaceNodeList() = ", i, __FILE__, __LINE__);
+    printf("TEST %i in '%s:%i': multiple domReplaceNodeList() = ", i, __FILE__, __LINE__);
 
     pdocTest = xmlParseFile(TESTPREFIX "option/pie/text/test-pie-14.pie");
     pndRoot = xmlDocGetRootElement(pdocTest);
+    //domPutDocString(stderr,BAD_CAST"domReplaceNodeList()",pdocTest);
     pndOld = pndRoot->children->children->next;
 
     pndCur = xmlNewNode(NULL, NAME_XML);
@@ -384,12 +385,23 @@ domTest(void)
     xmlNewChild(pndCur, NULL, BAD_CAST"p", BAD_CAST"par 3");
     xmlAddChild(pndCur, xmlNewPI(NAME_ERROR, BAD_CAST"post"));
 
-    //domPutDocString(stderr,pdocTest,BAD_CAST"domReplaceNodeList()");
     domReplaceNodeList(pndOld, pndCur->children);
+    xmlFreeNode(pndCur);
     xmlNewChild(pndRoot->children, NULL, NAME_META, NULL);
-    //domPutDocString(stderr,pdocTest,BAD_CAST"domReplaceNodeList()");
+    //domPutDocString(stderr,BAD_CAST"domReplaceNodeList()",pdocTest);
 
-    if (pndCur->children == NULL && pndCur->parent == NULL && domIsTreeOverlapping(pndRoot, pndCur) == FALSE) {
+    pndCur = xmlNewNode(NULL, NAME_XML);
+    xmlAddChild(pndCur, xmlNewPI(NAME_ERROR, BAD_CAST"pre"));
+    xmlNewChild(pndCur, NULL, BAD_CAST"p", BAD_CAST"par 4");
+    xmlNewChild(pndCur, NULL, BAD_CAST"p", BAD_CAST"par 5");
+    xmlNewChild(pndCur, NULL, BAD_CAST"p", BAD_CAST"par 6");
+    xmlAddChild(pndCur, xmlNewPI(NAME_ERROR, BAD_CAST"post"));
+
+    pndOld = pndRoot->children->last;
+    domReplaceNodeList(pndOld, pndCur->children);
+    //domPutDocString(stderr,BAD_CAST"domReplaceNodeList()",pdocTest);
+
+    if (pndCur->children != NULL && pndCur->parent == NULL && domIsTreeOverlapping(pndRoot, pndCur) == FALSE) {
       n_ok++;
       printf("OK\n");
     }

@@ -1064,8 +1064,11 @@ domReplaceNodeList(xmlNodePtr old, xmlNodePtr cur)
 #endif
 	return(old);
     }
+#if 0
     domUnlinkNodeList(cur);	/* unlink new node list from previous context */
-
+#else
+    cur = xmlCopyNodeList(cur);
+#endif
     while (cur != NULL) {
       xmlNodePtr next;
 

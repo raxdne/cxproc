@@ -219,19 +219,28 @@ cxpSubstIncludeNodes(xmlNodePtr pndArg,cxpContextPtr pccArg)
 	    /* replace pndArg with a copy of pndRootInclude */
 	    xmlNodePtr pndCopy;
 
-	    pndCopy = xmlCopyNode(pndRootInclude,1);
+	    pndCopy = xmlCopyNode(pndRootInclude, 1);
 	    if (pndCopy) {
 	      xmlNodePtr pndOld;
 
-	      /*!\todo use cxpSubstApply(pndCopy) */
-	      pndOld = xmlReplaceNode(pndArg,pndCopy);
+	      if (IS_NODE_MAKE(pndRootInclude) && IS_NODE_MAKE(pndArg->parent) && IS_ENODE(pndCopy->children)) {
+		cxpCtxtLogPrint(pccArg, 3, "replace subst node by childs");
+		pndOld = domReplaceNodeList(pndArg,pndCopy->children);
+		xmlFreeNode(pndCopy);
+	      }
+	      else {
+		/*!\todo use cxpSubstApply(pndCopy) */
+		pndOld = xmlReplaceNode(pndArg, pndCopy);
+	      }
+
 	      if (pndOld) {
 		xmlFreeNode(pndOld);
 	      }
 	    }
 	  }
 	  xmlFreeDoc(pdocInclude);
-	} else {
+	}
+	else {
 	  xmlAddChild(pndArg,xmlNewComment(BAD_CAST" XML parser error "));
 	}
 	cxpSubstFree(pcxpSubstT);
