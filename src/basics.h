@@ -87,6 +87,11 @@ typedef int index_t;
   #else
     #define TESTHTTP 0
   #endif
+  #ifdef HTTPPREFIX
+    /* is define elsewhere */
+  #else
+    #define HTTPPREFIX "http://localhost:8183/"
+  #endif
 #else
   #define RUNTEST (FALSE)
 #endif

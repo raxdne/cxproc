@@ -666,15 +666,17 @@ Strnstr(const xmlChar *str, const int l, const xmlChar *val)
     }
   }
 #else
+    int m;
     int n;
     int i;
     
     if (str == NULL) return(NULL);
     if (val == NULL) return(NULL);
+    m = (l < 0) ? xmlStrlen(str) : l;
     n = xmlStrlen(val);
 
     if (n == 0) return(BAD_CAST str);
-    for (i=0; i<l && *str != 0; i++ ) { /* non input consuming */
+    for (i=0; i<m && *str != 0; i++ ) { /* non input consuming */
 	if (*str == *val) {
 	  if (!xmlStrncmp(str, val, n)) return(BAD_CAST str);
 	}

@@ -498,7 +498,7 @@ cxpProcessXmlNodeEmbedded(xmlNodePtr pndArg, cxpContextPtr pccArg)
 
       pucT = cxpProcessPlainNode(pndArg, pccArg);
       if (STR_IS_NOT_EMPTY(pucT)) {
-	domReplaceNodeList(pndArg, xmlNewText(pucT));
+	xmlReplaceNode(pndArg, xmlNewText(pucT));
       }
       xmlFree(pucT);
     }
@@ -655,30 +655,16 @@ cxpResNodeResolveNew(cxpContextPtr pccArg, xmlNodePtr pndArg, xmlChar *pucArg, i
       pucShortcut = pucAttrName;
     }
 
-    if (cxpCtxtLocationGet(pccArg)) {
-      pucLocation = resNodeGetNameNormalized(cxpCtxtLocationGet(pccArg));
+    if ((pucLocation = domGetSelfOrAncestorPropValuePtr(pndArg, BAD_CAST "context")) != NULL) {
+      /*  */
+    }
+    else if ((pucLocation = resNodeGetNameNormalized(cxpCtxtLocationGet(pccArg))) != NULL) {
+      /*  */
     }
 
     if (cxpCtxtRootGet(pccArg)) {
       pucRootPath = resNodeGetNameNormalized(cxpCtxtRootGet(pccArg));
     }
-
-#if 0
-    if ((pucParentPath = pieGetAncestorContextStr(pndArg)) != NULL) {
-      if ((prnParent = resNodeDirNew(pucParentPath)) != NULL) {
-	if ((iArgOptions & CXP_O_READ) && resNodeReadStatus(prnParent)) { /* find a readable ressource */
-	  if (resNodeIsFile(prnParent)) { /*  */
-	    resNodeSetToParent(prnParent);
-	  }
-	}
-	else {
-	  resNodeFree(prnParent);
-	  prnParent = NULL;
-	}
-      }
-      xmlFree(pucParentPath);
-    }
-#endif
 
     // resPathIsInArchive(pucShortcut)
 
@@ -742,7 +728,11 @@ cxpResNodeResolveNew(cxpContextPtr pccArg, xmlNodePtr pndArg, xmlChar *pucArg, i
 	  prnResult = resNodeDirNew(pucShortcut);
 	}
 	else {
-	  prnResult = resNodeConcatNew(pucLocation, pucShortcut);
+	  prnResult = resNodeDirNew(pucLocation);
+	  if (resNodeReadStatus(prnResult) && resNodeIsFile(prnResult)) { /*  */
+	    resNodeSetToParent(prnResult);
+	  }
+	  resNodeConcat(prnResult, pucShortcut);
 	}
       }
 

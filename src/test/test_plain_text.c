@@ -66,7 +66,7 @@ plainTextTest(void)
     resNodePtr prnT = NULL;
 
     i++;
-    printf("TEST %i in '%s:%i': reads plain text http content = ",i,__FILE__,__LINE__);
+    printf("TEST %i in '%s:%i': reads plain text content of '%s' = ",i,__FILE__,__LINE__,pucURL);
 
     if ((prnT = resNodeDirNew(pucURL)) == NULL) {
       printf("Error resNodeDirNew(%s)\n",pucURL);

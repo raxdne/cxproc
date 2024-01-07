@@ -559,17 +559,17 @@ resNodeTestList(void)
       printf("Error resNodeListParse() ...\n");
     }
     else if ((prnFound = resNodeListFindPath(prnT, BAD_CAST"dir/config.cxp", (RN_FIND_FILE | RN_FIND_IN_SUBDIR))) == NULL) {
-      printf("Error resNodeListFindPath() ...\n");
+      printf("Error 1 resNodeListFindPath() ...\n");
     }
     else if (resPathIsEquivalent(resNodeGetNameBase(prnFound), BAD_CAST"config.cxp") == FALSE) {
-      printf("Error resNodeListFindPath() ...\n");
+      printf("Error 2 resNodeListFindPath() ...\n");
     }
     else {
       n_ok++;
       printf("OK\n");
     }
     pcre2_code_free(re_match);
-    //puts((const char*)resNodeListToXml(prnT,RN_INFO_MIN));
+    //puts((const char*)resNodeListToXml(prnFound,RN_INFO_MIN));
     resNodeFree(prnT);
   }
 #endif

@@ -93,6 +93,9 @@ domGetFirstChild(xmlNodePtr pndArg, xmlChar *pucNameElement);
 extern xmlChar *
 domGetPropValuePtr(xmlNodePtr pndArg, xmlChar *pucNameAttr);
 
+extern xmlChar *
+domGetSelfOrAncestorPropValuePtr(xmlNodePtr pndArg, xmlChar *pucNameAttr);
+
 extern void
 domUnsetPropAll(xmlNodePtr pndArg);
 

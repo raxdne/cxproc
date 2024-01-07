@@ -498,7 +498,7 @@ resNodeTestString(void)
     printf("TEST %i in '%s:%i': detect current working dir = ", i, __FILE__, __LINE__);
 
     pucT = resPathGetCwdStr();
-    pucTT = resPathCollapseStr(BAD_CAST TESTPREFIX "/../", FS_PATH_FULL);
+    pucTT = resPathCollapseStr(BAD_CAST BUILDPREFIX "/tmp/../", FS_PATH_FULL);
 
     if (resPathIsEquivalent(pucT, pucTT) == FALSE) {
       printf("Error resPathGetCwdStr()\n");
@@ -676,12 +676,18 @@ resNodeTestString(void)
 
 
   if (RUNTEST) {
+    int r =
+#ifdef _MSC_VER
+	4;
+#else
+	6;
+#endif
     xmlChar *pucTest;
 
     i++;
     printf("TEST %i in '%s:%i': normalizing of a mixed relative filename = ",i,__FILE__,__LINE__);
     pucTest = resPathCollapseStr(BAD_CAST TESTPREFIX "..//..///contrib/pie//REadme.txt", FS_PATH_FULL);
-    if (resPathGetDepth(pucTest) == 6) {
+    if (resPathGetDepth(pucTest) == r) {
       n_ok++;
       printf("OK\n");
     }
@@ -692,12 +698,18 @@ resNodeTestString(void)
   }
 
   if (RUNTEST) {
+    int r =
+#ifdef _MSC_VER
+	5;
+#else
+	7;
+#endif
     xmlChar *pucTest;
 
     i++;
     printf("TEST %i in '%s:%i': normalizing of a mixed relative filename = ",i,__FILE__,__LINE__);
     pucTest = resPathCollapseStr(BAD_CAST TESTPREFIX "abc/def/..//../..///contrib/pie//REadme.txt", FS_PATH_FULL);
-    if (resPathGetDepth(pucTest) == 7) {
+    if (resPathGetDepth(pucTest) == r) {
       n_ok++;
       printf("OK\n");
     }

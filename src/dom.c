@@ -407,7 +407,7 @@ domGetPropValuePtr(xmlNodePtr pndArg, xmlChar *pucNameAttr)
 {
   xmlChar *pucResult = NULL;
 
-  if (pndArg != NULL && STR_IS_NOT_EMPTY(pucNameAttr)) {
+  if (IS_ENODE(pndArg) && STR_IS_NOT_EMPTY(pucNameAttr)) {
     xmlAttrPtr patAttr;
 
     if ((patAttr = xmlHasProp(pndArg, pucNameAttr)) != NULL && patAttr->children != NULL && patAttr->children->type == XML_TEXT_NODE) {
@@ -417,6 +417,28 @@ domGetPropValuePtr(xmlNodePtr pndArg, xmlChar *pucNameAttr)
   return pucResult;
 } /* End of domGetPropValuePtr() */
 
+
+/*! use of domGetPropValuePtr() on pndArg and acestors, returns only a pointer
+* 
+\param pndArg parent node for attributes
+\param pucNameAttr name of wanted attribute
+\return the content pointer of the attribute named 'pucNameAttr'
+of 'pndArg' OR NULL if no attribute found
+*/
+xmlChar *
+domGetSelfOrAncestorPropValuePtr(xmlNodePtr pndArg, xmlChar *pucNameAttr)
+{
+  xmlChar *pucResult = NULL;
+
+  if (IS_ENODE(pndArg) && STR_IS_NOT_EMPTY(pucNameAttr)) {
+    pucResult = domGetPropValuePtr(pndArg, pucNameAttr);
+    if (STR_IS_EMPTY(pucResult)) {
+      /* check node ancestors */
+      pucResult = domGetSelfOrAncestorPropValuePtr(pndArg->parent, pucNameAttr);
+    }
+  }
+  return pucResult;
+} /* End of domGetSelfOrAncestorPropValuePtr() */
 
 /*!
 \param pndArg node for content

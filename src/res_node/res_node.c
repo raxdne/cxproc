@@ -5090,50 +5090,50 @@ resNodeDirAppendEntries(resNodePtr prnArgDir, const pcre2_code *re_match)
     }
     else {
       for (fResult = TRUE;;) {
+	xmlChar *pucName;
+
 	if (strlen(FindFileData.cFileName) < 1 || strcmp(FindFileData.cFileName, ".")==0 || strcmp(FindFileData.cFileName, "..")==0) {
 	  /* ignoring empty or symbolic entries */
 	}
-	else {
-	  xmlChar *pucName;
+	else if ((pucName = resPathEncodeStr(FindFileData.cFileName))) {
+	  int rc = 1; /* default: append node */
+	  resNodePtr prnI;
 
-	  if ((pucName = resPathEncodeStr(FindFileData.cFileName))) {
-	    int rc = 1;
-	    resNodePtr prnI;
-
+	  if (FindFileData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
+	    /* append all directories */
+	    prnI = resNodeAddChildNew(prnArgDir, pucName);
+	    resNodeSetType(prnI, rn_type_dir);
+	    rc = -1; /* to avoid redundancy */
+	  }
 #ifdef HAVE_PCRE2
-	    if (re_match) { /* filename matching */
-	      pcre2_match_data *match_data;
+	  else if (re_match) { /* filename matching */
+	    pcre2_match_data *match_data;
 
-	      match_data = pcre2_match_data_create_from_pattern(re_match, NULL);
-	      rc = pcre2_match(re_match,		      /* result of pcre2_compile() */
-			       (PCRE2_SPTR8)pucName,	      /* the subject string */
-			       strlen((const char *)pucName), /* the length of the subject string */
-			       0,			      /* start at offset 0 in the subject */
-			       0,			      /* default options */
-			       match_data,		      /* vector of integers for substring information */
-			       NULL);			      /* number of elements (NOT size in bytes) */
+	    match_data = pcre2_match_data_create_from_pattern(re_match, NULL);
+	    rc = pcre2_match(re_match,			    /* result of pcre2_compile() */
+			     (PCRE2_SPTR8)pucName,	    /* the subject string */
+			     strlen((const char *)pucName), /* the length of the subject string */
+			     0,				    /* start at offset 0 in the subject */
+			     0,				    /* default options */
+			     match_data,		    /* vector of integers for substring information */
+			     NULL);			    /* number of elements (NOT size in bytes) */
 
-	      pcre2_match_data_free(match_data); /* Release memory used for the match */
-	    }
+	    pcre2_match_data_free(match_data); /* Release memory used for the match */
+	  }
 #endif
 
-	    if (rc < 0) {
-	      PrintFormatLog(4, "%s ignore '%s'", NAME_FILE, pucName);
-	    }
-	    else if (FindFileData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
-	      prnI = resNodeAddChildNew(prnArgDir, pucName);
-	      resNodeSetType(prnI, rn_type_dir);
-	    }
-	    else {
-	      prnI = resNodeAddChildNew(prnArgDir, pucName);
-	      resNodeIncrSize(prnArgDir, resNodeGetSize(prnI));
-	    }
-	    xmlFree(pucName);
+	  if (rc < 0) {
+	    //PrintFormatLog(4, "%s ignore '%s'", NAME_FILE, pucName);
 	  }
 	  else {
-	    /*!\todo handle encoding errors */
-	    fResult = FALSE;
+	    prnI = resNodeAddChildNew(prnArgDir, pucName);
+	    resNodeIncrSize(prnArgDir, resNodeGetSize(prnI));
 	  }
+	  xmlFree(pucName);
+	}
+	else {
+	  /*!\todo handle encoding errors */
+	  fResult = FALSE;
 	}
 
 	if (FindNextFile(phFind, &FindFileData) == 0) {
@@ -5189,6 +5189,8 @@ resNodeDirAppendEntries(resNodePtr prnArgDir, const pcre2_code *re_match)
       struct dirent *pEntity;
 
       for (fResult = TRUE; (pEntity = readdir((DIR *)prnArgDir->handleIO));) { /* CAUTION: readdir() is not thread safe */
+	xmlChar *pucName;
+
 	if (errno == EBADF) {
 	  resNodeSetError(prnArgDir, rn_error_find, "find");
 	  fResult = FALSE;
@@ -5196,48 +5198,45 @@ resNodeDirAppendEntries(resNodePtr prnArgDir, const pcre2_code *re_match)
 	else if (pEntity->d_ino == 0 || strcmp(pEntity->d_name, ".") == 0 || strcmp(pEntity->d_name, "..") == 0) {
 	  /* ignoring empty or symbolic entries */
 	}
-	else {
-	  xmlChar *pucName;
+	else if ((pucName = resPathEncodeStr(pEntity->d_name))) {
+	  int rc = 1; /* default: append node */
+	  resNodePtr prnI;
 
-	  if ((pucName = resPathEncodeStr(pEntity->d_name))) {
-	    int rc = 1;
-	    resNodePtr prnI;
-
+	  if (pEntity->d_type & DT_DIR) {
+	    /* append all directories */
+	    prnI = resNodeAddChildNew(prnArgDir, pucName);
+	    resNodeSetType(prnI, rn_type_dir);
+	    rc = -1; /* to avoid redundancy */
+	  }
 #ifdef HAVE_PCRE2
-	    if (re_match) { /* filename matching */
-	      pcre2_match_data *match_data;
+	  else if (re_match) { /* filename matching */
+	    pcre2_match_data *match_data;
 
-	      match_data = pcre2_match_data_create_from_pattern(re_match, NULL);
-	      rc = pcre2_match(re_match,	     /* result of pcre2_compile() */
-			       (PCRE2_SPTR8)pucName, /* the subject string */
-			       xmlStrlen(pucName),   /* the length of the subject string */
-			       0,		     /* start at offset 0 in the subject */
-			       0,		     /* default options */
-			       match_data,	     /* vector of integers for substring information */
-			       NULL);		     /* number of elements (NOT size in bytes) */
+	    match_data = pcre2_match_data_create_from_pattern(re_match, NULL);
+	    rc = pcre2_match(re_match,		   /* result of pcre2_compile() */
+			     (PCRE2_SPTR8)pucName, /* the subject string */
+			     xmlStrlen(pucName),   /* the length of the subject string */
+			     0,			   /* start at offset 0 in the subject */
+			     0,			   /* default options */
+			     match_data,	   /* vector of integers for substring information */
+			     NULL);		   /* number of elements (NOT size in bytes) */
 
-	      pcre2_match_data_free(match_data); /* Release memory used for the match */
-	    }
+	    pcre2_match_data_free(match_data); /* Release memory used for the match */
+	  }
 #endif
 
-	    if (rc < 0) {
-	      // PrintFormatLog(4, "%s ignore '%s'", NAME_FILE, pcNameBase);
-	    }
-	    else if (pEntity->d_type & DT_DIR) {
-	      /*  */
-	      prnI = resNodeAddChildNew(prnArgDir, pucName);
-	      resNodeSetType(prnI, rn_type_dir);
-	    }
-	    else {
-	      prnI = resNodeAddChildNew(prnArgDir, pucName);
-	      resNodeIncrSize(prnArgDir, resNodeGetSize(prnI));
-	    }
-	    xmlFree(pucName);
+	  if (rc < 0) {
+	    // PrintFormatLog(4, "%s ignore '%s'", NAME_FILE, pcNameBase);
 	  }
 	  else {
-	    /*!\todo handle encoding errors */
-	    fResult = FALSE;
+	    prnI = resNodeAddChildNew(prnArgDir, pucName);
+	    resNodeIncrSize(prnArgDir, resNodeGetSize(prnI));
 	  }
+	  xmlFree(pucName);
+	}
+	else {
+	  /*!\todo handle encoding errors */
+	  fResult = FALSE;
 	}
       }
 
