@@ -467,15 +467,17 @@ pieTextTest(cxpContextPtr pccArg)
 
     TraverseImportNodes(pndPie, pccArg);
 
-    if (domNumberOfChild(pndPie, NAME_PIE_SECTION) != 2
-      || domNumberOf(pndPie, NAME_PIE_PRE, 0) != 1) {
-      printf("Error TraverseImportNodes()\n");
+    if (domNumberOfChild(pndPie, NAME_PIE_SECTION) != 2) {
+      printf("Error 1 TraverseImportNodes()\n");
+    }
+    else if (domNumberOf(pndPie, NAME_PIE_PRE, 0) != 1) {
+      printf("Error 2 TraverseImportNodes()\n");
     }
     else {
       n_ok++;
       printf("OK\n");
     }
-    //domPutNodeString(stderr, BAD_CAST "split result", pndPie);
+    domPutNodeString(stderr, BAD_CAST "split result", pndPie);
     xmlFreeNode(pndPie);
   }
 

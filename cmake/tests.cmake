@@ -68,14 +68,6 @@ set_property(TEST cgi-maxi
   APPEND PROPERTY ENVIRONMENT CXP_LOGFILE=cxproc-maxi.log;QUERY_STRING=path=&cxp=PieUiDir
   )
 
-add_test(NAME cgi-archive
-  WORKING_DIRECTORY ${CXPROC_PREFIX}
-  COMMAND ${CXPROC_PREFIX}/www/cgi-bin/cxproc-cgi)
-
-set_property(TEST cgi-archive
-  APPEND PROPERTY ENVIRONMENT CXP_LOGFILE=cxproc-archive.log;QUERY_STRING=path=Test/Archive/TestArchive.zip/Test/SubTest/SubTest/Length_1024.txt
-  )
-
 add_test(NAME cgi-sql
   WORKING_DIRECTORY ${CXPROC_PREFIX}
   COMMAND ${CXPROC_PREFIX}/www/cgi-bin/cxproc-cgi)
@@ -84,7 +76,7 @@ set_property(TEST cgi-sql
   APPEND PROPERTY ENVIRONMENT CXP_LOGFILE=cxproc-sql.log;QUERY_STRING=path=Test/Databases/TestContent.db3&cxp=PiejQSqlite
   )
 
-set_property(TEST cgi-empty cgi-mini cgi-archive cgi-sql cgi-maxi
+set_property(TEST cgi-empty cgi-mini cgi-sql cgi-maxi
   APPEND PROPERTY ENVIRONMENT DOCUMENT_ROOT=${CXPROC_PREFIX}/www/html/;REQUEST_METHOD=GET;CXP_LOG=3;CXP_PATH=${CXPROC_PREFIX}/www/html/pie//;CXP_ROOT=${CXPROC_PREFIX}/www/html/test/
   )
 

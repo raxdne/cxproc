@@ -655,9 +655,15 @@ cxpResNodeResolveNew(cxpContextPtr pccArg, xmlNodePtr pndArg, xmlChar *pucArg, i
       pucShortcut = pucAttrName;
     }
 
+#ifdef HAVE_CGI
+    if ((pucLocation = domGetPropValuePtr(pndArg, BAD_CAST "context")) != NULL) {
+      /*  */
+    }
+#else
     if ((pucLocation = domGetSelfOrAncestorPropValuePtr(pndArg, BAD_CAST "context")) != NULL) {
       /*  */
     }
+#endif
     else if ((pucLocation = resNodeGetNameNormalized(cxpCtxtLocationGet(pccArg))) != NULL) {
       /*  */
     }

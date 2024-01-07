@@ -58,7 +58,7 @@ plainTextTest(void)
   }
 
   
-#if defined(TESTHTTP) && defined(HTTPPREFIX)
+#if defined(HAVE_LIBCURL) && defined(TESTHTTP) && defined(HTTPPREFIX)
   if (RUNTEST) {
     xmlChar *pucURL = BAD_CAST HTTPPREFIX "Test/Documents/TestMarkupUnicode.txt";
     xmlChar *pucContent = NULL;
@@ -67,6 +67,7 @@ plainTextTest(void)
 
     i++;
     printf("TEST %i in '%s:%i': reads plain text content of '%s' = ",i,__FILE__,__LINE__,pucURL);
+    /* curl 'http://localhost:8183/Test/Documents/TestMarkupUnicode.txt' */
 
     if ((prnT = resNodeDirNew(pucURL)) == NULL) {
       printf("Error resNodeDirNew(%s)\n",pucURL);

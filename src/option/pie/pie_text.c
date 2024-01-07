@@ -953,16 +953,19 @@ ImportNodeContent(xmlNodePtr pndArgImport, cxpContextPtr pccArg)
   pndBlock = pndArgImport;
   xmlSetNs(pndBlock, NULL);
 
-#ifdef HAVE_JS
   if (xmlStrEqual(domGetPropValuePtr(pndBlock, BAD_CAST "type"), BAD_CAST NAME_PIE_SCRIPT) &&
       domGetAncestorsPropFlag(pndBlock, BAD_CAST "script", TRUE) == FALSE) {
-    xmlNodeSetName(pndBlock, BAD_CAST "pre");
+    xmlNodeSetName(pndBlock, NAME_PIE_PRE);
   }
   else if (xmlStrEqual(domGetPropValuePtr(pndBlock, BAD_CAST "type"), BAD_CAST NAME_PIE_SCRIPT)) {
+#ifdef HAVE_JS
     xmlNodeSetName(pndBlock, NAME_PIE_BLOCK);
     pucContent = scriptProcessScriptNode(pndBlock, pccArg);
     xmlFreeNode(pndArgImport->children);
     pndArgImport->children = pndArgImport->last = NULL; /* unlink node content */
+#else
+    xmlNodeSetName(pndBlock, NAME_PIE_PRE);
+#endif
   }
   else {
     pucContent = domNodeEatContent(pndArgImport);
@@ -970,11 +973,6 @@ ImportNodeContent(xmlNodePtr pndArgImport, cxpContextPtr pccArg)
     xmlFreeNode(pndArgImport->children);
     pndArgImport->children = pndArgImport->last = NULL; /* unlink node content */
   }
-#else
-  if (xmlStrEqual(domGetPropValuePtr(pndBlock, BAD_CAST "type"), BAD_CAST NAME_PIE_SCRIPT)) {
-    xmlNodeSetName(pndBlock, BAD_CAST "pre");
-  }
-#endif
 
   if (STR_IS_NOT_EMPTY(pucContent)) {
     if (ParsePlainBuffer(pndBlock, pucContent, GetModeByAttr(pndBlock))) {

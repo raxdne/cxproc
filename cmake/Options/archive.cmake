@@ -63,7 +63,6 @@ IF (CXPROC_ARCHIVE)
   #ENDIF ()
 
 IF(BUILD_TESTING)
-  
   add_test(NAME archive-code
     WORKING_DIRECTORY ${CXPROC_PREFIX}
     COMMAND ${CXPROC_PREFIX}/bin/cxproc-test -t archive)
@@ -83,6 +82,15 @@ IF(BUILD_TESTING)
   add_test(NAME filex-archive-intern-intern
     WORKING_DIRECTORY ${CXPROC_PREFIX}
     COMMAND ${CXPROC_PREFIX}/bin/filex ${CXPROC_TEST_DIR}/option/archive/test-zip-odt.zip/test-xml-zip.odt/content.xml)
+
+  add_test(NAME cgi-archive
+    WORKING_DIRECTORY ${CXPROC_PREFIX}
+    COMMAND ${CXPROC_PREFIX}/www/cgi-bin/cxproc-cgi)
+
+  set_property(TEST cgi-archive
+    APPEND PROPERTY ENVIRONMENT CXP_LOGFILE=cxproc-archive.log;QUERY_STRING=path=Test/Archive/TestArchive.zip/Test/SubTest/SubTest/Length_1024.txt
+    )
+
 ENDIF(BUILD_TESTING)
   
 
