@@ -1139,7 +1139,7 @@ IsImportCircularStr(xmlNodePtr pndArg, xmlChar *pucArgURI)
 	  fResult = TRUE;
 	}
 	else {
-	  PrintFormatLog(1, "Context '%s' found", pucT);
+	  PrintFormatLog(3, "Context '%s' found", pucT);
 	}
       }
     }
@@ -3256,6 +3256,9 @@ GetModeByAttr(xmlNodePtr pndArgImport)
 	xmlFree(pucAttrNameExt);
       }
 #endif
+    }
+    else if (xmlStrEqual(pucAttrType, BAD_CAST "cxp")) {
+      eResultMode = RMODE_PAR; /*!\todo improve assumption when import is processed via cxp */
     }
     else if (xmlStrEqual(pucAttrType, BAD_CAST "line")) {
       eResultMode = RMODE_LINE;
