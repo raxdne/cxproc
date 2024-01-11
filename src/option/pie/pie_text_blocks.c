@@ -3279,10 +3279,6 @@ GetModeByAttr(xmlNodePtr pndArgImport)
     }
     else if (xmlStrEqual(pucAttrType, BAD_CAST "par")) {
     }
-    else if (pndArgImport->parent != NULL) {
-      /* try to detect mode from ancestors */
-      eResultMode = GetModeByAttr(pndArgImport->parent);
-    }
     else {
       PrintFormatLog(2, "No valid import format '%s'", pucAttrType);
     }
