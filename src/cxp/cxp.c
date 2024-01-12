@@ -558,7 +558,6 @@ cxpAttributeLocatorResNodeNew(cxpContextPtr pccArg, xmlNodePtr pndArg, xmlChar *
       pucAttrValue = domGetPropValuePtr(pndArg, BAD_CAST "dir");
       if (STR_IS_EMPTY(pucAttrValue) || xmlStrEqual(pucAttrValue,BAD_CAST"pwd")) {
 	/* keep location of pccArg */
-	prnT = cxpCtxtLocationDup(pccArg);
       }
       else if (resPathIsAbsolute(pucAttrValue)) {
 	prnT = resNodeDirNew(pucAttrValue);
@@ -1740,7 +1739,7 @@ cxpProcessMakeNode(xmlNodePtr pndArg,cxpContextPtr pccArg)
 	      if (pndEval) {
 		cxpContextPtr pccEval;
 
-		pccEval = cxpCtxtFromAttr(pccHere, pndEval); /* use context of Doc URL */
+		pccEval = cxpCtxtFromAttr(pccHere, pndChild); /* use context of Doc URL */
 		cxpProcessMakeNode(pndEval, pccEval);
 	      }
 	    }

@@ -3239,7 +3239,7 @@ GetModeByAttr(xmlNodePtr pndArgImport)
 {
   rmode_t eResultMode = RMODE_PAR;
 
-  if (IS_NODE_PIE_IMPORT(pndArgImport) || IS_NODE_PIE_BLOCK(pndArgImport)) {
+  if (IS_NODE_PIE_IMPORT(pndArgImport) || IS_NODE_PIE_BLOCK(pndArgImport) || IS_NODE_PLAIN(pndArgImport)) {
     xmlChar *pucAttrType;
 
     if ((pucAttrType = domGetPropValuePtr(pndArgImport, BAD_CAST "type")) == NULL) {
@@ -3271,13 +3271,13 @@ GetModeByAttr(xmlNodePtr pndArgImport)
     else if (xmlStrEqual(pucAttrType, BAD_CAST "pre")) {
       eResultMode = RMODE_PRE;
     }
-    else if (xmlStrEqual(pucAttrType, BAD_CAST "markdown")) {
+    else if (xmlStrEqual(pucAttrType, BAD_CAST "markdown") || xmlStrEqual(pucAttrType, BAD_CAST "text/markdown")) {
       eResultMode = RMODE_MD;
     }
     else if (xmlStrEqual(pucAttrType, BAD_CAST NAME_PIE_CSV)) {
       eResultMode = RMODE_TABLE;
     }
-    else if (xmlStrEqual(pucAttrType, BAD_CAST "par")) {
+    else if (xmlStrEqual(pucAttrType, BAD_CAST "par") || xmlStrEqual(pucAttrType, BAD_CAST "text/plain")) {
     }
     else {
       PrintFormatLog(2, "No valid import format '%s'", pucAttrType);

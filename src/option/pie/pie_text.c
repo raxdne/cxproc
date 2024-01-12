@@ -580,7 +580,9 @@ ImportNodeCxp(xmlNodePtr pndArgImport, cxpContextPtr pccArg)
     if (STR_IS_NOT_EMPTY(pucContent)) {
       xmlNodePtr pndBlock;
       xmlNodePtr pndRelease;
+      rmode_t eParseMode = RMODE_PAR;
 
+      eParseMode = GetModeByAttr(pndChild);
       fResult = TRUE;
 
       pndRelease = pndArgImport->children;
@@ -592,7 +594,7 @@ ImportNodeCxp(xmlNodePtr pndArgImport, cxpContextPtr pccArg)
       xmlNodeSetName(pndBlock, NAME_PIE_BLOCK);
       //xmlSetProp(pndBlock, BAD_CAST "context", resNodeGetURI(prnInput));
 
-      if (ParsePlainBuffer(pndBlock, pucContent, GetModeByAttr(pndArgImport))) {
+      if (ParsePlainBuffer(pndBlock, pucContent, eParseMode)) {
 	ProcessImportOptions(pndBlock,pndChild,pccArg);
 	RecognizeIncludes(pndBlock);
 	TraverseIncludeNodes(pndBlock, pccArg);

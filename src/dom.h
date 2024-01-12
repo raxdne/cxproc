@@ -79,6 +79,14 @@ domPutNodeGraphvizString(char *pchNameFile, xmlNodePtr pndArg, int iArgDepth);
 
 extern void
 domPutNodeGraphvizStringRecursive(FILE *out, xmlNodePtr pndArg, int iArgDepth);
+#else
+
+/* some dummy macros */
+
+#define domPutNodeString(F, M, N)
+
+#define domPutDocString(F, M, D)
+
 #endif
 
 extern index_t 
