@@ -21,7 +21,11 @@
 #include "dom.h"
 
 #include "cxp_dtd.h"
+#ifdef HAVE_JS
+#include <script/cxp_script.h>
+#else
 #include "cxp_context.h"
+#endif
 #include "cxp_context_cache.h"
 #include "cxp_context_enc.h"
 #include "cxp_subst.h"

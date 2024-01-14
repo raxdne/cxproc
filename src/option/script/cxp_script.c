@@ -86,16 +86,10 @@ output of plain text file
 #include "dom.h"
 #include <cxp/cxp_dir.h>
 #include <pie/pie_text.h>
-#include <script/script.h>
 
 
-duk_context *pDukContext = NULL;
-
-static void
-scriptCleanup(void);
-
-static void
-getXmlBody(xmlChar *pucSource, int *piA, int *piB);
+static BOOL_T
+scriptInit(cxpContextPtr pccArg);
 
 static void
 scriptErrorMsg(void *udata, const char *msg);
@@ -117,70 +111,7 @@ scriptErrorMsg(void *udata, const char *msg)
 /* end of scriptErrorMsg() */
 
 
-/*! tries to find an XML tagged body at pucSource and sets *piA to
-    index of first element '<' and *piB to last '>' of last element.
-
-\param pucSource
-\param piA
-\param piB
-
- */
-void
-getXmlBody(xmlChar *pucSource, int *piA, int *piB)
-{
-  int i;
-  int iDepth;
-
-  for (*piA=-1, *piB=-1, i=0, iDepth=0; pucSource[i]!='\0'; i++) {
-
-    if (pucSource[i]=='<') {
-      /* this is a tag */
-      if (pucSource[i+1]=='/') {
-	/* this is a closing tag */
-	for (i++; pucSource[i]!='\0' && pucSource[i]!='>'; i++) {}
-	*piB = i;
-	iDepth--;
-      }
-      else if (isalpha(pucSource[i+1])) {
-	/* this is a opening tag */
-	if (*piA==-1) {
-	  /* first element */
-	  *piA = i;
-	}
-	for ( i+=2; pucSource[i]!='\0'; i++) {
-	  /* search for closing '>' */
-	  if (pucSource[i]=='>') {
-	    if (i>0) {
-	      if (pucSource[i-1]=='/') {
-		*piB = i;
-	      }
-	      else {
-		iDepth++;
-	      }
-	    }
-	    break;
-	  }
-	}
-      }
-      else {
-	/* processing instruction or comment */
-	for ( ; pucSource[i]!='\0' && pucSource[i]!='>'; i++) {
-	  /* search for closing '>' */
-	}
-      }
-    }
-  }
-  if (*piA>-1 && *piA < *piB && iDepth==0) {
-    /* OK */
-  }
-  else {
-    *piB = -1;
-  }
-}
-/* end of getXmlBody() */
-
-
-/*! process the code of script attribute, used in cxp:subst 
+/*! process the code of script text
 
 \param pndArg
 \param pccArg
@@ -188,25 +119,33 @@ getXmlBody(xmlChar *pucSource, int *piA, int *piB)
 \return pointer to script result string or NULL in case of error
  */
 xmlChar *
-scriptProcessScriptAttribute(xmlNodePtr pndArg, cxpContextPtr pccArg)
+cxpScriptProcessText(xmlChar *pucArg, cxpContextPtr pccArg)
 {
   xmlChar *pucResult = NULL;
-  xmlChar *pucAttrScript;
 
-  pucAttrScript = domGetPropValuePtr(pndArg,BAD_CAST NAME_PIE_SCRIPT);
-  if (pucAttrScript) {
-    cxpCtxtLogPrint(pccArg,4, "Run Script code '%s'",pucAttrScript);
-    duk_push_global_object(pDukContext);
-    duk_push_string(pDukContext,(const char*)pucAttrScript);
-    if (duk_peval(pDukContext) != 0) {
-      cxpCtxtLogPrint(pccArg,1,"Script error: %s", duk_safe_to_string(pDukContext, -1));
+  if (STR_IS_NOT_EMPTY(pucArg) && scriptInit(pccArg)) {
+    xmlChar *pucScriptDecoded;
+
+    pucScriptDecoded = xmlStrdup(pucArg); /*!\bug decode XML entities to UTF-8 StringDecodeXmlDefaultEntitiesNew(pucScript) */
+    cxpCtxtLogPrint(pccArg, 4, "Run Script code '%s'", pucScriptDecoded);
+    duk_push_global_object(pccArg->pDukContext);
+    duk_push_string(pccArg->pDukContext, (const char *)pucScriptDecoded);
+    if (duk_peval(pccArg->pDukContext) != 0) {
+      cxpCtxtLogPrint(pccArg, 1, "Script error: %s", duk_safe_to_string(pccArg->pDukContext, -1));
+      pucResult = xmlStrdup(BAD_CAST duk_safe_to_string(pccArg->pDukContext, -1));
     }
-    pucResult = xmlStrdup(BAD_CAST duk_to_string(pDukContext, -1));
-    duk_pop(pDukContext);  /* pop result/error */
+    else if (duk_check_type(pccArg->pDukContext, -1, DUK_TYPE_NUMBER) || duk_check_type(pccArg->pDukContext, -1, DUK_TYPE_STRING)) {
+      pucResult = xmlStrdup(BAD_CAST duk_to_string(pccArg->pDukContext, -1));
+    }
+    else {
+      cxpCtxtLogPrint(pccArg, 1, "Script: undefined result");
+      pucResult = xmlStrdup(BAD_CAST "");
+    }
+    duk_pop(pccArg->pDukContext); /* pop result/error */
+    xmlFree(pucScriptDecoded);
   }
   return pucResult;
-}
-/* end of scriptProcessScriptAttribute() */
+} /* end of cxpScriptProcessText() */
 
 
 /*! process the code of script node
@@ -217,7 +156,7 @@ scriptProcessScriptAttribute(xmlNodePtr pndArg, cxpContextPtr pccArg)
 \return
  */
 xmlChar *
-scriptProcessScriptNode(xmlNodePtr pndArg, cxpContextPtr pccArg)
+cxpScriptProcessNode(xmlNodePtr pndArg, cxpContextPtr pccArg)
 {
   xmlChar *pucResult = NULL;
   char *pchFilenameFound = NULL;
@@ -229,7 +168,7 @@ scriptProcessScriptNode(xmlNodePtr pndArg, cxpContextPtr pccArg)
   xmlChar *pucAttrNameCacheAs;
 
 #ifdef DEBUG
-  cxpCtxtLogPrint(pccArg,1,"scriptProcessScriptNode(pndArg=%0x,pccArg=%0x)",pndArg,pccArg);
+  cxpCtxtLogPrint(pccArg,1,"cxpScriptProcessNode(pndArg=%0x,pccArg=%0x)",pndArg,pccArg);
 #endif
 
   if (IS_VALID_NODE(pndArg) == FALSE) {
@@ -288,33 +227,7 @@ scriptProcessScriptNode(xmlNodePtr pndArg, cxpContextPtr pccArg)
       pucScript = xmlStrdup(pucContent);
     }
 
-    if (STR_IS_NOT_EMPTY(pucScript)) {
-      xmlChar *pucScriptDecoded;
-
-      pucScriptDecoded = xmlStrdup(pucScript); /*!\bug decode XML entities to UTF-8 StringDecodeXmlDefaultEntitiesNew(pucScript) */
-      if (domGetPropFlag(pndArg, BAD_CAST "eval", TRUE)) {
-
-	cxpCtxtLogPrint(pccArg, 4, "Run Script code '%s'", pucScriptDecoded);
-	duk_push_global_object(pDukContext);
-	duk_push_string(pDukContext, (const char *)pucScriptDecoded);
-	if (duk_peval(pDukContext) != 0) {
-	  cxpCtxtLogPrint(pccArg, 1, "Script error: %s", duk_safe_to_string(pDukContext, -1));
-	  pucResult = xmlStrdup(BAD_CAST duk_safe_to_string(pDukContext, -1));
-	}
-	else if (duk_check_type(pDukContext, -1, DUK_TYPE_NUMBER) || duk_check_type(pDukContext, -1, DUK_TYPE_STRING)) {
-	  pucResult = xmlStrdup(BAD_CAST duk_to_string(pDukContext, -1));
-	}
-	else {
-	  cxpCtxtLogPrint(pccArg, 1, "Script: undefined result");
-	  pucResult = xmlStrdup(BAD_CAST "");
-	}
-	duk_pop(pDukContext); /* pop result/error */
-	xmlFree(pucScriptDecoded);
-      }
-      else {
-	pucResult = pucScriptDecoded;
-      }
-    }
+    pucResult = cxpScriptProcessText(pucScript, pccArg);
 
     /*!\todo keep script code after eval as display attribute or title */
 
@@ -330,7 +243,7 @@ scriptProcessScriptNode(xmlNodePtr pndArg, cxpContextPtr pccArg)
   }
   return pucResult;
 }
-/* end of scriptProcessScriptNode() */
+/* end of cxpScriptProcessNode() */
 
 
 /*!
@@ -340,7 +253,7 @@ scriptProcessScriptNode(xmlNodePtr pndArg, cxpContextPtr pccArg)
 \return pointer to parent node
  */
 xmlNodePtr
-scriptInfo(xmlNodePtr pndParent) 
+cxpScriptInfo(xmlNodePtr pndParent, cxpContextPtr pccArg) 
 {
   xmlChar mpucOut[BUFFER_LENGTH];
 
@@ -352,7 +265,7 @@ scriptInfo(xmlNodePtr pndParent)
 
   return pndParent;
 }
-/* end of scriptInfo() */
+/* end of cxpScriptInfo() */
 
 
 /*! initialize this script module
@@ -362,20 +275,15 @@ scriptInfo(xmlNodePtr pndParent)
 BOOL_T
 scriptInit(cxpContextPtr pccArg)
 {
-  BOOL_T fResult = FALSE;
+  BOOL_T fResult = TRUE;
 
-  if (pDukContext == NULL) {
-    pDukContext = duk_create_heap(NULL, NULL, NULL, NULL, scriptErrorMsg);
-    if (pDukContext) {
-      fResult = TRUE;
+  if (pccArg->pDukContext == NULL) {
+    pccArg->pDukContext = duk_create_heap(NULL, NULL, NULL, NULL, scriptErrorMsg);
+    if (pccArg->pDukContext) {
     }
     else {
       cxpCtxtLogPrint(pccArg,1,"Failed to create a Duktape heap.");
-    }
-
-    /* register for exit() */
-    if (atexit(scriptCleanup) != 0) {
-      exit(EXIT_FAILURE);
+      fResult = FALSE;
     }
   }
   return fResult;
@@ -383,18 +291,6 @@ scriptInit(cxpContextPtr pccArg)
 /* end of scriptInit() */
 
 
-/*! cleanup this script module
-*/
-void
-scriptCleanup(void)
-{
-  if (pDukContext) {
-    duk_destroy_heap(pDukContext);
-  }
-}
-/* end of scriptCleanup() */
-
-
 #ifdef TESTCODE
-#include "test/test_script.c"
+#include "test/test_cxp_script.c"
 #endif

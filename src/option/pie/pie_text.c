@@ -46,10 +46,6 @@
 #include <petrinet/petrinet.h>
 #endif
 
-#ifdef HAVE_JS
-#include <script/script.h>
-#endif
-
 static void
 TraverseIncludeNodes(xmlNodePtr pndArg, cxpContextPtr pccArg);
 
@@ -857,7 +853,7 @@ ImportNodeFile(xmlNodePtr pndArgImport, cxpContextPtr pccArg)
 
 	  xmlSetProp(pndBlock, BAD_CAST"type", BAD_CAST NAME_PIE_SCRIPT);
 #ifdef HAVE_JS
-	  pucScriptResult = scriptProcessScriptNode(pndBlock, pccInput);
+	  pucScriptResult = cxpScriptProcessNode(pndBlock, pccInput);
 #endif
 	  if (pucScriptResult == NULL) {
 	    xmlSetProp(pndBlock, BAD_CAST"result", BAD_CAST"empty");
@@ -962,7 +958,7 @@ ImportNodeContent(xmlNodePtr pndArgImport, cxpContextPtr pccArg)
   else if (xmlStrEqual(domGetPropValuePtr(pndBlock, BAD_CAST "type"), BAD_CAST NAME_PIE_SCRIPT)) {
 #ifdef HAVE_JS
     xmlNodeSetName(pndBlock, NAME_PIE_BLOCK);
-    pucContent = scriptProcessScriptNode(pndBlock, pccArg);
+    pucContent = cxpScriptProcessNode(pndBlock, pccArg);
     xmlFreeNode(pndArgImport->children);
     pndArgImport->children = pndArgImport->last = NULL; /* unlink node content */
 #else
@@ -1499,7 +1495,7 @@ TraverseScriptNodes(xmlNodePtr pndCurrent, cxpContextPtr pccArg)
 	xmlChar *pucContent = NULL;
 	xmlNodePtr pndReplace = NULL;
 
-	pucContent = scriptProcessScriptNode(pndI, pccArg);
+	pucContent = cxpScriptProcessNode(pndI, pccArg);
 	if (pucContent == NULL) {
 	  /*  */
 	}
@@ -1532,7 +1528,7 @@ TraverseScriptNodes(xmlNodePtr pndCurrent, cxpContextPtr pccArg)
     }
 #if 0
     else if (IS_NODE_SCRIPT(pndI)) {
-      if ((pucT = scriptProcessScriptNode(pndI, pccArg)) != NULL) {
+      if ((pucT = cxpScriptProcessNode(pndI, pccArg)) != NULL) {
 	if ((pndResult = xmlNewText(pucT)) != NULL) {
 	  xmlReplaceNode(pndI, pndResult);
 	  xmlFreeNode(pndI);

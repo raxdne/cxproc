@@ -86,9 +86,6 @@ RFC3875 CGI 1.1 <http://tools.ietf.org/html/rfc3875#page-10>
 #include <database/database.h>
 #endif
 
-#ifdef HAVE_JS
-#include <script/script.h>
-#endif
 #ifdef HAVE_LIBARCHIVE
 #include <archive/cxp_archive.h>
 #endif

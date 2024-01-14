@@ -487,6 +487,70 @@ utilsTest(void)
 
 
   if (RUNTEST) {
+    int iA, iB;
+
+    i++;
+    printf("TEST %i in '%s:%i': ",i,__FILE__,__LINE__);
+    
+    getXmlBody(BAD_CAST"<abc/>",&iA,&iB);
+    if (iA==0 && iB==5) {
+      n_ok++;
+      printf("OK\n");
+    }
+    else {
+      printf("ERROR\n");
+    }
+  }
+
+  if (RUNTEST) {
+    int iA, iB;
+
+    i++;
+    printf("TEST %i in '%s:%i': ",i,__FILE__,__LINE__);
+    
+    getXmlBody(BAD_CAST"<abc>ABC</abc>", &iA, &iB);
+    if (iA==0 && iB==13) {
+      n_ok++;
+      printf("OK\n");
+    }
+    else {
+      printf("ERROR\n");
+    }
+  }
+
+  if (RUNTEST) {
+    int iA, iB;
+
+    i++;
+    printf("TEST %i in '%s:%i': ",i,__FILE__,__LINE__);
+    
+    getXmlBody(BAD_CAST"<abc>A<qers/>A</abc>", &iA, &iB);
+    if (iA==0 && iB==19) {
+      n_ok++;
+      printf("OK\n");
+    }
+    else {
+      printf("ERROR\n");
+    }
+  }
+
+  if (RUNTEST) {
+    int iA, iB;
+
+    i++;
+    printf("TEST %i in '%s:%i': ",i,__FILE__,__LINE__);
+    
+    getXmlBody(BAD_CAST"<?xml version=\"1.0\" encoding=\"UTF-8\"?>  <abc>A<qers/>A</abc>", &iA, &iB);
+    if (iA==40 && iB==59) {
+      n_ok++;
+      printf("OK\n");
+    }
+    else {
+      printf("ERROR\n");
+    }
+  }
+
+  if (RUNTEST) {
     xmlChar *pucTest0 = NULL;
     xmlChar *pucTestA = NULL;
     xmlChar *pucTestB = NULL;

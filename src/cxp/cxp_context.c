@@ -701,6 +701,12 @@ cxpCtxtFree(cxpContextPtr pccArg)
     }
 #endif
 
+#ifdef HAVE_JS
+    if (pccArg->pDukContext) {
+      duk_destroy_heap(pccArg->pDukContext);
+    }
+#endif
+
     cxpCtxtEncFree(pccArg);
 
     memset(pccArg, 0, sizeof(cxpContext));

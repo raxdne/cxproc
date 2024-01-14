@@ -86,6 +86,9 @@ StringDecodeNumericCharsNew(xmlChar* pucArg);
 extern xmlChar*
 StringEncodeXmlDefaultEntitiesNew(xmlChar* pucArg);
 
+extern void
+getXmlBody(xmlChar *pucSource, int *piA, int *piB);
+
 extern xmlChar *
 Strnstr(const xmlChar *str, const int l, const xmlChar *val);
 

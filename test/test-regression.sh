@@ -12,6 +12,7 @@ test -d $TEST_ROOT || mkdir -p $TEST_ROOT
 # git submodule update --remote
 
 ARCH=$(uname -m)"-"$(uname -o | tr '[:upper:]' '[:lower:]' | tr '[:punct:]' '-')
+
 #REVS=$(git rev-list --branches --max-count=$N)
 #REVS=ecde184c9d4ae3dd5fe560bd1387c6d7ee53e10f
 REVS=develop
@@ -35,10 +36,13 @@ do
 
 	git checkout $r
 	
-	cmake -S $TEST_ROOT -B $DIR_BUILD -G 'Unix Makefiles' -DCMAKE_BUILD_TYPE=Release -DCXPROC_DOC:BOOL=OFF -DCXPROC_LEGACY:BOOL=OFF -DCXPROC_EXPERIMENTAL:BOOL=ON -DCXPROC_MARKDOWN:BOOL=ON -DCXPROC_DUKTAPE:BOOL=OFF
-	cmake --build $DIR_BUILD -j 4 --target cxproc cxproc-cgi
+	cmake -S $TEST_ROOT -B $DIR_BUILD -G 'Unix Makefiles' -DCMAKE_BUILD_TYPE=Profile -DCXPROC_DOC:BOOL=OFF -DCXPROC_LEGACY:BOOL=OFF -DCXPROC_EXPERIMENTAL:BOOL=ON -DCXPROC_MARKDOWN:BOOL=ON -DCXPROC_DUKTAPE:BOOL=OFF
+	cmake --build $DIR_BUILD -j 4 --target clean
+	cmake --build $DIR_BUILD -j 8 --target cxproc cxproc-cgi
 	#(cd $DIR_BUILD && ctest -R basics)
     fi
+
+    cd $PREFIX
     
     #export DOCUMENT_ROOT="$DIR_PREFIX/www/html/develop/"
     export DOCUMENT_ROOT=$TEST_ROOT/../$ARCH/www/html/develop
@@ -57,8 +61,8 @@ do
 	export CXP_PATH=$TEST_ROOT/../$ARCH/www/html/pie//
 	#export CXP_DATE="2010"
 
-	#export QUERY_STRING="path=Notes/Main.pie&cxp=PiejQDefault"
-	export QUERY_STRING="path=Work/Documents/Main.pie&cxp=PiejQDefault"
+	export QUERY_STRING="path=Notes/Main.pie&cxp=PiejQDefault"
+	#export QUERY_STRING="path=Work/Documents/Main.pie&cxp=PiejQDefault"
 	#export QUERY_STRING="cxp=info"
 	#export QUERY_STRING="year=2002"
 	#export QUERY_STRING="path=/&cxp=MergePie&depth=999"
@@ -75,6 +79,8 @@ do
 
 	/usr/bin/time -v -o $PREFIX/cxproc.dat $PREFIX/www/cgi-bin/cxproc-cgi > $PREFIX/cxproc.html 2> $PREFIX/cxproc.err
 	#valgrind -s  --leak-check=full --tool=memcheck $PREFIX/www/cgi-bin/cxproc-cgi > $PREFIX/cxproc.xml 2> $PREFIX/cxproc.err
+	#valgrind --tool=callgrind --log-file=cxproc-cgi-cachegrind.log $PREFIX/www/cgi-bin/cxproc-cgi > $PREFIX/cxproc.xml 2> $PREFIX/cxproc.err
+	
     elif [ -x "$PREFIX/bin/cxproc" ] ; then
 	/usr/bin/time -v -o $PREFIX/cxproc.dat $PREFIX/bin/cxproc $DOCUMENT_ROOT/Notes/Main.pie > $PREFIX/cxproc.xml 2> $PREFIX/cxproc.err
     fi

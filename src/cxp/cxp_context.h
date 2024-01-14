@@ -18,6 +18,10 @@
   Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 */
 
+#ifdef HAVE_JS
+#include <duktape.h>
+#endif
+
 #include <res_node/res_node.h>
 
 typedef struct _cxpContext cxpContext;
@@ -109,6 +113,10 @@ struct _cxpContext {
 
 #ifdef HAVE_PCRE2
   pcre2_code *re_each; /*! internal regular expression for separation of 'each' values */
+#endif
+
+#ifdef HAVE_JS
+  duk_context *pDukContext;
 #endif
 
   struct _cxpContext *next; /*! next context in list */

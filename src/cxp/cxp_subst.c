@@ -43,10 +43,6 @@
 #include <petrinet/petrinet.h>
 #endif
 
-#ifdef HAVE_JS
-#include <script/script.h>
-#endif
-
 #ifdef HAVE_CGI
 #include <cxp/cxp_context_cgi.h>
 #endif
@@ -368,7 +364,7 @@ cxpSubstDetect(xmlNodePtr pndArgSubst, cxpContextPtr pccArg)
       /*!\todo use text node content also */
 
 #ifdef HAVE_JS
-      if ((pcxpSubstResult->pucScriptResult = scriptProcessScriptAttribute(pndArgSubst,pccArg)) != NULL) {
+      if ((pcxpSubstResult->pucScriptResult = cxpScriptProcessText(domGetPropValuePtr(pndArgSubst,BAD_CAST NAME_PIE_SCRIPT),pccArg)) != NULL) {
 	/* this is a substitution with script result */
 	if (pcxpSubstResult->eEncoding == rfc1738) {
 	  pucTT = pcxpSubstResult->pucScriptResult;

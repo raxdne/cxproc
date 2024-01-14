@@ -65,10 +65,6 @@ CXP_ROOT=.../www/html/Documents
 #include <pie/pie_text.h>
 #endif
 
-#ifdef HAVE_JS
-#include <script/script.h>
-#endif
-
 #ifdef HAVE_LIBARCHIVE
 #include <archive/cxp_archive.h>
 #endif
@@ -206,10 +202,6 @@ main(int argc, char *argv[], char *envp[])
   pccMain = cxpCtxtCgiNew(argc,argv,envp);
   if (pccMain) {
     int iExit = EXIT_SUCCESS;
-
-#ifdef HAVE_JS
-    scriptInit(pccMain);
-#endif
 
     //cxpCtxtCacheEnable(pccMain, TRUE);
 

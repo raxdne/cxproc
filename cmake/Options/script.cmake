@@ -16,8 +16,8 @@ ENDIF ()
 IF (CXPROC_DUKTAPE)
   
   SET(DUKTAPE_FILES
-    ${CXPROC_SRC_DIR}/option/script/script.h
-    ${CXPROC_SRC_DIR}/option/script/script.c
+    ${CXPROC_SRC_DIR}/option/script/cxp_script.h
+    ${CXPROC_SRC_DIR}/option/script/cxp_script.c
     )
 
   IF (DUKTAPE_SOURCE_FILE)

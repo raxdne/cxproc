@@ -18,21 +18,18 @@
   Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 */
 
-#include <duktape.h>
-
-extern BOOL_T
-scriptInit(cxpContextPtr pccArg);
+#include <cxp/cxp_context.h>
 
 extern xmlChar *
-scriptProcessScriptAttribute(xmlNodePtr pndArg, cxpContextPtr pccArg);
+cxpScriptProcessText(xmlChar *pucArg, cxpContextPtr pccArg);
 
 extern xmlChar *
-scriptProcessScriptNode(xmlNodePtr pndArg, cxpContextPtr pccArg);
+cxpScriptProcessNode(xmlNodePtr pndArg, cxpContextPtr pccArg);
 
 extern xmlNodePtr
-scriptInfo(xmlNodePtr pndParent);
+cxpScriptInfo(xmlNodePtr pndParent, cxpContextPtr pccArg);
 
 #ifdef TESTCODE
 extern int
-scriptTest(cxpContextPtr pccArg);
+cxpScriptTest(cxpContextPtr pccArg);
 #endif

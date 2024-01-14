@@ -107,9 +107,6 @@
 #ifdef HAVE_JSON
 #include <json/cxp_json.h>
 #endif
-#ifdef HAVE_JS
-#include <script/script.h>
-#endif
 #ifdef HAVE_LIBARCHIVE
 #include <archive/cxp_archive.h>
 #endif
@@ -955,7 +952,7 @@ cxpProcessPlainNode(xmlNodePtr pndArg, cxpContextPtr pccArg)
 #endif
 #ifdef HAVE_JS
 	else if (IS_NODE_SCRIPT(pndChild)) {
-	  pucChildResult = scriptProcessScriptNode(pndChild,pccHere);
+	  pucChildResult = cxpScriptProcessNode(pndChild,pccHere);
 	}
 #endif
 	else if (IS_NODE_IMAGE(pndChild)) {
@@ -1332,7 +1329,7 @@ cxpProcessXmlNode(xmlNodePtr pndArg, cxpContextPtr pccArg)
       else if (IS_NODE_SCRIPT(pndChildSource)) {
 	int iLen;
 
-	pucT = scriptProcessScriptNode(pndChildSource,pccHere);
+	pucT = cxpScriptProcessNode(pndChildSource,pccHere);
 	if (pucT!=NULL && (iLen = xmlStrlen(pucT)) > 10) {
 	  pdocT = xmlParseMemory((const char *)pucT,iLen);
 	}
@@ -3374,7 +3371,7 @@ cxpProcessInfoNode(xmlNodePtr pndInfo, cxpContextPtr pccArg)
 
 #ifdef HAVE_JS
     nodeOption = xmlNewChild(nodeProgram, NULL, BAD_CAST"option", NULL);
-    scriptInfo(nodeOption);
+    cxpScriptInfo(nodeOption, pccArg);
 #endif
 
     nodeOption = xmlNewChild(nodeProgram,NULL,BAD_CAST"module",NULL);

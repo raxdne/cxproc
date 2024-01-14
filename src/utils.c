@@ -562,6 +562,69 @@ HasStringPairQuotes(xmlChar *pucArg)
 } /* end of HasStringPairQuotes() */
 
 
+/*! tries to find an XML tagged body at pucSource and sets *piA to
+    index of first element '<' and *piB to last '>' of last element.
+
+\param pucSource
+\param piA
+\param piB
+
+ */
+void
+getXmlBody(xmlChar *pucSource, int *piA, int *piB)
+{
+  int i;
+  int iDepth;
+
+  for (*piA=-1, *piB=-1, i=0, iDepth=0; pucSource[i]!='\0'; i++) {
+
+    if (pucSource[i]=='<') {
+      /* this is a tag */
+      if (pucSource[i+1]=='/') {
+	/* this is a closing tag */
+	for (i++; pucSource[i]!='\0' && pucSource[i]!='>'; i++) {}
+	*piB = i;
+	iDepth--;
+      }
+      else if (isalpha(pucSource[i+1])) {
+	/* this is a opening tag */
+	if (*piA==-1) {
+	  /* first element */
+	  *piA = i;
+	}
+	for ( i+=2; pucSource[i]!='\0'; i++) {
+	  /* search for closing '>' */
+	  if (pucSource[i]=='>') {
+	    if (i>0) {
+	      if (pucSource[i-1]=='/') {
+		*piB = i;
+	      }
+	      else {
+		iDepth++;
+	      }
+	    }
+	    break;
+	  }
+	}
+      }
+      else {
+	/* processing instruction or comment */
+	for ( ; pucSource[i]!='\0' && pucSource[i]!='>'; i++) {
+	  /* search for closing '>' */
+	}
+      }
+    }
+  }
+  if (*piA>-1 && *piA < *piB && iDepth==0) {
+    /* OK */
+  }
+  else {
+    *piB = -1;
+  }
+}
+/* end of getXmlBody() */
+
+
 /**
  * xmlStrnstr:
  * @str:  the xmlChar * array (haystack)

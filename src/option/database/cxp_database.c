@@ -46,10 +46,6 @@
 #include <database/cxp_database.h>
 #include "plain_text.h"
 
-#ifdef HAVE_JS
-#include <script/script.h>
-#endif
-
 static resNodePtr
 dbResNodeDatabaseOpenNew(xmlNodePtr pndArg, cxpContextPtr pccArg);
 
@@ -658,7 +654,7 @@ dbProcessDbSourceNode(xmlNodePtr pndArg, cxpContextPtr pccArg)
 #if defined(HAVE_JS) && defined(EXPERIMENTAL)
       else if ((pndChild = domGetFirstChild(pndArg, NAME_SCRIPT)) != NULL) { /* script element, generating SQL statements */
 	for ( ; pndChild; pndChild = pndChild->next) {
-	  pucQuery = scriptProcessScriptNode(pndChild, pccArg);
+	  pucQuery = cxpScriptProcessNode(pndChild, pccArg);
 	  if (STR_IS_NOT_EMPTY(pucQuery)) {
 	    dbInsert(prnDb, pucQuery);
 	  }

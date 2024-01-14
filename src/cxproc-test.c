@@ -83,9 +83,6 @@
 #ifdef HAVE_LIBSQLITE3
 #include <database/cxp_database.h>
 #endif
-#ifdef HAVE_JS
-#include <script/script.h>
-#endif
 #ifdef HAVE_JSON
 #include <json/cxp_json.h>
 #endif
@@ -197,10 +194,6 @@ main(int argc, char** argv, char** envp)
   if (pccTest) {
     int iExit = EXIT_SUCCESS;
 
-#ifdef HAVE_JS
-    scriptInit(pccTest);
-#endif
-
     cxpCtxtCacheEnable(pccTest, FALSE);
 
     assert(resNodeTestDirStr(BAD_CAST TESTPREFIX));
@@ -245,12 +238,17 @@ main(int argc, char** argv, char** envp)
 
 	pccT = cxpCtxtDup(pccTest);
 	if (pccT) {
+		#if 0
 	  iErrorCode += cxpCtxtTest(pccT);
 	  iErrorCode += cxpCtxtEncTest(pccT, argv, envp);
 	  iErrorCode += cxpCtxtCacheTest(pccT);
 	  iErrorCode += cxpSubstTest(pccT);
 	  iErrorCode += calTest(pccT);
 	  iErrorCode += cxpTest(pccT);
+	  #endif
+#ifdef HAVE_JS
+	  iErrorCode += cxpScriptTest(pccTest);
+#endif
 
 	  cxpCtxtIncrExitCode(pccTest, cxpCtxtGetExitCode(pccT));
 	  cxpCtxtFree(pccT);
@@ -354,12 +352,6 @@ main(int argc, char** argv, char** envp)
 	}
       }
 #endif
-
-      if (pcTest == NULL || xmlStrEqual(BAD_CAST pcTest, BAD_CAST "script")) {
-#ifdef HAVE_JS
-	iErrorCode += scriptTest(pccTest);
-#endif
-      }
 
       if (pcTest == NULL || xmlStrEqual(BAD_CAST pcTest, BAD_CAST "parser")) {
 

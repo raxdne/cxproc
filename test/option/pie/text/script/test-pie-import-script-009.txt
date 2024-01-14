@@ -1,0 +1,18 @@
+
+* Script embedding
+    
+<script>
+var i = 111;
+i * 2;
+</script>
+
+Script split 2
+
+<script>
+i + i;
+</script>
+
+Script split 3 'script="i * i"'
+
+`script="i * i * i"`
+
