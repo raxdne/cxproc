@@ -862,7 +862,7 @@ ImportNodeFile(xmlNodePtr pndArgImport, cxpContextPtr pccArg)
 	  if (pucScriptResult == NULL) {
 	    xmlSetProp(pndBlock, BAD_CAST"result", BAD_CAST"empty");
 	  }
-	  else if (ParsePlainBuffer(pndBlock, pucScriptResult, GetModeByAttr(pndBlock))) {
+	  else if (ParsePlainBuffer(pndBlock, pucScriptResult, GetModeByAttr(pndBlock))) { /*!\bug handle "GetModeByAttr(pndBlock)" like in "import/plain[@type='']" */
 	    RecognizeIncludes(pndBlock);
 	    TraverseIncludeNodes(pndBlock, pccInput);
 	    RecognizeSubsts(pndBlock);
@@ -1387,7 +1387,7 @@ ProcessImportOptions(xmlNodePtr pndArgPie, xmlNodePtr pndArgImport, cxpContextPt
       cxpCtxtLogPrint(pccArg, 3, "Ignoring tasks markup");
     }
 
-    if (domGetPropFlag(pndArgImport, BAD_CAST "locators", TRUE)) {
+    if (domGetPropFlag(pndArgImport, BAD_CAST "locators", FALSE)) {
       resNodePtr prnDoc;
 
       cxpCtxtLogPrint(pccArg, 2, "Add locator attribute");
@@ -1483,26 +1483,27 @@ xmlNodePtr
 TraverseScriptNodes(xmlNodePtr pndCurrent, cxpContextPtr pccArg)
 {
   xmlNodePtr pndResult = NULL;
+  xmlNodePtr pndI = NULL;
 
 #ifdef HAVE_JS
-  if (IS_ENODE(pndCurrent)) {
+  for (pndI = pndCurrent; IS_ENODE(pndI); pndI = (pndI != NULL) ? pndI->next : NULL) {
     xmlChar* pucT;
     xmlNodePtr pndChild;
     int iLengthStr;
 
-    if (IS_NODE_PIE_IMPORT(pndCurrent) && xmlStrEqual(domGetPropValuePtr(pndCurrent,BAD_CAST"type"),BAD_CAST NAME_PIE_SCRIPT)) {
-      if ((pndChild = pndCurrent->children) != NULL
+    if (IS_NODE_PIE_IMPORT(pndI) && xmlStrEqual(domGetPropValuePtr(pndI,BAD_CAST"type"),BAD_CAST NAME_PIE_SCRIPT)) {
+      if ((pndChild = pndI->children) != NULL
 	&& xmlNodeIsText(pndChild)
 	&& pndChild->content != NULL
 	&& (iLengthStr = xmlStrlen(pndChild->content)) > 0) {
 	xmlChar *pucContent = NULL;
 	xmlNodePtr pndReplace = NULL;
 
-	pucContent = scriptProcessScriptNode(pndCurrent, pccArg);
+	pucContent = scriptProcessScriptNode(pndI, pccArg);
 	if (pucContent == NULL) {
 	  /*  */
 	}
-	else if (IS_NODE_PIE(pndCurrent->parent) || IS_NODE_PIE_SECTION(pndCurrent->parent)) {
+	else if (IS_NODE_PIE(pndI->parent) || IS_NODE_PIE_SECTION(pndI->parent)) {
 	  pndReplace = xmlNewNode(NULL, NAME_PIE_IMPORT);
 	  xmlAddChild(pndReplace, xmlNewText(pucContent));
 	}
@@ -1514,31 +1515,33 @@ TraverseScriptNodes(xmlNodePtr pndCurrent, cxpContextPtr pccArg)
 	if (pndReplace) {
 	  xmlNodePtr pndT;
 
-	  pndT = pndCurrent->next;
-	  if (domReplaceNodeList(pndCurrent, pndReplace) == pndCurrent) {
-	    xmlFreeNodeList(pndCurrent);
+	  pndT = pndI->next;
+	  if (domReplaceNodeList(pndI, pndReplace) == pndI) {
+	    xmlFreeNodeList(pndI);
 	  }
 	  /*  */
 	  if (pndT != NULL && pndT->prev != NULL) {
-	    pndCurrent = pndT->prev;
+	    pndI = pndT->prev;
 	  }
 	  else {
-	    pndCurrent = NULL;
+	    pndI = NULL;
 	  }
 	  pndResult = pndReplace;
 	}
       }
     }
-    else if (IS_NODE_SCRIPT(pndCurrent)) {
-      if ((pucT = scriptProcessScriptNode(pndCurrent, pccArg)) != NULL) {
+#if 0
+    else if (IS_NODE_SCRIPT(pndI)) {
+      if ((pucT = scriptProcessScriptNode(pndI, pccArg)) != NULL) {
 	if ((pndResult = xmlNewText(pucT)) != NULL) {
-	  xmlReplaceNode(pndCurrent, pndResult);
-	  xmlFreeNode(pndCurrent);
+	  xmlReplaceNode(pndI, pndResult);
+	  xmlFreeNode(pndI);
 	}
       }
     }
+#endif
     else {
-      for (pndChild = pndCurrent->children; pndChild;) {
+      for (pndChild = pndI->children; pndChild;) {
 	xmlNodePtr pndT;
 
 	pndT = TraverseScriptNodes(pndChild, pccArg);

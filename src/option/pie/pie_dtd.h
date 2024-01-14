@@ -107,6 +107,7 @@
 
 #define NAME_PIE_RULER "hr"
 
+/* node content will be transferred to HTML output, to be executed by web browser */
 #define NAME_PIE_SCRIPT "script"
 
 #define NAME_PIE_SKIP "skip"

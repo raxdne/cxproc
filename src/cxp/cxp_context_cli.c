@@ -724,11 +724,7 @@ cxpCtxtCliParse(cxpContextPtr pccArg)
 	    xmlSetProp(pndPie, BAD_CAST "offset", BAD_CAST "yes");
 	    xmlSetProp(pndPie, BAD_CAST "url", BAD_CAST "yes");
 	    xmlSetProp(pndPie, BAD_CAST "figure", BAD_CAST "yes");
-#ifdef HAVE_JS
 	    xmlSetProp(pndPie, BAD_CAST "script", BAD_CAST "yes");
-#else
-	    xmlSetProp(pndPie, BAD_CAST "script", BAD_CAST "no");
-#endif	    
 	    xmlSetProp(pndPie, BAD_CAST "locators", BAD_CAST "no");
 	    
 	    pndImport = xmlNewChild(pndPie, NULL, NAME_PIE_IMPORT, NULL);

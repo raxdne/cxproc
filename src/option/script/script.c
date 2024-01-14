@@ -236,7 +236,10 @@ scriptProcessScriptNode(xmlNodePtr pndArg, cxpContextPtr pccArg)
     /* ignore NULL and invalid elements */
   }
   else if (IS_NODE_SCRIPT(pndArg)
-    || (xmlStrEqual(domGetPropValuePtr(pndArg, BAD_CAST "type"), BAD_CAST NAME_PIE_SCRIPT) && (IS_NODE_PIE_IMPORT(pndArg) || IS_NODE_PIE_BLOCK(pndArg)))) {
+#ifdef HAVE_PIE
+    || (xmlStrEqual(domGetPropValuePtr(pndArg, BAD_CAST "type"), BAD_CAST NAME_PIE_SCRIPT) && (IS_NODE_PIE_IMPORT(pndArg) || IS_NODE_PIE_BLOCK(pndArg)))
+#endif
+    ) {
     BOOL_T fCache = FALSE;
     //BOOL_T fSearch;
 

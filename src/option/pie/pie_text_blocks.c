@@ -1680,7 +1680,7 @@ SplitStringToAutoLinkNodes(const xmlChar *pucArg)
 xmlNodePtr
 RecognizeUrls(xmlNodePtr pndArg)
 {
-  if (IS_NODE_META(pndArg) || IS_NODE_PIE_PRE(pndArg) || IS_NODE_PIE_TT(pndArg) || IS_NODE_PIE_TABLE(pndArg) || IS_NODE_PIE_LINK(pndArg) || IS_NODE_PIE_SCRIPT(pndArg)) {
+  if (IS_NODE_META(pndArg) || IS_NODE_PIE_PRE(pndArg) || IS_NODE_PIE_TT(pndArg) || IS_NODE_PIE_TABLE(pndArg) || IS_NODE_PIE_LINK(pndArg) || IS_NODE_PIE_SCRIPT(pndArg) || IS_NODE_PIE_IMPORT(pndArg)) {
     /* skip */
   }
   else if (IS_VALID_NODE(pndArg) == FALSE || xmlHasProp(pndArg,BAD_CAST"hidden") != NULL) {
@@ -3258,7 +3258,7 @@ GetModeByAttr(xmlNodePtr pndArgImport)
 #endif
     }
     else if (xmlStrEqual(pucAttrType, BAD_CAST "cxp")) {
-      eResultMode = RMODE_PAR; /*!\todo improve assumption when import is processed via cxp */
+      /*!\todo improve assumption when import is processed via cxp */
     }
     else if (xmlStrEqual(pucAttrType, BAD_CAST "line")) {
       eResultMode = RMODE_LINE;
@@ -3278,6 +3278,9 @@ GetModeByAttr(xmlNodePtr pndArgImport)
       eResultMode = RMODE_TABLE;
     }
     else if (xmlStrEqual(pucAttrType, BAD_CAST "par") || xmlStrEqual(pucAttrType, BAD_CAST "text/plain")) {
+    }
+    else if (xmlStrEqual(pucAttrType, BAD_CAST "script")) {
+      /*!\todo improve assumption when import is processed via script */
     }
     else {
       PrintFormatLog(2, "No valid import format '%s'", pucAttrType);

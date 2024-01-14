@@ -4,8 +4,7 @@
 
 FLAG_BUILD=1
 FLAG_CGI=1
-N=10
-I=0
+N=3
 
 TEST_ROOT=~/cxproc-build/cxproc
 test -d $TEST_ROOT || mkdir -p $TEST_ROOT
@@ -15,18 +14,19 @@ test -d $TEST_ROOT || mkdir -p $TEST_ROOT
 ARCH=$(uname -m)"-"$(uname -o | tr '[:upper:]' '[:lower:]' | tr '[:punct:]' '-')
 #REVS=$(git rev-list --branches --max-count=$N)
 #REVS=ecde184c9d4ae3dd5fe560bd1387c6d7ee53e10f
-REVS=5921a5d9c802fa14a5c5756b101adc08a63c3bb8
+REVS=develop
 
 #(cd $TEST_ROOT && git checkout develop)
 
-(cd $TEST_ROOT/../$ARCH/www/html/pie && git checkout 0968972dbf6c3d0bf2d277156ea0c12bbba2a02f)
+#(cd $TEST_ROOT/../$ARCH/www/html/pie && git checkout develop)
 
+I=0
 for r in $REVS
 do
     #PREFIX=$TEST_ROOT/../$ARCH/$r
-    PREFIX=$TEST_ROOT/../$ARCH
+    #PREFIX=$TEST_ROOT/../$ARCH
     #PREFIX=$TEST_ROOT/../$I-$ARCH
-    #PREFIX=$TEST_ROOT/../$I-$r
+    PREFIX=$TEST_ROOT/../$I-$r
 
     if [ "$FLAG_BUILD" == "1" ] ; then
 	echo "! preparing '$PREFIX' ..."
@@ -35,7 +35,7 @@ do
 
 	git checkout $r
 	
-	cmake -S $TEST_ROOT -B $DIR_BUILD -G 'Unix Makefiles' -DCMAKE_BUILD_TYPE=Release -DCXPROC_DOC:BOOL=OFF -DCXPROC_LEGACY:BOOL=ON -DCXPROC_EXPERIMENTAL:BOOL=ON -DCXPROC_MARKDOWN:BOOL=OFF -DCXPROC_SCRIPT:BOOL=OFF
+	cmake -S $TEST_ROOT -B $DIR_BUILD -G 'Unix Makefiles' -DCMAKE_BUILD_TYPE=Release -DCXPROC_DOC:BOOL=OFF -DCXPROC_LEGACY:BOOL=OFF -DCXPROC_EXPERIMENTAL:BOOL=ON -DCXPROC_MARKDOWN:BOOL=ON -DCXPROC_DUKTAPE:BOOL=OFF
 	cmake --build $DIR_BUILD -j 4 --target cxproc cxproc-cgi
 	#(cd $DIR_BUILD && ctest -R basics)
     fi
