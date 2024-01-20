@@ -103,6 +103,22 @@ GUI
 	cmake --build ~/cxproc-build/cmark/build
 	cmake --install ~/cxproc-build/cmark/build --prefix $PREFIX/
 
+### Duktape as Source code
+
+	wget https://bootstrap.pypa.io/pip/2.7/get-pip.py
+	python2 get-pip.py
+	python2 -m pip install pyyaml
+	
+	cd ~/cxproc-build
+	wget -c https://duktape.org/duktape-2.7.0.tar.xz
+	tar xzf duktape-2.7.0.tar.xz
+	cd duktape-2.7.0
+	python tools/configure.py --output-directory ~/cxproc-build/cxproc/third-party/duktape-src -DDUK_USE_FASTINT -UDUK_USE_ES6_PROXY
+
+select `~/cxproc-build/cxproc/third-party/duktape-src` as value for `DUKTAPE_INCLUDE_DIR`
+
+### sqlite as Source code
+
 ## Doxygen
 
     doxygen misc/Doxyfile

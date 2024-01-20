@@ -738,6 +738,7 @@ ImportNodeFile(xmlNodePtr pndArgImport, cxpContextPtr pccArg)
       pucAttrType = domGetPropValuePtr(pndBlock, BAD_CAST"type");
 
       /* set a new cxpContext with file-based location */
+      cxpCtxtLogPrint(pccArg, 3, "New context due to file-based import location '%s'", resNodeGetNameNormalized(prnInput));
       pccInput = cxpCtxtNew();
       prnT = resNodeDup(prnInput, RN_DUP_THIS);
       resNodeSetToParent(prnT);
@@ -927,6 +928,7 @@ ImportNodeContent(xmlNodePtr pndArgImport, cxpContextPtr pccArg)
     }
 
     pucContent = cxpScriptProcessNode(pndBlock, pccArg);
+    xmlNodeSetName(pndBlock, NAME_PIE_BLOCK);
     xmlFreeNode(pndBlock->children);
     pndBlock->children = pndBlock->last = NULL; /* unlink node content */
 #else
@@ -1145,6 +1147,7 @@ IncludeNodeFile(xmlNodePtr pndArgInclude, cxpContextPtr pccArg)
       pucAttrType = domGetPropValuePtr(pndBlock, BAD_CAST"type");
 
       /* set a new cxpContext with file-based location */
+      cxpCtxtLogPrint(pccArg, 1, "New context due to file-based include location '%s'", resNodeGetNameNormalized(prnInput));
       pccInput = cxpCtxtNew();
       prnT = resNodeDup(prnInput, RN_DUP_THIS);
       resNodeSetToParent(prnT);

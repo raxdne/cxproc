@@ -577,6 +577,7 @@ cxpCtxtFromAttr(cxpContextPtr pccArg, xmlNodePtr pndArg)
   prnT = cxpAttributeLocatorResNodeNew(pccArg, pndArg, NULL);
   if (prnT) { /* new locator context found */
     if (resPathIsEquivalent(resNodeGetNameNormalized(cxpCtxtLocationGet(pccArg)), resNodeGetNameNormalized(prnT)) == FALSE) {
+      cxpCtxtLogPrint(pccArg, 3, "New context due to location '%s'", resNodeGetNameNormalized(prnT));
       pccResult = cxpCtxtNew();
       cxpCtxtLocationSet(pccResult, prnT);
     }
@@ -592,6 +593,7 @@ cxpCtxtFromAttr(cxpContextPtr pccArg, xmlNodePtr pndArg)
     else {
       if (pccResult == pccArg) {
 	pccResult = cxpCtxtNew();
+	cxpCtxtLogPrint(pccArg, 3, "New context due to log level '%s'", pucAttr);
       }
       cxpCtxtLogSetLevel(pccResult, iAttr);
     }

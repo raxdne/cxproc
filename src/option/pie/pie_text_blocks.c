@@ -3280,7 +3280,8 @@ GetModeByAttr(xmlNodePtr pndArgImport)
     else if (xmlStrEqual(pucAttrType, BAD_CAST "par") || xmlStrEqual(pucAttrType, BAD_CAST "text/plain")) {
     }
     else if (xmlStrEqual(pucAttrType, BAD_CAST "script")) {
-      /*!\todo improve assumption when import is processed via script */
+      /*! inherit type from ancestors when import is processed via script */
+      eResultMode = GetModeByAttr(pndArgImport->parent);
     }
     else {
       PrintFormatLog(2, "No valid import format '%s'", pucAttrType);
