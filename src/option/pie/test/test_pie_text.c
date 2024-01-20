@@ -443,6 +443,104 @@ pieTextTest(cxpContextPtr pccArg)
     xmlNodePtr pndResult;
 
     i++;
+    printf("TEST %i in '%s:%i': import from single import script node = ", i, __FILE__, __LINE__);
+
+    pndPie = xmlNewNode(NULL, NAME_PIE_PIE);
+
+    pndTest = xmlNewChild(pndPie, NULL, NAME_PIE_PAR, BAD_CAST"pre script ");
+    pndImport = xmlNewChild(pndTest, NULL, NAME_PIE_IMPORT, BAD_CAST"\n123 + 144\n\n");
+    xmlSetProp(pndImport, BAD_CAST "type", BAD_CAST"script");
+    xmlAddChild(pndTest, xmlNewText(BAD_CAST" post script"));
+    domPutNodeString(stderr, BAD_CAST "script result", pndPie);
+
+    if (ImportNodeContent(pndImport,pccArg) == FALSE) {
+      printf("Error 1 ImportNodeContent()\n");
+    }
+    else if (domNumberOf(pndPie, NAME_PIE_PAR, 0) != 1) {
+      printf("Error 2 ImportNodeContent()\n");
+    }
+    else {
+      n_ok++;
+      printf("OK\n");
+    }
+    //domPutNodeString(stderr, BAD_CAST "script result", pndPie);
+    xmlFreeNode(pndPie);
+  }
+
+
+  if (RUNTEST) {
+    xmlNodePtr pndPie;
+    xmlNodePtr pndTest;
+    xmlNodePtr pndImport;
+    xmlNodePtr pndResult;
+
+    i++;
+    printf("TEST %i in '%s:%i': import from single import script file = ", i, __FILE__, __LINE__);
+
+    pndPie = xmlNewNode(NULL, NAME_PIE_PIE);
+
+    pndTest = xmlNewChild(pndPie, NULL, NAME_PIE_PAR, BAD_CAST"pre script ");
+    pndImport = xmlNewChild(pndTest, NULL, NAME_PIE_IMPORT, NULL);
+    xmlSetProp(pndImport, BAD_CAST "type", BAD_CAST"script");
+    xmlSetProp(pndImport, BAD_CAST "name", BAD_CAST TESTPREFIX "option/script/test-js-3.js");
+    xmlAddChild(pndTest, xmlNewText(BAD_CAST" post script"));
+    //domPutNodeString(stderr, BAD_CAST "script result", pndPie);
+
+    if (ImportNodeFile(pndImport,pccArg) == FALSE) {
+      printf("Error 1 ImportNodeFile()\n");
+    }
+    else if (domNumberOf(pndPie, NAME_PIE_PAR, 0) != 1) {
+      printf("Error 2 ImportNodeFile()\n");
+    }
+    else {
+      n_ok++;
+      printf("OK\n");
+    }
+    //domPutNodeString(stderr, BAD_CAST "script result", pndPie);
+    xmlFreeNode(pndPie);
+  }
+
+
+  if (RUNTEST) {
+    xmlNodePtr pndPie;
+    xmlNodePtr pndTest;
+    xmlNodePtr pndImport;
+    xmlNodePtr pndResult;
+
+    i++;
+    printf("TEST %i in '%s:%i': import from single import script file = ", i, __FILE__, __LINE__);
+
+    pndPie = xmlNewNode(NULL, NAME_PIE_PIE);
+
+    pndTest = xmlNewChild(pndPie, NULL, NAME_PIE_PAR, BAD_CAST"pre script ");
+    pndImport = xmlNewChild(pndPie, NULL, NAME_PIE_IMPORT, NULL);
+    xmlSetProp(pndImport, BAD_CAST "type", BAD_CAST"script");
+    xmlSetProp(pndImport, BAD_CAST "name", BAD_CAST TESTPREFIX "option/script/test-js-3.js");
+    xmlNewChild(pndPie, NULL, NAME_PIE_PAR, BAD_CAST" post script");
+    //domPutNodeString(stderr, BAD_CAST "script result", pndPie);
+
+    if (ImportNodeFile(pndImport,pccArg) == FALSE) {
+      printf("Error 1 ImportNodeFile()\n");
+    }
+    else if (domNumberOf(pndPie, NAME_PIE_PAR, 0) != 3) {
+      printf("Error 2 ImportNodeFile()\n");
+    }
+    else {
+      n_ok++;
+      printf("OK\n");
+    }
+    //domPutNodeString(stderr, BAD_CAST "script result", pndPie);
+    xmlFreeNode(pndPie);
+  }
+
+
+  if (RUNTEST) {
+    xmlNodePtr pndPie;
+    xmlNodePtr pndTest;
+    xmlNodePtr pndImport;
+    xmlNodePtr pndResult;
+
+    i++;
     printf("TEST %i in '%s:%i': import from various import nodes = ", i, __FILE__, __LINE__);
 
     pndPie = xmlNewNode(NULL, NAME_PIE_PIE);

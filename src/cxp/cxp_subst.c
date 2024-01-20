@@ -364,7 +364,7 @@ cxpSubstDetect(xmlNodePtr pndArgSubst, cxpContextPtr pccArg)
       /*!\todo use text node content also */
 
 #ifdef HAVE_JS
-      if ((pcxpSubstResult->pucScriptResult = cxpScriptProcessText(domGetPropValuePtr(pndArgSubst,BAD_CAST NAME_PIE_SCRIPT),pccArg)) != NULL) {
+      if ((pcxpSubstResult->pucScriptResult = cxpScriptProcessText(domGetPropValuePtr(pndArgSubst,BAD_CAST NAME_SCRIPT),pccArg)) != NULL) {
 	/* this is a substitution with script result */
 	if (pcxpSubstResult->eEncoding == rfc1738) {
 	  pucTT = pcxpSubstResult->pucScriptResult;

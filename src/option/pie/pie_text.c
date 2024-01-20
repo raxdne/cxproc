@@ -52,9 +52,6 @@ TraverseIncludeNodes(xmlNodePtr pndArg, cxpContextPtr pccArg);
 static void
 TraverseImportNodes(xmlNodePtr pndArg, cxpContextPtr pccArg);
 
-static xmlNodePtr
-TraverseScriptNodes(xmlNodePtr pndCurrent, cxpContextPtr pccArg);
-
 static BOOL_T
 ProcessPieDoc(xmlNodePtr pndArgResult, xmlDocPtr pdocArgPie, cxpContextPtr pccArg);
 
@@ -356,6 +353,7 @@ pieProcessPieNode(xmlNodePtr pndArgPie, cxpContextPtr pccArg)
 
       RecognizeIncludes(pndBlock);
       TraverseIncludeNodes(pndBlock, pccImport); /* #inlude: parse and insert only, no recursion, no own subst, no imports, no block, no locators */
+      RecognizeScripts(pndBlock);
       RecognizeSubsts(pndBlock);
       RecognizeImports(pndBlock);
 
@@ -388,17 +386,6 @@ pieProcessPieNode(xmlNodePtr pndArgPie, cxpContextPtr pccArg)
 
     /*! \todo add error logs to DOM */
     //pndError = xmlNewChild(pndPieRoot, NULL, NAME_ERROR, NULL);
-
-    if (domGetPropFlag(pndArgPie, BAD_CAST  NAME_PIE_SCRIPT, TRUE)) {
-      cxpCtxtLogPrint(pccArg, 2, "Recognize scripts");
-      RecognizeScripts(pndPieRoot);
-#ifdef HAVE_JS
-      TraverseScriptNodes(pndPieRoot, pccArg);
-#endif
-    }
-    else {
-      cxpCtxtLogPrint(pccArg, 3, "Ignoring scripts");
-    }
 
     /* process all child subst nodes */
     cxpCtxtLogPrint(pccArg, 2, "Start substitution");
@@ -821,6 +808,7 @@ ImportNodeFile(xmlNodePtr pndArgImport, cxpContextPtr pccArg)
 	      RecognizeSubsts(pndBlock);
 	    }
 
+	    RecognizeScripts(pndBlock);
 	    RecognizeImports(pndBlock);
 	    TraverseImportNodes(pndBlock, pccInput); /* parse result recursively */
 	  }
@@ -836,7 +824,7 @@ ImportNodeFile(xmlNodePtr pndArgImport, cxpContextPtr pccArg)
 	xmlFree(pucContent);
       }
       else if (resNodeGetNameNormalized(prnInput) != NULL
-	       && (pucAttrType != NULL && (xmlStrEqual(pucAttrType, BAD_CAST NAME_PIE_SCRIPT)
+	       && (pucAttrType != NULL && (xmlStrEqual(pucAttrType, BAD_CAST "script")
 					   || iMimeType == MIME_APPLICATION_X_JAVASCRIPT))) {
 
 	cxpCtxtLogPrint(pccInput, 2, "Importing '%s' Javascript result as PIE '%s'", pucAttrType, resNodeGetNameNormalized(prnInput));
@@ -846,34 +834,14 @@ ImportNodeFile(xmlNodePtr pndArgImport, cxpContextPtr pccArg)
 	  pucContent = plainGetContextTextEat(prnInput, 1024);
 	}
 
-	/*!\todo process MIME_APPLICATION_JSON too */
-
 	if (STR_IS_NOT_EMPTY(pucContent)) {
-	  xmlChar *pucScriptResult = NULL;
-
-	  xmlSetProp(pndBlock, BAD_CAST"type", BAD_CAST NAME_PIE_SCRIPT);
-#ifdef HAVE_JS
-	  pucScriptResult = cxpScriptProcessNode(pndBlock, pccInput);
-#endif
-	  if (pucScriptResult == NULL) {
-	    xmlSetProp(pndBlock, BAD_CAST"result", BAD_CAST"empty");
-	  }
-	  else if (ParsePlainBuffer(pndBlock, pucScriptResult, GetModeByAttr(pndBlock))) { /*!\bug handle "GetModeByAttr(pndBlock)" like in "import/plain[@type='']" */
-	    RecognizeIncludes(pndBlock);
-	    TraverseIncludeNodes(pndBlock, pccInput);
-	    RecognizeSubsts(pndBlock);
-	    RecognizeImports(pndBlock);
-	    TraverseImportNodes(pndBlock, pccInput); /* parse result recursively */
-	  }
-	  else {
-	    xmlSetProp(pndBlock, BAD_CAST"result", BAD_CAST"parse");
-	  }
-	  xmlFree(pucScriptResult);
-	  //domPutNodeString(stderr,BAD_CAST "ImportNodeFile()",pndArgResult);
+	  xmlSetProp(pndBlock, BAD_CAST "type", BAD_CAST "script");
+	  xmlNodeSetContent(pndBlock, pucContent);
+	  ImportNodeContent(pndBlock, pccInput);
 	}
 	else {
 	  cxpCtxtLogPrint(pccInput, 1, "Cant read from '%s'", resNodeGetNameNormalized(prnInput));
-	  xmlSetProp(pndBlock, BAD_CAST"error", BAD_CAST NAME_PIE_SCRIPT);
+	  xmlSetProp(pndBlock, BAD_CAST"error", BAD_CAST "script");
 	}
 	xmlFree(pucContent);
       }
@@ -945,44 +913,52 @@ ImportNodeContent(xmlNodePtr pndArgImport, cxpContextPtr pccArg)
 #ifdef DEBUG
   cxpCtxtLogPrint(pccArg, 3, "ImportNodeContent(pndArgImport=%0x,pccArg=%0x)", pndArgImport, pccArg);
 #endif
-  assert(IS_NODE_PIE_IMPORT(pndArgImport));
+  //assert(IS_NODE_PIE_IMPORT(pndArgImport));
   assert(NodeHasSingleText(pndArgImport));
 
   pndBlock = pndArgImport;
   xmlSetNs(pndBlock, NULL);
 
-  if (xmlStrEqual(domGetPropValuePtr(pndBlock, BAD_CAST "type"), BAD_CAST NAME_PIE_SCRIPT) &&
-      domGetAncestorsPropFlag(pndBlock, BAD_CAST "script", TRUE) == FALSE) {
-    xmlNodeSetName(pndBlock, NAME_PIE_PRE);
-  }
-  else if (xmlStrEqual(domGetPropValuePtr(pndBlock, BAD_CAST "type"), BAD_CAST NAME_PIE_SCRIPT)) {
+  if (xmlStrEqual(domGetPropValuePtr(pndBlock, BAD_CAST "type"), BAD_CAST "script")) {
 #ifdef HAVE_JS
-    xmlNodeSetName(pndBlock, NAME_PIE_BLOCK);
+    if (domGetAncestorsPropFlag(pndBlock, BAD_CAST "script", TRUE) == FALSE) {
+      /* script imports have to be skipped */
+      return fResult;
+    }
+
     pucContent = cxpScriptProcessNode(pndBlock, pccArg);
-    xmlFreeNode(pndArgImport->children);
-    pndArgImport->children = pndArgImport->last = NULL; /* unlink node content */
+    xmlFreeNode(pndBlock->children);
+    pndBlock->children = pndBlock->last = NULL; /* unlink node content */
 #else
-    xmlNodeSetName(pndBlock, NAME_PIE_PRE);
+    xmlNodeSetName(pndBlock, IS_NODE_STRUCT(pndArgImport->parent) ? NAME_PIE_PRE : NAME_PIE_TT);
 #endif
   }
   else {
-    pucContent = domNodeEatContent(pndArgImport);
+    pucContent = domNodeEatContent(pndBlock);
     xmlNodeSetName(pndBlock, NAME_PIE_BLOCK);
-    xmlFreeNode(pndArgImport->children);
-    pndArgImport->children = pndArgImport->last = NULL; /* unlink node content */
+    xmlFreeNode(pndBlock->children);
+    pndBlock->children = pndBlock->last = NULL; /* unlink node content */
   }
 
   if (STR_IS_NOT_EMPTY(pucContent)) {
-    if (ParsePlainBuffer(pndBlock, pucContent, GetModeByAttr(pndBlock))) {
-      ProcessImportOptions(pndBlock,pndArgImport,pccArg);
-      RecognizeIncludes(pndBlock);
-      TraverseIncludeNodes(pndBlock, pccArg);
-      RecognizeSubsts(pndBlock);
-      RecognizeImports(pndBlock);
-      TraverseImportNodes(pndBlock, pccArg); /* parse result recursively */
+
+    if (IS_NODE_STRUCT(pndArgImport->parent)) {
+      /* resulting tree must be inserted */
+      if (ParsePlainBuffer(pndBlock, pucContent, GetModeByAttr(pndBlock))) {
+	ProcessImportOptions(pndBlock, pndBlock, pccArg);
+	RecognizeIncludes(pndBlock);
+	TraverseIncludeNodes(pndBlock, pccArg);
+	RecognizeSubsts(pndBlock);
+	RecognizeImports(pndBlock);
+	TraverseImportNodes(pndBlock, pccArg); /* parse result recursively */
+      }
+      else {
+	xmlSetProp(pndBlock, BAD_CAST "error", BAD_CAST "parse");
+      }
     }
     else {
-      xmlSetProp(pndBlock, BAD_CAST"error", BAD_CAST"parse");
+      /* insert import result as a simple text node */
+      xmlReplaceNode(pndBlock, xmlNewText(pucContent));
     }
   }
   else {
@@ -1007,7 +983,7 @@ TraverseIncludeNodes(xmlNodePtr pndArg, cxpContextPtr pccArg)
   if (IS_VALID_NODE(pndArg) == FALSE) {
     /* ignore NULL and invalid elements */
   }
-  else if (IS_NODE_PIE_SCRIPT(pndArg) || IS_NODE_PIE_PRE(pndArg) ) {
+  else if (IS_NODE_PIE_IMPORT(pndArg) || IS_NODE_PIE_PRE(pndArg) ) {
     /* skip */
   }
   else if (IS_NODE_PIE_INCLUDE(pndArg)) {
@@ -1291,7 +1267,7 @@ TraverseImportNodes(xmlNodePtr pndArg, cxpContextPtr pccArg)
   if (IS_VALID_NODE(pndArg) == FALSE) {
     /* ignore NULL and invalid elements */
   }
-  else if (IS_NODE_PIE_SCRIPT(pndArg) || IS_NODE_PIE_PRE(pndArg) ) {
+  else if (IS_NODE_PIE_PRE(pndArg) ) {
     /* skip */
   }
   else if (IS_NODE_PIE_IMPORT(pndArg)) {
@@ -1314,11 +1290,18 @@ TraverseImportNodes(xmlNodePtr pndArg, cxpContextPtr pccArg)
       if (IS_NODE_PIE_IMPORT(pndArgChildren)
 	|| IS_NODE_PIE_SECTION(pndArgChildren)
 	|| IS_NODE_PIE_TASK(pndArgChildren)
+	|| IS_NODE_PIE_TABLE(pndArgChildren)
+	|| IS_NODE_PIE_TR(pndArgChildren)
+	|| IS_NODE_PIE_TH(pndArgChildren)
+	|| IS_NODE_PIE_TD(pndArgChildren)
 #ifdef HAVE_PETRINET
 	|| IS_NODE_PKG2_STATE(pndArgChildren)
 	|| IS_NODE_PKG2_TRANSITION(pndArgChildren)
 	|| IS_NODE_PKG2_REQUIREMENT(pndArgChildren)
 #endif
+	|| IS_NODE_PIE_LIST(pndArgChildren)
+	|| IS_NODE_PIE_HEADER(pndArgChildren)
+	|| IS_NODE_PIE_PAR(pndArgChildren)
 	|| IS_NODE_PIE_PIE(pndArgChildren)
 	|| IS_NODE_PIE_BLOCK(pndArgChildren)) {
 	TraverseImportNodes(pndArgChildren, pccArg);
@@ -1468,92 +1451,6 @@ ProcessImportNode(xmlNodePtr pndArgImport, cxpContextPtr pccArg)
   return fResult;
 }
 /* end of ProcessImportNode() */
-
-/*!
-\param pndArg node to test for script, else traversing childs
-\param pccArg the processing context
-
-\return new allocated pie DOM if successful, else NULL
-*/
-xmlNodePtr
-TraverseScriptNodes(xmlNodePtr pndCurrent, cxpContextPtr pccArg)
-{
-  xmlNodePtr pndResult = NULL;
-  xmlNodePtr pndI = NULL;
-
-#ifdef HAVE_JS
-  for (pndI = pndCurrent; IS_ENODE(pndI); pndI = (pndI != NULL) ? pndI->next : NULL) {
-    xmlChar* pucT;
-    xmlNodePtr pndChild;
-    int iLengthStr;
-
-    if (IS_NODE_PIE_IMPORT(pndI) && xmlStrEqual(domGetPropValuePtr(pndI,BAD_CAST"type"),BAD_CAST NAME_PIE_SCRIPT)) {
-      if ((pndChild = pndI->children) != NULL
-	&& xmlNodeIsText(pndChild)
-	&& pndChild->content != NULL
-	&& (iLengthStr = xmlStrlen(pndChild->content)) > 0) {
-	xmlChar *pucContent = NULL;
-	xmlNodePtr pndReplace = NULL;
-
-	pucContent = cxpScriptProcessNode(pndI, pccArg);
-	if (pucContent == NULL) {
-	  /*  */
-	}
-	else if (IS_NODE_PIE(pndI->parent) || IS_NODE_PIE_SECTION(pndI->parent)) {
-	  pndReplace = xmlNewNode(NULL, NAME_PIE_IMPORT);
-	  xmlAddChild(pndReplace, xmlNewText(pucContent));
-	}
-	else {
-	  pndReplace = xmlNewText(pucContent);
-	}
-	xmlFree(pucContent);
-
-	if (pndReplace) {
-	  xmlNodePtr pndT;
-
-	  pndT = pndI->next;
-	  if (domReplaceNodeList(pndI, pndReplace) == pndI) {
-	    xmlFreeNodeList(pndI);
-	  }
-	  /*  */
-	  if (pndT != NULL && pndT->prev != NULL) {
-	    pndI = pndT->prev;
-	  }
-	  else {
-	    pndI = NULL;
-	  }
-	  pndResult = pndReplace;
-	}
-      }
-    }
-#if 0
-    else if (IS_NODE_SCRIPT(pndI)) {
-      if ((pucT = cxpScriptProcessNode(pndI, pccArg)) != NULL) {
-	if ((pndResult = xmlNewText(pucT)) != NULL) {
-	  xmlReplaceNode(pndI, pndResult);
-	  xmlFreeNode(pndI);
-	}
-      }
-    }
-#endif
-    else {
-      for (pndChild = pndI->children; pndChild;) {
-	xmlNodePtr pndT;
-
-	pndT = TraverseScriptNodes(pndChild, pccArg);
-	if (pndT) {
-	  pndChild=pndT->next;
-	}
-	else {
-	  pndChild=pndChild->next;
-	}
-      }
-    }
-  }
-#endif
-  return pndResult;
-}
-/* End of TraverseScriptNodes() */
 
 
 /*! \return a readable/identifiable sub-tree copy for pndArg

@@ -983,7 +983,7 @@ pieElementToDOM(pieTextElementPtr ppeT)
 	else if (pieElementIsScript(ppeT)) {
 	  if (STR_IS_NOT_EMPTY(pucC)) {
 	    pndResult = xmlNewNode(NULL, NAME_PIE_IMPORT);
-	    xmlSetProp(pndResult, BAD_CAST "type", BAD_CAST NAME_PIE_SCRIPT);
+	    xmlSetProp(pndResult, BAD_CAST "type", BAD_CAST "script");
 	    xmlAddChild(pndResult, xmlNewText(pucC));
 	  }
 	}

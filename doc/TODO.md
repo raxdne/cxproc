@@ -23,6 +23,8 @@ TODO: update program description #v20
 
 ## Refactoring
 
+TODO: Performance when compiled with CXPROC_SCRIPT  ✔
+
 TODO: in `res_path.c` change  ✔
 - `resPathGetBasename()` to `resPathGetBasenameStr()` due to allocated string result
 - to `*Ptr()` if it's a pointer
@@ -36,7 +38,7 @@ TODO: check need of `res_node/res_node_properties.c` #v20
 TODO: check usage of `ProcessImportOptions()` #v20 ++
 - replacing URLs in `<script>` etc
 
-TODO: unify usage of `scriptProcessScriptNode()` `TraverseScriptNodes()` and add test code #v20
+TODO: unify usage of `scriptProcessScriptNode()` `TraverseScriptNodes()` and add test code #v20 ✔
 
 ## Features
 

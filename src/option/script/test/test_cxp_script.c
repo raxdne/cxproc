@@ -68,10 +68,10 @@ cxpScriptTest(cxpContextPtr pccArg)
     i++;
     printf("TEST %i in '%s:%i': subst attribute = ", i, __FILE__, __LINE__);
 
-    if ((pndSubst = xmlNewNode(NULL, NAME_SUBST)) == NULL || xmlSetProp(pndSubst,BAD_CAST NAME_PIE_SCRIPT,BAD_CAST"'A' + 'B' + 'C'") == NULL) {
+    if ((pndSubst = xmlNewNode(NULL, NAME_SUBST)) == NULL || xmlSetProp(pndSubst,BAD_CAST NAME_SCRIPT,BAD_CAST"'A' + 'B' + 'C'") == NULL) {
       printf("Error xmlNewNode()\n");
     }
-    else if ((pucT = cxpScriptProcessText(domGetPropValuePtr(pndSubst,BAD_CAST NAME_PIE_SCRIPT),pccArg)) == NULL) {
+    else if ((pucT = cxpScriptProcessText(domGetPropValuePtr(pndSubst,BAD_CAST NAME_SCRIPT),pccArg)) == NULL) {
       printf("Error subst attribute cxpScriptProcessText()\n");
     }
     else if (xmlStrEqual(pucT,BAD_CAST"ABC") == FALSE) {

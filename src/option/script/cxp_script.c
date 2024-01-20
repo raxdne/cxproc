@@ -144,6 +144,9 @@ cxpScriptProcessText(xmlChar *pucArg, cxpContextPtr pccArg)
     duk_pop(pccArg->pDukContext); /* pop result/error */
     xmlFree(pucScriptDecoded);
   }
+  else {
+    cxpCtxtLogPrint(pccArg, 1, "Empty Script code");
+  }
   return pucResult;
 } /* end of cxpScriptProcessText() */
 
@@ -176,7 +179,7 @@ cxpScriptProcessNode(xmlNodePtr pndArg, cxpContextPtr pccArg)
   }
   else if (IS_NODE_SCRIPT(pndArg)
 #ifdef HAVE_PIE
-    || (xmlStrEqual(domGetPropValuePtr(pndArg, BAD_CAST "type"), BAD_CAST NAME_PIE_SCRIPT) && (IS_NODE_PIE_IMPORT(pndArg) || IS_NODE_PIE_BLOCK(pndArg)))
+    || (xmlStrEqual(domGetPropValuePtr(pndArg, BAD_CAST "type"), BAD_CAST "script") && (IS_NODE_PIE_IMPORT(pndArg) || IS_NODE_PIE_BLOCK(pndArg)))
 #endif
     ) {
     BOOL_T fCache = FALSE;
@@ -280,6 +283,7 @@ scriptInit(cxpContextPtr pccArg)
   if (pccArg->pDukContext == NULL) {
     pccArg->pDukContext = duk_create_heap(NULL, NULL, NULL, NULL, scriptErrorMsg);
     if (pccArg->pDukContext) {
+      cxpCtxtLogPrint(pccArg,1,"New Duktape heap.");
     }
     else {
       cxpCtxtLogPrint(pccArg,1,"Failed to create a Duktape heap.");

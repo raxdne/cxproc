@@ -2,9 +2,9 @@
 #
 #
 
-FLAG_BUILD=1
-FLAG_CGI=1
-N=3
+FLAG_CONFIG=1
+FLAG_CGI=0
+N=5
 
 TEST_ROOT=~/cxproc-build/cxproc
 test -d $TEST_ROOT || mkdir -p $TEST_ROOT
@@ -29,25 +29,26 @@ do
     #PREFIX=$TEST_ROOT/../$I-$ARCH
     PREFIX=$TEST_ROOT/../$I-$r
 
-    if [ "$FLAG_BUILD" == "1" ] ; then
+    if [ "$FLAG_CONFIG" == "1" ] ; then
 	echo "! preparing '$PREFIX' ..."
 	DIR_BUILD="$PREFIX/build"
 	test -d $DIR_BUILD || mkdir -p $DIR_BUILD
 
 	git checkout $r
 	
-	cmake -S $TEST_ROOT -B $DIR_BUILD -G 'Unix Makefiles' -DCMAKE_BUILD_TYPE=Profile -DCXPROC_DOC:BOOL=OFF -DCXPROC_LEGACY:BOOL=OFF -DCXPROC_EXPERIMENTAL:BOOL=ON -DCXPROC_MARKDOWN:BOOL=ON -DCXPROC_DUKTAPE:BOOL=OFF
-	cmake --build $DIR_BUILD -j 4 --target clean
-	cmake --build $DIR_BUILD -j 8 --target cxproc cxproc-cgi
-	#(cd $DIR_BUILD && ctest -R basics)
+	cmake -S $TEST_ROOT -B $DIR_BUILD -G 'Unix Makefiles' -DCMAKE_BUILD_TYPE=Profile -DCXPROC_PCRE2:BOOL=ON -DCXPROC_DOC:BOOL=OFF -DCXPROC_LEGACY:BOOL=OFF -DCXPROC_EXPERIMENTAL:BOOL=ON -DCXPROC_PIE:BOOL=ON -DCXPROC_MARKDOWN:BOOL=ON -DCXPROC_DUKTAPE:BOOL=ON -DLIBCMARK_LIBRARY:PATH=/home/developer/cxproc-build/x86_64-gnu-linux/lib/libcmark.a  -DLIBCMARK_INCLUDE_DIR:PATH=/home/developer/cxproc-build/x86_64-gnu-linux/include
     fi
+
+    #cmake --build $DIR_BUILD -j 4 --target clean
+    cmake --build $DIR_BUILD -j 8 --target cxproc cxproc-cgi
+    #(cd $DIR_BUILD && ctest -R basics)
 
     cd $PREFIX
     
     #export DOCUMENT_ROOT="$DIR_PREFIX/www/html/develop/"
     export DOCUMENT_ROOT=$TEST_ROOT/../$ARCH/www/html/develop
     
-    if [[ "$FLAG_CGI" == "1" && -x "$PREFIX/www/cgi-bin/cxproc-cgi" ]] ; then
+    if [[ "$FLAG_CGI" == "1" && -x "www/cgi-bin/cxproc-cgi" ]] ; then
 	export REQUEST_METHOD="GET"
 	export SERVER_NAME="localhost"
 	export SERVER_PORT="8181"
@@ -61,8 +62,8 @@ do
 	export CXP_PATH=$TEST_ROOT/../$ARCH/www/html/pie//
 	#export CXP_DATE="2010"
 
-	export QUERY_STRING="path=Notes/Main.pie&cxp=PiejQDefault"
-	#export QUERY_STRING="path=Work/Documents/Main.pie&cxp=PiejQDefault"
+	#export QUERY_STRING="path=Notes/Main.pie&cxp=PiejQDefault"
+	export QUERY_STRING="path=Work/Documents/Main.pie&cxp=PiejQDefault"
 	#export QUERY_STRING="cxp=info"
 	#export QUERY_STRING="year=2002"
 	#export QUERY_STRING="path=/&cxp=MergePie&depth=999"
@@ -77,17 +78,27 @@ do
 	#export QUERY_STRING="dir=/&cxp=PieUiDir"
 	#export QUERY_STRING="cxp=image&frame=80x80&path=Pictures/IMG_20220320_095854.jpg"
 
-	/usr/bin/time -v -o $PREFIX/cxproc.dat $PREFIX/www/cgi-bin/cxproc-cgi > $PREFIX/cxproc.html 2> $PREFIX/cxproc.err
-	#valgrind -s  --leak-check=full --tool=memcheck $PREFIX/www/cgi-bin/cxproc-cgi > $PREFIX/cxproc.xml 2> $PREFIX/cxproc.err
-	#valgrind --tool=callgrind --log-file=cxproc-cgi-cachegrind.log $PREFIX/www/cgi-bin/cxproc-cgi > $PREFIX/cxproc.xml 2> $PREFIX/cxproc.err
+	/usr/bin/time -v -o cxproc.dat www/cgi-bin/cxproc-cgi > cxproc.html 2> cxproc.err
+	#valgrind -s  --leak-check=full --tool=memcheck www/cgi-bin/cxproc-cgi > cxproc.xml 2> cxproc.err
+	#valgrind --tool=callgrind --log-file=cxproc-cgi-cachegrind.log www/cgi-bin/cxproc-cgi > cxproc.xml 2> cxproc.err
 	
-    elif [ -x "$PREFIX/bin/cxproc" ] ; then
-	/usr/bin/time -v -o $PREFIX/cxproc.dat $PREFIX/bin/cxproc $DOCUMENT_ROOT/Notes/Main.pie > $PREFIX/cxproc.xml 2> $PREFIX/cxproc.err
+    elif [ -x "bin/cxproc" ] ; then
+	FILE=$DOCUMENT_ROOT/Notes/Main.pie
+	
+	#bin/cxproc -e > cxproc.xml 2> cxproc.err
+	#/usr/bin/time -v -o cxproc.dat bin/cxproc $FILE > cxproc.xml 2> cxproc.err
+	#/usr/bin/time -v -o cxproc.dat
+	bin/cxproc $FILE > cxproc.xml 2> cxproc.err
+	#valgrind --tool=callgrind --log-file=cxproc-callgrind.log bin/cxproc $FILE > cxproc.xml 2> cxproc.err
+	#valgrind -s --leak-check=full --tool=memcheck --log-file=cxproc-memcheck.log bin/cxproc $FILE > cxproc.xml 2> cxproc.err
+
+	# s. https://github.com/jrfonseca/gprof2dot
+	# pip3 install gprof2dot
+	#gprof bin/cxproc gmon.out | ~/.local/bin/gprof2dot -e0 -n0 --color-nodes-by-selftime | dot -Tsvg -o cxproc.svg
+	#gprof bin/cxproc gmon.out | ~/.local/bin/gprof2dot -e0 -n0 --color-nodes-by-selftime -z pieProcessPieNode | dot -Tsvg -o cxproc.svg
+	#gprof -b ./cxproc ~/www/gmon.out &> $TMP/cxproc-cgi-profile.log
     fi
 
-    # s. http://code.google.com/p/jrfonseca/wiki/Gprof2Dot
-    #gprof ./cxproc ~/www/gmon.out | ~/Desktop/gprof2dot.py | dot -Tpng -o output.png
-    #gprof -b ./cxproc ~/www/gmon.out &> $TMP/cxproc-cgi-profile.log
     #strace -o cxproc.trace `pwd`/cxproc
 
     I=`expr $I + 1`

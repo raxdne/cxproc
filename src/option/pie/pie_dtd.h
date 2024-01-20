@@ -107,7 +107,7 @@
 
 #define NAME_PIE_RULER "hr"
 
-/* node content will be transferred to HTML output, to be executed by web browser */
+/* only for detection of script blocks */
 #define NAME_PIE_SCRIPT "script"
 
 #define NAME_PIE_SKIP "skip"
@@ -189,5 +189,6 @@
 
 #define IS_NODE_PIE_RULER(N) (IS_NODE(N,NAME_PIE_RULER))
 
-#define IS_NODE_PIE_SCRIPT(N) (IS_NODE(N,NAME_PIE_SCRIPT))
+#define IS_NODE_STRUCT(N) (IS_NODE_PIE_PIE(N) || IS_NODE_PIE_BLOCK(N) || IS_NODE_PIE_SECTION(N) || IS_NODE_PIE_TASK(N) || IS_NODE_PIE_TABLE(N))
 
+#define IS_NODE_NOT_STRUCT(N) ( ! IS_NODE_STRUCT(N))
