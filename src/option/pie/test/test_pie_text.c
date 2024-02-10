@@ -451,7 +451,7 @@ pieTextTest(cxpContextPtr pccArg)
     pndImport = xmlNewChild(pndTest, NULL, NAME_PIE_IMPORT, BAD_CAST"\n123 + 144\n\n");
     xmlSetProp(pndImport, BAD_CAST "type", BAD_CAST"script");
     xmlAddChild(pndTest, xmlNewText(BAD_CAST" post script"));
-    domPutNodeString(stderr, BAD_CAST "script result", pndPie);
+    //domPutNodeString(stderr, BAD_CAST "script result", pndPie);
 
     if (ImportNodeContent(pndImport,pccArg) == FALSE) {
       printf("Error 1 ImportNodeContent()\n");
@@ -522,9 +522,15 @@ pieTextTest(cxpContextPtr pccArg)
     if (ImportNodeFile(pndImport,pccArg) == FALSE) {
       printf("Error 1 ImportNodeFile()\n");
     }
+#ifdef HAVE_JS
     else if (domNumberOf(pndPie, NAME_PIE_PAR, 0) != 3) {
       printf("Error 2 ImportNodeFile()\n");
     }
+#else
+    else if (domNumberOf(pndPie, NAME_PIE_PAR, 0) != 2) {
+      printf("Error 2 ImportNodeFile()\n");
+    }
+#endif
     else {
       n_ok++;
       printf("OK\n");
@@ -575,7 +581,7 @@ pieTextTest(cxpContextPtr pccArg)
       n_ok++;
       printf("OK\n");
     }
-    domPutNodeString(stderr, BAD_CAST "split result", pndPie);
+    //domPutNodeString(stderr, BAD_CAST "split result", pndPie);
     xmlFreeNode(pndPie);
   }
 

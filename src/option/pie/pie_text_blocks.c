@@ -228,7 +228,7 @@ xmlNsPtr
 pieGetNs(void)
 {
   if (pnsPie == NULL) {
-    pnsPie = xmlNewNs(NULL, BAD_CAST CXP_PIE_URL, BAD_CAST"pie");
+    // pnsPie = xmlNewNs(NULL, BAD_CAST CXP_PIE_URL, BAD_CAST"pie");
   }
   return pnsPie;
 } /* end of pieGetNs() */
@@ -399,9 +399,6 @@ CompileRegExpDefaults(void)
       fResult = FALSE;
     }
   }
-
-  pieGetNs();
-
   return fResult;
 }
 /* End of CompileRegExpDefaults() */
@@ -3274,7 +3271,7 @@ GetModeByAttr(xmlNodePtr pndArgImport)
     else if (xmlStrEqual(pucAttrType, BAD_CAST "markdown") || xmlStrEqual(pucAttrType, BAD_CAST "text/markdown")) {
       eResultMode = RMODE_MD;
     }
-    else if (xmlStrEqual(pucAttrType, BAD_CAST NAME_PIE_CSV)) {
+    else if (xmlStrEqual(pucAttrType, BAD_CAST "csv") || xmlStrEqual(pucAttrType, BAD_CAST "text/csv")) {
       eResultMode = RMODE_TABLE;
     }
     else if (xmlStrEqual(pucAttrType, BAD_CAST "par") || xmlStrEqual(pucAttrType, BAD_CAST "text/plain")) {

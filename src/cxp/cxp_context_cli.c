@@ -712,6 +712,7 @@ cxpCtxtCliParse(cxpContextPtr pccArg)
 
 	    pndXml = xmlNewChild(pndMake, NULL, NAME_XML, NULL);
 	    xmlSetProp(pndXml, BAD_CAST "name", BAD_CAST "-");
+	    //xmlSetProp(pndXml, BAD_CAST "schema", BAD_CAST "pie.rng");
 
 	    pndT = xmlNewChild(pndXml, NULL, NAME_XML, NULL); /* because pndXml will be changed to "plain" if XSLT stylesheet it requires */
 	    pndPie = xmlNewChild(pndT, pieGetNs(), NAME_PIE, NULL);
@@ -721,6 +722,7 @@ cxpCtxtCliParse(cxpContextPtr pccArg)
 	    xmlSetProp(pndPie, BAD_CAST "offset", BAD_CAST "yes");
 	    xmlSetProp(pndPie, BAD_CAST "url", BAD_CAST "yes");
 	    xmlSetProp(pndPie, BAD_CAST "figure", BAD_CAST "yes");
+	    xmlSetProp(pndPie, BAD_CAST "import", BAD_CAST "yes");
 	    xmlSetProp(pndPie, BAD_CAST "script", BAD_CAST "yes");
 	    xmlSetProp(pndPie, BAD_CAST "locators", BAD_CAST "no");
 	    
