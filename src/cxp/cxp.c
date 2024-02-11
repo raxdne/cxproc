@@ -2629,7 +2629,7 @@ cxpValidateTree(xmlNodePtr pndArg, cxpContextPtr pccArg)
       if (xmlStrEqual(pndAttr->name,BAD_CAST"valid") || xmlStrEqual(pndAttr->name,BAD_CAST"context")
 	|| xmlStrEqual(pndAttr->name,BAD_CAST"name") || xmlStrEqual(pndAttr->name,BAD_CAST"mode")
 	|| xmlStrEqual(pndAttr->name,BAD_CAST"type") || xmlStrEqual(pndAttr->name,BAD_CAST"disposition")
-	|| xmlStrEqual(pndAttr->name, BAD_CAST"xpath")
+	|| xmlStrEqual(pndAttr->name, BAD_CAST"xpath") || xmlStrEqual(pndAttr->name,BAD_CAST"status")
 	|| xmlStrEqual(pndAttr->name,BAD_CAST"encoding") || xmlStrEqual(pndAttr->name,BAD_CAST"cache") || xmlStrEqual(pndAttr->name,BAD_CAST"cacheas")
 	|| xmlStrEqual(pndAttr->name,BAD_CAST"search") || xmlStrEqual(pndAttr->name,BAD_CAST"view") || xmlStrEqual(pndAttr->name,BAD_CAST"text")) {
       }

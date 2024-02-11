@@ -222,6 +222,11 @@ cxpCtxtCgiParse(cxpContextPtr pccArg)
     */
     resNodePtr prnTest = NULL;
 
+    xmlStrPrintf(mpucNameFile, BUFFER_LENGTH, "Location: \"%s\" not found\r\n\r\n", (char *)pucCgiRedir);
+    pndPlain = xmlNewChild(pndMake, NULL, NAME_PLAIN, mpucNameFile);
+    xmlSetProp(pndPlain, BAD_CAST "name", BAD_CAST "-");
+    xmlSetProp(pndPlain, BAD_CAST "status", BAD_CAST "404 Not Found"); /* default status */
+
     while ((prnTest = resNodeListFindPath(cxpCtxtRootGet(pccArg), pucCgiRedir, (RN_FIND_FILE | RN_FIND_IN_SUBDIR | RN_FIND_REGEXP))) != NULL) {
       xmlChar *pucRedir = NULL;
 
@@ -230,8 +235,7 @@ cxpCtxtCgiParse(cxpContextPtr pccArg)
       }
       else if ((pucRedir = resNodeGetNameRelative(cxpCtxtLocationGet(pccArg),prnTest)) != NULL && STR_IS_NOT_EMPTY(pucRedir)) {
 	xmlStrPrintf(mpucNameFile, BUFFER_LENGTH, "Location: /%s\r\n\r\n", (char *)pucRedir);
-	pndPlain = xmlNewChild(pndMake, NULL, NAME_PLAIN, mpucNameFile);
-	xmlSetProp(pndPlain, BAD_CAST "name", BAD_CAST "-");
+	xmlNodeSetContent(pndPlain, mpucNameFile);
 	xmlSetProp(pndPlain, BAD_CAST "status", BAD_CAST "302 Found");
 	break;
       }
@@ -372,7 +376,12 @@ cxpCtxtCgiParse(cxpContextPtr pccArg)
 	  xmlSetProp(pndFile, BAD_CAST "name", resNodeGetNameRelative(cxpCtxtRootGet(pccArg), prnTest));
 	}
       }
-      else {}
+      else {
+	xmlStrPrintf(mpucNameFile, BUFFER_LENGTH, "Location: \"%s\" not found\r\n\r\n", (char *)pucCgiPath);
+	pndPlain = xmlNewChild(pndMake, NULL, NAME_PLAIN, mpucNameFile);
+	xmlSetProp(pndPlain, BAD_CAST "name", BAD_CAST "-");
+	xmlSetProp(pndPlain, BAD_CAST "status", BAD_CAST "404 Not Found"); /* default status */
+      }
       resNodeFree(prnTest);
     }
     else if ((pucCgiYear = cxpCtxtCgiGetValueByName(pccArg, BAD_CAST "year")) != NULL) {
