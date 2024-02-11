@@ -426,7 +426,7 @@ InheritHashtags(xmlNodePtr pndArgTop, xmlNodePtr pndArg)
 {
   BOOL_T fResult = TRUE;
 
-  if (IS_NODE_META(pndArg) || IS_NODE_PIE_PRE(pndArg) || IS_NODE_PIE_TT(pndArg) || IS_NODE_PIE_DATE(pndArg)) {
+  if (IS_NODE_PIE_IGNORE_TAGS(pndArg)) {
     /* skip */
   }
   else if (IS_NODE_PIE_ETAG(pndArg) || IS_NODE_PIE_HTAG(pndArg) || IS_NODE_PIE_TTAG(pndArg)) {
@@ -661,7 +661,7 @@ RecognizeNodeTags(xmlNodePtr pndTags, xmlNodePtr pndArg, pcre2_code* preArg)
   else if (IS_VALID_NODE(pndArg) == FALSE || xmlHasProp(pndArg,BAD_CAST"hidden") != NULL) {
     /* skip */
   }
-  else if (IS_NODE_META(pndArg) || IS_NODE_PIE_PRE(pndArg) || IS_NODE_PIE_TT(pndArg) || IS_NODE_PIE_LINK(pndArg) || IS_NODE_PIE_DATE(pndArg)) {
+  else if (IS_NODE_PIE_IGNORE_TAGS(pndArg)) {
     /* skip */
   }
   else if (IS_NODE_PIE_ETAG(pndArg) || IS_NODE_PIE_HTAG(pndArg) || IS_NODE_PIE_TTAG(pndArg)) {

@@ -1865,7 +1865,7 @@ RecognizeScripts(xmlNodePtr pndArg)
 {
   BOOL_T fResult = FALSE;
   
-  if (IS_NODE_META(pndArg) || IS_NODE_PIE_PRE(pndArg) || IS_NODE_PIE_TT(pndArg) || IS_NODE_PIE_LINK(pndArg) || IS_NODE_PIE_DATE(pndArg)) {
+  if (IS_NODE_PIE_IGNORE_TAGS(pndArg)) {
     /* skip */
   }
   else if (IS_VALID_NODE(pndArg) == FALSE || xmlHasProp(pndArg,BAD_CAST"hidden") != NULL) {
@@ -2469,13 +2469,13 @@ RecognizeSymbols(xmlNodePtr pndArg, lang_t eLangArg)
       xmlFree(pucTT);
       xmlFree(pucT);
     }
-    else if (IS_NODE_META(pndArg) || IS_NODE_PIE_PRE(pndArg) || IS_NODE_PIE_TT(pndArg) || IS_NODE_PIE_LINK(pndArg) || IS_NODE_PIE_DATE(pndArg) || IS_NODE_SCRIPT(pndArg)) {
+    else if (IS_NODE_PIE_IGNORE_TAGS(pndArg) || IS_NODE_SCRIPT(pndArg)) {
       /* skip */
     }
     else if (IS_VALID_NODE(pndArg) == FALSE || xmlHasProp(pndArg,BAD_CAST"hidden") != NULL) {
       /* skip */
     }
-    else if (IS_NODE_PIE_ETAG(pndArg) || IS_NODE_PIE_HTAG(pndArg) || IS_NODE_PIE_TTAG(pndArg) || IS_NODE_PIE_DATE(pndArg)) {
+    else if (IS_NODE_PIE_ETAG(pndArg) || IS_NODE_PIE_HTAG(pndArg) || IS_NODE_PIE_TTAG(pndArg)) {
       /* skip existing tag elements */
     }
     else if (IS_NODE_PIE_PAR(pndArg) && (pucT = domNodeGetContentPtr(pndArg)) != NULL && StringBeginsWith(pucT,"TAGS: ")) {
@@ -2528,10 +2528,10 @@ RecognizeInlines(xmlNodePtr pndArg)
     else if (IS_VALID_NODE(pndArg) == FALSE || xmlHasProp(pndArg, BAD_CAST"hidden") != NULL) {
       /* skip */
     }
-    else if (IS_NODE_META(pndArg) || IS_NODE_PIE_PRE(pndArg) || IS_NODE_PIE_TT(pndArg) || IS_NODE_PIE_LINK(pndArg) || IS_NODE_PIE_DATE(pndArg) || IS_NODE_SCRIPT(pndArg)) {
+    else if (IS_NODE_PIE_IGNORE_TAGS(pndArg) || IS_NODE_SCRIPT(pndArg)) {
       /* skip */
     }
-    else if (IS_NODE_PIE_ETAG(pndArg) || IS_NODE_PIE_HTAG(pndArg) || IS_NODE_PIE_TTAG(pndArg) || IS_NODE_PIE_DATE(pndArg)) {
+    else if (IS_NODE_PIE_ETAG(pndArg) || IS_NODE_PIE_HTAG(pndArg) || IS_NODE_PIE_TTAG(pndArg)) {
       /* skip existing tag elements */
     }
     else if (IS_ENODE(pndArg) && (pndArg->ns==NULL || pndArg->ns==pnsPie)) {
@@ -2569,7 +2569,7 @@ RecognizeDates(xmlNodePtr pndArg, RN_MIME_TYPE eMimeTypeArg)
 	xmlFreeNodeList(pndReplace);
       }
     }
-    else if (IS_NODE_META(pndArg) || IS_NODE_PIE_PRE(pndArg) || IS_NODE_PIE_TT(pndArg) || IS_NODE_PIE_LINK(pndArg) || IS_NODE_PIE_DATE(pndArg) || IS_NODE_SCRIPT(pndArg)) {
+    else if (IS_NODE_PIE_IGNORE_TAGS(pndArg) || IS_NODE_SCRIPT(pndArg)) {
       /* skip */
     }
     else if (IS_VALID_NODE(pndArg) == FALSE || xmlHasProp(pndArg,BAD_CAST"hidden") != NULL) {
