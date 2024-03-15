@@ -75,5 +75,5 @@ target_sources(cxproc-test PUBLIC ${CDT_SOURCE_FILES})
 
 # target_link_libraries(cxproc-test ${CDT_LIBRARY})
 
-#add_definitions(-DDT_PARSE_ISO_STRICT)
+#add_compile_definitions(DT_PARSE_ISO_STRICT)
 

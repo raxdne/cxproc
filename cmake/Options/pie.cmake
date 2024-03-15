@@ -36,6 +36,7 @@ IF (CXPROC_PIE)
     ${CXPROC_SRC_DIR}/option/vcf/vcf.c
     ${CXPROC_SRC_DIR}/option/vcf/vcf.h
     )
+  target_compile_definitions(filex PUBLIC HAVE_PIE HAVE_PCRE2 PCRE2_CODE_UNIT_WIDTH=8)
 
   target_sources(pietextx PUBLIC 
     ${CXPROC_SRC_DIR}/option/pie/pie_dtd.h
@@ -46,6 +47,7 @@ IF (CXPROC_PIE)
     ${CXPROC_SRC_DIR}/option/pie/pie_text_tags.c
     ${CXPROC_SRC_DIR}/option/pie/pie_text_tags.h
     )
+  target_compile_definitions(pietextx PUBLIC HAVE_PIE HAVE_PCRE2 PCRE2_CODE_UNIT_WIDTH=8)
 
   SET(PIE_FILES
     ${CXPROC_SRC_DIR}/option/ics/ics.c
@@ -73,15 +75,12 @@ IF (CXPROC_PIE)
   ENDIF ()
 
   target_sources(cxproc PUBLIC ${PIE_FILES})
+  target_compile_definitions(cxproc PUBLIC HAVE_PIE)
 
   target_sources(cxproc-cgi PUBLIC ${PIE_FILES})
+  target_compile_definitions(cxproc-cgi PUBLIC HAVE_PIE)
 
   target_sources(cxproc-test PUBLIC ${PIE_FILES})
-
-  target_compile_definitions(filex       PUBLIC HAVE_PIE)
-  target_compile_definitions(pietextx    PUBLIC HAVE_PIE)
-  target_compile_definitions(cxproc      PUBLIC HAVE_PIE)
-  target_compile_definitions(cxproc-cgi  PUBLIC HAVE_PIE)
   target_compile_definitions(cxproc-test PUBLIC HAVE_PIE)
 
 IF (BUILD_TESTING)
@@ -162,11 +161,9 @@ target_link_libraries(pietextx ${LIBICONV_LIBRARY} ${LIBCHARSET_LIBRARY} ${LIBXM
 
 IF (CXPROC_MARKDOWN)
   INCLUDE_DIRECTORIES(${LIBCMARK_BUILD_DIR} ${LIBCMARK_SRC_DIR} ${LIBCMARK_INCLUDE_DIR})
-  add_definitions(-DWITH_MARKDOWN)
+  add_compile_definitions(WITH_MARKDOWN)
   target_link_libraries(filex ${LIBCMARK_LIBRARY})
   target_link_libraries(pietextx ${LIBCMARK_LIBRARY})
-  target_link_libraries(dir2csv ${LIBCMARK_LIBRARY})
-  target_link_libraries(dir2sqlite ${LIBCMARK_LIBRARY})
   target_link_libraries(cxproc ${LIBCMARK_LIBRARY})
   target_link_libraries(cxproc-test ${LIBCMARK_LIBRARY})
   target_link_libraries(cxproc-cgi ${LIBCMARK_LIBRARY})

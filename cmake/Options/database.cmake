@@ -55,7 +55,7 @@ IF (CXPROC_SQLITE3)
   ENDIF ()
 
   IF (SQLite3_SOURCE_FILE)
-    add_definitions(-DSQLITE_THREADSAFE=0 -DSQLITE_OMIT_LOAD_EXTENSION)
+    add_compile_definitions(SQLITE_THREADSAFE=0 SQLITE_OMIT_LOAD_EXTENSION)
   ELSE (SQLite3_SOURCE_FILE)
     target_link_libraries(filex ${SQLite3_LIBRARY})
     target_link_libraries(cxproc ${SQLite3_LIBRARY})

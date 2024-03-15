@@ -14,12 +14,13 @@ IF (CXPROC_PETRINET)
     )
 
   target_sources(cxproc PUBLIC ${PETRINET_FILES})
+  target_compile_definitions(cxproc PUBLIC HAVE_PETRINET)
 
   target_sources(cxproc-cgi PUBLIC ${PETRINET_FILES})
+  target_compile_definitions(cxproc-cgi PUBLIC HAVE_PETRINET)
 
   target_sources(cxproc-test PUBLIC ${PETRINET_FILES})
-
-  add_definitions(-DHAVE_PETRINET)
+  target_compile_definitions(cxproc-test PUBLIC HAVE_PETRINET)
 
 IF(BUILD_TESTING)
   

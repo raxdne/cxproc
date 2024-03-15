@@ -23,36 +23,38 @@ IF (CXPROC_ARCHIVE)
     ${CXPROC_SRC_DIR}/option/archive/cxp_archive.c
     )
 
-  target_sources(dir2csv PUBLIC ${ARCHIVE_FILES})
+  #target_sources(dir2csv PUBLIC ${ARCHIVE_FILES})
 
-  target_sources(dir2sqlite PUBLIC ${ARCHIVE_FILES})
+  #target_sources(dir2sqlite PUBLIC ${ARCHIVE_FILES})
 
   target_sources(filex PUBLIC ${ARCHIVE_FILES})
+  target_compile_definitions(filex PUBLIC HAVE_LIBARCHIVE)
 
   target_sources(cxproc PUBLIC ${ARCHIVE_FILES} ${CXP_ARCHIVE_FILES})
+  target_compile_definitions(cxproc PUBLIC HAVE_LIBARCHIVE)
 
   target_sources(cxproc-cgi PUBLIC ${ARCHIVE_FILES} ${CXP_ARCHIVE_FILES})
+  target_compile_definitions(cxproc-cgi PUBLIC HAVE_LIBARCHIVE)
 
   target_sources(cxproc-test PUBLIC ${ARCHIVE_FILES} ${CXP_ARCHIVE_FILES})
-
-  add_definitions(-DHAVE_LIBARCHIVE)
+  target_compile_definitions(cxproc-test PUBLIC HAVE_LIBARCHIVE)
 
   IF (${LibArchive_LIBRARIES} MATCHES ".+static\\.lib$" OR ${LibArchive_LIBRARIES} MATCHES ".+\\.a$")
-    add_definitions(-DLIBARCHIVE_STATIC)
+    add_compile_definitions(LIBARCHIVE_STATIC)
   ENDIF ()
 
   IF(MSVC)
     # additional libraries with VC++
     target_link_libraries(filex ${LibArchive_LIBRARIES} ${LIBBZ2_LIBRARY_RELEASE} ${CRYPTO_LIBRARY} ${LZ4_LIBRARY} ${ZSTD_LIBRARY} ${LZO2_LIBRARY})
-    target_link_libraries(dir2csv ${LibArchive_LIBRARIES} ${LIBBZ2_LIBRARY_RELEASE} ${CRYPTO_LIBRARY} ${LZ4_LIBRARY} ${ZSTD_LIBRARY} ${LZO2_LIBRARY})
-    target_link_libraries(dir2sqlite ${LibArchive_LIBRARIES} ${LIBBZ2_LIBRARY_RELEASE} ${CRYPTO_LIBRARY} ${LZ4_LIBRARY} ${ZSTD_LIBRARY} ${LZO2_LIBRARY})
+    #target_link_libraries(dir2csv ${LibArchive_LIBRARIES} ${LIBBZ2_LIBRARY_RELEASE} ${CRYPTO_LIBRARY} ${LZ4_LIBRARY} ${ZSTD_LIBRARY} ${LZO2_LIBRARY})
+    #target_link_libraries(dir2sqlite ${LibArchive_LIBRARIES} ${LIBBZ2_LIBRARY_RELEASE} ${CRYPTO_LIBRARY} ${LZ4_LIBRARY} ${ZSTD_LIBRARY} ${LZO2_LIBRARY})
     target_link_libraries(cxproc ${LibArchive_LIBRARIES} ${LIBBZ2_LIBRARY_RELEASE} ${CRYPTO_LIBRARY} ${LZ4_LIBRARY} ${ZSTD_LIBRARY} ${LZO2_LIBRARY})
     target_link_libraries(cxproc-test ${LibArchive_LIBRARIES} ${LIBBZ2_LIBRARY_RELEASE} ${CRYPTO_LIBRARY} ${LZ4_LIBRARY} ${ZSTD_LIBRARY} ${LZO2_LIBRARY})
     target_link_libraries(cxproc-cgi ${LibArchive_LIBRARIES} ${LIBBZ2_LIBRARY_RELEASE} ${CRYPTO_LIBRARY} ${LZ4_LIBRARY} ${ZSTD_LIBRARY} ${LZO2_LIBRARY})
   ELSE(MSVC)
     target_link_libraries(filex ${LibArchive_LIBRARIES})
-    target_link_libraries(dir2csv ${LibArchive_LIBRARIES})
-    target_link_libraries(dir2sqlite ${LibArchive_LIBRARIES})
+    #target_link_libraries(dir2csv ${LibArchive_LIBRARIES})
+    #target_link_libraries(dir2sqlite ${LibArchive_LIBRARIES})
     target_link_libraries(cxproc ${LibArchive_LIBRARIES})
     target_link_libraries(cxproc-test ${LibArchive_LIBRARIES})
     target_link_libraries(cxproc-cgi ${LibArchive_LIBRARIES})

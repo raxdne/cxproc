@@ -268,9 +268,6 @@ ADD_EXECUTABLE(cxproc-cgi
 target_compile_definitions(cxproc-cgi
  PUBLIC HAVE_CGI)
 
-ADD_EXECUTABLE(test-cgi
- ${CXPROC_SRC_DIR}/test/test-cgi.c)
-
 #IF (LIBMICROHTTPD_FOUND)
 #  ADD_EXECUTABLE(cxproc-httpd
 #    ${CXPROC_SRC_DIR}/cxproc-httpd.c
@@ -314,13 +311,13 @@ ENDIF(MSVC)
 #   target_sources(cxproc-cgi PUBLIC ${THREAD_FILES})
 #   target_sources(cxproc-test PUBLIC ${THREAD_FILES})
 
-#   add_definitions(-DHAVE_LIBPTHREAD)
+#   add_compile_definitions(HAVE_LIBPTHREAD)
 # ELSEIF (CXPROC_THREAD)
 #   target_sources(cxproc PUBLIC ${THREAD_FILES})
 #   target_sources(cxproc-cgi PUBLIC ${THREAD_FILES})
 #   target_sources(cxproc-test PUBLIC ${THREAD_FILES})
 
-#   add_definitions(-DWITH_THREAD)
+#   add_compile_definitions(WITH_THREAD)
 # ENDIF (CXPROC_PTHREAD)
 
 ################################################################################
@@ -335,10 +332,12 @@ IF (PCRE2_LIBRARY)
 ENDIF ()
 
 IF (CXPROC_PCRE2)
-  add_definitions(-DHAVE_PCRE2 -DPCRE2_CODE_UNIT_WIDTH=8)
+  target_compile_definitions(cxproc PUBLIC HAVE_PCRE2 PCRE2_CODE_UNIT_WIDTH=8)
+  target_compile_definitions(cxproc-cgi PUBLIC HAVE_PCRE2 PCRE2_CODE_UNIT_WIDTH=8)
+  target_compile_definitions(cxproc-test PUBLIC HAVE_PCRE2 PCRE2_CODE_UNIT_WIDTH=8)
   IF (${PCRE2_LIBRARY} MATCHES ".+static.*\\.lib$" OR ${PCRE2_LIBRARY} MATCHES ".+\\.a$")
     #ADD_LIBRARY(pcre2-8 STATIC IMPORTED)
-    add_definitions(-DPCRE2_STATIC)
+    add_compile_definitions(PCRE2_STATIC)
   ENDIF ()
 ELSE ()
 ENDIF ()
@@ -399,9 +398,9 @@ IF (CXPROC_LIBZ)
 
   INCLUDE_DIRECTORIES(${ZLIB_INCLUDE_DIR} ${CXPROC_SRCLIB_DIR}/minizip)
   
-  add_definitions(-DHAVE_ZLIB)
+  add_compile_definitions(HAVE_ZLIB)
   IF (${ZLIB_LIBRARY_RELEASE} MATCHES ".+static.*\\.lib$" OR ${ZLIB_LIBRARY_RELEASE} MATCHES ".+\\.a$")
-    add_definitions(-DZLIB_STATIC)
+    add_compile_definitions(ZLIB_STATIC)
   ENDIF ()
 ENDIF (CXPROC_LIBZ)
 
@@ -467,7 +466,7 @@ ELSE (LIBICONV_FOUND)
   MESSAGE(FATAL_ERROR "libiconv must be available")
 ENDIF (LIBICONV_FOUND)
 
-add_definitions(-DICONV_CODE_UNIT_WIDTH=8)
+add_compile_definitions(ICONV_CODE_UNIT_WIDTH=8)
 
 ################################################################################
 #
@@ -478,9 +477,9 @@ FIND_PACKAGE( LibXml2 )
 
 IF (LIBXML2_LIBRARY)
   INCLUDE_DIRECTORIES(${LIBXML2_INCLUDE_DIR})
-  #add_definitions(-D${LIBXML2_DEFINITIONS})
+  #add_compile_definitions(${LIBXML2_DEFINITIONS})
   IF (${LIBXML2_LIBRARY} MATCHES ".+static.*\\.lib$" OR ${LIBXML2_LIBRARY} MATCHES ".+\\.a$")
-    add_definitions(-DLIBXML_STATIC)
+    add_compile_definitions(LIBXML_STATIC)
     IF(MSVC)
       target_link_libraries(filex ws2_32.lib)
       target_link_libraries(dir2sqlite ws2_32.lib)
@@ -505,9 +504,9 @@ FIND_PACKAGE( LibXslt )
 
 IF (LIBXSLT_LIBRARIES)
   INCLUDE_DIRECTORIES(${LIBXSLT_INCLUDE_DIR})
-  #add_definitions(-D${LIBXSLT_DEFINITIONS})
+  #add_compile_definitions(${LIBXSLT_DEFINITIONS})
   IF (${LIBXSLT_LIBRARIES} MATCHES ".+static.*\\.lib$" OR ${LIBXSLT_LIBRARIES} MATCHES ".+\\.a$")
-    add_definitions(-DLIBXSLT_STATIC)
+    add_compile_definitions(LIBXSLT_STATIC)
   ENDIF ()
 ENDIF ()
 
@@ -524,16 +523,16 @@ ENDIF ()
 SET(CXPROC_LEGACY OFF CACHE BOOL "Compile code for handling of legacy issues")
 MARK_AS_ADVANCED(CXPROC_LEGACY)
 IF (CXPROC_LEGACY)
-  add_definitions(-DLEGACY)
+  add_compile_definitions(LEGACY)
 ENDIF (CXPROC_LEGACY)
 
 SET(CXPROC_EXPERIMENTAL ON CACHE BOOL "Compile experimental code")
 MARK_AS_ADVANCED(CXPROC_EXPERIMENTAL)
 IF (CXPROC_EXPERIMENTAL)
-  add_definitions(-DEXPERIMENTAL)
+  add_compile_definitions(EXPERIMENTAL)
 ENDIF (CXPROC_EXPERIMENTAL)
 
-add_definitions(-DCXP_VER_FILE_VERSION_STR="${GIT_TAG}" -DCXP_VER_FILE_BRANCH_STR="${GIT_BRANCH}")
+add_compile_definitions(CXP_VER_FILE_VERSION_STR="${GIT_TAG}" CXP_VER_FILE_BRANCH_STR="${GIT_BRANCH}")
 
 IF(MSVC)
   SET(CMAKE_C_FLAGS "/TC /std:c17 /permissive- /fp:fast /MT /Gm- /MP /GS /GR- /Gd /analyze- /J /errorreport:prompt -D_REENTRANT -DDEF_MEM_LEVEL=8 -D_CRT_NONSTDC_NO_DEPRECATE -D_CRT_SECURE_NO_DEPRECATE -D_CRT_SECURE_NO_WARNINGS -DWIN32_LEAN_AND_MEAN")
@@ -600,9 +599,9 @@ ENDIF (LIBBZ2_LIBRARY_RELEASE)
 
 IF (CXPROC_LIBBZ2)
   INCLUDE_DIRECTORIES(${LIBBZ2_INCLUDE_DIR})
-  add_definitions(-DHAVE_LIBBZ2)
+  add_compile_definitions(HAVE_LIBBZ2)
   IF (${LIBBZ2_LIBRARY_RELEASE} MATCHES ".+static.*\\.lib$" OR ${LIBBZ2_LIBRARY_RELEASE} MATCHES ".+\\.a$")
-    add_definitions(-DLIBBZ2_STATIC)
+    add_compile_definitions(LIBBZ2_STATIC)
   ENDIF ()
   target_link_libraries(cxproc ${LIBBZ2_LIBRARY_RELEASE})
   target_link_libraries(cxproc-test ${LIBBZ2_LIBRARY_RELEASE})
@@ -619,9 +618,9 @@ ENDIF (CXPROC_LIBBZ2)
 
 IF (CXPROC_LZMA)
   INCLUDE_DIRECTORIES(${LIBLZMA_INCLUDE_DIR})
-  add_definitions(-DHAVE_LIBLZMA)
+  add_compile_definitions(HAVE_LIBLZMA)
   #IF (${LIBLZMA_LIBRARIES} MATCHES ".+static\\.lib$" OR ${LIBLZMA_LIBRARIES} MATCHES ".+\\.a$")
-  #  add_definitions(-DLIBLZMA_STATIC)
+  #  add_compile_definitions(LIBLZMA_STATIC)
   #ENDIF ()
   target_link_libraries(filex ${LIBLZMA_LIBRARIES})
   target_link_libraries(dir2csv ${LIBLZMA_LIBRARIES})
@@ -660,9 +659,9 @@ ENDIF (CXPROC_LZMA)
 #IF (LIBMICROHTTPD_FOUND)
 #  MESSAGE(STATUS "Found optional libmicrohttpd: ${LIBMICROHTTPD_LIBRARIES}")
 #  INCLUDE_DIRECTORIES(${LIBMICROHTTPD_INCLUDE_DIR})
-#  add_definitions(-DHAVE_LIBMICROHTTPD)
+#  add_compile_definitions(HAVE_LIBMICROHTTPD)
 #  IF (${LIBMICROHTTPD_LIBRARIES} MATCHES ".+static\\.lib$" OR ${LIBMICROHTTPD_LIBRARIES} MATCHES ".+\\.a$")
-#    add_definitions(-DLIBMICROHTTPD_STATIC)
+#    add_compile_definitions(LIBMICROHTTPD_STATIC)
 #  ENDIF ()
 #ELSE(LIBMICROHTTPD_FOUND)
 
@@ -691,14 +690,15 @@ ENDIF (CXPROC_PTHREAD)
 IF(CXPROC_CURL)
   INCLUDE_DIRECTORIES(${CURL_INCLUDE_DIR})
 
-  add_definitions(-DHAVE_LIBCURL)
+  target_compile_definitions(filex PUBLIC HAVE_LIBCURL)
+  target_compile_definitions(cxproc PUBLIC HAVE_LIBCURL)
+  target_compile_definitions(cxproc-test PUBLIC HAVE_LIBCURL)
+  target_compile_definitions(cxproc-cgi PUBLIC HAVE_LIBCURL)
   IF (${CURL_LIBRARY_RELEASE} MATCHES ".+static\\.lib$" OR ${CURL_LIBRARY_RELEASE} MATCHES ".+\\.a$")
-    add_definitions(-DLIBCURL_STATIC)
+    add_compile_definitions(LIBCURL_STATIC)
   ENDIF ()
 
   target_link_libraries(filex ${CURL_LIBRARY_RELEASE})
-  target_link_libraries(dir2csv ${CURL_LIBRARY_RELEASE})
-  target_link_libraries(dir2sqlite ${CURL_LIBRARY_RELEASE})
   target_link_libraries(cxproc ${CURL_LIBRARY_RELEASE})
   target_link_libraries(cxproc-test ${CURL_LIBRARY_RELEASE})
   target_link_libraries(cxproc-cgi  ${CURL_LIBRARY_RELEASE})
@@ -709,15 +709,11 @@ IF(CXPROC_CURL)
   IF(MSVC)
     # additional libraries with VC++
     target_link_libraries(filex crypt32 wldap32)
-    target_link_libraries(dir2csv crypt32 wldap32)
-    target_link_libraries(dir2sqlite crypt32 wldap32)
     target_link_libraries(cxproc crypt32 wldap32)
     target_link_libraries(cxproc-test crypt32 wldap32)
     target_link_libraries(cxproc-cgi  crypt32 wldap32)
   ELSE(MSVC)
     target_link_libraries(filex ssl crypto)
-    target_link_libraries(dir2csv ssl crypto)
-    target_link_libraries(dir2sqlite ssl crypto)
     target_link_libraries(cxproc ssl crypto)
     target_link_libraries(cxproc-test ssl crypto)
     target_link_libraries(cxproc-cgi  ssl crypto)
@@ -883,19 +879,6 @@ set_target_properties(cxproc-test
 )
 
 set_target_properties(cxproc-cgi
-  PROPERTIES
-  ARCHIVE_OUTPUT_DIRECTORY "${CXPROC_PREFIX}/www/"
-  LIBRARY_OUTPUT_DIRECTORY "${CXPROC_PREFIX}/www/"
-  RUNTIME_OUTPUT_DIRECTORY "${CXPROC_PREFIX}/www/cgi-bin"
-  ARCHIVE_OUTPUT_DIRECTORY_DEBUG "${CXPROC_PREFIX}/www/"
-  LIBRARY_OUTPUT_DIRECTORY_DEBUG "${CXPROC_PREFIX}/www/"
-  RUNTIME_OUTPUT_DIRECTORY_DEBUG "${CXPROC_PREFIX}/www/cgi-bin"
-  ARCHIVE_OUTPUT_DIRECTORY_RELEASE "${CXPROC_PREFIX}/www/"
-  LIBRARY_OUTPUT_DIRECTORY_RELEASE "${CXPROC_PREFIX}/www/"
-  RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CXPROC_PREFIX}/www/cgi-bin"
-)
-
-set_target_properties(test-cgi
   PROPERTIES
   ARCHIVE_OUTPUT_DIRECTORY "${CXPROC_PREFIX}/www/"
   LIBRARY_OUTPUT_DIRECTORY "${CXPROC_PREFIX}/www/"
