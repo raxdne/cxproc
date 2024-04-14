@@ -768,6 +768,7 @@ resPathBeginIsArchive(xmlChar *pucArg)
 {
   BOOL_T fResult = FALSE;
 
+#ifdef HAVE_LIBARCHIVE	  
   if (pucArg) {
     xmlChar *pucT;
     xmlChar *pucDot;
@@ -806,6 +807,8 @@ resPathBeginIsArchive(xmlChar *pucArg)
       }
     }
   }
+#endif
+
   return fResult;
 }
 /* end of resPathBeginIsArchive() */

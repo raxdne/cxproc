@@ -2481,9 +2481,12 @@ resNodeIsArchive(resNodePtr prnArg)
 {
   BOOL_T fResult = FALSE;
 
+#ifdef HAVE_LIBARCHIVE
   if (prnArg) {
     fResult = resMimeIsArchive(resNodeGetMimeType(prnArg));
   }
+#endif
+
   return fResult;
 } /* end of resNodeIsArchive() */
 
