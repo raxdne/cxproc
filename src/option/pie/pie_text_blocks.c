@@ -683,7 +683,7 @@ ParsePlainBuffer(xmlNodePtr pndArgTop, xmlChar* pucArg, rmode_t eArgMode)
 
       if (pieElementGetMode(ppeT) == RMODE_TABLE) {
 	TransformToTable(pndArgTop, pndParent, domGetPropValuePtr(pndParent, BAD_CAST"sep"));
-	CompressTable(pndParent);
+	// CompressTable(pndParent);
 	AddTableCellsEmpty(pndParent);
 	xmlUnsetProp(pndParent, BAD_CAST "sep");
 	xmlUnsetProp(pndParent, BAD_CAST "type");

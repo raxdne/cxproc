@@ -24,3 +24,22 @@ dkjlskdf
 TODO: DEF
 
 owirpoweirpw
+
+** Symbol Inhertiance
+
+*** Sub 1 ✔
+
+TODO: children 1.1
+
+*** Sub 2
+
+TEST: children 2.1
+
+- abc
+
+- BUG: found 2.1.1
+
+-- BUG: found 2.1.2 ✔
+
+--- BUG: found 2.1.3
+
