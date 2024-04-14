@@ -433,6 +433,7 @@ cxpCtxtCgiParse(cxpContextPtr pccArg)
 	xmlDocPtr pdocXsl;
 
 	if ((pdocXsl = resNodeReadDoc(prnCgiXsl)) != NULL) {
+	  int i;
 	  xmlNodePtr pndRoot = xmlDocGetRootElement(pdocXsl);
 	  xmlNodePtr pndOutput = domGetFirstChild(pndRoot, BAD_CAST "output");
 	  xmlChar *pucAttrMethod = domGetPropValuePtr(pndOutput, BAD_CAST "method");
@@ -448,10 +449,37 @@ cxpCtxtCgiParse(cxpContextPtr pccArg)
 	  }
 
 	  xmlSetProp(pndOutput, BAD_CAST "name", BAD_CAST "-");
-	  xmlAddChild(pndOutput,pndXml);
+	  xmlAddChild(pndOutput, pndXml);
 
 	  pndXsl = xmlNewChild(pndOutput, NULL, NAME_XSL, NULL);
 	  xmlSetProp(pndXsl, BAD_CAST "name", resNodeGetNameNormalized(prnCgiXsl));
+
+#ifdef EXPERIMENTAL
+	  for (i = 0; i < cxpCtxtCgiGetCount(pccArg); i++) { /* append CGI params as variables to pndXsl */
+	    xmlChar *pucName;
+
+	    pucName = cxpCtxtCgiGetName(pccArg, i);
+	    if (STR_IS_EMPTY(pucName) || xmlStrEqual(pucName, BAD_CAST "xpath") || xmlStrEqual(pucName, BAD_CAST "xsl") || xmlStrEqual(pucName, BAD_CAST "path") ||
+		xmlStrEqual(pucName, BAD_CAST "file") || xmlStrEqual(pucName, BAD_CAST "dir")) {
+	      /* ignoring this parameter */
+	    }
+	    else {
+	      xmlChar *pucValue;
+
+	      pucValue = cxpCtxtCgiGetValue(pccArg, i);
+	      if (STR_IS_NOT_EMPTY(pucValue)) {
+		xmlNodePtr pndVariable = NULL;
+
+		// cxpCtxtLogPrint(pccArg, 1, "CGI: '%s' = '%s'", pucName, pucValue);
+		pndVariable = xmlNewChild(pndXsl, NULL, "variable", NULL);
+		xmlSetProp(pndVariable, BAD_CAST "name", pucName);
+		xmlSetProp(pndVariable, BAD_CAST "select", pucValue);
+	      }
+	      xmlFree(pucValue);
+	    }
+	    xmlFree(pucName);
+	  }
+#endif
 
 	  cxpCtxtCacheAppendDoc(pccArg, pdocXsl, resNodeGetNameNormalized(prnCgiXsl));
 	  xmlFreeDoc(pdocXsl);

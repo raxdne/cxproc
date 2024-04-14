@@ -1217,24 +1217,42 @@ cxpCtxtLogInfo(cxpContextPtr pccArg)
 {
   if (pccArg) {
     int i;
+    int j;
     cxpContextPtr pccIter;
-    
+
     cxpCtxtLogPrint(pccArg, 1, "Location: '%s'", resNodeGetNameNormalized(pccArg->prnLocation));
 
-      for (i = 0; i < cxpCtxtCliGetCount(pccArg); i++) {
-	cxpCtxtLogPrint(pccArg, 1, "Arg %i: '%s'", i, cxpCtxtCliGetValue(pccArg,i));
-      }
+    j = cxpCtxtCliGetCount(pccArg);
+    cxpCtxtLogPrint(pccArg, 1, "%i program arguments", j);
+    for (i = 0; i < j; i++) { 
+      cxpCtxtLogPrint(pccArg, 1, "Arg %i: '%s'", i, cxpCtxtCliGetValue(pccArg, i)); 
+    }
 
-      for (i = 0; i < cxpCtxtEnvGetCount(pccArg); i++) {
-	xmlChar *pucN;
-	xmlChar *pucV;
+    j = cxpCtxtEnvGetCount(pccArg);
+    cxpCtxtLogPrint(pccArg, 1, "%i environment variables", j);
+    for (i = 0; i < j; i++) {
+      xmlChar *pucN;
+      xmlChar *pucV;
 
-	pucN = cxpCtxtEnvGetName(pccArg, i);
-	pucV = cxpCtxtEnvGetValue(pccArg, i);
-	cxpCtxtLogPrint(pccArg, 1, "Env: '%s' = '%s'", pucN, pucV);
-	xmlFree(pucV);
-	xmlFree(pucN);
-      }
+      pucN = cxpCtxtEnvGetName(pccArg, i);
+      pucV = cxpCtxtEnvGetValue(pccArg, i);
+      cxpCtxtLogPrint(pccArg, 1, "Env: '%s' = '%s'", pucN, pucV);
+      xmlFree(pucV);
+      xmlFree(pucN);
+    }
+
+    j = cxpCtxtCgiGetCount(pccArg);
+    cxpCtxtLogPrint(pccArg, 1, "%i CGI parameters", j);
+    for (i = 0; i < j; i++) {
+      xmlChar *pucN;
+      xmlChar *pucV;
+
+      pucN = cxpCtxtCgiGetName(pccArg, i);
+      pucV = cxpCtxtCgiGetValue(pccArg, i);
+      cxpCtxtLogPrint(pccArg, 1, "CGI: '%s' = '%s'", pucN, pucV);
+      xmlFree(pucV);
+      xmlFree(pucN);
+    }
 
 #if 0
     if (pccArg->in == stdin) {
@@ -1270,7 +1288,7 @@ cxpCtxtLogInfo(cxpContextPtr pccArg)
 
     //cxpCtxtLogPrintDoc(pccArg, 1, "Context DOM:", pccArg->pndContextNode);
 
-    cxpCtxtLogPrintDoc(pccArg, 1, "Context DOM:", NULL);
+    //cxpCtxtLogPrintDoc(pccArg, 1, "Context DOM:", NULL);
 
     cxpCtxtLogPrint(pccArg, 1, "childs are: ");
     for (pccIter = pccArg->children; pccIter; pccIter = pccIter->children) {
