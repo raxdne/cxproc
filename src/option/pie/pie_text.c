@@ -1392,45 +1392,51 @@ ProcessImportNode(xmlNodePtr pndArgImport, cxpContextPtr pccArg)
   cxpCtxtLogPrint(pccArg, 3, "ProcessImportNode(pndArgImport=%0x,pccArg=%0x)", pndArgImport, pccArg);
 #endif
 
-  if (pndArgImport != NULL
-    && (pndArgImport->parent || pndArgImport->prev || pndArgImport->next) /* because of replacing pndArgImport by import result */
-    && IS_NODE_PIE_IMPORT(pndArgImport)) {
-    cxpContextPtr pccHere = pccArg;	      /*! process context for import */
-    cxpContextPtr pccDoc = NULL;	      /*! process context for import (derived from DOM) */
+  if (pndArgImport != NULL &&
+      (pndArgImport->parent != NULL || pndArgImport->prev != NULL || pndArgImport->next != NULL) /* because of replacing pndArgImport by import result */
+      && IS_NODE_PIE_IMPORT(pndArgImport)) {
+    cxpContextPtr pccHere = pccArg; /*! process context for import */
+    cxpContextPtr pccDoc = NULL;    /*! process context for import (derived from DOM) */
     xmlChar *pucAttrName = NULL;
     xmlNodePtr pndT;
     xmlDocPtr pdocT = NULL;
 
-    //pccHere = cxpCtxtFromAttr(pccArg, pndArgImport);
-    //pccDoc = cxpCtxtFromAttr(NULL, pndArgImport);
-    pucAttrName = domGetPropValuePtr(pndArgImport, BAD_CAST"name");
-
-    if (resPathIsStd(pucAttrName)) {
-      fResult = ImportNodeStdin(pndArgImport, pccHere);
-    }
-    else if ((pdocT = cxpCtxtCacheGetDoc(pccHere, pucAttrName)) != NULL) {
-      /* matching DOM in cache found */
-      if ((pndT = xmlDocGetRootElement(pdocT)) != NULL && pndT->children != NULL && (pndT = xmlCopyNodeList(pndT->children)) != NULL) {
-	fResult = (xmlAddChildList(pndArgImport, pndT) != NULL);
-	xmlNodeSetName(pndArgImport, NAME_PIE_BLOCK);
-	RecognizeIncludes(pndArgImport);
-	TraverseIncludeNodes(pndArgImport, pccHere);
-	RecognizeSubsts(pndArgImport);
-	RecognizeImports(pndArgImport);
-	TraverseImportNodes(pndArgImport, pccHere); /* parse result recursively */
+    // pccHere = cxpCtxtFromAttr(pccArg, pndArgImport);
+    // pccDoc = cxpCtxtFromAttr(NULL, pndArgImport);
+    pucAttrName = domGetPropValuePtr(pndArgImport, BAD_CAST "name");
+    if (STR_IS_NOT_EMPTY(pucAttrName)) {
+      if (resPathIsStd(pucAttrName)) {
+	fResult = ImportNodeStdin(pndArgImport, pccHere);
+      }
+      else if ((pdocT = cxpCtxtCacheGetDoc(pccHere, pucAttrName)) != NULL) {
+	/* matching DOM in cache found */
+	if ((pndT = xmlDocGetRootElement(pdocT)) != NULL && pndT->children != NULL && (pndT = xmlCopyNodeList(pndT->children)) != NULL) {
+	  fResult = (xmlAddChildList(pndArgImport, pndT) != NULL);
+	  xmlNodeSetName(pndArgImport, NAME_PIE_BLOCK);
+	  RecognizeIncludes(pndArgImport);
+	  TraverseIncludeNodes(pndArgImport, pccHere);
+	  RecognizeSubsts(pndArgImport);
+	  RecognizeImports(pndArgImport);
+	  TraverseImportNodes(pndArgImport, pccHere); /* parse result recursively */
+	}
+      }
+      else if (IsImportCircularStr(pndArgImport, pucAttrName) == FALSE) {
+	fResult = ImportNodeFile(pndArgImport, pccHere);
+      }
+      else {
+	xmlAddChild(pndArgImport, xmlNewComment(BAD_CAST "unknown content type"));
       }
     }
-    else if (domGetFirstChild(pndArgImport, NAME_XML) != NULL || domGetFirstChild(pndArgImport, NAME_PLAIN) != NULL) {
-      fResult = ImportNodeCxp(pndArgImport, (cxpCtxtLocationGet(pccDoc) ? pccDoc : pccHere));
-    }
-    else if (STR_IS_NOT_EMPTY(pucAttrName)) {
-      fResult = ImportNodeFile(pndArgImport, pccHere);
-    }
-    else if (NodeHasSingleText(pndArgImport)) {
-      fResult = ImportNodeContent(pndArgImport, (cxpCtxtLocationGet(pccDoc) ? pccDoc : pccHere));
-    }
     else {
-      xmlAddChild(pndArgImport, xmlNewComment(BAD_CAST"unknown content type"));
+      if (domGetFirstChild(pndArgImport, NAME_XML) != NULL || domGetFirstChild(pndArgImport, NAME_PLAIN) != NULL) {
+	fResult = ImportNodeCxp(pndArgImport, (cxpCtxtLocationGet(pccDoc) ? pccDoc : pccHere));
+      }
+      else if (NodeHasSingleText(pndArgImport)) {
+	fResult = ImportNodeContent(pndArgImport, (cxpCtxtLocationGet(pccDoc) ? pccDoc : pccHere));
+      }
+      else {
+	xmlAddChild(pndArgImport, xmlNewComment(BAD_CAST "unknown content type"));
+      }
     }
 
     cxpCtxtFree(pccDoc);

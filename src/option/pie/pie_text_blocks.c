@@ -1125,13 +1125,37 @@ IsImportCircularStr(xmlNodePtr pndArg, xmlChar *pucArgURI)
 {
   BOOL_T fResult = FALSE;
 
-  if (pndArg) {
+  if (pndArg != NULL && STR_IS_NOT_EMPTY(pucArgURI)) {
     xmlNodePtr pndT;
     xmlChar *pucT;
 
     for (pndT=pndArg->parent; pndT != NULL && fResult == FALSE; pndT=pndT->parent) {
       if ((pucT = domGetPropValuePtr(pndT, BAD_CAST"context"))) {
-	if (resPathIsEquivalent(pucT, pucArgURI)) {
+	if (resPathIsRelative(pucArgURI)) {
+	  xmlChar *pucTT;
+	  xmlChar *pucTTT;
+	  xmlChar *pucTTTT;
+
+	  pucTT = resPathGetBasedirStr(pucT);
+	  pucTTT = resPathConcatStr(pucTT, pucArgURI);
+	  pucTTTT = resPathCollapseStr(pucTTT, FS_PATH_FULL);
+
+	  if (resPathIsEquivalent(pucTTTT, pucT)) { //  || resPathIsMatchingEnd(pucT, pucArgURI)
+	    PrintFormatLog(1, "Error circular for '%s' == '%s' found", pucArgURI, pucTTTT);
+	    fResult = TRUE;
+	  }
+	  xmlFree(pucTTTT);
+	  xmlFree(pucTTT);
+	  xmlFree(pucTT);
+	}
+#ifdef HAVE_CGI
+	else if (resPathIsMatchingEnd(pucArgURI,pucT)) {
+	  /* due to security reason */
+	  PrintFormatLog(1, "Absolute path '%s' not valid in cgi mode", pucArgURI);
+	  fResult = TRUE;
+	}
+#endif
+	else if (resPathIsEquivalent(pucT, pucArgURI)) {
 	  PrintFormatLog(1, "Error circular for '%s' found", pucArgURI);
 	  fResult = TRUE;
 	}

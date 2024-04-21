@@ -619,7 +619,12 @@ cxpResNodeResolveNew(cxpContextPtr pccArg, xmlNodePtr pndArg, xmlChar *pucArg, i
     if (pndArg != NULL) {
       pucAttrName = domGetPropValuePtr(pndArg, BAD_CAST "name");
       if (STR_IS_EMPTY(pucAttrName) || xmlStrEqual(pucAttrName, BAD_CAST".")) { /* valid but empty attribute 'name' */
+#ifdef HAVE_CGI
+	pucAttrName = cxpCtxtEnvGetValueByName(pccArg, BAD_CAST"DOCUMENT_ROOT"); /* set all empty paths to server's document root */
+	DecodeRFC1738((char *)pucAttrName);
+#else
 	pucAttrName = resNodeGetNameNormalized(cxpCtxtLocationGet(pccArg));
+#endif
       }
       else if (iArgOptions == CXP_O_NONE) {
 	/* no special focus */
@@ -1898,7 +1903,7 @@ cxpCtxtSearchSet(cxpContextPtr pccArg, resNodePtr prnArg)
 \return 
 */
 resNodePtr
-cxpCtxtSearchFind(cxpContextPtr pccArg, xmlChar* pucArgPath)
+cxpCtxtSearchFind(cxpContextPtr pccArg, xmlChar *pucArgPath)
 {
   resNodePtr prnResult = NULL;
 
@@ -1906,13 +1911,17 @@ cxpCtxtSearchFind(cxpContextPtr pccArg, xmlChar* pucArgPath)
     cxpContextPtr pccI;
 
     for (pccI = pccArg; pccI; pccI = pccI->parent) {
-      if ((prnResult = resNodeListFindPath(pccI->prnSearch, pucArgPath, RN_FIND_ALL)) != NULL) {
-	break;
+      resNodePtr prnI;
+
+      for (prnI = pccI->prnSearch; prnI; prnI = prnI->next) {
+	if ((prnResult = resNodeListFindPath(prnI, pucArgPath, RN_FIND_ALL)) != NULL) {
+	  return prnResult;
+	}
       }
     }
   }
 
-  return prnResult;
+  return NULL;
 } /* end of cxpCtxtSearchFind() */
 
 

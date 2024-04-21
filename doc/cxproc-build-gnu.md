@@ -73,7 +73,7 @@ build directory is defined by `misc/prepare-cmake.sh`
 
 	cd ~/cxproc-build/cxproc
 	. misc/prepare-cmake.sh
-	cmake -S `pwd` -B $DIR_BUILD -G 'Unix Makefiles' -DCMAKE_BUILD_TYPE=Release -DCXPROC_DOC:BOOL=OFF -DCXPROC_LEGACY:BOOL=ON -DCXPROC_EXPERIMENTAL:BOOL=ON -DCXPROC_MARKDOWN:BOOL=OFF
+	cmake -S `pwd` -B $DIR_BUILD -G 'Unix Makefiles' -DCMAKE_BUILD_TYPE=Release -DCXPROC_DOC:BOOL=OFF -DCXPROC_LEGACY:BOOL=ON -DCXPROC_EXPERIMENTAL:BOOL=ON -DCXPROC_MARKDOWN:BOOL=ON -DCXPROC_ARCHIVE:BOOL=ON -DCXPROC_CURL:BOOL=ON -DCXPROC_DUKTAPE:BOOL=ON -DCXPROC_SQLITE3:BOOL=ON
 	# cmake-gui -S `pwd` -B $DIR_BUILD &
 	cmake --build $DIR_BUILD -j 4 --target all
 	(cd $DIR_BUILD && ctest)
