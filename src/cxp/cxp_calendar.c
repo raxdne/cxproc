@@ -89,9 +89,11 @@ typedef struct {
   unsigned int ciEntries;
   int *pmiYear; /*!< array of requiered years, derived from attributes in pdocSource */
 
+#ifdef LEGACY
   BOOL_T fCoordinate;
   double dLatitude;
   double dLongitude;
+#endif
 
   int iTimezone;	/*!< numerical ID for timezone (UTC by default) */
   int iTimezoneOffset;  /*!< offset to UTC in minutes */
@@ -1041,6 +1043,7 @@ CalendarSetup(xmlNodePtr pndArg, cxpContextPtr pccArg)
       }
     }
 
+#ifdef LEGACY
     pCalendarResult->fCoordinate = FALSE;
     if ((pucAttrCoordinate = domGetPropValuePtr(pndArg, BAD_CAST "coordinate"))
       || (pucAttrCoordinate = cxpCtxtEnvGetValueByName(pccArg, BAD_CAST "CXP_COORDINATE"))) {
@@ -1053,6 +1056,7 @@ CalendarSetup(xmlNodePtr pndArg, cxpContextPtr pccArg)
 	pCalendarResult->fCoordinate = TRUE;
       }
     }
+#endif
 
     pndMeta = xmlNewChild(pCalendarResult->pndCalendarRoot, NULL, NAME_META, NULL);
     cxpInfoProgram(pndMeta, pccArg);

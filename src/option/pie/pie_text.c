@@ -218,7 +218,7 @@ GetPieNodeLang(xmlNodePtr pndArg, cxpContextPtr pccArg)
 BOOL_T
 pieSubstSkip(xmlNodePtr pndArg)
 {
-  return (pndArg == NULL || IS_NODE_PIE_META(pndArg) || IS_NODE_PIE_LINK(pndArg) || IS_NODE_PIE_HTAG(pndArg) || IS_NODE_PIE_TAGS(pndArg) || IS_NODE_PIE_PRE(pndArg) || IS_NODE_PIE_TT(pndArg));
+  return (pndArg == NULL || IS_NODE_PIE_META(pndArg) || IS_NODE_PIE_HTAG(pndArg) || IS_NODE_PIE_TAGS(pndArg) || IS_NODE_PIE_PRE(pndArg) || IS_NODE_PIE_TT(pndArg));
 } /* End of pieSubstSkip() */
 
 
@@ -796,6 +796,7 @@ ImportNodeFile(xmlNodePtr pndArgImport, cxpContextPtr pccArg)
 
 	    if (domGetPropFlag(pndArgImport, BAD_CAST "subst", TRUE)) {
 	      RecognizeSubsts(pndArgImport);
+	      //pieSubstInChildNodes(pndArgImport, NULL, pccArg);
 	    }
 
 	    RecognizeScripts(pndArgImport);
