@@ -2142,7 +2142,28 @@ cxpProcessTransformations(const xmlDocPtr pdocArgXml, const xmlNodePtr pndArgPar
 	  }
 	  else if (pdocResult) {
 	    xmlChar *pucNameFileXsl = NULL;
+	    xmlChar *pucEmbedd = NULL;
 	    xmlDocPtr pdocXsl;
+
+#ifdef EXPERIMENTAL
+	    pucEmbedd = xmlGetProp(pndChild, BAD_CAST "embedd");
+	    if (STR_IS_NOT_EMPTY(pucEmbedd)) { /* embedd the XSL as PI in pdocResult */
+	      xmlNodePtr pndPI = NULL;
+	      xmlChar mucT[BUFFER_LENGTH];
+
+	      assert(xmlStrlen(pucEmbedd) < 128);
+	      /*!\todo check cross-site references */
+
+#ifdef HAVE_CGI
+	      xmlStrPrintf(mucT, BUFFER_LENGTH, BAD_CAST "href=\"?spath=%s\" type=\"text/xsl\"", pucEmbedd);
+#else
+	      xmlStrPrintf(mucT, BUFFER_LENGTH, BAD_CAST "href=\"%s\" type=\"text/xsl\"", pucEmbedd);
+#endif
+	      pndPI = xmlNewDocPI(pdocResult, BAD_CAST "xml-stylesheet", mucT);
+	      xmlAddPrevSibling(xmlDocGetRootElement(pdocResult), pndPI);
+	      break;
+	    }
+#endif
 
 	    pdocXsl = cxpXslRetrieve(pndChild, pccHere);
 	    if (pdocXsl == NULL) {
@@ -3406,7 +3427,7 @@ cxpProcessInfoNode(xmlNodePtr pndInfo, cxpContextPtr pccArg)
     uid_t u;
 
     u = geteuid();
-    xmlStrPrintf(mpucIndex,BUFFER_LENGTH-1,"%i",u);
+    xmlStrPrintf(mpucIndex,BUFFER_LENGTH,"%i",u);
     xmlSetProp(nodeRuntime,BAD_CAST "uid",mpucIndex);
 #endif
 
@@ -3423,7 +3444,7 @@ cxpProcessInfoNode(xmlNodePtr pndInfo, cxpContextPtr pccArg)
     for (i = 0; (pucArgv = cxpCtxtCliGetValue(pccArg, i)); i++) {
       xmlNodePtr pndArgv;
       pndArgv = xmlNewChild(nodeRuntime, NULL, BAD_CAST"arg", NULL);
-      xmlStrPrintf(mpucIndex,BUFFER_LENGTH-1,"%i",i);
+      xmlStrPrintf(mpucIndex,BUFFER_LENGTH,"%i",i);
       xmlSetProp(pndArgv,BAD_CAST "name",mpucIndex);
       domSetPropEat(pndArgv,BAD_CAST "select",pucArgv);
     }

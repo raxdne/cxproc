@@ -173,6 +173,7 @@ cxpCtxtCgiParse(cxpContextPtr pccArg)
   xmlNodePtr pndMake = NULL;
   xmlNodePtr pndPlain = NULL;
   xmlNodePtr pndXml = NULL;
+  xmlNodePtr pndXsl;
   xmlNsPtr pnsCxp;
 
   mpucNameFile[0] = (xmlChar)'\0';
@@ -189,6 +190,14 @@ cxpCtxtCgiParse(cxpContextPtr pccArg)
   xmlDocSetRootElement(pccArg->pdocContextNode, pndMake);
   pnsCxp = xmlNewNs(pndMake, BAD_CAST CXP_VER_URL, BAD_CAST "cxp");
   xmlSetNs(pndMake, pnsCxp);
+
+#if 0
+  /* debugging of CGI calls */
+  pndMake = xmlNewChild(pndMake, NULL, NAME_XML, NULL);
+  xmlSetProp(pndMake, BAD_CAST "name", BAD_CAST "-");
+  pndMake = xmlNewChild(pndMake, NULL, NAME_XML, NULL);
+  xmlSetProp(pndMake, BAD_CAST "eval", BAD_CAST "no");
+#endif
 
   /*
     detect all CGI variables
@@ -319,9 +328,11 @@ cxpCtxtCgiParse(cxpContextPtr pccArg)
     xmlChar *pucCgiXsl = NULL;
     xmlChar *pucCgiXpath = NULL;
     xmlChar *pucCgiYear = NULL;
+    xmlChar *pucCgiEmbedd = NULL;
 
     pucCgiXpath = cxpCtxtCgiGetValueByName(pccArg, BAD_CAST "xpath");
     pucCgiXsl = cxpCtxtCgiGetValueByName(pccArg, BAD_CAST "xsl");
+    pucCgiEmbedd = cxpCtxtCgiGetValueByName(pccArg, BAD_CAST "embedd");
 
     pndXml = xmlNewNode(pnsCxp, NAME_XML);
 
@@ -408,7 +419,6 @@ cxpCtxtCgiParse(cxpContextPtr pccArg)
 	deliver the file content with XSL transformation
       */
       xmlNodePtr pndT;
-      xmlNodePtr pndXsl;
 
       pndT = xmlNewNode(pnsCxp, NAME_XML);
       xmlAddChild(pndT,pndXml);
@@ -416,12 +426,23 @@ cxpCtxtCgiParse(cxpContextPtr pccArg)
       xmlSetProp(pndXsl, BAD_CAST "xpath", pucCgiXpath);
       pndXml = pndT;
     }
+#ifdef EXPERIMENTAL
+    else if (STR_IS_NOT_EMPTY(pucCgiEmbedd)) {
+      xmlNodePtr pndOutput = NULL;
 
-    if (pucCgiXsl) {
+      pndOutput = xmlNewChild(pndMake, NULL, NAME_XML, NULL);
+
+      xmlSetProp(pndOutput, BAD_CAST "name", BAD_CAST "-");
+      xmlAddChild(pndOutput, pndXml);
+
+      pndXsl = xmlNewChild(pndOutput, NULL, NAME_XSL, NULL);
+      xmlSetProp(pndXsl, BAD_CAST "embedd", pucCgiEmbedd);
+    }
+#endif
+    else if (pucCgiXsl) {
       /*
 	deliver the file content with XSL transformation
       */
-      xmlNodePtr pndXsl;
       resNodePtr prnCgiXsl;
 
       /*!\todo for security add prefix "Cgi" to XSL filename */
@@ -500,6 +521,7 @@ cxpCtxtCgiParse(cxpContextPtr pccArg)
       release the allocated CGI values
     */
     xmlFree(pucCgiCxp);
+    xmlFree(pucCgiEmbedd);
     xmlFree(pucCgiXsl);
     xmlFree(pucCgiXpath);
     xmlFree(pucCgiPathTranslated);

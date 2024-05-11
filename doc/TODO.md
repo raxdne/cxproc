@@ -42,6 +42,11 @@ TODO: unify usage of `scriptProcessScriptNode()` `TraverseScriptNodes()` and add
 
 ## Features
 
+REQ: `/cxproc/exe?path=Test/Documents/TestContent.mm&xsl=mm2pie` to output-internal reference to XML Stylesheet (problem `xsl:import` with relative paths) ✔
+
+    <?xml version="1.0" encoding="UTF-8"?>
+    <?xml-stylesheet href="?spath=mm2pie" type="text/xsl"?>
+
 TODO: remove legacy element names #v20 ✔
 
 REQ: element `<skip>` #v20 ✔
@@ -98,6 +103,8 @@ REQ: handle timezone in date node
 REQ: HTML to UTF-8 Plain text Renderer `<cxp:plain><cxp:html name="abc.html"/></cxp:plain>` like "w3m -dump" ✘
 
 ## Security
+
+TODO: clean `xmlStrPrintf.*- *1`
 
 TEST: check security #v20 ++
 - access control in CGI mode
