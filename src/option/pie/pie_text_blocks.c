@@ -137,6 +137,9 @@ static int
 AddTableCellsEmpty(xmlNodePtr pndArg);
 
 static int
+AddTableColumnNames(xmlNodePtr pndArg);
+
+static int
 CompressTable(xmlNodePtr pndArg);
 
 static xmlChar *
@@ -685,6 +688,7 @@ ParsePlainBuffer(xmlNodePtr pndArgTop, xmlChar* pucArg, rmode_t eArgMode)
 	TransformToTable(pndArgTop, pndParent, domGetPropValuePtr(pndParent, BAD_CAST"sep"));
 	// CompressTable(pndParent);
 	AddTableCellsEmpty(pndParent);
+	AddTableColumnNames(pndParent);
 	xmlUnsetProp(pndParent, BAD_CAST "sep");
 	xmlUnsetProp(pndParent, BAD_CAST "type");
       }
@@ -856,6 +860,56 @@ GetTableColumns(xmlNodePtr pndArg)
 /*! \return number of columns in widest row in table
 */
 int
+AddTableColumnNames(xmlNodePtr pndArg)
+{
+  int iResult = 0;
+  int i;
+
+  i = GetTableColumns(pndArg);
+  if (i > 0) {
+    xmlNodePtr pndArgRow;
+
+    for (pndArgRow = pndArg->children; pndArgRow; pndArgRow = pndArgRow->next) {
+
+      if (pndArgRow->children != pndArgRow->last) { /*  */
+	int j;
+	xmlNodePtr pndCell;
+
+	for (pndCell = pndArgRow->children, j = 0; pndCell != NULL && j <= i; pndCell = pndCell->next) {
+
+	  if (IS_NODE_PIE_TH(pndCell) || IS_NODE_PIE_TD(pndCell)) {
+	    int k = 0;
+	    xmlChar mucT[128];
+
+	    if (j < 26) {
+	      mucT[0] = 'A' + j % 26;
+	      k = 1;
+	    }
+	    else if (j < (26 * 27)) {
+	      mucT[0] = 'A' + j / 26 - 1;
+	      mucT[1] = 'A' + j % 26;
+	      k = 2;
+	    }
+	    else {
+	      break;
+	    }
+	    mucT[k] = '\0';
+	    xmlSetProp(pndCell, BAD_CAST "col", mucT);
+	    j++;
+	  }
+	}
+	break;
+      }
+    }
+    iResult = i;
+  }
+  return iResult;
+} /* end of AddTableColumnNames() */
+
+
+/*! \return number of columns in widest row in table
+*/
+int
 AddTableCellsEmpty(xmlNodePtr pndArg)
 {
   int iResult = 0;
@@ -914,7 +968,7 @@ AddTableCellsEmpty(xmlNodePtr pndArg)
     }
     /* add some meta data to table */
     xmlSetProp(pndArg, BAD_CAST "cols", mucT);
-    xmlStrPrintf(mucT,128,"%i",r);
+    xmlStrPrintf(mucT,128,"%i",r-1);
     xmlSetProp(pndArg, BAD_CAST "rows", mucT);
   }
   return iResult;

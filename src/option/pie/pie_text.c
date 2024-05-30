@@ -1602,7 +1602,7 @@ SetPropXpathInBlock(xmlNodePtr pndArg, xmlChar* pucArgPrefix)
       i++;
       if ( ! IS_ENODE(pndChild) || xmlHasProp(pndChild, BAD_CAST"bxpath")) {
       }
-      else if (IS_NODE_PIE_TTAG(pndChild) || IS_NODE_PIE_ETAG(pndChild) || IS_NODE_PIE_HTAG(pndChild) || IS_NODE_PIE_META(pndChild) || IS_NODE_ERROR(pndChild)) {
+      else if (IS_NODE_PIE_TTAG(pndChild) || IS_NODE_PIE_ETAG(pndChild) || IS_NODE_PIE_HTAG(pndChild) || IS_NODE_PIE_TABLE(pndChild) || IS_NODE_PIE_META(pndChild) || IS_NODE_ERROR(pndChild)) {
 	/* dont set xpath attribute here */
       }
       else {
