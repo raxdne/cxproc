@@ -363,7 +363,7 @@ StrLineIsEmpty(xmlChar *pucArg, int *piArgEnd)
     xmlChar *pucT;
 
     for (pucT = pucArg; *pucT != (xmlChar)'\0'; pucT++) {
-      if (*pucT == (xmlChar)'\n' || *pucT == (xmlChar)'\r' || *pucT == (xmlChar)'\t' || *pucT == (xmlChar)' ') {
+      if (islinebreak(*pucT) || isspace(*pucT)) {
 	/* char for empty */
       }
       else {
@@ -484,7 +484,7 @@ pieElementHasNext(pieTextElementPtr ppeArg)
 
 	  for (l = xmlStrlen(BAD_CAST"#begin_of_pre"); puc0[l] == (xmlChar)'\n'; l++); /* skip leading empty lines */
 	  ppeArg->pucContent = xmlStrndup(puc0 + l, (int)(puc1 - (puc0 + l)));
-	  for (l = xmlStrlen(ppeArg->pucContent) - 1; l > 0 && (ppeArg->pucContent[l] == (xmlChar)'\n' || ppeArg->pucContent[l] == (xmlChar)'\r'); l--) {
+	  for (l = xmlStrlen(ppeArg->pucContent) - 1; l > 0 && (islinebreak(ppeArg->pucContent[l])); l--) {
 	    ppeArg->pucContent[l] = (xmlChar)'\0'; /* cut trailing empty lines */
 	  }
 
@@ -543,7 +543,7 @@ pieElementHasNext(pieTextElementPtr ppeArg)
 
 	  for (l = xmlStrlen(BAD_CAST"<" NAME_PIE_PRE ">"); puc0[l] == (xmlChar)'\n'; l++); /* skip leading empty lines */
 	  ppeArg->pucContent = xmlStrndup(puc0 + l, (int)(puc1 - (puc0 + l)));
-	  for (l = xmlStrlen(ppeArg->pucContent) - 1; l > 0 && (ppeArg->pucContent[l] == (xmlChar)'\n' || ppeArg->pucContent[l] == (xmlChar)'\r'); l--) {
+	  for (l = xmlStrlen(ppeArg->pucContent) - 1; l > 0 && (islinebreak(ppeArg->pucContent[l])); l--) {
 	    ppeArg->pucContent[l] = (xmlChar)'\0'; /* cut trailing empty lines */
 	  }
 
@@ -640,7 +640,7 @@ pieElementHasNext(pieTextElementPtr ppeArg)
 	xmlChar *puc1;
 	xmlChar *pucT;
 
-	for (pucT = puc0 + xmlStrlen(BAD_CAST"<" NAME_PIE_CSV ">"); *pucT == (xmlChar)'\r' || *pucT == (xmlChar)'\n'; pucT++) {}
+	for (pucT = puc0 + xmlStrlen(BAD_CAST"<" NAME_PIE_CSV ">"); islinebreak(*pucT); pucT++) {}
 
 	if ((puc1 = BAD_CAST xmlStrstr(puc0, BAD_CAST"</" NAME_PIE_CSV ">")) != NULL) {
 	  /* copy string between markups */
@@ -878,7 +878,7 @@ DuplicateNextLine(char *pchArg, index_t *piArg)
   index_t iLength;
 
   for (iLength=0; pchArg != NULL; iLength++) {
-    if (pchArg[iLength] == (xmlChar)'\0' || pchArg[iLength] == (xmlChar)'\n' || pchArg[iLength] == (xmlChar)'\r') {
+    if (isend(pchArg[iLength]) || islinebreak(pchArg[iLength])) {
       pucResult = xmlStrndup(BAD_CAST pchArg, iLength);
       if (piArg) {
 	*piArg = iLength;
@@ -899,25 +899,18 @@ pieElementStrnlenEmpty(xmlChar *pucArg, int iArg)
     int i;
 
     for (i = 0; iArg < 0 || i < iArg; i++) {
-      switch (pucArg[i]) {
-      case '\n':
-      case '\r':
-      case '\t':
-      case ' ':
-	break;
-      case '\0':
+      if (isspace(pucArg[i]) || islinebreak(pucArg[i])) {
+      }
+      else if (isend(pucArg[i])) {
 	return i;
-	break;
-      default:
+      }
+      else {
 	return -1; /* its not empty */
-	break;
       }
     }
   }
-
   return 0;
-}
-/* end of pieElementStrnlenEmpty() */
+} /* end of pieElementStrnlenEmpty() */
 
 
   /*! makes elements content XML-conformant and

@@ -1292,7 +1292,7 @@ SubstituteFormatStr(xmlNodePtr pndContext, xmlChar *fmt)
     return NULL;
   }
 
-  for (puc0=fmt; *puc0=='\n' || *puc0=='\r'; puc0++) {}
+  for (puc0=fmt; islinebreak(*puc0); puc0++) {}
   if (*puc0 == '\0') {
     /* ignore empty string */
     return NULL;

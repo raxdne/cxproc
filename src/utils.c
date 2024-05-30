@@ -131,7 +131,7 @@ StringToLower(char *pchArg)
 
     /*! convert to wide char -> to lower -> UTF-8 */
 
-    for (pchT=pchArg; *pchT != '\0' && *pchT != '\n' && *pchT != '\r'; pchT++) {
+    for (pchT=pchArg; ! isend(*pchT) && ! islinebreak(*pchT); pchT++) {
       *pchT = (char)tolower(*pchT);
     }
 
@@ -158,7 +158,7 @@ StringToId(char *pchArg)
 {
   char *pchT;
 
-  for (pchT=pchArg; *pchT != '\0' && *pchT != '\n' && *pchT != '\r'; pchT++) {
+  for (pchT=pchArg; ! isend(*pchT) && ! islinebreak(*pchT); pchT++) {
     if (isalnum(*pchT)) {
       *pchT = (char)tolower(*pchT);
     }
@@ -186,7 +186,7 @@ StringToUpper(char *pchArg)
 
     /*! convert to wide char -> to upper -> UTF-8 */
 
-    for (pchT=pchArg; *pchT != '\0' && *pchT != '\n' && *pchT != '\r'; pchT++) {
+    for (pchT=pchArg; ! isend(*pchT) && ! islinebreak(*pchT); pchT++) {
       *pchT = (char)toupper(*pchT);
     }
 

@@ -30,6 +30,8 @@
 
 #define isend(C) (C == (xmlChar)'\0')
 
+#define islinebreak(C) (C == (xmlChar)'\n' || C == (xmlChar)'\r')
+
 /****************************************************************************
 
    Declaration of public functions (prototypes)

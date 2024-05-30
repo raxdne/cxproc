@@ -23,6 +23,8 @@ TODO: update program description #v20
 
 ## Refactoring
 
+TODO: use `islinebreak(C)` ✔
+
 TODO: Performance when compiled with CXPROC_SCRIPT  ✔
 
 TODO: in `res_path.c` change  ✔

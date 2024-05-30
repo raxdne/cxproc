@@ -231,6 +231,7 @@ cmarkTreeToDOM(xmlNodePtr pndArgBlock, xmlNodePtr pndArg, cmark_node* pcmnArg)
 	
 	if ((puc0 = xmlStrstr(pcmnArg->data,BAD_CAST "<" NAME_PIE_CSV ">")) != NULL) {
 	  puc0 += xmlStrlen(BAD_CAST "<" NAME_PIE_CSV ">");
+	  while (isspace(*puc0)) { puc0++; }
 	  if ((puc1 = xmlStrstr(pcmnArg->data,BAD_CAST "</" NAME_PIE_CSV ">")) != NULL) {
 	    xmlChar *pucContent;
 

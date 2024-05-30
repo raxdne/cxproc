@@ -207,7 +207,7 @@ main(int argc, char *argv[], char *envp[]) {
 
 	for (; fgets(mcLine, BUFFER_LENGTH, stdin) == mcLine; ) {
 
-	  for (i = strlen(mcLine); i > 0 && (mcLine[i] == '\0' || mcLine[i] == '\n' || mcLine[i] == '\r'); i--) {
+	for (i = strlen(mcLine); i > 0 && (isend(mcLine[i]) || islinebreak(mcLine[i])); i--) {
 	    mcLine[i] = '\0';
 	  }
 	  //PrintFormatLog(3, "%s", mcLine);
