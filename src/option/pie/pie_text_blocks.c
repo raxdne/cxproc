@@ -867,40 +867,53 @@ AddTableColumnNames(xmlNodePtr pndArg)
 
   i = GetTableColumns(pndArg);
   if (i > 0) {
-    xmlNodePtr pndArgRow;
+    xmlNodePtr pndT;
+    xmlNodePtr pndTableHeader;
+    xmlNodePtr pndTableBody;
 
-    for (pndArgRow = pndArg->children; pndArgRow; pndArgRow = pndArgRow->next) {
+    pndTableHeader = domGetFirstChild(pndArg, "thead");
+    if (pndTableHeader) {
+      domUnlinkNodeList(pndTableHeader);
+    }
+    else {
+      /* table header does not yet exist */
+      int j;
 
-      if (pndArgRow->children != pndArgRow->last) { /*  */
-	int j;
-	xmlNodePtr pndCell;
+      pndTableHeader = xmlNewNode(NULL, BAD_CAST "thead");
+      pndT = xmlNewChild(pndTableHeader, NULL, BAD_CAST "tr", NULL);
+      for (j = 0; j < i; j++) {
+	int k = 0;
+	xmlChar mucT[128];
 
-	for (pndCell = pndArgRow->children, j = 0; pndCell != NULL && j <= i; pndCell = pndCell->next) {
-
-	  if (IS_NODE_PIE_TH(pndCell) || IS_NODE_PIE_TD(pndCell)) {
-	    int k = 0;
-	    xmlChar mucT[128];
-
-	    if (j < 26) {
-	      mucT[0] = 'A' + j % 26;
-	      k = 1;
-	    }
-	    else if (j < (26 * 27)) {
-	      mucT[0] = 'A' + j / 26 - 1;
-	      mucT[1] = 'A' + j % 26;
-	      k = 2;
-	    }
-	    else {
-	      break;
-	    }
-	    mucT[k] = '\0';
-	    xmlSetProp(pndCell, BAD_CAST "col", mucT);
-	    j++;
-	  }
+	if (j < 26) {
+	  mucT[0] = 'A' + j % 26;
+	  k = 1;
 	}
-	break;
+	else if (j < (26 * 27)) {
+	  mucT[0] = 'A' + j / 26 - 1;
+	  mucT[1] = 'A' + j % 26;
+	  k = 2;
+	}
+	else {}
+	mucT[k] = '\0';
+	xmlNewChild(pndT, NULL, BAD_CAST "th", mucT);
       }
     }
+
+    pndTableBody = domGetFirstChild(pndArg, "tbody");
+    if (pndTableBody) {
+      domUnlinkNodeList(pndTableBody);
+    }
+    else {
+      pndTableBody = xmlNewNode(NULL, BAD_CAST "tbody");
+      pndT = pndArg->children;
+      domUnlinkNodeList(pndT);
+      xmlAddChildList(pndTableBody, pndT);
+    }
+
+    /* correct order */
+    xmlAddChild(pndArg, pndTableHeader);
+    xmlAddChild(pndArg, pndTableBody);
     iResult = i;
   }
   return iResult;
