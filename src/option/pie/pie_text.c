@@ -1617,7 +1617,7 @@ SetPropXpathInBlock(xmlNodePtr pndArg, xmlChar* pucArgPrefix)
       i++;
       if ( ! IS_ENODE(pndChild) || xmlHasProp(pndChild, BAD_CAST"bxpath")) {
       }
-      else if (IS_NODE_PIE_TTAG(pndChild) || IS_NODE_PIE_ETAG(pndChild) || IS_NODE_PIE_HTAG(pndChild) || IS_NODE_PIE_RULER(pndChild) || IS_NODE_PIE_TABLE(pndChild) || IS_NODE_PIE_META(pndChild) || IS_NODE_ERROR(pndChild)) {
+      else if (IS_NODE_PIE_TTAG(pndChild) || IS_NODE_PIE_ETAG(pndChild) || IS_NODE_PIE_HTAG(pndChild) || IS_NODE_PIE_RULER(pndChild) || IS_NODE_PIE_META(pndChild) || IS_NODE_ERROR(pndChild)) {
 	/* dont set xpath attribute here */
       }
       else {
@@ -1626,7 +1626,7 @@ SetPropXpathInBlock(xmlNodePtr pndArg, xmlChar* pucArgPrefix)
 	xmlStrPrintf(mucT, BUFFER_LENGTH, "%s/*[%i]", (pucArgPrefix == NULL ? BAD_CAST "/*" : pucArgPrefix), i);
 	xmlSetProp(pndChild, BAD_CAST "bxpath", mucT);
 
-	if (IS_NODE_PIE_PAR(pndChild) || IS_NODE_PIE_HEADER(pndChild)) {
+	if (IS_NODE_PIE_PAR(pndChild) || IS_NODE_PIE_HEADER(pndChild) || IS_NODE_PIE_TABLE(pndChild)) {
 	  /* dont set bxpath attribute at childs */
 	}
 	else {
