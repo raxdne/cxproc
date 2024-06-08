@@ -45,8 +45,8 @@
 
    s. https://www.regular-expressions.info/
 */
-#define RE_UNC "(?:\\b[a-z]:\\\\|\\\\\\\\[a-zäÄöÖüÜß0-9_.$\\-]+\\\\[a-zäÄöÖüÜß0-9_.$\\-]+)\\\\*(?:[^\\\\/:*?\"<>|\\r\\n]+\\\\)*[^\\\\/:*?\"<>|\\r\\n]*"
-#define RE_URL "(tel|onenote|file|http|https|ftp|ftps|mailto)(://+|%%3A%%2F%%2F|:|%%3A)([a-zäÄöÖüÜß0-9\\.\\-\\&\\#\\;\\:\\,\\+\\_%%\\~\\?\\!=\\@]+|[a-zäÄöÖüÜß0-9\\.\\-]+@)([/a-zäÄöÖüÜß0-9\\(\\)\\.\\-\\&\\#\\;\\,\\+\\:\\_%%\\~\\*\\?\\!=\\@\\{\\}]+)*"
+#define RE_UNC "(?:\\b[a-z]:\\\\|\\\\{1,2}[a-zäÄöÖüÜß0-9_.$\\-]+\\\\[a-zäÄöÖüÜß0-9_.$\\-]+)\\\\*(?:[^\\\\/:*?\"<>|\\r\\n]+\\\\)*[^\\\\/:*?\"<>|\\r\\n]*"
+#define RE_URL "(tel|onenote|file|http|https|ftp|ftps|mailto|smb)(://+|%%3A%%2F%%2F|:|%%3A)([a-zäÄöÖüÜß0-9\\.\\-\\&\\#\\;\\:\\,\\+\\_%%\\~\\?\\!=\\@]+|[a-zäÄöÖüÜß0-9\\.\\-]+@)([/a-zäÄöÖüÜß0-9\\(\\)\\.\\-\\&\\#\\;\\,\\+\\:\\_%%\\~\\*\\?\\!=\\@\\{\\}]+)*"
 #define RE_LINK_MD "!*\\[([^\\]]*)\\]\\(([^\\)]+)\\)"
 #define RE_LINK_MD_AUTO "(<|&lt;|\\xE2\\x80\\x99)([^<> \\t]+)(>|&gt;|\\xE2\\x80\\x98)"
 
@@ -1250,7 +1250,6 @@ IsImportCircular(xmlNodePtr pndArg, resNodePtr prnArg)
 
 #endif
 
-#ifdef LEGACY
 
 /*! translates UNC paths into URL notation first
 */
@@ -1355,6 +1354,7 @@ TranslateUncToUrl(const xmlChar *pucArg)
 }
 /* end of TranslateUncToUrl() */
 
+#ifdef LEGACY
 
 /*! detect longest word in URL and remove '-'
 */
@@ -1560,7 +1560,7 @@ SplitStringToLinkNodes(const xmlChar *pucArg)
 	 element node
 	 */
 	xmlChar *pucUrl;
-	xmlChar *pucUrlDisplay;
+	xmlChar *pucUrlDisplay = NULL;
 	xmlChar *pucA = (xmlChar *)pucArg + ovector[0];
 
 	/* check if its a relative link */
@@ -1587,9 +1587,6 @@ SplitStringToLinkNodes(const xmlChar *pucArg)
 	if (xmlStrcasestr(pucUrl, BAD_CAST"mailto:") == pucUrl) {
 	  pucUrlDisplay = xmlStrdup(&pucUrl[7]);
 	}
-	else {
-	  pucUrlDisplay = xmlStrdup(pucUrl);
-	}
 
 	if (STR_IS_NOT_EMPTY(pucUrlDisplay)) {
 	  /*! Percent-encode non-ASCII chars (s. https://en.wikipedia.org/wiki/Percent-encoding) */
@@ -1597,6 +1594,7 @@ SplitStringToLinkNodes(const xmlChar *pucArg)
 	  if (xmlCheckUTF8(pucUrlDisplay)) {
 	    /* OK */
 	    pndLink = xmlNewTextChild(pndResult, NULL, NAME_PIE_LINK, pucUrlDisplay);
+	    xmlSetProp(pndLink, BAD_CAST "href", pucUrl);
 	  }
 	  else {
 	    pndLink = xmlNewTextChild(pndResult, NULL, NAME_PIE_LINK, pucUrl);
@@ -1605,7 +1603,6 @@ SplitStringToLinkNodes(const xmlChar *pucArg)
 	else {
 	  pndLink = xmlNewTextChild(pndResult, NULL, NAME_PIE_LINK, pucUrl);
 	}
-	xmlSetProp(pndLink, BAD_CAST "href", pucUrl);
 
 	if (ducOrigin > ovector[1]) {
 	  /* the content ends with text, recursion */
@@ -1731,7 +1728,6 @@ SplitStringToAutoLinkNodes(const xmlChar *pucArg)
 	else {
 	  pndLink = xmlNewTextChild(pndResult, NULL, NAME_PIE_LINK, pucUrl);
 	}
-	xmlSetProp(pndLink, BAD_CAST "href", pucUrl);
 
 	if (ducOrigin > ovector[1]) {
 	  /* the content ends with text, recursion */
@@ -1768,7 +1764,7 @@ SplitStringToAutoLinkNodes(const xmlChar *pucArg)
 xmlNodePtr
 RecognizeUrls(xmlNodePtr pndArg)
 {
-  if (IS_NODE_META(pndArg) || IS_NODE_PIE_PRE(pndArg) || IS_NODE_PIE_TT(pndArg) || IS_NODE_PIE_TABLE(pndArg) || IS_NODE_PIE_LINK(pndArg) || IS_NODE_PIE_IMPORT(pndArg)) {
+  if (IS_NODE_META(pndArg) || IS_NODE_PIE_PRE(pndArg) || IS_NODE_PIE_TT(pndArg) || IS_NODE_PIE_LINK(pndArg) || IS_NODE_PIE_IMPORT(pndArg)) {
     /* skip */
   }
   else if (IS_VALID_NODE(pndArg) == FALSE || xmlHasProp(pndArg,BAD_CAST"hidden") != NULL) {
@@ -1785,9 +1781,7 @@ RecognizeUrls(xmlNodePtr pndArg)
 	xmlChar *pucRelease = pndChild->content;
 	xmlNodePtr pndReplace;
 
-#ifdef LEGACY
-	pucRelease = TranslateUncToUrl(pndChild->content);
-#endif
+	pucRelease = TranslateUncToUrl(pucRelease);
 
 	if ((pndReplace = SplitStringToAutoLinkNodes(pucRelease))) {
 	  RecognizeUrls(pndReplace);
@@ -1800,15 +1794,6 @@ RecognizeUrls(xmlNodePtr pndArg)
 
 	if (pndReplace == NULL) {
 	  /* nothing found */
-	}
-	else if (IS_NODE_PIE_LINK(pndArg)) {
-	  if (domGetPropValuePtr(pndArg,BAD_CAST"href")==NULL) {
-	    /* URL inside a link with no href attribute */
-	    xmlNodePtr pndFirstLink = domGetFirstChild(pndReplace,NAME_PIE_LINK);
-	    assert(pndFirstLink != NULL);
-	    xmlSetProp(pndArg, BAD_CAST "href", domGetPropValuePtr(pndFirstLink,BAD_CAST"href"));
-	  }
-	  xmlFreeNodeList(pndReplace);
 	}
 	else if (IS_NODE_PIE_PAR(pndArg) && pndArg->children == pndChild && pndArg->children == pndArg->last
 	  && IS_NODE_PIE_IMG(pndReplace->children) && pndReplace->children == pndReplace->last) {

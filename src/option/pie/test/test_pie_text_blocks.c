@@ -145,7 +145,6 @@ pieTextBlocksTest(void)
     }
   }
 
-#ifdef LEGACY
 
   if (RUNTEST) {
     xmlChar *pucResult;
@@ -207,9 +206,6 @@ pieTextBlocksTest(void)
     xmlFree(pucResult);
   }
 
-
-#endif
-  
 
   if (RUNTEST) {
     xmlChar *pucData = BAD_CAST "TODO: Phillips Entsafter &amp; R\xC3\xBChrger\xC3\xA4t @ebay";

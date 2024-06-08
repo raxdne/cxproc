@@ -347,8 +347,20 @@ cmarkTreeToDOM(xmlNodePtr pndArgBlock, xmlNodePtr pndArg, cmark_node* pcmnArg)
     }
     else if (pcmnArg->type == CMARK_NODE_LINK) {
       pndT = xmlNewChild(pndArg, NULL, NAME_PIE_LINK, NULL);
-      xmlSetProp(pndT,BAD_CAST"href", pcmnArg->as.link.url);
-      cmarkTreeToDOM(pndT, pndT, pcmnArg->first_child);
+      if (pcmnArg->first_child != NULL && pcmnArg->first_child == pcmnArg->last_child) {
+	if (StringBeginsWith(BAD_CAST pcmnArg->first_child->data, BAD_CAST "mailto:")) {
+	  xmlAddChild(pndT, xmlNewText(BAD_CAST & (pcmnArg->first_child->data[7])));
+	  xmlSetProp(pndT, BAD_CAST "href", pcmnArg->as.link.url);
+	}
+	else if (xmlStrEqual(pcmnArg->first_child->data, pcmnArg->as.link.url)) {
+	  /* attribute href not required if it's same like display value */
+	  xmlAddChild(pndT, xmlNewText(BAD_CAST pcmnArg->first_child->data));
+	}
+	else {
+	  xmlAddChild(pndT, xmlNewText(BAD_CAST pcmnArg->first_child->data));
+	  xmlSetProp(pndT, BAD_CAST "href", pcmnArg->as.link.url);
+	}
+      }
     }
     else if (pcmnArg->type == CMARK_NODE_IMAGE) {
       pndT = xmlNewChild(pndArg, NULL, NAME_PIE_IMG, NULL);
