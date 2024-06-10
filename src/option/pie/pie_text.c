@@ -315,40 +315,45 @@ pieEmbeddInChildNodes(xmlNodePtr pndArg, cxpContextPtr pccArg)
     /* ignore non-valid elements */
   }
   else if (IS_NODE_PIE_IMG(pndArg)) {
-    xmlChar *pucSrc;
-    resNodePtr prnSrc = NULL;
+    if (domGetFirstChild(pndArg, BAD_CAST "base64")) {
+      /* encoded text is already available*/
+    }
+    else {
+      xmlChar *pucSrc;
+      resNodePtr prnSrc = NULL;
 
-    pucSrc = domGetPropValuePtr(pndArg, BAD_CAST "src");
-    if (resPathIsRelative(pucSrc)) {
-      xmlChar *pucAttrValue;
+      pucSrc = domGetPropValuePtr(pndArg, BAD_CAST "src");
+      if (resPathIsRelative(pucSrc)) {
+	xmlChar *pucAttrValue;
 
-      pucAttrValue = pieGetAncestorContextStr(pndArg);
-      if (STR_IS_NOT_EMPTY(pucAttrValue)) {
+	pucAttrValue = pieGetAncestorContextStr(pndArg);
+	if (STR_IS_NOT_EMPTY(pucAttrValue)) {
 #ifdef HAVE_CGI
-	prnSrc = resNodeConcatNew(resNodeGetNameNormalized(cxpCtxtRootGet(pccArg)),pucAttrValue);
+	  prnSrc = resNodeConcatNew(resNodeGetNameNormalized(cxpCtxtRootGet(pccArg)), pucAttrValue);
 #else
-	prnSrc = resNodeDirNew(pucAttrValue);
+	  prnSrc = resNodeDirNew(pucAttrValue);
 #endif
-	resNodeSetToParent(prnSrc);
-	resNodeConcat(prnSrc, pucSrc);
+	  resNodeSetToParent(prnSrc);
+	  resNodeConcat(prnSrc, pucSrc);
+	}
+	xmlFree(pucAttrValue);
       }
-      xmlFree(pucAttrValue);
-    }
-    else if (resPathIsHttpURL(pucSrc)) { /* web access */
-      prnSrc = resNodeCurlNew(pucSrc);
-    }
-    else {
-      prnSrc = resNodeStrNew(pucSrc);
-    }
+      else if (resPathIsHttpURL(pucSrc)) { /* web access */
+	// prnSrc = resNodeCurlNew(pucSrc);
+      }
+      else {
+	// prnSrc = resNodeStrNew(pucSrc);
+      }
 
-    if (resNodeIsReadable(prnSrc)) { // && resNodeGetSize(prnSrc) > 0
-      cxpCtxtLogPrint(pccArg, 2, "Embeddable Image found '%s'", resNodeGetNameNormalized(prnSrc));
-      resNodeContentToDOM(pndArg, prnSrc);
+      if (resNodeIsReadable(prnSrc)) { // && resNodeGetSize(prnSrc) > 0
+	cxpCtxtLogPrint(pccArg, 2, "Embeddable Image found '%s'", resNodeGetNameNormalized(prnSrc));
+	resNodeContentToDOM(pndArg, prnSrc);
+      }
+      else {
+	cxpCtxtLogPrint(pccArg, 2, "No readable Image '%s'", pucSrc);
+      }
+      resNodeFree(prnSrc);
     }
-    else {
-      cxpCtxtLogPrint(pccArg, 2, "No readable Image '%s'", pucSrc);
-    }
-    resNodeFree(prnSrc);
   }
   else if (IS_ENODE(pndArg)) {
     xmlNodePtr pndChild;
@@ -535,7 +540,7 @@ pieProcessPieNode(xmlNodePtr pndArgPie, cxpContextPtr pccArg)
     pieRemoveInvalidsFromTree(pndPieRoot);
 
 #ifdef EXPERIMENTAL
-    if (domGetPropFlag(pndArgPie, BAD_CAST "embedd", FALSE)) {
+    if (domGetPropFlag(pndArgPie, BAD_CAST "embed", FALSE)) {
       cxpCtxtLogPrint(pccArg, 2, "embedd content");
       pieEmbeddInChildNodes(pndPieRoot, pccArg);
     }
