@@ -97,6 +97,9 @@ IncrementWeightProp(xmlNodePtr pndArg, int iArg);
 static BOOL_T
 pieSubstSkip(xmlNodePtr pndArg);
 
+static BOOL_T
+pieEmbeddInChildNodes(xmlNodePtr pndArg, cxpContextPtr pccArg);
+
 
 /*! exit procedure for this module
 */
