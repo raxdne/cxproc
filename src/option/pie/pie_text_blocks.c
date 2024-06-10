@@ -1778,10 +1778,10 @@ RecognizeUrls(xmlNodePtr pndArg)
 	 pndChild= (pndChild != NULL) ? pndChild->next : NULL) {
 
       if (xmlNodeIsText(pndChild)) { /* pndChild is a text node */
-	xmlChar *pucRelease = pndChild->content;
+	xmlChar *pucRelease;
 	xmlNodePtr pndReplace;
 
-	pucRelease = TranslateUncToUrl(pucRelease);
+	pucRelease = TranslateUncToUrl(pndChild->content);
 
 	if ((pndReplace = SplitStringToAutoLinkNodes(pucRelease))) {
 	  RecognizeUrls(pndReplace);
@@ -1828,9 +1828,7 @@ RecognizeUrls(xmlNodePtr pndArg)
 	    pndChild = NULL;
 	  }
 	}
-#ifdef LEGACY
 	xmlFree(pucRelease);
-#endif
       }
       else {
 	RecognizeUrls(pndChild);

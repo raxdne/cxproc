@@ -3096,6 +3096,9 @@ resNodeContentToDOM(xmlNodePtr pndArg, resNodePtr prnArg)
     case MIME_IMAGE_JPEG:
     case MIME_IMAGE_PNG:
     case MIME_IMAGE_TIFF:
+    {
+      xmlChar *pucContent;
+
 #ifdef HAVE_LIBEXIF
       /* get image information details via libexif */
       imgParseFileExif(pndArg, prnArg);
@@ -3103,8 +3106,20 @@ resNodeContentToDOM(xmlNodePtr pndArg, resNodePtr prnArg)
 #elif defined HAVE_LIBMAGICK	
       //imgParseFile(pndArg, prnArg);
 #endif
+
+#ifdef EXPERIMENTAL
+      pucContent = BAD_CAST resNodeGetContentBase64Eat(prnArg, 512);
+      if (STR_IS_NOT_EMPTY(pucContent)) {
+	xmlNewChild(pndArg, NULL, NAME_BASE64, pucContent);
+	xmlFree(pucContent);
+	/*!\todo optimize direct use of buffer as node content */
+      }
+      /*!\todo split content into separate text nodes (MIME multi-part?) */
+#endif
+
       xmlFree(resNodeEatContentPtr(prnArg));
       break;
+    }
 
 #if 0
     case MIME_INODE_SYMLINK:

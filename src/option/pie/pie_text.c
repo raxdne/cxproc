@@ -295,6 +295,67 @@ pieSubstInChildNodes(xmlNodePtr pndArgTop, xmlNodePtr pndArgSubst, cxpContextPtr
 } /* end of pieSubstInChildNodes() */
 
 
+/*! apply the substitution of 'pndArgSubst' on 'pndArgTop' or all child substitutions of 'pndArgTop' if 'pndArgSubst' is NULL
+
+\param pndArgTop a xmlNodePtr to apply substitutions
+\param pndArgSubst a xmlNodePtr to a subst node to apply
+\param pccArg the context
+
+\return TRUE if successful
+ */
+BOOL_T
+pieEmbeddInChildNodes(xmlNodePtr pndArg, cxpContextPtr pccArg)
+{
+  BOOL_T fResult = FALSE;
+
+  if (IS_VALID_NODE(pndArg) == FALSE) {
+    /* ignore non-valid elements */
+  }
+  else if (IS_NODE_PIE_IMG(pndArg)) {
+    xmlChar *pucSrc;
+    resNodePtr prnSrc = NULL;
+
+    pucSrc = domGetPropValuePtr(pndArg, BAD_CAST "src");
+    if (resPathIsRelative(pucSrc)) {
+      xmlChar *pucAttrValue;
+
+      pucAttrValue = pieGetAncestorContextStr(pndArg);
+      if (STR_IS_NOT_EMPTY(pucAttrValue)) {
+#ifdef HAVE_CGI
+	prnSrc = resNodeConcatNew(resNodeGetNameNormalized(cxpCtxtRootGet(pccArg)),pucAttrValue);
+#else
+	prnSrc = resNodeDirNew(pucAttrValue);
+#endif
+	resNodeSetToParent(prnSrc);
+	resNodeConcat(prnSrc, pucSrc);
+      }
+      xmlFree(pucAttrValue);
+    }
+    else if (resPathIsHttpURL(pucSrc)) { /* web access */
+      prnSrc = resNodeCurlNew(pucSrc);
+    }
+    else {
+      prnSrc = resNodeStrNew(pucSrc);
+    }
+
+    if (resNodeIsReadable(prnSrc)) { // && resNodeGetSize(prnSrc) > 0
+      cxpCtxtLogPrint(pccArg, 2, "Embeddable Image found '%s'", resNodeGetNameNormalized(prnSrc));
+      resNodeContentToDOM(pndArg, prnSrc);
+    }
+    else {
+      cxpCtxtLogPrint(pccArg, 2, "No readable Image '%s'", pucSrc);
+    }
+    resNodeFree(prnSrc);
+  }
+  else if (IS_ENODE(pndArg)) {
+    xmlNodePtr pndChild;
+
+    for (pndChild = pndArg->children; pndChild; pndChild = pndChild->next) { fResult |= pieEmbeddInChildNodes(pndChild, pccArg); }
+  }
+  return fResult;
+} /* end of pieEmbeddInChildNodes() */
+
+
 /*! process the PIE child instructions of pndArgPie
 
 \param pdocArgPie DOM to process a pie tree
@@ -469,6 +530,13 @@ pieProcessPieNode(xmlNodePtr pndArgPie, cxpContextPtr pccArg)
     }
 
     pieRemoveInvalidsFromTree(pndPieRoot);
+
+#ifdef EXPERIMENTAL
+    if (domGetPropFlag(pndArgPie, BAD_CAST "embedd", FALSE)) {
+      cxpCtxtLogPrint(pccArg, 2, "embedd content");
+      pieEmbeddInChildNodes(pndPieRoot, pccArg);
+    }
+#endif
 
     cxpInfoProgram(pndMeta, pccArg);
     /* Get the current time. */
