@@ -101,6 +101,33 @@ static BOOL_T
 pieEmbeddInChildNodes(xmlNodePtr pndArg, cxpContextPtr pccArg);
 
 
+/*!
+
+\param pndParent pointer to node to add info attributes
+
+\return pointer to parent node
+ */
+xmlNodePtr
+pieTextInfo(xmlNodePtr pndParent)
+{
+  xmlNodePtr pndT;
+
+  xmlSetProp(pndParent, BAD_CAST "name", BAD_CAST "pie");
+  xmlSetProp(pndParent, BAD_CAST "ns", BAD_CAST CXP_PIE_URL);
+  xmlSetProp(pndParent, BAD_CAST "select", BAD_CAST "yes");
+  
+  pndT = xmlNewTextChild(pndParent, pieGetNs(), BAD_CAST "markup", NULL);
+  xmlSetProp(pndT, BAD_CAST "href", BAD_CAST "https://www.unicode.org/charts/PDF/U2700.pdf");
+  xmlNewTextChild(pndT, NULL, BAD_CAST "check", STR_UTF8_HEAVY_CHECK_MARK);
+  xmlNewTextChild(pndT, NULL, BAD_CAST "cancel", STR_UTF8_HEAVY_BALLOT_X);
+  xmlNewTextChild(pndT, NULL, BAD_CAST "high", STR_PIE_IMPACT_HIGH);
+  xmlNewTextChild(pndT, NULL, BAD_CAST "medium", STR_PIE_IMPACT_MEDIUM);
+  xmlNewTextChild(pndT, NULL, BAD_CAST "hidden", STR_PIE_HIDDEN);
+
+  return pndParent;
+} /* end of pieTextInfo() */
+
+
 /*! exit procedure for this module
 */
 void

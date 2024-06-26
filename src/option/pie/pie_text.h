@@ -39,6 +39,9 @@ pieWeightRegExpInDoc(xmlDocPtr pdocArg, xmlChar *pucArg);
 extern BOOL_T
 pieWeightWordsInBlocks(xmlDocPtr pdocArg, xmlChar *pucArg);
 
+extern xmlNodePtr
+pieTextInfo(xmlNodePtr pndParent);
+
 extern void
 pieTextCleanup(void);
 

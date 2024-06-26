@@ -3117,20 +3117,20 @@ cxpInfoProgram(xmlNodePtr pndArg, cxpContextPtr pccArg)
   }
 
   if (pndResult) {
-    xmlNodePtr nodeOption;
-    xmlNodePtr nodeSource;
+    xmlNodePtr pndOption;
+    xmlNodePtr pndSource;
 
     xmlSetNs(pndResult,cxpGetNs());
     xmlSetProp(pndResult, BAD_CAST "name", BAD_CAST CXP_VER_PRODUCTNAME_STR);
 
-    nodeSource = xmlNewChild(pndResult, NULL, BAD_CAST"source", NULL);
-    xmlSetProp(nodeSource, BAD_CAST "url", BAD_CAST CXP_VERSION_URL);
-    xmlSetProp(nodeSource, BAD_CAST "version", BAD_CAST CXP_VER_FILE_VERSION_STR);
-    xmlSetProp(nodeSource, BAD_CAST "branch", BAD_CAST CXP_VER_FILE_BRANCH_STR);
+    pndSource = xmlNewChild(pndResult, NULL, BAD_CAST"source", NULL);
+    xmlSetProp(pndSource, BAD_CAST "url", BAD_CAST CXP_VERSION_URL);
+    xmlSetProp(pndSource, BAD_CAST "version", BAD_CAST CXP_VER_FILE_VERSION_STR);
+    xmlSetProp(pndSource, BAD_CAST "branch", BAD_CAST CXP_VER_FILE_BRANCH_STR);
 
-    nodeOption = xmlNewChild(pndResult, NULL, BAD_CAST"compilation", NULL);
-    xmlSetProp(nodeOption, BAD_CAST "build", BAD_CAST CXP_VERSION_BUILD_STR);
-    xmlSetProp(nodeOption, BAD_CAST "platform", BAD_CAST
+    pndOption = xmlNewChild(pndResult, NULL, BAD_CAST"compilation", NULL);
+    xmlSetProp(pndOption, BAD_CAST "build", BAD_CAST CXP_VERSION_BUILD_STR);
+    xmlSetProp(pndOption, BAD_CAST "platform", BAD_CAST
 #ifdef _MSC_VER
 #ifdef _WIN64
       "Windows 64bit"
@@ -3152,9 +3152,9 @@ cxpInfoProgram(xmlNodePtr pndArg, cxpContextPtr pccArg)
 #endif
       );
 
-    xmlSetProp(nodeOption, BAD_CAST "date", BAD_CAST CXP_TIMESTAMP_BUILD);
+    xmlSetProp(pndOption, BAD_CAST "date", BAD_CAST CXP_TIMESTAMP_BUILD);
 
-    xmlSetProp(nodeOption, BAD_CAST "lang",
+    xmlSetProp(pndOption, BAD_CAST "lang",
 #ifdef __cplusplus
 	       BAD_CAST"C++"
 #else
@@ -3162,7 +3162,7 @@ cxpInfoProgram(xmlNodePtr pndArg, cxpContextPtr pccArg)
 #endif
 	       );
 
-    xmlSetProp(nodeOption, BAD_CAST "legacy",
+    xmlSetProp(pndOption, BAD_CAST "legacy",
 #ifdef LEGACY
 	       BAD_CAST"yes"
 #else
@@ -3170,7 +3170,7 @@ cxpInfoProgram(xmlNodePtr pndArg, cxpContextPtr pccArg)
 #endif
 	       );
 
-    xmlSetProp(nodeOption, BAD_CAST "experimental",
+    xmlSetProp(pndOption, BAD_CAST "experimental",
 #ifdef EXPERIMENTAL
 	       BAD_CAST"yes"
 #else
@@ -3178,7 +3178,7 @@ cxpInfoProgram(xmlNodePtr pndArg, cxpContextPtr pccArg)
 #endif
 	       );
 
-    xmlSetProp(nodeOption, BAD_CAST "debug",
+    xmlSetProp(pndOption, BAD_CAST "debug",
 #ifdef DEBUG
 	       BAD_CAST"yes"
 #else
@@ -3200,9 +3200,9 @@ cxpProcessInfoNode(xmlNodePtr pndInfo, cxpContextPtr pccArg)
   xmlChar mpucOut[BUFFER_LENGTH];
   xmlChar *pucArgv;
   xmlDocPtr pdocResult;
-  xmlNodePtr nodeProgram;
-  xmlNodePtr nodeRuntime;
-  xmlNodePtr nodeOption;
+  xmlNodePtr pndProgram;
+  xmlNodePtr pndRuntime;
+  xmlNodePtr pndOption;
   xmlNodePtr pndRoot;
 
   pdocResult = xmlNewDoc(BAD_CAST "1.0");
@@ -3210,216 +3210,212 @@ cxpProcessInfoNode(xmlNodePtr pndInfo, cxpContextPtr pccArg)
   xmlDocSetRootElement(pdocResult, pndRoot);
   xmlSetNs(pndRoot,cxpGetNs());
 
-  nodeProgram = cxpInfoProgram(pndRoot, pccArg);
-  if (nodeProgram) {
+  pndProgram = cxpInfoProgram(pndRoot, pccArg);
+  if (pndProgram) {
 #ifdef __GLIBC__
-    nodeOption = xmlNewChild(nodeProgram, NULL, BAD_CAST"lib", NULL);
-    xmlSetProp(nodeOption,BAD_CAST "name",BAD_CAST"libc");
-    xmlSetProp(nodeOption,BAD_CAST "ns",BAD_CAST"http://www.gnu.org/software/libc/");
+    pndOption = xmlNewChild(pndProgram, NULL, BAD_CAST"lib", NULL);
+    xmlSetProp(pndOption,BAD_CAST "name",BAD_CAST"libc");
+    xmlSetProp(pndOption,BAD_CAST "ns",BAD_CAST"http://www.gnu.org/software/libc/");
     xmlStrPrintf(mpucOut,BUFFER_LENGTH, "%i.%i", __GLIBC__, __GLIBC_MINOR__);
-    xmlSetProp(nodeOption,BAD_CAST "version",mpucOut);
+    xmlSetProp(pndOption,BAD_CAST "version",mpucOut);
 #endif
 
 #ifdef _LIBICONV_VERSION
-    nodeOption = xmlNewChild(nodeProgram, NULL, BAD_CAST"lib", NULL);
-    xmlSetProp(nodeOption,BAD_CAST "name",BAD_CAST"libiconv");
-    xmlSetProp(nodeOption,BAD_CAST "ns",BAD_CAST"http://www.gnu.org/software/libiconv/");
+    pndOption = xmlNewChild(pndProgram, NULL, BAD_CAST"lib", NULL);
+    xmlSetProp(pndOption,BAD_CAST "name",BAD_CAST"libiconv");
+    xmlSetProp(pndOption,BAD_CAST "ns",BAD_CAST"http://www.gnu.org/software/libiconv/");
     xmlStrPrintf(mpucOut,BUFFER_LENGTH,"%i.%i", (_LIBICONV_VERSION >> 8), (_LIBICONV_VERSION & 0xFF));
-    xmlSetProp(nodeOption,BAD_CAST "version",mpucOut);
+    xmlSetProp(pndOption,BAD_CAST "version",mpucOut);
 #endif
 
     /* configured options */
-    nodeOption = xmlNewChild(nodeProgram, NULL, BAD_CAST"lib", NULL);
-    xmlSetProp(nodeOption,BAD_CAST "name",BAD_CAST"libxml2");
-    xmlSetProp(nodeOption,BAD_CAST "ns",BAD_CAST"http://xmlsoft.org/");
-    xmlSetProp(nodeOption,BAD_CAST "version",BAD_CAST LIBXML_DOTTED_VERSION);
+    pndOption = xmlNewChild(pndProgram, NULL, BAD_CAST"lib", NULL);
+    xmlSetProp(pndOption,BAD_CAST "name",BAD_CAST"libxml2");
+    xmlSetProp(pndOption,BAD_CAST "ns",BAD_CAST"http://xmlsoft.org/");
+    xmlSetProp(pndOption,BAD_CAST "version",BAD_CAST LIBXML_DOTTED_VERSION);
 
-    nodeOption = xmlNewChild(nodeProgram, NULL, BAD_CAST"lib", NULL);
-    xmlSetProp(nodeOption,BAD_CAST "name",BAD_CAST"libxslt");
-    xmlSetProp(nodeOption,BAD_CAST "ns",BAD_CAST"http://xmlsoft.org/XSLT/");
-    xmlSetProp(nodeOption,BAD_CAST "version",BAD_CAST LIBXSLT_DOTTED_VERSION);
+    pndOption = xmlNewChild(pndProgram, NULL, BAD_CAST"lib", NULL);
+    xmlSetProp(pndOption,BAD_CAST "name",BAD_CAST"libxslt");
+    xmlSetProp(pndOption,BAD_CAST "ns",BAD_CAST"http://xmlsoft.org/XSLT/");
+    xmlSetProp(pndOption,BAD_CAST "version",BAD_CAST LIBXSLT_DOTTED_VERSION);
 
 #ifdef HAVE_PCRE2
-    nodeOption = xmlNewChild(nodeProgram, NULL, BAD_CAST"lib", NULL);
-    xmlSetProp(nodeOption,BAD_CAST "name",BAD_CAST"libpcre2");
-    xmlSetProp(nodeOption,BAD_CAST "ns",BAD_CAST"http://www.pcre.org/");
+    pndOption = xmlNewChild(pndProgram, NULL, BAD_CAST"lib", NULL);
+    xmlSetProp(pndOption,BAD_CAST "name",BAD_CAST"libpcre2");
+    xmlSetProp(pndOption,BAD_CAST "ns",BAD_CAST"http://www.pcre.org/");
     xmlStrPrintf(mpucOut,BUFFER_LENGTH, "%i.%i",PCRE2_MAJOR,PCRE2_MINOR);
-    xmlSetProp(nodeOption,BAD_CAST "version",mpucOut);
+    xmlSetProp(pndOption,BAD_CAST "version",mpucOut);
 #endif
 
 #ifdef HAVE_ZLIB
-    nodeOption = xmlNewChild(nodeProgram, NULL, BAD_CAST"lib", NULL);
-    xmlSetProp(nodeOption, BAD_CAST "name", BAD_CAST"zlib");
-    xmlSetProp(nodeOption, BAD_CAST "ns", BAD_CAST"http://zlib.net/");
-    xmlSetProp(nodeOption, BAD_CAST "version", BAD_CAST ZLIB_VERSION);
+    pndOption = xmlNewChild(pndProgram, NULL, BAD_CAST"lib", NULL);
+    xmlSetProp(pndOption, BAD_CAST "name", BAD_CAST"zlib");
+    xmlSetProp(pndOption, BAD_CAST "ns", BAD_CAST"http://zlib.net/");
+    xmlSetProp(pndOption, BAD_CAST "version", BAD_CAST ZLIB_VERSION);
 #endif
 
-    nodeOption = xmlNewChild(nodeProgram, NULL, BAD_CAST"lib", NULL);
-    xmlSetProp(nodeOption,BAD_CAST "name",BAD_CAST"c-dt");
-    xmlSetProp(nodeOption,BAD_CAST "ns",BAD_CAST"https://github.com/chansen/c-dt");
-    xmlSetProp(nodeOption,BAD_CAST "select", BAD_CAST "yes");
+    pndOption = xmlNewChild(pndProgram, NULL, BAD_CAST"lib", NULL);
+    xmlSetProp(pndOption,BAD_CAST "name",BAD_CAST"c-dt");
+    xmlSetProp(pndOption,BAD_CAST "ns",BAD_CAST"https://github.com/chansen/c-dt");
+    xmlSetProp(pndOption,BAD_CAST "select", BAD_CAST "yes");
 
-    nodeOption = xmlNewChild(nodeProgram,NULL,BAD_CAST"module",NULL);
-    xmlSetProp(nodeOption,BAD_CAST "name",BAD_CAST"petrinet");
+    pndOption = xmlNewChild(pndProgram,NULL,BAD_CAST"module",NULL);
+    xmlSetProp(pndOption,BAD_CAST "name",BAD_CAST"petrinet");
 #ifdef HAVE_PETRINET
-    xmlSetProp(nodeOption, BAD_CAST "ns", BAD_CAST PKG2_NAMESPACE_URL);
-    xmlSetProp(nodeOption,BAD_CAST "select",BAD_CAST "yes");
+    xmlSetProp(pndOption, BAD_CAST "ns", BAD_CAST PKG2_NAMESPACE_URL);
+    xmlSetProp(pndOption,BAD_CAST "select",BAD_CAST "yes");
 #else
-    xmlSetProp(nodeOption,BAD_CAST "select",BAD_CAST "no");
+    xmlSetProp(pndOption,BAD_CAST "select",BAD_CAST "no");
 #endif
 
-    nodeOption = xmlNewChild(nodeProgram,NULL,BAD_CAST"module",NULL);
-    xmlSetProp(nodeOption,BAD_CAST "name",BAD_CAST"pie");
 #ifdef HAVE_PIE
-    xmlSetProp(nodeOption, BAD_CAST "ns", BAD_CAST CXP_PIE_URL);
-    xmlSetProp(nodeOption,BAD_CAST "select",BAD_CAST "yes");
-#else
-    xmlSetProp(nodeOption,BAD_CAST "select",BAD_CAST "no");
+    pndOption = xmlNewChild(pndProgram,NULL,BAD_CAST"module",NULL);
+    pieTextInfo(pndOption);
 #endif
 
-    nodeOption = xmlNewChild(nodeProgram, NULL, BAD_CAST"module", NULL);
-    xmlSetProp(nodeOption, BAD_CAST "name", BAD_CAST"xmlzipio");
-    xmlSetProp(nodeOption, BAD_CAST "ns", BAD_CAST"http://hal.iwr.uni-heidelberg.de/~christi/projects/xmlzipio.html");
+    pndOption = xmlNewChild(pndProgram, NULL, BAD_CAST"module", NULL);
+    xmlSetProp(pndOption, BAD_CAST "name", BAD_CAST"xmlzipio");
+    xmlSetProp(pndOption, BAD_CAST "ns", BAD_CAST"http://hal.iwr.uni-heidelberg.de/~christi/projects/xmlzipio.html");
 #ifdef HAVE_ZLIB
-    xmlSetProp(nodeOption,BAD_CAST "select",BAD_CAST "yes");
+    xmlSetProp(pndOption,BAD_CAST "select",BAD_CAST "yes");
 #else
-    xmlSetProp(nodeOption, BAD_CAST "select", BAD_CAST "no");
+    xmlSetProp(pndOption, BAD_CAST "select", BAD_CAST "no");
 #endif
 
 
-    nodeOption = xmlNewChild(nodeProgram,NULL,BAD_CAST"module",NULL);
-    xmlSetProp(nodeOption,BAD_CAST "name",BAD_CAST"jsmn");
-    xmlSetProp(nodeOption,BAD_CAST "ns",BAD_CAST"https://github.com/zserge/jsmn/");
+    pndOption = xmlNewChild(pndProgram,NULL,BAD_CAST"module",NULL);
+    xmlSetProp(pndOption,BAD_CAST "name",BAD_CAST"jsmn");
+    xmlSetProp(pndOption,BAD_CAST "ns",BAD_CAST"https://github.com/zserge/jsmn/");
 #ifdef HAVE_JSON
-    xmlSetProp(nodeOption,BAD_CAST "select",BAD_CAST "yes");
-    //xmlSetProp(nodeOption,BAD_CAST "version",BAD_CAST "");
+    xmlSetProp(pndOption,BAD_CAST "select",BAD_CAST "yes");
+    //xmlSetProp(pndOption,BAD_CAST "version",BAD_CAST "");
 #else
-    xmlSetProp(nodeOption,BAD_CAST "select",BAD_CAST "no");
+    xmlSetProp(pndOption,BAD_CAST "select",BAD_CAST "no");
 #endif
 
-    nodeOption = xmlNewChild(nodeProgram,NULL,BAD_CAST"option",NULL);
-    xmlSetProp(nodeOption,BAD_CAST "name",BAD_CAST"libarchive");
-    xmlSetProp(nodeOption,BAD_CAST "ns",BAD_CAST"http://www.libarchive.org/");
+    pndOption = xmlNewChild(pndProgram,NULL,BAD_CAST"option",NULL);
+    xmlSetProp(pndOption,BAD_CAST "name",BAD_CAST"libarchive");
+    xmlSetProp(pndOption,BAD_CAST "ns",BAD_CAST"http://www.libarchive.org/");
 #ifdef HAVE_LIBARCHIVE
-    xmlSetProp(nodeOption,BAD_CAST "select", BAD_CAST "yes");
+    xmlSetProp(pndOption,BAD_CAST "select", BAD_CAST "yes");
     xmlStrPrintf(mpucOut, BUFFER_LENGTH, "%i.%i.%i", 
       (int)ARCHIVE_VERSION_NUMBER / (int)1e6,
       ((int)ARCHIVE_VERSION_NUMBER % (int)1e6) / (int)1e3, 
       (int)ARCHIVE_VERSION_NUMBER % (int)1e3);
-    xmlSetProp(nodeOption, BAD_CAST "version", BAD_CAST mpucOut);
+    xmlSetProp(pndOption, BAD_CAST "version", BAD_CAST mpucOut);
 
 #else
-    xmlSetProp(nodeOption,BAD_CAST "select", BAD_CAST "no");
+    xmlSetProp(pndOption,BAD_CAST "select", BAD_CAST "no");
 #endif
 
-    nodeOption = xmlNewChild(nodeProgram, NULL, BAD_CAST"option", NULL);
-    xmlSetProp(nodeOption, BAD_CAST "name", BAD_CAST"libcurl");
-    xmlSetProp(nodeOption, BAD_CAST "ns", BAD_CAST"https://curl.se/");
+    pndOption = xmlNewChild(pndProgram, NULL, BAD_CAST"option", NULL);
+    xmlSetProp(pndOption, BAD_CAST "name", BAD_CAST"libcurl");
+    xmlSetProp(pndOption, BAD_CAST "ns", BAD_CAST"https://curl.se/");
 #ifdef HAVE_LIBCURL
-    xmlSetProp(nodeOption, BAD_CAST "select", BAD_CAST "yes");
-    xmlSetProp(nodeOption, BAD_CAST "version", BAD_CAST curl_version());
+    xmlSetProp(pndOption, BAD_CAST "select", BAD_CAST "yes");
+    xmlSetProp(pndOption, BAD_CAST "version", BAD_CAST curl_version());
 #else
-    xmlSetProp(nodeOption, BAD_CAST "select", BAD_CAST "no");
+    xmlSetProp(pndOption, BAD_CAST "select", BAD_CAST "no");
 #endif
 
-    nodeOption = xmlNewChild(nodeProgram, NULL, BAD_CAST"option", NULL);
-    xmlSetProp(nodeOption, BAD_CAST "name", BAD_CAST"sqlite");
-    xmlSetProp(nodeOption, BAD_CAST "ns", BAD_CAST"http://www.sqlite.org/");
+    pndOption = xmlNewChild(pndProgram, NULL, BAD_CAST"option", NULL);
+    xmlSetProp(pndOption, BAD_CAST "name", BAD_CAST"sqlite");
+    xmlSetProp(pndOption, BAD_CAST "ns", BAD_CAST"http://www.sqlite.org/");
 #ifdef HAVE_LIBSQLITE3
-    xmlSetProp(nodeOption, BAD_CAST "select", BAD_CAST "yes");
-    xmlSetProp(nodeOption, BAD_CAST "version", BAD_CAST SQLITE_VERSION);
+    xmlSetProp(pndOption, BAD_CAST "select", BAD_CAST "yes");
+    xmlSetProp(pndOption, BAD_CAST "version", BAD_CAST SQLITE_VERSION);
 #else
-    xmlSetProp(nodeOption, BAD_CAST "select", BAD_CAST "no");
+    xmlSetProp(pndOption, BAD_CAST "select", BAD_CAST "no");
 #endif
 
-    nodeOption = xmlNewChild(nodeProgram, NULL, BAD_CAST"option", NULL);
-    xmlSetProp(nodeOption,BAD_CAST "name",BAD_CAST"libexif");
-    xmlSetProp(nodeOption,BAD_CAST "ns",BAD_CAST"https://github.com/libexif");
+    pndOption = xmlNewChild(pndProgram, NULL, BAD_CAST"option", NULL);
+    xmlSetProp(pndOption,BAD_CAST "name",BAD_CAST"libexif");
+    xmlSetProp(pndOption,BAD_CAST "ns",BAD_CAST"https://github.com/libexif");
 #ifdef HAVE_LIBEXIF
-    xmlSetProp(nodeOption,BAD_CAST "select", BAD_CAST "yes");
-    xmlSetProp(nodeOption,BAD_CAST "version",BAD_CAST "0.6.21");
+    xmlSetProp(pndOption,BAD_CAST "select", BAD_CAST "yes");
+    xmlSetProp(pndOption,BAD_CAST "version",BAD_CAST "0.6.21");
 #else
-    xmlSetProp(nodeOption,BAD_CAST "select", BAD_CAST "no");
+    xmlSetProp(pndOption,BAD_CAST "select", BAD_CAST "no");
 #endif
 
-    nodeOption = xmlNewChild(nodeProgram, NULL, BAD_CAST"option", NULL);
-    xmlSetProp(nodeOption,BAD_CAST "name",BAD_CAST"libmagick");
-    xmlSetProp(nodeOption,BAD_CAST "ns",BAD_CAST"http://www.imagemagick.org/");
+    pndOption = xmlNewChild(pndProgram, NULL, BAD_CAST"option", NULL);
+    xmlSetProp(pndOption,BAD_CAST "name",BAD_CAST"libmagick");
+    xmlSetProp(pndOption,BAD_CAST "ns",BAD_CAST"http://www.imagemagick.org/");
 #ifdef HAVE_LIBMAGICK
-    xmlSetProp(nodeOption,BAD_CAST "select", BAD_CAST "yes");
-    xmlSetProp(nodeOption,BAD_CAST "version",BAD_CAST MagickLibVersionText);
+    xmlSetProp(pndOption,BAD_CAST "select", BAD_CAST "yes");
+    xmlSetProp(pndOption,BAD_CAST "version",BAD_CAST MagickLibVersionText);
 #else
-    xmlSetProp(nodeOption,BAD_CAST "select", BAD_CAST "no");
+    xmlSetProp(pndOption,BAD_CAST "select", BAD_CAST "no");
 #endif
 
-    nodeOption = xmlNewChild(nodeProgram, NULL, BAD_CAST"option", NULL);
-    xmlSetProp(nodeOption,BAD_CAST "name",BAD_CAST"libvorbis");
-    xmlSetProp(nodeOption,BAD_CAST "ns",BAD_CAST"http://www.xiph.org/");
+    pndOption = xmlNewChild(pndProgram, NULL, BAD_CAST"option", NULL);
+    xmlSetProp(pndOption,BAD_CAST "name",BAD_CAST"libvorbis");
+    xmlSetProp(pndOption,BAD_CAST "ns",BAD_CAST"http://www.xiph.org/");
 #ifdef HAVE_LIBVORBIS
-    xmlSetProp(nodeOption,BAD_CAST "select", BAD_CAST "yes");
-    xmlSetProp(nodeOption,BAD_CAST "version", BAD_CAST vorbis_version_string());
+    xmlSetProp(pndOption,BAD_CAST "select", BAD_CAST "yes");
+    xmlSetProp(pndOption,BAD_CAST "version", BAD_CAST vorbis_version_string());
 #else
-    xmlSetProp(nodeOption,BAD_CAST "select", BAD_CAST "no");
+    xmlSetProp(pndOption,BAD_CAST "select", BAD_CAST "no");
 #endif
 
-    nodeOption = xmlNewChild(nodeProgram, NULL, BAD_CAST"option", NULL);
-    xmlSetProp(nodeOption,BAD_CAST "name",BAD_CAST"vorbiscomment");
-    xmlSetProp(nodeOption,BAD_CAST "ns",BAD_CAST"http://www.vorbis.com/");
+    pndOption = xmlNewChild(pndProgram, NULL, BAD_CAST"option", NULL);
+    xmlSetProp(pndOption,BAD_CAST "name",BAD_CAST"vorbiscomment");
+    xmlSetProp(pndOption,BAD_CAST "ns",BAD_CAST"http://www.vorbis.com/");
 #ifdef HAVE_LIBVORBIS
-    xmlSetProp(nodeOption,BAD_CAST "select", BAD_CAST "yes");
+    xmlSetProp(pndOption,BAD_CAST "select", BAD_CAST "yes");
 #else
-    xmlSetProp(nodeOption,BAD_CAST "select", BAD_CAST "no");
+    xmlSetProp(pndOption,BAD_CAST "select", BAD_CAST "no");
 #endif
 
-    nodeOption = xmlNewChild(nodeProgram, NULL, BAD_CAST"option", NULL);
-    xmlSetProp(nodeOption,BAD_CAST "name",BAD_CAST"libid3tag");
-    xmlSetProp(nodeOption,BAD_CAST "ns",BAD_CAST"http://www.underbit.com/products/mad/");
+    pndOption = xmlNewChild(pndProgram, NULL, BAD_CAST"option", NULL);
+    xmlSetProp(pndOption,BAD_CAST "name",BAD_CAST"libid3tag");
+    xmlSetProp(pndOption,BAD_CAST "ns",BAD_CAST"http://www.underbit.com/products/mad/");
 #ifdef HAVE_LIBID3TAG
-    xmlSetProp(nodeOption,BAD_CAST "select", BAD_CAST "yes");
-    xmlSetProp(nodeOption,BAD_CAST "version", BAD_CAST ID3_VERSION);
+    xmlSetProp(pndOption,BAD_CAST "select", BAD_CAST "yes");
+    xmlSetProp(pndOption,BAD_CAST "version", BAD_CAST ID3_VERSION);
 #else
-    xmlSetProp(nodeOption,BAD_CAST "select", BAD_CAST "no");
+    xmlSetProp(pndOption,BAD_CAST "select", BAD_CAST "no");
 #endif
 
-    nodeOption = xmlNewChild(nodeProgram, NULL, BAD_CAST"option", NULL);
-    xmlSetProp(nodeOption,BAD_CAST "name",BAD_CAST"cmark");
-    xmlSetProp(nodeOption,BAD_CAST "ns",BAD_CAST"https://github.com/commonmark/cmark");
+    pndOption = xmlNewChild(pndProgram, NULL, BAD_CAST"option", NULL);
+    xmlSetProp(pndOption,BAD_CAST "name",BAD_CAST"cmark");
+    xmlSetProp(pndOption,BAD_CAST "ns",BAD_CAST"https://github.com/commonmark/cmark");
 #ifdef WITH_MARKDOWN
-    xmlSetProp(nodeOption,BAD_CAST "select", BAD_CAST "yes");
-    xmlSetProp(nodeOption,BAD_CAST "version", BAD_CAST cmark_version_string());
+    xmlSetProp(pndOption,BAD_CAST "select", BAD_CAST "yes");
+    xmlSetProp(pndOption,BAD_CAST "version", BAD_CAST cmark_version_string());
 #else
-    xmlSetProp(nodeOption,BAD_CAST "select", BAD_CAST "no");
+    xmlSetProp(pndOption,BAD_CAST "select", BAD_CAST "no");
 #endif
 
-    nodeOption = xmlNewChild(nodeProgram, NULL, BAD_CAST"option", NULL);
-    xmlSetProp(nodeOption,BAD_CAST "name",BAD_CAST"threading");
+    pndOption = xmlNewChild(pndProgram, NULL, BAD_CAST"option", NULL);
+    xmlSetProp(pndOption,BAD_CAST "name",BAD_CAST"multithreading");
 #if WITH_THREAD
-    xmlSetProp(nodeOption,BAD_CAST "select", BAD_CAST "yes");
+    xmlSetProp(pndOption,BAD_CAST "select", BAD_CAST "yes");
 #else
-    xmlSetProp(nodeOption,BAD_CAST "select", BAD_CAST "no");
+    xmlSetProp(pndOption,BAD_CAST "select", BAD_CAST "no");
 #endif
 
 #ifdef HAVE_JS
-    nodeOption = xmlNewChild(nodeProgram, NULL, BAD_CAST"option", NULL);
-    cxpScriptInfo(nodeOption, pccArg);
+    pndOption = xmlNewChild(pndProgram, NULL, BAD_CAST"option", NULL);
+    cxpScriptInfo(pndOption, pccArg);
 #endif
 
-    nodeOption = xmlNewChild(nodeProgram,NULL,BAD_CAST"module",NULL);
-    xmlSetProp(nodeOption,BAD_CAST "name",BAD_CAST"cgi");
-    xmlSetProp(nodeOption,BAD_CAST "ns",BAD_CAST"http://www.newbreedsoftware.com/cgi-util/");
+    pndOption = xmlNewChild(pndProgram,NULL,BAD_CAST"module",NULL);
+    xmlSetProp(pndOption,BAD_CAST "name",BAD_CAST"cgi");
+    xmlSetProp(pndOption,BAD_CAST "ns",BAD_CAST"http://www.newbreedsoftware.com/cgi-util/");
 #ifdef HAVE_CGI
-    xmlSetProp(nodeOption,BAD_CAST "select",BAD_CAST "yes");
-    xmlSetProp(nodeOption,BAD_CAST "version",BAD_CAST CGIUTILVER);
+    xmlSetProp(pndOption,BAD_CAST "select",BAD_CAST "yes");
+    xmlSetProp(pndOption,BAD_CAST "version",BAD_CAST CGIUTILVER);
 #else
-    xmlSetProp(nodeOption,BAD_CAST "select",BAD_CAST "no");
+    xmlSetProp(pndOption,BAD_CAST "select",BAD_CAST "no");
 #endif
 }
 
-  nodeRuntime = xmlNewChild(pndRoot, NULL, BAD_CAST"runtime", NULL);
-  if (nodeRuntime) {
+  pndRuntime = xmlNewChild(pndRoot, NULL, BAD_CAST"runtime", NULL);
+  if (pndRuntime) {
     xmlChar *pucT;
     xmlChar mpucIndex[BUFFER_LENGTH];
-    xmlNodePtr nodeDate;
+    xmlNodePtr pndDate;
     resNodePtr prnTest;
     cxpContextPtr pccI;
 #ifdef _MSC_VER
@@ -3428,22 +3424,22 @@ cxpProcessInfoNode(xmlNodePtr pndInfo, cxpContextPtr pccArg)
 
     u = geteuid();
     xmlStrPrintf(mpucIndex,BUFFER_LENGTH,"%i",u);
-    xmlSetProp(nodeRuntime,BAD_CAST "uid",mpucIndex);
+    xmlSetProp(pndRuntime,BAD_CAST "uid",mpucIndex);
 #endif
 
-    //domSetPropEat(nodeRuntime,BAD_CAST "platform",GetHostValueNamed(BAD_CAST "os"));
+    //domSetPropEat(pndRuntime,BAD_CAST "platform",GetHostValueNamed(BAD_CAST "os"));
     /* working dir */
-    domSetPropEat(nodeRuntime,BAD_CAST "cwd",resPathGetCwdStr());
-    xmlSetProp(nodeRuntime, BAD_CAST "context", cxpCtxtLocationGetStr(pccArg));
+    domSetPropEat(pndRuntime,BAD_CAST "cwd",resPathGetCwdStr());
+    xmlSetProp(pndRuntime, BAD_CAST "context", cxpCtxtLocationGetStr(pccArg));
 
     pucT = GetDateIsoString(0);
-    nodeDate = xmlNewChild(nodeRuntime, NULL, BAD_CAST"date", pucT);
+    pndDate = xmlNewChild(pndRuntime, NULL, BAD_CAST"date", pucT);
     xmlFree(pucT);
 
     /*! program arguments */
     for (i = 0; (pucArgv = cxpCtxtCliGetValue(pccArg, i)); i++) {
       xmlNodePtr pndArgv;
-      pndArgv = xmlNewChild(nodeRuntime, NULL, BAD_CAST"arg", NULL);
+      pndArgv = xmlNewChild(pndRuntime, NULL, BAD_CAST"arg", NULL);
       xmlStrPrintf(mpucIndex,BUFFER_LENGTH,"%i",i);
       xmlSetProp(pndArgv,BAD_CAST "name",mpucIndex);
       domSetPropEat(pndArgv,BAD_CAST "select",pucArgv);
@@ -3453,7 +3449,7 @@ cxpProcessInfoNode(xmlNodePtr pndInfo, cxpContextPtr pccArg)
     for (i = 0; i < cxpCtxtCliGetCount(pccArg); i++) {
       xmlNodePtr pndArgv;
       if ((pucArgv = cxpCtxtCliGetName(pccArg, i))) {
-	pndArgv = xmlNewChild(nodeRuntime, NULL, BAD_CAST"arg", NULL);
+	pndArgv = xmlNewChild(pndRuntime, NULL, BAD_CAST"arg", NULL);
 	xmlSetProp(pndArgv,BAD_CAST "name", pucArgv);
 	domSetPropEat(pndArgv, BAD_CAST "select", cxpCtxtCliGetValueByName(pccArg, pucArgv));
 	xmlFree(pucArgv);
@@ -3464,7 +3460,7 @@ cxpProcessInfoNode(xmlNodePtr pndInfo, cxpContextPtr pccArg)
     /*! CGI arguments */
     for (i = 0; (pucArgv = cxpCtxtCgiGetName(pccArg, i)); i++) {
       xmlNodePtr pndCgi;
-      pndCgi = xmlNewChild(nodeRuntime, NULL, BAD_CAST"cgi", NULL);
+      pndCgi = xmlNewChild(pndRuntime, NULL, BAD_CAST"cgi", NULL);
       domSetPropEat(pndCgi,BAD_CAST "name",pucArgv);
       domSetPropEat(pndCgi, BAD_CAST "select", cxpCtxtCgiGetValue(pccArg, i));
     }
@@ -3473,7 +3469,7 @@ cxpProcessInfoNode(xmlNodePtr pndInfo, cxpContextPtr pccArg)
     /*! Environment */
     for (i = 0; (pucArgv = cxpCtxtEnvGetName(pccArg, i)); i++) {
       xmlNodePtr pndEnv;
-      pndEnv = xmlNewChild(nodeRuntime, NULL, NAME_ENV, NULL);
+      pndEnv = xmlNewChild(pndRuntime, NULL, NAME_ENV, NULL);
       domSetPropEat(pndEnv,BAD_CAST "name",pucArgv);
       domSetPropEat(pndEnv,BAD_CAST "select",cxpCtxtEnvGetValue(pccArg,i));
     }
@@ -3482,7 +3478,7 @@ cxpProcessInfoNode(xmlNodePtr pndInfo, cxpContextPtr pccArg)
     for (pccI = pccArg; pccI; pccI = cxpCtxtGetParent(pccI)) {
       for (prnTest = cxpCtxtSearchGet(pccI); prnTest; prnTest = resNodeGetNext(prnTest)) {
 	xmlNodePtr pndSearch;
-	pndSearch = xmlNewChild(nodeRuntime, NULL, BAD_CAST "search", NULL);
+	pndSearch = xmlNewChild(pndRuntime, NULL, BAD_CAST "search", NULL);
 	xmlSetProp(pndSearch, BAD_CAST "select", resNodeGetNameNormalized(prnTest));
 	xmlSetProp(pndSearch, BAD_CAST "recursive", BAD_CAST(resNodeIsRecursive(prnTest) ? "yes" : "no"));
       }
