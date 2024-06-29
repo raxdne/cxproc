@@ -1464,6 +1464,7 @@ SplitTupelToLinkNodesMd(const xmlChar *pucArg)
 	    PrintFormatLog(3, "Image display text '%s' (%i..%i) in '%s'", pucUrlDisplay, ovector[i*2], ovector[i*2+1], pucArg);
 	    pndLink = xmlNewChild(pndResult, NULL, NAME_PIE_IMG, NULL);
 	    xmlSetProp(pndLink, BAD_CAST "title", pucUrlDisplay);
+	    xmlSetProp(pndLink, BAD_CAST "alt", pucUrlDisplay);
 	  }
 	  else {
 	    PrintFormatLog(3, "URL display text '%s' (%i..%i) in '%s'", pucUrlDisplay, ovector[i * 2], ovector[i * 2 + 1], pucArg);
