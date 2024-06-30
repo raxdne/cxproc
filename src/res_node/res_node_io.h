@@ -78,6 +78,14 @@ resNodeGetUsageCount(resNodePtr prnArg);
 extern void
 resNodeChangeDomURL(xmlDocPtr pdocArg, resNodePtr pccArg);
 
+#ifdef HAVE_LIBCURL
+extern size_t
+_CurlReadFromMemoryCallback(void *contents, size_t size, size_t nmemb, void *prnArg);
+
+extern size_t
+CurlWriteToMemoryCallback(void *pucArgBlock, size_t iArgSize, size_t iArgNumber, void *pArg);
+#endif
+
 #ifdef TESTCODE
 extern int
 resNodeTestInOut(void);

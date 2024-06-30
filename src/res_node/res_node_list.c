@@ -29,8 +29,10 @@
 #include <curl/curl.h>
 #endif
 
+#if 0
 #include <libxml/uri.h>
 #include <libxml/nanohttp.h>
+#endif
 #include <libxml/tree.h>
 
 #include "basics.h"

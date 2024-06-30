@@ -25,7 +25,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 #include <libxml/xmlversion.h>
 #include <libxml/HTMLtree.h>
 #include <libxml/parser.h>
-#include <libxml/uri.h>
 
 #ifdef LIBXML_THREAD_ENABLED
 #include <libxml/globals.h>

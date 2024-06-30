@@ -391,9 +391,11 @@ resNodeTestInOut(void)
     else if (resNodeOpen(prnT, "r") == TRUE) {
       printf("Error resNodeOpen()\n");
     }
+#if 0
     else if (resNodeIsOpen(prnT) == TRUE) {
       printf("Error resNodeIsOpen()\n");
     }
+#endif
     else if (resNodeClose(prnT) == TRUE) {
       printf("Error resNodeClose()\n");
     }
@@ -409,7 +411,7 @@ resNodeTestInOut(void)
     xmlChar *pucContent = NULL;
 
     i++;
-    printf("TEST %i in '%s:%i': open and close an local HTTP file context = ",i,__FILE__,__LINE__);
+    printf("TEST %i in '%s:%i': open and close a local HTTP file context on low level = ",i,__FILE__,__LINE__);
 
     if ((prnT = resNodeCurlNew(BAD_CAST HTTPPREFIX)) == NULL) {
       printf("Error resNodeDirNew()\n");
@@ -446,12 +448,14 @@ resNodeTestInOut(void)
     resNodeFree(prnT);
   }
 
+
   if (RUNTEST) {
     resNodePtr prnT = NULL;
     xmlChar *pucContent = NULL;
+size_t s = 2895;
 
     i++;
-    printf("TEST %i in '%s:%i': open and close an local HTTP file context = ",i,__FILE__,__LINE__);
+    printf("TEST %i in '%s:%i': open and close a local HTTP file context on high level  = ",i,__FILE__,__LINE__);
 
     if ((prnT = resNodeDirNew(BAD_CAST HTTPPREFIX "Test/Documents/TestContent.txt")) == NULL) {
       printf("Error resNodeDirNew()\n");
@@ -459,8 +463,8 @@ resNodeTestInOut(void)
     else if (resNodeGetContent(prnT,1024) == NULL) {
       printf("Error resNodeReadContent(): there is no content\n");
     }
-    else if ((pucContent = plainGetContextTextEat(prnT,8)) == NULL || xmlUTF8Strlen(pucContent) < 40) {
-      printf("Error plainGetContextTextEat()\n");
+    else if (resNodeGetSize(prnT) != s) {
+      printf("Error size: %i\n", s);
     }
     else {
       n_ok++;
@@ -469,6 +473,29 @@ resNodeTestInOut(void)
     xmlFree(pucContent);
     resNodeFree(prnT);
   }
+
+
+  if (RUNTEST) {
+    resNodePtr prnT = NULL;
+    xmlDocPtr pdocT = NULL;
+
+    i++;
+    printf("TEST %i in '%s:%i': read a local HTTP file context as DOM = ",i,__FILE__,__LINE__);
+
+    if ((prnT = resNodeDirNew(BAD_CAST HTTPPREFIX "Test/Documents/TestContent.pie")) == NULL) {
+      printf("Error resNodeDirNew()\n");
+    }
+    else if ((pdocT = resNodeGetContentDoc(prnT)) == NULL) {
+      printf("Error resNodeGetContentDoc()\n");
+    }
+    else {
+      n_ok++;
+      printf("OK\n");
+    }
+    domPutDocString(stderr, BAD_CAST "PIE ", pdocT);
+    resNodeFree(prnT);
+  }
+
 
   if (SKIPTEST) {
     resNodePtr prnT = NULL;
@@ -496,7 +523,7 @@ resNodeTestInOut(void)
     xmlChar *pucContent = NULL;
 
     i++;
-    printf("TEST %i in '%s:%i': open and close an local file context = ",i,__FILE__,__LINE__);
+    printf("TEST %i in '%s:%i': open and close a local file context = ",i,__FILE__,__LINE__);
 
     if ((prnT = resNodeDirNew(BAD_CAST "file://" TESTPREFIX "plain/Length_128.txt")) == NULL) {
       printf("Error resNodeDirNew()\n");

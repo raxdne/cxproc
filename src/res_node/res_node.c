@@ -44,7 +44,9 @@
 #endif
 
 #include <libxml/uri.h>
+#if 0
 #include <libxml/nanohttp.h>
+#endif
 #include <libxml/parser.h>
 
 #include "basics.h"
@@ -4137,9 +4139,9 @@ resNodeReadStatus(resNodePtr prnArg)
 #ifdef HAVE_LIBCURL
 	    CURLcode res;
 
-	    curl_easy_setopt((CURL *)resNodeGetHandleIO(prnArg), CURLOPT_CONNECT_ONLY, 1L);
-	    res = curl_easy_perform((CURL *)resNodeGetHandleIO(prnArg));
-	    if (CURLE_OK == res) {
+	    curl_easy_setopt((CURL *)prnArg->handleIO, CURLOPT_CONNECT_ONLY, 1L);
+	    res = curl_easy_perform((CURL *)prnArg->handleIO);
+	    if (res == CURLE_OK) { /* only connected! */
 	      prnArg->fRead = TRUE;
 	      prnArg->fExist = TRUE;
 	    }
@@ -4147,7 +4149,7 @@ resNodeReadStatus(resNodePtr prnArg)
 	      prnArg->fRead = FALSE;
 	      prnArg->fExist = FALSE;
 	    }
-	    curl_easy_setopt((CURL *)resNodeGetHandleIO(prnArg), CURLOPT_CONNECT_ONLY, 0L);
+	    curl_easy_setopt((CURL *)prnArg->handleIO, CURLOPT_CONNECT_ONLY, 0L);
 #else
 	    //prnArg->liSize = xmlNanoHTTPContentLength(resNodeGetHandleIO(prnArg));
 	    //localtime(&(prnArg->tMtime));
@@ -4897,6 +4899,7 @@ resNodeResetMimeType(resNodePtr prnArg)
 	xmlFree(pucE);
       }
     }
+#if 0
     else if (resNodeGetType(prnArg) == rn_type_url_http) { /*! detect MIME type by fetching Content-type */
       resNodeSetMimeType(prnArg,resMimeGetType((char *)xmlNanoHTTPMimeType(resNodeGetHandleIO(prnArg))));
       if (prnArg->eMimeType == MIME_UNDEFINED) {
@@ -4910,6 +4913,7 @@ resNodeResetMimeType(resNodePtr prnArg)
 	}
       }
     }
+#endif
     else if (resNodeGetType(prnArg) == rn_type_url) {
       /*!\bug detect MIME type by fetching Content-type */
       resNodeSetMimeType(prnArg,resMimeGetTypeFromExt(resNodeGetExtension(prnArg)));

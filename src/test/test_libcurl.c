@@ -206,7 +206,63 @@ curlTest(void)
     curl_url_cleanup(h); /* free url handle */
   }
 
-  
+
+  if (RUNTEST) {
+    /* TEST: https://curl.se/libcurl/c/curl_easy_init.html
+     */
+    CURL *curl;
+    CURLcode res;
+    resNodePtr prnT;
+    size_t s = 70275;
+
+    i++;
+    printf("TEST %i in '%s:%i': ", i, __FILE__, __LINE__);
+
+    if ((prnT = resNodeNew()) == NULL) { /* get a handle to work with */
+      printf("Error resNodeNew()\n");
+    }
+    else if ((curl = curl_easy_init()) == NULL) { /* get a handle to work with */
+      printf("Error curl_easy_init()\n");
+    }
+    else if ((res = curl_easy_setopt(curl, CURLOPT_URL, HTTPPREFIX "Test/Pictures/Tux.png")) != CURLE_OK) { /* parse a full URL */
+      printf("Error curl_easy_setopt() ...\n");
+    }
+    else if ((res = curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, CurlWriteToMemoryCallback)) != CURLE_OK) { /*  */
+      printf("Error curl_easy_setopt() ...\n");
+    }
+    else if ((res = curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)prnT)) != CURLE_OK) { /*  */
+      printf("Error curl_easy_setopt() ...\n");
+    }
+    else if ((res = curl_easy_setopt(curl, CURLOPT_CONNECT_ONLY, 1L)) != CURLE_OK) { /*  */
+      printf("Error curl_easy_setopt() ...\n");
+    }
+    else if ((res = curl_easy_setopt(curl, CURLOPT_TIMEOUT, 2L)) != CURLE_OK) { /*  */
+      printf("Error curl_easy_setopt() ...\n");
+    }
+    else if ((res = curl_easy_perform(curl)) != CURLE_OK) { /* parse a full URL */
+      printf("Error curl_easy_perform() ...\n");
+    }
+    else if (resNodeGetSize(prnT) != 0) {
+      printf("Error file size %i ...\n", resNodeGetSize(prnT));
+    }
+    else if ((res = curl_easy_setopt(curl, CURLOPT_CONNECT_ONLY, 0L)) != CURLE_OK) { /*  */
+      printf("Error curl_easy_setopt() ...\n");
+    }
+    else if ((res = curl_easy_perform(curl)) != CURLE_OK) { /* parse a full URL */
+      printf("Error curl_easy_perform() ...\n");
+    }
+    else if (resNodeGetSize(prnT) != s) {
+      printf("Error file size %i ...\n", s - resNodeGetSize(prnT));
+    }
+    else {
+      n_ok++;
+      printf("OK\n");
+    }
+    curl_easy_cleanup(curl);
+    resNodeFree(prnT);
+  }
+
+
   if (SKIPTEST) {
     /* TEST:
      */

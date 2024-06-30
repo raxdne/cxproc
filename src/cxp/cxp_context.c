@@ -29,7 +29,6 @@
 #include <libxml/xmlversion.h>
 #include <libxml/HTMLtree.h>
 #include <libxml/parser.h>
-#include <libxml/uri.h>
 
 #include <libxslt/xslt.h>
 #include <libxslt/xsltutils.h>

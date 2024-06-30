@@ -73,7 +73,6 @@ output of plain text file
  */
 
 #include <libxml/parser.h>
-#include <libxml/uri.h>
 
 #ifdef HAVE_PCRE2
 #include <pcre2.h>

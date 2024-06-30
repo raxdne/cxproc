@@ -27,7 +27,6 @@
 */
 #include <libxml/HTMLtree.h>
 #include <libxml/parser.h>
-#include <libxml/uri.h>
 #include <libxml/xmlstring.h>
 
 /* 

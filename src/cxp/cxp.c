@@ -30,7 +30,6 @@
 #include <libxml/HTMLtree.h>
 #include <libxml/parser.h>
 #include <libxml/relaxng.h>
-#include <libxml/uri.h>
 
 #ifdef LIBXML_THREAD_ENABLED
 #include <libxml/globals.h>

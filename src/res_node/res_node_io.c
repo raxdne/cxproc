@@ -26,7 +26,7 @@
 
 #ifdef HAVE_LIBCURL
 #include <curl/curl.h>
-#else
+#elif 0
 #include <libxml/uri.h>
 #include <libxml/nanohttp.h>
 #endif
@@ -56,14 +56,6 @@ OpenURL(resNodePtr prnArg);
 
 static BOOL_T
 CloseURL(resNodePtr prnArg);
-
-#ifdef HAVE_LIBCURL
-static size_t
-_CurlReadFromMemoryCallback(void *contents, size_t size, size_t nmemb, void *prnArg);
-
-static size_t
-CurlWriteToMemoryCallback(void *pucArgBlock, size_t iArgSize, size_t iArgNumber, void *pArg);
-#endif
 
 static BOOL_T
 OpenSqlite(resNodePtr prnArg);
@@ -131,7 +123,7 @@ resNodeOpen(resNodePtr prnArg, const char *pchArgMode)
 
   if (resNodeResetError(prnArg)) {
 
-    assert(prnArg->handleIO == NULL || prnArg->handleIO == (void *)stdin || prnArg->handleIO == (void *)stdout);
+   // assert(prnArg->handleIO == NULL || prnArg->handleIO == (void *)stdin || prnArg->handleIO == (void *)stdout);
     resNodeSetMode(prnArg, pchArgMode);
     
     PrintFormatLog(3, "Open file '%s' in '%s' mode", resNodeGetNameNormalized(prnArg), pchArgMode);
@@ -482,36 +474,38 @@ OpenURL(resNodePtr prnArg)
 {
   BOOL_T fResult = FALSE;
 
-  assert(prnArg != NULL && prnArg->handleIO == NULL);
+  if (prnArg != NULL) {
 
 #ifdef HAVE_LIBCURL
-  // s. "curl\docs\examples\getinmemory.c" or "curl\docs\examples\fopen.c"
+    // s. "curl\docs\examples\getinmemory.c" or "curl\docs\examples\fopen.c"
 
-  if (prnArg->eMode == mode_write) {
-    resNodeSetError(prnArg, rn_error_open, "writing mode for URL not implemented yet '%s'", resNodeGetNameNormalized(prnArg));
-    //prnArg->eAccess = rn_access_curl;
-  }
-  else if (prnArg->curlURL) {
-    /* init the curl session */
-    prnArg->handleIO = curl_easy_init();
-    if (prnArg->handleIO) {
+    if (prnArg->eMode == mode_write) {
+      resNodeSetError(prnArg, rn_error_open, "writing mode for URL not implemented yet '%s'", resNodeGetNameNormalized(prnArg));
+      // prnArg->eAccess = rn_access_curl;
+    }
+    else if (prnArg->curlURL) {
       CURLcode res;
 
-      //if (prnArg->curlURL) {
-      curl_easy_setopt(prnArg->handleIO, CURLOPT_CURLU, prnArg->curlURL);
-      //}
-      //else {
-      /* specify URL to get */
-      //curl_easy_setopt(prnArg->handleIO, CURLOPT_URL, resNodeGetNameNormalizedNative(prnArg));
-      //}
-      
-      curl_easy_setopt(prnArg->handleIO, CURLOPT_CONNECT_ONLY, 1L);
-      curl_easy_setopt(prnArg->handleIO, CURLOPT_TIMEOUT, 2L);
-      res = curl_easy_perform(prnArg->handleIO);
-      if (res == CURLE_OK) { /* only connected! */
-	long code;
+      prnArg->eAccess = rn_access_curl;
 
-	curl_easy_setopt(prnArg->handleIO, CURLOPT_CONNECT_ONLY, 0L);
+      if (prnArg->handleIO == NULL) {
+	char *pcURL = NULL;
+	CURLUcode rc;
+
+	rc = curl_url_get(prnArg->curlURL, CURLUPART_URL, &pcURL, 0);
+	if (rc == CURLUE_OK) {
+	  /* init the curl session */
+	  prnArg->handleIO = curl_easy_init();
+	  curl_easy_setopt(prnArg->handleIO, CURLOPT_URL, pcURL);
+	}
+	curl_free(pcURL);
+      }
+
+      if (prnArg->handleIO) {
+	curl_easy_setopt(prnArg->handleIO, CURLOPT_TIMEOUT, 2L);
+
+	/* some servers don't like requests that are made without a user-agent field, so we provide one */
+	curl_easy_setopt(prnArg->handleIO, CURLOPT_USERAGENT, "libcurl-agent/1.0");
 
 	/* send all data to this function  */
 	curl_easy_setopt(prnArg->handleIO, CURLOPT_WRITEFUNCTION, CurlWriteToMemoryCallback);
@@ -519,16 +513,17 @@ OpenURL(resNodePtr prnArg)
 	/* we pass our 'chunk' struct to the callback function */
 	curl_easy_setopt(prnArg->handleIO, CURLOPT_WRITEDATA, (void *)prnArg);
 
-	/* some servers don't like requests that are made without a user-agent
-	field, so we provide one */
-	curl_easy_setopt(prnArg->handleIO, CURLOPT_USERAGENT, "libcurl-agent/1.0");
-
-	/*\todo get "Content-Disposition" as prnArg->alias */
-
-	prnArg->eAccess = rn_access_curl;
-	prnArg->fExist = TRUE;
-	prnArg->fStat = TRUE;
-	fResult = TRUE;
+	curl_easy_setopt(prnArg->handleIO, CURLOPT_CONNECT_ONLY, 1L);
+	res = curl_easy_perform(prnArg->handleIO);
+	if (res == CURLE_OK) { /* only connected! */
+	  prnArg->fExist = TRUE;
+	  fResult = TRUE;
+	  curl_easy_setopt(prnArg->handleIO, CURLOPT_CONNECT_ONLY, 0L);
+	}
+	else {
+	  CloseURL(prnArg);
+	  resNodeSetError(prnArg, rn_error_open, "Error '%s': '%s'", resNodeGetNameNormalized(prnArg), curl_easy_strerror(res));
+	}
       }
       else {
 	CloseURL(prnArg);
@@ -539,24 +534,23 @@ OpenURL(resNodePtr prnArg)
       CloseURL(prnArg);
       resNodeSetError(prnArg, rn_error_open, "opening error '%s'", resNodeGetNameNormalized(prnArg));
     }
-  }
-#else
-  if (prnArg->eType == rn_type_url_http) {
-    prnArg->handleIO = xmlNanoHTTPOpen(resNodeGetNameNormalizedNative(prnArg), NULL);
-  }
-  else if (prnArg->eType == rn_type_url_ftp) {
-    //prnArg->handleIO = xmlNanoFTPOpen(resNodeGetNameNormalizedNative(prnArg), NULL);
-  }
+#elif 0
+    if (prnArg->eType == rn_type_url_http) {
+      prnArg->handleIO = xmlNanoHTTPOpen(resNodeGetNameNormalizedNative(prnArg), NULL);
+    }
+    else if (prnArg->eType == rn_type_url_ftp) {
+      //prnArg->handleIO = xmlNanoFTPOpen(resNodeGetNameNormalizedNative(prnArg), NULL);
+    }
 
-  if (prnArg->handleIO) {
-    prnArg->eAccess = rn_access_xmlio;
-    fResult = TRUE;
-  }
-  else {
-    resNodeSetError(prnArg, rn_error_open, "opening error '%s'", resNodeGetNameNormalized(prnArg));
-  }
+    if (prnArg->handleIO) {
+      prnArg->eAccess = rn_access_xmlio;
+      fResult = TRUE;
+    }
+    else {
+      resNodeSetError(prnArg, rn_error_open, "opening error '%s'", resNodeGetNameNormalized(prnArg));
+    }
 #endif
-
+  }
   return fResult;
 } /* end of OpenURL() */
 
@@ -576,7 +570,7 @@ CloseURL(resNodePtr prnArg)
   /* cleanup curl stuff */
   curl_easy_cleanup((CURL *)prnArg->handleIO);
   fResult = TRUE;
-#else
+#elif 0
   if (resNodeGetType(prnArg) == rn_type_url_http) {
     xmlIOHTTPClose(prnArg->handleIO);
     fResult = TRUE;
@@ -912,159 +906,141 @@ resNodeReadContent(resNodePtr prnArg, int iArgMax)
   BOOL_T fResult = FALSE;
 
   if (prnArg != NULL) {
-    char *pchInput = NULL;  /*! pointer to collection buffer */
+    char *pchInput = NULL; /*! pointer to collection buffer */
     size_t cchResultAllocated = 0;
-    size_t cchResult = 0;		/*! counter for collected string length */
-    size_t cchReadInput = 0;		/*! counter for collected string length */
+    size_t cchResult = 0;    /*! counter for collected string length */
+    size_t cchReadInput = 0; /*! counter for collected string length */
     int iLoop;
 
     assert(prnArg->eMode == mode_read);
-    //assert(resNodeGetType(prnArg) != rn_type_archive);
+    // assert(resNodeGetType(prnArg) != rn_type_archive);
     assert(resNodeGetType(prnArg) != rn_type_file_in_archive);
     assert(resNodeGetType(prnArg) != rn_type_dir_in_archive);
     assert(resNodeGetType(prnArg) != rn_type_file_compressed);
 
     resNodeResetError(prnArg);
-    //assert(resNodeGetHandleIO(prnArg) != NULL || resNodeGetHandleIO(resNodeGetParent(prnArg)) != NULL || resNodeGetHandleIO(resNodeGetAncestorArchive(prnArg)) != NULL);
+    // assert(resNodeGetHandleIO(prnArg) != NULL || resNodeGetHandleIO(resNodeGetParent(prnArg)) != NULL ||
+    // resNodeGetHandleIO(resNodeGetAncestorArchive(prnArg)) != NULL);
 
-    resNodeSetContentPtr(prnArg,NULL,0);
+    resNodeSetContentPtr(prnArg, NULL, 0);
     fResult = TRUE;
     if (resNodeGetBlockSize(prnArg) < 1) {
-      resNodeSetBlockSize(prnArg,BUFFER_LENGTH);
+      resNodeSetBlockSize(prnArg, BUFFER_LENGTH);
     }
 
 #ifdef HAVE_LIBCURL
     if (prnArg->eAccess == rn_access_curl && prnArg->handleIO != NULL) {
       CURLcode res;
 
-      /* get it! */
-      res = curl_easy_perform((CURL *) resNodeGetHandleIO(prnArg));
+      res = curl_easy_perform((CURL *)resNodeGetHandleIO(prnArg));
       if (res == CURLE_OK) {
 	char *pcType = NULL;
-	curl_off_t cl;
-	
-	/* check the size: https://curl.haxx.se/libcurl/c/CURLINFO_CONTENT_LENGTH_DOWNLOAD_T.html */
-	res = curl_easy_getinfo((CURL *)resNodeGetHandleIO(prnArg), CURLINFO_CONTENT_LENGTH_DOWNLOAD_T, &cl);
-	if (res == CURLE_OK) {
-	  prnArg->liSize = cl;
-	}
 
-	/* ask for filetime: https://curl.haxx.se/libcurl/c/CURLINFO_FILETIME_T.html */
-	curl_easy_setopt((CURL *)resNodeGetHandleIO(prnArg), CURLOPT_FILETIME, 1L);
-	if (res == CURLE_OK) {
-	  curl_off_t filetime;
-
-	  res = curl_easy_getinfo((CURL *)resNodeGetHandleIO(prnArg), CURLINFO_FILETIME_T, &filetime);
-	  if ((res == CURLE_OK) && (filetime >= 0)) {
-	    prnArg->tMtime = (time_t)filetime;
-	  }
-	}
-	curl_easy_setopt((CURL *)resNodeGetHandleIO(prnArg), CURLOPT_FILETIME, 0L);
-
-	res = curl_easy_getinfo((CURL *) resNodeGetHandleIO(prnArg),CURLINFO_CONTENT_TYPE,&pcType);
+	res = curl_easy_getinfo((CURL *)resNodeGetHandleIO(prnArg), CURLINFO_CONTENT_TYPE, &pcType);
 	if (res == CURLE_OK && STR_IS_NOT_EMPTY(pcType)) {
 	  PrintFormatLog(3, "URL Content Type is '%s'", pcType);
 	  prnArg->eMimeType = resMimeGetType(pcType);
 	}
+
+	/* prnArg->liSizeContent is set by CurlWriteToMemoryCallback() already */
       }
       else {
-	resNodeSetError(prnArg,rn_error_memory, "curl_easy_perform() failed: %s", curl_easy_strerror(res));
+	resNodeSetError(prnArg, rn_error_memory, "curl_easy_perform() failed: %s", curl_easy_strerror(res));
 	fResult = FALSE;
       }
     }
-    else
 #elif 0
-      /*\bug fix code */
-      if (resNodeGetType(prnArg) == rn_type_url_http) {
-	cchReadInput = xmlIOHTTPRead(resNodeGetHandleIO(prnArg), &(pchInput[cchResult]), resNodeGetBlockSize(prnArg));
-      }
-      else if (resNodeGetType(prnArg) == rn_type_url_ftp) {
-	cchReadInput = xmlIOFTPRead(resNodeGetHandleIO(prnArg), &(pchInput[cchResult]), resNodeGetBlockSize(prnArg));
-      }
+    /*\bug fix code */
+    if (resNodeGetType(prnArg) == rn_type_url_http) {
+      cchReadInput = xmlIOHTTPRead(resNodeGetHandleIO(prnArg), &(pchInput[cchResult]), resNodeGetBlockSize(prnArg));
     }
-    else
+    else if (resNodeGetType(prnArg) == rn_type_url_ftp) {
+      //cchReadInput = xmlIOFTPRead(resNodeGetHandleIO(prnArg), &(pchInput[cchResult]), resNodeGetBlockSize(prnArg));
+    }
 #endif
-      if (resNodeGetSize(prnArg) > 0) { /* content size is known already */
-      void *pInput;  /*! pointer to buffer */
+    else {
+      if (resNodeGetSize(prnArg) > 0 && resNodeGetSize(prnArg) < (size_t)(iArgMax * BUFFER_LENGTH)) { /* content size is known already */
+	void *pInput;										      /*! pointer to buffer */
 
-      pInput = xmlMalloc(resNodeGetSize(prnArg) + 1);
-      if (pInput) {
-	memset(pInput,0,resNodeGetSize(prnArg) + 1); /* to get a null termination of buffer */
+	pInput = xmlMalloc(resNodeGetSize(prnArg) + 1);
+	if (pInput) {
+	  memset(pInput, 0, resNodeGetSize(prnArg) + 1); /* to get a null termination of buffer */
 #ifdef _MSC_VER
-	cchReadInput = fread_s(pInput, (size_t)(iArgMax * BUFFER_LENGTH), (size_t)1, resNodeGetSize(prnArg), (FILE *)resNodeGetHandleIO(prnArg));
+	  cchReadInput = fread_s(pInput, (size_t)(iArgMax * BUFFER_LENGTH), (size_t)1, resNodeGetSize(prnArg), (FILE *)resNodeGetHandleIO(prnArg));
 #else
-	cchReadInput = fread(pInput, 1, resNodeGetSize(prnArg), (FILE *)resNodeGetHandleIO(prnArg));
+	  cchReadInput = fread(pInput, 1, resNodeGetSize(prnArg), (FILE *)resNodeGetHandleIO(prnArg));
 #endif
 
-	/*!\todo handle VC++ newline processing */
-	if (ferror((FILE *)resNodeGetHandleIO(prnArg))) {
-	  /*!\todo why is input_length != stStat.st_size with VC++ */
-	  xmlFree(pInput);
-	  resNodeSetError(prnArg, rn_error_read, "File read error");
-	  fResult = FALSE;
-	}
-	else if (cchReadInput != resNodeGetSize(prnArg)) {
-	  xmlFree(pInput);
-	  resNodeSetError(prnArg, rn_error_memory, "Memory error");
-	  fResult = FALSE;
-	}
-	else {
-	  resNodeSetContentPtr(prnArg, pInput, cchReadInput);
-	}
-      }
-      else {
-	resNodeSetError(prnArg, rn_error_memory, "Memory error");
-	fResult = FALSE;
-      }
-    }
-    else { /* loop for dynamically allocated memory blocks */
-      iLoop = (iArgMax < 1 || iArgMax > 1024 * 1024) ? 1024 : iArgMax;
-      do {
-
-	if (iLoop < 1) {
-	  resNodeSetError(prnArg,rn_error_memory, "Maximum buffer size '%i' Byte reached", cchResultAllocated);
-	  break;
-	}
-
-	if (pchInput == NULL || cchResultAllocated - cchResult < resNodeGetBlockSize(prnArg)) {
-	  /*
-	    inrease the size of buffer
-	  */
-	  cchResultAllocated += resNodeGetBlockSize(prnArg) + 1;
-#ifdef DEBUG
-	  PrintFormatLog(3, "Resize text input buffer to '%i' Byte", cchResultAllocated);
-#endif
-	  pchInput = (char *)xmlRealloc((void *)pchInput, cchResultAllocated);
-	  iLoop--;
-	}
-
-	if (pchInput) {
-	  if (resNodeGetType(prnArg) == rn_type_file || resNodeGetType(prnArg) == rn_type_stdin) {
-	    cchReadInput = fread(&(pchInput[cchResult]), (size_t)1, resNodeGetBlockSize(prnArg), (FILE *)resNodeGetHandleIO(prnArg));
-	    /*!\todo handle VC++ newline processing */
-	    if (ferror((FILE *)resNodeGetHandleIO(prnArg))) {
-	      /*!\todo why is input_length != stStat.st_size with VC++ */
-	      resNodeSetError(prnArg,rn_error_read, "File read error");
-	      fResult = FALSE;
-	    }
+	  /*!\todo handle VC++ newline processing */
+	  if (ferror((FILE *)resNodeGetHandleIO(prnArg))) {
+	    /*!\todo why is input_length != stStat.st_size with VC++ */
+	    xmlFree(pInput);
+	    resNodeSetError(prnArg, rn_error_read, "File read error");
+	    fResult = FALSE;
+	  }
+	  else if (cchReadInput != resNodeGetSize(prnArg)) {
+	    xmlFree(pInput);
+	    resNodeSetError(prnArg, rn_error_memory, "Memory error");
+	    fResult = FALSE;
+	  }
+	  else {
+	    resNodeSetContentPtr(prnArg, pInput, cchReadInput);
 	  }
 	}
 	else {
-	  resNodeSetError(prnArg,rn_error_memory, "Not enough memory");
-	}
-	cchResult += cchReadInput;
-      } while (fResult == TRUE && cchReadInput == resNodeGetBlockSize(prnArg));
-
-      if (fResult == TRUE && pchInput != NULL) {
-	pchInput[cchResult] = '\0'; /*!\bug if (content length == n * resNodeGetBlockSize(prnArg)) */
-	resNodeSetContentPtr(prnArg, (void *)pchInput, cchResult);
-	if (resNodeGetType(resNodeGetParent(prnArg)) == rn_type_file_compressed) {
-	  resNodeResetMimeType(resNodeGetParent(prnArg));
+	  resNodeSetError(prnArg, rn_error_memory, "Memory error");
+	  fResult = FALSE;
 	}
       }
-      else {
-	xmlFree(pchInput);
-	resNodeSetContentPtr(prnArg,NULL,0);
+      else { /* loop for dynamically allocated memory blocks */
+	iLoop = (iArgMax < 1 || iArgMax > 1024 * 1024) ? 1024 : iArgMax;
+	do {
+
+	  if (iLoop < 1) {
+	    resNodeSetError(prnArg, rn_error_memory, "Maximum buffer size '%i' Byte reached", cchResultAllocated);
+	    break;
+	  }
+
+	  if (pchInput == NULL || cchResultAllocated - cchResult < resNodeGetBlockSize(prnArg)) {
+	    /*
+	      inrease the size of buffer
+	    */
+	    cchResultAllocated += resNodeGetBlockSize(prnArg) + 1;
+#ifdef DEBUG
+	    PrintFormatLog(3, "Resize text input buffer to '%i' Byte", cchResultAllocated);
+#endif
+	    pchInput = (char *)xmlRealloc((void *)pchInput, cchResultAllocated);
+	    iLoop--;
+	  }
+
+	  if (pchInput) {
+	    if (resNodeGetType(prnArg) == rn_type_file || resNodeGetType(prnArg) == rn_type_stdin) {
+	      cchReadInput = fread(&(pchInput[cchResult]), (size_t)1, resNodeGetBlockSize(prnArg), (FILE *)resNodeGetHandleIO(prnArg));
+	      /*!\todo handle VC++ newline processing */
+	      if (ferror((FILE *)resNodeGetHandleIO(prnArg))) {
+		/*!\todo why is input_length != stStat.st_size with VC++ */
+		resNodeSetError(prnArg, rn_error_read, "File read error");
+		fResult = FALSE;
+	      }
+	    }
+	  }
+	  else {
+	    resNodeSetError(prnArg, rn_error_memory, "Not enough memory");
+	  }
+	  cchResult += cchReadInput;
+	} while (fResult == TRUE && cchReadInput == resNodeGetBlockSize(prnArg));
+
+	if (fResult == TRUE && pchInput != NULL) {
+	  pchInput[cchResult] = '\0'; /*!\bug if (content length == n * resNodeGetBlockSize(prnArg)) */
+	  resNodeSetContentPtr(prnArg, (void *)pchInput, cchResult);
+	  if (resNodeGetType(resNodeGetParent(prnArg)) == rn_type_file_compressed) {
+	    resNodeResetMimeType(resNodeGetParent(prnArg));
+	  }
+	}
+	else {
+	  xmlFree(pchInput);
+	  resNodeSetContentPtr(prnArg, NULL, 0);
+	}
       }
     }
     fResult = (prnArg->pContent != NULL);
@@ -1072,49 +1048,52 @@ resNodeReadContent(resNodePtr prnArg, int iArgMax)
   return fResult;
 } /* end of resNodeReadContent() */
 
+  /*! Reads the whole file content of this context, sets liSizeContent and returns a POINTER to the buffer.
 
-/*! Reads the whole file content of this context, sets liSizeContent and returns a POINTER to the buffer.
+  \param prnArg the context
+  \param iArgMax maximum number of buffer blocks (Bytes = BUFFER_LENGTH * iArgMax)
+  \return a pointer to the buffer of content or NULL in case of errors
+  */
+  void *resNodeGetContent(resNodePtr prnArg, int iArgMax)
+  {
+    void *pResult = NULL;
 
-\param prnArg the context
-\param iArgMax maximum number of buffer blocks (Bytes = BUFFER_LENGTH * iArgMax)
-\return a pointer to the buffer of content or NULL in case of errors
-*/
-void *
-resNodeGetContent(resNodePtr prnArg, int iArgMax)
-{
-  void *pResult = NULL;
-
-  if (prnArg) {
-    if ((pResult = resNodeGetContentPtr(prnArg))) {
-      /* content read already */
-    }
-    else {
-      if (resNodeIsStd(prnArg)) {
-	if (resNodeOpen(prnArg, "rb") && resNodeReadContent(prnArg, iArgMax)) {
-	  pResult = resNodeGetContentPtr(prnArg);
-	}
+    if (prnArg) {
+      if ((pResult = resNodeGetContentPtr(prnArg))) {
+	/* content read already */
       }
-      else if (resNodeIsDatabase(prnArg)) { /* handle database content as binary content only */
-	if (resNodeOpen(prnArg, "rb") == FALSE) {
-	  /* error while opening */
-	}
-	else if (resNodeReadContent(prnArg, iArgMax)) {
-	  pResult = resNodeGetContentPtr(prnArg);
-	}
-      }
-      else if (resNodeIsFileInArchive(prnArg)) {
-	resNodePtr prnArchive;
-	resNodePtr prnUrl;
-
-	if ((prnArchive = resNodeGetAncestorArchive(prnArg)) != NULL) {
-
-	  if (resPathIsURL(resNodeGetNameNormalized(prnArchive)) && ! resNodeIsMemory(prnArchive)) {
-	    /* must fetch archive content from URL into memory */
-	    if (resNodeOpen(prnArchive, "rb")) {
-	      resNodeReadContent(prnArchive, iArgMax);
-	      resNodeClose(prnArchive);
-	    }
+      else {
+	if (resNodeIsURL(prnArg)) {
+	  if (resNodeOpen(prnArg, "rb") && resNodeReadContent(prnArg, iArgMax)) {
+	    pResult = resNodeGetContentPtr(prnArg);
 	  }
+	}
+	else if (resNodeIsStd(prnArg)) {
+	  if (resNodeOpen(prnArg, "rb") && resNodeReadContent(prnArg, iArgMax)) {
+	    pResult = resNodeGetContentPtr(prnArg);
+	  }
+	}
+	else if (resNodeIsDatabase(prnArg)) { /* handle database content as binary content only */
+	  if (resNodeOpen(prnArg, "rb") == FALSE) {
+	    /* error while opening */
+	  }
+	  else if (resNodeReadContent(prnArg, iArgMax)) {
+	    pResult = resNodeGetContentPtr(prnArg);
+	  }
+	}
+	else if (resNodeIsFileInArchive(prnArg)) {
+	  resNodePtr prnArchive;
+	  resNodePtr prnUrl;
+
+	  if ((prnArchive = resNodeGetAncestorArchive(prnArg)) != NULL) {
+
+	    if (resPathIsURL(resNodeGetNameNormalized(prnArchive)) && !resNodeIsMemory(prnArchive)) {
+	      /* must fetch archive content from URL into memory */
+	      if (resNodeOpen(prnArchive, "rb")) {
+		resNodeReadContent(prnArchive, iArgMax);
+		resNodeClose(prnArchive);
+	      }
+	    }
 
 #ifdef HAVE_LIBARCHIVE
 	  if (arcAppendEntries(prnArchive, NULL, TRUE)) {

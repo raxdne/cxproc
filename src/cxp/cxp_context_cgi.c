@@ -56,7 +56,6 @@ RFC3875 CGI 1.1 <http://tools.ietf.org/html/rfc3875#page-10>
 #include <libxml/xmlversion.h>
 #include <libxml/HTMLtree.h>
 #include <libxml/parser.h>
-#include <libxml/uri.h>
 
 #ifdef LIBXML_THREAD_ENABLED
 #include <libxml/globals.h>

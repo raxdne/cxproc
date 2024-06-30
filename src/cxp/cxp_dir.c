@@ -23,7 +23,6 @@
 /* 
  */
 #include <libxml/tree.h>
-#include <libxml/uri.h>
 
 #include "basics.h"
 #include <res_node/res_node_ops.h>
