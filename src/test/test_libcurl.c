@@ -162,6 +162,7 @@ curlTest(void)
      */
     CURLU *h;
     CURLUcode uc;
+    char *scheme = NULL;
     char *host = NULL;
     char *path = NULL;
     char *query = NULL;
@@ -174,8 +175,11 @@ curlTest(void)
     if ((h = curl_url()) == NULL) { /* get a handle to work with */
       printf("Error curl_url()\n");
     }
-    else if ((uc = curl_url_set(h, CURLUPART_URL, "file://C:/tmp/test%20-%2022.txt", 0)) != CURLE_OK) { /* parse a full URL */
+    else if ((uc = curl_url_set(h, CURLUPART_PATH, "file://C:/tmp/test - 22.txt", 0)) != CURLE_OK) { /* parse a full URL */
       printf("Error curl_url_set() ...\n");
+    }
+    else if ((uc = curl_url_get(h, CURLUPART_SCHEME, &scheme, 0)) != CURLUE_NO_SCHEME) { /* no scheme name from the parsed URL */
+      printf("Error () ...\n");
     }
     else if ((uc = curl_url_get(h, CURLUPART_HOST, &host, 0)) != CURLUE_NO_HOST) { /* no host name from the parsed URL */
       printf("Error () ...\n");
@@ -183,10 +187,10 @@ curlTest(void)
     else if ((uc = curl_url_get(h, CURLUPART_PATH, &path, 0)) != CURLE_OK) { /* extract the path from the parsed URL */
       printf("Error () ...\n");
     }
-    else if ((uc = curl_url_get(h, CURLUPART_QUERY, &query, 0)) != CURLE_OK) { /* extract the query from the parsed URL */
+    else if ((uc = curl_url_get(h, CURLUPART_QUERY, &query, 0)) != CURLUE_NO_QUERY) { /* extract the query from the parsed URL */
       printf("Error () ...\n");
     }
-    else if ((uc = curl_url_get(h, CURLUPART_FRAGMENT, &fragment, 0)) != CURLE_OK) { /* extract the fragment from the parsed URL */
+    else if ((uc = curl_url_get(h, CURLUPART_FRAGMENT, &fragment, 0)) != CURLUE_NO_FRAGMENT) { /* extract the fragment from the parsed URL */
       printf("Error () ...\n");
     }
     else if ((uc = curl_url_set(h, CURLUPART_URL, "../another/second.html", 0)) != CURLE_OK) { /* redirect with a relative URL */
@@ -200,6 +204,7 @@ curlTest(void)
       printf("OK\n");
     }
     
+    curl_free(scheme);
     curl_free(host);
     curl_free(path);
     curl_free(path2);
