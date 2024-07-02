@@ -1313,7 +1313,7 @@ IncludeNodeFile(xmlNodePtr pndArgInclude, cxpContextPtr pccArg)
 
       //domPutNodeString(stderr, BAD_CAST "IncludeNodeFile()", pndT);
       if (pndT != NULL && pndT->children != NULL) {
-	//RecognizeSubsts(pndT);
+	RecognizeSubsts(pndT);
 	domReplaceNodeList(pndArgInclude, pndT->children);
 	xmlFreeNodeList(pndArgInclude);
 	xmlFreeNode(pndT);
