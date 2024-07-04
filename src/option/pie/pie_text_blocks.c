@@ -1796,9 +1796,9 @@ RecognizeUrls(xmlNodePtr pndArg)
 	if (pndReplace == NULL) {
 	  /* nothing found */
 	}
-	else if (IS_NODE_PIE_PAR(pndArg) && pndArg->children == pndChild && pndArg->children == pndArg->last
-	  && IS_NODE_PIE_IMG(pndReplace->children) && pndReplace->children == pndReplace->last) {
-	  /*! 
+	else if ((IS_NODE_PIE_PAR(pndArg) && !IS_NODE_PIE_LIST(pndArg->parent)) && pndArg->children == pndChild &&
+		 pndArg->children == pndArg->last && IS_NODE_PIE_IMG(pndReplace->children) && pndReplace->children == pndReplace->last) {
+	  /*!
 	  use an image link as figure element if it's the only child of pndArg
 	  */
 	  xmlNodePtr pndT = pndReplace->children;
@@ -3162,7 +3162,7 @@ RecognizeFigures(xmlNodePtr pndArg)
       xmlNodePtr pndForAppend;
       int iLengthStr;
 
-      if (IS_NODE_PIE_PAR(pndArg)) {
+      if (IS_NODE_PIE_PAR(pndArg) && ! IS_NODE_PIE_LIST(pndArg->parent)) {
 	if ((pndChild = pndArg->children) != NULL
 	    && xmlNodeIsText(pndChild)
 	    && pndChild->content != NULL

@@ -363,13 +363,14 @@ cmarkTreeToDOM(xmlNodePtr pndArgBlock, xmlNodePtr pndArg, cmark_node* pcmnArg)
       }
     }
     else if (pcmnArg->type == CMARK_NODE_IMAGE) {
-      if (pcmnArg->next == NULL && pcmnArg->prev == NULL) {
+      if (pcmnArg->next == NULL && pcmnArg->prev == NULL && ! IS_NODE_PIE_LIST(pndArg->parent)) {
 	/* its an image in a single paragraph */
 	xmlNodeSetName(pndArg, NAME_PIE_FIG);
 	pndT = xmlNewChild(pndArg, NULL, NAME_PIE_IMG, NULL);
 	xmlSetProp(pndT, BAD_CAST "src", pcmnArg->as.link.url);
 	pndT = xmlNewChild(pndArg, NULL, NAME_PIE_HEADER, NULL);
 	cmarkTreeToDOM(pndArg, pndT, pcmnArg->first_child);
+	xmlNewTextChild(pndArg, NULL, NAME_PIE_TTAG, BAD_CAST "#fig");
       }
       else {
 	/* the image is inline (prefix and/or postfix text) */
