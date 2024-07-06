@@ -76,7 +76,7 @@ extern xmlChar *
 resNodeListToGraphviz(resNodePtr prnArg, int iArgOptions);
 
 extern BOOL_T
-resNodeListDumpRecursively(FILE *argout, resNodePtr prnArg, xmlChar *(*pfArg)(resNodePtr, int));
+resNodeListDumpRecursively(FILE *argout, resNodePtr prnArg, BOOL_T fArgDetails, xmlChar *(*pfArg)(resNodePtr, int));
 
 extern xmlChar*
 resNodeListToPlainTree(resNodePtr prnArg, xmlChar* pucArgPrefix, int iArgOptions);

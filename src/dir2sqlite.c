@@ -58,11 +58,13 @@ main(int argc, char *argv[], char *envp[])
     fprintf(stderr,"'%s' - write parsed directory data into a sqlite3 dump format\n\n",argv[0]);
     fprintf(stderr,"  'find -type f -iname '*.txt' | %s | sqlite3 abc.db3' - output of find command, parse directory data and write into a sqlite3 dump format\n\n",argv[0]);
     fprintf(stderr,"  '%s c:/UserData/Test | sqlite3 abc.db3' - output of find command, parse directory data and write into a sqlite3 dump format\n\n",argv[0]);
-    fprintf(stderr,"  '%s c:/UserData/Test > Test.sqlite' - output of find command, parse directory data and write into a sqlite3 dump format\n\n",argv[0]);
+    fprintf(stderr,"  '%s c:/UserData/Test > Test.sqlite' - parse named directory and write summary information as sqlite3 dump format\n\n",argv[0]);
+    fprintf(stderr,"  '%s -f c:/UserData/Test > Test.sqlite' - parse named directory and write detail information as sqlite3 dump format\n\n",argv[0]);
   }
   else {
-    int i;
+    int i = 1;
     xmlChar *pucT;
+    BOOL_T fDetails = FALSE;
     resNodePtr prnI;
     time_t system_zeit_1;
 
@@ -77,10 +79,16 @@ main(int argc, char *argv[], char *envp[])
 	    (long int)system_zeit_1, "parse/begin", "");
     
     fflush(stdout);
-    if (argc > 1) {
+
+    if (argc > 1 && strcmp(argv[1], "-f") == 0) {
+      fDetails = TRUE; /* output of file detail information */
+      i++;
+    }
+
+    if (argc - i > 0) {
       /* use program arguments as paths */
 
-      for (i = 1, prnI = resNodeDirNew(NULL); i < argc; i++) {
+      for (prnI = resNodeDirNew(NULL); i < argc; i++) {
 
 	PrintFormatLog(4, "%s\n", argv[i]);
 
@@ -91,21 +99,23 @@ main(int argc, char *argv[], char *envp[])
 	  PrintFormatLog(1, "%s\n", resNodeGetErrorMsg(prnI));
 	}
 	else {
-	  resNodeListDumpRecursively(stdout, prnI, resNodeToSQL);
+	  resNodeListDumpRecursively(stdout, prnI, fDetails, resNodeToSQL);
 	}
       }
+      resNodeListFree(prnI);
     }
     else {
       /* read paths from stdin */
+      int j;
       char mcLine[BUFFER_LENGTH];
 
       for (prnI = resNodeDirNew(NULL); fgets(mcLine, BUFFER_LENGTH, stdin) == mcLine; ) {
-    
-	for (i = strlen(mcLine); i > 0 && (isend(mcLine[i]) || islinebreak(mcLine[i])); i--) {
-	  mcLine[i] = '\0';
+
+	for (j = strlen(mcLine); j > 0 && (isend(mcLine[j]) || islinebreak(mcLine[j])); j--) {
+	  mcLine[j] = '\0';
 	}
 	PrintFormatLog(3,"%s\n",mcLine);
-    
+
 	if (resNodeReset(prnI, BAD_CAST mcLine) == FALSE) {
 	  PrintFormatLog(1, "%s\n", resNodeGetErrorMsg(prnI));
 	}
@@ -113,10 +123,11 @@ main(int argc, char *argv[], char *envp[])
 	  PrintFormatLog(1, "%s\n", resNodeGetErrorMsg(prnI));
 	}
 	else {
-	  resNodeListDumpRecursively(stdout, prnI, resNodeToSQL);
+	  resNodeListDumpRecursively(stdout, prnI, fDetails, resNodeToSQL);
 	}
 	fflush(stdout);
       }
+      resNodeListFree(prnI);
     }
 
     time(&system_zeit_1);

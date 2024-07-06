@@ -59,10 +59,12 @@ main(int argc, char *argv[], char *envp[])
   if (argc > 1 && strcmp(argv[1],"-?") == 0) {
     fprintf(stderr,"'%s' - write parsed directory data into a CSV format\n\n",argv[0]);
     fprintf(stderr,"  'find -type f -iname '*.txt' | %s > abc.csv' - output of find command, parse directory data and write into a CSV format\n\n",argv[0]);
-    fprintf(stderr,"  '%s c:/UserData/Test > abc.csv' - output of find command, parse directory data and write into a CSV format\n\n",argv[0]);
+    fprintf(stderr,"  '%s c:/UserData/Test > abc.csv' - parse named directory and write summary information as CSV format\n\n",argv[0]);
+    fprintf(stderr,"  '%s -f c:/UserData/Test > def.csv' - parse named directory and write detail information as CSV format\n\n",argv[0]);
   }
   else {
-    int i;
+    int i = 1;
+    BOOL_T fDetails = FALSE;
     resNodePtr prnI;
 
     /*! write CSV declarations first */
@@ -70,10 +72,16 @@ main(int argc, char *argv[], char *envp[])
     fputs("\"Mode\";\"Size [Byte]\";\"Recursive Size [Byte]\";\"# Childs\";\"MTime\";\"DiffTime [s]\";\"Name\";\"Extension\";\"Basedir\";\"Owner\";\"MIME\";\"Object Name\"\n", stdout);
 
     fflush(stdout);
-    if (argc > 1) {
+
+    if (argc > 1 && strcmp(argv[1], "-f") == 0) {
+      fDetails = TRUE; /* output of file detail information */
+      i++;
+    }
+
+    if (argc - i > 0) {
       /* use program arguments as paths */
 
-      for (prnI = resNodeDirNew(NULL), i = 1; i < argc; i++) {
+      for (prnI = resNodeDirNew(NULL); i < argc; i++) {
 
 	PrintFormatLog(4, "%s\n", argv[i]);
 
@@ -84,18 +92,20 @@ main(int argc, char *argv[], char *envp[])
 	  PrintFormatLog(1, "%s\n", resNodeGetErrorMsg(prnI));
 	}
 	else {
-	  resNodeListDumpRecursively(stdout, prnI, resNodeToCSV);
+	  resNodeListDumpRecursively(stdout, prnI, fDetails, resNodeToCSV);
 	}
       }
+      resNodeListFree(prnI);
     }
     else {
       /* read paths from stdin */
+      int j;
       char mcLine[BUFFER_LENGTH];
 
       for (prnI = resNodeDirNew(NULL); fgets(mcLine, BUFFER_LENGTH, stdin) == mcLine; ) {
 
-	for (i = strlen(mcLine); i > 0 && (isend(mcLine[i]) || islinebreak(mcLine[i])); i--) {
-	  mcLine[i] = '\0';
+	for (j = strlen(mcLine); j > 0 && (isend(mcLine[j]) || islinebreak(mcLine[j])); j--) {
+	  mcLine[j] = '\0';
 	}
 	PrintFormatLog(4,"%s\n",mcLine);
 
@@ -106,12 +116,12 @@ main(int argc, char *argv[], char *envp[])
 	  PrintFormatLog(1, "%s\n", resNodeGetErrorMsg(prnI));
 	}
 	else {
-	  resNodeListDumpRecursively(stdout, prnI, resNodeToCSV);
+	  resNodeListDumpRecursively(stdout, prnI, fDetails, resNodeToCSV);
 	}
 	fflush(stdout);
       }
+      resNodeListFree(prnI);
     }
-    resNodeListFree(prnI);
   }
 
   exit(EXIT_SUCCESS);

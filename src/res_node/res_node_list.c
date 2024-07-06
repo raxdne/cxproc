@@ -745,7 +745,7 @@ resNodeListToGraphviz(resNodePtr prnArg, int iArgOptions)
 \return TRUE if successful, FALSE in case of errors
 */
 BOOL_T
-resNodeListDumpRecursively(FILE *argout, resNodePtr prnArg, xmlChar *(*pfArg)(resNodePtr, int))
+resNodeListDumpRecursively(FILE *argout, resNodePtr prnArg, BOOL_T fArgDetails, xmlChar *(*pfArg)(resNodePtr, int))
 {
   BOOL_T fResult = FALSE;
   xmlChar *pucT;
@@ -759,7 +759,7 @@ resNodeListDumpRecursively(FILE *argout, resNodePtr prnArg, xmlChar *(*pfArg)(re
 #endif
     
     for (prnEntry = resNodeGetChild(prnArg); prnEntry; prnEntry = resNodeGetNext(prnEntry)) {
-      resNodeListDumpRecursively(argout,prnEntry,pfArg);
+      resNodeListDumpRecursively(argout,prnEntry,fArgDetails,pfArg);
     }
 
     if ((pucT = (*pfArg)(prnArg, RN_INFO_META))) {
@@ -783,7 +783,7 @@ resNodeListDumpRecursively(FILE *argout, resNodePtr prnArg, xmlChar *(*pfArg)(re
       resNodePtr prnEntry;
     
       for (prnEntry = resNodeGetChild(prnArg); prnEntry; prnEntry = resNodeGetNext(prnEntry)) {
-	resNodeListDumpRecursively(argout,prnEntry,pfArg);
+	resNodeListDumpRecursively(argout,prnEntry,fArgDetails,pfArg);
 	resNodeIncrRecursiveSize(prnArg, resNodeGetRecursiveSize(prnEntry));
       }
       resNodeIncrRecursiveSize(prnArg, resNodeGetSize(prnArg));
@@ -813,7 +813,7 @@ resNodeListDumpRecursively(FILE *argout, resNodePtr prnArg, xmlChar *(*pfArg)(re
       resNodePtr prnEntry;
     
       for (prnEntry = resNodeGetChild(prnArg); prnEntry; prnEntry = resNodeGetNext(prnEntry)) {
-	resNodeListDumpRecursively(argout,prnEntry,pfArg);
+	resNodeListDumpRecursively(argout,prnEntry,fArgDetails,pfArg);
       }
     }
     
@@ -842,7 +842,7 @@ resNodeListDumpRecursively(FILE *argout, resNodePtr prnArg, xmlChar *(*pfArg)(re
   }
 #endif
   
-  else if (resNodeIsFile(prnArg)) {
+  else if (fArgDetails && resNodeIsFile(prnArg)) {
     /*  */
       
 #ifdef DEBUG
