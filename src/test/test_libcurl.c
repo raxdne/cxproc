@@ -230,19 +230,19 @@ curlTest(void)
       printf("Error curl_easy_init()\n");
     }
     else if ((res = curl_easy_setopt(curl, CURLOPT_URL, HTTPPREFIX "Test/Pictures/Tux.png")) != CURLE_OK) { /* parse a full URL */
-      printf("Error curl_easy_setopt() ...\n");
+      printf("Error curl_easy_setopt(CURLOPT_URL) ...\n");
     }
     else if ((res = curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, CurlWriteToMemoryCallback)) != CURLE_OK) { /*  */
-      printf("Error curl_easy_setopt() ...\n");
+      printf("Error curl_easy_setopt(CURLOPT_WRITEFUNCTION) ...\n");
     }
     else if ((res = curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)prnT)) != CURLE_OK) { /*  */
-      printf("Error curl_easy_setopt() ...\n");
+      printf("Error curl_easy_setopt(CURLOPT_WRITEDATA) ...\n");
     }
     else if ((res = curl_easy_setopt(curl, CURLOPT_CONNECT_ONLY, 1L)) != CURLE_OK) { /*  */
-      printf("Error curl_easy_setopt() ...\n");
+      printf("Error curl_easy_setopt(CURLOPT_CONNECT_ONLY) ...\n");
     }
     else if ((res = curl_easy_setopt(curl, CURLOPT_TIMEOUT, 2L)) != CURLE_OK) { /*  */
-      printf("Error curl_easy_setopt() ...\n");
+      printf("Error curl_easy_setopt(CURLOPT_CONNECT_ONLY) ...\n");
     }
     else if ((res = curl_easy_perform(curl)) != CURLE_OK) { /* parse a full URL */
       printf("Error curl_easy_perform() ...\n");

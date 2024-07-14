@@ -52,6 +52,15 @@ extern void *
 resNodeSetContentPtr(resNodePtr prnArg, void *pArg, size_t iSize);
 
 extern void *
+resNodeAppendContent(resNodePtr prnArg, void *pArg, size_t iSize);
+
+extern size_t
+resNodeSetBlockSize(resNodePtr prnArg, size_t iArg);
+
+extern size_t
+resNodeGetBlockSize(resNodePtr prnArg);
+
+extern void *
 resNodeEatContentPtr(resNodePtr prnArg);
 
 extern void *

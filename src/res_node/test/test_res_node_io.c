@@ -492,7 +492,7 @@ size_t s = 2895;
       n_ok++;
       printf("OK\n");
     }
-    domPutDocString(stderr, BAD_CAST "PIE ", pdocT);
+    //domPutDocString(stderr, BAD_CAST "PIE ", pdocT);
     resNodeFree(prnT);
   }
 

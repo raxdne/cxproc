@@ -66,12 +66,6 @@ CloseSqlite(resNodePtr prnArg);
 static BOOL_T
 resNodeReadContent(resNodePtr prnArg, int iArgMax);
 
-static size_t
-resNodeSetBlockSize(resNodePtr prnArg, size_t iArg);
-
-static size_t
-resNodeGetBlockSize(resNodePtr prnArg);
-
 static int
 resNodeIncrUsageCount(resNodePtr prnArg);
 
@@ -866,17 +860,11 @@ CurlWriteToMemoryCallback(void *pucArgBlock, size_t iArgSize, size_t iArgNumber,
   size_t iBlockSize = 0;
       
   if (pArg != NULL && iArgNumber > 0) {
-    char *pcBlockNew;
     resNodePtr prnArg = (struct _resNode *) pArg;
 
     iBlockSize = iArgSize * iArgNumber;
-    PrintFormatLog(3, "CurlWriteToMemoryCallback '%i' Byte of '%s'", iBlockSize, resNodeGetNameNormalized(prnArg));
-    pcBlockNew = (char *)xmlRealloc(prnArg->pContent, prnArg->liSizeContent + iBlockSize + 1);
-    if (pcBlockNew) {
-      memcpy(&(pcBlockNew[prnArg->liSizeContent]), pucArgBlock, iBlockSize);
-      prnArg->liSizeContent += iBlockSize;
-      pcBlockNew[prnArg->liSizeContent] = '\0';
-      prnArg->pContent = pcBlockNew;
+    if (resNodeAppendContent(prnArg, pucArgBlock, iBlockSize) != NULL) {
+      /* OK */
     }
     else {
       resNodeSetError(prnArg,rn_error_memory, "not enough memory (realloc returned NULL)\n");
@@ -906,9 +894,7 @@ resNodeReadContent(resNodePtr prnArg, int iArgMax)
   BOOL_T fResult = FALSE;
 
   if (prnArg != NULL) {
-    char *pchInput = NULL; /*! pointer to collection buffer */
     size_t cchResultAllocated = 0;
-    size_t cchResult = 0;    /*! counter for collected string length */
     size_t cchReadInput = 0; /*! counter for collected string length */
     int iLoop;
 
@@ -928,8 +914,8 @@ resNodeReadContent(resNodePtr prnArg, int iArgMax)
       resNodeSetBlockSize(prnArg, BUFFER_LENGTH);
     }
 
+    if (resNodeIsURL(prnArg) && prnArg->handleIO != NULL) {
 #ifdef HAVE_LIBCURL
-    if (prnArg->eAccess == rn_access_curl && prnArg->handleIO != NULL) {
       CURLcode res;
 
       res = curl_easy_perform((CURL *)resNodeGetHandleIO(prnArg));
@@ -948,105 +934,52 @@ resNodeReadContent(resNodePtr prnArg, int iArgMax)
 	resNodeSetError(prnArg, rn_error_memory, "curl_easy_perform() failed: %s", curl_easy_strerror(res));
 	fResult = FALSE;
       }
-    }
-#elif 0
-    /*\bug fix code */
-    if (resNodeGetType(prnArg) == rn_type_url_http) {
-      cchReadInput = xmlIOHTTPRead(resNodeGetHandleIO(prnArg), &(pchInput[cchResult]), resNodeGetBlockSize(prnArg));
-    }
-    else if (resNodeGetType(prnArg) == rn_type_url_ftp) {
-      //cchReadInput = xmlIOFTPRead(resNodeGetHandleIO(prnArg), &(pchInput[cchResult]), resNodeGetBlockSize(prnArg));
-    }
-#endif
-    else {
-      if (resNodeGetSize(prnArg) > 0 && resNodeGetSize(prnArg) < (size_t)(iArgMax * BUFFER_LENGTH)) { /* content size is known already */
-	void *pInput;										      /*! pointer to buffer */
-
-	pInput = xmlMalloc(resNodeGetSize(prnArg) + 1);
-	if (pInput) {
-	  memset(pInput, 0, resNodeGetSize(prnArg) + 1); /* to get a null termination of buffer */
-#ifdef _MSC_VER
-	  cchReadInput = fread_s(pInput, (size_t)(iArgMax * BUFFER_LENGTH), (size_t)1, resNodeGetSize(prnArg), (FILE *)resNodeGetHandleIO(prnArg));
 #else
-	  cchReadInput = fread(pInput, 1, resNodeGetSize(prnArg), (FILE *)resNodeGetHandleIO(prnArg));
+      PrintFormatLog(1, "No access to URL '%s' without libcurl", resNodeGetNameNormalized(prnArg));
+#endif
+    }
+    else if (resNodeGetType(prnArg) == rn_type_file || resNodeGetType(prnArg) == rn_type_stdin) {
+      char *pchI = NULL; /*! pointer to collection buffer */
+
+      pchI = xmlMalloc(resNodeGetBlockSize(prnArg));
+
+      iLoop = (iArgMax < 1 || iArgMax > 1024 * 1024) ? 1024 : iArgMax;
+      do {
+
+	if (iLoop < 1) {
+	  resNodeSetError(prnArg, rn_error_memory, "Maximum buffer size '%i' Byte reached", cchResultAllocated);
+	  break;
+	}
+
+#ifdef _MSC_VER
+	cchReadInput = fread_s(pchI, (size_t)1, resNodeGetBlockSize(prnArg), (FILE *)resNodeGetHandleIO(prnArg));
+#else
+	cchReadInput = fread(pchI, (size_t)1, resNodeGetBlockSize(prnArg), (FILE *)resNodeGetHandleIO(prnArg));
 #endif
 
-	  /*!\todo handle VC++ newline processing */
-	  if (ferror((FILE *)resNodeGetHandleIO(prnArg))) {
-	    /*!\todo why is input_length != stStat.st_size with VC++ */
-	    xmlFree(pInput);
-	    resNodeSetError(prnArg, rn_error_read, "File read error");
-	    fResult = FALSE;
-	  }
-	  else if (cchReadInput != resNodeGetSize(prnArg)) {
-	    xmlFree(pInput);
-	    resNodeSetError(prnArg, rn_error_memory, "Memory error");
-	    fResult = FALSE;
-	  }
-	  else {
-	    resNodeSetContentPtr(prnArg, pInput, cchReadInput);
-	  }
-	}
-	else {
-	  resNodeSetError(prnArg, rn_error_memory, "Memory error");
+	if (ferror((FILE *)resNodeGetHandleIO(prnArg))) {
+	  resNodeSetError(prnArg, rn_error_read, "File read error");
 	  fResult = FALSE;
 	}
-      }
-      else { /* loop for dynamically allocated memory blocks */
-	iLoop = (iArgMax < 1 || iArgMax > 1024 * 1024) ? 1024 : iArgMax;
-	do {
-
-	  if (iLoop < 1) {
-	    resNodeSetError(prnArg, rn_error_memory, "Maximum buffer size '%i' Byte reached", cchResultAllocated);
-	    break;
-	  }
-
-	  if (pchInput == NULL || cchResultAllocated - cchResult < resNodeGetBlockSize(prnArg)) {
-	    /*
-	      inrease the size of buffer
-	    */
-	    cchResultAllocated += resNodeGetBlockSize(prnArg) + 1;
-#ifdef DEBUG
-	    PrintFormatLog(3, "Resize text input buffer to '%i' Byte", cchResultAllocated);
-#endif
-	    pchInput = (char *)xmlRealloc((void *)pchInput, cchResultAllocated);
-	    iLoop--;
-	  }
-
-	  if (pchInput) {
-	    if (resNodeGetType(prnArg) == rn_type_file || resNodeGetType(prnArg) == rn_type_stdin) {
-	      cchReadInput = fread(&(pchInput[cchResult]), (size_t)1, resNodeGetBlockSize(prnArg), (FILE *)resNodeGetHandleIO(prnArg));
-	      /*!\todo handle VC++ newline processing */
-	      if (ferror((FILE *)resNodeGetHandleIO(prnArg))) {
-		/*!\todo why is input_length != stStat.st_size with VC++ */
-		resNodeSetError(prnArg, rn_error_read, "File read error");
-		fResult = FALSE;
-	      }
-	    }
-	  }
-	  else {
-	    resNodeSetError(prnArg, rn_error_memory, "Not enough memory");
-	  }
-	  cchResult += cchReadInput;
-	} while (fResult == TRUE && cchReadInput == resNodeGetBlockSize(prnArg));
-
-	if (fResult == TRUE && pchInput != NULL) {
-	  pchInput[cchResult] = '\0'; /*!\bug if (content length == n * resNodeGetBlockSize(prnArg)) */
-	  resNodeSetContentPtr(prnArg, (void *)pchInput, cchResult);
-	  if (resNodeGetType(resNodeGetParent(prnArg)) == rn_type_file_compressed) {
-	    resNodeResetMimeType(resNodeGetParent(prnArg));
-	  }
-	}
 	else {
-	  xmlFree(pchInput);
-	  resNodeSetContentPtr(prnArg, NULL, 0);
+	  resNodeAppendContent(prnArg, pchI, cchReadInput);
+	  iLoop--;
 	}
-      }
+
+      } while (fResult == TRUE && cchReadInput == resNodeGetBlockSize(prnArg));
+
+      resNodeResetMimeType(resNodeGetParent(prnArg));
+      xmlFree(pchI);
+    }
+    else {
+      resNodeSetError(prnArg, rn_error_undef, "Type error");
+      fResult = FALSE;
     }
     fResult = (prnArg->pContent != NULL);
   }
   return fResult;
 } /* end of resNodeReadContent() */
+
 
   /*! Reads the whole file content of this context, sets liSizeContent and returns a POINTER to the buffer.
 
@@ -1142,6 +1075,31 @@ resNodeGetContentBase64Eat(resNodePtr prnArg, int iArgMax)
   }
   return BAD_CAST pcResult;
 } /* end of resNodeGetContentBase64Eat() */
+
+
+/*! Sets and returns the content of this context.
+
+\param prnArg the context
+\return pArg
+*/
+void *
+resNodeAppendContent(resNodePtr prnArg, void *pArg, size_t iSize)
+{
+  void *pResult = NULL;
+
+  if (prnArg) {
+    prnArg->pContent = (char *)xmlRealloc(prnArg->pContent, prnArg->liSizeContent + iSize);
+    if (prnArg->pContent) {
+      memcpy(&(prnArg->pContent[prnArg->liSizeContent]), pArg, iSize);
+      prnArg->liSizeContent += iSize;
+      pResult = prnArg->pContent;
+    }
+    else {
+      resNodeSetError(prnArg, rn_error_memory, "MEM error");
+    }
+  }
+  return pResult;
+} /* end of resNodeSetContentPtr() */
 
 
 /*! Sets and returns the content of this context.
