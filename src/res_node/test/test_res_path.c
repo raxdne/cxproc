@@ -216,13 +216,15 @@ resNodeTestString(void)
       || resPathBeginIsArchive(BAD_CAST"SubDir/") == TRUE) {
       printf("Error wrong\n");
     }
-    else if (resPathBeginIsArchive(BAD_CAST"abc.zip") == FALSE || resPathBeginIsArchive(BAD_CAST"abc.iso") == FALSE
-      || resPathBeginIsArchive(BAD_CAST"abc.docx") == FALSE || resPathBeginIsArchive(BAD_CAST"abc.xlsx") == FALSE || resPathBeginIsArchive(BAD_CAST"abc.pptx") == FALSE
-      || resPathBeginIsArchive(BAD_CAST"abc.odt") == FALSE || resPathBeginIsArchive(BAD_CAST"abc.odp") == FALSE || resPathBeginIsArchive(BAD_CAST"abc.ods") == FALSE) {
+    else if (resPathBeginIsArchive(BAD_CAST"abc.zip") == FALSE || resPathBeginIsArchive(BAD_CAST"abc.iso") == FALSE || resPathBeginIsArchive(BAD_CAST"abc.tar") == FALSE) {
+      printf("Error right\n");
+    }
+    else if (resPathBeginIsArchive(BAD_CAST"abc.docx") == TRUE || resPathBeginIsArchive(BAD_CAST"abc.xlsx") == TRUE || resPathBeginIsArchive(BAD_CAST"abc.pptx") == TRUE
+      || resPathBeginIsArchive(BAD_CAST"abc.odt") == TRUE || resPathBeginIsArchive(BAD_CAST"abc.odp") == TRUE || resPathBeginIsArchive(BAD_CAST"abc.ods") == TRUE) {
       printf("Error right\n");
     }
     else if (resPathBeginIsArchive(BAD_CAST"abc.zip/dir/test.txt") == FALSE || resPathBeginIsArchive(BAD_CAST"abc.zip/dir/test.txt") == FALSE
-      || resPathBeginIsArchive(BAD_CAST"\"abc.xlsx\\excel/sheet.xml\"") == FALSE) {
+      || resPathBeginIsArchive(BAD_CAST"\"abc.xlsx\\excel/sheet.xml\"") == TRUE) {
       printf("Error \n");
     }
     else {

@@ -22,6 +22,8 @@
 /*! cxproc test frontend
 */
 
+#include <zip.h>
+
 /*
  */
 #include <libxml/HTMLtree.h>
@@ -104,6 +106,7 @@
 #ifdef HAVE_LIBCURL
 #include "test/test_libcurl.c"
 #endif
+#include "test/test_libzip.c"
 #include "test/test_libxml.c"
 #include "test/test_libxslt.c"
 #include "test/test_pcre.c"
@@ -176,12 +179,6 @@ main(int argc, char** argv, char** envp)
   xmlKeepBlanksDefault(0);
   xmlRegisterDefaultInputCallbacks();
   xmlRegisterDefaultOutputCallbacks();
-#ifdef HAVE_ZLIB
-  /* code for xmlzipio http://hal.iwr.uni-heidelberg.de/~christi/projects/xmlzipio.html */
-  xmlZipRegisterInputCallback();
-  /* it's importend to xmlzipio after the default handlers, so xmlzipio is asked first. */
-  xmlZipRegisterOutputCallback();
-#endif
   exsltRegisterAll();
 
   ceInit();
@@ -213,6 +210,7 @@ main(int argc, char** argv, char** envp)
 	iErrorCode += dtTest();
 	iErrorCode += utilsTest();
 	iErrorCode += ceTest();
+	iErrorCode += zipTest();
       }
 
       if (pcTest == NULL || xmlStrEqual(BAD_CAST pcTest, BAD_CAST "res_node")) {

@@ -3238,6 +3238,11 @@ cxpProcessInfoNode(xmlNodePtr pndInfo, cxpContextPtr pccArg)
     xmlSetProp(pndOption,BAD_CAST "ns",BAD_CAST"http://xmlsoft.org/XSLT/");
     xmlSetProp(pndOption,BAD_CAST "version",BAD_CAST LIBXSLT_DOTTED_VERSION);
 
+    pndOption = xmlNewChild(pndProgram, NULL, BAD_CAST"lib", NULL);
+    xmlSetProp(pndOption,BAD_CAST "name",BAD_CAST"libzip");
+    xmlSetProp(pndOption,BAD_CAST "ns",BAD_CAST"https://libzip.org/");
+    xmlSetProp(pndOption,BAD_CAST "version",BAD_CAST zip_libzip_version());
+
 #ifdef HAVE_PCRE2
     pndOption = xmlNewChild(pndProgram, NULL, BAD_CAST"lib", NULL);
     xmlSetProp(pndOption,BAD_CAST "name",BAD_CAST"libpcre2");
@@ -3271,16 +3276,6 @@ cxpProcessInfoNode(xmlNodePtr pndInfo, cxpContextPtr pccArg)
     pndOption = xmlNewChild(pndProgram,NULL,BAD_CAST"module",NULL);
     pieTextInfo(pndOption);
 #endif
-
-    pndOption = xmlNewChild(pndProgram, NULL, BAD_CAST"module", NULL);
-    xmlSetProp(pndOption, BAD_CAST "name", BAD_CAST"xmlzipio");
-    xmlSetProp(pndOption, BAD_CAST "ns", BAD_CAST"http://hal.iwr.uni-heidelberg.de/~christi/projects/xmlzipio.html");
-#ifdef HAVE_ZLIB
-    xmlSetProp(pndOption,BAD_CAST "select",BAD_CAST "yes");
-#else
-    xmlSetProp(pndOption, BAD_CAST "select", BAD_CAST "no");
-#endif
-
 
     pndOption = xmlNewChild(pndProgram,NULL,BAD_CAST"module",NULL);
     xmlSetProp(pndOption,BAD_CAST "name",BAD_CAST"jsmn");

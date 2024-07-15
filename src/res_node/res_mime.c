@@ -89,14 +89,16 @@ static const char* resMimeTypeStr[] = {
   /* MIME_APPLICATION_COMMAND */ "application/command",
   /* MIME_APPLICATION_CXP_XML */ "application/cxp+xml",
   /* MIME_APPLICATION_MMAP_XML */ "application/mmap+xml",
+  /* MIME_APPLICATION_XMMAP_XML */ "application/xmmap+xml",
   /* MIME_APPLICATION_MM_XML */ "application/mm+xml",
   /* MIME_APPLICATION_X_BYTECODE_ELISP */ "application/x-bytecode.elisp",
   /* MIME_APPLICATION_JSON */ "application/json",
   /* MIME_APPLICATION_X_JAVASCRIPT */ "application/x-javascript",
   /* MIME_APPLICATION_X_JAVA_VM */ "application/x-java-vm",
   /* MIME_APPLICATION_XMIND_XML */ "application/xmind+xml",
-  /* MIME_APPLICATION_XMMAP_XML */ "application/xmmap+xml",
   /* MIME_APPLICATION_RDF_XML */ "application/rdf+xml",
+  /* MIME_APPLICATION_XSD_XML */ "application/xsd+xml",
+  /* MIME_APPLICATION_RNG_XML */ "application/rng+xml",
 #ifdef HAVE_PIE
   /* MIME_APPLICATION_PIE_XML */ "application/pie+xml",
   /* MIME_APPLICATION_PIE_XML_INDEX */ "application/pie+xml+index",
@@ -229,15 +231,6 @@ resMimeIsXml(int iMimeType)
       || iMimeType == MIME_APPLICATION_PIE_XML
       || iMimeType == MIME_APPLICATION_PIE_XML_INDEX
 #endif
-#ifdef HAVE_ZLIB
-      || iMimeType == MIME_APPLICATION_MMAP_XML
-#ifndef HAVE_LIBARCHIVE
-      /* */
-      || iMimeType ==  MIME_APPLICATION_VND_OPENXMLFORMATS_OFFICEDOCUMENT_WORDPROCESSINGML_DOCUMENT
-      || iMimeType ==  MIME_APPLICATION_VND_OASIS_OPENDOCUMENT_SPREADSHEET
-      || iMimeType ==  MIME_APPLICATION_VND_OASIS_OPENDOCUMENT_TEXT
-#endif
-#endif
       || iMimeType == MIME_APPLICATION_VND_GARMIN_FITX
       || iMimeType == MIME_APPLICATION_VND_GARMIN_TCX
       || iMimeType == MIME_APPLICATION_XSPF_XML
@@ -293,9 +286,17 @@ resMimeIsArchive(int iMimeType)
     || iMimeType ==  MIME_APPLICATION_X_BZIP
     || iMimeType ==  MIME_APPLICATION_X_TAR
     || iMimeType ==  MIME_APPLICATION_X_ISO9660_IMAGE
-    // || iMimeType == MIME_APPLICATION_MMAP_XML
+    );
+} /* end of resMimeIsArchive() */
+
+
+/*! \return TRUE if iMimeType is a document in zip format
+*/
+BOOL_T
+resMimeIsZipDocument(int iMimeType)
+{
+  return (iMimeType == MIME_APPLICATION_MMAP_XML
     || iMimeType == MIME_APPLICATION_XMIND_XML
-#ifdef HAVE_LIBARCHIVE
     || iMimeType ==  MIME_APPLICATION_VND_OPENXMLFORMATS_OFFICEDOCUMENT_PRESENTATIONML_PRESENTATION
     || iMimeType ==  MIME_APPLICATION_VND_OPENXMLFORMATS_OFFICEDOCUMENT_SPREADSHEETML_SHEET
     || iMimeType ==  MIME_APPLICATION_VND_OPENXMLFORMATS_OFFICEDOCUMENT_WORDPROCESSINGML_DOCUMENT
@@ -309,9 +310,8 @@ resMimeIsArchive(int iMimeType)
     || iMimeType ==  MIME_APPLICATION_VND_STARDIVISION_WRITER
     || iMimeType ==  MIME_APPLICATION_VND_STARDIVISION_CALC
     || iMimeType ==  MIME_APPLICATION_VND_STARDIVISION_IMPRESS
-#endif
     );
-} /* end of resMimeIsArchive() */
+} /* end of resMimeIsZipDocument() */
 
 
 /*! \return TRUE if iMimeType is a plain text format
@@ -477,6 +477,12 @@ resMimeGetTypeFromExt(const xmlChar *pucArg)
   }
   else if (xmlStrcasecmp(pucArg, BAD_CAST"xspf") == 0) {
     eMimeTypeResult = MIME_APPLICATION_XSPF_XML;
+  }
+  else if (xmlStrcasecmp(pucArg, BAD_CAST"xsd") == 0) {
+    eMimeTypeResult = MIME_APPLICATION_XSD_XML;
+  }
+  else if (xmlStrcasecmp(pucArg, BAD_CAST"rng") == 0) {
+    eMimeTypeResult = MIME_APPLICATION_RNG_XML;
   }
   else if (xmlStrcasecmp(pucArg, BAD_CAST"xsl") == 0) {
     eMimeTypeResult = MIME_TEXT_XSL;

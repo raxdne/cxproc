@@ -20,6 +20,7 @@
 */
 
 #include <res_node/res_node.h>
+#include <res_node/res_node_zip.h>
 
 extern BOOL_T
 resNodeSetMode(resNodePtr prnArg, const char *pchArgMode);

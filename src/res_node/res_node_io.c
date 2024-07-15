@@ -18,6 +18,7 @@
   Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 */
+#include <zip.h>
 
 #include <libxml/HTMLtree.h>
 #include <libxml/tree.h>
@@ -50,6 +51,12 @@ OpenArchive(resNodePtr prnArg);
 
 static BOOL_T
 CloseArchive(resNodePtr prnArg);
+
+static BOOL_T
+OpenZip(resNodePtr prnArg);
+
+static BOOL_T
+CloseZip(resNodePtr prnArg);
 
 static BOOL_T
 OpenURL(resNodePtr prnArg);
@@ -144,6 +151,27 @@ resNodeOpen(resNodePtr prnArg, const char *pchArgMode)
       prnArg->eAccess = rn_access_directory;
       /* nothing to prepare */
       fResult = TRUE;
+    }
+    else if (strchr(pchArgMode,(int)'a') && resMimeIsZipDocument(resNodeGetMimeType(prnArg))) {
+
+      if (resPathIsURL(resNodeGetNameNormalized(prnArg))) {
+	fResult = OpenURL(prnArg);
+      }
+      else {
+	fResult = OpenZip(prnArg);
+      }
+
+      if (fResult) {
+	if (prnArg->eMode == mode_write || prnArg->eMode == mode_append) {
+	  prnArg->fRead = TRUE;
+	  prnArg->fWrite = TRUE;
+	}
+	else {
+	  prnArg->fRead = TRUE;
+	  prnArg->fWrite = FALSE;
+	}
+	prnArg->fExist = TRUE;
+      }
     }
     else if (strchr(pchArgMode,(int)'a') && resMimeIsArchive(resNodeGetMimeType(prnArg))) {
 
@@ -461,6 +489,94 @@ CloseArchive(resNodePtr prnArg)
 
 /*! opens context prnArg
 
+\todo handle in-memory achives for stdout/stdin s. zip_write_open_memory()
+
+\return TRUE if successful
+*/
+BOOL_T
+OpenZip(resNodePtr prnArg)
+{
+  BOOL_T fResult = FALSE;
+
+  if (prnArg != NULL && prnArg->handleIO != NULL && prnArg->eAccess == rn_access_zip) {
+      fResult = TRUE;
+      PrintFormatLog(4, "zip_open('%s') already open", resNodeGetNameNormalized(prnArg));
+  }
+ else if (prnArg->eMode == mode_read) {
+    int err;
+    char buf[BUFFER_LENGTH];
+
+    if ((prnArg->handleIO = zip_open(resNodeGetNameNormalizedNative(prnArg), 0, &err)) == NULL) {
+      zip_error_to_str(buf, sizeof(buf), err, errno);
+      PrintFormatLog(1, "can't open zip archive `%s': %s\n", resNodeGetNameNormalizedNative(prnArg), buf);
+    }
+#if 0
+    else if (resNodeIsMemory(prnArg)) { /* achive in memory already */
+	  if (zip_read_open_memory((arcPtr)prnArg->handleIO, prnArg->pContent, resNodeGetSize(prnArg)) == ZIP_OK) {
+	    prnArg->fExist = TRUE;
+	    prnArg->eAccess = rn_access_zip;
+	    fResult = TRUE;
+	    PrintFormatLog(4, "zip_read_open_memory('%s') OK", resNodeGetNameNormalized(prnArg));
+	  }
+	  else {
+	    CloseZip(prnArg);
+	    resNodeSetError(prnArg, rn_error_zip, "zip_read_open_memory() failed");
+	  }
+	  /*!\todo read zip from memory buffer ":memory:" zip_read_open_memory() */
+     }
+#endif
+    else {
+      prnArg->fExist = TRUE;
+      prnArg->eAccess = rn_access_zip;
+      fResult = TRUE;
+      PrintFormatLog(4, "zip_open('%s') OK", resNodeGetNameNormalized(prnArg));
+    }
+  }
+  else if (prnArg->eMode == mode_write) {
+#if 0
+    /*\todo append content to existing zip file */
+
+    /*\todo delete existing zip file first */
+
+    }
+    else {
+      CloseZip(prnArg);
+      resNodeSetError(prnArg, rn_error_zip, "zip_write_new('%s') failed", resNodeGetNameNormalized(prnArg));
+    }
+#endif
+  }
+  else {
+    resNodeSetError(prnArg, rn_error_open, "unknown mode for zip opening '%s'", resNodeGetNameNormalized(prnArg));
+  }
+
+  return fResult;
+} /* end of OpenZip() */
+
+
+/*! opens context prnArg
+
+\return TRUE if successful
+*/
+BOOL_T
+CloseZip(resNodePtr prnArg)
+{
+  BOOL_T fResult = FALSE;
+
+  assert(prnArg != NULL);
+
+  if (zip_close(resNodeGetHandleIO(prnArg)) == -1) {
+    resNodeSetError(prnArg, rn_error_zip, "Error zip_close('%s')", resNodeGetNameNormalized(prnArg));
+  }
+
+  prnArg->handleIO = NULL;
+  prnArg->eAccess = rn_access_undef;
+
+  return fResult;
+} /* end of CloseZip() */
+
+
+/*! opens context prnArg
+
 \return TRUE if successful
 */
 BOOL_T
@@ -646,6 +762,11 @@ resNodeSaveContent(resNodePtr prnArg)
       PrintFormatLog(1, "Compiled without archive option!!");
 #endif
     }
+    else if (prnArg->eAccess == rn_access_zip) {
+      PrintFormatLog(3, "Save '%s' as zip", resNodeGetNameNormalized(prnArg));
+      //resNodeSetError(prnArg,rn_error_open, "unknown mode for zip opening '%s'", resNodeGetNameNormalized(prnArg));
+      /*!\todo read zip from memory buffer ":memory:" zip_read_open_memory() */
+    }
     else if (prnArg->eAccess == rn_access_file) {
       PrintFormatLog(3, "Save file '%s'", resNodeGetNameNormalized(prnArg));
       if (fwrite(resNodeGetContentPtr(prnArg),resNodeGetSize(prnArg),(size_t)1,(FILE *)resNodeGetHandleIO(prnArg)) == 1) {
@@ -673,7 +794,7 @@ resNodeIsOpen(resNodePtr prnArg)
   BOOL_T fResult = FALSE;
 
   if (prnArg) {
-    fResult = ((prnArg->handleIO != NULL && prnArg->eAccess != rn_access_undef) || prnArg->eType == rn_type_file_in_archive);
+    fResult = ((prnArg->handleIO != NULL && prnArg->eAccess != rn_access_undef) || prnArg->eType == rn_type_file_in_archive || prnArg->eType == rn_type_file_in_zip);
   }
   return fResult;
 } /* end of resNodeIsOpen() */
@@ -694,6 +815,9 @@ resNodeClose(resNodePtr prnArg)
       fResult = CloseArchive(prnArg);
     }
     else if (prnArg->eType == rn_type_file_in_archive) {
+    }
+    else if (prnArg->eAccess == rn_access_zip) {
+      fResult = CloseZip(prnArg);
     }
 #ifdef HAVE_LIBCURL
     else if (prnArg->eAccess == rn_access_curl) {
@@ -1014,6 +1138,25 @@ resNodeReadContent(resNodePtr prnArg, int iArgMax)
 	    pResult = resNodeGetContentPtr(prnArg);
 	  }
 	}
+#if 0
+	else if (resNodeIsFileInZip(prnArg)) {
+	  resNodePtr prnZip;
+	  resNodePtr prnUrl;
+
+	  if ((prnZip = resNodeGetAncestorZip(prnArg)) != NULL) {
+	    if (resPathIsURL(resNodeGetNameNormalized(prnZip)) && !resNodeIsMemory(prnZip)) {
+	      /* must fetch zip content from URL into memory */
+	      if (resNodeOpen(prnZip, "rb")) {
+		resNodeReadContent(prnZip, iArgMax);
+		resNodeClose(prnZip);
+	      }
+	    }
+	    if (zipAppendEntries(prnZip, NULL, TRUE)) {
+	      pResult = resNodeGetContentPtr(prnArg);
+	    }
+	  }
+	}
+#endif
 	else if (resNodeIsFileInArchive(prnArg)) {
 	  resNodePtr prnArchive;
 	  resNodePtr prnUrl;
@@ -1275,41 +1418,6 @@ resNodeReadDoc(resNodePtr prnArg)
     pdocResult = xmlCopyDoc(pdocResult, 1);
     /* found in cache, set file context to DOM */
     resNodeChangeDomURL(pdocResult, prnArg);
-  }
-#endif
-#ifdef HAVE_ZLIB
-  else if (resNodeGetMimeType(prnArg) == MIME_APPLICATION_MMAP_XML
-#ifndef HAVE_LIBARCHIVE
-    || resNodeGetMimeType(prnArg) == MIME_APPLICATION_VND_OPENXMLFORMATS_OFFICEDOCUMENT_WORDPROCESSINGML_DOCUMENT
-    || resNodeGetMimeType(prnArg) == MIME_APPLICATION_VND_OASIS_OPENDOCUMENT_SPREADSHEET
-    || resNodeGetMimeType(prnArg) == MIME_APPLICATION_VND_OASIS_OPENDOCUMENT_TEXT
-#endif
-  ) {
-    char* pcT;
-    xmlChar* pucPath = NULL;
-
-    pucPath = xmlStrdup(BAD_CAST "zip:");
-    pucPath = xmlStrcat(pucPath, resNodeGetNameNormalized(prnArg));
-
-    if (resNodeGetMimeType(prnArg) == MIME_APPLICATION_MMAP_XML) {
-      pucPath = xmlStrcat(pucPath, BAD_CAST "!/Document.xml");
-    }
-#ifndef HAVE_LIBARCHIVE
-    else if (resNodeGetMimeType(prnArg) == MIME_APPLICATION_VND_OPENXMLFORMATS_OFFICEDOCUMENT_WORDPROCESSINGML_DOCUMENT) {
-      pucPath = xmlStrcat(pucPath, BAD_CAST "!/word/document.xml");
-    }
-    else if (resNodeGetMimeType(prnArg) == MIME_APPLICATION_VND_OASIS_OPENDOCUMENT_SPREADSHEET
-	     || resNodeGetMimeType(prnArg) == MIME_APPLICATION_VND_OASIS_OPENDOCUMENT_TEXT) {
-      pucPath = xmlStrcat(pucPath, BAD_CAST "!/content.xml");
-    }
-#endif
-
-    pcT = resPathDecodeStr(pucPath); /* handle non-ASCII paths */
-    options = XML_PARSE_RECOVER | XML_PARSE_NOENT | XML_PARSE_NOERROR | XML_PARSE_NOWARNING | XML_PARSE_NSCLEAN | XML_PARSE_NODICT;
-    pdocResult = xmlReadFile((const char*)pcT, NULL, options);
-    /*!\todo re-implement using libarchive, to remove xmlzipio module */
-    xmlFree(pcT);
-    xmlFree(pucPath);
   }
 #endif
 #ifndef HAVE_LIBARCHIVE

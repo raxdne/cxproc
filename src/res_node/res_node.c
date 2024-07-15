@@ -867,6 +867,29 @@ resNodeGetAncestorArchive(resNodePtr prnArg)
 } /* end of resNodeGetAncestorArchive() */
 
 
+/*! Resource Node List Get parent
+
+\return pointer to Ancestor zip resNode of prnArg
+*/
+resNodePtr
+resNodeGetAncestorZip(resNodePtr prnArg)
+{
+  resNodePtr prnResult = NULL;
+
+  if (prnArg) {
+    resNodePtr prnParent;
+
+    for (prnParent = resNodeGetParent(prnArg); prnParent != NULL; prnParent = resNodeGetParent(prnParent)) {
+      if (resNodeIsZipDocument(prnParent)) {
+	prnResult = prnParent;
+	break;
+      }
+    }
+  }
+  return prnResult;
+} /* end of resNodeGetAncestorZip() */
+
+
 /*! \return pointer to a string containing ancestor basenames of prnArg
 */
 xmlChar *
@@ -2255,6 +2278,9 @@ resNodeIsDir(resNodePtr prnArg)
 	if (resNodeGetType(resNodeGetParent(prnArg)) == rn_type_archive) {
 	  resNodeSetType(prnArg, rn_type_dir_in_archive);
 	}
+	if (resNodeGetType(resNodeGetParent(prnArg)) == rn_type_zip) {
+	  resNodeSetType(prnArg, rn_type_dir_in_zip);
+	}
 	else {
 	  resNodeSetType(prnArg, rn_type_dir);
 	}
@@ -2263,7 +2289,7 @@ resNodeIsDir(resNodePtr prnArg)
 	resNodeReadStatus(prnArg);
       }
     }
-    fResult = (resNodeGetType(prnArg) == rn_type_dir || resNodeGetType(prnArg) == rn_type_dir_in_archive); //  || resNodeGetChild(prnArg) != NULL
+    fResult = (resNodeGetType(prnArg) == rn_type_dir || resNodeGetType(prnArg) == rn_type_dir_in_archive || resNodeGetType(prnArg) == rn_type_dir_in_zip); //  || resNodeGetChild(prnArg) != NULL
   }
   return fResult;
 } /* end of resNodeIsDir() */
@@ -2501,14 +2527,14 @@ resNodeIsFileInArchive(resNodePtr prnArg)
   BOOL_T fResult = FALSE;
 
   if (prnArg) {
-    if (prnArg->eType == rn_type_file_in_archive) {
+    if (prnArg->eType == rn_type_file_in_archive || prnArg->eType == rn_type_file_in_zip) {
       fResult = TRUE;
     }
     else if (prnArg->eType == rn_type_file) {
       resNodePtr prnI = NULL;
 
       for (prnI = resNodeGetParent(prnArg); prnI; prnI = resNodeGetParent(prnI)) {
-	if (prnI->eType == rn_type_archive || prnI->eType == rn_type_dir_in_archive) {
+	if (prnI->eType == rn_type_archive || prnI->eType == rn_type_dir_in_archive || prnI->eType == rn_type_zip || prnI->eType == rn_type_dir_in_zip) {
 	  fResult = TRUE;
 	  break;
 	}
@@ -2527,14 +2553,14 @@ resNodeIsDirInArchive(resNodePtr prnArg)
   BOOL_T fResult = FALSE;
 
   if (prnArg) {
-    if (prnArg->eType == rn_type_dir_in_archive) {
+    if (prnArg->eType == rn_type_dir_in_archive || prnArg->eType == rn_type_dir_in_zip) {
       fResult = TRUE;
     }
     else if (prnArg->eType == rn_type_dir) {
       resNodePtr prnI = NULL;
 
       for (prnI = resNodeGetParent(prnArg); prnI; prnI = resNodeGetParent(prnI)) {
-	if (prnI->eType == rn_type_archive || prnI->eType == rn_type_dir_in_archive) {
+	if (prnI->eType == rn_type_archive || prnI->eType == rn_type_dir_in_archive || prnI->eType == rn_type_zip || prnI->eType == rn_type_dir_in_zip) {
 	  fResult = TRUE;
 	  break;
 	}
@@ -2543,6 +2569,73 @@ resNodeIsDirInArchive(resNodePtr prnArg)
   }
   return fResult;
 } /* end of resNodeIsDirInArchive() */
+
+
+/*! \return TRUE if prnArg is a processable zip file
+*/
+BOOL_T
+resNodeIsZipDocument(resNodePtr prnArg)
+{
+  BOOL_T fResult = FALSE;
+
+  if (prnArg) {
+    fResult = resMimeIsZipDocument(resNodeGetMimeType(prnArg));
+  }
+
+  return fResult;
+} /* end of resNodeIsZipDocument() */
+
+
+/*! \return TRUE if prnArg is a file in a parent zip file
+ */
+BOOL_T
+resNodeIsFileInZip(resNodePtr prnArg)
+{
+  BOOL_T fResult = FALSE;
+
+  if (prnArg) {
+    if (prnArg->eType == rn_type_file_in_zip) {
+      fResult = TRUE;
+    }
+    else if (prnArg->eType == rn_type_file) {
+      resNodePtr prnI = NULL;
+
+      for (prnI = resNodeGetParent(prnArg); prnI; prnI = resNodeGetParent(prnI)) {
+	if (prnI->eType == rn_type_zip || prnI->eType == rn_type_dir_in_zip) {
+	  fResult = TRUE;
+	  break;
+	}
+      }
+    }
+  }
+  return fResult;
+} /* end of resNodeIsFileInZip() */
+
+
+/*! \return TRUE if prnArg is a file in a parent zip file
+*/
+BOOL_T
+resNodeIsDirInZip(resNodePtr prnArg)
+{
+  BOOL_T fResult = FALSE;
+
+  if (prnArg) {
+    if (prnArg->eType == rn_type_dir_in_zip) {
+      fResult = TRUE;
+    }
+    else if (prnArg->eType == rn_type_dir) {
+      resNodePtr prnI = NULL;
+
+      for (prnI = resNodeGetParent(prnArg); prnI; prnI = resNodeGetParent(prnI)) {
+	if (prnI->eType == rn_type_zip || prnI->eType == rn_type_dir_in_zip) {
+	  fResult = TRUE;
+	  break;
+	}
+      }
+    }
+  }
+  return fResult;
+} /* end of resNodeIsDirInZip() */
 
 
 /*! \return TRUE if prnArg exists
@@ -2963,16 +3056,10 @@ resNodeContentToDOM(xmlNodePtr pndArg, resNodePtr prnArg)
 
     case MIME_APPLICATION_CXP_XML:
     case MIME_APPLICATION_RDF_XML:
+    case MIME_APPLICATION_XSD_XML:
+    case MIME_APPLICATION_RNG_XML:
     case MIME_APPLICATION_MM_XML:
     case MIME_APPLICATION_XMMAP_XML:
-#ifdef HAVE_ZLIB
-    case MIME_APPLICATION_MMAP_XML:
-#ifndef HAVE_LIBARCHIVE
-    case MIME_APPLICATION_VND_OPENXMLFORMATS_OFFICEDOCUMENT_WORDPROCESSINGML_DOCUMENT:
-    case MIME_APPLICATION_VND_OASIS_OPENDOCUMENT_SPREADSHEET:
-    case MIME_APPLICATION_VND_OASIS_OPENDOCUMENT_TEXT:
-#endif
-#endif
     case MIME_APPLICATION_VND_GARMIN_FITX:
     case MIME_APPLICATION_VND_GARMIN_TCX:
     case MIME_APPLICATION_XSPF_XML:
@@ -3022,12 +3109,7 @@ resNodeContentToDOM(xmlNodePtr pndArg, resNodePtr prnArg)
     }
     break;
 
-#ifdef HAVE_LIBARCHIVE
-    case MIME_APPLICATION_ZIP:
-    case MIME_APPLICATION_GZIP:
-    case MIME_APPLICATION_X_BZIP:
-    case MIME_APPLICATION_X_TAR:
-    case MIME_APPLICATION_X_ISO9660_IMAGE:
+    case MIME_APPLICATION_MMAP_XML:
     case MIME_APPLICATION_XMIND_XML:
     case MIME_APPLICATION_VND_OASIS_OPENDOCUMENT_TEXT:
     case MIME_APPLICATION_VND_OASIS_OPENDOCUMENT_SPREADSHEET:
@@ -3042,6 +3124,37 @@ resNodeContentToDOM(xmlNodePtr pndArg, resNodePtr prnArg)
     case MIME_APPLICATION_VND_OPENXMLFORMATS_OFFICEDOCUMENT_PRESENTATIONML_PRESENTATION:
     case MIME_APPLICATION_VND_OPENXMLFORMATS_OFFICEDOCUMENT_SPREADSHEETML_SHEET:
     case MIME_APPLICATION_VND_MS_VISIO_DRAWING_MAIN_XML_2013:
+    {
+	xmlChar *pucT = NULL;
+	xmlDocPtr pdocResult = NULL;
+
+	resNodeGetNameNormalized(prnArg); /* set internal name */
+
+	if (prnArg->pdocContent == NULL) {
+	  xmlNodePtr pndRoot = NULL;
+
+	  if (zipAppendEntries(prnArg, NULL, true) && (pndRoot = resNodeToDOM(prnArg, RN_INFO_MAX)) != NULL) {
+	    pdocResult = xmlNewDoc(BAD_CAST "1.0");
+	    xmlDocSetRootElement(pdocResult, pndRoot);
+	  }
+	  else {
+	    xmlSetProp(pndArg, BAD_CAST "error", BAD_CAST "parse");
+	  }
+	  resNodeSetContentDocEat(prnArg, pdocResult);
+	}
+	else {
+	  /* handle parser errors */
+	  xmlSetProp(pndArg, BAD_CAST "error", BAD_CAST "parse");
+	}
+      }
+      break;
+
+#ifdef HAVE_LIBARCHIVE
+    case MIME_APPLICATION_ZIP:
+    case MIME_APPLICATION_GZIP:
+    case MIME_APPLICATION_X_BZIP:
+    case MIME_APPLICATION_X_TAR:
+    case MIME_APPLICATION_X_ISO9660_IMAGE:
     {
 	xmlNodePtr pndArchive;
 	resNodePtr prnEntry;
@@ -3138,8 +3251,25 @@ resNodeContentToDOM(xmlNodePtr pndArg, resNodePtr prnArg)
 #endif
       
     default: /* no addtitional file information details */
-#if 1
+#if 0
       PrintFormatLog(1, "No file information details '%s' %i", resNodeGetNameNormalized(prnArg),iMimeType);
+#elif 1
+    {
+      xmlChar *pucContent;
+
+#if 1
+      pucContent = BAD_CAST resNodeGetContentBase64Eat(prnArg, 512);
+      if (STR_IS_NOT_EMPTY(pucContent)) {
+	xmlNewChild(pndArg, NULL, NAME_BASE64, pucContent);
+	xmlFree(pucContent);
+	/*!\todo optimize direct use of buffer as node content */
+      }
+      /*!\todo split content into separate text nodes (MIME multi-part?) */
+#endif
+
+      xmlFree(resNodeEatContentPtr(prnArg));
+      break;
+    }
 #else
       {
 	xmlChar *pucContent;
@@ -3297,12 +3427,12 @@ resNodeToDOM(resNodePtr prnArg, int iArgOptions)
       }
     }
 
-    if (resNodeIsDir(prnArg)) {
+    if (resNodeIsDir(prnArg) || resNodeIsDirInArchive(prnArg)) {
       for (prnEntry = resNodeGetChild(prnArg); prnEntry; prnEntry = resNodeGetNext(prnEntry)) {
 	xmlAddChild(pndT, resNodeToDOM(prnEntry, iArgOptions));
       }
     }
-    else if (resNodeIsArchive(prnArg)) {
+    else if (resNodeIsArchive(prnArg) || resNodeIsZipDocument(prnArg)) {
       xmlNodePtr pndArchive;
 
       pndArchive = xmlNewChild(pndT, NULL, BAD_CAST"archive", NULL);
@@ -3310,11 +3440,6 @@ resNodeToDOM(resNodePtr prnArg, int iArgOptions)
 	for (prnEntry = resNodeGetChild(prnArg); prnEntry; prnEntry = resNodeGetNext(prnEntry)) {
 	  xmlAddChild(pndArchive, resNodeToDOM(prnEntry, iArgOptions));
 	}
-      }
-    }
-    else if (resNodeIsDirInArchive(prnArg)) {
-      for (prnEntry = resNodeGetChild(prnArg); prnEntry; prnEntry = resNodeGetNext(prnEntry)) {
-	xmlAddChild(pndT, resNodeToDOM(prnEntry, iArgOptions));
       }
     }
     else if (resNodeIsFileInArchive(prnArg)) {
@@ -4042,6 +4167,9 @@ resNodeUpdate(resNodePtr prnArg, int iArgOptions, const pcre2_code *re_match, co
 	  fResult = dbAppendEntries(prnArg, re_match, TRUE);
 	}
 #endif
+	else if (resNodeIsZipDocument(prnArg)) {
+	  fResult = zipAppendEntries(prnArg, re_match, TRUE); /* update achive nodes */
+	}
 #ifdef HAVE_LIBARCHIVE
 	else if (resNodeIsArchive(prnArg)) {
 	  fResult = arcAppendEntries(prnArg, re_match, TRUE); /* update achive nodes */

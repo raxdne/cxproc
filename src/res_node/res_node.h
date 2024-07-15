@@ -138,6 +138,9 @@ typedef enum {
   rn_type_archive,
   rn_type_dir_in_archive,
   rn_type_file_in_archive,
+  rn_type_zip,
+  rn_type_dir_in_zip,
+  rn_type_file_in_zip,
   rn_type_database,
   rn_type_file_in_database,
   rn_type_symlink,
@@ -165,7 +168,8 @@ typedef enum {
   rn_access_sqlite,			/*               SQLite */
   rn_access_image,			/*               image */
   rn_access_audio,			/*               audio */
-  rn_access_archive			/*               archive */
+  rn_access_archive,			/*               libarchive */
+  rn_access_zip				/*               libzip */
 } RN_ACCESS; /*! indicates the way it was opened (type of IO handle) */
 
 typedef enum {
@@ -182,6 +186,7 @@ typedef enum {
   rn_error_busy,
   rn_error_parse,
   rn_error_archive,
+  rn_error_zip,
   rn_error_encoding,
   rn_error_max_path,
   rn_error_find,
@@ -401,6 +406,9 @@ resNodeGetRoot(resNodePtr prnArg);
 extern resNodePtr
 resNodeGetAncestorArchive(resNodePtr prnArg);
 
+extern resNodePtr
+resNodeGetAncestorZip(resNodePtr prnArg);
+
 extern xmlChar*
 resNodeGetAncestorPathStr(resNodePtr prnArg);
 
@@ -484,6 +492,15 @@ resNodeIsFileInArchive(resNodePtr prnArg);
 
 extern BOOL_T
 resNodeIsDirInArchive(resNodePtr prnArg);
+
+extern BOOL_T
+resNodeIsZipDocument(resNodePtr prnArg);
+
+extern BOOL_T
+resNodeIsFileInZip(resNodePtr prnArg);
+
+extern BOOL_T
+resNodeIsDirInZip(resNodePtr prnArg);
 
 extern BOOL_T
 resNodeIsExist(resNodePtr prnArg);

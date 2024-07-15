@@ -768,31 +768,18 @@ resPathBeginIsArchive(xmlChar *pucArg)
 {
   BOOL_T fResult = FALSE;
 
-#ifdef HAVE_LIBARCHIVE	  
   if (pucArg) {
     xmlChar *pucT;
     xmlChar *pucDot;
 
     for (pucDot=NULL, pucT=pucArg; pucT; pucT++) {
       if (isseporend(*pucT) || isquot(*pucT)) {
-	if (pucDot != NULL && pucT - pucDot > 4) {
-	  fResult =
-	       (*(pucT - 4) == (xmlChar)'d' && *(pucT - 3) == (xmlChar)'o' && *(pucT - 2) == (xmlChar)'c' && *(pucT - 1) == (xmlChar)'x')
-	    || (*(pucT - 4) == (xmlChar)'p' && *(pucT - 3) == (xmlChar)'p' && *(pucT - 2) == (xmlChar)'t' && *(pucT - 1) == (xmlChar)'x')
-	    || (*(pucT - 4) == (xmlChar)'x' && *(pucT - 3) == (xmlChar)'l' && *(pucT - 2) == (xmlChar)'s' && *(pucT - 1) == (xmlChar)'x')
-	    ;
-	  assert(fResult == FALSE || isdot(*(pucT - 5)));
-	  break;
-	}
-	else if (pucDot != NULL && pucT - pucDot > 3) {
+	if (pucDot != NULL && pucT - pucDot > 3) {
 	  fResult =
 	       (*(pucT - 3) == (xmlChar)'z' && *(pucT - 2) == (xmlChar)'i' && *(pucT - 1) == (xmlChar)'p')
 	    || (*(pucT - 3) == (xmlChar)'t' && *(pucT - 2) == (xmlChar)'a' && *(pucT - 1) == (xmlChar)'r')
 	    || (*(pucT - 3) == (xmlChar)'i' && *(pucT - 2) == (xmlChar)'s' && *(pucT - 1) == (xmlChar)'o')
 	    || (*(pucT - 3) == (xmlChar)'w' && *(pucT - 2) == (xmlChar)'i' && *(pucT - 1) == (xmlChar)'m')
-	    || (*(pucT - 3) == (xmlChar)'o' && *(pucT - 2) == (xmlChar)'d' && *(pucT - 1) == (xmlChar)'t')
-	    || (*(pucT - 3) == (xmlChar)'o' && *(pucT - 2) == (xmlChar)'d' && *(pucT - 1) == (xmlChar)'s')
-	    || (*(pucT - 3) == (xmlChar)'o' && *(pucT - 2) == (xmlChar)'d' && *(pucT - 1) == (xmlChar)'p')
 	    ;
 	  assert(fResult == FALSE || isdot(*(pucT - 4)));
 	  break;
@@ -807,7 +794,6 @@ resPathBeginIsArchive(xmlChar *pucArg)
       }
     }
   }
-#endif
 
   return fResult;
 }

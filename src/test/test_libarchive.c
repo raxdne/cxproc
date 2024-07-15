@@ -21,7 +21,7 @@
 /*!
 */
 int
-zipTest(cxpContextPtr pccArg)
+arcTest(cxpContextPtr pccArg)
 {
   int i;
   int n_ok;

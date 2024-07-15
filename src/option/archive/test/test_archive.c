@@ -199,17 +199,70 @@ arcTest(void)
       printf("error of archive_read_support_format_zip()\n");
       fTest = FALSE;
     }
-    else if (archive_read_open_filename(a, pcNameFile, 2) != ARCHIVE_OK) {
+    else if (archive_read_open_filename(a, pcNameFile, BUFFER_LENGTH * 16) != ARCHIVE_OK) {
       printf("error of archive_read_open_filename()\n");
       fTest = FALSE;
     }
     else {
-      const char *n[] ={ "Document.xml", "xsd/MindManagerDelta.xsd", "bin/91D56B1A-7011-4CC6-827C-6D562F70DE95.bin", "xsd/MindManagerApplication.xsd", "xsd/", "xsd/MindManagerCore.xsd", "bin/", "xsd/MindManagerPrimitive.xsd", "Preview.png", NULL };
-      arcEntryPtr ae;
-      char *pcT;
+      //const char *n[] ={ "Document.xml", "xsd/MindManagerDelta.xsd", "bin/91D56B1A-7011-4CC6-827C-6D562F70DE95.bin", "xsd/MindManagerApplication.xsd", "xsd/", "xsd/MindManagerCore.xsd", "bin/", "xsd/MindManagerPrimitive.xsd", "Preview.png", NULL };
+      struct archive *ae;
       xmlChar *pucT = NULL;
       int j;
+	static unsigned char buffer[BUFFER_LENGTH];
+	  char *pcBlock = NULL;
 
+// https://github.com/libarchive/libarchive/pull/1109
+
+// https://github.com/libarchive/libarchive/blob/master/unzip/bsdunzip.c#L998
+
+      for (j = 0; ; ++j) {
+	size_t len;
+
+	if (archive_read_next_header(a, &ae) == ARCHIVE_OK) {
+	  char *pcT = NULL;
+	  size_t s = 0;
+
+	  if ((pcT = (char *)archive_entry_pathname(ae)) != NULL) {}
+
+	  if (archive_entry_size(ae) > 0) {
+
+	    while ((len = archive_read_data(a, buffer, sizeof(buffer))) > 0 && s < BUFFER_LENGTH * 128) {
+	      pcBlock = (char *)xmlRealloc(pcBlock, s + len);
+	      if (pcBlock) {
+		memcpy(&(pcBlock[s]), buffer, len);
+		s += len;
+	      }
+	      else {
+		printf("Error reading input archive");
+	      }
+
+	      if (len < BUFFER_LENGTH) {
+		break;
+	      }
+	    }
+	  }
+
+	  printf("file %d: '%s' %iB\n", j, pcT, s);
+
+	/* shouldn't be necessary, but it doesn't hurt */
+	archive_read_data_skip(a);
+
+#if 0
+	// S_ISDIR(archive_entry_filetype(e))
+
+	  printf("Could not read file %d (%s) from %s\n", j, n[j], pcNameFile);
+	  fTest = FALSE;
+	  continue;
+#endif
+	}
+	else {
+	  printf("Could not read file %d from %s: '%s'\n", j, pcNameFile, archive_error_string(a));
+	  break;
+	  fTest = FALSE;
+	}
+	  //printf("Could read file %d (%s)\n", j, pcT);
+	//xmlFree(pucT);
+#if 0
       /* Read entries, match up names with list above. */
       for (j = 0; fTest && n[j]; ++j) {
 	if (archive_read_next_header(a, &ae) != ARCHIVE_OK) {
@@ -225,6 +278,8 @@ arcTest(void)
 	  fTest = FALSE;
 	}
 	xmlFree(pucT);
+      }
+#endif
       }
 
       /* Verify the end-of-archive. */

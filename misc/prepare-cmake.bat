@@ -24,13 +24,13 @@ IF "%STATIC%" == "1" (
   SET CXPARCH=%VSCMD_ARG_TGT_ARCH%-windows
 )
 
-IF "0" == "1" (
+IF "1" == "1" (
   pushd C:\UserData\Develop\vcpkg
   REM bootstrap-vcpkg.bat -win64 -disableMetrics
   REM git pull
   .\vcpkg integrate install
 
-  .\vcpkg --triplet %CXPARCH% --x-install-root=%CXPBASE%..\.. install curl zlib liblzma libarchive pcre2 libxml2 libxslt libexif sqlite3 duktape cmark
+  .\vcpkg --triplet %CXPARCH% --x-install-root=%CXPBASE%..\.. install curl zlib libzip liblzma libarchive pcre2 libxml2 libxslt libexif sqlite3 duktape cmark
 
   REM imagemagick libgif libjpeg libpng libtiff
   

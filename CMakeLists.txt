@@ -127,6 +127,8 @@ ADD_EXECUTABLE(filex
   ${CXPROC_SRC_DIR}/res_node/res_node.h
   ${CXPROC_SRC_DIR}/res_node/res_node_io.c
   ${CXPROC_SRC_DIR}/res_node/res_node_io.h
+  ${CXPROC_SRC_DIR}/res_node/res_node_zip.c
+  ${CXPROC_SRC_DIR}/res_node/res_node_zip.h
   ${CXPROC_SRC_DIR}/res_node/res_node_list.c
   ${CXPROC_SRC_DIR}/res_node/res_node_list.h
   ${CXPROC_SRC_DIR}/res_node/res_node_ops.c
@@ -150,6 +152,8 @@ ADD_EXECUTABLE(dir2csv
   ${CXPROC_SRC_DIR}/res_node/res_node.h
   ${CXPROC_SRC_DIR}/res_node/res_node_io.c
   ${CXPROC_SRC_DIR}/res_node/res_node_io.h
+  ${CXPROC_SRC_DIR}/res_node/res_node_zip.c
+  ${CXPROC_SRC_DIR}/res_node/res_node_zip.h
   ${CXPROC_SRC_DIR}/res_node/res_node_list.c
   ${CXPROC_SRC_DIR}/res_node/res_node_list.h
   ${CXPROC_SRC_DIR}/res_node/res_path.c
@@ -170,6 +174,8 @@ ADD_EXECUTABLE(dir2sqlite
   ${CXPROC_SRC_DIR}/res_node/res_node.h
   ${CXPROC_SRC_DIR}/res_node/res_node_io.c
   ${CXPROC_SRC_DIR}/res_node/res_node_io.h
+  ${CXPROC_SRC_DIR}/res_node/res_node_zip.c
+  ${CXPROC_SRC_DIR}/res_node/res_node_zip.h
   ${CXPROC_SRC_DIR}/res_node/res_node_list.c
   ${CXPROC_SRC_DIR}/res_node/res_node_list.h
   ${CXPROC_SRC_DIR}/res_node/res_path.c
@@ -212,6 +218,7 @@ SET(CXPROC_HEADERS
   ${CXPROC_SRC_DIR}/res_node/res_node.h
   ${CXPROC_SRC_DIR}/res_node/res_node_list.h
   ${CXPROC_SRC_DIR}/res_node/res_node_io.h
+  ${CXPROC_SRC_DIR}/res_node/res_node_zip.h
   ${CXPROC_SRC_DIR}/res_node/res_node_ops.h
   ${CXPROC_SRC_DIR}/res_node/res_path.h
   ${CXPROC_SRC_DIR}/res_node/res_mime.h
@@ -234,6 +241,7 @@ SET(CXPROC_SOURCES
   ${CXPROC_SRC_DIR}/res_node/res_node_list.c
   ${CXPROC_SRC_DIR}/res_node/res_node_properties.c
   ${CXPROC_SRC_DIR}/res_node/res_node_io.c
+  ${CXPROC_SRC_DIR}/res_node/res_node_zip.c
   ${CXPROC_SRC_DIR}/res_node/res_node_ops.c
   ${CXPROC_SRC_DIR}/res_node/res_path.c
   ${CXPROC_SRC_DIR}/res_node/res_mime.c
@@ -351,6 +359,13 @@ FIND_PACKAGE( LibCMark )
 
 ################################################################################
 #
+# libzip
+#
+
+FIND_PACKAGE( LibZip )
+
+################################################################################
+#
 # libcurl
 #
 
@@ -375,34 +390,6 @@ FIND_PACKAGE( ZLIB )
 IF (ZLIB_LIBRARY_RELEASE)
   SET(CXPROC_LIBZ ON)
 ENDIF (ZLIB_LIBRARY_RELEASE)
-
-IF (CXPROC_LIBZ)
-  SET(ZIP_FILES
-    ${CXPROC_SRCLIB_DIR}/minizip/ioapi.c
-    ${CXPROC_SRCLIB_DIR}/minizip/ioapi.h
-    ${CXPROC_SRCLIB_DIR}/minizip/unzip.c
-    ${CXPROC_SRCLIB_DIR}/minizip/unzip.h
-    ${CXPROC_SRCLIB_DIR}/minizip/zip.c
-    ${CXPROC_SRCLIB_DIR}/minizip/zip.h
-    ${CXPROC_SRCLIB_DIR}/xmlzipio/xmlzipio.c
-    ${CXPROC_SRCLIB_DIR}/xmlzipio/xmlzipio.h
-    )
-
-  target_sources(filex PUBLIC ${ZIP_FILES})
-
-  target_sources(cxproc PUBLIC ${ZIP_FILES})
-
-  target_sources(cxproc-cgi PUBLIC ${ZIP_FILES})
-
-  target_sources(cxproc-test PUBLIC ${ZIP_FILES})
-
-  INCLUDE_DIRECTORIES(${ZLIB_INCLUDE_DIR} ${CXPROC_SRCLIB_DIR}/minizip)
-  
-  add_compile_definitions(HAVE_ZLIB)
-  IF (${ZLIB_LIBRARY_RELEASE} MATCHES ".+static.*\\.lib$" OR ${ZLIB_LIBRARY_RELEASE} MATCHES ".+\\.a$")
-    add_compile_definitions(ZLIB_STATIC)
-  ENDIF ()
-ENDIF (CXPROC_LIBZ)
 
 ################################################################################
 #
@@ -728,16 +715,16 @@ ENDIF ()
 # add list of mandatory libraries
 #
 
-target_link_libraries(filex ${LIBICONV_LIBRARY} ${LIBCHARSET_LIBRARY} ${LIBXML2_LIBRARY})
-target_link_libraries(dir2csv ${LIBICONV_LIBRARY} ${LIBCHARSET_LIBRARY} ${LIBXML2_LIBRARY})
-target_link_libraries(dir2sqlite ${LIBICONV_LIBRARY} ${LIBCHARSET_LIBRARY} ${LIBXML2_LIBRARY})
-target_link_libraries(pietextx ${LIBICONV_LIBRARY} ${LIBCHARSET_LIBRARY} ${LIBXML2_LIBRARY})
-target_link_libraries(cxproc ${LIBICONV_LIBRARY} ${LIBCHARSET_LIBRARY} ${LIBXML2_LIBRARY} ${LIBXSLT_LIBRARIES} ${LIBXSLT_EXSLT_LIBRARIES})
-target_link_libraries(cxproc-test ${LIBICONV_LIBRARY} ${LIBCHARSET_LIBRARY} ${LIBXML2_LIBRARY} ${LIBXSLT_LIBRARIES} ${LIBXSLT_EXSLT_LIBRARIES})
-target_link_libraries(cxproc-cgi ${LIBICONV_LIBRARY} ${LIBCHARSET_LIBRARY} ${LIBXML2_LIBRARY} ${LIBXSLT_LIBRARIES} ${LIBXSLT_EXSLT_LIBRARIES})
+target_link_libraries(filex ${LIBZIP_LIBRARY} ${LIBICONV_LIBRARY} ${LIBCHARSET_LIBRARY} ${LIBXML2_LIBRARY})
+target_link_libraries(dir2csv ${LIBZIP_LIBRARY} ${LIBICONV_LIBRARY} ${LIBCHARSET_LIBRARY} ${LIBXML2_LIBRARY})
+target_link_libraries(dir2sqlite ${LIBZIP_LIBRARY} ${LIBICONV_LIBRARY} ${LIBCHARSET_LIBRARY} ${LIBXML2_LIBRARY})
+target_link_libraries(pietextx ${LIBZIP_LIBRARY} ${LIBICONV_LIBRARY} ${LIBCHARSET_LIBRARY} ${LIBXML2_LIBRARY})
+target_link_libraries(cxproc ${LIBZIP_LIBRARY} ${LIBICONV_LIBRARY} ${LIBCHARSET_LIBRARY} ${LIBXML2_LIBRARY} ${LIBXSLT_LIBRARIES} ${LIBXSLT_EXSLT_LIBRARIES})
+target_link_libraries(cxproc-test ${LIBZIP_LIBRARY} ${LIBICONV_LIBRARY} ${LIBCHARSET_LIBRARY} ${LIBXML2_LIBRARY} ${LIBXSLT_LIBRARIES} ${LIBXSLT_EXSLT_LIBRARIES})
+target_link_libraries(cxproc-cgi ${LIBZIP_LIBRARY} ${LIBICONV_LIBRARY} ${LIBCHARSET_LIBRARY} ${LIBXML2_LIBRARY} ${LIBXSLT_LIBRARIES} ${LIBXSLT_EXSLT_LIBRARIES})
 
 #IF (LIBMICROHTTPD_FOUND)
-#  target_link_libraries(cxproc-httpd ${LIBICONV_LIBRARY} ${LIBCHARSET_LIBRARY} ${LIBXML2_LIBRARY} ${LIBXSLT_LIBRARIES} ${LIBMICROHTTPD_LIBRARIES})
+#  target_link_libraries(cxproc-httpd ${LIBZIP_LIBRARY} ${LIBICONV_LIBRARY} ${LIBCHARSET_LIBRARY} ${LIBXML2_LIBRARY} ${LIBXSLT_LIBRARIES} ${LIBMICROHTTPD_LIBRARIES})
 #ENDIF ()
 
 ################################################################################
