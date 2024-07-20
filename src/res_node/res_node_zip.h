@@ -25,10 +25,16 @@ extern BOOL_T
 zipAppendEntries(resNodePtr prnArgZip, const pcre2_code *re_match, BOOL_T fArgContent);
 
 extern BOOL_T
+zipDocumentRead(resNodePtr prnArgZip);
+
+extern BOOL_T
 zipGetFileNameDecoded(char *pcArg, xmlChar **ppucResult);
 
 extern BOOL_T
 zipGetFileNameEncoded(xmlChar *pucArg, char **ppcResult);
+
+extern void
+zipIconvCleanup(void);
 
 #include <zip.h>
 

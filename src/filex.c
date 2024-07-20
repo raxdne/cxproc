@@ -57,6 +57,7 @@ main(int argc, char *argv[], char *envp[])
 #ifdef HAVE_PIE
       || atexit(pieTextBlocksCleanup) != 0
 #endif
+      || atexit(zipIconvCleanup) != 0
     ) {
     exit(EXIT_FAILURE);
   }
@@ -73,6 +74,8 @@ main(int argc, char *argv[], char *envp[])
 #ifdef _WIN32
   resPathSetNativeEncoding("ISO-8859-1");
 #endif
+
+  zipIconvInit();
 
   if (argc > 1) {
     resNodePtr prnNew = NULL;

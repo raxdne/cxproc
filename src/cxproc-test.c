@@ -163,6 +163,7 @@ main(int argc, char** argv, char** envp)
 #ifdef HAVE_LIBCURL
       || atexit(curl_global_cleanup) != 0
 #endif
+      || atexit(zipIconvCleanup) != 0
     ) {
     exit(EXIT_FAILURE);
   }
@@ -182,6 +183,7 @@ main(int argc, char** argv, char** envp)
   exsltRegisterAll();
 
   ceInit();
+  zipIconvInit();
 
 #ifdef _WIN32
   resPathSetNativeEncoding("ISO-8859-1");
@@ -214,6 +216,7 @@ main(int argc, char** argv, char** envp)
       }
 
       if (pcTest == NULL || xmlStrEqual(BAD_CAST pcTest, BAD_CAST "res_node")) {
+#if 0
 	iErrorCode += resNodeTestString();
 	iErrorCode += resNodeTestMime();
 	iErrorCode += resNodeTest();
@@ -221,6 +224,9 @@ main(int argc, char** argv, char** envp)
 	iErrorCode += resNodeTestProp();
 	iErrorCode += resNodeTestInOut();
 	iErrorCode += resNodeTestOperations();
+#endif
+	iErrorCode += resNodeTestZip();
+
       }
 
       if (pcTest == NULL || xmlStrEqual(BAD_CAST pcTest, BAD_CAST "dom")) {

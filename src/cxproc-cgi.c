@@ -169,6 +169,7 @@ main(int argc, char *argv[], char *envp[])
 #ifdef HAVE_LIBCURL
       || atexit(curl_global_cleanup) != 0
 #endif
+      || atexit(zipIconvCleanup) != 0
     ) {
     exit(EXIT_FAILURE);
   }
@@ -188,6 +189,7 @@ main(int argc, char *argv[], char *envp[])
   exsltRegisterAll();
 
   ceInit();
+  zipIconvInit();
 
 #ifdef _WIN32
   resPathSetNativeEncoding("ISO-8859-1");

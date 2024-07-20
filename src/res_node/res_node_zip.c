@@ -66,10 +66,6 @@ iconv_t iconvZipEncode = NULL;     /*! charset of zip headers */
 iconv_t iconvZipDecode = NULL;     /*! charset of zip headers */
 
 
-static void
-zipIconvCleanup(void);
-
-
 /*!
 */
 BOOL_T
@@ -212,17 +208,18 @@ zipGetFileNameDecoded(char *pcArg, xmlChar **ppucResult)
 /* end of zipGetFileNameDecoded() */
 
 
-/*! wrapper for , append all directory entries as childs
+/*! generic extractor for ZIP archives using libzip
 
 similar to arcAppendEntries()
 
 \param prnArgZip the zip node
 \param re_match pointer to a compiled regexp
 \param fArgContent flag to extract data of a matching header
+
 \return TRUE if successful, else FALSE
 */
 BOOL_T
-zipAppendEntries(resNodePtr prnArgZip, const pcre2_code* re_match, BOOL_T fArgContent)
+zipAppendEntries(resNodePtr prnArgZip, const pcre2_code *re_match, BOOL_T fArgContent)
 {
   BOOL_T fResult = FALSE;
 
@@ -230,36 +227,175 @@ zipAppendEntries(resNodePtr prnArgZip, const pcre2_code* re_match, BOOL_T fArgCo
 
   /*!\todo handle zip in zip recursively */
 
-  if (resNodeReadStatus(prnArgZip) && resNodeIsZipDocument(prnArgZip) && resNodeOpen(prnArgZip, "ra")) {
+  if (resNodeReadStatus(prnArgZip) && resNodeIsArchive(prnArgZip) && resNodeOpen(prnArgZip, "ra")) {
     char buf[BUFFER_LENGTH];
     int err;
     int i, len;
 
     PrintFormatLog(4, "Begin of '%s'", resNodeGetNameNormalized(prnArgZip));
-    for (i = 0; i < zip_get_num_entries((struct zip *)resNodeGetHandleIO(prnArgZip), 0); i++) {
+    for (i = 0; i < zip_get_num_entries((struct zip *)resNodeGetHandleIO(prnArgZip), 0) && i < 1e5; i++) {
+      struct zip_stat sb;
+      xmlChar *pucNameEncoded = NULL;
+
+      fResult = TRUE;
+      if (zip_stat_index((struct zip *)resNodeGetHandleIO(prnArgZip), i, 0, &sb) == 0 && STR_IS_NOT_EMPTY(sb.name) &&
+	  zipGetFileNameDecoded(sb.name, &pucNameEncoded) && STR_IS_NOT_EMPTY(pucNameEncoded)) {
+	resNodePtr prnInZip = NULL;
+	resNodePtr prnAncestor;
+	resNodePtr prnChild = NULL;
+	struct zip_file *zf;
+	time_t mtimeEntry;
+
+	if (resNodeGetChild(prnArgZip) != NULL) { /* */
+	  prnChild = resNodeListFindPath(resNodeGetChild(prnArgZip), pucNameEncoded, RN_FIND_ALL);
+	}
+	else {
+	  /* use pucNameEncoded */
+	}
+	PrintFormatLog(4, " %s", pucNameEncoded);
+
+	/*!\todo exclude hidden entries? */
+
+#ifdef HAVE_PCRE2
+	if (re_match) { /* filename matching */
+	  int rc = 1;
+
+	  pcre2_match_data *match_data;
+
+	  match_data = pcre2_match_data_create_from_pattern(re_match, NULL);
+	  rc = pcre2_match(re_match,				 /* result of pcre2_compile() */
+			   (PCRE2_SPTR8)pucNameEncoded,		 /* the subject string */
+			   strlen((const char *)pucNameEncoded), /* the length of the subject string */
+			   0,					 /* start at offset 0 in the subject */
+			   0,					 /* default options */
+			   match_data,				 /* vector of integers for substring information */
+			   NULL);				 /* number of elements (NOT size in bytes) */
+
+	  if (rc < 0) {
+	    // PrintFormatLog(4, "%s ignore '%s'", NAME_FILE, pucNameEncoded);
+	    continue;
+	  }
+	  else {
+	    prnInZip = resNodeAddChildNew(prnArgZip, pucNameEncoded);
+	  }
+	  pcre2_match_data_free(match_data); /* Release memory used for the match */
+	}
+	else {
+	  prnInZip = resNodeAddChildNew(prnArgZip, pucNameEncoded);
+	}
+#else
+	prnInZip = resNodeAddChildNew(prnArgZip, pucNameEncoded);
+#endif
+
+	if (prnInZip) {
+
+	  if (resPathIsDir(pucNameEncoded)) {
+	    prnInZip->eType = rn_type_dir_in_zip;
+	  }
+	  else {
+	    resNodeSetSize(prnInZip, sb.size);
+	    prnInZip->eType = rn_type_file_in_zip;
+	    // sb.mtime
+
+	    if (fArgContent && sb.size < 1e6 && (zf = zip_fopen_index((struct zip *)resNodeGetHandleIO(prnArgZip), i, 0)) != NULL) {
+	      long long sum;
+
+	      PrintFormatLog(3, "zip[%i] of '%s'", i, resNodeGetNameNormalized(prnInZip));
+	      sum = 0;
+	      while (sum != sb.size) {
+		len = zip_fread(zf, buf, sizeof(buf));
+		if (len < 0) {
+		  PrintFormatLog(1, "zip[%i] read error", i);
+		  fResult = FALSE;
+		  break;
+		}
+		else {
+		  resNodeAppendContent(prnInZip, (void *)buf, len);
+		  sum += len;
+		}
+	      }
+	      zip_fclose(zf);
+	      // assert(resNodeGetSi(prnArgZip) == sum);
+
+	      resNodeResetMimeType(prnInZip);
+	      prnInZip->fExist = TRUE;
+	      prnInZip->fStat = TRUE;
+	      prnInZip->fRead = TRUE;
+	      prnInZip->eAccess = rn_access_zip;
+
+	      /* set all parent directories in this zip too */
+	      for (prnAncestor = resNodeGetParent(prnInZip); resNodeGetType(prnAncestor) == rn_type_dir_in_zip; prnAncestor = resNodeGetParent(prnAncestor)) {
+		prnAncestor->fExist = TRUE;
+		prnAncestor->fStat = TRUE;
+		prnAncestor->fRead = TRUE;
+		prnAncestor->eAccess = rn_access_zip;
+	      }
+	    }
+	    else {
+	      PrintFormatLog(1, "zip[%i] read error", i);
+	      // fResult = FALSE;
+	    }
+	  }
+	}
+	else {
+	  PrintFormatLog(1, "zip access error");
+	  fResult = FALSE;
+	}
+      }
+    }
+  }
+  return fResult;
+} /* end of zipAppendEntries() */
+
+
+/*! handler for Document formats based on ZIP archive
+
+similar to zipAppendEntries()
+
+\param prnArgZip the zip node
+\param re_match pointer to a compiled regexp
+\param fArgContent flag to extract data of a matching header
+\return TRUE if successful, else FALSE
+*/
+BOOL_T
+zipDocumentRead(resNodePtr prnArgZip)
+{
+  BOOL_T fResult = FALSE;
+
+  if (resNodeReadStatus(prnArgZip) && resNodeIsZipDocument(prnArgZip) && resNodeOpen(prnArgZip, "ra")) {
+    int i, len;
+    zip_uint64_t sum;
+
+    PrintFormatLog(4, "Begin of '%s'", resNodeGetNameNormalized(prnArgZip));
+    for (i = 0, sum = 0; i < zip_get_num_entries((struct zip *)resNodeGetHandleIO(prnArgZip), 0) || i < 1e5; i++) {
       struct zip_stat sb;
 
       fResult = TRUE;
       if (zip_stat_index((struct zip *)resNodeGetHandleIO(prnArgZip), i, 0, &sb) == 0) {
 	resNodePtr prnInZip;
-	    resNodePtr prnAncestor;
-	char *pcContent = NULL;
+	resNodePtr prnAncestor;
 	struct zip_file *zf;
 
 	prnInZip = resNodeAddChildNew(prnArgZip, sb.name);
 	resNodeSetSize(prnInZip, sb.size);
-	// sb.mtime
+	sum += sb.size;
+	prnInZip->tMtime = sb.mtime;
 
-	if ((zf = zip_fopen_index((struct zip *)resNodeGetHandleIO(prnArgZip), i, 0)) != NULL) {
+	if (sb.size > 1e6 || sum > 1e7) {
+	  resNodeSetError(prnInZip, rn_error_undef, "skip big zip[%i] '%s'", i, sb.name);
+	  PrintFormatLog(3, "skip big zip[%i] '%s'", i, sb.name);
+	}
+	else if ((zf = zip_fopen_index((struct zip *)resNodeGetHandleIO(prnArgZip), i, 0)) != NULL) {
 	  long long sum;
+	  char buf[BUFFER_LENGTH];
 
-	  PrintFormatLog(3, "zip[%i] of '%s'", i, resNodeGetNameNormalized(prnInZip));
+	  PrintFormatLog(3, "zip[%i] of '%s'", i, sb.name);
 	  sum = 0;
 	  while (sum != sb.size) {
 	    len = zip_fread(zf, buf, sizeof(buf));
 	    if (len < 0) {
 	      PrintFormatLog(1, "zip[%i] read error", i);
-	fResult = FALSE;
+	      fResult = FALSE;
 	      break;
 	    }
 	    else {
@@ -268,13 +404,24 @@ zipAppendEntries(resNodePtr prnArgZip, const pcre2_code* re_match, BOOL_T fArgCo
 	    }
 	  }
 	  zip_fclose(zf);
-//assert(resNodeGetSi(prnArgZip) == sum);
+	  // assert(resNodeGetSi(prnArgZip) == sum);
 
-	  resNodeResetMimeType(prnInZip);
 	  prnInZip->fExist = TRUE;
 	  prnInZip->fStat = TRUE;
 	  prnInZip->fRead = TRUE;
 	  prnInZip->eAccess = rn_access_zip;
+
+	  if (resPathIsEquivalent(BAD_CAST ".rels", resNodeGetNameBase(prnInZip)) && resNodeGetMimeType(prnArgZip) == MIME_APPLICATION_VND_OPENXMLFORMATS_OFFICEDOCUMENT_WORDPROCESSINGML_DOCUMENT) {
+	    resNodeSetMimeType(prnInZip, MIME_TEXT_XML);
+	  }
+	  else {
+	    resNodeResetMimeType(prnInZip);
+	  }
+
+	  if (resMimeIsXml(resNodeGetMimeType(prnInZip))) {
+	    /*!\todo Parse Memory() directly */
+	  }
+	  else {}
 
 	  /* set all parent directories in this zip too */
 	  for (prnAncestor = resNodeGetParent(prnInZip); resNodeGetType(prnAncestor) == rn_type_dir_in_zip; prnAncestor = resNodeGetParent(prnAncestor)) {
@@ -286,151 +433,14 @@ zipAppendEntries(resNodePtr prnArgZip, const pcre2_code* re_match, BOOL_T fArgCo
 	}
 	else {
 	  PrintFormatLog(1, "zip[%i] read error", i);
-	fResult = FALSE;
+	  fResult = FALSE;
 	}
       }
-      else {
-	PrintFormatLog(1, "zip access error");
-	fResult = FALSE;
-      }
     }
-
-#if 0
-
-    while (fResult == FALSE) {
-      /* Read entries, match up names with regexp. */
-      zipEntryPtr pZipEntryT;
-      int iError;
-
-      iError = zip_read_next_header((arcPtr)resNodeGetHandleIO(prnArgZip), &pArcEntryT);
-      if (iError == ZIP_EOF) {
-	PrintFormatLog(4, "End of '%s'", resNodeGetNameNormalized(prnArgZip));
-	fResult = TRUE;
-      }
-      else if (iError == ZIP_OK) {
-	char* pcT;
-	xmlChar* pucNameEncoded = NULL;
-
-	pcT = (char*)zip_entry_pathname(pArcEntryT);
-	if (STR_IS_NOT_EMPTY(pcT) && arcGetFileNameDecoded(pcT, &pucNameEncoded) && STR_IS_NOT_EMPTY(pucNameEncoded)) {
-	  resNodePtr prnChild = NULL;
-	  time_t mtimeEntry;
-
-	  if (resNodeGetChild(prnArgZip) != NULL && resNodeGetMimeType(prnArgZip) == MIME_APPLICATION_GZIP) { /* */
-	    prnChild = resNodeGetChild(prnArgZip);
-	  }
-	  else if (resNodeGetChild(prnArgZip) != NULL) { /* */
-	    prnChild = resNodeListFindPath(resNodeGetChild(prnArgZip), pucNameEncoded, RN_FIND_ALL);
-	  }
-	  else if (resNodeGetMimeType(prnArgZip) == MIME_APPLICATION_GZIP && resNodeGetNameObject(prnArgZip) != NULL) {
-	    xmlFree(pucNameEncoded);
-	    pucNameEncoded = xmlStrdup(resNodeGetNameObject(prnArgZip)); /* use parent object name */
-	  }
-	  else {
-	    /* use pucNameEncoded */
-	  }
-	  PrintFormatLog(4, " %s", pucNameEncoded);
-
-	  /*!\todo exclude hidden entries? */
-
-	  if (prnChild) {
-	    /* no match test for existing childrens */
-	  }
-	  else {
-#ifdef HAVE_PCRE2
-	    if (re_match) {   /* filename matching */
-	      int rc = 1;
-
-	      pcre2_match_data* match_data;
-
-	      match_data = pcre2_match_data_create_from_pattern(re_match, NULL);
-	      rc = pcre2_match(
-		re_match,        /* result of pcre2_compile() */
-		(PCRE2_SPTR8)pucNameEncoded,  /* the subject string */
-		strlen((const char*)pucNameEncoded),             /* the length of the subject string */
-		0,              /* start at offset 0 in the subject */
-		0,              /* default options */
-		match_data,        /* vector of integers for substring information */
-		NULL);            /* number of elements (NOT size in bytes) */
-
-	      if (rc < 0) {
-		//PrintFormatLog(4, "%s ignore '%s'", NAME_FILE, pucNameEncoded);
-	      }
-	      else {
-		prnChild = resNodeAddChildNew(prnArgZip, pucNameEncoded);
-	      }
-	      pcre2_match_data_free(match_data);   /* Release memory used for the match */
-	    }
-	    else {
-	      prnChild = resNodeAddChildNew(prnArgZip, pucNameEncoded);
-	    }
-#else
-	    prnChild = resNodeAddChildNew(prnArgZip, pucNameEncoded);
-#endif
-	  }
-
-	  if (prnChild) {
-
-
-	    if (resNodeGetMimeType(prnArgZip) == MIME_APPLICATION_GZIP) {
-	      resNodeSetType(prnChild, rn_type_file_in_zip);
-	      resNodeSetType(prnArgZip, rn_type_file_compressed);
-	      prnChild->liSize = (long)BUFFER_LENGTH * 1024L; /*\todo handle file size dynamically */
-	    }
-	    else {
-	      prnChild->liSize = (long)zip_entry_size(pArcEntryT);
-	      prnChild->tMtime = (time_t)zip_entry_mtime(pArcEntryT);
-	    }
-
-	    if (fArgContent && prnChild->liSize > 0) {
-	      void* pData;
-	      int iSizeWanted = prnChild->liSize;
-
-	      pData = xmlMalloc(iSizeWanted + 1);
-	      if (pData) {
-		int iSizeGot;
-
-		// https://github.com/libzip/libzip/wiki/Examples
-		/* read data of current zip header */
-		iSizeGot = zip_read_data((arcPtr)resNodeGetHandleIO(prnArgZip), pData, iSizeWanted);
-		if (iSizeGot < 0) {
-		  xmlFree(pData);
-		  resNodeSetError(prnChild, rn_error_zip, "Zip read error: %s", zip_error_string((arcPtr)resNodeGetHandleIO(prnArgZip)));
-		  fResult = FALSE;
-		}
-		else {
-		  if (iSizeGot < iSizeWanted) {
-		    pData = xmlRealloc(pData, iSizeGot + 1);
-		  }
-		  if (resMimeIsPlain(prnChild->eMimeType) || resMimeIsPlain(prnChild->eMimeType)) {
-		    xmlChar* pucData = BAD_CAST pData;
-		    pucData[iSizeGot] = '\0'; /* null termination of text input */
-		  }
-		  resNodeSetContentPtr(prnChild, pData, iSizeGot);
-	fResult = TRUE;
-
-		  if (resMimeIsZipDocument(prnChild->eMimeType)) {
-		    fResult = arcAppendEntries(prnChild, re_match, fArgContent);
-		  }
-		}
-	      }
-	    }
-	  }
-	  else {
-	    resNodeSetError(prnArgZip, rn_error_parse, "error no child in arcAppendEntries()\n");
-	  }
-	}
-	xmlFree(pucNameEncoded);
-      }
-      else {
-	resNodeSetError(prnArgZip, rn_error_parse, "%s", zip_error_string((arcPtr)resNodeGetHandleIO(prnArgZip)));
-	break;
-      }
-    }
-#endif
   }
   return fResult;
-} /* end of zipAppendEntries() */
+} /* end of zipDocumentRead() */
+
 
 #ifdef TESTCODE
 #include "test/test_res_node_zip.c"

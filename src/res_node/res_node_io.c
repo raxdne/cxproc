@@ -567,6 +567,9 @@ CloseZip(resNodePtr prnArg)
   if (zip_close(resNodeGetHandleIO(prnArg)) == -1) {
     resNodeSetError(prnArg, rn_error_zip, "Error zip_close('%s')", resNodeGetNameNormalized(prnArg));
   }
+  else {
+    fResult = TRUE;
+  }
 
   prnArg->handleIO = NULL;
   prnArg->eAccess = rn_access_undef;

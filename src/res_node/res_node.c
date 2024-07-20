@@ -2509,12 +2509,9 @@ resNodeIsArchive(resNodePtr prnArg)
 {
   BOOL_T fResult = FALSE;
 
-#ifdef HAVE_LIBARCHIVE
   if (prnArg) {
     fResult = resMimeIsArchive(resNodeGetMimeType(prnArg));
   }
-#endif
-
   return fResult;
 } /* end of resNodeIsArchive() */
 
@@ -3133,7 +3130,33 @@ resNodeContentToDOM(xmlNodePtr pndArg, resNodePtr prnArg)
 	if (prnArg->pdocContent == NULL) {
 	  xmlNodePtr pndRoot = NULL;
 
-	  if (zipAppendEntries(prnArg, NULL, true) && (pndRoot = resNodeToDOM(prnArg, RN_INFO_MAX)) != NULL) {
+	  if (zipDocumentRead(prnArg) && (pndRoot = resNodeToDOM(prnArg, RN_INFO_MAX)) != NULL) {
+	    pdocResult = xmlNewDoc(BAD_CAST "1.0");
+	    xmlDocSetRootElement(pdocResult, pndRoot);
+	  }
+	  else {
+	    xmlSetProp(pndArg, BAD_CAST "error", BAD_CAST "parse");
+	  }
+	  resNodeSetContentDocEat(prnArg, pdocResult);
+	}
+	else {
+	  /* handle parser errors */
+	  xmlSetProp(pndArg, BAD_CAST "error", BAD_CAST "parse");
+	}
+      }
+      break;
+
+    case MIME_APPLICATION_ZIP:
+    {
+	xmlChar *pucT = NULL;
+	xmlDocPtr pdocResult = NULL;
+
+	resNodeGetNameNormalized(prnArg); /* set internal name */
+
+	if (prnArg->pdocContent == NULL) {
+	  xmlNodePtr pndRoot = NULL;
+
+	  if (zipAppendEntries(prnArg, NULL, FALSE) && (pndRoot = resNodeToDOM(prnArg, RN_INFO_MAX)) != NULL) {
 	    pdocResult = xmlNewDoc(BAD_CAST "1.0");
 	    xmlDocSetRootElement(pdocResult, pndRoot);
 	  }
@@ -3150,7 +3173,6 @@ resNodeContentToDOM(xmlNodePtr pndArg, resNodePtr prnArg)
       break;
 
 #ifdef HAVE_LIBARCHIVE
-    case MIME_APPLICATION_ZIP:
     case MIME_APPLICATION_GZIP:
     case MIME_APPLICATION_X_BZIP:
     case MIME_APPLICATION_X_TAR:
@@ -4111,14 +4133,16 @@ resNodeUpdate(resNodePtr prnArg, int iArgOptions, const pcre2_code *re_match, co
       if (iArgOptions & RN_INFO_STRUCT && resNodeReadStatus(prnArg)) {
 	if (resNodeIsArchive(prnArg)) {
 	  /*  */
-#ifdef HAVE_LIBARCHIVE
 	  if (resNodeGetChild(prnArg)) {
 	    /* there is a listing already */
 	  }
 	  else {
+#ifdef HAVE_LIBARCHIVE
 	    fResult = arcAppendEntries(prnArg, re_match, FALSE);
-	  }
+#else
+	    fResult = zipAppendEntries(prnArg, re_match, FALSE);
 #endif
+	  }
 	}
 	else if (resNodeIsDir(prnArg)) {
 	  /*  */
@@ -4168,7 +4192,7 @@ resNodeUpdate(resNodePtr prnArg, int iArgOptions, const pcre2_code *re_match, co
 	}
 #endif
 	else if (resNodeIsZipDocument(prnArg)) {
-	  fResult = zipAppendEntries(prnArg, re_match, TRUE); /* update achive nodes */
+	  fResult = zipDocumentRead(prnArg); /* update achive nodes */
 	}
 #ifdef HAVE_LIBARCHIVE
 	else if (resNodeIsArchive(prnArg)) {

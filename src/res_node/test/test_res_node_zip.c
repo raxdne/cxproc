@@ -23,7 +23,7 @@
 /*! test code for this module 
  */
 int
-resNodeTestZip()
+resNodeTestZip(void)
 {
   int n_ok;
   int i;
@@ -43,7 +43,7 @@ resNodeTestZip()
     else if (resNodeOpen(prnZip, "wa") == TRUE) {
       printf("error of resNodeOpen()\n");
     }
-    else if (zipAppendEntries(prnZip, NULL, false) == TRUE) {
+    else if (zipAppendEntries(prnZip, NULL, FALSE) == TRUE) {
       printf("Error zipAppendEntries()\n");
     }
     else if (resNodeGetSize(prnZip) > 0) {
@@ -72,7 +72,7 @@ resNodeTestZip()
     else if (resNodeIsZipDocument(prnZip) == FALSE) {
       printf("error of resNodeIsZipDocument()\n");
     }
-    else if (zipAppendEntries(prnZip, NULL, false) == TRUE) {
+    else if (zipAppendEntries(prnZip, NULL, FALSE) == TRUE) {
       printf("Error zipAppendEntries()\n");
     }
     else if (resNodeClose(prnZip) == FALSE) {
@@ -82,6 +82,40 @@ resNodeTestZip()
       printf("error of resNodeGetSize()\n");
     }
     else if (resNodeGetChildCount(prnZip,rn_type_file_in_archive) != 11) {
+      printf("error of resNodeGetSize()\n");
+    }
+    else {
+      printf("OK\n");
+      n_ok++;
+    }
+
+    //puts((const char*)resNodeListToXml(prnZip,RN_INFO_MAX));
+    resNodeFree(prnZip);
+  }
+
+
+  if (RUNTEST) {
+    resNodePtr prnZip = NULL;
+
+    i++;
+    printf("TEST %i in '%s:%i': handle existant zip res node = ", i, __FILE__, __LINE__);
+
+    if ((prnZip = resNodeDirNew(BAD_CAST TESTPREFIX "xml/test-xml-zip.odt")) == NULL) { // "../../../Trash/2023-11-17-PLMDOCM-ReleaseChecklist-wt12mig112-Build_5.2.1.17.mmap"
+      printf("Error resNodeDirNew()\n");
+    }
+    else if (resNodeIsZipDocument(prnZip) == FALSE) {
+      printf("error of resNodeIsZipDocument()\n");
+    }
+    else if (zipDocumentRead(prnZip) == FALSE) {
+      printf("Error zipDocumentRead()\n");
+    }
+    else if (resNodeClose(prnZip) == FALSE) {
+      printf("error of resNodeClose()\n");
+    }
+    else if (resNodeGetSize(prnZip) < 1) {
+      printf("error of resNodeGetSize()\n");
+    }
+    else if (resNodeGetChildCount(prnZip,rn_type_file_in_zip) != 4) {
       printf("error of resNodeGetSize()\n");
     }
     else {
