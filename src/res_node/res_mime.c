@@ -235,6 +235,7 @@ resMimeIsXml(int iMimeType)
       || iMimeType == MIME_APPLICATION_VND_GARMIN_FITX
       || iMimeType == MIME_APPLICATION_VND_GARMIN_TCX
       || iMimeType == MIME_APPLICATION_XSPF_XML
+      || iMimeType == MIME_APPLICATION_XSD_XML
       || iMimeType == MIME_TEXT_XML
       || iMimeType == MIME_TEXT_XSL);
 } /* end of resMimeIsXml() */

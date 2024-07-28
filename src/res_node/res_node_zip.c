@@ -66,6 +66,97 @@ iconv_t iconvZipEncode = NULL;     /*! charset of zip headers */
 iconv_t iconvZipDecode = NULL;     /*! charset of zip headers */
 
 
+/*! opens context prnArg
+
+\todo handle in-memory achives for stdout/stdin s. zip_write_open_memory()
+
+\return TRUE if successful
+*/
+BOOL_T
+zipFileOpen(resNodePtr prnArg, const char *pchArgMode)
+{
+  BOOL_T fResult = FALSE;
+
+  if (prnArg != NULL && prnArg->handleIO != NULL && prnArg->eAccess == rn_access_zip) {
+      fResult = TRUE;
+      PrintFormatLog(4, "zip_open('%s') already open", resNodeGetNameNormalized(prnArg));
+  }
+ else if (strchr(pchArgMode,(int)'r') || prnArg->eMode == mode_read) {
+    int err;
+    char buf[BUFFER_LENGTH];
+
+    if ((prnArg->handleIO = zip_open(resNodeGetNameNormalizedNative(prnArg), 0, &err)) == NULL) {
+      zip_error_to_str(buf, sizeof(buf), err, errno);
+      PrintFormatLog(1, "can't open zip archive `%s': %s\n", resNodeGetNameNormalizedNative(prnArg), buf);
+    }
+#if 0
+    else if (resNodeIsMemory(prnArg)) { /* achive in memory already */
+	  if (zip_read_open_memory((arcPtr)prnArg->handleIO, prnArg->pContent, resNodeGetSize(prnArg)) == ZIP_OK) {
+	    prnArg->fExist = TRUE;
+	    prnArg->eAccess = rn_access_zip;
+	    fResult = TRUE;
+	    PrintFormatLog(4, "zip_read_open_memory('%s') OK", resNodeGetNameNormalized(prnArg));
+	  }
+	  else {
+	    zipFileClose(prnArg);
+	    resNodeSetError(prnArg, rn_error_zip, "zip_read_open_memory() failed");
+	  }
+	  /*!\todo read zip from memory buffer ":memory:" zip_read_open_memory() */
+     }
+#endif
+    else {
+      prnArg->fExist = TRUE;
+      prnArg->eAccess = rn_access_zip;
+      fResult = TRUE;
+      PrintFormatLog(4, "zip_open('%s') OK", resNodeGetNameNormalized(prnArg));
+    }
+  }
+#if 0
+  else if (strchr(pchArgMode,(int)'w') || prnArg->eMode == mode_write) {
+    /*\todo append content to existing zip file */
+
+    /*\todo delete existing zip file first */
+
+    }
+    else {
+      zipFileClose(prnArg);
+      resNodeSetError(prnArg, rn_error_zip, "zip_write_new('%s') failed", resNodeGetNameNormalized(prnArg));
+    }
+  }
+#endif
+  else {
+    resNodeSetError(prnArg, rn_error_open, "unknown mode for zip opening '%s'", resNodeGetNameNormalized(prnArg));
+  }
+
+  return fResult;
+} /* end of zipFileOpen() */
+
+
+/*! opens context prnArg
+
+\return TRUE if successful
+*/
+BOOL_T
+zipFileClose(resNodePtr prnArg)
+{
+  BOOL_T fResult = FALSE;
+
+  assert(prnArg != NULL);
+
+  if (zip_close(resNodeGetHandleIO(prnArg)) == -1) {
+    resNodeSetError(prnArg, rn_error_zip, "Error zip_close('%s')", resNodeGetNameNormalized(prnArg));
+  }
+  else {
+    fResult = TRUE;
+  }
+
+  prnArg->handleIO = NULL;
+  prnArg->eAccess = rn_access_undef;
+
+  return fResult;
+} /* end of zipFileClose() */
+
+
 /*!
 */
 BOOL_T
@@ -92,8 +183,7 @@ zipIconvInit(void)
   }
 
   return TRUE;
-}
-/* end of zipIconvInit() */
+} /* end of zipIconvInit() */
 
 
 /* module cleanup for libiconv, runs in exit()
@@ -109,8 +199,7 @@ zipIconvCleanup(void)
     iconv_close(iconvZipDecode);
     iconvZipDecode = NULL;
   }
-}
-/* end of zipCleanup() */
+} /* end of zipIconvCleanup() */
 
 
 /*! Encodes a UTF-8 path string to code page 437 (ZIP default).
@@ -227,7 +316,7 @@ zipAppendEntries(resNodePtr prnArgZip, const pcre2_code *re_match, BOOL_T fArgCo
 
   /*!\todo handle zip in zip recursively */
 
-  if (resNodeReadStatus(prnArgZip) && resNodeIsArchive(prnArgZip) && resNodeOpen(prnArgZip, "ra")) {
+  if (resNodeReadStatus(prnArgZip) && resNodeGetMimeType(prnArgZip) == MIME_APPLICATION_ZIP && (resNodeIsOpen(prnArgZip) || zipFileOpen(prnArgZip,"r"))) {
     char buf[BUFFER_LENGTH];
     int err;
     int i, len;
@@ -237,7 +326,6 @@ zipAppendEntries(resNodePtr prnArgZip, const pcre2_code *re_match, BOOL_T fArgCo
       struct zip_stat sb;
       xmlChar *pucNameEncoded = NULL;
 
-      fResult = TRUE;
       if (zip_stat_index((struct zip *)resNodeGetHandleIO(prnArgZip), i, 0, &sb) == 0 && STR_IS_NOT_EMPTY(sb.name) &&
 	  zipGetFileNameDecoded(sb.name, &pucNameEncoded) && STR_IS_NOT_EMPTY(pucNameEncoded)) {
 	resNodePtr prnInZip = NULL;
@@ -288,7 +376,7 @@ zipAppendEntries(resNodePtr prnArgZip, const pcre2_code *re_match, BOOL_T fArgCo
 #endif
 
 	if (prnInZip) {
-
+	  fResult = TRUE;
 	  if (resPathIsDir(pucNameEncoded)) {
 	    prnInZip->eType = rn_type_dir_in_zip;
 	  }
@@ -296,44 +384,44 @@ zipAppendEntries(resNodePtr prnArgZip, const pcre2_code *re_match, BOOL_T fArgCo
 	    resNodeSetSize(prnInZip, sb.size);
 	    prnInZip->eType = rn_type_file_in_zip;
 	    // sb.mtime
+	    resNodeResetMimeType(prnInZip);
+	    prnInZip->fExist = TRUE;
+	    prnInZip->fStat = TRUE;
+	    prnInZip->fRead = TRUE;
+	    prnInZip->eAccess = rn_access_zip;
 
-	    if (fArgContent && sb.size < 1e6 && (zf = zip_fopen_index((struct zip *)resNodeGetHandleIO(prnArgZip), i, 0)) != NULL) {
-	      long long sum;
+	    if (fArgContent && sb.size < 1e6) {
+	      if ((zf = zip_fopen_index((struct zip *)resNodeGetHandleIO(prnArgZip), i, 0)) != NULL) {
+		long long sum;
 
-	      PrintFormatLog(3, "zip[%i] of '%s'", i, resNodeGetNameNormalized(prnInZip));
-	      sum = 0;
-	      while (sum != sb.size) {
-		len = zip_fread(zf, buf, sizeof(buf));
-		if (len < 0) {
-		  PrintFormatLog(1, "zip[%i] read error", i);
-		  fResult = FALSE;
-		  break;
+		PrintFormatLog(3, "zip[%i] of '%s'", i, resNodeGetNameNormalized(prnInZip));
+		sum = 0;
+		while (sum != sb.size) {
+		  len = zip_fread(zf, buf, sizeof(buf));
+		  if (len < 0) {
+		    PrintFormatLog(1, "zip[%i] read error", i);
+		    fResult = FALSE;
+		    break;
+		  }
+		  else {
+		    resNodeAppendContent(prnInZip, (void *)buf, len);
+		    sum += len;
+		  }
 		}
-		else {
-		  resNodeAppendContent(prnInZip, (void *)buf, len);
-		  sum += len;
-		}
+		zip_fclose(zf);
+		// assert(resNodeGetSi(prnArgZip) == sum);
 	      }
-	      zip_fclose(zf);
-	      // assert(resNodeGetSi(prnArgZip) == sum);
-
-	      resNodeResetMimeType(prnInZip);
-	      prnInZip->fExist = TRUE;
-	      prnInZip->fStat = TRUE;
-	      prnInZip->fRead = TRUE;
-	      prnInZip->eAccess = rn_access_zip;
-
-	      /* set all parent directories in this zip too */
-	      for (prnAncestor = resNodeGetParent(prnInZip); resNodeGetType(prnAncestor) == rn_type_dir_in_zip; prnAncestor = resNodeGetParent(prnAncestor)) {
-		prnAncestor->fExist = TRUE;
-		prnAncestor->fStat = TRUE;
-		prnAncestor->fRead = TRUE;
-		prnAncestor->eAccess = rn_access_zip;
+	      else {
+		PrintFormatLog(1, "zip[%i] read error", i);
+		// fResult = FALSE;
 	      }
 	    }
-	    else {
-	      PrintFormatLog(1, "zip[%i] read error", i);
-	      // fResult = FALSE;
+	    /* set all parent directories in this zip too */
+	    for (prnAncestor = resNodeGetParent(prnInZip); resNodeGetType(prnAncestor) == rn_type_dir_in_zip; prnAncestor = resNodeGetParent(prnAncestor)) {
+	      prnAncestor->fExist = TRUE;
+	      prnAncestor->fStat = TRUE;
+	      prnAncestor->fRead = TRUE;
+	      prnAncestor->eAccess = rn_access_zip;
 	    }
 	  }
 	}
@@ -347,22 +435,23 @@ zipAppendEntries(resNodePtr prnArgZip, const pcre2_code *re_match, BOOL_T fArgCo
   return fResult;
 } /* end of zipAppendEntries() */
 
-
 /*! handler for Document formats based on ZIP archive
 
 similar to zipAppendEntries()
 
 \param prnArgZip the zip node
-\param re_match pointer to a compiled regexp
-\param fArgContent flag to extract data of a matching header
+\param iArgOptions
 \return TRUE if successful, else FALSE
 */
 BOOL_T
-zipDocumentRead(resNodePtr prnArgZip)
+zipDocumentRead(resNodePtr prnArgZip, int iArgOptions)
 {
   BOOL_T fResult = FALSE;
 
-  if (resNodeReadStatus(prnArgZip) && resNodeIsZipDocument(prnArgZip) && resNodeOpen(prnArgZip, "ra")) {
+  if (prnArgZip->pContent != NULL || prnArgZip->pdocContent != NULL) {
+    /* use existing buffer content */
+  }
+  else if (resNodeReadStatus(prnArgZip) && resNodeIsZipDocument(prnArgZip) && (resNodeIsOpen(prnArgZip) || zipFileOpen(prnArgZip, "r"))) {
     int i, len;
     zip_uint64_t sum;
 
@@ -373,15 +462,29 @@ zipDocumentRead(resNodePtr prnArgZip)
       fResult = TRUE;
       if (zip_stat_index((struct zip *)resNodeGetHandleIO(prnArgZip), i, 0, &sb) == 0) {
 	resNodePtr prnInZip;
-	resNodePtr prnAncestor;
 	struct zip_file *zf;
 
 	prnInZip = resNodeAddChildNew(prnArgZip, sb.name);
 	resNodeSetSize(prnInZip, sb.size);
 	sum += sb.size;
 	prnInZip->tMtime = sb.mtime;
+	prnInZip->fExist = TRUE;
+	prnInZip->fStat = TRUE;
+	prnInZip->fRead = TRUE;
+	prnInZip->eAccess = rn_access_zip;
 
-	if (sb.size > 1e6 || sum > 1e7) {
+	if (resPathIsEquivalent(BAD_CAST ".rels", resNodeGetNameBase(prnInZip)) &&
+	    resNodeGetMimeType(prnArgZip) == MIME_APPLICATION_VND_OPENXMLFORMATS_OFFICEDOCUMENT_WORDPROCESSINGML_DOCUMENT) {
+	  resNodeSetMimeType(prnInZip, MIME_TEXT_XML);
+	}
+	else {
+	  resNodeResetMimeType(prnInZip);
+	}
+
+	if ((iArgOptions & RN_INFO_CONTENT) == 0 && ((iArgOptions & RN_INFO_XML) && resMimeIsXml(resNodeGetMimeType(prnInZip)) == FALSE)) {
+	  PrintFormatLog(3, "skip content zip[%i] '%s'", i, sb.name);
+	}
+	else if (sb.size > 1e7 || sum > 1e8) {
 	  resNodeSetError(prnInZip, rn_error_undef, "skip big zip[%i] '%s'", i, sb.name);
 	  PrintFormatLog(3, "skip big zip[%i] '%s'", i, sb.name);
 	}
@@ -404,31 +507,9 @@ zipDocumentRead(resNodePtr prnArgZip)
 	    }
 	  }
 	  zip_fclose(zf);
-	  // assert(resNodeGetSi(prnArgZip) == sum);
-
-	  prnInZip->fExist = TRUE;
-	  prnInZip->fStat = TRUE;
-	  prnInZip->fRead = TRUE;
-	  prnInZip->eAccess = rn_access_zip;
-
-	  if (resPathIsEquivalent(BAD_CAST ".rels", resNodeGetNameBase(prnInZip)) && resNodeGetMimeType(prnArgZip) == MIME_APPLICATION_VND_OPENXMLFORMATS_OFFICEDOCUMENT_WORDPROCESSINGML_DOCUMENT) {
-	    resNodeSetMimeType(prnInZip, MIME_TEXT_XML);
-	  }
-	  else {
-	    resNodeResetMimeType(prnInZip);
-	  }
 
 	  if (resMimeIsXml(resNodeGetMimeType(prnInZip))) {
 	    /*!\todo Parse Memory() directly */
-	  }
-	  else {}
-
-	  /* set all parent directories in this zip too */
-	  for (prnAncestor = resNodeGetParent(prnInZip); resNodeGetType(prnAncestor) == rn_type_dir_in_zip; prnAncestor = resNodeGetParent(prnAncestor)) {
-	    prnAncestor->fExist = TRUE;
-	    prnAncestor->fStat = TRUE;
-	    prnAncestor->fRead = TRUE;
-	    prnAncestor->eAccess = rn_access_zip;
 	  }
 	}
 	else {
@@ -440,6 +521,36 @@ zipDocumentRead(resNodePtr prnArgZip)
   }
   return fResult;
 } /* end of zipDocumentRead() */
+
+
+/*!\todo to write resNode to a ZIP document
+
+\param prnArgZip the zip node
+\param iArgOptions
+\return TRUE if successful, else FALSE
+*/
+BOOL_T
+zipDocumentWrite(resNodePtr prnArgZip, int iArgOptions)
+{
+  BOOL_T fResult = FALSE;
+
+  return fResult;
+} /* end of zipDocumentWrite() */
+
+
+/*!\todo to write resNode to a ZIP archive
+
+\param prnArgZip the zip node
+\param iArgOptions
+\return TRUE if successful, else FALSE
+*/
+BOOL_T
+zipArchiveWrite(resNodePtr prnArgZip, int iArgOptions)
+{
+  BOOL_T fResult = FALSE;
+
+  return fResult;
+} /* end of zipArchiveWrite() */
 
 
 #ifdef TESTCODE

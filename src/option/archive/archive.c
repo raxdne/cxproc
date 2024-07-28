@@ -74,6 +74,175 @@ static void
 arcIconvCleanup(void);
 
 
+/*! opens context prnArg
+
+\todo handle in-memory achives for stdout/stdin s. archive_write_open_memory()
+
+\return TRUE if successful
+*/
+BOOL_T
+arcFileOpen(resNodePtr prnArg)
+{
+  BOOL_T fResult = FALSE;
+
+#ifdef HAVE_LIBARCHIVE
+  assert(prnArg != NULL && prnArg->handleIO == NULL);
+
+  if (prnArg->eMode == mode_read) {
+    prnArg->handleIO = (void *)archive_read_new();
+    if (prnArg->handleIO) {
+      if (arcMapReadFormat(prnArg)) {
+	if (resNodeIsMemory(prnArg)) { /* achive in memory already */
+	  if (archive_read_open_memory((arcPtr)prnArg->handleIO, prnArg->pContent, resNodeGetSize(prnArg)) == ARCHIVE_OK) {
+	    prnArg->fExist = TRUE;
+	    prnArg->eAccess = rn_access_archive;
+	    fResult = TRUE;
+	    PrintFormatLog(4, "archive_read_open_memory('%s') OK", resNodeGetNameNormalized(prnArg));
+	  }
+	  else {
+	    arcFileClose(prnArg);
+	    resNodeSetError(prnArg, rn_error_archive, "archive_read_open_memory() failed");
+	  }
+	  /*!\todo read archive from memory buffer ":memory:" archive_read_open_memory() */
+	}
+	else if (archive_read_open_filename((arcPtr)prnArg->handleIO, resNodeGetNameNormalizedNative(prnArg), BUFFER_LENGTH) == ARCHIVE_OK) {
+	  prnArg->fExist = TRUE;
+	  prnArg->eAccess = rn_access_archive;
+	  fResult = TRUE;
+	  PrintFormatLog(4, "archive_read_open_filename('%s') OK", resNodeGetNameNormalized(prnArg));
+	}
+	else {
+	  arcFileClose(prnArg);
+	  resNodeSetError(prnArg, rn_error_archive, "archive_read_open_filename('%s') failed", resNodeGetNameNormalized(prnArg));
+	}
+      }
+      else {
+	arcFileClose(prnArg);
+	resNodeSetError(prnArg, rn_error_archive, "arcMapReadFormat('%s') failed", resNodeGetNameNormalized(prnArg));
+      }
+    }
+    else {
+      arcFileClose(prnArg);
+      resNodeSetError(prnArg, rn_error_archive, "archive_read_new('%s') failed", resNodeGetNameNormalized(prnArg));
+    }
+  }
+  else if (prnArg->eMode == mode_write) {
+    /*\todo append content to existing archive file */
+
+    /*\todo delete existing archive file first */
+
+    prnArg->handleIO = (void *)archive_write_new();
+    if (prnArg->handleIO) {
+      //archive_write_set_options((arcPtr)prnArg->handleIO, "compression=store");
+      if ((resNodeGetMimeType(prnArg) == MIME_APPLICATION_ZIP
+	&& archive_write_set_format_zip((arcPtr)prnArg->handleIO) == ARCHIVE_OK)
+#if 0
+	||
+	(resNodeGetMimeType(prnArg) == MIME_APPLICATION_X_TAR
+	&& archive_write_set_format_gnutar((arcPtr)prnArg->handleIO) == ARCHIVE_OK)
+	||
+	(resNodeGetMimeType(prnArg) == MIME_APPLICATION_X_ISO9660_IMAGE
+	&& archive_write_set_format_iso9660((arcPtr)prnArg->handleIO) == ARCHIVE_OK)
+#endif
+	) {
+
+	if (archive_write_add_filter_none((arcPtr)prnArg->handleIO) == ARCHIVE_OK) {
+#if 0
+	  if (resNodeIsStd(prnArg)) {
+	    const size_t iSize = 1024 * 1024 * 1024;
+
+	    if ((prnArg->pContent = xmlMalloc(iSize))) {
+	      if (archive_write_open_memory((arcPtr)prnArg->handleIO, prnArg->pContent, iSize, &prnArg->liSizeContent) == ARCHIVE_OK) {
+		prnArg->fExist = TRUE;
+		prnArg->eAccess = rn_access_archive;
+		fResult = TRUE;
+		PrintFormatLog(4, "archive_write_open_memory('%s') OK", resNodeGetNameNormalized(prnArg));
+	      }
+	    }
+	    else {
+	      arcFileClose(prnArg);
+	      resNodeSetError(prnArg, rn_error_archive, "xmlMalloc() failed");
+	    }
+	  }
+#endif
+	  if (archive_write_open_filename((arcPtr)prnArg->handleIO, resNodeGetNameNormalizedNative(prnArg)) == ARCHIVE_OK) {
+	    prnArg->fExist = TRUE;
+	    prnArg->eAccess = rn_access_archive;
+	    fResult = TRUE;
+	    PrintFormatLog(4, "archive_write_open_filename('%s') OK", resNodeGetNameNormalized(prnArg));
+	  }
+	  else {
+	    arcFileClose(prnArg);
+	    resNodeSetError(prnArg, rn_error_archive, "archive_write_new('%s') failed", resNodeGetNameNormalized(prnArg));
+	  }
+	}
+	else {
+	  arcFileClose(prnArg);
+	  //	      resNodeSetError(prnArg,rn_error_archive, "archive_write_set_format_ustar('%s') failed: %s",
+	  //			     resNodeGetNameNormalized(prnArg), archive_error_string((arcPtr)resNodeGetHandleIO(prnArg)));
+	}
+      }
+      else {
+	arcFileClose(prnArg);
+	resNodeSetError(prnArg, rn_error_archive, "archive_read_support_format_*('%s') failed: %s",
+	  resNodeGetNameNormalized(prnArg), archive_error_string((arcPtr)resNodeGetHandleIO(prnArg)));
+      }
+    }
+    else {
+      arcFileClose(prnArg);
+      resNodeSetError(prnArg, rn_error_archive, "archive_write_new('%s') failed", resNodeGetNameNormalized(prnArg));
+    }
+  }
+  else {
+    resNodeSetError(prnArg, rn_error_open, "unknown mode for archive opening '%s'", resNodeGetNameNormalized(prnArg));
+  }
+#endif
+
+  return fResult;
+} /* end of arcFileOpen() */
+
+
+/*! opens context prnArg
+
+\return TRUE if successful
+*/
+BOOL_T
+arcFileClose(resNodePtr prnArg)
+{
+  BOOL_T fResult = FALSE;
+
+#ifdef HAVE_LIBARCHIVE
+  assert(prnArg != NULL);
+
+  if (prnArg->eMode == mode_read) {
+    archive_read_close((arcPtr)resNodeGetHandleIO(prnArg));
+    if (archive_read_free((arcPtr)resNodeGetHandleIO(prnArg)) == ARCHIVE_OK) {
+      fResult = TRUE;
+    }
+    else {
+      resNodeSetError(prnArg, rn_error_archive, "Error archive_read_free('%s')", resNodeGetNameNormalized(prnArg));
+    }
+  }
+  else if (prnArg->eMode == mode_write) {
+    archive_write_close((arcPtr)resNodeGetHandleIO(prnArg));
+    if (archive_write_free((arcPtr)resNodeGetHandleIO(prnArg)) == ARCHIVE_OK) {
+      fResult = TRUE;
+    }
+    else {
+      resNodeSetError(prnArg, rn_error_archive, "Error archive_write_free('%s')", resNodeGetNameNormalized(prnArg));
+    }
+  }
+  else {
+    resNodeSetError(prnArg, rn_error_archive, "Error closing archive '%s'", resNodeGetNameNormalized(prnArg));
+  }
+  prnArg->handleIO = NULL;
+  prnArg->eAccess = rn_access_undef;
+#endif
+
+  return fResult;
+} /* end of arcFileClose() */
+
+
 /*!
 */
 BOOL_T

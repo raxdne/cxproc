@@ -312,6 +312,8 @@ struct _resNode {
 
   xmlDocPtr pdocContent;	/*! pointer to read DOM */
 
+  /*!\todo time_t tContent;              time stamp of context content */
+
   int iCountUse;  		/*! usage counter for this context (caching) */
 
   struct _resNode *parent;   /*! parent context of list */

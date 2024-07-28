@@ -40,8 +40,8 @@ resNodeTestZip(void)
     if ((prnZip = resNodeDirNew(BAD_CAST TEMPPREFIX "aaa.zip")) == NULL) {
       printf("Error resNodeDirNew()\n");
     }
-    else if (resNodeOpen(prnZip, "wa") == TRUE) {
-      printf("error of resNodeOpen()\n");
+    else if (zipFileOpen(prnZip,"r") == TRUE) {
+      printf("error of zipFileOpen()\n");
     }
     else if (zipAppendEntries(prnZip, NULL, FALSE) == TRUE) {
       printf("Error zipAppendEntries()\n");
@@ -49,8 +49,8 @@ resNodeTestZip(void)
     else if (resNodeGetSize(prnZip) > 0) {
       printf("error of resNodeGetSize()\n");
     }
-    else if (resNodeClose(prnZip) == TRUE) {
-      printf("error of resNodeClose()\n");
+    else if (zipFileClose(prnZip) == TRUE) {
+      printf("error of zipFileClose()\n");
     }
     else {
       printf("OK\n");
@@ -61,28 +61,32 @@ resNodeTestZip(void)
 
 
   if (RUNTEST) {
+    int f;
     resNodePtr prnZip = NULL;
 
     i++;
     printf("TEST %i in '%s:%i': handle existant zip res node = ", i, __FILE__, __LINE__);
 
-    if ((prnZip = resNodeDirNew(BAD_CAST TESTPREFIX "option/archive/2023-11-17-PLMDOCM-ReleaseChecklist-wt12mig112-Build_5.2.1.17.mmap")) == NULL) {
+    if ((prnZip = resNodeDirNew(BAD_CAST TESTPREFIX "option/archive/test-zip-7.zip")) == NULL) {
       printf("Error resNodeDirNew()\n");
     }
-    else if (resNodeIsZipDocument(prnZip) == FALSE) {
+    else if (resNodeIsZipDocument(prnZip) == TRUE) {
       printf("error of resNodeIsZipDocument()\n");
     }
-    else if (zipAppendEntries(prnZip, NULL, FALSE) == TRUE) {
+    else if (zipFileOpen(prnZip,"r") == FALSE) {
+      printf("Error zipFileOpen()\n");
+    }
+    else if (zipAppendEntries(prnZip, NULL, FALSE) == FALSE) {
       printf("Error zipAppendEntries()\n");
     }
-    else if (resNodeClose(prnZip) == FALSE) {
-      printf("error of resNodeClose()\n");
+    else if (zipFileClose(prnZip) == FALSE) {
+      printf("error of zipFileClose()\n");
     }
     else if (resNodeGetSize(prnZip) < 1) {
       printf("error of resNodeGetSize()\n");
     }
-    else if (resNodeGetChildCount(prnZip,rn_type_file_in_archive) != 11) {
-      printf("error of resNodeGetSize()\n");
+    else if ((f = resNodeGetChildCount(prnZip,rn_type_file_in_zip)) != 1) {
+      printf("error of resNodeGetChildCount(): %i\n", f);
     }
     else {
       printf("OK\n");
@@ -94,7 +98,67 @@ resNodeTestZip(void)
   }
 
 
-  if (RUNTEST) {
+   if (RUNTEST) {
+#define STR_PATH "sub/a.txt"
+
+    resNodePtr prnZip = NULL;
+    resNodePtr prnInZip = NULL;
+    size_t erroroffset;
+    int errornumber;
+  int opt_grep_pcre = 0;
+  int opt_match_pcre = PCRE2_UTF;
+  pcre2_code *re_match = NULL;
+#ifdef HAVE_PCRE2
+#endif
+
+    i++;
+    printf("TEST %i in '%s:%i': access to existant file in zip res node = ", i, __FILE__, __LINE__);
+
+    re_match = pcre2_compile(
+      (PCRE2_SPTR8)STR_PATH, /* the pattern */
+      PCRE2_ZERO_TERMINATED, /* indicates pattern is zero-terminated */
+      opt_match_pcre,         /* default options */
+      &errornumber,          /* for error number */
+      &erroroffset,          /* for error offset */
+      NULL);                 /* use default compile context */
+
+    if (re_match == NULL) {
+    }
+    else if ((prnZip = resNodeDirNew(BAD_CAST TESTPREFIX "option/archive/test-zip-7.zip/" STR_PATH)) == NULL) {
+      printf("Error resNodeDirNew()\n");
+    }
+    else if (resNodeGetMimeType(prnZip) != MIME_APPLICATION_ZIP) {
+      printf("error of resNodeGetMimeType()\n");
+    }
+    else if (zipAppendEntries(prnZip,re_match,TRUE) == FALSE) {
+      printf("Error zipAppendEntries()\n");
+    }
+    else if (resNodeClose(prnZip) == FALSE) {
+      printf("error of resNodeClose()\n");
+    }
+    else if (resNodeGetChildCount(prnZip,rn_type_dir_in_archive) != 1) {
+      printf("error of resNodeGetSize()\n");
+    }
+    else if ((prnInZip = resNodeGetLastDescendant(prnZip)) == NULL) {
+      printf("error of resNodeGetSize()\n");
+    }
+    else if (resNodeGetSize(prnInZip) != 51) {
+      printf("error of resNodeGetSize()\n");
+    }
+    else {
+      printf("OK\n");
+      n_ok++;
+    }
+
+    if (re_match) {
+      pcre2_code_free(re_match);
+    }
+
+    //puts((const char *)resNodeListToPlain(prnZip, RN_INFO_MAX));
+    resNodeFree(prnZip);
+  }
+
+ if (SKIPTEST) {
     resNodePtr prnZip = NULL;
 
     i++;
@@ -106,7 +170,7 @@ resNodeTestZip(void)
     else if (resNodeIsZipDocument(prnZip) == FALSE) {
       printf("error of resNodeIsZipDocument()\n");
     }
-    else if (zipDocumentRead(prnZip) == FALSE) {
+    else if (zipDocumentRead(prnZip,RN_INFO_MAX) == FALSE) {
       printf("Error zipDocumentRead()\n");
     }
     else if (resNodeClose(prnZip) == FALSE) {

@@ -144,9 +144,9 @@ resNodeTestInOut(void)
     resNodePtr prnT = NULL;
 
     i++;
-    printf("TEST %i in '%s:%i': open and close an existing ZIP file context = ",i,__FILE__,__LINE__);
+    printf("TEST %i in '%s:%i': open and close an existing TAR file context = ",i,__FILE__,__LINE__);
 
-    if ((prnT = resNodeDirNew(BAD_CAST TESTPREFIX "option/archive/test-zip-7.zip")) == NULL) {
+    if ((prnT = resNodeDirNew(BAD_CAST TESTPREFIX "option/archive/test-zip-7.tar")) == NULL) {
       printf("Error resNodeDirNew()\n");
     }
     else if (resNodeIsArchive(prnT) == FALSE) {
@@ -190,9 +190,9 @@ resNodeTestInOut(void)
     resNodePtr prnT = NULL;
 
     i++;
-    printf("TEST %i in '%s:%i': create and close a non-existing ZIP file context = ",i,__FILE__,__LINE__);
+    printf("TEST %i in '%s:%i': create and close a non-existing TAR file context = ",i,__FILE__,__LINE__);
 
-    if ((prnT = resNodeDirNew(BAD_CAST"tmp/created.zip")) == NULL) {
+    if ((prnT = resNodeDirNew(BAD_CAST"tmp/created.tar")) == NULL) {
       printf("Error resNodeDirNew()\n");
     }
     else if (resNodeOpen(prnT,"wa") == FALSE) {
@@ -600,14 +600,14 @@ size_t s = 2895;
 
 #endif
 
-  if (RUNTEST) {
+  if (SKIPTEST) {
     resNodePtr prnT = NULL;
     xmlNodePtr pndT = NULL;
 
     i++;
     printf("TEST %i in '%s:%i': reads content of archive file context = ", i, __FILE__, __LINE__);
 
-    if ((prnT = resNodeDirNew(BAD_CAST TESTPREFIX "xml/test-xml-zip.odt")) == NULL) {
+    if ((prnT = resNodeDirNew(BAD_CAST TESTPREFIX "xml/test-xml-zip.docx")) == NULL) {
       printf("Error 2 resNodeGetSize()\n");
     }
     else if ((pndT = resNodeToDOM(prnT,RN_INFO_MAX)) == NULL) {

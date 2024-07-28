@@ -97,7 +97,7 @@ AddNameSpaces(xmlNodePtr pndPie)
 int
 dirMapInfoVerbosity(xmlNodePtr pndArgFile, cxpContextPtr pccArg)
 {
-  int iResult = RN_INFO_INFO;
+  int iResult = RN_INFO_META;
   xmlChar *pucAttrVerbosity;
 
   /* map integer attribute to info level */
@@ -121,13 +121,13 @@ dirMapInfoVerbosity(xmlNodePtr pndArgFile, cxpContextPtr pccArg)
     iResult = RN_INFO_MAX;
   }
   else if (xmlStrEqual(pucAttrVerbosity, BAD_CAST "4")) {
-    iResult =  RN_INFO_META | RN_INFO_STRUCT | RN_INFO_XML | RN_INFO_PIE | RN_INFO_CONTENT;
+    iResult |=  RN_INFO_INFO | RN_INFO_STRUCT | RN_INFO_XML | RN_INFO_PIE | RN_INFO_CONTENT;
   }
   else if (xmlStrEqual(pucAttrVerbosity, BAD_CAST "3")) {
-    iResult =  RN_INFO_META | RN_INFO_STRUCT | RN_INFO_XML | RN_INFO_INDEX;
+    iResult |=  RN_INFO_INFO | RN_INFO_STRUCT | RN_INFO_XML | RN_INFO_INDEX;
   }
   else if (xmlStrEqual(pucAttrVerbosity, BAD_CAST "2")) {
-    iResult = RN_INFO_META | RN_INFO_STRUCT;
+    iResult |= RN_INFO_INFO | RN_INFO_STRUCT;
   }
   else {
     /* keep default */
@@ -381,9 +381,11 @@ dirProcessDirNode(xmlNodePtr pndArgDir, resNodePtr prnArgContext, cxpContextPtr 
     else if (resNodeListParse(prnT, iDepthChild, re_match) == FALSE) { /*! read Resource Node as list of childs */
       xmlNewChild(pndPie, NULL, BAD_CAST"error", BAD_CAST"parse");
     }
+#if 0
     else if (resNodeUpdate(prnT, iVerbosityChild, NULL, NULL) == FALSE) { /*! read Resource Node as list of childs */
       xmlNewChild(pndPie, NULL, BAD_CAST"error", BAD_CAST"parse");
     }
+#endif
     else if ((pndT = resNodeListToDOM(prnT, iVerbosityChild)) != NULL) {
       if (re_grep) {
 	GrepDirNew(pndT,re_grep,pccArg); /*! replace content DOM of pndT by grep result DOM */

@@ -3162,9 +3162,33 @@ RecognizeFigures(xmlNodePtr pndArg)
       xmlNodePtr pndForAppend;
       int iLengthStr;
 
-      if (IS_NODE_PIE_PAR(pndArg) && ! IS_NODE_PIE_LIST(pndArg->parent)) {
-	if ((pndChild = pndArg->children) != NULL
+      if (IS_NODE_PIE_PAR(pndArg)) {
+	if ((pndChild = pndArg->children) != NULL && xmlNodeIsText(pndChild) && StringBeginsWith(pndChild->content, BAD_CAST "data:image/") &&
+	    (iLengthStr = xmlStrlen(pndChild->content)) > 10) {
+	  /* embedded base64-encoded image */
+	  size_t l;
+	  xmlChar *pucT;
+	  xmlChar *pucTT;
+	  xmlChar *pucTTT;
+
+	  if ((pucT = Strnstr(pndChild->content, 32, BAD_CAST ";base64,")) != NULL && (l = (pucT - pndChild->content)) < 32 &&
+	      (pucTTT = xmlStrdup(&pucT[8])) != NULL) {
+	    pucTT = xmlStrndup(&pndChild->content[5], (pucT - &pndChild->content[5]));
+	    domSetPropEat(pndArg, BAD_CAST "type", pucTT);
+	    xmlNodeSetName(pndArg, NAME_PIE_IMG);
+	    pndForAppend = xmlNewChild(pndArg, NULL, NAME_BASE64, NULL);
+	    xmlNodeSetContent(pndForAppend, pucTTT);
+	    xmlFree(pndChild->content);
+	    pndChild->content = NULL;
+	  }
+	}
+	else if ((pndChild = pndArg->children) != NULL && xmlNodeIsText(pndChild) && StringBeginsWith(pndChild->content, BAD_CAST "data:application/") &&
+	    (iLengthStr = xmlStrlen(pndChild->content)) > 10) {
+	  /*!\todo embedded base64-encoded data */
+	}
+	else if ((pndChild = pndArg->children) != NULL 
 	    && xmlNodeIsText(pndChild)
+	    && IS_NODE_PIE_LIST(pndArg->parent) == FALSE
 	    && pndChild->content != NULL
 	    && (iLengthStr = xmlStrlen(pndChild->content)) > 0) {
 	  int rc;

@@ -47,18 +47,6 @@
 #endif
 
 static BOOL_T
-OpenArchive(resNodePtr prnArg);
-
-static BOOL_T
-CloseArchive(resNodePtr prnArg);
-
-static BOOL_T
-OpenZip(resNodePtr prnArg);
-
-static BOOL_T
-CloseZip(resNodePtr prnArg);
-
-static BOOL_T
 OpenURL(resNodePtr prnArg);
 
 static BOOL_T
@@ -78,6 +66,11 @@ resNodeIncrUsageCount(resNodePtr prnArg);
 
 static int
 resNodeResetUsageCount(resNodePtr prnArg);
+
+
+/*!\todo resNodeSetContentTime() */
+
+/*!\todo resNodeGetContentTime() to compare to Modification time of context */
 
 
 /*! set mode of context prnArg according to pchArgMode ("r|w|w+|wb|wb|rz|wz|a|aw|rd|wd|wd+")
@@ -152,13 +145,13 @@ resNodeOpen(resNodePtr prnArg, const char *pchArgMode)
       /* nothing to prepare */
       fResult = TRUE;
     }
-    else if (strchr(pchArgMode,(int)'a') && resMimeIsZipDocument(resNodeGetMimeType(prnArg))) {
+    else if (strchr(pchArgMode,(int)'a') && (resMimeIsZipDocument(resNodeGetMimeType(prnArg)) || resNodeGetMimeType(prnArg) == MIME_APPLICATION_ZIP)) {
 
       if (resPathIsURL(resNodeGetNameNormalized(prnArg))) {
 	fResult = OpenURL(prnArg);
       }
       else {
-	fResult = OpenZip(prnArg);
+	fResult = zipFileOpen(prnArg,pchArgMode);
       }
 
       if (fResult) {
@@ -173,13 +166,14 @@ resNodeOpen(resNodePtr prnArg, const char *pchArgMode)
 	prnArg->fExist = TRUE;
       }
     }
+#ifdef HAVE_LIBARCHIVE
     else if (strchr(pchArgMode,(int)'a') && resMimeIsArchive(resNodeGetMimeType(prnArg))) {
 
       if (resPathIsURL(resNodeGetNameNormalized(prnArg))) {
 	fResult = OpenURL(prnArg);
       }
       else {
-	fResult = OpenArchive(prnArg);
+	fResult = arcFileOpen(prnArg);
       }
 
       if (fResult) {
@@ -194,6 +188,7 @@ resNodeOpen(resNodePtr prnArg, const char *pchArgMode)
 	prnArg->fExist = TRUE;
       }
     }
+#endif
     /*!\todo  else if (strchr(pchArgMode, (int)'i') && resNodeIsImage(prnArg)) ??? */
     else if (strchr(pchArgMode, (int)'d') && resNodeIsDatabase(prnArg)) {
       fResult = OpenSqlite(prnArg);
@@ -316,266 +311,6 @@ resNodeOpen(resNodePtr prnArg, const char *pchArgMode)
   }
   return fResult;
 } /* end of resNodeOpen() */
-
-
-/*! opens context prnArg
-
-\todo handle in-memory achives for stdout/stdin s. archive_write_open_memory()
-
-\return TRUE if successful
-*/
-BOOL_T
-OpenArchive(resNodePtr prnArg)
-{
-  BOOL_T fResult = FALSE;
-
-#ifdef HAVE_LIBARCHIVE
-  assert(prnArg != NULL && prnArg->handleIO == NULL);
-
-  if (prnArg->eMode == mode_read) {
-    prnArg->handleIO = (void *)archive_read_new();
-    if (prnArg->handleIO) {
-      if (arcMapReadFormat(prnArg)) {
-	if (resNodeIsMemory(prnArg)) { /* achive in memory already */
-	  if (archive_read_open_memory((arcPtr)prnArg->handleIO, prnArg->pContent, resNodeGetSize(prnArg)) == ARCHIVE_OK) {
-	    prnArg->fExist = TRUE;
-	    prnArg->eAccess = rn_access_archive;
-	    fResult = TRUE;
-	    PrintFormatLog(4, "archive_read_open_memory('%s') OK", resNodeGetNameNormalized(prnArg));
-	  }
-	  else {
-	    CloseArchive(prnArg);
-	    resNodeSetError(prnArg, rn_error_archive, "archive_read_open_memory() failed");
-	  }
-	  /*!\todo read archive from memory buffer ":memory:" archive_read_open_memory() */
-	}
-	else if (archive_read_open_filename((arcPtr)prnArg->handleIO, resNodeGetNameNormalizedNative(prnArg), BUFFER_LENGTH) == ARCHIVE_OK) {
-	  prnArg->fExist = TRUE;
-	  prnArg->eAccess = rn_access_archive;
-	  fResult = TRUE;
-	  PrintFormatLog(4, "archive_read_open_filename('%s') OK", resNodeGetNameNormalized(prnArg));
-	}
-	else {
-	  CloseArchive(prnArg);
-	  resNodeSetError(prnArg, rn_error_archive, "archive_read_open_filename('%s') failed", resNodeGetNameNormalized(prnArg));
-	}
-      }
-      else {
-	CloseArchive(prnArg);
-	resNodeSetError(prnArg, rn_error_archive, "arcMapReadFormat('%s') failed", resNodeGetNameNormalized(prnArg));
-      }
-    }
-    else {
-      CloseArchive(prnArg);
-      resNodeSetError(prnArg, rn_error_archive, "archive_read_new('%s') failed", resNodeGetNameNormalized(prnArg));
-    }
-  }
-  else if (prnArg->eMode == mode_write) {
-    /*\todo append content to existing archive file */
-
-    /*\todo delete existing archive file first */
-
-    prnArg->handleIO = (void *)archive_write_new();
-    if (prnArg->handleIO) {
-      //archive_write_set_options((arcPtr)prnArg->handleIO, "compression=store");
-      if ((resNodeGetMimeType(prnArg) == MIME_APPLICATION_ZIP
-	&& archive_write_set_format_zip((arcPtr)prnArg->handleIO) == ARCHIVE_OK)
-#if 0
-	||
-	(resNodeGetMimeType(prnArg) == MIME_APPLICATION_X_TAR
-	&& archive_write_set_format_gnutar((arcPtr)prnArg->handleIO) == ARCHIVE_OK)
-	||
-	(resNodeGetMimeType(prnArg) == MIME_APPLICATION_X_ISO9660_IMAGE
-	&& archive_write_set_format_iso9660((arcPtr)prnArg->handleIO) == ARCHIVE_OK)
-#endif
-	) {
-
-	if (archive_write_add_filter_none((arcPtr)prnArg->handleIO) == ARCHIVE_OK) {
-#if 0
-	  if (resNodeIsStd(prnArg)) {
-	    const size_t iSize = 1024 * 1024 * 1024;
-
-	    if ((prnArg->pContent = xmlMalloc(iSize))) {
-	      if (archive_write_open_memory((arcPtr)prnArg->handleIO, prnArg->pContent, iSize, &prnArg->liSizeContent) == ARCHIVE_OK) {
-		prnArg->fExist = TRUE;
-		prnArg->eAccess = rn_access_archive;
-		fResult = TRUE;
-		PrintFormatLog(4, "archive_write_open_memory('%s') OK", resNodeGetNameNormalized(prnArg));
-	      }
-	    }
-	    else {
-	      CloseArchive(prnArg);
-	      resNodeSetError(prnArg, rn_error_archive, "xmlMalloc() failed");
-	    }
-	  }
-#endif
-	  if (archive_write_open_filename((arcPtr)prnArg->handleIO, resNodeGetNameNormalizedNative(prnArg)) == ARCHIVE_OK) {
-	    prnArg->fExist = TRUE;
-	    prnArg->eAccess = rn_access_archive;
-	    fResult = TRUE;
-	    PrintFormatLog(4, "archive_write_open_filename('%s') OK", resNodeGetNameNormalized(prnArg));
-	  }
-	  else {
-	    CloseArchive(prnArg);
-	    resNodeSetError(prnArg, rn_error_archive, "archive_write_new('%s') failed", resNodeGetNameNormalized(prnArg));
-	  }
-	}
-	else {
-	  CloseArchive(prnArg);
-	  //	      resNodeSetError(prnArg,rn_error_archive, "archive_write_set_format_ustar('%s') failed: %s",
-	  //			     resNodeGetNameNormalized(prnArg), archive_error_string((arcPtr)resNodeGetHandleIO(prnArg)));
-	}
-      }
-      else {
-	CloseArchive(prnArg);
-	resNodeSetError(prnArg, rn_error_archive, "archive_read_support_format_*('%s') failed: %s",
-	  resNodeGetNameNormalized(prnArg), archive_error_string((arcPtr)resNodeGetHandleIO(prnArg)));
-      }
-    }
-    else {
-      CloseArchive(prnArg);
-      resNodeSetError(prnArg, rn_error_archive, "archive_write_new('%s') failed", resNodeGetNameNormalized(prnArg));
-    }
-  }
-  else {
-    resNodeSetError(prnArg, rn_error_open, "unknown mode for archive opening '%s'", resNodeGetNameNormalized(prnArg));
-  }
-#endif
-
-  return fResult;
-} /* end of OpenArchive() */
-
-
-/*! opens context prnArg
-
-\return TRUE if successful
-*/
-BOOL_T
-CloseArchive(resNodePtr prnArg)
-{
-  BOOL_T fResult = FALSE;
-
-#ifdef HAVE_LIBARCHIVE
-  assert(prnArg != NULL);
-
-  if (prnArg->eMode == mode_read) {
-    archive_read_close((arcPtr)resNodeGetHandleIO(prnArg));
-    if (archive_read_free((arcPtr)resNodeGetHandleIO(prnArg)) == ARCHIVE_OK) {
-      fResult = TRUE;
-    }
-    else {
-      resNodeSetError(prnArg, rn_error_archive, "Error archive_read_free('%s')", resNodeGetNameNormalized(prnArg));
-    }
-  }
-  else if (prnArg->eMode == mode_write) {
-    archive_write_close((arcPtr)resNodeGetHandleIO(prnArg));
-    if (archive_write_free((arcPtr)resNodeGetHandleIO(prnArg)) == ARCHIVE_OK) {
-      fResult = TRUE;
-    }
-    else {
-      resNodeSetError(prnArg, rn_error_archive, "Error archive_write_free('%s')", resNodeGetNameNormalized(prnArg));
-    }
-  }
-  else {
-    resNodeSetError(prnArg, rn_error_archive, "Error closing archive '%s'", resNodeGetNameNormalized(prnArg));
-  }
-  prnArg->handleIO = NULL;
-  prnArg->eAccess = rn_access_undef;
-#endif
-
-  return fResult;
-} /* end of CloseArchive() */
-
-
-/*! opens context prnArg
-
-\todo handle in-memory achives for stdout/stdin s. zip_write_open_memory()
-
-\return TRUE if successful
-*/
-BOOL_T
-OpenZip(resNodePtr prnArg)
-{
-  BOOL_T fResult = FALSE;
-
-  if (prnArg != NULL && prnArg->handleIO != NULL && prnArg->eAccess == rn_access_zip) {
-      fResult = TRUE;
-      PrintFormatLog(4, "zip_open('%s') already open", resNodeGetNameNormalized(prnArg));
-  }
- else if (prnArg->eMode == mode_read) {
-    int err;
-    char buf[BUFFER_LENGTH];
-
-    if ((prnArg->handleIO = zip_open(resNodeGetNameNormalizedNative(prnArg), 0, &err)) == NULL) {
-      zip_error_to_str(buf, sizeof(buf), err, errno);
-      PrintFormatLog(1, "can't open zip archive `%s': %s\n", resNodeGetNameNormalizedNative(prnArg), buf);
-    }
-#if 0
-    else if (resNodeIsMemory(prnArg)) { /* achive in memory already */
-	  if (zip_read_open_memory((arcPtr)prnArg->handleIO, prnArg->pContent, resNodeGetSize(prnArg)) == ZIP_OK) {
-	    prnArg->fExist = TRUE;
-	    prnArg->eAccess = rn_access_zip;
-	    fResult = TRUE;
-	    PrintFormatLog(4, "zip_read_open_memory('%s') OK", resNodeGetNameNormalized(prnArg));
-	  }
-	  else {
-	    CloseZip(prnArg);
-	    resNodeSetError(prnArg, rn_error_zip, "zip_read_open_memory() failed");
-	  }
-	  /*!\todo read zip from memory buffer ":memory:" zip_read_open_memory() */
-     }
-#endif
-    else {
-      prnArg->fExist = TRUE;
-      prnArg->eAccess = rn_access_zip;
-      fResult = TRUE;
-      PrintFormatLog(4, "zip_open('%s') OK", resNodeGetNameNormalized(prnArg));
-    }
-  }
-  else if (prnArg->eMode == mode_write) {
-#if 0
-    /*\todo append content to existing zip file */
-
-    /*\todo delete existing zip file first */
-
-    }
-    else {
-      CloseZip(prnArg);
-      resNodeSetError(prnArg, rn_error_zip, "zip_write_new('%s') failed", resNodeGetNameNormalized(prnArg));
-    }
-#endif
-  }
-  else {
-    resNodeSetError(prnArg, rn_error_open, "unknown mode for zip opening '%s'", resNodeGetNameNormalized(prnArg));
-  }
-
-  return fResult;
-} /* end of OpenZip() */
-
-
-/*! opens context prnArg
-
-\return TRUE if successful
-*/
-BOOL_T
-CloseZip(resNodePtr prnArg)
-{
-  BOOL_T fResult = FALSE;
-
-  assert(prnArg != NULL);
-
-  if (zip_close(resNodeGetHandleIO(prnArg)) == -1) {
-    resNodeSetError(prnArg, rn_error_zip, "Error zip_close('%s')", resNodeGetNameNormalized(prnArg));
-  }
-  else {
-    fResult = TRUE;
-  }
-
-  prnArg->handleIO = NULL;
-  prnArg->eAccess = rn_access_undef;
-
-  return fResult;
-} /* end of CloseZip() */
 
 
 /*! opens context prnArg
@@ -814,14 +549,16 @@ resNodeClose(resNodePtr prnArg)
   
   if (resNodeIsOpen(prnArg)) {
     PrintFormatLog(3, "Closing '%s'", resNodeGetNameNormalized(prnArg));
-    if (prnArg->eAccess == rn_access_archive) {
-      fResult = CloseArchive(prnArg);
+    if (prnArg->eAccess == rn_access_zip) {
+      fResult = zipFileClose(prnArg);
+    }
+#ifdef HAVE_LIBARCHIVE
+    else if (prnArg->eAccess == rn_access_archive) {
+      fResult = arcFileClose(prnArg);
     }
     else if (prnArg->eType == rn_type_file_in_archive) {
     }
-    else if (prnArg->eAccess == rn_access_zip) {
-      fResult = CloseZip(prnArg);
-    }
+#endif
 #ifdef HAVE_LIBCURL
     else if (prnArg->eAccess == rn_access_curl) {
       fResult = CloseURL(prnArg);
@@ -853,6 +590,8 @@ resNodeClose(resNodePtr prnArg)
 
 
 /*! check and encode URL and opens the according Sqlite database file
+
+\todo move to "option/database/database.c"
 
 \return TRUE if Database file was opened NOW!
 */
@@ -931,6 +670,8 @@ OpenSqlite(resNodePtr prnArg)
 
 
 /*! check and encode URL and opens the according Sqlite database file
+
+\todo move to "option/database/database.c"
 
 \return TRUE if Database file was opened NOW!
 */

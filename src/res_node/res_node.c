@@ -3122,29 +3122,50 @@ resNodeContentToDOM(xmlNodePtr pndArg, resNodePtr prnArg)
     case MIME_APPLICATION_VND_OPENXMLFORMATS_OFFICEDOCUMENT_SPREADSHEETML_SHEET:
     case MIME_APPLICATION_VND_MS_VISIO_DRAWING_MAIN_XML_2013:
     {
-	xmlChar *pucT = NULL;
-	xmlDocPtr pdocResult = NULL;
+#if 1
+      xmlNodePtr pndArchive;
+      resNodePtr prnEntry;
 
-	resNodeGetNameNormalized(prnArg); /* set internal name */
+      PrintFormatLog(2, "Use document content of file '%s'", resNodeGetNameNormalized(prnArg));
+      if (IS_NODE_ARCHIVE(pndArg)) {
+	pndArchive = pndArg;
+      }
+      else {
+	pndArchive = xmlNewChild(pndArg, NULL, NAME_ARCHIVE, NULL);
+      }
 
-	if (prnArg->pdocContent == NULL) {
-	  xmlNodePtr pndRoot = NULL;
+      for (prnEntry = resNodeGetChild(prnArg); prnEntry; prnEntry = resNodeGetNext(prnEntry)) {
+	xmlNodePtr pndEntry;
 
-	  if (zipDocumentRead(prnArg) && (pndRoot = resNodeToDOM(prnArg, RN_INFO_MAX)) != NULL) {
-	    pdocResult = xmlNewDoc(BAD_CAST "1.0");
-	    xmlDocSetRootElement(pdocResult, pndRoot);
-	  }
-	  else {
-	    xmlSetProp(pndArg, BAD_CAST "error", BAD_CAST "parse");
-	  }
-	  resNodeSetContentDocEat(prnArg, pdocResult);
-	}
-	else {
-	  /* handle parser errors */
-	  xmlSetProp(pndArg, BAD_CAST "error", BAD_CAST "parse");
+	if ((pndEntry = resNodeToDOM(prnEntry, RN_INFO_MAX))) {
+	  xmlAddChild(pndArchive, pndEntry);
 	}
       }
-      break;
+#else
+      xmlChar *pucT = NULL;
+      xmlDocPtr pdocResult = NULL;
+
+      resNodeGetNameNormalized(prnArg); /* set internal name */
+
+      if (prnArg->pdocContent == NULL) {
+	xmlNodePtr pndRoot = NULL;
+
+	if (zipDocumentRead(prnArg) && (pndRoot = resNodeToDOM(prnArg, RN_INFO_MAX)) != NULL) {
+	  pdocResult = xmlNewDoc(BAD_CAST "1.0");
+	  xmlDocSetRootElement(pdocResult, pndRoot);
+	}
+	else {
+	  xmlSetProp(pndArg, BAD_CAST "error", BAD_CAST "parse");
+	}
+	resNodeSetContentDocEat(prnArg, pdocResult);
+      }
+      else {
+	/* handle parser errors */
+	xmlSetProp(pndArg, BAD_CAST "error", BAD_CAST "parse");
+      }
+#endif
+    }
+    break;
 
     case MIME_APPLICATION_ZIP:
     {
@@ -3454,13 +3475,32 @@ resNodeToDOM(resNodePtr prnArg, int iArgOptions)
 	xmlAddChild(pndT, resNodeToDOM(prnEntry, iArgOptions));
       }
     }
-    else if (resNodeIsArchive(prnArg) || resNodeIsZipDocument(prnArg)) {
+    else if ((iArgOptions & RN_INFO_INFO) && resNodeIsZipDocument(prnArg)) {
       xmlNodePtr pndArchive;
 
-      pndArchive = xmlNewChild(pndT, NULL, BAD_CAST"archive", NULL);
+      pndArchive = xmlNewChild(pndT, NULL, BAD_CAST "archive", NULL);
       if (pndArchive) {
+	if (prnArg->pContent != NULL || prnArg->pdocContent != NULL) {
+	  /* use existing buffer content */
+	}
+	else {
+	  zipDocumentRead(prnArg, iArgOptions);
+	}
+
 	for (prnEntry = resNodeGetChild(prnArg); prnEntry; prnEntry = resNodeGetNext(prnEntry)) {
 	  xmlAddChild(pndArchive, resNodeToDOM(prnEntry, iArgOptions));
+	}
+      }
+    }
+    else if (resNodeIsArchive(prnArg)) {
+      xmlNodePtr pndArchive;
+
+      pndArchive = xmlNewChild(pndT, NULL, BAD_CAST "archive", NULL);
+      if (pndArchive) {
+	if (zipAppendEntries(prnArg, NULL, (iArgOptions & RN_INFO_CONTENT))) {
+	  for (prnEntry = resNodeGetChild(prnArg); prnEntry; prnEntry = resNodeGetNext(prnEntry)) {
+	    xmlAddChild(pndArchive, resNodeToDOM(prnEntry, iArgOptions));
+	  }
 	}
       }
     }
@@ -3491,7 +3531,7 @@ resNodeToDOM(resNodePtr prnArg, int iArgOptions)
       /*! required for shortcuts, titles and icons */
       resNodeContentToDOM(pndT, prnArg);
     }
-    else if (resNodeIsPicture(prnArg)) {
+    else if (iArgOptions & RN_INFO_CONTENT && resNodeIsPicture(prnArg)) {
       resNodeContentToDOM(pndT, prnArg);
     }
     else if (resNodeIsVideo(prnArg)) {
@@ -3546,6 +3586,8 @@ resNodeToPlain(resNodePtr prnArg, int iArgOptions)
 	case rn_type_file:
 	case rn_type_archive:
 	case rn_type_file_in_archive:
+	case rn_type_zip:
+	case rn_type_file_in_zip:
 	  xmlStrPrintf(pucResult, BUFFER_LENGTH,
 		       "%s\n",
 		       resNodeGetNameNormalized(prnArg));
@@ -3572,6 +3614,8 @@ resNodeToPlain(resNodePtr prnArg, int iArgOptions)
 	case rn_type_dir_in_archive:
 	case rn_type_file:
 	case rn_type_file_in_archive:
+	case rn_type_zip:
+	case rn_type_file_in_zip:
 	case rn_type_symlink:
 	  xmlStrPrintf(pucResult, BUFFER_LENGTH,
 		       "%c%c%c%c%c\t%li\t%s\t\"%s\"\t\"%s\"\t%s\n",
@@ -4192,7 +4236,7 @@ resNodeUpdate(resNodePtr prnArg, int iArgOptions, const pcre2_code *re_match, co
 	}
 #endif
 	else if (resNodeIsZipDocument(prnArg)) {
-	  fResult = zipDocumentRead(prnArg); /* update achive nodes */
+	  fResult = zipDocumentRead(prnArg,iArgOptions); /* update archive nodes */
 	}
 #ifdef HAVE_LIBARCHIVE
 	else if (resNodeIsArchive(prnArg)) {
@@ -4201,6 +4245,10 @@ resNodeUpdate(resNodePtr prnArg, int iArgOptions, const pcre2_code *re_match, co
 	else if (resNodeIsFileInArchive(prnArg)) {
 	  fResult = arcAppendEntries(resNodeGetAncestorArchive(prnArg), re_match, TRUE);
 	  /*\todo avoid redundant parsing */
+	}
+#else
+	else if (resNodeGetMimeType(prnArg) == MIME_APPLICATION_ZIP) {
+	  fResult = zipAppendEntries(prnArg, re_match, FALSE); /* update achive nodes */
 	}
 #endif
 	else if (resNodeIsLink(prnArg)) {
