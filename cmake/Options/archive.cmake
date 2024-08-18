@@ -14,13 +14,13 @@ IF (CXPROC_ARCHIVE)
   INCLUDE_DIRECTORIES(${LibArchive_INCLUDE_DIR})
 
   SET(ARCHIVE_FILES
-    ${CXPROC_SRC_DIR}/option/archive/archive.h
-    ${CXPROC_SRC_DIR}/option/archive/archive.c
+    ${CXPROC_SRC_DIR}/res_node/res_node_archive.h
+    ${CXPROC_SRC_DIR}/res_node/res_node_archive.c
     )
 
   SET(CXP_ARCHIVE_FILES
-    ${CXPROC_SRC_DIR}/option/archive/cxp_archive.h
-    ${CXPROC_SRC_DIR}/option/archive/cxp_archive.c
+    ${CXPROC_SRC_DIR}/cxp/cxp_archive.h
+    ${CXPROC_SRC_DIR}/cxp/cxp_archive.c
     )
 
   #target_sources(dir2csv PUBLIC ${ARCHIVE_FILES})

@@ -42,9 +42,6 @@
 #ifdef HAVE_LIBSQLITE3
 #include <database/database.h>
 #endif
-#ifdef HAVE_LIBARCHIVE
-#include <archive/archive.h>
-#endif
 
 static BOOL_T
 OpenURL(resNodePtr prnArg);
@@ -145,7 +142,7 @@ resNodeOpen(resNodePtr prnArg, const char *pchArgMode)
       /* nothing to prepare */
       fResult = TRUE;
     }
-    else if (strchr(pchArgMode,(int)'a') && (resMimeIsZipDocument(resNodeGetMimeType(prnArg)) || resNodeGetMimeType(prnArg) == MIME_APPLICATION_ZIP)) {
+    else if (strchr(pchArgMode,(int)'a') && resMimeIsZipDocument(resNodeGetMimeType(prnArg))) {
 
       if (resPathIsURL(resNodeGetNameNormalized(prnArg))) {
 	fResult = OpenURL(prnArg);
@@ -451,7 +448,7 @@ resNodePutContent(resNodePtr prnArg)
     //assert(prnArg->eAccess == rn_access_undef && prnArg->handleIO == NULL);
     //assert(resNodeIsArchive(prnArg) == FALSE);
 
-    fResult = (resNodeOpen(prnArg,"w") && resNodeSaveContent(prnArg) && resNodeClose(prnArg));
+    fResult = (resNodeMakeDirectory(prnArg, S_IRUSR | S_IWUSR | S_IXUSR) && resNodeOpen(prnArg,"w") && resNodeSaveContent(prnArg) && resNodeClose(prnArg));
   }
   return fResult;
 } /* end of resNodePutContent() */

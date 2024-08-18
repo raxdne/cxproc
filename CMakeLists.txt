@@ -156,6 +156,8 @@ ADD_EXECUTABLE(dir2csv
   ${CXPROC_SRC_DIR}/res_node/res_node_zip.h
   ${CXPROC_SRC_DIR}/res_node/res_node_list.c
   ${CXPROC_SRC_DIR}/res_node/res_node_list.h
+  ${CXPROC_SRC_DIR}/res_node/res_node_ops.c
+  ${CXPROC_SRC_DIR}/res_node/res_node_ops.h
   ${CXPROC_SRC_DIR}/res_node/res_path.c
   ${CXPROC_SRC_DIR}/res_node/res_path.h
   ${CXPROC_SRC_DIR}/utils.c
@@ -178,6 +180,8 @@ ADD_EXECUTABLE(dir2sqlite
   ${CXPROC_SRC_DIR}/res_node/res_node_zip.h
   ${CXPROC_SRC_DIR}/res_node/res_node_list.c
   ${CXPROC_SRC_DIR}/res_node/res_node_list.h
+  ${CXPROC_SRC_DIR}/res_node/res_node_ops.c
+  ${CXPROC_SRC_DIR}/res_node/res_node_ops.h
   ${CXPROC_SRC_DIR}/res_node/res_path.c
   ${CXPROC_SRC_DIR}/res_node/res_path.h
   ${CXPROC_SRC_DIR}/utils.c

@@ -678,6 +678,19 @@ resNodeTest(void);
 
 extern int
 resNodeTestProp(void);
+
+#ifdef HAVE_LIBARCHIVE
+extern int
+arcTestResNodeRead(void);
+
+extern int
+arcTestResNodeWrite(void);
+#endif
+
+#endif
+
+#ifdef HAVE_LIBARCHIVE
+#include <res_node/res_node_archive.h>
 #endif
 
 #include <res_node/res_node_list.h>

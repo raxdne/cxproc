@@ -68,9 +68,6 @@
 #ifdef HAVE_LIBSQLITE3
 #include <database/database.h>
 #endif
-#ifdef HAVE_LIBARCHIVE
-#include <archive/archive.h>
-#endif
 #ifdef HAVE_LIBID3TAG
 #include <audio/audio.h>
 #endif
@@ -1452,7 +1449,7 @@ resNodeDirNew(xmlChar *pucArgPath)
     resNodeSetType(prnResult,eType);
     if (resNodeIsDir(prnResult)) { /*  */
       resNodeSetRecursion(prnResult, fRecursion);
-      resPathCutTrailingChars(prnResult->pucNameNormalized);
+      //resPathCutTrailingChars(prnResult->pucNameNormalized);
     }
     xmlFree(pucPath);
   }
@@ -1739,7 +1736,7 @@ resNodeConcatNew(xmlChar *pucArgPathA, xmlChar *pucArgPathB)
 	xmlFree(pucTTT);
       }
       else {
-	resPathCutTrailingChars(pucT);
+	//resPathCutTrailingChars(pucT);
 	resNodeReset(prnResult, pucT);
 	if (resPathIsDirRecursive(pucArgPathB)) {
 	  resNodeSetRecursion(prnResult, TRUE);
@@ -3167,33 +3164,8 @@ resNodeContentToDOM(xmlNodePtr pndArg, resNodePtr prnArg)
     }
     break;
 
-    case MIME_APPLICATION_ZIP:
-    {
-	xmlChar *pucT = NULL;
-	xmlDocPtr pdocResult = NULL;
-
-	resNodeGetNameNormalized(prnArg); /* set internal name */
-
-	if (prnArg->pdocContent == NULL) {
-	  xmlNodePtr pndRoot = NULL;
-
-	  if (zipAppendEntries(prnArg, NULL, FALSE) && (pndRoot = resNodeToDOM(prnArg, RN_INFO_MAX)) != NULL) {
-	    pdocResult = xmlNewDoc(BAD_CAST "1.0");
-	    xmlDocSetRootElement(pdocResult, pndRoot);
-	  }
-	  else {
-	    xmlSetProp(pndArg, BAD_CAST "error", BAD_CAST "parse");
-	  }
-	  resNodeSetContentDocEat(prnArg, pdocResult);
-	}
-	else {
-	  /* handle parser errors */
-	  xmlSetProp(pndArg, BAD_CAST "error", BAD_CAST "parse");
-	}
-      }
-      break;
-
 #ifdef HAVE_LIBARCHIVE
+    case MIME_APPLICATION_ZIP:
     case MIME_APPLICATION_GZIP:
     case MIME_APPLICATION_X_BZIP:
     case MIME_APPLICATION_X_TAR:
@@ -3492,12 +3464,13 @@ resNodeToDOM(resNodePtr prnArg, int iArgOptions)
 	}
       }
     }
+#ifdef HAVE_LIBARCHIVE
     else if (resNodeIsArchive(prnArg)) {
       xmlNodePtr pndArchive;
 
       pndArchive = xmlNewChild(pndT, NULL, BAD_CAST "archive", NULL);
       if (pndArchive) {
-	if (zipAppendEntries(prnArg, NULL, (iArgOptions & RN_INFO_CONTENT))) {
+	if (arcAppendEntries(prnArg, NULL, (iArgOptions & RN_INFO_CONTENT))) {
 	  for (prnEntry = resNodeGetChild(prnArg); prnEntry; prnEntry = resNodeGetNext(prnEntry)) {
 	    xmlAddChild(pndArchive, resNodeToDOM(prnEntry, iArgOptions));
 	  }
@@ -3514,6 +3487,7 @@ resNodeToDOM(resNodePtr prnArg, int iArgOptions)
 	}
       }
     }
+#endif
     else if (iArgOptions & RN_INFO_CONTENT && resNodeIsURL(prnArg)) {
       if (resNodeGetChild(prnArg)) { /* there are updated childs of this URL already */
 	for (prnEntry = resNodeGetChild(prnArg); prnEntry; prnEntry = resNodeGetNext(prnEntry)) {
@@ -5542,5 +5516,8 @@ resNodeDatabaseSchemaStr(void)
 #include "version.h"
 #include <cxp/cxp_dtd.h>
 #include "test/test_res_node.c"
+#ifdef HAVE_LIBARCHIVE
+#include "test/test_res_node_archive.c"
+#endif
 #endif
 

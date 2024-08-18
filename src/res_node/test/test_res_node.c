@@ -355,7 +355,7 @@ resNodeTest(void)
     if ((prnT = resNodeDirNew(BAD_CAST "file://" TESTPREFIX "dummy/")) == NULL) {
       xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeDirNew(): %s\n",resNodeGetErrorMsg(prnT));
     }
-    else if (resPathIsDir(resNodeGetNameNormalized(prnT))) { /* trailing slashes have to be removed */
+    else if (resPathIsDir(resNodeGetNameNormalized(prnT)) == FALSE) {
       xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resPathIsDir(): %s\n",resNodeGetErrorMsg(prnT));
     }
     else if (resNodeReadStatus(prnT) == TRUE) {
@@ -403,7 +403,7 @@ resNodeTest(void)
     else if (resNodeGetType(prnT) != rn_type_dir) {
       xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeGetType(): %s\n", resNodeGetErrorMsg(prnT));
     }
-    else if (resPathIsDir(resNodeGetNameNormalized(prnT))) {
+    else if (resPathIsDir(resNodeGetNameNormalized(prnT)) == FALSE) {
       xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resPathIsDir(): %s\n", resNodeGetErrorMsg(prnT));
     }
     else if (resNodeReadStatus(prnT) == FALSE) {

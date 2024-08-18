@@ -59,7 +59,7 @@
 #include "utils.h"
 
 #ifdef HAVE_LIBARCHIVE
-#include <archive/cxp_archive.h>
+#include <cxp/cxp_archive.h>
 #endif
 
 
@@ -455,9 +455,13 @@ arcAppendEntries(resNodePtr prnArgArchive, const pcre2_code* re_match, BOOL_T fA
 
   /*!\todo handle archive in archive recursively */
 
-  if (resNodeReadStatus(prnArgArchive) && resNodeIsArchive(prnArgArchive) && resNodeOpen(prnArgArchive, "ra")) {
+
+  if (resNodeIsArchive(prnArgArchive) && resNodeIsOpen(prnArgArchive) && resNodeGetChild(prnArgArchive)) {
+    /* resNode is open/parsed already */
+  }
+  else if (resNodeReadStatus(prnArgArchive) && resNodeIsArchive(prnArgArchive) && resNodeOpen(prnArgArchive, "ra")) {
     PrintFormatLog(4, "Begin of '%s'", resNodeGetNameNormalized(prnArgArchive));
-    while (fResult == FALSE) {
+    while (TRUE) {
       /* Read entries, match up names with regexp. */
       arcEntryPtr pArcEntryT;
       int iError;
@@ -466,6 +470,7 @@ arcAppendEntries(resNodePtr prnArgArchive, const pcre2_code* re_match, BOOL_T fA
       if (iError == ARCHIVE_EOF) {
 	PrintFormatLog(4, "End of '%s'", resNodeGetNameNormalized(prnArgArchive));
 	fResult = TRUE;
+	break;
       }
       else if (iError == ARCHIVE_OK) {
 	char* pcT;
@@ -575,6 +580,7 @@ arcAppendEntries(resNodePtr prnArgArchive, const pcre2_code* re_match, BOOL_T fA
 		  xmlFree(pData);
 		  resNodeSetError(prnChild, rn_error_archive, "Archive read error: %s", archive_error_string((arcPtr)resNodeGetHandleIO(prnArgArchive)));
 		  fResult = FALSE;
+		  break;
 		}
 		else {
 		  /*!\todo use of resNodeAppendContent() see resNodeReadContent()*/
@@ -612,7 +618,3 @@ arcAppendEntries(resNodePtr prnArgArchive, const pcre2_code* re_match, BOOL_T fA
   return fResult;
 } /* end of arcAppendEntries() */
 
-
-#ifdef TESTCODE
-#include "test/test_archive.c"
-#endif

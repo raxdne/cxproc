@@ -32,6 +32,111 @@ cxpArcTest(cxpContextPtr pccArg)
   i=0;
 
   if (RUNTEST) {
+    xmlNodePtr pndZip;
+
+    i++;
+    printf("TEST %i in '%s:%i': arcProcessZipNode() = ",i,__FILE__,__LINE__);
+
+    pndZip = xmlNewNode(NULL,NAME_ZIP);
+    xmlSetProp(pndZip,BAD_CAST"name",BAD_CAST"tmp/d-3.zip");
+
+    if (arcProcessZipNode(pndZip,pccArg) == NULL) {
+      printf("OK\n");
+      n_ok++;
+    }
+    else {
+      printf("Error arcProcessZipNode()\n");
+    }
+
+    xmlFreeNode(pndZip);
+  }
+
+
+  if (SKIPTEST) {
+    xmlNodePtr pndT;
+    xmlNodePtr pndZip;
+    xmlDocPtr pdocT;
+
+    i++;
+    printf("TEST %i in '%s:%i': arcProcessZipNode() = ",i,__FILE__,__LINE__);
+
+    pndT = xmlNewNode(NULL,NAME_XML);
+    pndZip = xmlNewChild(pndT,NULL,NAME_ZIP,NULL);
+    xmlSetProp(pndZip,BAD_CAST"name",BAD_CAST TESTPREFIX "option/archive/test-zip-7.zip");
+
+    pdocT = arcProcessZipNode(pndZip,pccArg); 
+    if (pdocT != NULL) {
+      xmlNodePtr pndRoot;
+
+      pndRoot = xmlDocGetRootElement(pdocT);
+      if (pndRoot != NULL && domNumberOfChild(pndRoot,BAD_CAST"file") == 4) {
+	printf("OK\n");
+	n_ok++;
+      }
+    }
+    else {
+      printf("Error arcProcessZipNode()\n");
+    }
+
+    xmlFreeNode(pndT);
+  }
+
+
+  if (SKIPTEST) {
+    xmlNodePtr pndZip;
+    xmlNodePtr pndDir;
+    xmlNodePtr pndChild;
+
+    i++;
+    printf("TEST %i in '%s:%i': parse a directory and zip childs = ",i,__FILE__,__LINE__);
+
+    pndZip = xmlNewNode(NULL,NAME_ZIP);
+    xmlSetProp(pndZip,BAD_CAST"name",BAD_CAST"tmp/d-4.zip");
+
+    pndDir = xmlNewChild(pndZip,NULL,NAME_DIR,NULL);
+    xmlSetProp(pndDir,BAD_CAST"name",BAD_CAST TESTPREFIX);
+    pndChild = xmlNewChild(pndDir,NULL,NAME_FILE,NULL);
+    xmlSetProp(pndChild,BAD_CAST"name",BAD_CAST"test.bat");
+    pndChild = xmlNewChild(pndDir,NULL,NAME_FILE,NULL);
+    xmlSetProp(pndChild,BAD_CAST"name",BAD_CAST"test.mak");
+    pndChild = xmlNewChild(pndDir,NULL,NAME_FILE,NULL);
+    xmlSetProp(pndChild,BAD_CAST"name",BAD_CAST"dummy.txt");
+
+    if (arcProcessZipNode(pndZip,pccArg)==NULL) {
+      printf("OK\n");
+      n_ok++;
+    }
+    else {
+      printf("Error arcProcessZipNode()\n");
+    }
+    xmlFreeNode(pndZip);
+  }
+  
+  if (SKIPTEST) {
+    xmlNodePtr pndZip;
+    xmlNodePtr pndDir;
+    xmlNodePtr pndChild;
+
+    i++;
+    printf("TEST %i in '%s:%i': parse a directory and zip childs = ",i,__FILE__,__LINE__);
+
+    pndZip = xmlNewNode(NULL,NAME_ZIP);
+    xmlSetProp(pndZip,BAD_CAST"name",BAD_CAST"tmp/d-5.zip");
+
+    pndDir = xmlNewChild(pndZip,NULL,NAME_PLAIN,BAD_CAST TESTPREFIX "test\test.bat\ntest/test.mak\ntest/dummy.txt\n");
+
+    if (arcProcessZipNode(pndZip,pccArg)==NULL) {
+      printf("OK\n");
+      n_ok++;
+    }
+    else {
+      printf("Error arcProcessZipNode()\n");
+    }
+    xmlFreeNodeList(pndZip);
+  }
+
+
+  if (SKIPTEST) {
     resNodePtr prnArchive = NULL;
 
     i++;
@@ -69,7 +174,7 @@ cxpArcTest(cxpContextPtr pccArg)
   }
 
 
-  if (RUNTEST) {
+  if (SKIPTEST) {
     resNodePtr prnArchive = NULL;
     resNodePtr prnT = NULL;
     resNodePtr prnTT = NULL;
@@ -144,7 +249,7 @@ cxpArcTest(cxpContextPtr pccArg)
   }
 
 
-  if (RUNTEST) {
+  if (SKIPTEST) {
     xmlChar* pucList = BAD_CAST"test/abc.txt\n\ntest/sub/abc.txt\ntest/def.xml";
     resNodePtr prnArchive = NULL;
 
@@ -170,7 +275,7 @@ cxpArcTest(cxpContextPtr pccArg)
   }
 
 
-  if (RUNTEST) {
+  if (SKIPTEST) {
     xmlNodePtr pndTestDir;
     xmlNodePtr pndT;
     resNodePtr prnArchive = NULL;

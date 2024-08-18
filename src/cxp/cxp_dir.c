@@ -43,9 +43,6 @@
 #ifdef HAVE_RP
 #include <rp/rp.h>
 #endif
-#ifdef HAVE_LIBARCHIVE
-#include <archive/archive.h>
-#endif
 
 static BOOL_T
 AddNameSpaces(xmlNodePtr pndPie);

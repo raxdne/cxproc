@@ -316,7 +316,10 @@ zipAppendEntries(resNodePtr prnArgZip, const pcre2_code *re_match, BOOL_T fArgCo
 
   /*!\todo handle zip in zip recursively */
 
-  if (resNodeReadStatus(prnArgZip) && resNodeGetMimeType(prnArgZip) == MIME_APPLICATION_ZIP && (resNodeIsOpen(prnArgZip) || zipFileOpen(prnArgZip,"r"))) {
+  if (resNodeIsZipDocument(prnArgZip) && resNodeIsOpen(prnArgZip) && resNodeGetChild(prnArgZip)) {
+    /* resNode is open/parsed already */
+  }
+  else if (resNodeReadStatus(prnArgZip) && resNodeGetMimeType(prnArgZip) == MIME_APPLICATION_ZIP && (resNodeIsOpen(prnArgZip) || zipFileOpen(prnArgZip,"r"))) {
     char buf[BUFFER_LENGTH];
     int err;
     int i, len;

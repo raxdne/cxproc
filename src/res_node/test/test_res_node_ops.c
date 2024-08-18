@@ -43,7 +43,7 @@ resNodeTestOperations(void)
 
 
   if (RUNTEST) {
-    xmlChar *pucT = BAD_CAST TEMPPREFIX "AAA";
+    xmlChar *pucT = BAD_CAST TEMPPREFIX "AAA/";
     resNodePtr prnT = NULL;
 
     i++;
@@ -100,7 +100,7 @@ resNodeTestOperations(void)
     else if (resNodeMakeDirectoryStr(BAD_CAST TEMPPREFIX "test-res_node_ops/ooo/kkk", iMode) == FALSE) {
       xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error 2 resNodeMakeDirectoryStr()\n");
     }
-    else if (resNodeTestDirStr(BAD_CAST TEMPPREFIX "test-res_node_ops/ooo/kkk") == FALSE) {
+    else if (resNodeTestDirStr(BAD_CAST TEMPPREFIX "test-res_node_ops/ooo/") == FALSE) {
       xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error 1 resNodeTestDirStr()\n");
     }
     else if (resNodeUnlinkRecursivelyStr(BAD_CAST TEMPPREFIX "test-res_node_ops") == FALSE) {

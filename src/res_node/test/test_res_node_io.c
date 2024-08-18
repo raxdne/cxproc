@@ -139,94 +139,6 @@ resNodeTestInOut(void)
 #endif
 
 
-#ifdef HAVE_LIBARCHIVE
-  if (RUNTEST) {
-    resNodePtr prnT = NULL;
-
-    i++;
-    printf("TEST %i in '%s:%i': open and close an existing TAR file context = ",i,__FILE__,__LINE__);
-
-    if ((prnT = resNodeDirNew(BAD_CAST TESTPREFIX "option/archive/test-zip-7.tar")) == NULL) {
-      printf("Error resNodeDirNew()\n");
-    }
-    else if (resNodeIsArchive(prnT) == FALSE) {
-      printf("Error resNodeIsArchive()\n");
-    }
-    else if (resNodeOpen(prnT,"ra") == FALSE) {
-      printf("Error resNodeOpen()\n");
-    }
-    else if (prnT->eMode != mode_read) {
-      printf("Error eAccess\n");
-    }
-    else if (resNodeIsOpen(prnT) == FALSE) {
-      printf("Error resNodeIsOpen()\n");
-    }
-    else if (resNodeGetChild(prnT) != NULL) {
-      printf("Error resNodeOpen()\n");
-    }
-#if 0
-    else if (resNodeGetLength(prnT) != 1) {
-      printf("Error resNodeGetLength() ...\n");
-    }
-#endif
-    else if (prnT->eAccess != rn_access_archive) {
-      printf("Error eAccess\n");
-    }
-    else if (resNodeClose(prnT) == FALSE) {
-      printf("Error resNodeClose()\n");
-    }
-    else if (resNodeIsOpen(prnT) == TRUE) {
-      printf("Error resNodeIsOpen()\n");
-    }
-    else {
-      n_ok++;
-      printf("OK\n");
-    }
-    
-    resNodeFree(prnT);
-  }
-
-  if (SKIPTEST) {
-    resNodePtr prnT = NULL;
-
-    i++;
-    printf("TEST %i in '%s:%i': create and close a non-existing TAR file context = ",i,__FILE__,__LINE__);
-
-    if ((prnT = resNodeDirNew(BAD_CAST"tmp/created.tar")) == NULL) {
-      printf("Error resNodeDirNew()\n");
-    }
-    else if (resNodeOpen(prnT,"wa") == FALSE) {
-      printf("Error resNodeOpen()\n");
-    }
-    else if (resNodeIsOpen(prnT) == FALSE) {
-      printf("Error resNodeIsOpen()\n");
-    }
-    else if (resNodeGetChild(prnT) != NULL) {
-      printf("Error resNodeOpen()\n");
-    }
-    else if (prnT->eAccess != rn_access_archive) {
-      printf("Error eAccess\n");
-    }
-    else if (prnT->eMode != mode_write) {
-      printf("Error eAccess\n");
-    }
-    else if (resNodeClose(prnT) == FALSE) {
-      printf("Error resNodeClose()\n");
-    }
-    else if (resNodeIsOpen(prnT) == TRUE) {
-      printf("Error resNodeIsOpen()\n");
-    }
-    else {
-      n_ok++;
-      printf("OK\n");
-    }
-    
-    resNodeUnlink(prnT,FALSE);
-    resNodeFree(prnT);
-  }
-#endif
-
-
   if (RUNTEST) {
     resNodePtr prnT = NULL;
 
@@ -284,8 +196,41 @@ resNodeTestInOut(void)
 	printf("OK\n");
       }
 
+      resNodeUnlink(prnT,FALSE);
       resNodeFree(prnT);
-      resNodeUnlinkStr(BAD_CAST pucNameFile);
+    }
+  }
+
+  if (RUNTEST) {
+    resNodePtr prnT = NULL;
+
+    void *pContent;
+    size_t liLengthLarge = 1 * SIZE_MEGA;
+    xmlChar *pucNameFile = BAD_CAST TEMPPREFIX "sub/sub/sub/1MB.dat";
+
+    i++;
+    printf("TEST %i in '%s:%i': write content of a resource node with non-existing path = ",i,__FILE__,__LINE__);
+
+    if ((pContent = xmlMalloc(liLengthLarge)) != NULL) {
+      memset(pContent, 0x0F, liLengthLarge);
+
+      if ((prnT = resNodeDirNew(pucNameFile)) == NULL) {
+	printf("Error resNodeDirNew()\n");
+      }
+      else if (resNodeSetContentPtr(prnT,pContent,liLengthLarge) != pContent) {
+	printf("Error resNodeSetContentPtr()\n");
+      }
+      else if (resNodePutContent(prnT) == FALSE) {
+	printf("Error resNodePutContent()\n");
+      }      
+      else {
+	n_ok++;
+	printf("OK\n");
+      }
+
+      resNodeUnlink(prnT,FALSE);
+      resNodeFree(prnT);
+      resNodeUnlinkRecursivelyStr(BAD_CAST TEMPPREFIX "sub/");
     }
   }
 

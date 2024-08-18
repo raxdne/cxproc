@@ -34,10 +34,6 @@
 #include <res_node/res_node_io.h>
 #include "dom.h"
 
-#ifdef HAVE_LIBARCHIVE
-#include <archive/archive.h>
-#endif
-
 
 /*  find -type f -iname '*.txt' | dir2sqlite | sqlite3 abc.db3
 

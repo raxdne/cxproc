@@ -57,7 +57,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 #endif
 
 #ifdef HAVE_LIBARCHIVE
-#include <archive/cxp_archive.h>
+#include <cxp/cxp_archive.h>
 #endif
 
 static void

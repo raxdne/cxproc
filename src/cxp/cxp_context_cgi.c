@@ -86,7 +86,7 @@ RFC3875 CGI 1.1 <http://tools.ietf.org/html/rfc3875#page-10>
 #endif
 
 #ifdef HAVE_LIBARCHIVE
-#include <archive/cxp_archive.h>
+#include <cxp/cxp_archive.h>
 #endif
 
 

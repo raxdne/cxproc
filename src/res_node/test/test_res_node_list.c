@@ -191,7 +191,7 @@ resNodeTestList(void)
     else if (resNodeAddChildNew(prnT, BAD_CAST"Fun/") == NULL) {
       printf("Error resNodeAddChildNew() ...\n");
     }
-    else if ((j = resNodeGetChildCount(prnT, rn_type_dir)) != 6 || (j = resNodeGetChildCount(prnT, rn_type_file)) != 1) {
+    else if ((j = resNodeGetChildCount(prnT, rn_type_dir)) != 6 || (j = resNodeGetChildCount(prnT, rn_type_file)) != 2) {
       printf("Error resNodeDirAppendEntries() = %i\n", j);
     }
     else if (resNodeListFindChild(prnT, BAD_CAST"Notes.txt") != resNodeGetNext(resNodeGetChild(prnT))) {
@@ -656,7 +656,7 @@ resNodeTestList(void)
     else if (resNodeUpdate(prnT, RN_INFO_MAX, NULL, NULL) == FALSE) {
       printf("Error resNodeReadStatus()\n");
     }
-    else if ((pndT = resNodeToDOM(prnT, RN_INFO_MAX)) == NULL || (j = domNumberOfChild(pndT, NULL)) != 15) {
+    else if ((pndT = resNodeToDOM(prnT, RN_INFO_MAX)) == NULL || (j = domNumberOfChild(pndT, NULL)) != 16) {
       printf("Error resNodeToDOM(): %i\n", j);
     }
     else if ((pucPlain = resNodeToPlain(prnT, RN_INFO_MAX)) == NULL) {

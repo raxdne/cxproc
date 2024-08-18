@@ -21,7 +21,7 @@
 /*!
 */
 int
-arcTest(cxpContextPtr pccArg)
+arcTestRead(void)
 {
   int i;
   int n_ok;
@@ -30,117 +30,215 @@ arcTest(cxpContextPtr pccArg)
   i=0;
 
   if (RUNTEST) {
-    xmlNodePtr pndZip;
-    cxpContextPtr pccT = cxpContextNew(NULL);
+    arcPtr a;
 
     i++;
-    printf("TEST %i in '%s:%i': zipProcessZipNode() = ",i,__FILE__,__LINE__);
+    printf("TEST %i in '%s:%i': test supported archive formats = ", i, __FILE__, __LINE__);
 
-    pndZip = xmlNewNode(NULL,NAME_ZIP);
-    xmlSetProp(pndZip,BAD_CAST"name",BAD_CAST"tmp/d-3.zip");
-
-    if (zipProcessZipNode(pndZip,pccT) == NULL) {
+    if ((a = archive_read_new()) == NULL) {
+      printf("error of archive_read_new(): '%s'\n", archive_error_string(a));
+    }
+    else if (archive_read_support_filter_all(a) != ARCHIVE_OK) {
+      printf("error of archive_read_support_filter_all(): '%s'\n", archive_error_string(a));
+    }
+    else if (archive_read_support_format_empty(a) != ARCHIVE_OK) {
+      printf("error of archive_read_support_format_empty(): '%s'\n", archive_error_string(a));
+    }
+    else if (archive_read_support_format_gnutar(a) != ARCHIVE_OK) {
+      printf("error of archive_read_support_format_empty(): '%s'\n", archive_error_string(a));
+    }
+    else if (archive_read_support_format_raw(a) != ARCHIVE_OK) {
+      printf("error of archive_read_support_format_raw(): '%s'\n", archive_error_string(a));
+    }
+    else if (archive_read_support_format_zip(a) != ARCHIVE_OK) {
+      printf("error of archive_read_support_format_zip()\n");
+    }
+    else {
       printf("OK\n");
       n_ok++;
     }
-    else {
-      printf("Error zipProcessZipNode()\n");
-    }
-
-    xmlFreeNode(pndZip);
-    cxpCtxtFree(pccT);
+    archive_read_free(a);
   }
 
-
   if (RUNTEST) {
-    xmlNodePtr pndT;
-    xmlNodePtr pndZip;
-    xmlDocPtr pdocT;
-    cxpContextPtr pccT = cxpContextNew(NULL);
+    arcPtr a;
 
     i++;
-    printf("TEST %i in '%s:%i': zipProcessZipNode() = ",i,__FILE__,__LINE__);
+    printf("TEST %i in '%s:%i': test opening of non-existing archive = ", i, __FILE__, __LINE__);
 
-    pndT = xmlNewNode(NULL,NAME_XML);
-    pndZip = xmlNewChild(pndT,NULL,NAME_ZIP,NULL);
-    xmlSetProp(pndZip,BAD_CAST"name",BAD_CAST TESTPREFIX "option/archive/test-zip-7.zip");
-
-    pdocT = zipProcessZipNode(pndZip,pccT); 
-    if (pdocT != NULL) {
-      xmlNodePtr pndRoot;
-
-      pndRoot = xmlDocGetRootElement(pdocT);
-      if (pndRoot != NULL && domNumberOfChild(pndRoot,BAD_CAST"file") == 4) {
-	printf("OK\n");
-	n_ok++;
-      }
+    if ((a = archive_read_new()) == NULL) {
+      printf("error of archive_read_new(): '%s'\n", archive_error_string(a));
+    }
+    else if (archive_read_open_filename(a, TESTPREFIX "option/archive/test-arc-fail.tar", 2) == ARCHIVE_OK) {
+      printf("error of archive_read_open_filename(): '%s'\n", archive_error_string(a));
     }
     else {
-      printf("Error zipProcessZipNode()\n");
-    }
-
-    xmlFreeNode(pndT);
-    cxpCtxtFree(pccT);
-  }
-
-
-  if (RUNTEST) {
-    xmlNodePtr pndZip;
-    xmlNodePtr pndDir;
-    xmlNodePtr pndChild;
-    cxpContextPtr pccT = cxpContextNew(NULL);
-
-    i++;
-    printf("TEST %i in '%s:%i': parse a directory and zip childs = ",i,__FILE__,__LINE__);
-
-    pndZip = xmlNewNode(NULL,NAME_ZIP);
-    xmlSetProp(pndZip,BAD_CAST"name",BAD_CAST"tmp/d-4.zip");
-
-    pndDir = xmlNewChild(pndZip,NULL,NAME_DIR,NULL);
-    xmlSetProp(pndDir,BAD_CAST"name",BAD_CAST TESTPREFIX);
-    pndChild = xmlNewChild(pndDir,NULL,NAME_FILE,NULL);
-    xmlSetProp(pndChild,BAD_CAST"name",BAD_CAST"test.bat");
-    pndChild = xmlNewChild(pndDir,NULL,NAME_FILE,NULL);
-    xmlSetProp(pndChild,BAD_CAST"name",BAD_CAST"test.mak");
-    pndChild = xmlNewChild(pndDir,NULL,NAME_FILE,NULL);
-    xmlSetProp(pndChild,BAD_CAST"name",BAD_CAST"dummy.txt");
-
-    if (zipProcessZipNode(pndZip,pccT)==NULL) {
       printf("OK\n");
       n_ok++;
     }
-    else {
-      printf("Error zipProcessZipNode()\n");
-    }
-    xmlFreeNode(pndZip);
-    cxpCtxtFree(pccT);
+    archive_read_free(a);
   }
-  
+
   if (SKIPTEST) {
-    xmlNodePtr pndZip;
-    xmlNodePtr pndDir;
-    xmlNodePtr pndChild;
-    cxpContextPtr pccT = cxpContextNew(NULL);
+    arcPtr a;
+    arcEntryPtr ae;
+    char *pcNameFile = strdup(TESTPREFIX "option/archive\\test-arc.txt.gz");
+    int cchReadInput;		/*! counter for collected string length */
+    char mcContent[BUFFER_LENGTH];
 
     i++;
-    printf("TEST %i in '%s:%i': parse a directory and zip childs = ",i,__FILE__,__LINE__);
+    printf("TEST %i in '%s:%i': check data of existing gzip archive = ", i, __FILE__, __LINE__);
 
-    pndZip = xmlNewNode(NULL,NAME_ZIP);
-    xmlSetProp(pndZip,BAD_CAST"name",BAD_CAST"tmp/d-5.zip");
-
-    pndDir = xmlNewChild(pndZip,NULL,NAME_PLAIN,BAD_CAST TESTPREFIX "test\test.bat\ntest/test.mak\ntest/dummy.txt\n");
-
-    if (zipProcessZipNode(pndZip,pccT)==NULL) {
+    resPathChangeToSlashes(BAD_CAST pcNameFile);
+    
+    if ((a = archive_read_new()) == NULL) {
+      printf("error of archive_read_new(): '%s'\n", archive_error_string(a));
+    }
+    else if (archive_read_support_filter_all(a) != ARCHIVE_OK) {
+      printf("error of archive_read_support_filter_all(): '%s'\n", archive_error_string(a));
+    }
+    else if (archive_read_open_filename(a, pcNameFile, BUFFER_LENGTH) != ARCHIVE_OK) {
+      printf("error of archive_read_open_filename(): '%s'\n", archive_error_string(a));
+    }
+    else if (archive_read_next_header(a, &ae) != ARCHIVE_OK) {
+      printf("Could not read next file from %s\n", pcNameFile);
+    }
+    else if (cchReadInput = archive_read_data(a, mcContent, BUFFER_LENGTH) != 1024) {
+      printf("Archive read error: %s", archive_error_string(a));
+    }
+    else if (archive_read_next_header(a, &ae) != ARCHIVE_EOF) {
+      printf("Could not detect ARCHIVE_EOF from %s\n", pcNameFile);
+    }
+    else {
       printf("OK\n");
       n_ok++;
     }
-    else {
-      printf("Error zipProcessZipNode()\n");
-    }
-    xmlFreeNodeList(pndZip);
-    cxpCtxtFree(pccT);
+    archive_read_close(a);
+    archive_read_free(a);
+    free(pcNameFile);
   }
+
+
+  if (RUNTEST) {
+    int j = 0;
+    arcPtr a;
+    arcEntryPtr ae;
+    char *pcNameFile = TESTPREFIX "option/archive/test-arc-1.tar";
+    char *pcT;
+
+    i++;
+    printf("TEST %i in '%s:%i': check entries of existing TAR archive = ", i, __FILE__, __LINE__);
+
+    if ((a = archive_read_new()) == NULL) {
+      printf("error of archive_read_new()\n");
+    }
+    else if (archive_read_support_format_gnutar(a) != ARCHIVE_OK) {
+      printf("error of archive_read_support_format_gnutar()\n");
+    }
+    else if (archive_read_open_filename(a, pcNameFile, 2) != ARCHIVE_OK) {
+      printf("error of archive_read_open_filename()\n");
+    }
+    else if (archive_read_next_header(a, &ae) != ARCHIVE_OK || (pcT = (char *)archive_entry_pathname(ae)) == NULL || strcmp("2446.ics", pcT) != 0) {
+      printf("Error filename %d from %s\n", j, pcNameFile);
+    }
+    else if (archive_format(a) != ARCHIVE_FORMAT_TAR) {
+      printf("Could not read file format from %s\n", pcNameFile);
+    }
+    else if (archive_read_next_header(a, &ae) != ARCHIVE_OK || (pcT = (char *)archive_entry_pathname(ae)) == NULL || strcmp("test-pie-11.txt", pcT) != 0) {
+      printf("Error filename %d from %s\n", j, pcNameFile);
+    }
+    else if (archive_read_next_header(a, &ae) != ARCHIVE_OK || (pcT = (char *)archive_entry_pathname(ae)) == NULL || strcmp("test-pie-19.mm", pcT) != 0) {
+      printf("Error filename %d from %s\n", j, pcNameFile);
+    }
+    else if (archive_read_next_header(a, &ae) != ARCHIVE_OK || (pcT = (char *)archive_entry_pathname(ae)) == NULL || strcmp("test-pie-20.odt", pcT) != 0) {
+      printf("Error filename %d from %s\n", j, pcNameFile);
+    }
+    else if (archive_read_next_header(a, &ae) != ARCHIVE_EOF) {
+      printf("Could not detect ARCHIVE_EOF from %s\n", pcNameFile);
+    }
+    else {
+      printf("OK\n");
+      n_ok++;
+    }
+
+    archive_read_close(a);
+    archive_read_free(a);
+  }
+
+
+  if (RUNTEST) {
+    int j = 0;
+    arcPtr a;
+    arcEntryPtr ae;
+    char *pcNameFile = TESTPREFIX "option/archive/test-zip-7.zip";
+    char *pcT;
+
+    i++;
+    printf("TEST %i in '%s:%i': check entries of existing ZIP archive = ", i, __FILE__, __LINE__);
+
+    if ((a = archive_read_new()) == NULL) {
+      printf("error of archive_read_new()\n");
+    }
+    else if (archive_read_support_format_zip(a) != ARCHIVE_OK) {
+      printf("error of archive_read_support_format_zip()\n");
+    }
+    else if (archive_read_open_filename(a, pcNameFile, 2) != ARCHIVE_OK) {
+      printf("error of archive_read_open_filename()\n");
+    }
+    else if (archive_read_next_header(a, &ae) != ARCHIVE_OK || (pcT = (char *)archive_entry_pathname(ae)) == NULL || strcmp("sub/", pcT) != 0) {
+      printf("Error filename %d from %s\n", j, pcNameFile);
+    }
+    else if (archive_format(a) != ARCHIVE_FORMAT_ZIP) {
+      printf("Could not read file format from %s\n", pcNameFile);
+    }
+    else if (archive_read_next_header(a, &ae) != ARCHIVE_OK || (pcT = (char *)archive_entry_pathname(ae)) == NULL || strcmp("sub/a.txt", pcT) != 0) {
+      printf("Error filename %d from %s\n", j, pcNameFile);
+    }
+    else if (archive_read_next_header(a, &ae) != ARCHIVE_OK || (pcT = (char *)archive_entry_pathname(ae)) == NULL || strcmp("sub/b.txt", pcT) != 0) {
+      printf("Error filename %d from %s\n", j, pcNameFile);
+    }
+    else if (archive_read_next_header(a, &ae) != ARCHIVE_OK || (pcT = (char *)archive_entry_pathname(ae)) == NULL || strcmp("sub/plain.txt", pcT) != 0) {
+      printf("Error filename %d from %s\n", j, pcNameFile);
+    }
+    else if (archive_read_next_header(a, &ae) != ARCHIVE_OK || (pcT = (char *)archive_entry_pathname(ae)) == NULL || strcmp("sub/weiter.png", pcT) != 0) {
+      printf("Error filename %d from %s\n", j, pcNameFile);
+    }
+    else if (archive_read_next_header(a, &ae) != ARCHIVE_OK || (pcT = (char *)archive_entry_pathname(ae)) == NULL || strcmp("TestContent.odt", pcT) != 0) {
+      printf("Error filename %d from %s\n", j, pcNameFile);
+    }
+    else if (archive_read_next_header(a, &ae) != ARCHIVE_EOF) {
+      printf("Could not detect ARCHIVE_EOF from %s\n", pcNameFile);
+    }
+    else {
+      printf("OK\n");
+      n_ok++;
+    }
+
+    archive_read_close(a);
+    archive_read_free(a);
+  }
+
+
 
   return (i - n_ok);
 }
-/* end of zipTest() */
+/* end of arcTestRead() */
+
+
+/*!
+*/
+int
+arcTestWrite(void)
+{
+  int i;
+  int n_ok;
+
+  n_ok=0;
+  i=0;
+
+
+
+  return (i - n_ok);
+}
+/* end of arcTestWrite() */
+

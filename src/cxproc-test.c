@@ -65,6 +65,7 @@
 #include "utils.h"
 #include <res_node/res_node_ops.h>
 #include <cxp/cxp.h>
+#include <cxp/cxp_archive.h>
 #include <cxp/cxp_calendar.h>
 #include <cxp/cxp_threadp.h>
 #include "dom.h"
@@ -89,7 +90,7 @@
 #include <json/cxp_json.h>
 #endif
 #ifdef HAVE_LIBARCHIVE
-#include <archive/cxp_archive.h>
+#include <cxp/cxp_archive.h>
 #endif
 #ifdef HAVE_LIBMAGICK
 #include <magick/ImageMagick.h>
@@ -112,6 +113,9 @@
 #include "test/test_pcre.c"
 #include "test/test_threads.c"
 #include "test/test_dt.c"
+#ifdef HAVE_LIBARCHIVE
+#include "test/test_libarchive.c"
+#endif
 
 
 int
@@ -213,10 +217,13 @@ main(int argc, char** argv, char** envp)
 	iErrorCode += utilsTest();
 	iErrorCode += ceTest();
 	iErrorCode += zipTest();
+#ifdef HAVE_LIBARCHIVE
+	iErrorCode += arcTestRead();
+	iErrorCode += arcTestWrite();
+#endif
       }
 
       if (pcTest == NULL || xmlStrEqual(BAD_CAST pcTest, BAD_CAST "res_node")) {
-#if 0
 	iErrorCode += resNodeTestString();
 	iErrorCode += resNodeTestMime();
 	iErrorCode += resNodeTest();
@@ -224,9 +231,11 @@ main(int argc, char** argv, char** envp)
 	iErrorCode += resNodeTestProp();
 	iErrorCode += resNodeTestInOut();
 	iErrorCode += resNodeTestOperations();
-#endif
 	iErrorCode += resNodeTestZip();
-
+#ifdef HAVE_LIBARCHIVE
+	iErrorCode += arcTestResNodeRead();
+	iErrorCode += arcTestResNodeWrite();
+#endif
       }
 
       if (pcTest == NULL || xmlStrEqual(BAD_CAST pcTest, BAD_CAST "dom")) {
@@ -248,6 +257,9 @@ main(int argc, char** argv, char** envp)
 	  iErrorCode += cxpSubstTest(pccT);
 	  iErrorCode += calTest(pccT);
 	  iErrorCode += cxpTest(pccT);
+#ifdef HAVE_LIBARCHIVE
+	  iErrorCode += cxpArcTest(pccTest);
+#endif
 #ifdef HAVE_JS
 	  iErrorCode += cxpScriptTest(pccTest);
 #endif
@@ -260,13 +272,6 @@ main(int argc, char** argv, char** envp)
 #if defined(HAVE_LIBPTHREAD) || defined(WITH_THREAD)
       if (pcTest == NULL || xmlStrEqual(BAD_CAST pcTest, BAD_CAST "thread")) {
 	  iErrorCode += cxpThreadPoolTest(pccTest);
-      }
-#endif
-
-#ifdef HAVE_LIBARCHIVE
-      if (pcTest == NULL || xmlStrEqual(BAD_CAST pcTest, BAD_CAST "archive")) {
-	iErrorCode += arcTest();
-	iErrorCode += cxpArcTest(pccTest);
       }
 #endif
 

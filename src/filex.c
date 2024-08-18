@@ -38,10 +38,6 @@
 #include <pie/pie_text_blocks.h>
 #endif
 
-#ifdef HAVE_LIBARCHIVE
-#include <archive/archive.h>
-#endif
-
 
 int
 main(int argc, char *argv[], char *envp[])

@@ -44,6 +44,8 @@ TODO: unify usage of `scriptProcessScriptNode()` `TraverseScriptNodes()` and add
 
 ## Features
 
+REQ: copy-on-write with an iteration suffix `abc.txt.1` `abc.txt.2` `abc.txt.3`
+
 REQ: `/cxproc/exe?path=Test/Documents/TestContent.mm&xsl=mm2pie` to output-internal reference to XML Stylesheet (problem `xsl:import` with relative paths) ✔
 
     <?xml version="1.0" encoding="UTF-8"?>

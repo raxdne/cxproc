@@ -37,7 +37,7 @@ resNodeTestZip(void)
     i++;
     printf("TEST %i in '%s:%i': handle non-existant zip res node = ", i, __FILE__, __LINE__);
 
-    if ((prnZip = resNodeDirNew(BAD_CAST TEMPPREFIX "aaa.zip")) == NULL) {
+    if ((prnZip = resNodeDirNew(BAD_CAST TEMPPREFIX "non-existing.zip")) == NULL) {
       printf("Error resNodeDirNew()\n");
     }
     else if (zipFileOpen(prnZip,"r") == TRUE) {

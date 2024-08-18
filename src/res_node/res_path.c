@@ -1062,7 +1062,7 @@ resPathGetBasedirStr(xmlChar *pucArgNameFile)
   }
 
   if (resPathIsDir(pucArgNameFile)) {
-    return xmlStrndup(pucArgNameFile, (int)(pucEnd - pucArgNameFile + 1));
+//    return xmlStrndup(pucArgNameFile, (int)(pucEnd - pucArgNameFile + 1));
   }
 
   for (ptr=BAD_CAST pucArgNameFile, pucSep=NULL;
@@ -1082,7 +1082,7 @@ resPathGetBasedirStr(xmlChar *pucArgNameFile)
     }
     else if (pucSep - pucPath > 0 || ! isdot(*pucPath)) {
       /* there is a directory path on argv[1] */
-      return xmlStrndup(pucPath, (int)(pucSep - pucPath));
+      return xmlStrndup(pucPath, (int)(pucSep - pucPath) + 1);
     }
   }
 
@@ -1216,7 +1216,7 @@ resPathCutTrailingChars(xmlChar *pucArgPath)
     xmlChar *pucEnd;
     int l;
 
-    /* cut trailing separators */
+    /* cut redundant trailing separators */
     l = xmlStrlen(pucArgPath);
     for (pucEnd = BAD_CAST &pucArgPath[l-1];
       pucEnd > pucArgPath && (issep(*pucEnd) || isdot(*pucEnd));

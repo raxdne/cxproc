@@ -42,10 +42,6 @@
 #include "dom.h"
 #include <cxp/cxp_dir.h>
 
-#ifdef HAVE_LIBARCHIVE
-#include <archive/archive.h>
-#endif
-
 
 /*! split a prnArg into its single ancestor resource nodes
 

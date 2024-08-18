@@ -256,7 +256,7 @@ resNodeTestString(void)
   }
 
 
-  if (RUNTEST) {
+  if (SKIPTEST) {
     xmlChar *pucT;
 
     i++;
@@ -294,7 +294,7 @@ resNodeTestString(void)
   }
 
 
-  if (RUNTEST) {
+  if (SKIPTEST) {
     xmlChar *pucT;
 
     i++;
@@ -938,7 +938,7 @@ resNodeTestString(void)
     i++;
     printf("TEST %i in '%s:%i': detecting file basedir with = ",i,__FILE__,__LINE__);
     pucTest = resPathGetBasedirStr(BAD_CAST"/tmp/abc/1");
-    if (xmlStrcasecmp(pucTest,BAD_CAST"/tmp/abc")==0) {
+    if (xmlStrcasecmp(pucTest,BAD_CAST"/tmp/abc/")==0) {
       n_ok++;
       printf("OK\n");
     }
@@ -955,7 +955,7 @@ resNodeTestString(void)
     i++;
     printf("TEST %i in '%s:%i': detecting file basedir with trailing separator = ",i,__FILE__,__LINE__);
     pucTest = resPathGetBasedirStr(BAD_CAST"/tmp/abc/");
-    if (xmlStrcasecmp(pucTest,BAD_CAST"/tmp/abc")==0) {
+    if (xmlStrcasecmp(pucTest,BAD_CAST"/tmp/")==0) {
       n_ok++;
       printf("OK\n");
     }

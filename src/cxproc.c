@@ -51,7 +51,7 @@
 #include "dom.h"
 
 #ifdef HAVE_LIBARCHIVE
-#include <archive/cxp_archive.h>
+#include <cxp/cxp_archive.h>
 #endif
 
 #ifdef HAVE_LIBMAGICK

@@ -107,7 +107,7 @@
 #include <json/cxp_json.h>
 #endif
 #ifdef HAVE_LIBARCHIVE
-#include <archive/cxp_archive.h>
+#include <cxp/cxp_archive.h>
 #endif
 #ifdef HAVE_CGI
 #include <cxp/cxp_context_cgi.h>
@@ -1017,7 +1017,7 @@ cxpProcessPlainNode(xmlNodePtr pndArg, cxpContextPtr pccArg)
 	pucResult = xmlStrdup(pucResult);
       }
       else if ((prnFile = cxpResNodeResolveNew(pccArg, pndArg, NULL, CXP_O_READ)) != NULL) {
-	pucResult = xmlStrdup(BAD_CAST resNodeGetContent(prnFile,1024));
+	pucResult = xmlStrndup(BAD_CAST resNodeGetContent(prnFile,1024),resNodeGetSize(prnFile));
 	cxpCtxtCacheAppendResNodeEat(pccArg,prnFile);
       }
     }

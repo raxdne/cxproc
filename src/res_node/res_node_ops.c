@@ -283,9 +283,17 @@ resNodeMakeDirectory(resNodePtr prnArg, int mode)
       /* ignoring root node */
       fResult = TRUE;
     }
+    else if (resNodeGetType(prnArg) == rn_type_stdout || resNodeGetType(prnArg) == rn_type_stdin || resNodeGetType(prnArg) == rn_type_stderr) {
+      /* ignoring std* nodes */
+      fResult = TRUE;
+    }
     else if (resNodeIsExist(prnArg)) {
       /* OK */
       fResult = TRUE;
+    }
+    else if (resNodeIsFile(prnArg)) {
+      /* make only parent directory for this file */
+      fResult = resNodeMakeDirectoryStr(resNodeGetNameBaseDir(prnArg), mode);
     }
     else {
       int iResult;
