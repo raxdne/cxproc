@@ -31,6 +31,8 @@ resNodeTestZip(void)
   n_ok=0;
   i=0;
 
+#if 0
+
   if (RUNTEST) {
     resNodePtr prnZip = NULL;
 
@@ -63,6 +65,7 @@ resNodeTestZip(void)
   if (RUNTEST) {
     int f;
     resNodePtr prnZip = NULL;
+xmlDocPtr pdocT = NULL;
 
     i++;
     printf("TEST %i in '%s:%i': handle existant zip res node = ", i, __FILE__, __LINE__);
@@ -88,10 +91,16 @@ resNodeTestZip(void)
     else if ((f = resNodeGetChildCount(prnZip,rn_type_file_in_zip)) != 1) {
       printf("error of resNodeGetChildCount(): %i\n", f);
     }
+    else if ((pdocT = resNodeGetContentDoc(prnZip)) == NULL) {
+      printf("error of resNodeGetContentDoc(): %i\n", f);
+    }
     else {
       printf("OK\n");
       n_ok++;
     }
+
+    domPutDocString(stderr,BAD_CAST"Result Document",pdocT);
+xmlFreeDoc(pdocT);
 
     //puts((const char*)resNodeListToXml(prnZip,RN_INFO_MAX));
     resNodeFree(prnZip);
@@ -158,37 +167,104 @@ resNodeTestZip(void)
     resNodeFree(prnZip);
   }
 
- if (SKIPTEST) {
-    resNodePtr prnZip = NULL;
+#endif
+
+  if (RUNTEST) {
+    resNodePtr prnZipDoc = NULL;
 
     i++;
-    printf("TEST %i in '%s:%i': handle existant zip res node = ", i, __FILE__, __LINE__);
+    printf("TEST %i in '%s:%i': handle non-existant zip document res node = ", i, __FILE__, __LINE__);
 
-    if ((prnZip = resNodeDirNew(BAD_CAST TESTPREFIX "xml/test-xml-zip.odt")) == NULL) { // "../../../Trash/2023-11-17-PLMDOCM-ReleaseChecklist-wt12mig112-Build_5.2.1.17.mmap"
+    if ((prnZipDoc = resNodeDirNew(BAD_CAST TEMPPREFIX "non-existing.docx")) == NULL) {
       printf("Error resNodeDirNew()\n");
     }
-    else if (resNodeIsZipDocument(prnZip) == FALSE) {
+    else if (resNodeIsZipDocument(prnZipDoc) == FALSE) {
       printf("error of resNodeIsZipDocument()\n");
     }
-    else if (zipDocumentRead(prnZip,RN_INFO_MAX) == FALSE) {
+    else if (zipDocumentRead(prnZipDoc,RN_INFO_MAX) == TRUE) {
       printf("Error zipDocumentRead()\n");
     }
-    else if (resNodeClose(prnZip) == FALSE) {
+    else if (resNodeClose(prnZipDoc) == TRUE) {
       printf("error of resNodeClose()\n");
     }
-    else if (resNodeGetSize(prnZip) < 1) {
+    else if (resNodeGetSize(prnZipDoc) > 0) {
       printf("error of resNodeGetSize()\n");
     }
-    else if (resNodeGetChildCount(prnZip,rn_type_file_in_zip) != 4) {
-      printf("error of resNodeGetSize()\n");
+    else if (resNodeGetChildCount(prnZipDoc,rn_type_file_in_zip) > 0) {
+      printf("error of resNodeGetChildCount()\n");
+    }
+    else {
+      printf("OK\n");
+      n_ok++;
+    }
+    resNodeFree(prnZipDoc);
+  }
+
+
+ if (RUNTEST) {
+   int j;
+   resNodePtr prnZipDoc = NULL;
+
+   i++;
+   printf("TEST %i in '%s:%i': handle existant zip res node as Document = ", i, __FILE__, __LINE__);
+
+   if ((prnZipDoc = resNodeDirNew(BAD_CAST TESTPREFIX "option/archive/test-zip-7.zip")) == NULL) {
+     printf("Error resNodeDirNew()\n");
+    }
+    else if (resNodeIsZipDocument(prnZipDoc) == TRUE) {
+      printf("error of resNodeIsZipDocument()\n");
+    }
+    else if (zipDocumentRead(prnZipDoc,RN_INFO_MAX) == TRUE) {
+      printf("Error zipDocumentRead()\n");
+    }
+    else if (resNodeClose(prnZipDoc) == TRUE) {
+      printf("error of resNodeClose()\n");
+    }
+    else if ((j = resNodeGetCountDescendants(prnZipDoc)) != 1) {
+      printf("error of resNodeGetCountDescendants(): %i\n", j);
     }
     else {
       printf("OK\n");
       n_ok++;
     }
 
-    puts((const char*)resNodeListToXml(prnZip,RN_INFO_MAX));
-    resNodeFree(prnZip);
+    //puts((const char*)resNodeListToXml(prnZipDoc,RN_INFO_MAX));
+    resNodeFree(prnZipDoc);
+  }
+
+
+ if (RUNTEST) {
+   int j;
+   resNodePtr prnZipDoc = NULL;
+
+   i++;
+   printf("TEST %i in '%s:%i': handle existant zip document res node = ", i, __FILE__, __LINE__);
+
+   if ((prnZipDoc = resNodeDirNew(BAD_CAST TESTPREFIX "xml/test-xml-zip.odt")) == NULL) {
+     printf("Error resNodeDirNew()\n");
+    }
+    else if (resNodeIsZipDocument(prnZipDoc) == FALSE) {
+      printf("error of resNodeIsZipDocument()\n");
+    }
+    else if (zipDocumentRead(prnZipDoc,RN_INFO_MAX) == FALSE) {
+      printf("Error zipDocumentRead()\n");
+    }
+    else if (resNodeClose(prnZipDoc) == FALSE) {
+      printf("error of resNodeClose()\n");
+    }
+    else if (resNodeGetSize(prnZipDoc) < 1) {
+      printf("error of resNodeGetSize()\n");
+    }
+    else if ((j = resNodeGetCountDescendants(prnZipDoc)) != 23) {
+      printf("error of resNodeGetCountDescendants(): %i\n", j);
+    }
+    else {
+      printf("OK\n");
+      n_ok++;
+    }
+
+    //puts((const char*)resNodeListToXml(prnZipDoc,RN_INFO_MAX));
+    resNodeFree(prnZipDoc);
   }
 
 

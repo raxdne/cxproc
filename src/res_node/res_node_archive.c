@@ -537,7 +537,7 @@ arcAppendEntries(resNodePtr prnArgArchive, const pcre2_code* re_match, BOOL_T fA
 	  if (prnChild) {
 	    resNodePtr prnAncestor;
 
-	    resNodeSetContentPtr(prnChild, NULL, 0);
+	    resNodeResetContentPtr(prnChild);
 	    resNodeResetMimeType(prnChild);
 	    prnChild->fExist = TRUE;
 	    prnChild->fStat = TRUE;

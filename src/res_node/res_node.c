@@ -373,6 +373,25 @@ resNodeAddChildNew(resNodePtr prnArg, xmlChar *pucArgPath)
 	    if (resPathBeginIsFileCompressed(prnResult->pucNameBase)) {
 	      resNodeSetType(prnResult, rn_type_file_compressed);
 	    }
+#if 1
+	    else if (resNodeIsFileInZip(prnArg)) {
+	      resNodeSetType(prnResult, rn_type_file_in_zip);
+	    }
+	    else if (resNodeIsDirInZip(prnArg)) {
+	      resNodeSetType(prnResult, rn_type_dir_in_zip);
+	      // resPathCutTrailingChars(prnResult->pucNameBase);
+	    }
+#else
+	    else if (resNodeIsZipDocument(prnArg)) {
+	      if (resPathIsDir(prnResult->pucNameBase)) {
+		resNodeSetType(prnResult, rn_type_dir_in_zip);
+		resPathCutTrailingChars(prnResult->pucNameBase);
+	      }
+	      else {
+		resNodeSetType(prnResult, rn_type_file_in_zip);
+	      }
+	    }
+#endif
 	    else if (resNodeIsArchive(prnArg) || resNodeIsDirInArchive(prnArg)) {
 	      if (resPathIsDir(prnResult->pucNameBase)) {
 		resNodeSetType(prnResult, rn_type_dir_in_archive);
@@ -2174,7 +2193,6 @@ resNodeReset(resNodePtr prnArg, xmlChar *pucArgPath)
     if (STR_IS_NOT_EMPTY(pucArgPathCopy)) {
       int iLength = 0;
       xmlChar *pucCwd;
-      xmlChar *pucT;
 
       iLength = xmlStrlen(pucArgPathCopy);
       if (resPathIsURL(pucArgPathCopy)) {
@@ -2193,6 +2211,8 @@ resNodeReset(resNodePtr prnArg, xmlChar *pucArgPath)
 #ifdef _MSC_VER
       else if (issep(pucArgPathCopy[0])) { /* DOS path without drive letter */
 	if ((pucCwd = resPathGetCwdStr())) {
+          xmlChar *pucT;
+
 	  pucT = xmlStrndup(pucCwd, 3); /* drive letter + ':' + '\' */
 	  prnArg->pucNameNormalized = resPathConcatNormalizedStr(pucT, pucArgPathCopy);
 	  xmlFree(pucT);
@@ -3311,6 +3331,7 @@ resNodeContentToDOM(xmlNodePtr pndArg, resNodePtr prnArg)
 #endif
       break;
     }
+    xmlAddChild(pndArg, xmlNewPI(BAD_CAST "end-of", resNodeGetNameBase(prnArg)));
   }
   else {
     //resNodeSetError(prnArg,1,"Unknown type '%s'",pndArg->name);
@@ -3405,7 +3426,7 @@ resNodeToDOM(resNodePtr prnArg, int iArgOptions)
 
       /* set values from filesystem as file properties
        */
-      if (resNodeGetType(prnArg) == rn_type_file || resNodeGetType(prnArg) == rn_type_file_in_archive || resNodeGetType(prnArg) == rn_type_archive || resNodeIsURL(prnArg)) {
+      if (resNodeIsFile(prnArg) || resNodeIsFileInArchive(prnArg) || resNodeIsURL(prnArg)) {
 	xmlStrPrintf(mpucOut, BUFFER_LENGTH, "%li", resNodeGetSize(prnArg));
 	xmlSetProp(pndT, BAD_CAST "size", mpucOut);
       }
@@ -3450,10 +3471,14 @@ resNodeToDOM(resNodePtr prnArg, int iArgOptions)
     else if ((iArgOptions & RN_INFO_INFO) && resNodeIsZipDocument(prnArg)) {
       xmlNodePtr pndArchive;
 
+      prnArg->eType = rn_type_zip;
       pndArchive = xmlNewChild(pndT, NULL, BAD_CAST "archive", NULL);
       if (pndArchive) {
 	if (prnArg->pContent != NULL || prnArg->pdocContent != NULL) {
 	  /* use existing buffer content */
+	}
+	else if (prnArg->children != NULL) {
+	  /* use existing descendants */
 	}
 	else {
 	  zipDocumentRead(prnArg, iArgOptions);
@@ -3468,6 +3493,7 @@ resNodeToDOM(resNodePtr prnArg, int iArgOptions)
     else if (resNodeIsArchive(prnArg)) {
       xmlNodePtr pndArchive;
 
+      prnArg->eType = rn_type_archive;
       pndArchive = xmlNewChild(pndT, NULL, BAD_CAST "archive", NULL);
       if (pndArchive) {
 	if (arcAppendEntries(prnArg, NULL, (iArgOptions & RN_INFO_CONTENT))) {
@@ -3511,7 +3537,7 @@ resNodeToDOM(resNodePtr prnArg, int iArgOptions)
     else if (resNodeIsVideo(prnArg)) {
       //resNodeContentToDOM(pndT, prnArg);
     }
-    else if (resNodeIsFile(prnArg)) {
+    else if (resNodeIsFile(prnArg) || resNodeIsFileInArchive(prnArg)) {
 
       if ((iArgOptions & RN_INFO_CONTENT)
 	|| ((iArgOptions & RN_INFO_XML) && resMimeIsXml(resNodeGetMimeType(prnArg)))
@@ -3610,7 +3636,7 @@ resNodeToPlain(resNodePtr prnArg, int iArgOptions)
 		       resNodeGetMimeTypeStr(prnArg)
 		       );
 	  if (iArgOptions & RN_INFO_CONTENT && resNodeIsFile(prnArg) && STR_IS_NOT_EMPTY(BAD_CAST resNodeGetContentPtr(prnArg))) {
-	    pucResult = xmlStrcat(pucResult, BAD_CAST resNodeGetContentPtr(prnArg));
+	    pucResult = xmlStrncat(pucResult, BAD_CAST resNodeGetContentPtr(prnArg), resNodeGetSize(prnArg));
 	  }
 	  break;
 	default:
@@ -3648,6 +3674,7 @@ resNodeToCSV(resNodePtr prnArg, int iArgOptions)
       case rn_type_file:
       case rn_type_archive:
       case rn_type_file_in_archive:
+      case rn_type_file_in_zip:
 	xmlStrPrintf(pucResult, BUFFER_LENGTH,
 	  "%s\n",
 	  resNodeGetNameNormalized(prnArg));
@@ -3672,8 +3699,10 @@ resNodeToCSV(resNodePtr prnArg, int iArgOptions)
       case rn_type_dir:
 #if 1
       case rn_type_dir_in_archive:
+      case rn_type_dir_in_zip:
       case rn_type_file:
       case rn_type_file_in_archive:
+      case rn_type_file_in_zip:
       case rn_type_symlink:
 #endif
 	xmlStrPrintf(pucResult, BUFFER_LENGTH,
@@ -3809,8 +3838,10 @@ resNodeToJSON(resNodePtr prnArg, int iArgOptions)
 	break;
       case rn_type_dir:
       case rn_type_dir_in_archive:
+      case rn_type_dir_in_zip:
       case rn_type_file:
       case rn_type_file_in_archive:
+      case rn_type_file_in_zip:
       case rn_type_symlink:
 	xmlStrPrintf(pucResult, BUFFER_LENGTH,
 	  "'type' : '%s', 'name' : '%s', 'attr' : '%c%c%c%c', 'size' : %li, 'mtime' : '%s', 'owner' : '%s', 'mime' : '%s'",
@@ -4157,7 +4188,7 @@ resNodeUpdate(resNodePtr prnArg, int iArgOptions, const pcre2_code *re_match, co
 	  else {
 #ifdef HAVE_LIBARCHIVE
 	    fResult = arcAppendEntries(prnArg, re_match, FALSE);
-#else
+#elif 0
 	    fResult = zipAppendEntries(prnArg, re_match, FALSE);
 #endif
 	  }
@@ -4220,7 +4251,7 @@ resNodeUpdate(resNodePtr prnArg, int iArgOptions, const pcre2_code *re_match, co
 	  fResult = arcAppendEntries(resNodeGetAncestorArchive(prnArg), re_match, TRUE);
 	  /*\todo avoid redundant parsing */
 	}
-#else
+#elif 0
 	else if (resNodeGetMimeType(prnArg) == MIME_APPLICATION_ZIP) {
 	  fResult = zipAppendEntries(prnArg, re_match, FALSE); /* update achive nodes */
 	}
@@ -4364,7 +4395,7 @@ resNodeReadStatus(resNodePtr prnArg)
 	    //resNodeSetType(prnArg,rn_type_undef);
 	  }
 	  else {
-	    int attr;
+	    //int attr;
 
 	    prnArg->fExist = TRUE;
 	    prnArg->liSize = (long int)s.st_size;
@@ -4490,6 +4521,7 @@ resNodeSetExtension(resNodePtr prnArg)
     case rn_type_image:
     case rn_type_archive:
     case rn_type_file_in_archive:
+    case rn_type_file_in_zip:
     case rn_type_database:
     case rn_type_file_in_database:
     case rn_type_symlink:
@@ -4519,6 +4551,7 @@ resNodeGetExtension(resNodePtr prnArg)
     case rn_type_image:
     case rn_type_archive:
     case rn_type_file_in_archive:
+    case rn_type_file_in_zip:
     case rn_type_database:
     case rn_type_file_in_database:
     case rn_type_symlink:

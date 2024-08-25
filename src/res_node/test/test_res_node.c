@@ -154,7 +154,7 @@ resNodeTest(void)
 
 
   if (RUNTEST) {
-    xmlChar *pucT = BAD_CAST TESTPREFIX "Base.Ext";
+    xmlChar *pucT = BAD_CAST TEMPPREFIX "Base.Ext";
     xmlChar *pucTT = NULL;
     xmlChar *pucTTT = NULL;
     resNodePtr prnT = NULL;
@@ -170,7 +170,7 @@ resNodeTest(void)
     else if (resNodeReset(prnT, pucT) == FALSE) {
       xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeReset(): %s\n",resNodeGetErrorMsg(prnT));
     }
-    else if (resNodeResetNameBase(prnT) == FALSE || (pucTT = resNodeGetNameBase(prnT)) == NULL) {
+    else if (resNodeResetNameBase(prnT) == FALSE || (pucTT = xmlStrdup(resNodeGetNameBase(prnT))) == NULL) {
       xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeResetNameBase()\n");
     }
     else if (resNodeResetNameBase(prnT) == FALSE || (pucTTT = resNodeGetNameBase(prnT)) == NULL) {
@@ -188,6 +188,7 @@ resNodeTest(void)
       pucModuleTestReport = xmlStrcat(pucModuleTestReport,mucTestResult);
     }
     
+    xmlFree(pucTT);
     resNodeFree(prnT);
   }
 
@@ -209,7 +210,7 @@ resNodeTest(void)
     else if (resNodeReset(prnT, pucT) == FALSE) {
       xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeReset(): %s\n",resNodeGetErrorMsg(prnT));
     }
-    else if (resNodeResetNameBase(prnT) == FALSE || (pucTT = resNodeGetNameBase(prnT)) == NULL) {
+    else if (resNodeResetNameBase(prnT) == FALSE || (pucTT = xmlStrdup(resNodeGetNameBase(prnT))) == NULL) {
       xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeResetNameBase()\n");
     }
     else if (resNodeResetNameBase(prnT) == FALSE || (pucTTT = resNodeGetNameBase(prnT)) == NULL) {
@@ -227,6 +228,7 @@ resNodeTest(void)
       pucModuleTestReport = xmlStrcat(pucModuleTestReport,mucTestResult);
     }
     
+    xmlFree(pucTT);
     resNodeFree(prnT);
   }
 
@@ -693,7 +695,7 @@ resNodeTest(void)
     }
     
     //pucT = resNodeListToPlainTree(prnT, NULL, RN_INFO_MIN); fputs((const char*)pucT, stderr); xmlFree(pucT);
-    resNodeFree(prnT);
+    resNodeListFree(prnT);
   }
 
 
@@ -727,7 +729,7 @@ resNodeTest(void)
     }
 
     //pucT = resNodeListToPlainTree(prnT,NULL,RN_INFO_MIN); fputs((const char *)pucT,stderr); xmlFree(pucT);
-    resNodeFree(prnT);
+    resNodeListFree(prnT);
     resNodeFree(prnTT);
   }
 

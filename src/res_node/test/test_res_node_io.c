@@ -206,7 +206,7 @@ resNodeTestInOut(void)
 
     void *pContent;
     size_t liLengthLarge = 1 * SIZE_MEGA;
-    xmlChar *pucNameFile = BAD_CAST TEMPPREFIX "sub/sub/sub/1MB.dat";
+    xmlChar *pucNameFile = BAD_CAST TEMPPREFIX "sub/sub/sub/2MB.dat";
 
     i++;
     printf("TEST %i in '%s:%i': write content of a resource node with non-existing path = ",i,__FILE__,__LINE__);
@@ -217,8 +217,26 @@ resNodeTestInOut(void)
       if ((prnT = resNodeDirNew(pucNameFile)) == NULL) {
 	printf("Error resNodeDirNew()\n");
       }
-      else if (resNodeSetContentPtr(prnT,pContent,liLengthLarge) != pContent) {
-	printf("Error resNodeSetContentPtr()\n");
+      else if (resNodeResetContentPtr(prnT) != NULL) {
+	printf("Error resNodeResetContentPtr()\n");
+      }
+      else if (resNodeGetContentPtr(prnT) != NULL) {
+	printf("Error resNodeGetContentPtr()\n");
+      }
+      else if (resNodeGetSize(prnT) != 0) {
+	printf("Error 1 resNodeGetSize()\n");
+      }
+      else if (resNodeAppendContent(prnT,pContent,liLengthLarge) != resNodeGetContentPtr(prnT)) {
+	printf("Error resNodeAppendContent()\n");
+      }
+      else if (resNodeGetSize(prnT) != 1 * SIZE_MEGA) {
+	printf("Error 2 resNodeGetSize()\n");
+      }
+      else if (resNodeAppendContent(prnT,pContent,liLengthLarge) != resNodeGetContentPtr(prnT)) {
+	printf("Error resNodeAppendContent()\n");
+      }
+      else if (resNodeGetSize(prnT) != 2 * SIZE_MEGA) {
+	printf("Error 2 resNodeGetSize()\n");
       }
       else if (resNodePutContent(prnT) == FALSE) {
 	printf("Error resNodePutContent()\n");
@@ -231,6 +249,7 @@ resNodeTestInOut(void)
       resNodeUnlink(prnT,FALSE);
       resNodeFree(prnT);
       resNodeUnlinkRecursivelyStr(BAD_CAST TEMPPREFIX "sub/");
+      xmlFree(pContent);
     }
   }
 

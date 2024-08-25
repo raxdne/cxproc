@@ -329,7 +329,7 @@ OpenURL(resNodePtr prnArg)
       // prnArg->eAccess = rn_access_curl;
     }
     else if (prnArg->curlURL) {
-      CURLcode res;
+      CURLcode res = CURLE_OK;
 
       prnArg->eAccess = rn_access_curl;
 
@@ -445,10 +445,18 @@ resNodePutContent(resNodePtr prnArg)
   BOOL_T fResult = FALSE;
 
   if (prnArg) {
+    int iMode = 0;
+
     //assert(prnArg->eAccess == rn_access_undef && prnArg->handleIO == NULL);
     //assert(resNodeIsArchive(prnArg) == FALSE);
 
-    fResult = (resNodeMakeDirectory(prnArg, S_IRUSR | S_IWUSR | S_IXUSR) && resNodeOpen(prnArg,"w") && resNodeSaveContent(prnArg) && resNodeClose(prnArg));
+#ifdef _MSC_VER
+    /* no create mode */
+#else
+    iMode = (S_IRUSR | S_IWUSR | S_IXUSR);
+#endif
+
+    fResult = (resNodeMakeDirectory(prnArg, iMode) && resNodeOpen(prnArg,"w") && resNodeSaveContent(prnArg) && resNodeClose(prnArg));
   }
   return fResult;
 } /* end of resNodePutContent() */
@@ -773,7 +781,7 @@ resNodeReadContent(resNodePtr prnArg, int iArgMax)
     // assert(resNodeGetHandleIO(prnArg) != NULL || resNodeGetHandleIO(resNodeGetParent(prnArg)) != NULL ||
     // resNodeGetHandleIO(resNodeGetAncestorArchive(prnArg)) != NULL);
 
-    resNodeSetContentPtr(prnArg, NULL, 0);
+    resNodeResetContentPtr(prnArg);
     fResult = TRUE;
     if (resNodeGetBlockSize(prnArg) < 1) {
       resNodeSetBlockSize(prnArg, BUFFER_LENGTH);
@@ -781,7 +789,7 @@ resNodeReadContent(resNodePtr prnArg, int iArgMax)
 
     if (resNodeIsURL(prnArg) && prnArg->handleIO != NULL) {
 #ifdef HAVE_LIBCURL
-      CURLcode res;
+      CURLcode res = CURLE_OK;
 
       res = curl_easy_perform((CURL *)resNodeGetHandleIO(prnArg));
       if (res == CURLE_OK) {
@@ -817,7 +825,7 @@ resNodeReadContent(resNodePtr prnArg, int iArgMax)
 	}
 
 #ifdef _MSC_VER
-	cchReadInput = fread_s(pchI, (size_t)1, resNodeGetBlockSize(prnArg), (FILE *)resNodeGetHandleIO(prnArg));
+	cchReadInput = fread_s((void *)pchI, resNodeGetBlockSize(prnArg), resNodeGetBlockSize(prnArg), (size_t)1, (FILE *)resNodeGetHandleIO(prnArg));
 #else
 	cchReadInput = fread(pchI, (size_t)1, resNodeGetBlockSize(prnArg), (FILE *)resNodeGetHandleIO(prnArg));
 #endif
@@ -961,10 +969,12 @@ resNodeGetContentBase64Eat(resNodePtr prnArg, int iArgMax)
 } /* end of resNodeGetContentBase64Eat() */
 
 
-/*! Sets and returns the content of this context.
+/*! callback procedure to concatenate the content of this resource.
 
 \param prnArg the context
-\return pArg
+\param pArg pointer to next block
+\param iSize block size
+\return pointer to the content of this context
 */
 void *
 resNodeAppendContent(resNodePtr prnArg, void *pArg, size_t iSize)
@@ -972,10 +982,13 @@ resNodeAppendContent(resNodePtr prnArg, void *pArg, size_t iSize)
   void *pResult = NULL;
 
   if (prnArg) {
-    prnArg->pContent = (char *)xmlRealloc(prnArg->pContent, prnArg->liSizeContent + iSize);
+    prnArg->pContent = xmlRealloc(prnArg->pContent, prnArg->liSizeContent + iSize + 1);
     if (prnArg->pContent) {
-      memcpy(&(prnArg->pContent[prnArg->liSizeContent]), pArg, iSize);
+      char *pcT = (char *)prnArg->pContent; /* to provide a type with size for array memory access */
+      
+      memcpy(&(pcT[prnArg->liSizeContent]), pArg, iSize);
       prnArg->liSizeContent += iSize;
+      pcT[prnArg->liSizeContent] = '\0'; /* null termination for string content */
       pResult = prnArg->pContent;
     }
     else {
@@ -983,7 +996,7 @@ resNodeAppendContent(resNodePtr prnArg, void *pArg, size_t iSize)
     }
   }
   return pResult;
-} /* end of resNodeSetContentPtr() */
+} /* end of resNodeAppendContent() */
 
 
 /*! Sets and returns the content of this context.
@@ -1151,6 +1164,12 @@ resNodeReadDoc(resNodePtr prnArg)
     PrintFormatLog(1, "Unusable read context '%s'", resNodeGetNameNormalized(prnArg));
   }
 #if 0
+  else if (prnArg != NULL && prnArg->pdocContent == NULL && prnArg->pContent != NULL && resMimeIsXml(prnArg->eMimeType) &&
+	(StringBeginsWith(prnArg->pContent, "<?xml version=") || StringBeginsWith(prnArg->pContent, "<!DOCTYPE ") ||
+	 StringBeginsWith(prnArg->pContent, "<html>"))) {
+      prnArg->pdocContent = xmlParseMemory(prnArg->pContent, prnArg->liSizeContent);
+      pdocResult = prnArg->pdocContent;
+    } 
   else if (resNodeIsError(prnArg)) {
     PrintFormatLog(1, "Unusable read context '%s'", resNodeGetNameNormalized(prnArg));
   }

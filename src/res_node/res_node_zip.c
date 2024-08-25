@@ -321,7 +321,6 @@ zipAppendEntries(resNodePtr prnArgZip, const pcre2_code *re_match, BOOL_T fArgCo
   }
   else if (resNodeReadStatus(prnArgZip) && resNodeGetMimeType(prnArgZip) == MIME_APPLICATION_ZIP && (resNodeIsOpen(prnArgZip) || zipFileOpen(prnArgZip,"r"))) {
     char buf[BUFFER_LENGTH];
-    int err;
     int i, len;
 
     PrintFormatLog(4, "Begin of '%s'", resNodeGetNameNormalized(prnArgZip));
@@ -467,9 +466,15 @@ zipDocumentRead(resNodePtr prnArgZip, int iArgOptions)
 	resNodePtr prnInZip;
 	struct zip_file *zf;
 
-	prnInZip = resNodeAddChildNew(prnArgZip, sb.name);
-	resNodeSetSize(prnInZip, sb.size);
-	sum += sb.size;
+	prnInZip = resNodeAddChildNew(prnArgZip, BAD_CAST sb.name);
+	if (sb.size < 1) {
+	  prnInZip->eType = rn_type_dir_in_zip;
+	}
+	else {
+	  prnInZip->eType = rn_type_file_in_zip;
+	  resNodeSetSize(prnInZip, sb.size);
+	  sum += sb.size;
+	}
 	prnInZip->tMtime = sb.mtime;
 	prnInZip->fExist = TRUE;
 	prnInZip->fStat = TRUE;
@@ -512,7 +517,12 @@ zipDocumentRead(resNodePtr prnArgZip, int iArgOptions)
 	  zip_fclose(zf);
 
 	  if (resMimeIsXml(resNodeGetMimeType(prnInZip))) {
-	    /*!\todo Parse Memory() directly */
+	    prnInZip->pdocContent =
+		xmlReadMemory((const char *)resNodeGetContentPtr(prnInZip), (int)resNodeGetSize(prnInZip), NULL, NULL,
+			      XML_PARSE_RECOVER | XML_PARSE_NOENT | XML_PARSE_NOERROR | XML_PARSE_NOWARNING | XML_PARSE_NSCLEAN | XML_PARSE_NODICT);
+	    if (prnInZip->pdocContent != NULL) {
+	      resNodeResetContentPtr(prnInZip);
+	    }
 	  }
 	}
 	else {
@@ -537,23 +547,10 @@ zipDocumentWrite(resNodePtr prnArgZip, int iArgOptions)
 {
   BOOL_T fResult = FALSE;
 
+  /*!\todo to be implemented via libarchive :-( */
+
   return fResult;
 } /* end of zipDocumentWrite() */
-
-
-/*!\todo to write resNode to a ZIP archive
-
-\param prnArgZip the zip node
-\param iArgOptions
-\return TRUE if successful, else FALSE
-*/
-BOOL_T
-zipArchiveWrite(resNodePtr prnArgZip, int iArgOptions)
-{
-  BOOL_T fResult = FALSE;
-
-  return fResult;
-} /* end of zipArchiveWrite() */
 
 
 #ifdef TESTCODE

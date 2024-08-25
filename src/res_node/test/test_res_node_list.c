@@ -631,8 +631,8 @@ resNodeTestList(void)
     }
 
     //puts((const char*)resNodeListToPlain(prnTT,RN_INFO_MAX));
-    resNodeFree(prnT);
-    resNodeFree(prnTT);
+    resNodeListFree(prnT);
+    resNodeListFree(prnTT);
   }
 
 
@@ -672,6 +672,8 @@ resNodeTestList(void)
       n_ok++;
       printf("OK\n");
     }
+
+    //domPutNodeString(stderr, BAD_CAST "resNodeToDOM(): ", pndT);
     //puts((const char *)pucPlain);
     //puts((const char *)pucJSON);
     //puts((const char *)pucSql);

@@ -52,6 +52,8 @@ resNodeGetHandleIO(resNodePtr prnArg);
 extern void *
 resNodeSetContentPtr(resNodePtr prnArg, void *pArg, size_t iSize);
 
+#define resNodeResetContentPtr(R) resNodeSetContentPtr(R,NULL,0)
+
 extern void *
 resNodeAppendContent(resNodePtr prnArg, void *pArg, size_t iSize);
 

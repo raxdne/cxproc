@@ -3,7 +3,7 @@
 # either local libzip or system libzip
 #
 
-find_path(LIBZIP_INCLUDE_DIR NAMES zip.h)
+find_path(LIBZIP_INCLUDE_DIR NAMES zip.h HINTS ${HINT_DIR_INCLUDE})
 
 IF (LIBZIP_INCLUDE_DIR)
   FIND_LIBRARY(LIBZIP_LIBRARY NAMES libzip.so libzip.a libzip HINTS ${HINT_DIR_LIB})
