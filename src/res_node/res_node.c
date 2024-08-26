@@ -4395,7 +4395,7 @@ resNodeReadStatus(resNodePtr prnArg)
 	    //resNodeSetType(prnArg,rn_type_undef);
 	  }
 	  else {
-	    //int attr;
+	    int attr;
 
 	    prnArg->fExist = TRUE;
 	    prnArg->liSize = (long int)s.st_size;
