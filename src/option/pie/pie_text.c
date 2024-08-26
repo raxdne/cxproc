@@ -1296,7 +1296,7 @@ IncludeNodeFile(xmlNodePtr pndArgInclude, cxpContextPtr pccArg)
 	    /* domUnlinkNodeList(pndT); is not yet usable when there is a mix of namspaces */
 	    pndTT = xmlCopyNodeList(pndT->children);
 #else
-	    pndTT = pndT->children;
+	    pndTT = pndTT->children;
 	    domUnlinkNodeList(pndTT);
 #endif
 	    xmlAddChildList(pndT, pndTT);

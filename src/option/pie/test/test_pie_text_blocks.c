@@ -256,19 +256,20 @@ pieTextBlocksTest(void)
       printf("Error 4 splitting URL\n");
     }
     else if (pndT->children == NULL
-      || pndT->children->next == NULL
-      || pndT->children->next->properties == NULL
-      || pndT->children->next->properties->children == NULL
-      || pndT->children->next->properties->children->content == NULL) {
+      || IS_NODE_PIE_LINK(pndT->children->next) == FALSE
+      || pndT->children->next->properties != NULL
+      || pndT->children->next->next == NULL
+      || IS_NODE_PIE_LINK(pndT->children->next->next->next) == FALSE) {
       printf("Error 5 splitting URL\n");
     }
-    else if (xmlStrEqual(pndT->children->next->properties->children->content, BAD_CAST"http://www.abc.de") == 0) {
+    else if (xmlStrEqual(pndT->children->next->children->content, BAD_CAST"http://www.abc.de") == 0) {
       printf("Error 6 splitting URL\n");
     }
     else {
       n_ok++;
       printf("OK\n");
     }
+    //domPutNodeString(stderr, BAD_CAST "split result", pndT);
     //domPutNodeString(stderr, BAD_CAST"import result", pndPie);
     xmlFreeNode(pndPie);
   }

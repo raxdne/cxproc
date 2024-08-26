@@ -125,11 +125,11 @@ dirTest(cxpContextPtr pccArg)
     else if ((pndT = domGetFirstChild(pndT, NAME_DIR)) == NULL) {
       printf("Error domGetFirstChild()\n");
     }
-    else if ((k = domNumberOfChild(pndT, NAME_FILE)) != 1) {
-      printf("Error domNumberOfChild(): %i\n", k);
+    else if ((k = domNumberOfChild(pndT, NAME_FILE)) != 2) {
+      printf("Error '%s' domNumberOfChild(): %i\n", NAME_FILE, k);
     }
     else if ((k = domNumberOfChild(pndT, NAME_DIR)) != 14) {
-      printf("Error domNumberOfChild(): %i\n", k);
+      printf("Error '%s' domNumberOfChild(): %i\n", NAME_DIR, k);
     }
     else {
       printf("OK\n");

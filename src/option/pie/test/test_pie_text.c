@@ -414,13 +414,15 @@ pieTextTest(cxpContextPtr pccArg)
       printf("Error xmlNewChild()\n");
     }
     else {
+	int j;
       xmlDocPtr pdocT = NULL;
 
       //domPutNodeString(stderr, BAD_CAST "pre include", pndPie);
       TraverseIncludeNodes(pndPie, pccArg);
-      if (IS_NODE_PIE(pndPie) == FALSE || domNumberOfChild(pndPie, NULL) != 13
+      //domPutNodeString(stderr, BAD_CAST "post include", pndPie);
+      if (IS_NODE_PIE(pndPie) == FALSE || (j = domNumberOfChild(pndPie, NULL)) != 13
 	|| domNumberOfChild(pndPie->children, NAME_PIE_INCLUDE) != 0) {
-	printf("Error 1 tree\n");
+	printf("Error 1 tree: %i\n",j);
       }
       else if ((pdocT = pieProcessPieNode(pndPie, pccArg)) == NULL) {
 
