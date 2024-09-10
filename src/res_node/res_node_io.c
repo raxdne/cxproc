@@ -1179,11 +1179,11 @@ resNodeReadDoc(resNodePtr prnArg)
     /* found in cache, set file context to DOM */
     resNodeChangeDomURL(pdocResult, prnArg);
   }
-#endif
 #ifndef HAVE_LIBARCHIVE
   else if (resNodeIsFileInArchive(prnArg)) {
     PrintFormatLog(1, "Cant uncompress file '%s'", resNodeGetNameNormalized(prnArg));
   }
+#endif
 #endif
   else {
 

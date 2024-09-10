@@ -3261,9 +3261,9 @@ resNodeContentToDOM(xmlNodePtr pndArg, resNodePtr prnArg)
       pucContent = BAD_CAST resNodeGetContentBase64Eat(prnArg, 512);
       if (STR_IS_NOT_EMPTY(pucContent)) {
 	xmlNewChild(pndArg, NULL, NAME_BASE64, pucContent);
-	xmlFree(pucContent);
 	/*!\todo optimize direct use of buffer as node content */
       }
+      xmlFree(pucContent);
       /*!\todo split content into separate text nodes (MIME multi-part?) */
 #endif
 
@@ -3296,9 +3296,9 @@ resNodeContentToDOM(xmlNodePtr pndArg, resNodePtr prnArg)
       pucContent = BAD_CAST resNodeGetContentBase64Eat(prnArg, 512);
       if (STR_IS_NOT_EMPTY(pucContent)) {
 	xmlNewChild(pndArg, NULL, NAME_BASE64, pucContent);
-	xmlFree(pucContent);
 	/*!\todo optimize direct use of buffer as node content */
       }
+      xmlFree(pucContent);
       /*!\todo split content into separate text nodes (MIME multi-part?) */
 #endif
 

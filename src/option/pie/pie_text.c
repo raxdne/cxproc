@@ -349,8 +349,14 @@ pieEmbeddInChildNodes(xmlNodePtr pndArg, cxpContextPtr pccArg)
       xmlChar *pucSrc;
       resNodePtr prnSrc = NULL;
 
-      pucSrc = domGetPropValuePtr(pndArg, BAD_CAST "src");
-      if (resPathIsRelative(pucSrc)) {
+      if ((pucSrc = domGetPropValuePtr(pndArg, BAD_CAST "src")) == NULL) {
+	/* no value */
+      }
+      else if ((prnSrc = cxpResNodeResolveNew(pccArg, pndArg, pucSrc, CXP_O_READ)) != NULL) {
+	/* embedded base64-encoded image later */
+      }
+#if 0
+      else if (resPathIsRelative(pucSrc)) {
 	xmlChar *pucAttrValue;
 
 	pucAttrValue = pieGetAncestorContextStr(pndArg);
@@ -371,13 +377,12 @@ pieEmbeddInChildNodes(xmlNodePtr pndArg, cxpContextPtr pccArg)
       else {
 	// prnSrc = resNodeStrNew(pucSrc);
       }
+#endif
 
       if (resNodeIsReadable(prnSrc)) { // && resNodeGetSize(prnSrc) > 0
 	cxpCtxtLogPrint(pccArg, 2, "Embeddable Image found '%s'", resNodeGetNameNormalized(prnSrc));
 	resNodeContentToDOM(pndArg, prnSrc);
-      }
-      else {
-	cxpCtxtLogPrint(pccArg, 2, "No readable Image '%s'", pucSrc);
+	//xmlUnsetProp(pndArg, BAD_CAST "src");
       }
       resNodeFree(prnSrc);
     }
@@ -385,7 +390,14 @@ pieEmbeddInChildNodes(xmlNodePtr pndArg, cxpContextPtr pccArg)
   else if (IS_ENODE(pndArg)) {
     xmlNodePtr pndChild;
 
-    for (pndChild = pndArg->children; pndChild; pndChild = pndChild->next) { fResult |= pieEmbeddInChildNodes(pndChild, pccArg); }
+    for (pndChild = pndArg->children; pndChild; pndChild = pndChild->next) {
+      if (IS_NODE_PIE_META(pndChild) || IS_NODE_PIE_PRE(pndChild)) {
+	/* ignoring */
+      }
+      else {
+	fResult |= pieEmbeddInChildNodes(pndChild, pccArg);
+      }
+    }
   }
   return fResult;
 } /* end of pieEmbeddInChildNodes() */
@@ -567,7 +579,7 @@ pieProcessPieNode(xmlNodePtr pndArgPie, cxpContextPtr pccArg)
     pieRemoveInvalidsFromTree(pndPieRoot);
 
 #ifdef EXPERIMENTAL
-    if (domGetPropFlag(pndArgPie, BAD_CAST "embed", FALSE)) {
+    if (domGetPropFlag(pndArgPie, BAD_CAST "embedd", FALSE)) {
       cxpCtxtLogPrint(pccArg, 2, "embedd content");
       pieEmbeddInChildNodes(pndPieRoot, pccArg);
     }

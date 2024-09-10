@@ -515,15 +515,6 @@ zipDocumentRead(resNodePtr prnArgZip, int iArgOptions)
 	    }
 	  }
 	  zip_fclose(zf);
-
-	  if (resMimeIsXml(resNodeGetMimeType(prnInZip))) {
-	    prnInZip->pdocContent =
-		xmlReadMemory((const char *)resNodeGetContentPtr(prnInZip), (int)resNodeGetSize(prnInZip), NULL, NULL,
-			      XML_PARSE_RECOVER | XML_PARSE_NOENT | XML_PARSE_NOERROR | XML_PARSE_NOWARNING | XML_PARSE_NSCLEAN | XML_PARSE_NODICT);
-	    if (prnInZip->pdocContent != NULL) {
-	      resNodeResetContentPtr(prnInZip);
-	    }
-	  }
 	}
 	else {
 	  PrintFormatLog(1, "zip[%i] read error", i);

@@ -2158,6 +2158,10 @@ SplitStringToDateNodes(const xmlChar *pucArg, RN_MIME_TYPE eMimeTypeArg)
 	      AddNodeDateAttributes(pndIn,NULL);
 #endif
 
+#ifdef EXPERIMENTAL
+	      xmlNewTextChild(pndIn, NULL, NAME_PIE_TTAG, BAD_CAST"#date");
+#endif
+
 	      if (pucSep > pucDate && !isend(*pucSep)) {
 		xmlAddChild(pndResult, xmlNewText(BAD_CAST","));
 	      }
