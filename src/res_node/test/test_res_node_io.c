@@ -575,7 +575,7 @@ size_t s = 2895;
       printf("Error 2 resNodeGetSize()\n");
     }
     else if ((pndT = resNodeToDOM(prnT,RN_INFO_MAX)) == NULL) {
-      printf("Error resNodeReadDoc()\n");
+      printf("Error resNodeToDOM()\n");
     }
     else {
       n_ok++;
@@ -591,16 +591,20 @@ size_t s = 2895;
     xmlDocPtr pdocT = NULL;
 
     i++;
-    printf("TEST %i in '%s:%i': resNodeReadDoc() = ",i,__FILE__,__LINE__);
+    printf("TEST %i in '%s:%i': resNodeReadDoc() = ", i, __FILE__, __LINE__);
 
-    prnT = resNodeDirNew(BAD_CAST TESTPREFIX "option/pie/text/config.cxp");
-    if (resNodeReadDoc(NULL) == NULL
-	&& (pdocT = resNodeReadDoc(prnT)) != NULL) {
-      n_ok++;
-      printf("OK\n");
+    if ((prnT = resNodeDirNew(BAD_CAST TESTPREFIX "option/pie/text/config.cxp")) == NULL) {
+      printf("Error\n");
+    }
+    else if (resNodeReadDoc(NULL) != NULL) {
+      printf("Error 1 resNodeReadDoc()\n");
+    }
+    else if ((pdocT = resNodeReadDoc(prnT)) == NULL) {
+      printf("Error 2 resNodeReadDoc()\n");
     }
     else {
-      printf("Error\n");
+      n_ok++;
+      printf("OK\n");
     }
     xmlFreeDoc(pdocT);
     resNodeFree(prnT);

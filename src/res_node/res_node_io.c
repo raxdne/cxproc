@@ -825,7 +825,7 @@ resNodeReadContent(resNodePtr prnArg, int iArgMax)
 	}
 
 #ifdef _MSC_VER
-	cchReadInput = fread_s((void *)pchI, resNodeGetBlockSize(prnArg), resNodeGetBlockSize(prnArg), (size_t)1, (FILE *)resNodeGetHandleIO(prnArg));
+	cchReadInput = fread_s((void *)pchI, resNodeGetBlockSize(prnArg), (size_t)1, resNodeGetBlockSize(prnArg), (FILE *)resNodeGetHandleIO(prnArg));
 #else
 	cchReadInput = fread(pchI, (size_t)1, resNodeGetBlockSize(prnArg), (FILE *)resNodeGetHandleIO(prnArg));
 #endif
