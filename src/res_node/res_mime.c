@@ -22,6 +22,7 @@
 #include <libxml/parser.h>
 
 #include "basics.h"
+#include "utils.h"
 #include <res_node/res_mime.h>
 
 /* s. http://en.wikipedia.org/wiki/List_of_file_formats_%28alphabetical%29 */
@@ -340,6 +341,33 @@ resMimeIsPlain(int iMimeType)
   \param prnArg the context
  */
 RN_MIME_TYPE
+resMimeGetTypeFromDataBase64(const xmlChar *pucArg)
+{
+  RN_MIME_TYPE eMimeTypeResult = MIME_UNDEFINED;
+
+  if (pucArg != NULL && pucArg[0] == 'd' && pucArg[1] == 'a' && pucArg[2] == 't' && pucArg[3] == 'a' && pucArg[4] == ':' && pucArg[5] != '\0') {
+    int i;
+    int j;
+
+    for (i = MIME_END - 1, j = 5; i > MIME_UNDEFINED; i--) {
+      if (StringBeginsWith((char *)&pucArg[j], resMimeTypeStr[i])) {
+	j += xmlStrlen(resMimeTypeStr[i]);
+	if (StringBeginsWith((char *)&pucArg[j], ";base64,") && pucArg[j + 8] != '\0') {
+	  return (RN_MIME_TYPE)i;
+	}
+	break;
+      }
+    }
+  }
+  return eMimeTypeResult;
+} /* end of resMimeGetTypeFromDataBase64() */
+
+
+/*! Read and sets the file MIME type of this context.
+
+  \param prnArg the context
+ */
+RN_MIME_TYPE
 resMimeGetTypeFromExt(const xmlChar *pucArg)
 {
   RN_MIME_TYPE eMimeTypeResult = MIME_UNDEFINED;
@@ -350,37 +378,37 @@ resMimeGetTypeFromExt(const xmlChar *pucArg)
   else if (pucArg[xmlStrlen(pucArg) - 1] == '~') {
     eMimeTypeResult = MIME_APPLICATION_X_BACKUP_EDITOR;
   }
-  else if (xmlStrcasecmp(pucArg, BAD_CAST"txt") == 0) {
+  else if (xmlStrcasecmp(pucArg, BAD_CAST "txt") == 0) {
     eMimeTypeResult = MIME_TEXT_PLAIN;
   }
-  else if (xmlStrcasecmp(pucArg, BAD_CAST"md") == 0) {
+  else if (xmlStrcasecmp(pucArg, BAD_CAST "md") == 0) {
     eMimeTypeResult = MIME_TEXT_MARKDOWN;
   }
-  else if (xmlStrcasecmp(pucArg, BAD_CAST"csv") == 0) {
+  else if (xmlStrcasecmp(pucArg, BAD_CAST "csv") == 0) {
     eMimeTypeResult = MIME_TEXT_CSV;
   }
-  else if (xmlStrcasecmp(pucArg, BAD_CAST"pie") == 0) {
+  else if (xmlStrcasecmp(pucArg, BAD_CAST "pie") == 0) {
 #ifdef HAVE_PIE
     eMimeTypeResult = MIME_APPLICATION_PIE_XML;
 #else
     eMimeTypeResult = MIME_TEXT_XML;
 #endif
   }
-  else if (xmlStrcasecmp(pucArg, BAD_CAST"rdf") == 0 || xmlStrcasecmp(pucArg, BAD_CAST"rss") == 0) {
+  else if (xmlStrcasecmp(pucArg, BAD_CAST "rdf") == 0 || xmlStrcasecmp(pucArg, BAD_CAST "rss") == 0) {
     eMimeTypeResult = MIME_APPLICATION_RDF_XML;
   }
-  else if (xmlStrcasecmp(pucArg, BAD_CAST"ics") == 0) {
+  else if (xmlStrcasecmp(pucArg, BAD_CAST "ics") == 0) {
     eMimeTypeResult = MIME_TEXT_CALENDAR;
   }
-  else if (xmlStrcasecmp(pucArg, BAD_CAST"vcf") == 0) {
+  else if (xmlStrcasecmp(pucArg, BAD_CAST "vcf") == 0) {
     eMimeTypeResult = MIME_TEXT_VCARD;
   }
   /* Microsoft Office
    */
-  else if (xmlStrcasecmp(pucArg, BAD_CAST"mdb") == 0) {
+  else if (xmlStrcasecmp(pucArg, BAD_CAST "mdb") == 0) {
     eMimeTypeResult = MIME_APPLICATION_MSACCESS;
   }
-  else if (xmlStrcasecmp(pucArg, BAD_CAST"xls") == 0) {
+  else if (xmlStrcasecmp(pucArg, BAD_CAST "xls") == 0) {
     eMimeTypeResult = MIME_APPLICATION_MSEXCEL;
   }
   else if (xmlStrcasecmp(pucArg, BAD_CAST"ppt") == 0) {

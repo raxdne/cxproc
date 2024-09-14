@@ -196,6 +196,8 @@ ADD_EXECUTABLE(pietextx
   ${CXPROC_SRC_DIR}/dom.h
   ${CXPROC_SRC_DIR}/utils.c
   ${CXPROC_SRC_DIR}/utils.h
+  ${CXPROC_SRC_DIR}/res_node/res_mime.c
+  ${CXPROC_SRC_DIR}/res_node/res_mime.h
   ${CXPROC_SRC_DIR}/res_node/res_path.c
   ${CXPROC_SRC_DIR}/res_node/res_path.h
   ${CXPROC_SRC_DIR}/version.h

@@ -1483,7 +1483,20 @@ SplitTupelToLinkNodesMd(const xmlChar *pucArg)
 	  && (pucUrl = xmlStrndup(&pucArg[ovector[i*2]], (int)(ovector[i*2+1] - ovector[i*2]))) != NULL) {
 
 	if (IS_NODE_PIE_IMG(pndLink)) {
-	  xmlSetProp(pndLink, BAD_CAST "src", pucUrl);
+	  RN_MIME_TYPE t;
+
+	  if (resMimeIsPicture((t = resMimeGetTypeFromDataBase64(pucUrl)))) {
+	    /* embedded base64-encoded image */
+	    xmlChar *pucT;
+
+	    xmlSetProp(pndLink, BAD_CAST "type", BAD_CAST resMimeGetTypeStr(t));
+	    if ((pucT = xmlStrchr(pucUrl, ',')) != NULL && pucT++) {
+	      xmlNewChild(pndLink, NULL, NAME_BASE64, pucT);
+	    }
+	  }
+	  else {
+	    xmlSetProp(pndLink, BAD_CAST "src", pucUrl);
+	  }
 	}
 	else if (StringBeginsWith((char *)pucUrl,"id:")) {
 	  /* definition of an anchor */
@@ -3167,28 +3180,20 @@ RecognizeFigures(xmlNodePtr pndArg)
       int iLengthStr;
 
       if (IS_NODE_PIE_PAR(pndArg)) {
-	if ((pndChild = pndArg->children) != NULL && xmlNodeIsText(pndChild) && StringBeginsWith(pndChild->content, BAD_CAST "data:image/") &&
-	    (iLengthStr = xmlStrlen(pndChild->content)) > 10) {
-	  /* embedded base64-encoded image */
-	  size_t l;
-	  xmlChar *pucT;
-	  xmlChar *pucTT;
-	  xmlChar *pucTTT;
+	RN_MIME_TYPE t;
 
-	  if ((pucT = Strnstr(pndChild->content, 32, BAD_CAST ";base64,")) != NULL && (l = (pucT - pndChild->content)) < 32 &&
-	      (pucTTT = xmlStrdup(&pucT[8])) != NULL) {
-	    pucTT = xmlStrndup(&pndChild->content[5], (pucT - &pndChild->content[5]));
-	    domSetPropEat(pndArg, BAD_CAST "type", pucTT);
-	    xmlNodeSetName(pndArg, NAME_PIE_IMG);
-	    pndForAppend = xmlNewChild(pndArg, NULL, NAME_BASE64, NULL);
-	    xmlNodeSetContent(pndForAppend, pucTTT);
-	    xmlFree(pndChild->content);
-	    pndChild->content = NULL;
+	if ((pndChild = pndArg->children) != NULL && xmlNodeIsText(pndChild) && resMimeIsPicture((t = resMimeGetTypeFromDataBase64(pndChild->content)))) {
+	  /* embedded base64-encoded image */
+	  xmlChar *pucT;
+	  xmlNodePtr pndImage;
+
+	  pndImage = xmlNewChild(pndArg, NULL, NAME_PIE_IMG,NULL);
+	  xmlSetProp(pndImage, BAD_CAST "type", BAD_CAST resMimeGetTypeStr(t));
+	  if ((pucT = xmlStrchr(pndChild->content, ',')) != NULL && pucT++) {
+	    xmlNewChild(pndImage, NULL, NAME_BASE64, pucT);
 	  }
-	}
-	else if ((pndChild = pndArg->children) != NULL && xmlNodeIsText(pndChild) && StringBeginsWith(pndChild->content, BAD_CAST "data:application/") &&
-	    (iLengthStr = xmlStrlen(pndChild->content)) > 10) {
-	  /*!\todo embedded base64-encoded data */
+	  xmlNodeSetContent(pndChild,NULL);
+	  for ( ; pndChild; pndChild = RecognizeFigures(pndChild));
 	}
 	else if ((pndChild = pndArg->children) != NULL 
 	    && xmlNodeIsText(pndChild)
@@ -3203,7 +3208,7 @@ RecognizeFigures(xmlNodePtr pndArg)
 	  rc = pcre2_match(
 			   re_fig,        /* result of pcre2_compile() */
 			   (PCRE2_SPTR8)pucSubstr,  /* the subject string */
-			   xmlStrlen(pucSubstr),             /* the length of the subject string */
+			   iLengthStr,             /* the length of the subject string */
 			   0,              /* start at offset 0 in the subject */
 			   0,              /* default options */
 			   match_data,        /* vector of integers for substring information */

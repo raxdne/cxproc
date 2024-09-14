@@ -176,6 +176,9 @@ typedef enum {
 
 
 extern RN_MIME_TYPE
+resMimeGetTypeFromDataBase64(const xmlChar *pucArg);
+
+extern RN_MIME_TYPE
 resMimeGetTypeFromExt(const xmlChar *pucArg);
 
 extern RN_MIME_TYPE
