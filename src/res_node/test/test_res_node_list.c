@@ -824,6 +824,53 @@ resNodeTestList(void)
   }
 
 
+  if (RUNTEST) {
+    xmlChar* pucT;
+    xmlNodePtr pndT;
+    xmlNodePtr pndTT;
+    xmlNodePtr pndPie;
+    xmlNodePtr pndDir;
+    resNodePtr prnT = NULL;
+
+    i++;
+    printf("TEST %i in '%s:%i': SetTopPrefix() = ", i, __FILE__, __LINE__);
+
+    pndPie = xmlNewNode(NULL, NAME_PIE);
+
+    if ((pndDir = xmlNewChild(pndPie, NULL, NAME_DIR, NULL)) == NULL) {
+      printf("Error xmlNewChild()\n");
+    }
+    else if ((pndT = xmlNewChild(pndDir, NULL, NAME_DIR, NULL)) == NULL
+      || xmlSetProp(pndT,BAD_CAST"name", BAD_CAST"test") == NULL) {
+      printf("Error xmlNewChild()\n");
+    }
+    else if ((pndTT = xmlNewChild(pndDir, NULL, NAME_FILE, NULL)) == NULL
+      || xmlSetProp(pndTT,BAD_CAST"name", BAD_CAST"xyz.xml") == NULL
+      || xmlSetProp(pndTT, BAD_CAST"map", BAD_CAST"sub/uvw.xml") == NULL) {
+      printf("Error xmlNewChild()\n");
+    }
+    else if ((pndTT = xmlNewChild(pndT, NULL, NAME_FILE, NULL)) == NULL
+      || xmlSetProp(pndTT, BAD_CAST"name", BAD_CAST"xyz.xml") == NULL) {
+      printf("Error xmlNewChild()\n");
+    }
+    else if ((pndTT = xmlNewChild(pndT, NULL, NAME_FILE, NULL)) == NULL
+      || xmlSetProp(pndTT, BAD_CAST"name", BAD_CAST"abc.xml") == NULL
+      || xmlSetProp(pndTT, BAD_CAST"map", BAD_CAST"sub/abc.xml") == NULL) {
+      printf("Error xmlNewChild()\n");
+    }
+    else if ((prnT = dirNodeToResNodeList(pndPie)) == NULL) {
+      printf("Error resNodeDirNew()\n");
+    }
+    else {
+      n_ok++;
+      printf("OK\n");
+    }
+    //domPutNodeString(stderr, BAD_CAST "SetTopPrefix(): ", pndPie);
+    //pucT = resNodeListToPlain(prnT,RN_INFO_MIN); fputs((const char *)pucT,stderr); xmlFree(pucT);
+    resNodeListFree(prnT);
+    xmlFreeNode(pndPie);
+  }
+
   printf("\nResult in '%s': %i/%i OK\n\n", __FILE__, n_ok, i);
 
   return (i - n_ok);

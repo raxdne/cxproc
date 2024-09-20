@@ -359,6 +359,40 @@ arcTestResNodeWrite(void)
     resNodeFree(prnT);
   }
 
+
+  if (RUNTEST) {
+    resNodePtr prnT = NULL;
+    resNodePtr prnTT = NULL;
+
+    i++;
+    printf("TEST %i in '%s:%i': create and close a non-existing TAR file context = ",i,__FILE__,__LINE__);
+    
+    if ((prnT = resNodeDirNew(BAD_CAST "\"" TEMPPREFIX "/created.tar\"")) == NULL) {
+      printf("Error resNodeDirNew()\n");
+    }
+    else if ((prnTT = resNodeRootNew(prnT,BAD_CAST "\"" TESTPREFIX "plain/Length_1024.txt\"")) == NULL) {
+      //xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeRootNew(): %s\n",resNodeGetErrorMsg(prnT));
+    }
+    else if (resNodeReadStatus(prnTT) == FALSE) {
+      //xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeRootNew(): %s\n",resNodeGetErrorMsg(prnT));
+    }
+    else if (resNodeOpen(prnT,"wa") == FALSE) {
+      printf("Error resNodeOpen()\n");
+    }
+    else if (arcFileWrite(prnT) == FALSE) {
+      printf("Error arcFileWrite()\n");
+    }
+    else if (resNodeClose(prnT) == FALSE) {
+      printf("Error resNodeClose()\n");
+    }
+    else {
+      n_ok++;
+    }
+    resNodeFree(prnTT);
+    resNodeFree(prnT);
+  }
+
+
   printf("TEST in '%s': %i/%i OK\n\n", __FILE__, n_ok, i);
 
   return (i - n_ok);

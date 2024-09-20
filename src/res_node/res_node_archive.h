@@ -28,6 +28,9 @@ extern BOOL_T
 arcFileClose(resNodePtr prnArg);
 
 extern BOOL_T
+arcFileWrite(resNodePtr prnArg);
+
+extern BOOL_T
 arcAppendEntries(resNodePtr prnArgArchive, const pcre2_code *re_match, BOOL_T fArgContent);
 
 extern BOOL_T

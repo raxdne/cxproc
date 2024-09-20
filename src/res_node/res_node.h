@@ -642,6 +642,9 @@ resNodeStepInTo(resNodePtr prnArg);
 extern BOOL_T
 resNodeDirAppendEntries(resNodePtr prnArgDir, const pcre2_code *re_match);
 
+extern resNodePtr 
+resNodeFromDOM(xmlNodePtr pndArg, int iArgOptions);
+
 extern xmlNodePtr
 resNodeToDOM(resNodePtr prnArg, int iArgOptions);
 

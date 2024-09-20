@@ -2106,6 +2106,43 @@ resNodeTest(void)
     resNodeFree(prnT);
   }
 
+
+  if (RUNTEST) {
+    xmlChar* pucT;
+    xmlNodePtr pndT;
+    resNodePtr prnT = NULL;
+
+    i++;
+    printf("TEST %i in '%s:%i': resNodeFromDOM() = ", i, __FILE__, __LINE__);
+
+    if ((pndT = xmlNewNode(NULL, NAME_FILE)) == NULL
+      || xmlSetProp(pndT,BAD_CAST"name", BAD_CAST"dummy.xml") == NULL
+      || xmlSetProp(pndT,BAD_CAST"size", BAD_CAST"11111") == NULL
+      || xmlSetProp(pndT,BAD_CAST"type", BAD_CAST"text/xml") == NULL
+      || xmlSetProp(pndT,BAD_CAST"mtime", BAD_CAST"1661019995") == NULL
+      || xmlSetProp(pndT,BAD_CAST"read", BAD_CAST"yes") == NULL
+      || xmlSetProp(pndT,BAD_CAST"write", BAD_CAST"no") == NULL
+      || xmlSetProp(pndT,BAD_CAST"execute", BAD_CAST"no") == NULL
+      || xmlSetProp(pndT,BAD_CAST"prefix", TEMPPREFIX) == NULL
+      || xmlNewChild(pndT,NULL,BAD_CAST"base64", BAD_CAST"PD94bWwgdmVyc2lvbj0iMS4wIj8+CjxkdW1teS1hPgogIDxkdW1teS1hLWNoaWxkLz4KPC9kdW1teS1hPgo=") == NULL) {
+      printf("Error xmlNewChild()\n");
+    }
+    else if ((prnT = resNodeFromDOM(pndT,0)) == NULL) {
+      printf("Error resNodeFromDOM()\n");
+    }
+    else if (resNodePutContent(prnT) == FALSE) {
+      printf("Error resNodePutContent()\n");
+    }
+    else {
+      n_ok++;
+      printf("OK\n");
+    }
+    //domPutNodeString(stderr, BAD_CAST "resNodeFromDOM(): ", pndT);
+    //pucT = resNodeListToPlain(prnT,RN_INFO_MAX); fputs((const char *)pucT,stderr); xmlFree(pucT);
+    resNodeFree(prnT);
+    xmlFreeNode(pndT);
+  }
+
   xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"\nResult in '%s': %i/%i OK\n",__FILE__,n_ok,i);
   fputs((const char *)mucTestResult,stderr);
   fputs((const char *)pucModuleTestReport,stderr);

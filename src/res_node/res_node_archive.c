@@ -136,10 +136,10 @@ arcFileOpen(resNodePtr prnArg)
       //archive_write_set_options((arcPtr)prnArg->handleIO, "compression=store");
       if ((resNodeGetMimeType(prnArg) == MIME_APPLICATION_ZIP
 	&& archive_write_set_format_zip((arcPtr)prnArg->handleIO) == ARCHIVE_OK)
-#if 0
 	||
 	(resNodeGetMimeType(prnArg) == MIME_APPLICATION_X_TAR
 	&& archive_write_set_format_gnutar((arcPtr)prnArg->handleIO) == ARCHIVE_OK)
+#if 0
 	||
 	(resNodeGetMimeType(prnArg) == MIME_APPLICATION_X_ISO9660_IMAGE
 	&& archive_write_set_format_iso9660((arcPtr)prnArg->handleIO) == ARCHIVE_OK)
@@ -184,8 +184,10 @@ arcFileOpen(resNodePtr prnArg)
       }
       else {
 	arcFileClose(prnArg);
+#if 0
 	resNodeSetError(prnArg, rn_error_archive, "archive_read_support_format_*('%s') failed: %s",
 	  resNodeGetNameNormalized(prnArg), archive_error_string((arcPtr)resNodeGetHandleIO(prnArg)));
+#endif
       }
     }
     else {
@@ -241,6 +243,34 @@ arcFileClose(resNodePtr prnArg)
 
   return fResult;
 } /* end of arcFileClose() */
+
+
+/*! opens context prnArg
+
+\return TRUE if successful
+*/
+BOOL_T
+arcFileWrite(resNodePtr prnArg)
+{
+  BOOL_T fResult = FALSE;
+
+#ifdef HAVE_LIBARCHIVE
+  assert(prnArg != NULL);
+
+  if (prnArg->eMode == mode_write) {
+      fResult = TRUE;
+
+      /*
+       check code of arcAddResNode() and arcAddNodeList()
+        */
+  }
+  else {
+    resNodeSetError(prnArg, rn_error_archive, "Error closing archive '%s'", resNodeGetNameNormalized(prnArg));
+  }
+#endif
+
+  return fResult;
+} /* end of arcFileWrite() */
 
 
 /*!

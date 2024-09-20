@@ -3257,7 +3257,7 @@ resNodeContentToDOM(xmlNodePtr pndArg, resNodePtr prnArg)
       //imgParseFile(pndArg, prnArg);
 #endif
 
-#ifdef EXPERIMENTAL
+#if 0
       pucContent = BAD_CAST resNodeGetContentBase64Eat(prnArg, 512);
       if (STR_IS_NOT_EMPTY(pucContent)) {
 	xmlNewChild(pndArg, NULL, NAME_BASE64, pucContent);
@@ -3339,6 +3339,72 @@ resNodeContentToDOM(xmlNodePtr pndArg, resNodePtr prnArg)
 
   return TRUE;
 } /* end of resNodeContentToDOM() */
+
+
+/*!tests the readability of a file or directory with given name 
+
+  \param pndFile pointer to file node for appending of results
+  \param pucArgPath relative or absolute path and name of file
+  \return true if the named file is is readable
+
+  set all file stat to pndFile as attributes
+*/
+resNodePtr 
+resNodeFromDOM(xmlNodePtr pndArg, int iArgOptions)
+{
+  resNodePtr prnResult = NULL;
+  xmlChar *pucT;
+
+/*
+
+check/merge code of dirNodeToResNodeList()
+
+*/
+  if (pndArg != NULL && (pucT = domGetPropValuePtr(pndArg, BAD_CAST "name")) != NULL) {
+	xmlNodePtr pndT;
+
+    prnResult = resNodeNew();
+    resNodeSetNameBase(prnResult, pucT);
+    if (xmlStrEqual(pndArg->name, BAD_CAST "file")) {
+      resNodeSetType(prnResult, rn_type_file);
+    }
+    else if (xmlStrEqual(pndArg->name, BAD_CAST "dir")) {
+      resNodeSetType(prnResult, rn_type_dir);
+    }
+    else {
+      // resNodeSetType(prnResult,  rn_type_file);
+    }
+    resNodeSetNameBaseDir(prnResult, domGetPropValuePtr(pndArg, BAD_CAST "prefix"));
+    // resNodeSetSize(prnResult,domGetPropValuePtr(pndArg,BAD_CAST"size"));
+    resNodeSetMimeType(prnResult, resMimeGetType(domGetPropValuePtr(pndArg, BAD_CAST "type")));
+
+    if ((pndT = domGetFirstChild(pndArg, NAME_BASE64)) != NULL && pndT->children != NULL && (pucT = pndT->children->content) != NULL) {
+      int ret;
+      char *pchT;
+      size_t inlen;
+      size_t outlen;
+
+      inlen = xmlStrlen(pucT);
+      pchT = (char *)xmlMalloc(inlen * sizeof(char *));
+      outlen = inlen;
+
+      ret = base64decode((char *)pucT, inlen, BAD_CAST pchT, &outlen);
+      if (ret==0) {
+	PrintFormatLog(3, "Decoded '%i' byte to '%i'", inlen, outlen);
+	prnResult->pContent = pchT;
+	resNodeSetSize(prnResult, outlen);
+      }
+      else {
+	// return NULL;
+      }
+    }
+    else if (pndArg->children != NULL) {
+	/* dump DOM to pContent */
+    }
+  }
+  else {}
+  return prnResult;
+} /* end of resNodeFromDOM() */
 
 
 /*!tests the readability of a file or directory with given name 

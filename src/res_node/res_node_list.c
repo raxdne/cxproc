@@ -490,6 +490,35 @@ resNodeListFindPathNext(resNodePtr prnArg, xmlChar *pucArgPath, int iArgOptions)
 } /* end of resNodeListFindPathNext() */
 
 
+/*! Resource Node List from DOM
+
+\param prnArg -- resNode tree to build as DOM
+\param iArgOptions bits for options 
+\return DOM tree representing prnArg
+*/
+resNodePtr 
+resNodeListFromDOM(xmlNodePtr pndArg, int iArgOptions)
+{
+  resNodePtr prnResult = NULL;
+  xmlNodePtr pndT;
+
+/*
+
+check code of dirNodeToResNodeList()
+
+*/
+  for (pndT = pndArg; pndT; pndT = pndT->next) {
+    if (prnResult == NULL) {
+      prnResult = resNodeFromDOM(pndT, iArgOptions);
+    }
+    else {
+      resNodeAddSibling(prnResult,resNodeFromDOM(pndT, iArgOptions));
+    }
+  }
+  return prnResult;
+} /* end of resNodeListFromDOM() */
+
+
 /*! Resource Node List To DOM
 
 \param prnArg -- resNode tree to build as DOM
