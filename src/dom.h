@@ -125,6 +125,9 @@ domNodeIsDescendant(xmlNodePtr pndArgTop, xmlNodePtr pndArg);
 extern xmlChar*
 domNodeListGetString(xmlNodePtr pndArg, xmlChar* pucArg);
 
+extern int
+domGetPropInt(xmlNodePtr pndArg, xmlChar *pucNameAttr, int iDefault);
+
 extern BOOL_T
 domGetPropFlag(xmlNodePtr pndArg, xmlChar *pucNameAttr, BOOL_T fDefault);
 

@@ -240,15 +240,9 @@ dirProcessDirNode(xmlNodePtr pndArgDir, resNodePtr prnArgContext, cxpContextPtr 
 
   iVerbosity = dirMapInfoVerbosity(pndArgDir, pccArg);
 
-  /* get default depth from attribute */
-  if ((pucAttrDepth = domGetPropValuePtr(pndArgDir,BAD_CAST "depth"))!=NULL
-      && ((iDepth = atoi((char *)pucAttrDepth)) > -1)) {
-  }
-  else {
-    iDepth = 999;
-  }
-  cxpCtxtLogPrint(pccArg,2,"Set default DIR depth to '%i'", iDepth);
-  
+  iDepth = domGetPropInt(pndArgDir, BAD_CAST "depth", 999);
+  cxpCtxtLogPrint(pccArg, 2, "Set default DIR depth to '%i'", iDepth);
+
 #ifdef HAVE_PCRE2
   if (((pucAttrGrep = domGetPropValuePtr(pndArgDir, BAD_CAST "igrep")) != NULL
     && xmlStrlen(pucAttrGrep) > 0)
@@ -351,16 +345,11 @@ dirProcessDirNode(xmlNodePtr pndArgDir, resNodePtr prnArgContext, cxpContextPtr 
     xmlNodePtr pndT;
 
     if (domGetPropValuePtr(pndEntry, BAD_CAST "verbosity")) {
-      iVerbosityChild = dirMapInfoVerbosity(pndArgDir, pccArg);
+      iVerbosityChild = dirMapInfoVerbosity(pndEntry, pccArg);
     }
 
     /*! get depth attribute per single dir element, instead of global */
-    if ((pucAttrDepth = domGetPropValuePtr(pndEntry,BAD_CAST "depth"))!=NULL
-	&& ((iDepthChild = atoi((char *)pucAttrDepth)) > -1)) {
-    }
-    else {
-      iDepthChild = iDepth;
-    }
+    iDepthChild = domGetPropInt(pndEntry, BAD_CAST "depth", iDepth);
     cxpCtxtLogPrint(pccArg,2,"Set DIR depth to '%i'", iDepthChild);
   
     prnT = NULL;
