@@ -152,6 +152,9 @@ typedef int index_t;
 #include <pwd.h>
 #include <sys/types.h>
 #include <sys/utsname.h>
+#include <sys/stat.h>
+#include <dirent.h>
+
 #define MAX_PATH BUFFER_LENGTH
 #endif
 

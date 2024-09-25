@@ -297,9 +297,14 @@ resNodeOpen(resNodePtr prnArg, const char *pchArgMode)
 	  prnArg->fExist = TRUE;
 	}
       }
-      else {
-	/*!\todo handle error code 'errno' */
-	resNodeSetError(prnArg,rn_error_open, "Cant open '%s'", resNodeGetNameNormalizedNative(prnArg));
+      else if (errno == EACCES) {
+	resNodeSetError(prnArg,rn_error_open, "Cant open '%s': access permission", resNodeGetNameNormalizedNative(prnArg));
+      }
+      else if (errno == EINVAL) {
+	resNodeSetError(prnArg,rn_error_open, "Cant open '%s': name invalid", resNodeGetNameNormalizedNative(prnArg));
+      }
+      else if (errno == EEXIST) {
+	resNodeSetError(prnArg,rn_error_open, "Cant open '%s': already exists", resNodeGetNameNormalizedNative(prnArg));
       }
     }
     else { /* */
@@ -456,7 +461,7 @@ resNodePutContent(resNodePtr prnArg)
     iMode = (S_IRUSR | S_IWUSR | S_IXUSR);
 #endif
 
-    fResult = (resNodeMakeDirectory(prnArg, iMode) && resNodeOpen(prnArg,"w") && resNodeSaveContent(prnArg) && resNodeClose(prnArg));
+    fResult = (resNodeMakeDirectory(prnArg, iMode) == rn_error_none && resNodeOpen(prnArg,"w") && resNodeSaveContent(prnArg) && resNodeClose(prnArg));
   }
   return fResult;
 } /* end of resNodePutContent() */
@@ -1109,16 +1114,18 @@ resNodeEatContentDoc(resNodePtr prnArg)
 
 /*! \return TRUE if content was transferred from prnArgFrom to prnArgTo
 */
-BOOL_T
+RN_ERROR
 resNodeSwapContent(resNodePtr prnArgFrom, resNodePtr prnArgTo)
 {
-  BOOL_T fResult = FALSE;
+  RN_ERROR eResult = rn_error_none;
 
   if (prnArgTo == NULL) {
     resNodeSetError(prnArgTo,rn_error_copy,"There is no target for content");
+    eResult = rn_error_target;
   }
   else if (resNodeGetContent(prnArgFrom, 1024) == FALSE) {
     resNodeSetError(prnArgFrom, rn_error_copy, "Can't get content '%s'", resNodeGetNameNormalized(prnArgFrom));
+    eResult = rn_error_source;
   }
   else { /* swap content */
     void *pContent;
@@ -1144,11 +1151,8 @@ resNodeSwapContent(resNodePtr prnArgFrom, resNodePtr prnArgTo)
     prnArgFrom->liSizeBlock = liSizeBlock;
     prnArgFrom->pdocContent = pdocContent;
     prnArgFrom->iCountUse = iCountUse;
-    
-    fResult = TRUE;
   }
-
-  return fResult;
+  return eResult;
 } /* end of resNodeSwapContent() */
 
 

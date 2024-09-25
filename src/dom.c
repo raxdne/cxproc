@@ -340,13 +340,13 @@ domGetPropInt(xmlNodePtr pndArg, xmlChar *pucNameAttr, int iDefault)
   int iResult = -1;
   xmlChar *pucAttr = domGetPropValuePtr(pndArg, pucNameAttr);
 
-  if (pucAttr) {
+  if (STR_IS_NOT_EMPTY(pucAttr)) {
     iResult = atoi(pucAttr);
   }
   else {
     iResult = iDefault;
   }
-  return iDefault;
+  return iResult;
 } /* End of domGetPropInt() */
 
 

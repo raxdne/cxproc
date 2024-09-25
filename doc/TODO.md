@@ -1,6 +1,19 @@
 
 # TODO
 
+dir verbosity ✔
+
+
+pie move Archive etc (path)
+- save in Editor
+
+`?path=dir/abc.docx/embeddings/object.bin`
+
+jacascript to download from HTML `<img src="data:image/png;base64,">` 
+- https://github.com/eligrey/FileSaver.js
+
+
+
 ## v2.0 #v20
 
 TODO: remove legacy code

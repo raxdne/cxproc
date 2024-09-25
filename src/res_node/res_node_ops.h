@@ -29,32 +29,26 @@
 #define MODE_DIR_CREATE (S_IRUSR | S_IWUSR | S_IXUSR | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH)
 #endif
 
-extern BOOL_T
+extern RN_ERROR
 resNodeUnlinkRecursivelyStr(xmlChar *pucArgPath);
 
-extern BOOL_T
+extern RN_ERROR
 resNodeUnlink(resNodePtr prnArg, BOOL_T fRecursively);
 
-extern BOOL_T
+extern RN_ERROR
 resNodeUnlinkStr(xmlChar *pucArgPath);
 
-extern BOOL_T
+extern RN_ERROR
 resNodeTransfer(resNodePtr prnArgFrom, resNodePtr prnArgTo, BOOL_T fArgMove);
 
-extern BOOL_T
+extern RN_ERROR
 resNodeTransferStr(xmlChar *pucArgFrom, xmlChar *pucArgTo, BOOL_T fArgMove);
 
-extern BOOL_T
+extern RN_ERROR
 resNodeMakeDirectory(resNodePtr prnArg, int mode);
 
-extern BOOL_T
+extern RN_ERROR
 resNodeMakeDirectoryStr(xmlChar *pucArgPath, int mode);
-
-extern BOOL_T
-resNodeTestDirStr(xmlChar *pucArgPath);
-
-extern BOOL_T
-resNodeTestFileStr(xmlChar *pucArgPath);
 
 #ifdef TESTCODE
 extern int
