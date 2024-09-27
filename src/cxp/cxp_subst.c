@@ -512,7 +512,9 @@ cxpSubstDetect(xmlNodePtr pndArgSubst, cxpContextPtr pccArg)
 	else if (xmlStrEqual(pucT,BAD_CAST"dir") || xmlStrEqual(pucT,BAD_CAST"file") || xmlStrEqual(pucT,BAD_CAST"path")) {
 	  resNodePtr prnTest;
 
-	  if ((prnTest = resNodeRootNew(cxpCtxtRootGet(pccArg), pcxpSubstResult->pucCgi)) == NULL || resNodeIsReadable(prnTest) == FALSE) {
+	  prnTest = resNodeRootNew(cxpCtxtRootGet(pccArg), pcxpSubstResult->pucCgi);
+
+	  if ((prnTest == NULL || resNodeIsReadable(prnTest) == FALSE) && domGetPropFlag(pndArgSubst, BAD_CAST "search", FALSE)) {
 	    prnTest = resNodeListFindPath(cxpCtxtRootGet(pccArg), pcxpSubstResult->pucCgi, (RN_FIND_FILE | RN_FIND_IN_SUBDIR | RN_FIND_REGEXP));
 	  }
 	  

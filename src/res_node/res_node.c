@@ -2803,6 +2803,25 @@ resNodeIsWriteable(resNodePtr prnArg)
 } /* end of resNodeIsWriteable() */
 
 
+/*! \return TRUE if prnArg check if parent directory is writeable
+
+\bug check for ROOT, stdin etc 
+ */
+BOOL_T
+resNodeParentIsWriteable(resNodePtr prnArg)
+{
+  BOOL_T fResult = FALSE;
+  resNodePtr prnT;
+
+  if ((prnT = resNodeDup(prnArg, RN_DUP_THIS)) != NULL) {
+    resNodeSetToParent(prnT);
+    fResult = (resNodeReadStatus(prnT) && resNodeIsWriteable(prnT) && prnT->fWrite);
+    resNodeFree(prnT);
+  }
+  return fResult;
+} /* end of resNodeIsWriteable() */
+
+
 /*! \return TRUE if prnArg is existing or createable
  */
 BOOL_T
@@ -2825,7 +2844,7 @@ resNodeIsCreateable(resNodePtr prnArg)
    else { /* check if parent directory is writeable */
       resNodePtr prnT;
 
-      prnT = resNodeDup(prnArg, 0);
+      prnT = resNodeDup(prnArg, RN_DUP_THIS);
       if (prnT) {
 	resNodeSetToParent(prnT);
 	fResult = resNodeIsWriteable(prnT);

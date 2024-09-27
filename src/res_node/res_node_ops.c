@@ -128,6 +128,10 @@ resNodeTransfer(resNodePtr prnArgFrom, resNodePtr prnArgTo, BOOL_T fArgMove)
 	resNodeSetError(prnArgFrom,rn_error_copy,"Copy source context is not an existing file with content");
 	eResult = rn_error_undef;
       }
+      else if (fArgMove && resNodeParentIsWriteable(prnArgFrom) == FALSE) {
+	resNodeSetError(prnArgFrom,rn_error_access,"Move of source context is not permitted");
+	eResult = rn_error_access;
+      }
     }
     else {
       resNodeSetError(prnArgFrom,rn_error_copy, "Cant copy source context");
@@ -164,13 +168,22 @@ resNodeTransfer(resNodePtr prnArgFrom, resNodePtr prnArgTo, BOOL_T fArgMove)
 	eResult = rn_error_undef;
       }
     }
+    else if (resNodeIsFile(prnArgTo) && resNodeParentIsWriteable(prnArgTo) == FALSE) { /* path is a file, but base directory not existant yet */
+      if (resNodeMakeDirectoryStr(resNodeGetNameBaseDir(prnArgTo), MODE_DIR_CREATE) == rn_error_none) {
+	resNodeReadStatus(prnArgTo); /* try to get some context info */
+      }
+      else {
+	//resNodeSetError(prnArgTo,rn_error_mkdir,"Cant move file to an existing one");
+	eResult = rn_error_mkdir;
+      }
+    }
     else if (resNodeIsDir(prnArgTo) || resPathIsDir(resNodeGetNameNormalized(prnArgTo))) { /* path is a directory, but not existant yet */
       if (resNodeMakeDirectoryStr(resNodeGetNameNormalized(prnArgTo), MODE_DIR_CREATE) == rn_error_none) {
 	resNodeConcat(prnArgTo, resNodeGetNameBase(prnArgFrom));
 	resNodeReadStatus(prnArgTo); /* try to get some context info */
       }
       else {
-	eResult = rn_error_undef;
+	eResult = rn_error_mkdir;
       }
     }
     else { /* prnArgTo is an non-existing file node */
@@ -309,7 +322,7 @@ resNodeMakeDirectory(resNodePtr prnArg, int mode)
       if (i == 0) {
 	DWORD dwErrorCode = GetLastError();
 	if (dwErrorCode == ERROR_ALREADY_EXISTS) {
-	  resNodeSetError(prnArg, rn_error_mkdir, "Directory exists already");
+	  eResult = resNodeReadStatus(prnArg) ? rn_error_none : rn_error_undef;
 	}
 	else if (dwErrorCode == ERROR_PATH_NOT_FOUND) {
 	  resNodePtr prnT;
@@ -323,6 +336,9 @@ resNodeMakeDirectory(resNodePtr prnArg, int mode)
 	else {
 	  resNodeSetError(prnArg, rn_error_mkdir, "Cant create directory");
 	}
+      }
+      else {
+	eResult = rn_error_none;
       }
 #else
       i = mkdir(resNodeGetNameNormalizedNative(prnArg), mode);

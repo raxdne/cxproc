@@ -528,6 +528,9 @@ extern BOOL_T
 resNodeIsWriteable(resNodePtr prnArg);
 
 extern BOOL_T
+resNodeParentIsWriteable(resNodePtr prnArg);
+
+extern BOOL_T
 resNodeIsCreateable(resNodePtr prnArg);
 
 extern BOOL_T
