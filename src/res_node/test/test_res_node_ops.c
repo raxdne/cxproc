@@ -56,22 +56,22 @@ resNodeTestOperations(void)
     if ((prnT = resNodeStrNew(pucT)) == NULL) {
       xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeStrNew()\n");
     }
-    else if (resNodeMakeDirectory(NULL,iMode) == TRUE) {
+    else if (resNodeMakeDirectory(NULL,iMode) == rn_error_none) {
       xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error 1 resNodeMakeDirectory()\n");
     }
-    else if (resNodeMakeDirectory(prnT,iMode) == FALSE) {
+    else if (resNodeMakeDirectory(prnT,iMode) != rn_error_none) {
       xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error 2 resNodeMakeDirectory()\n");
     }
     else if (resNodeTestDirStr(pucT) == FALSE) {
       xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error 1 resNodeTestDirStr()\n");
     }
-    else if (resNodeUnlink(prnT,TRUE) == FALSE) {
+    else if (resNodeUnlink(prnT,TRUE) != rn_error_none) {
       xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error 2 resNodeUnlink()\n");
     }
     else if (resNodeTestDirStr(pucT) == TRUE) {
       xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error 2 resNodeTestDirStr()\n");
     }
-    else if (resNodeUnlink(NULL,FALSE) == TRUE) {
+    else if (resNodeUnlink(NULL,FALSE) == rn_error_none) {
       xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error 1 resNodeUnlink()\n");
     }
     else {
@@ -94,16 +94,16 @@ resNodeTestOperations(void)
     fputs((const char *)mucTestLabel,stderr);
     mucTestResult[0] = '\0';
 
-    if (resNodeMakeDirectoryStr(NULL, iMode) == TRUE) {
+    if (resNodeMakeDirectoryStr(NULL, iMode) == rn_error_none) {
       xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error 1 resNodeMakeDirectoryStr()\n");
     }
-    else if (resNodeMakeDirectoryStr(BAD_CAST TEMPPREFIX "test-res_node_ops/ooo/kkk", iMode) == FALSE) {
+    else if (resNodeMakeDirectoryStr(BAD_CAST TEMPPREFIX "test-res_node_ops/ooo/kkk", iMode) != rn_error_none) {
       xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error 2 resNodeMakeDirectoryStr()\n");
     }
     else if (resNodeTestDirStr(BAD_CAST TEMPPREFIX "test-res_node_ops/ooo/") == FALSE) {
       xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error 1 resNodeTestDirStr()\n");
     }
-    else if (resNodeUnlinkRecursivelyStr(BAD_CAST TEMPPREFIX "test-res_node_ops") == FALSE) {
+    else if (resNodeUnlinkRecursivelyStr(BAD_CAST TEMPPREFIX "test-res_node_ops") != rn_error_none) {
       xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error 3 resNodeUnlinkStr()\n");
     }
     else if (resNodeTestDirStr(BAD_CAST TEMPPREFIX "test-res_node_ops") == TRUE) {
@@ -136,7 +136,7 @@ resNodeTestOperations(void)
     else if (resNodeSetNameBaseDir(prnT, BAD_CAST TEMPPREFIX) == FALSE) {
       xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error 1 resNodeMakeDirectory()\n");
     }
-    else if (resNodeMakeDirectory(prnT, iMode) == FALSE) {
+    else if (resNodeMakeDirectory(prnT, iMode) != rn_error_none) {
       xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error 1 resNodeMakeDirectory()\n");
     }
     else {
@@ -159,44 +159,27 @@ resNodeTestOperations(void)
     resNodePtr prnTo = NULL;
 
     i++;
-    xmlStrPrintf(mucTestLabel,BUFFER_LENGTH,"\nTEST %i in '%s:%i': resNodeTransfer(copy) = ", i, __FILE__, __LINE__);
+    xmlStrPrintf(mucTestLabel,BUFFER_LENGTH,"\nTEST %i in '%s:%i': dummy arguments for resNodeTransfer() = ", i, __FILE__, __LINE__);
     fputs((const char *)mucTestLabel,stderr);
     mucTestResult[0] = '\0';
 
-    resNodeUnlinkStr(BAD_CAST TEMPPREFIX "test.ics");
-    
     if ((prnFrom = resNodeDirNew(BAD_CAST TESTPREFIX "option/pie/text/2446.ics")) == NULL) {
       xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error 1 resNodeDirNew()\n");
     }
     else if ((prnTo = resNodeDirNew(BAD_CAST TEMPPREFIX "test.ics")) == NULL) {
       xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error 2 resNodeDirNew()\n");
     }
-    else if (resNodeTransfer(NULL, NULL, FALSE) == TRUE) {
+    else if (resNodeTransfer(NULL, NULL, FALSE) == rn_error_none) {
       xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error 1 resNodeTransfer()\n");
     }
-    else if (resNodeTransfer(NULL, prnTo, FALSE) == TRUE) {
+    else if (resNodeTransfer(NULL, prnTo, FALSE) != rn_error_copy || resNodeGetError(prnTo) != rn_error_none) {
       xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error 2 resNodeTransfer()\n");
     }
-    else if (resNodeTransfer(prnFrom, NULL, FALSE) == TRUE) {
-      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error 3 resNodeTransferStr()\n");
-    }
-    else if (resNodeTestFileStr(BAD_CAST TESTPREFIX "option/pie/text/2446.ics") == FALSE) {
-      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error 1 resNodeTestFileStr()\n");
-    }
-    else if (resNodeTestFileStr(BAD_CAST TEMPPREFIX "test.ics") == TRUE) {
-      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error 2 resNodeTestFileStr()\n");
+    else if (resNodeTransfer(prnFrom, NULL, FALSE) == rn_error_none || resNodeGetError(prnFrom) != rn_error_none) {
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error 3 resNodeTransfer()\n");
     }
     else if (resNodeTestDirStr(BAD_CAST TEMPPREFIX) == FALSE) {
       xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeTestDirStr()\n");
-    }
-    else if (resNodeTransfer(prnFrom, prnTo, FALSE) == FALSE) {
-      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error 4 resNodeTransfer()\n");
-    }
-    else if (resNodeTestFileStr(BAD_CAST TESTPREFIX "option/pie/text/2446.ics") == FALSE) {
-      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error 3 resNodeTestFileStr()\n");
-    }
-    else if (resNodeTestFileStr(BAD_CAST TEMPPREFIX "test.ics") == FALSE) {
-      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error 4 resNodeTestFileStr()\n");
     }
     else {
       n_ok++;
@@ -206,26 +189,22 @@ resNodeTestOperations(void)
       pucModuleTestReport = xmlStrcat(pucModuleTestReport,mucTestLabel);
       pucModuleTestReport = xmlStrcat(pucModuleTestReport,mucTestResult);
     }
-    
-
-    resNodeFree(prnTo);
-    resNodeFree(prnFrom);
   }
 
-
-  if (SKIPTEST) {
+  
+  if (RUNTEST) {
     i++;
-    xmlStrPrintf(mucTestLabel,BUFFER_LENGTH,"\nTEST %i in '%s:%i': dummy arguments for resNodeTransferStr(copy) = ", i, __FILE__, __LINE__);
+    xmlStrPrintf(mucTestLabel,BUFFER_LENGTH,"\nTEST %i in '%s:%i': dummy arguments for resNodeTransferStr() = ", i, __FILE__, __LINE__);
     fputs((const char *)mucTestLabel,stderr);
     mucTestResult[0] = '\0';
 
-    if (resNodeTransferStr(NULL, NULL, FALSE) == TRUE) {
+    if (resNodeTransferStr(NULL, NULL, FALSE) == rn_error_none) {
       xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeTransferStr()\n");
     }
-    else if (resNodeTransferStr(NULL, BAD_CAST TEMPPREFIX, FALSE) == TRUE) {
+    else if (resNodeTransferStr(NULL, BAD_CAST TEMPPREFIX, FALSE) == rn_error_none) {
       xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeTransferStr()\n");
     }
-    else if (resNodeTransferStr(BAD_CAST TEMPPREFIX, NULL, FALSE) == TRUE) {
+    else if (resNodeTransferStr(BAD_CAST TEMPPREFIX, NULL, FALSE) == rn_error_none) {
       xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeTransferStr()\n");
     }
     else if (resNodeTestDirStr(BAD_CAST TEMPPREFIX) == FALSE) {
@@ -248,6 +227,64 @@ resNodeTestOperations(void)
     resNodePtr prnTo = NULL;
 
     i++;
+    xmlStrPrintf(mucTestLabel,BUFFER_LENGTH,"\nTEST %i in '%s:%i': resNodeTransfer(copy) = ", i, __FILE__, __LINE__);
+    fputs((const char *)mucTestLabel,stderr);
+    mucTestResult[0] = '\0';
+
+    resNodeUnlinkStr(BAD_CAST TEMPPREFIX "test.ics");
+    
+    if ((prnFrom = resNodeDirNew(BAD_CAST TESTPREFIX "option/pie/text/2446.ics")) == NULL) {
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error 1 resNodeDirNew()\n");
+    }
+    else if ((prnTo = resNodeDirNew(BAD_CAST TEMPPREFIX "test.ics")) == NULL) {
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error 2 resNodeDirNew()\n");
+    }
+    else if (resNodeTransfer(NULL, NULL, FALSE) != rn_error_copy) {
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error 1 resNodeTransfer()\n");
+    }
+    else if (resNodeTransfer(NULL, prnTo, FALSE) != rn_error_copy) {
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error 2 resNodeTransfer()\n");
+    }
+    else if (resNodeTransfer(prnFrom, NULL, FALSE) != rn_error_copy || resNodeGetError(prnFrom) != rn_error_none) {
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error 3 resNodeTransferStr()\n");
+    }
+    else if (resNodeTestFileStr(BAD_CAST TESTPREFIX "option/pie/text/2446.ics") == FALSE) {
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error 1 resNodeTestFileStr()\n");
+    }
+    else if (resNodeTestFileStr(BAD_CAST TEMPPREFIX "test.ics") == TRUE) {
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error 2 resNodeTestFileStr()\n");
+    }
+    else if (resNodeTestDirStr(BAD_CAST TEMPPREFIX) == FALSE) {
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeTestDirStr()\n");
+    }
+    else if (resNodeTransfer(prnFrom, prnTo, FALSE) != rn_error_none || resNodeGetError(prnFrom) != rn_error_none || resNodeGetError(prnTo) != rn_error_none) {
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error 4 resNodeTransfer()\n");
+    }
+    else if (resNodeTestFileStr(BAD_CAST TESTPREFIX "option/pie/text/2446.ics") == FALSE) {
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error 3 resNodeTestFileStr()\n");
+    }
+    else if (resNodeTestFileStr(BAD_CAST TEMPPREFIX "test.ics") == FALSE) {
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error 4 resNodeTestFileStr()\n");
+    }
+    else {
+      n_ok++;
+    }
+
+    if (xmlStrlen(mucTestResult) > 0) {
+      pucModuleTestReport = xmlStrcat(pucModuleTestReport,mucTestLabel);
+      pucModuleTestReport = xmlStrcat(pucModuleTestReport,mucTestResult);
+    }
+    
+    resNodeFree(prnTo);
+    resNodeFree(prnFrom);
+  }
+
+
+  if (RUNTEST) {
+    resNodePtr prnFrom = NULL;
+    resNodePtr prnTo = NULL;
+
+    i++;
     xmlStrPrintf(mucTestLabel,BUFFER_LENGTH,"\nTEST %i in '%s:%i': resNodeTransfer(move) = ", i, __FILE__, __LINE__);
     fputs((const char *)mucTestLabel,stderr);
     mucTestResult[0] = '\0';
@@ -258,13 +295,13 @@ resNodeTestOperations(void)
     else if ((prnTo = resNodeDirNew(BAD_CAST TEMPPREFIX "sub/subsub/t.ics")) == NULL) {
       xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error 2 resNodeDirNew()\n");
     }
-    else if (resNodeTransfer(NULL, NULL, TRUE) == TRUE) {
+    else if (resNodeTransfer(NULL, NULL, TRUE) == rn_error_none) {
       xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error 1 resNodeTransfer()\n");
     }
-    else if (resNodeTransfer(NULL, prnTo, TRUE) == TRUE) {
+    else if (resNodeTransfer(NULL, prnTo, TRUE) == rn_error_none) {
       xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error 2 resNodeTransfer()\n");
     }
-    else if (resNodeTransfer(prnFrom, NULL, TRUE) == TRUE) {
+    else if (resNodeTransfer(prnFrom, NULL, TRUE) == rn_error_none) {
       xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error 3 resNodeTransferStr()\n");
     }
     else if (resNodeTestFileStr(BAD_CAST TEMPPREFIX "sub/subsub/t.ics") == TRUE) {
@@ -276,7 +313,7 @@ resNodeTestOperations(void)
     else if (resNodeTestDirStr(BAD_CAST TEMPPREFIX) == FALSE) {
       xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeTestDirStr()\n");
     }
-    else if (resNodeTransfer(prnFrom, prnTo, TRUE) == FALSE) {
+    else if (resNodeTransfer(prnFrom, prnTo, TRUE) != rn_error_none) {
       xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error 4 resNodeTransferStr()\n");
     }
     else if (resNodeTestFileStr(BAD_CAST TEMPPREFIX "sub/subsub/t.ics") == FALSE) {
@@ -288,7 +325,7 @@ resNodeTestOperations(void)
     else if (resNodeTestDirStr(BAD_CAST TEMPPREFIX) == FALSE) {
       xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error 1 resNodeTestDirStr()\n");
     }
-    else if (resNodeUnlinkRecursivelyStr(BAD_CAST TEMPPREFIX "sub") == FALSE) {
+    else if (resNodeUnlinkRecursivelyStr(BAD_CAST TEMPPREFIX "sub") != rn_error_none) {
       xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error 3 resNodeUnlinkStr()\n");
     }
     else if (resNodeTestDirStr(BAD_CAST TEMPPREFIX "sub") == TRUE) {
@@ -308,36 +345,6 @@ resNodeTestOperations(void)
   }
 
 
-  if (SKIPTEST) {
-    i++;
-    xmlStrPrintf(mucTestLabel,BUFFER_LENGTH,"\nTEST %i in '%s:%i': dummy arguments for resNodeTransferStr(move) = ", i, __FILE__, __LINE__);
-    fputs((const char *)mucTestLabel,stderr);
-    mucTestResult[0] = '\0';
-
-    if (resNodeTransferStr(NULL, NULL, TRUE) == TRUE) {
-      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error 1 resNodeTransferStr()\n");
-    }
-    else if (resNodeTransferStr(NULL, BAD_CAST TEMPPREFIX, TRUE) == TRUE) {
-      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error 2 resNodeTransferStr()\n");
-    }
-    else if (resNodeTransferStr(BAD_CAST TEMPPREFIX, NULL, TRUE) == TRUE) {
-      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error 3 resNodeTransferStr()\n");
-    }
-    else if (resNodeTestDirStr(BAD_CAST TEMPPREFIX) == FALSE) {
-      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error 4 resNodeTestFileStr()\n");
-    }
-    else {
-      n_ok++;
-    }
-
-    if (xmlStrlen(mucTestResult) > 0) {
-      pucModuleTestReport = xmlStrcat(pucModuleTestReport,mucTestLabel);
-      pucModuleTestReport = xmlStrcat(pucModuleTestReport,mucTestResult);
-    }
-    
-  }
-
-
   if (RUNTEST) {
 
     i++;
@@ -345,7 +352,7 @@ resNodeTestOperations(void)
     fputs((const char *)mucTestLabel,stderr);
     mucTestResult[0] = '\0';
 
-    if (resNodeTransferStr(BAD_CAST TESTPREFIX "option/pie/text/2446.ics", BAD_CAST TEMPPREFIX, FALSE) == FALSE) {
+    if (resNodeTransferStr(BAD_CAST TESTPREFIX "option/pie/text/2446.ics", BAD_CAST TEMPPREFIX, FALSE) != rn_error_none) {
       xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeTransferStr()\n");
     }
     else if (resNodeTestFileStr(BAD_CAST TESTPREFIX "option/pie/text/2446.ics") == FALSE) {
@@ -354,7 +361,7 @@ resNodeTestOperations(void)
     else if (resNodeTestFileStr(BAD_CAST TEMPPREFIX "2446.ics") == FALSE) {
       xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error 2 resNodeTestFileStr()\n");
     }
-    else if (resNodeUnlinkStr(BAD_CAST TEMPPREFIX "2446.ics") == FALSE) {
+    else if (resNodeUnlinkStr(BAD_CAST TEMPPREFIX "2446.ics") != rn_error_none) {
       xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeUnlinkStr()\n");
     }
     else if (resNodeTestFileStr(BAD_CAST TEMPPREFIX "2446.ics") == TRUE) {
@@ -378,7 +385,7 @@ resNodeTestOperations(void)
     fputs((const char *)mucTestLabel,stderr);
     mucTestResult[0] = '\0';
 
-    if (resNodeTransferStr(BAD_CAST TESTPREFIX "option/pie/text/2446.ics", BAD_CAST TEMPPREFIX "test-res_node_ops/t2.txt", FALSE) == FALSE) {
+    if (resNodeTransferStr(BAD_CAST TESTPREFIX "option/pie/text/2446.ics", BAD_CAST TEMPPREFIX "test-res_node_ops/t2.txt", FALSE) != rn_error_none) {
       xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error 1 resNodeTransferStr()\n");
     }
     else if (resNodeTestFileStr(BAD_CAST TESTPREFIX "option/pie/text/2446.ics") == FALSE) {
@@ -387,7 +394,7 @@ resNodeTestOperations(void)
     else if (resNodeTestFileStr(BAD_CAST TEMPPREFIX "test-res_node_ops/t2.txt") == FALSE) {
       xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error 2 resNodeTestFileStr()\n");
     }
-    else if (resNodeUnlinkRecursivelyStr(BAD_CAST TEMPPREFIX "test-res_node_ops") == FALSE) {
+    else if (resNodeUnlinkRecursivelyStr(BAD_CAST TEMPPREFIX "test-res_node_ops") != rn_error_none) {
       xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error 3 resNodeUnlinkStr()\n");
     }
     else if (resNodeTestDirStr(BAD_CAST TEMPPREFIX "test-res_node_ops") == TRUE) {
@@ -409,7 +416,7 @@ resNodeTestOperations(void)
     i++;
     xmlStrPrintf(mucTestLabel,BUFFER_LENGTH,"\nTEST %i in '%s:%i': copying of an existing plain text file to stdout = ", i, __FILE__, __LINE__);
 
-    if (resNodeTransferStr(BAD_CAST TESTPREFIX "plain/test-unicode-bom.txt", BAD_CAST "-", FALSE) == FALSE) {
+    if (resNodeTransferStr(BAD_CAST TESTPREFIX "plain/test-unicode-bom.txt", BAD_CAST "-", FALSE) != rn_error_none) {
       xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeTransferStr()\n");
     }
     else if (resNodeTestFileStr(BAD_CAST TESTPREFIX "plain/test-unicode-bom.txt") == FALSE) {
@@ -434,13 +441,13 @@ resNodeTestOperations(void)
     fputs((const char *)mucTestLabel,stderr);
     mucTestResult[0] = '\0';
 
-    if (resNodeTransferStr(BAD_CAST TESTPREFIX "option\\archive\\test-zip-7.zip\\sub\\a.txt", BAD_CAST TEMPPREFIX, FALSE) == FALSE) {
+    if (resNodeTransferStr(BAD_CAST TESTPREFIX "option\\archive\\test-zip-7.zip\\sub\\a.txt", BAD_CAST TEMPPREFIX, FALSE) != rn_error_none) {
       xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeTransferStr()\n");
     }
     else if (resNodeTestFileStr(BAD_CAST TEMPPREFIX "a.txt") == FALSE) {
       xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error 1 resNodeTestFileStr()\n");
     }
-    else if (resNodeUnlinkStr(BAD_CAST TEMPPREFIX "a.txt") == FALSE) {
+    else if (resNodeUnlinkStr(BAD_CAST TEMPPREFIX "a.txt") != rn_error_none) {
       xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeUnlinkStr()\n");
     }
     else if (resNodeTestFileStr(BAD_CAST TESTPREFIX "option\\archive\\test-zip-7.zip") == FALSE) {
@@ -463,19 +470,19 @@ resNodeTestOperations(void)
     i++;
     xmlStrPrintf(mucTestLabel,BUFFER_LENGTH,"\nTEST %i in '%s:%i': avoid moving of an existing plain text file stderr oder stdout = ",i,__FILE__,__LINE__);
 
-    if (resNodeTransferStr(BAD_CAST TESTPREFIX "option/pie/text/2446.ics",BAD_CAST TEMPPREFIX "test-res_node_ops/source/t.txt", FALSE) == FALSE) {
+    if (resNodeTransferStr(BAD_CAST TESTPREFIX "option/pie/text/2446.ics",BAD_CAST TEMPPREFIX "test-res_node_ops/source/t.txt", FALSE) != rn_error_none) {
       xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeTransferStr()\n");
     }
     else if (resNodeTestFileStr(BAD_CAST TEMPPREFIX "test-res_node_ops/source/t.txt") == FALSE) {
       xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error 1 resNodeTestFileStr()\n");
     }
-    else if (resNodeTransferStr(BAD_CAST TEMPPREFIX "test-res_node_ops/source/t.txt",BAD_CAST"-", TRUE) == TRUE) {
+    else if (resNodeTransferStr(BAD_CAST TEMPPREFIX "test-res_node_ops/source/t.txt",BAD_CAST"-", TRUE) == rn_error_none) {
       xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error 1 resNodeTransferStr()\n");
     }
     else if (resNodeTestFileStr(BAD_CAST TEMPPREFIX "test-res_node_ops/source/t.txt") == FALSE) {
       xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error 2 resNodeTestFileStr()\n");
     }
-    else if (resNodeUnlinkRecursivelyStr(BAD_CAST TEMPPREFIX "test-res_node_ops") == FALSE) {
+    else if (resNodeUnlinkRecursivelyStr(BAD_CAST TEMPPREFIX "test-res_node_ops") != rn_error_none) {
       xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeUnlinkStr()\n");
     }
     else if (resNodeTestDirStr(BAD_CAST TEMPPREFIX "test-res_node_ops") == TRUE) {
@@ -497,34 +504,34 @@ resNodeTestOperations(void)
     i++;
     xmlStrPrintf(mucTestLabel,BUFFER_LENGTH,"\nTEST %i in '%s:%i': avoid moving of an existing plain text file into same directory = ",i,__FILE__,__LINE__);
 
-    if (resNodeTransferStr(BAD_CAST TESTPREFIX "option/pie/text/2446.ics",BAD_CAST TEMPPREFIX "test-res_node_ops/source/t.txt", FALSE) == FALSE) {
+    if (resNodeTransferStr(BAD_CAST TESTPREFIX "option/pie/text/2446.ics",BAD_CAST TEMPPREFIX "test-res_node_ops/source/t.txt", FALSE) != rn_error_none) {
       xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error 1 resNodeTransferStr()\n");
     }
-    else if (resNodeTransferStr(BAD_CAST TESTPREFIX "option/pie/text/2446.ics",BAD_CAST TEMPPREFIX "test-res_node_ops/source/u.txt", FALSE) == FALSE) {
+    else if (resNodeTransferStr(BAD_CAST TESTPREFIX "option/pie/text/2446.ics",BAD_CAST TEMPPREFIX "test-res_node_ops/source/u.txt", FALSE) != rn_error_none) {
       xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error 2 resNodeTransferStr()\n");
     }
     else if (resNodeTestFileStr(BAD_CAST TEMPPREFIX "test-res_node_ops/source/t.txt") == FALSE) {
       xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error 1 resNodeTestFileStr()\n");
     }
-    else if (resNodeTransferStr(BAD_CAST TEMPPREFIX "test-res_node_ops/source/t.txt",BAD_CAST TEMPPREFIX "test-res_node_ops/source/", TRUE) == TRUE) {
+    else if (resNodeTransferStr(BAD_CAST TEMPPREFIX "test-res_node_ops/source/t.txt",BAD_CAST TEMPPREFIX "test-res_node_ops/source/", TRUE) == rn_error_none) {
       xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error 1 resNodeTransferStr()\n");
     }
     else if (resNodeTestFileStr(BAD_CAST TEMPPREFIX "test-res_node_ops/source/t.txt") == FALSE) {
       xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error 2 resNodeTestFileStr()\n");
     }
-    else if (resNodeTransferStr(BAD_CAST TEMPPREFIX "test-res_node_ops/source/t.txt",BAD_CAST TEMPPREFIX "test-res_node_ops/source/t.txt", TRUE) == TRUE) {
+    else if (resNodeTransferStr(BAD_CAST TEMPPREFIX "test-res_node_ops/source/t.txt",BAD_CAST TEMPPREFIX "test-res_node_ops/source/t.txt", TRUE) == rn_error_none) {
       xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error 2 resNodeTransferStr()\n");
     }
     else if (resNodeTestFileStr(BAD_CAST TEMPPREFIX "test-res_node_ops/source/t.txt") == FALSE) {
       xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error 3 resNodeTestFileStr()\n");
     }
-    else if (resNodeTransferStr(BAD_CAST TEMPPREFIX "test-res_node_ops/source/t.txt",BAD_CAST TEMPPREFIX "test-res_node_ops/source/u.txt", TRUE) == TRUE) {
+    else if (resNodeTransferStr(BAD_CAST TEMPPREFIX "test-res_node_ops/source/t.txt",BAD_CAST TEMPPREFIX "test-res_node_ops/source/u.txt", TRUE) == rn_error_none) {
       xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error 3 resNodeTransferStr()\n");
     }
     else if (resNodeTestFileStr(BAD_CAST TEMPPREFIX "test-res_node_ops/source/t.txt") == FALSE) {
       xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error 4 resNodeTestFileStr()\n");
     }
-    else if (resNodeTransferStr(BAD_CAST TEMPPREFIX "test-res_node_ops/source/t.txt",BAD_CAST TEMPPREFIX "test-res_node_ops/source/u.txt", FALSE) == FALSE) {
+    else if (resNodeTransferStr(BAD_CAST TEMPPREFIX "test-res_node_ops/source/t.txt",BAD_CAST TEMPPREFIX "test-res_node_ops/source/u.txt", FALSE) != rn_error_none) {
       xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error 4 resNodeTransferStr()\n");
     }
     else if (resNodeTestFileStr(BAD_CAST TEMPPREFIX "test-res_node_ops/source/u.txt") == FALSE) {
@@ -533,7 +540,7 @@ resNodeTestOperations(void)
     else if (resNodeTestFileStr(BAD_CAST TEMPPREFIX "test-res_node_ops/source/t.txt") == FALSE) {
       xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error 6 resNodeTestFileStr()\n");
     }
-    else if (resNodeUnlinkRecursivelyStr(BAD_CAST TEMPPREFIX "test-res_node_ops") == FALSE) {
+    else if (resNodeUnlinkRecursivelyStr(BAD_CAST TEMPPREFIX "test-res_node_ops") != rn_error_none) {
       xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeUnlinkStr()\n");
     }
     else if (resNodeTestDirStr(BAD_CAST TEMPPREFIX "test-res_node_ops") == TRUE) {
@@ -557,25 +564,25 @@ resNodeTestOperations(void)
     mucTestResult[0] = '\0';
 
     if (
-      resNodeTransferStr(BAD_CAST TESTPREFIX "option/pie/text/2446.ics", BAD_CAST TEMPPREFIX "test-res_node_ops/source/t.txt", FALSE) == TRUE
+      resNodeTransferStr(BAD_CAST TESTPREFIX "option/pie/text/2446.ics", BAD_CAST TEMPPREFIX "test-res_node_ops/source/t.txt", FALSE) == rn_error_none
       && resNodeTestFileStr(BAD_CAST TESTPREFIX "option/pie/text/2446.ics") == TRUE
       && resNodeTestFileStr(BAD_CAST TEMPPREFIX "test-res_node_ops/source/t.txt") == TRUE
 #ifdef _MSC_VER
-      && resNodeTransferStr(BAD_CAST TEMPPREFIX "test-res_node_ops/source/t.txt", BAD_CAST"F:/tmp/test-res_node_ops/target/u.txt", TRUE) == TRUE
+      && resNodeTransferStr(BAD_CAST TEMPPREFIX "test-res_node_ops/source/t.txt", BAD_CAST"F:/tmp/test-res_node_ops/target/u.txt", TRUE) == rn_error_none
       && resNodeTestFileStr(BAD_CAST TEMPPREFIX "test-res_node_ops/source/t.txt") == FALSE
       && resNodeTestFileStr(BAD_CAST"F:/tmp/test-res_node_ops/target/u.txt") == TRUE
-      && resNodeUnlinkStr(BAD_CAST"F:/tmp/test-res_node_ops/target/u.txt") == TRUE
-      && resNodeUnlinkStr(BAD_CAST"F:/tmp/test-res_node_ops/target") == TRUE
-      && resNodeUnlinkStr(BAD_CAST"F:/tmp/test-res_node_ops/source") == TRUE
-      && resNodeUnlinkStr(BAD_CAST"F:/tmp/test-res_node_ops") == TRUE
+      && resNodeUnlinkStr(BAD_CAST"F:/tmp/test-res_node_ops/target/u.txt") == rn_error_none
+      && resNodeUnlinkStr(BAD_CAST"F:/tmp/test-res_node_ops/target") == rn_error_none
+      && resNodeUnlinkStr(BAD_CAST"F:/tmp/test-res_node_ops/source") == rn_error_none
+      && resNodeUnlinkStr(BAD_CAST"F:/tmp/test-res_node_ops") == rn_error_none
 #else
-      && resNodeTransferStr(BAD_CAST TEMPPREFIX "test-res_node_ops/source/t.txt", BAD_CAST TEMPPREFIX "test-res_node_ops/target/u.txt", TRUE) == TRUE
+      && resNodeTransferStr(BAD_CAST TEMPPREFIX "test-res_node_ops/source/t.txt", BAD_CAST TEMPPREFIX "test-res_node_ops/target/u.txt", TRUE) == rn_error_none
       && resNodeTestFileStr(BAD_CAST TEMPPREFIX "test-res_node_ops/source/t.txt") == FALSE
       && resNodeTestFileStr(BAD_CAST TEMPPREFIX "test-res_node_ops/target/u.txt") == TRUE
       && resNodeUnlinkStr(BAD_CAST TEMPPREFIX "test-res_node_ops/target/u.txt") == TRUE
-      && resNodeUnlinkStr(BAD_CAST TEMPPREFIX "test-res_node_ops/target") == TRUE
-      && resNodeUnlinkStr(BAD_CAST TEMPPREFIX "test-res_node_ops/source") == TRUE
-      && resNodeUnlinkStr(BAD_CAST TEMPPREFIX "test-res_node_ops") == TRUE
+      && resNodeUnlinkStr(BAD_CAST TEMPPREFIX "test-res_node_ops/target") == rn_error_none
+      && resNodeUnlinkStr(BAD_CAST TEMPPREFIX "test-res_node_ops/source") == rn_error_none
+      && resNodeUnlinkStr(BAD_CAST TEMPPREFIX "test-res_node_ops") == rn_error_none
 #endif
       ) {
       n_ok++;

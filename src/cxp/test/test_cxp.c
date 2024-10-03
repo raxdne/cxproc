@@ -624,6 +624,18 @@ cxpTest(cxpContextPtr pccArg)
     else if (resNodeTestFileStr(BAD_CAST TEMPPREFIX "dummy/abc.pie") == FALSE) {
       printf("Error 9\n");
     }
+    else if ((xmlSetProp(pndCopy, BAD_CAST"to", BAD_CAST TEMPPREFIX "dummy/")) == NULL) {
+      printf("Error 10\n");
+    }
+    else if (cxpProcessCopyNode(pndCopy,pccTest) == FALSE) {
+      printf("Error 11\n");
+    }
+    else if (resNodeTestDirStr(BAD_CAST TEMPPREFIX "dummy") == FALSE) {
+      printf("Error 12\n");
+    }
+    else if (resNodeTestFileStr(BAD_CAST TEMPPREFIX "dummy/abc.pie") == FALSE) {
+      printf("Error 13\n");
+    }
     else {
       n_ok++;
       printf("OK\n");

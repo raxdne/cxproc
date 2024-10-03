@@ -499,14 +499,8 @@ dbProcessDirNode(resNodePtr prnArgDb, xmlNodePtr pndArgDir, cxpContextPtr pccArg
   }
 
   /*!\todo set depth attribute per single dir element, instead of global */
-  if ((pucAttrDepth = domGetPropValuePtr(pndArgDir,BAD_CAST "depth"))!=NULL
-      && ((iDepth = atoi((char *)pucAttrDepth)) > 0)) {
-    cxpCtxtLogPrint(pccArg,2,"Set DIR depth to '%i'", iDepth);
-  }
-  else {
-    iDepth = 9999;
-  }
 
+  iDepth = domGetPropInt(pndArgDir, BAD_CAST "depth", 999);
   iLevelVerbose = dirMapInfoVerbosity(pndArgDir,pccArg);
   
 #ifdef HAVE_PCRE2

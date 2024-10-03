@@ -182,6 +182,8 @@ typedef enum {
   rn_error_owner,
   rn_error_access,
   rn_error_copy,
+  rn_error_source,
+  rn_error_target,
   rn_error_write,
   rn_error_busy,
   rn_error_parse,
@@ -346,6 +348,12 @@ resNodeDup(resNodePtr prnArg, int iArgOptions);
 
 extern resNodePtr
 resNodeStrNew(xmlChar *pucArgPath);
+
+extern BOOL_T
+resNodeTestDirStr(xmlChar *pucArgPath);
+
+extern BOOL_T
+resNodeTestFileStr(xmlChar *pucArgPath);
 
 #ifdef HAVE_LIBCURL
 
@@ -518,6 +526,9 @@ resNodeIsExecuteable(resNodePtr prnArg);
 
 extern BOOL_T
 resNodeIsWriteable(resNodePtr prnArg);
+
+extern BOOL_T
+resNodeParentIsWriteable(resNodePtr prnArg);
 
 extern BOOL_T
 resNodeIsCreateable(resNodePtr prnArg);

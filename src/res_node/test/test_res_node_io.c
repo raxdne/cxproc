@@ -416,7 +416,7 @@ resNodeTestInOut(void)
   if (RUNTEST) {
     resNodePtr prnT = NULL;
     xmlChar *pucContent = NULL;
-size_t s = 2895;
+    size_t s = 2895;
 
     i++;
     printf("TEST %i in '%s:%i': open and close a local HTTP file context on high level  = ",i,__FILE__,__LINE__);

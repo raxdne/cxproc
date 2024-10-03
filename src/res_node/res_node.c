@@ -456,6 +456,52 @@ resNodeInMemoryNew(void)
 } /* end of resNodeInMemoryNew() */
 
 
+/*! Tests the readability of a directory with given name.
+
+  \param pucArgPath relative or absolute path
+  \return TRUE if the named directory is is readable
+*/
+BOOL_T
+resNodeTestDirStr(xmlChar *pucArgPath)
+{
+  BOOL_T fResult = FALSE;
+
+  if (STR_IS_NOT_EMPTY(pucArgPath)) {
+    resNodePtr prnDir;
+
+    prnDir = resNodeDirNew(pucArgPath);
+    if (resNodeReadStatus(prnDir)) {
+      fResult = resNodeIsDir(prnDir);
+    }
+    resNodeFree(prnDir);
+  }
+  return fResult;
+} /* end of resNodeTestDirStr() */
+
+
+/*! tests the readability of a file with given name
+
+  \param pucArgPath relative or absolute path
+  \return TRUE if the named file is is readable
+*/
+BOOL_T
+resNodeTestFileStr(xmlChar *pucArgPath)
+{
+  BOOL_T fResult = FALSE;
+
+  if (STR_IS_NOT_EMPTY(pucArgPath)) {
+    resNodePtr prnFile;
+
+    prnFile = resNodeDirNew(pucArgPath);
+    if (resNodeReadStatus(prnFile)) {
+      fResult = resNodeIsFile(prnFile);
+    }
+    resNodeFree(prnFile);
+  }
+  return fResult;
+} /* end of resNodeTestFileStr() */
+
+
 #if defined(_MSC_VER) && ! defined(__cplusplus)
 
 /*! resolves a Windows Shell link
@@ -2757,6 +2803,25 @@ resNodeIsWriteable(resNodePtr prnArg)
 } /* end of resNodeIsWriteable() */
 
 
+/*! \return TRUE if prnArg check if parent directory is writeable
+
+\bug check for ROOT, stdin etc 
+ */
+BOOL_T
+resNodeParentIsWriteable(resNodePtr prnArg)
+{
+  BOOL_T fResult = FALSE;
+  resNodePtr prnT;
+
+  if ((prnT = resNodeDup(prnArg, RN_DUP_THIS)) != NULL) {
+    resNodeSetToParent(prnT);
+    fResult = (resNodeReadStatus(prnT) && resNodeIsWriteable(prnT) && prnT->fWrite);
+    resNodeFree(prnT);
+  }
+  return fResult;
+} /* end of resNodeIsWriteable() */
+
+
 /*! \return TRUE if prnArg is existing or createable
  */
 BOOL_T
@@ -2779,7 +2844,7 @@ resNodeIsCreateable(resNodePtr prnArg)
    else { /* check if parent directory is writeable */
       resNodePtr prnT;
 
-      prnT = resNodeDup(prnArg, 0);
+      prnT = resNodeDup(prnArg, RN_DUP_THIS);
       if (prnT) {
 	resNodeSetToParent(prnT);
 	fResult = resNodeIsWriteable(prnT);

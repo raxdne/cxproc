@@ -328,6 +328,28 @@ domGetFirstChild(xmlNodePtr pndArg, xmlChar *pucNameElement)
 /* End of domGetFirstChild() */
 
 
+/*! domGetPropInt
+\param pndArg parent node for attributes
+\param pucNameAttr name of wanted attribute
+\param iDefault default return value if attribute not found
+\return a Int value according to attribute value
+*/
+int
+domGetPropInt(xmlNodePtr pndArg, xmlChar *pucNameAttr, int iDefault)
+{
+  int iResult = -1;
+  xmlChar *pucAttr = domGetPropValuePtr(pndArg, pucNameAttr);
+
+  if (STR_IS_NOT_EMPTY(pucAttr)) {
+    iResult = atoi(pucAttr);
+  }
+  else {
+    iResult = iDefault;
+  }
+  return iResult;
+} /* End of domGetPropInt() */
+
+
 /*! domGetPropFlag
 \param pndArg parent node for attributes
 \param pucNameAttr name of wanted attribute

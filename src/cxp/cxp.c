@@ -905,7 +905,7 @@ cxpProcessPlainNode(xmlNodePtr pndArg, cxpContextPtr pccArg)
   //xmlChar *pucAttrNameCacheAs;
 
 #ifdef DEBUG
-  cxpCtxtLogPrint(pccArg,1,"pieProcessPlainNode(pndArg=%0x,pccArg=%0x)",pndArg,pccArg);
+  cxpCtxtLogPrint(pccArg,1,"cxpProcessPlainNode(pndArg=%0x,pccArg=%0x)",pndArg,pccArg);
 #endif
 
   if (IS_VALID_NODE(pndArg) == FALSE) {
@@ -1578,7 +1578,7 @@ cxpProcessSystemNode(xmlNodePtr pndArg, cxpContextPtr pccArg)
 
       if ((prnMkdir = resNodeConcatNew(cxpCtxtLocationGetStr(pccHere),pucAttrT))) {
         /*!\todo use umask for MODE_DIR_CREATE */
-        fResult = resNodeMakeDirectoryStr(resNodeGetNameNormalized(prnMkdir),MODE_DIR_CREATE);
+        fResult = (resNodeMakeDirectoryStr(resNodeGetNameNormalized(prnMkdir),MODE_DIR_CREATE) == rn_error_none);
         resNodeFree(prnMkdir);
         cxpViewNodeResult(pndArg, pccHere);
       }
@@ -1635,7 +1635,11 @@ cxpProcessMakeNode(xmlNodePtr pndArg,cxpContextPtr pccArg)
       return;
     }
 
+#ifdef HAVE_CGI
+    pccHere = pccArg;
+#else
     pccHere = cxpCtxtFromAttr(pccArg, pndArg);
+#endif
 
     if (IS_NODE_MAKE(pndArg)) {
       /*
@@ -3008,6 +3012,8 @@ cxpProcessCopyNode(xmlNodePtr pndArgCopy, cxpContextPtr pccArg)
   BOOL_T fResult = FALSE;
 
   if (IS_NODE_FILECOPY(pndArgCopy)) {
+    BOOL_T fMove = FALSE;
+    BOOL_T fSearch = FALSE;
     xmlChar *pucFrom = NULL;
     xmlChar *pucTo = NULL;
     xmlChar *pucAttrResponse = NULL;
@@ -3015,39 +3021,41 @@ cxpProcessCopyNode(xmlNodePtr pndArgCopy, cxpContextPtr pccArg)
     resNodePtr prnContent = NULL;
     resNodePtr prnTo = NULL;
 
-    if ((pucTo = domGetPropValuePtr(pndArgCopy, BAD_CAST "to")) == NULL || *pucTo == '\0'
-      || (prnTo = cxpResNodeResolveNew(pccArg, pndArgCopy, pucTo, CXP_O_WRITE)) == NULL) {
+    pucFrom = domGetPropValuePtr(pndArgCopy, BAD_CAST "from");
+    pucTo = domGetPropValuePtr(pndArgCopy, BAD_CAST "to");
+    fMove = domGetPropFlag(pndArgCopy, BAD_CAST "delete", FALSE);
+    fSearch = domGetPropFlag(pndArgCopy, BAD_CAST "search", FALSE);
+
 #ifdef HAVE_CGI
+    if (STR_IS_EMPTY(pucTo) || (prnTo = resNodeFromNodeNew(cxpCtxtRootGet(pccArg), pucTo)) == NULL || cxpCtxtAccessIsPermitted(pccArg, prnTo) == FALSE) {
       printf("Status: 507\r\n"
-	"Content-Type: text/plain\r\n\r\n"
-	"Cxproc write error '%s'\r\n", pucTo);
-#endif
+	     "Content-Type: text/plain\r\n\r\n"
+	     "Cxproc write error '%s = '%s''\r\n",
+	     pucTo, resNodeGetErrorMsg(prnTo));
+      cxpCtxtLogPrint(pccArg, 1, "DIR '%s'", resNodeGetNameNormalized(prnTo));
+    }
+#else
+    if (STR_IS_EMPTY(pucTo) || (prnTo = cxpResNodeResolveNew(pccArg, pndArgCopy, pucTo, CXP_O_WRITE)) == NULL || cxpCtxtAccessIsPermitted(pccArg, prnTo) == FALSE) {
       cxpCtxtLogPrint(pccArg, 1, "No valid target name");
     }
-    else if ((pucFrom = domGetPropValuePtr(pndArgCopy, BAD_CAST "from")) == NULL || *pucFrom == '\0'
-      || (prnFrom = cxpResNodeResolveNew(pccArg, pndArgCopy, pucFrom, ((domGetPropFlag(pndArgCopy, BAD_CAST"search", FALSE)) ? CXP_O_SEARCH | CXP_O_READ : CXP_O_READ))) == NULL) {
+#endif
+    else if (STR_IS_EMPTY(pucFrom) ||
+	     (prnFrom = cxpResNodeResolveNew(pccArg, pndArgCopy, pucFrom, (fSearch ? CXP_O_SEARCH | CXP_O_READ : CXP_O_READ))) == NULL
+					     || cxpCtxtAccessIsPermitted(pccArg, prnFrom) == FALSE) {
 #ifdef HAVE_CGI
       printf("Status: 507\r\n"
-	"Content-Type: text/plain\r\n\r\n"
-	"Cxproc read error '%s'\r\n", pucFrom);
+	     "Content-Type: text/plain\r\n\r\n"
+	     "Cxproc read error '%s' = '%s'\r\n",
+	     pucFrom, resNodeGetErrorMsg(prnFrom));
 #endif
       cxpCtxtLogPrint(pccArg, 1, "No valid source name '%s'", pucFrom);
     }
-    else if (cxpCtxtAccessIsPermitted(pccArg, prnFrom) == FALSE
-      || cxpCtxtAccessIsPermitted(pccArg, prnTo) == FALSE) {
+    else if ((prnContent = resNodeGetLastDescendant(prnFrom)) == NULL || resNodeIsDir(prnContent) || resNodeIsDirInArchive(prnContent)) {
 #ifdef HAVE_CGI
       printf("Status: 503\r\n"
-	"Content-Type: text/plain\r\n\r\n"
-	"Cxproc access error '%s' '%s'\r\n", pucFrom, pucTo);
-#endif
-      cxpCtxtLogPrint(pccArg, 1, "Cxproc access error '%s' '%s'\r\n", pucFrom, pucTo);
-    }
-    else if ((prnContent = resNodeGetLastDescendant(prnFrom)) == NULL
-      || resNodeIsDir(prnContent) || resNodeIsDirInArchive(prnContent)) {
-#ifdef HAVE_CGI
-      printf("Status: 503\r\n"
-	"Content-Type: text/plain\r\n\r\n"
-	"Cxproc access error '%s' '%s'\r\n", pucFrom, pucTo);
+	     "Content-Type: text/plain\r\n\r\n"
+	     "Cxproc access error '%s' '%s' = '%s'\r\n",
+	     pucFrom, pucTo, resNodeGetErrorMsg(prnContent));
 #endif
       cxpCtxtLogPrint(pccArg, 1, "Cxproc access error '%s' '%s'\r\n", pucFrom, pucTo);
     }
@@ -3057,42 +3065,65 @@ cxpProcessCopyNode(xmlNodePtr pndArgCopy, cxpContextPtr pccArg)
       xmlChar *pucAttrType = domGetPropValuePtr(pndArgCopy, BAD_CAST "type");
       xmlChar *pucAttrDisposition = domGetPropValuePtr(pndArgCopy, BAD_CAST "disposition");
 
-      printf("Content-Type: %s\n", (pucAttrType && xmlStrlen(pucAttrType)>5) ? pucAttrType : BAD_CAST resNodeGetMimeTypeStr(prnContent));
-      printf("Content-Disposition: attachment; filename=%s\n", (pucAttrDisposition && xmlStrlen(pucAttrDisposition)>5) ? pucAttrDisposition : resNodeGetNameBase(prnContent));
+      printf("Content-Type: %s\n", (pucAttrType && xmlStrlen(pucAttrType) > 5) ? pucAttrType : BAD_CAST resNodeGetMimeTypeStr(prnContent));
+      printf("Content-Disposition: attachment; filename=%s\n",
+	     (pucAttrDisposition && xmlStrlen(pucAttrDisposition) > 5) ? pucAttrDisposition : resNodeGetNameBase(prnContent));
       printf("Content-Description: Dynamic cxproc content\n\n");
 #endif
-      if (resNodeTransfer(prnContent, prnTo, FALSE) == FALSE) {
+      if (resNodeTransfer(prnContent, prnTo, FALSE) != rn_error_none) {
 #ifdef HAVE_CGI
 	printf("Status: 503\r\n"
-	  "Content-Type: text/plain\r\n\r\n"
-	  "Cxproc copy error '%s' '%s'\r\n", pucFrom, pucTo);
+	       "Content-Type: text/plain\r\n\r\n"
+	       "Cxproc copy error '%s' '%s' = '%s'\r\n",
+	       pucFrom, pucTo, resNodeGetErrorMsg(prnFrom));
 #endif
       }
       else {
 	fResult = TRUE;
       }
     }
-    else if (resNodeTransfer(prnContent, prnTo, domGetPropFlag(pndArgCopy, BAD_CAST "delete", FALSE)) == FALSE) {
+    else if (resNodeTransfer(prnContent, prnTo, fMove) != rn_error_none || resNodeReadStatus(prnTo) == FALSE) {
 #ifdef HAVE_CGI
       printf("Status: 503\r\n"
-	"Content-Type: text/plain\r\n\r\n"
-	"Cxproc copy error '%s' '%s'\r\n", pucFrom, pucTo);
+	     "Content-Type: text/plain\r\n\r\n"
+	     "Cxproc %s error:\r\n  '%s' = '%s'\r\n  '%s' = '%s'\r\n",
+	     fMove ? "move" : "copy",
+	     pucFrom, resNodeGetErrorMsg(prnFrom) ? resNodeGetErrorMsg(prnFrom) : "",
+	     pucTo, resNodeGetErrorMsg(prnTo) ? resNodeGetErrorMsg(prnTo) : "");
 #endif
     }
     else {
       fResult = TRUE;
+      printf("Status: 200 OK\r\n"
+	     "Content-Type: text/plain;\r\n\r\n"
+	     "Cxproc %s '%s' '%s' OK\r\n",
+	     fMove ? "move" : "copy",
+	     pucFrom, pucTo);
     }
 
-#ifdef HAVE_CGI
-    if ((pucAttrResponse = domGetPropValuePtr(pndArgCopy, BAD_CAST "response"))) {
+#if 0
+    if (fResult == FALSE) {
+      printf("Status: 503 OK\r\n"
+	     "Content-Type: text/plain;\r\n\r\n"
+	     "Cxproc '%s' '%s' = '%s'\r\n",
+	     pucFrom, pucTo, resNodeGetErrorMsg(prnTo));
+    }
+    else if ((pucAttrResponse = domGetPropValuePtr(pndArgCopy, BAD_CAST "response"))) {
       printf("Status: 200 OK\r\n"
-	"Content-Type: text/plain;\r\n\r\n"
-	"Cxproc '%s' '%s' = '%s' OK\r\n", pucFrom, pucTo, pucAttrResponse);
+	     "Content-Type: text/plain;\r\n\r\n"
+	     "Cxproc '%s' '%s' = '%s' OK\r\n",
+	     pucFrom, pucTo, pucAttrResponse);
+    }
+    else {
+      printf("Status: 200 OK\r\n"
+	     "Content-Type: text/plain;\r\n\r\n"
+	     "Cxproc '%s' '%s' OK\r\n",
+	     pucFrom, pucTo);
     }
 #endif
-    
+
     fflush(stdout); /*! because problems with VC++ (reverse order in stdout) */
-    
+
     resNodeFree(prnTo);
     resNodeFree(prnFrom);
     cxpViewNodeResult(pndArgCopy, pccArg);

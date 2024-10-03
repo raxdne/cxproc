@@ -78,7 +78,7 @@ resNodeEatContentDoc(resNodePtr prnArg);
 extern xmlDocPtr
 resNodeGetContentDoc(resNodePtr prnArg);
 
-extern BOOL_T
+extern RN_ERROR
 resNodeSwapContent(resNodePtr prnArgFrom, resNodePtr prnArgTo);
 
 extern xmlDocPtr

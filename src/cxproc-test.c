@@ -113,6 +113,7 @@
 #include "test/test_pcre.c"
 #include "test/test_threads.c"
 #include "test/test_dt.c"
+#include "test/test_io.c"
 #ifdef HAVE_LIBARCHIVE
 #include "test/test_libarchive.c"
 #endif
@@ -202,8 +203,7 @@ main(int argc, char** argv, char** envp)
     assert(resNodeTestDirStr(BAD_CAST TESTPREFIX));
 
     // !!! DANGER !!! resNodeUnlinkRecursivelyStr(BAD_CAST TEMPPREFIX); has deleted 2 home directories 2021-12-05 :-(
-    if (resNodeMakeDirectoryStr(BAD_CAST TEMPPREFIX, MODE_DIR_CREATE)
-        && resNodeTestDirStr(BAD_CAST TEMPPREFIX)) {
+    if (resNodeMakeDirectoryStr(BAD_CAST TEMPPREFIX, MODE_DIR_CREATE) == rn_error_none) {
 
       if (pcTest == NULL || xmlStrEqual(BAD_CAST pcTest, BAD_CAST "basics")) {
 #ifdef HAVE_LIBCURL
@@ -214,6 +214,7 @@ main(int argc, char** argv, char** envp)
 	iErrorCode += pcreTest();
 	iErrorCode += threadTest();
 	iErrorCode += dtTest();
+	iErrorCode += ioTest();
 	iErrorCode += utilsTest();
 	iErrorCode += ceTest();
 	iErrorCode += zipTest();

@@ -45,18 +45,15 @@
 
   \bug handling of stdin, stdout
 */
-BOOL_T
+RN_ERROR
 resNodeTransferStr(xmlChar *pucArgFrom, xmlChar *pucArgTo, BOOL_T fArgMove)
 {
-  BOOL_T fResult = FALSE;
+  RN_ERROR eResult = rn_error_undef;
 
 #ifdef DEBUG
   PrintFormatLog(4,"resNodeTransferStr('%s','%s',%i)",pucArgFrom, pucArgTo, fArgMove);
 #endif
 
-  assert(resPathIsAbsolute(pucArgFrom));
-  assert(resPathIsAbsolute(pucArgTo));
-  
   if (STR_IS_EMPTY(pucArgFrom)) {
     PrintFormatLog(1,"No valid source name '%s'", pucArgFrom);
   }
@@ -69,11 +66,11 @@ resNodeTransferStr(xmlChar *pucArgFrom, xmlChar *pucArgTo, BOOL_T fArgMove)
 
     prnFrom = resNodeDirNew(pucArgFrom);
     prnTo = resNodeDirNew(pucArgTo);
-    fResult = resNodeTransfer(resNodeGetLastDescendant(prnFrom), prnTo, fArgMove);
+    eResult = resNodeTransfer(resNodeGetLastDescendant(prnFrom), prnTo, fArgMove);
     resNodeFree(prnTo);
     resNodeFree(prnFrom);
   }
-  return fResult;
+  return eResult;
 } /* end of resNodeTransferStr() */
 
 
@@ -98,18 +95,21 @@ resNodeTransferStr(xmlChar *pucArgFrom, xmlChar *pucArgTo, BOOL_T fArgMove)
     \todo accept stdin and http://
     \todo also other types of URI
 */
-BOOL_T
+RN_ERROR
 resNodeTransfer(resNodePtr prnArgFrom, resNodePtr prnArgTo, BOOL_T fArgMove)
 {
-  BOOL_T fResult = TRUE;
+  RN_ERROR eResult = rn_error_none;
 
   /********************************************************************************
      check source
   */
-  if (fResult) {
-    if (resNodeIsError(prnArgFrom)) {
+  if (eResult == rn_error_none) {
+    if (prnArgFrom == NULL) {
+      eResult = rn_error_copy;
+    }
+    else if (resNodeIsError(prnArgFrom)) {
       resNodeSetError(prnArgFrom,rn_error_copy,"Copy source contexts not usable");
-      fResult = FALSE;
+      eResult = rn_error_undef;
     }
     else if (resNodeReadStatus(prnArgFrom)) { /* try to get some context info */
       if (resNodeIsURL(prnArgFrom)) {
@@ -119,34 +119,41 @@ resNodeTransfer(resNodePtr prnArgFrom, resNodePtr prnArgTo, BOOL_T fArgMove)
 #ifdef HAVE_LIBARCHIVE
 #else
 	PrintFormatLog(1, "un-archiving not compiled");
-	fResult = FALSE;
+	eResult = rn_error_undef;
 #endif
       }
       else if (resNodeIsArchive(prnArgFrom)) {
       }
       else if (resNodeGetType(prnArgFrom) != rn_type_file) {
 	resNodeSetError(prnArgFrom,rn_error_copy,"Copy source context is not an existing file with content");
-	fResult = FALSE;
+	eResult = rn_error_undef;
+      }
+      else if (fArgMove && resNodeParentIsWriteable(prnArgFrom) == FALSE) {
+	resNodeSetError(prnArgFrom,rn_error_access,"Move of source context is not permitted");
+	eResult = rn_error_access;
       }
     }
     else {
       resNodeSetError(prnArgFrom,rn_error_copy, "Cant copy source context");
-      fResult = FALSE;
+      eResult = rn_error_undef;
     }
   }
 
   /********************************************************************************
      check destination
   */
-  if (fResult) {
-    if (resNodeIsError(prnArgTo) && resNodeGetError(prnArgTo) != rn_error_stat) {
+  if (eResult == rn_error_none) {
+    if (prnArgTo == NULL) {
+      eResult = rn_error_copy;
+    }
+    else if (resNodeIsError(prnArgTo) && resNodeGetError(prnArgTo) != rn_error_stat) {
       resNodeSetError(prnArgTo,rn_error_copy,"Copy destination contexts not usable");
-      fResult = FALSE;
+      eResult = rn_error_undef;
     }
     else if (resNodeIsStd(prnArgTo)) {
       if (fArgMove) {
 	resNodeSetError(prnArgTo, rn_error_copy, "Moving to stdout is not permitted");
-	fResult = FALSE;
+	eResult = rn_error_undef;
       }
     }
     else if (resNodeReadStatus(prnArgTo)) { /* try to get some context info */
@@ -157,16 +164,26 @@ resNodeTransfer(resNodePtr prnArgFrom, resNodePtr prnArgTo, BOOL_T fArgMove)
       }
       else if (resNodeIsFile(prnArgTo) && fArgMove) {
 	resNodeSetError(prnArgTo,rn_error_copy,"Cant move file to an existing one");
-	fResult = FALSE;
+	/*!\todo move to filename with iteration suffix 'abc.txt.1' */
+	eResult = rn_error_undef;
+      }
+    }
+    else if (resNodeIsFile(prnArgTo) && resNodeParentIsWriteable(prnArgTo) == FALSE) { /* path is a file, but base directory not existant yet */
+      if (resNodeMakeDirectoryStr(resNodeGetNameBaseDir(prnArgTo), MODE_DIR_CREATE) == rn_error_none) {
+	resNodeReadStatus(prnArgTo); /* try to get some context info */
+      }
+      else {
+	//resNodeSetError(prnArgTo,rn_error_mkdir,"Cant move file to an existing one");
+	eResult = rn_error_mkdir;
       }
     }
     else if (resNodeIsDir(prnArgTo) || resPathIsDir(resNodeGetNameNormalized(prnArgTo))) { /* path is a directory, but not existant yet */
-      if (resNodeMakeDirectoryStr(resNodeGetNameNormalized(prnArgTo), MODE_DIR_CREATE) == TRUE) {
+      if (resNodeMakeDirectoryStr(resNodeGetNameNormalized(prnArgTo), MODE_DIR_CREATE) == rn_error_none) {
 	resNodeConcat(prnArgTo, resNodeGetNameBase(prnArgFrom));
 	resNodeReadStatus(prnArgTo); /* try to get some context info */
       }
       else {
-	fResult = FALSE;
+	eResult = rn_error_mkdir;
       }
     }
     else { /* prnArgTo is an non-existing file node */
@@ -174,70 +191,65 @@ resNodeTransfer(resNodePtr prnArgFrom, resNodePtr prnArgTo, BOOL_T fArgMove)
 
     if (resNodeIsReadable(prnArgTo) && fArgMove) {
       resNodeSetError(prnArgTo,rn_error_copy,"Cant move file to an existing one");
-      fResult = FALSE;
+      eResult = rn_error_undef;
     }
   }
 
   /********************************************************************************
      check source to destination
   */
-  if (fResult) {
+  if (eResult == rn_error_none) {
     if (resPathIsEquivalent(resNodeGetNameNormalized(prnArgTo),resNodeGetNameNormalized(prnArgFrom))) {
       resNodeSetError(prnArgTo,rn_error_copy,"Source and destination are the same file '%s'",
 		      resNodeGetNameNormalized(prnArgFrom));
-      fResult = FALSE;
+      eResult = rn_error_undef;
     }
   }
 
   /********************************************************************************
      ... and action ...
   */
-  if (fResult) {
+  if (eResult == rn_error_none) {
     if (resNodeIsStd(prnArgTo)) {
-      fResult = (resNodeGetContent(prnArgFrom,1024) && resNodeSwapContent(prnArgFrom, prnArgTo) && resNodePutContent(prnArgTo));
+      eResult = (resNodeGetContent(prnArgFrom, 1024) && resNodeSwapContent(prnArgFrom, prnArgTo) && resNodePutContent(prnArgTo));
     }
-    else if (resNodeMakeDirectoryStr(resNodeGetNameBaseDir(prnArgTo),MODE_DIR_CREATE) == FALSE) {
-      fResult = FALSE;
+    else if (resNodeMakeDirectoryStr(resNodeGetNameBaseDir(prnArgTo), MODE_DIR_CREATE) != rn_error_none) {
+      eResult = rn_error_undef;
     }
     else if (fArgMove) {
-      int err;
+      int e;
 
-      PrintFormatLog(3,"Move '%s' to '%s'",
-		     resNodeGetNameNormalized(prnArgFrom),
-		     resNodeGetNameNormalized(prnArgTo));
+      PrintFormatLog(3, "Move '%s' to '%s'", resNodeGetNameNormalized(prnArgFrom), resNodeGetNameNormalized(prnArgTo));
 #ifdef _MSC_VER
-      err = MoveFile(resNodeGetNameNormalizedNative(prnArgFrom),
-		     resNodeGetNameNormalizedNative(prnArgTo));
-      if (err == 0) {
-	resNodeSetError(prnArgTo,rn_error_copy,"Move error '%i'", GetLastError());
+      e = MoveFile(resNodeGetNameNormalizedNative(prnArgFrom), resNodeGetNameNormalizedNative(prnArgTo));
+      if (e == 0) {
+	resNodeSetError(prnArgTo, rn_error_copy, "Move error '%i'", GetLastError());
       }
 #else
       /* detect distinct volumes and combine copy() and unlink() */
-      err = rename(resNodeGetNameNormalizedNative(prnArgFrom),
-		   resNodeGetNameNormalizedNative(prnArgTo));
-      if (err) {
-	if (errno==EROFS || errno==EXDEV) {
+      e = rename(resNodeGetNameNormalizedNative(prnArgFrom), resNodeGetNameNormalizedNative(prnArgTo));
+      if (e) {
+	if (errno == EROFS || errno == EXDEV) {
 	  /* rename fails if different volumes */
-	  resNodeSetError(prnArgFrom,rn_error_copy,"Cant move to an other filesystem, will copy instead");
-	  fResult = (resNodeTransfer(prnArgFrom,prnArgTo,FALSE)
-		     && resNodeUnlink(prnArgFrom,FALSE));
+	  resNodeSetError(prnArgFrom, rn_error_copy, "Cant move to an other filesystem, will copy instead");
+	  eResult = (resNodeTransfer(prnArgFrom, prnArgTo, FALSE) && resNodeUnlink(prnArgFrom, FALSE));
 	}
 	else {
-	  resNodeSetError(prnArgFrom,rn_error_copy,"Error moving '%i'",errno);
+	  resNodeSetError(prnArgFrom, rn_error_copy, "Error moving '%i'", errno);
 	}
-	//prnArgTo->eError = error_move;
+	// prnArgTo->eError = error_move;
       }
 #endif
       else {
-	PrintFormatLog(3,"OK moving");
-	fResult = TRUE;
+	PrintFormatLog(3, "OK moving");
+	eResult = rn_error_none;
       }
     }
-    else {
-      fResult = resNodeSwapContent(prnArgFrom,prnArgTo) && resNodePutContent(prnArgTo);
+    else if (resNodeSwapContent(prnArgFrom, prnArgTo) == rn_error_none) {
+      if (resNodePutContent(prnArgTo)) {}
     }
   }
-  return fResult;
+  return eResult;
 } /* end of resNodeTransfer() */
 
 
@@ -247,21 +259,21 @@ resNodeTransfer(resNodePtr prnArgFrom, resNodePtr prnArgTo, BOOL_T fArgMove)
   \param mode argument for mkdir()
   \return 
  */
-BOOL_T
+RN_ERROR
 resNodeMakeDirectoryStr(xmlChar *pucArgPath, int mode)
 {
-  BOOL_T fResult = FALSE;
+  RN_ERROR eResult = rn_error_undef;
 
   if (STR_IS_NOT_EMPTY(pucArgPath)) {
     resNodePtr prnDir;
 
     prnDir = resNodeSplitStrNew(pucArgPath);
     if (prnDir) {
-      fResult = resNodeMakeDirectory(prnDir,mode);
+      eResult = resNodeMakeDirectory(prnDir,mode);
       resNodeFree(prnDir);
     }
   }
-  return fResult;
+  return eResult;
 } /* end of resNodeMakeDirectoryStr() */
 
 
@@ -271,47 +283,53 @@ resNodeMakeDirectoryStr(xmlChar *pucArgPath, int mode)
   \param mode argument for mkdir()
   \return 
  */
-BOOL_T
+RN_ERROR
 resNodeMakeDirectory(resNodePtr prnArg, int mode)
 {
-  BOOL_T fResult = FALSE;
+  RN_ERROR eResult = rn_error_undef;
 
   if (prnArg) {
     resNodeReadStatus(prnArg);
 
     if (resNodeGetType(prnArg) == rn_type_root) {
       /* ignoring root node */
-      fResult = TRUE;
+      eResult = rn_error_none;
     }
     else if (resNodeGetType(prnArg) == rn_type_stdout || resNodeGetType(prnArg) == rn_type_stdin || resNodeGetType(prnArg) == rn_type_stderr) {
       /* ignoring std* nodes */
-      fResult = TRUE;
+      eResult = rn_error_none;
+    }
+    else if (resNodeIsFile(prnArg)) {
+	resNodePtr prnParent;
+      /* make only parent directory for this file */
+
+      prnParent = resNodeDup(prnArg,RN_DUP_THIS);
+      resNodeSetToParent(prnParent);
+      eResult = resNodeMakeDirectory(prnParent, mode);
+      /*!\todo check errors */
+      resNodeFree(prnParent);
     }
     else if (resNodeIsExist(prnArg)) {
       /* OK */
-      fResult = TRUE;
-    }
-    else if (resNodeIsFile(prnArg)) {
-      /* make only parent directory for this file */
-      fResult = resNodeMakeDirectoryStr(resNodeGetNameBaseDir(prnArg), mode);
+      eResult = rn_error_none;
     }
     else {
-      int iResult;
+      int i;
 
       PrintFormatLog(3, "MKDIR '%s'", resNodeGetNameNormalized(prnArg));
 #ifdef _MSC_VER
-      iResult = CreateDirectory(resNodeGetNameNormalizedNative(prnArg), NULL);
-      if (iResult == 0) {
+      i = CreateDirectory(resNodeGetNameNormalizedNative(prnArg), NULL);
+      if (i == 0) {
 	DWORD dwErrorCode = GetLastError();
 	if (dwErrorCode == ERROR_ALREADY_EXISTS) {
-	  resNodeSetError(prnArg, rn_error_mkdir, "Directory exists already");
+	  eResult = resNodeReadStatus(prnArg) ? rn_error_none : rn_error_undef;
 	}
 	else if (dwErrorCode == ERROR_PATH_NOT_FOUND) {
 	  resNodePtr prnT;
 
 	  prnT = resNodeDirNew(resNodeGetNameBaseDir(prnArg));
 	  if (resNodeMakeDirectory(prnT, mode)) {
-	    fResult = resNodeMakeDirectory(prnArg, mode);
+	    i = resNodeMakeDirectory(prnArg, mode);
 	  }
 	  resNodeFree(prnT);
 	}
@@ -319,29 +337,38 @@ resNodeMakeDirectory(resNodePtr prnArg, int mode)
 	  resNodeSetError(prnArg, rn_error_mkdir, "Cant create directory");
 	}
       }
+      else {
+	eResult = rn_error_none;
+      }
 #else
-      iResult = mkdir(resNodeGetNameNormalizedNative(prnArg), mode);
-      if (iResult != 0) {
+      i = mkdir(resNodeGetNameNormalizedNative(prnArg), mode);
+      if (i == 0 || errno == EEXIST) {
+	eResult = resNodeReadStatus(prnArg) ? rn_error_none : rn_error_undef;
+      }
+      else if (errno == EACCES || errno == EPERM) {
+	resNodeSetError(prnArg, rn_error_mkdir, "access error");
+      }
+      else if (errno == ENOENT) {
 	resNodePtr prnT;
 
 	prnT = resNodeDirNew(resNodeGetNameBaseDir(prnArg));
 	if (resNodeMakeDirectory(prnT, mode)) {
-	  fResult = resNodeMakeDirectory(prnArg, mode);
+	  eResult = resNodeMakeDirectory(prnArg, mode);
 	}
 	resNodeFree(prnT);
       }
-#endif
       else {
-	resNodeResetError(prnArg);
-	fResult = resNodeReadStatus(prnArg);
+	resNodeSetError(prnArg, rn_error_mkdir, "misc error");
       }
+#endif
     }
 
-    fResult = resNodeMakeDirectory(resNodeGetChild(prnArg), mode);
-    fResult = resNodeMakeDirectory(resNodeGetNext(prnArg), mode);
-    fResult = TRUE;
+    if (eResult == rn_error_none && resNodeGetChild(prnArg) != NULL) {
+      eResult = resNodeMakeDirectory(resNodeGetChild(prnArg), mode);
+      // eResult = resNodeMakeDirectory(resNodeGetNext(prnArg), mode);
+    }
   }
-  return fResult;
+  return eResult;
 } /* end of resNodeMakeDirectory() */
 
 
@@ -350,10 +377,10 @@ resNodeMakeDirectory(resNodePtr prnArg, int mode)
   \param pucArgPath relative or absolute path and name of file
   \return true if the named file is is removed
 */
-BOOL_T
+RN_ERROR
 resNodeUnlinkStr(xmlChar *pucArgPath)
 {
-  BOOL_T fResult = FALSE;
+  RN_ERROR eResult = rn_error_undef;
 
   if (STR_IS_NOT_EMPTY(pucArgPath)) {
     resNodePtr prnUnlink;
@@ -361,10 +388,10 @@ resNodeUnlinkStr(xmlChar *pucArgPath)
     /*\todo unlink non-empty subdirs too */
     
     prnUnlink = resNodeDirNew(pucArgPath);
-    fResult = resNodeUnlink(prnUnlink,FALSE);
+    eResult = resNodeUnlink(prnUnlink,FALSE);
     resNodeFree(prnUnlink);
   }
-  return fResult;
+  return eResult;
 } /* end of resNodeUnlinkStr() */
 
 
@@ -373,10 +400,10 @@ resNodeUnlinkStr(xmlChar *pucArgPath)
   \param pucArgPath relative or absolute path of directory
   \return true if the named directory is removed
 */
-BOOL_T
+RN_ERROR
 resNodeUnlinkRecursivelyStr(xmlChar *pucArgPath)
 {
-  BOOL_T fResult = FALSE;
+  RN_ERROR eResult = rn_error_undef;
 
   if (STR_IS_NOT_EMPTY(pucArgPath)) {
     resNodePtr prnUnlink;
@@ -384,11 +411,11 @@ resNodeUnlinkRecursivelyStr(xmlChar *pucArgPath)
     /*\todo unlink non-empty subdirs too */
     
     prnUnlink = resNodeDirNew(pucArgPath);
-    fResult = resNodeUnlink(prnUnlink,TRUE);
+    eResult = resNodeUnlink(prnUnlink,TRUE);
     resNodeFree(prnUnlink);
   }
   
-  return fResult;
+  return eResult;
 } /* end of resNodeUnlinkRecursivelyStr() */
 
 
@@ -397,19 +424,19 @@ resNodeUnlinkRecursivelyStr(xmlChar *pucArgPath)
   \param pucArgPath relative or absolute path and name of file
   \return true if the named file is is removed
 */
-BOOL_T
+RN_ERROR
 resNodeUnlink(resNodePtr prnArg, BOOL_T fRecursively)
 {
-  int err;
-  BOOL_T fResult = FALSE;
+  int e;
+  RN_ERROR eResult = rn_error_undef;
 
   if (resNodeReadStatus(prnArg)) {
     resNodeClose(prnArg);    
     if (resNodeIsFile(prnArg)) {
       PrintFormatLog(4,"Delete file '%s'", resNodeGetNameNormalized(prnArg));
 #ifdef _MSC_VER
-      err = DeleteFile(resNodeGetNameNormalizedNative(prnArg));
-      if (err == 0) {
+      e = DeleteFile(resNodeGetNameNormalizedNative(prnArg));
+      if (e == 0) {
 	int iErrCode = GetLastError();
 	switch (iErrCode) {
 	case ERROR_ACCESS_DENIED:
@@ -426,8 +453,8 @@ resNodeUnlink(resNodePtr prnArg, BOOL_T fRecursively)
 	}
       }
 #else
-      err = unlink(resNodeGetNameNormalizedNative(prnArg));
-      if (err) {
+      e = unlink(resNodeGetNameNormalizedNative(prnArg));
+      if (e) {
 	switch (errno) {
 	case EACCES:
 	  resNodeSetError(prnArg,rn_error_access,"access");
@@ -475,7 +502,7 @@ resNodeUnlink(resNodePtr prnArg, BOOL_T fRecursively)
       else {
 	resNodeResetError(prnArg);
 	resNodeSetType(prnArg,rn_type_undef);
-	fResult = TRUE;
+	eResult = rn_error_none;
       }
     }
     else if (resNodeIsDir(prnArg)) {
@@ -490,14 +517,14 @@ resNodeUnlink(resNodePtr prnArg, BOOL_T fRecursively)
 	resNodePtr prnT;
 
 	for (prnT = resNodeGetChild(prnArg); prnT; prnT = resNodeGetNext(prnT)) {
-	  fResult |= resNodeUnlink(prnT,TRUE);
+	  eResult |= resNodeUnlink(prnT,TRUE);
 	}
       }
       
       PrintFormatLog(1,"Delete empty directory '%s'", resNodeGetNameNormalized(prnArg));
 #ifdef _MSC_VER
-      err = RemoveDirectory(resNodeGetNameNormalizedNative(prnArg));
-      if (err == 0) {
+      e = RemoveDirectory(resNodeGetNameNormalizedNative(prnArg));
+      if (e == 0) {
 	int iErrCode = GetLastError();
 	switch (iErrCode) {
 	case ERROR_ACCESS_DENIED:
@@ -516,11 +543,11 @@ resNodeUnlink(resNodePtr prnArg, BOOL_T fRecursively)
       else {
 	resNodeResetError(prnArg);
 	resNodeSetType(prnArg,rn_type_undef);
-	fResult = TRUE;
+	eResult = rn_error_none;
       }
 #else
-      err = rmdir(resNodeGetNameNormalizedNative(prnArg));
-      if (err) {
+      e = rmdir(resNodeGetNameNormalizedNative(prnArg));
+      if (e) {
 	  switch (errno) {
 	  case EACCES:
 	  case EPERM:
@@ -564,7 +591,7 @@ resNodeUnlink(resNodePtr prnArg, BOOL_T fRecursively)
       else {
 	resNodeResetError(prnArg);
 	resNodeSetType(prnArg,rn_type_undef);
-	fResult = TRUE;
+	eResult = rn_error_none;
       }
 #endif
     }
@@ -572,54 +599,8 @@ resNodeUnlink(resNodePtr prnArg, BOOL_T fRecursively)
       resNodeSetError(prnArg,rn_error_unlink, "Non-existing context '%s'", resNodeGetNameNormalized(prnArg));
     }
   }
-  return fResult;
+  return eResult;
 } /* end of resNodeUnlink() */
-
-
-/*! Tests the readability of a directory with given name.
-
-  \param pucArgPath relative or absolute path
-  \return TRUE if the named directory is is readable
-*/
-BOOL_T
-resNodeTestDirStr(xmlChar *pucArgPath)
-{
-  BOOL_T fResult = FALSE;
-
-  if (STR_IS_NOT_EMPTY(pucArgPath)) {
-    resNodePtr prnDir;
-
-    prnDir = resNodeDirNew(pucArgPath);
-    if (resNodeReadStatus(prnDir)) {
-      fResult = resNodeIsDir(prnDir);
-    }
-    resNodeFree(prnDir);
-  }
-  return fResult;
-} /* end of resNodeTestDirStr() */
-
-
-/*! tests the readability of a file with given name
-
-  \param pucArgPath relative or absolute path
-  \return TRUE if the named file is is readable
-*/
-BOOL_T
-resNodeTestFileStr(xmlChar *pucArgPath)
-{
-  BOOL_T fResult = FALSE;
-
-  if (STR_IS_NOT_EMPTY(pucArgPath)) {
-    resNodePtr prnFile;
-
-    prnFile = resNodeDirNew(pucArgPath);
-    if (resNodeReadStatus(prnFile)) {
-      fResult = resNodeIsFile(prnFile);
-    }
-    resNodeFree(prnFile);
-  }
-  return fResult;
-} /* end of resNodeTestFileStr() */
 
 
 #ifdef TESTCODE
