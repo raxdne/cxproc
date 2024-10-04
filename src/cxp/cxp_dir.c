@@ -531,13 +531,21 @@ dirNodeToResNodeList(xmlNodePtr pndArg)
   if (IS_NODE_DIR(pndArg) && STR_IS_NOT_EMPTY(pucName)) {
     xmlChar* pucPrefix;
 
-    prnNew = resNodeSplitStrNew(pucName);
+    prnNew = resNodeDirNew(pucName);
     resNodeSetType(prnNew, rn_type_dir);
     if (resPathIsRelative(pucAttrMap)) {
       resNodeSetNameAlias(prnNew, pucAttrMap);
     }
-    for (pndI=pndArg->children; pndI; pndI=pndI->next) {
-      resNodeAddChild(prnNew, dirNodeToResNodeList(pndI));
+
+    if (pndArg->children) {
+      for (pndI = pndArg->children; pndI; pndI = pndI->next) {
+	resNodeAddChild(prnNew, dirNodeToResNodeList(pndI)); 
+      }
+    }
+    else if (resNodeListParse(prnNew, 9, NULL)) {
+    }
+    else {
+      printf("Error resNodeListParse() ...\n");
     }
 
     if ((pucPrefix = domGetPropValuePtr(pndArg, BAD_CAST"prefix"))) {

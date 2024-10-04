@@ -34,6 +34,9 @@ extern BOOL_T
 arcAppendEntries(resNodePtr prnArgArchive, const pcre2_code *re_match, BOOL_T fArgContent);
 
 extern BOOL_T
+arcAddResNode(resNodePtr prnArgZip, resNodePtr prnArgAdd, xmlChar* pucArg, xmlChar* pucArgBase);
+
+extern BOOL_T
 arcGetFileNameDecoded(char *pcArg, xmlChar **ppucResult);
 
 extern BOOL_T

@@ -166,7 +166,10 @@ resNodeOpen(resNodePtr prnArg, const char *pchArgMode)
 #ifdef HAVE_LIBARCHIVE
     else if (strchr(pchArgMode,(int)'a') && resMimeIsArchive(resNodeGetMimeType(prnArg))) {
 
-      if (resPathIsURL(resNodeGetNameNormalized(prnArg))) {
+      if (prnArg->handleIO) {
+	fResult = (prnArg->eMode == mode_write) && (prnArg->eType == rn_type_archive);
+      }
+      else if (resPathIsURL(resNodeGetNameNormalized(prnArg))) {
 	fResult = OpenURL(prnArg);
       }
       else {

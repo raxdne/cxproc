@@ -51,16 +51,12 @@
 
 #include "basics.h"
 #include "calendar_element.h"
-#include <res_node/res_node_io.h>
+#include <res_node/res_node_ops.h>
 #include <cxp/cxp.h>
 #include "dom.h"
 #include <cxp/cxp_dir.h>
 #include "plain_text.h"
 #include "utils.h"
-
-#ifdef HAVE_LIBARCHIVE
-#include <cxp/cxp_archive.h>
-#endif
 
 
 #define CXP_CODING_ZIP "CP437"
@@ -245,6 +241,33 @@ arcFileClose(resNodePtr prnArg)
 } /* end of arcFileClose() */
 
 
+/*! \return TRUE if successful
+*/
+BOOL_T
+TraverseFileWrite(resNodePtr prnArgZip, resNodePtr prnArg)
+{
+  BOOL_T fResult = FALSE;
+
+  if (prnArgZip) {
+    if (prnArg) {
+      resNodePtr prnI;
+
+      for (prnI = resNodeGetChild(prnArg); prnI; prnI = resNodeGetNext(prnI)) {
+	fResult |= arcAddResNode(prnArgZip, prnI, resPathDiffPtr(resNodeGetNameNormalized(prnArgZip),resNodeGetNameNormalized(prnI)), NULL);
+	fResult |= TraverseFileWrite(prnArgZip, prnI);
+      }
+    }
+    else {
+      fResult = TraverseFileWrite(prnArgZip, prnArgZip);
+    }
+  }
+  else {
+    resNodeSetError(prnArg, rn_error_archive, "Error archive '%s'", resNodeGetNameNormalized(prnArg));
+  }
+  return fResult;
+} /* end of TraverseFileWrite() */
+
+
 /*! opens context prnArg
 
 \return TRUE if successful
@@ -255,20 +278,14 @@ arcFileWrite(resNodePtr prnArg)
   BOOL_T fResult = FALSE;
 
 #ifdef HAVE_LIBARCHIVE
-  assert(prnArg != NULL);
-
-  if (prnArg->eMode == mode_write) {
-      fResult = TRUE;
-
-      /*
-       check code of arcAddResNode() and arcAddNodeList()
-        */
+  if (resNodeOpen(prnArg, "wa")) {
+    fResult = TraverseFileWrite(prnArg, NULL);
+    resNodeClose(prnArg);
   }
   else {
-    resNodeSetError(prnArg, rn_error_archive, "Error closing archive '%s'", resNodeGetNameNormalized(prnArg));
+    resNodeSetError(prnArg, rn_error_archive, "Error archive '%s'", resNodeGetNameNormalized(prnArg));
   }
 #endif
-
   return fResult;
 } /* end of arcFileWrite() */
 
@@ -647,4 +664,121 @@ arcAppendEntries(resNodePtr prnArgArchive, const pcre2_code* re_match, BOOL_T fA
   }
   return fResult;
 } /* end of arcAppendEntries() */
+
+
+/*! compress prnArgAdd and all descendants to archive prnArgZip
+
+\bug writing ISO9660 image format
+
+\return TRUE in case of success
+*/
+BOOL_T
+arcAddResNode(resNodePtr prnArgZip, resNodePtr prnArgAdd, xmlChar* pucArg, xmlChar* pucArgBase)
+{
+  BOOL_T fResult = FALSE;
+
+  if (resNodeIsError(prnArgZip) == FALSE && resNodeGetHandleIO(prnArgZip) != NULL) {
+    char* pcPathInZip;
+    xmlChar* pucT = NULL;
+    arcEntryPtr pArcEntryAdd;
+
+    if (STR_IS_NOT_EMPTY(pucArg)) {
+      /* use mapped name */
+      pucT = xmlStrdup(pucArg);
+    }
+    else if (resNodeGetNameAlias(prnArgAdd)) {
+      pucT = xmlStrdup(resNodeGetNameAlias(prnArgAdd));
+    }
+    else if ((pucT = resPathDiffPtr(pucArgBase,resNodeGetNameNormalized(prnArgAdd)))) {
+      pucT = xmlStrdup(pucT);
+    }
+    else {
+      pucT = resNodeGetAncestorPathStr(prnArgAdd);
+    }
+
+    if (resNodeIsDir(prnArgAdd)) {
+      pucT = xmlStrcat(pucT, BAD_CAST"/");
+    }
+    resPathChangeToSlashes(pucT);
+
+    if (arcGetFileNameEncoded(pucT, &pcPathInZip) == FALSE || pcPathInZip == NULL) {
+      PrintFormatLog(2, "Skipping file because of context encoding error");
+    }
+    else {
+
+#ifdef DEBUG
+      PrintFormatLog(1, "Compress '%s' as '%s' to '%s'", resNodeGetNameNormalizedNative(prnArgAdd), pucT, resNodeGetNameNormalizedNative(prnArgZip));
+#else
+      //PrintStatusDot(2);
+#endif
+
+      pArcEntryAdd = archive_entry_new();
+      if (pArcEntryAdd) {
+	if (prnArgAdd) {
+	  archive_entry_set_mtime(pArcEntryAdd, resNodeGetMtime(prnArgAdd), 0);
+	}
+	archive_entry_set_mode(pArcEntryAdd, AE_IFREG | 0755);
+	//archive_write_set_filter_option((arcPtr)resNodeGetHandleIO(prnArgZip), NULL, "compression-level", "1");
+
+	if (resNodeIsDir(prnArgAdd)) {
+	  int iErr;
+
+	  archive_entry_copy_pathname(pArcEntryAdd, pcPathInZip);
+	  archive_entry_set_size(pArcEntryAdd, 0);
+	  iErr = archive_write_header((arcPtr)resNodeGetHandleIO(prnArgZip), pArcEntryAdd);
+	  if (iErr == ARCHIVE_OK) {
+#if 0
+	    resNodePtr prnT;
+
+	    for (prnT = resNodeGetChild(prnArgAdd); prnT; prnT = resNodeGetNext(prnT)) {
+	      arcAddResNode(prnArgZip, prnT, pucArg, pucArgBase);
+	    }
+#endif
+	  }
+	  else {
+	    PrintFormatLog(1, "Error writing header file '%s' to '%s': %s", resNodeGetNameNormalizedNative(prnArgAdd),
+			   resNodeGetNameNormalizedNative(prnArgZip), archive_error_string((arcPtr)resNodeGetHandleIO(prnArgZip)));
+	  }
+	}
+	else {
+	  int iErr;
+	  unsigned int l = 0;
+
+	  if (prnArgAdd != NULL && resNodeGetContent(prnArgAdd,1024) != NULL) {
+	    l = resNodeGetSize(prnArgAdd);
+	  }
+	  archive_entry_copy_pathname(pArcEntryAdd, pcPathInZip);
+	  archive_entry_set_size(pArcEntryAdd, l);
+	  iErr = archive_write_header((arcPtr)resNodeGetHandleIO(prnArgZip), pArcEntryAdd);
+	  if (iErr == ARCHIVE_OK) {
+	    if (l > 0) {
+	      unsigned int m = 0;
+
+	      /*!\todo update content to existing archive file */
+
+	      m = archive_write_data((arcPtr)resNodeGetHandleIO(prnArgZip), resNodeGetContent(prnArgAdd, 1024), l);
+	      if (m != l) {
+		PrintFormatLog(1, "Error writing file '%s' to '%s'", resNodeGetNameNormalizedNative(prnArgAdd), resNodeGetNameNormalizedNative(prnArgZip));
+	      }
+	    }
+	  }
+	  else {
+	    PrintFormatLog(1, "Error writing header file '%s' to '%s': %s", resNodeGetNameNormalizedNative(prnArgAdd),
+			   resNodeGetNameNormalizedNative(prnArgZip), archive_error_string((arcPtr)resNodeGetHandleIO(prnArgZip)));
+	  }
+	}
+	archive_entry_free(pArcEntryAdd);
+	fResult = TRUE;
+      }
+    }
+    xmlFree(pcPathInZip);
+    xmlFree(pucT);
+  }
+  return fResult;
+} /* end of arcAddResNode() */
+
+
+#ifdef TESTCODE
+#include "test/test_res_node_archive.c"
+#endif
 

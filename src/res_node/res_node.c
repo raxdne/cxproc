@@ -52,6 +52,7 @@
 #include "basics.h"
 #include "utils.h"
 #include <res_node/res_node_ops.h>
+#include "plain_text.h"
 
 #ifdef HAVE_PIE
 #include <pie/pie_text_blocks.h>
@@ -2072,12 +2073,14 @@ resNodeSetNameBaseDir(resNodePtr prnArg, xmlChar* pucArgPath)
 
   if (prnArg) {
     if (resNodeIsDir(prnArg) || resNodeIsFile(prnArg)) {
+      assert(prnArg->pucNameBase);
+      xmlFree(prnArg->pcNameNormalizedNative);
+      prnArg->pcNameNormalizedNative = NULL;
       xmlFree(prnArg->pucNameNormalized);
       prnArg->pucNameNormalized = NULL;
       xmlFree(prnArg->pucNameBaseDir);
-      prnArg->pucNameBaseDir = NULL;
-      assert(prnArg->pucNameBase);
-      prnArg->pucNameBaseDir = xmlStrdup(pucArgPath);
+      prnArg->pucNameBaseDir = resPathCollapseStr(pucArgPath, FS_PATH_FULL);
+      resNodeSetNameBaseDir(resNodeGetChild(prnArg), NULL);
     }
     resNodeSetNameBaseDir(resNodeGetNext(prnArg), pucArgPath);
     fResult = TRUE;
@@ -2457,7 +2460,7 @@ resNodeIsFile(resNodePtr prnArg)
     if (resNodeGetType(prnArg) == rn_type_undef) {
       resNodeReadStatus(prnArg);
     }
-    fResult = (resNodeGetType(prnArg) == rn_type_file || resNodeGetType(prnArg) == rn_type_archive);
+    fResult = (resNodeGetType(prnArg) == rn_type_file || resNodeGetType(prnArg) == rn_type_archive || resNodeGetType(prnArg) == rn_type_file_in_archive);
   }
   return fResult;
 } /* end of resNodeIsFile() */
@@ -5680,8 +5683,5 @@ resNodeDatabaseSchemaStr(void)
 #include "version.h"
 #include <cxp/cxp_dtd.h>
 #include "test/test_res_node.c"
-#ifdef HAVE_LIBARCHIVE
-#include "test/test_res_node_archive.c"
-#endif
 #endif
 

@@ -90,6 +90,7 @@
 #include <json/cxp_json.h>
 #endif
 #ifdef HAVE_LIBARCHIVE
+#include <res_node/res_node_archive.h>
 #include <cxp/cxp_archive.h>
 #endif
 #ifdef HAVE_LIBMAGICK

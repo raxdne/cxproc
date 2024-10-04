@@ -39,13 +39,10 @@
 
 
 static BOOL_T
-arcAddNodeList(resNodePtr prnArgZip, xmlNodePtr pndArgAdd, cxpContextPtr pccArg);
+AddNodeList(resNodePtr prnArgZip, xmlNodePtr pndArgAdd, cxpContextPtr pccArg);
 
 static BOOL_T
-arcAddTextList(resNodePtr prnArgZip, xmlChar* pucArgAdd, cxpContextPtr pccArg);
-
-static BOOL_T
-arcAddResNode(resNodePtr prnArgZip, resNodePtr prnArgAdd, xmlChar* pucArg, cxpContextPtr pccArg);
+AddTextList(resNodePtr prnArgZip, xmlChar* pucArgAdd, cxpContextPtr pccArg);
 
 
 /*! process the DIR child instructions of pndMakePie
@@ -123,7 +120,7 @@ arcProcessZipNode(xmlNodePtr pndArgZip, cxpContextPtr pccArg)
 	      && (pndDir = xmlDocGetRootElement(pdocResultT)) != NULL
 	      && (pndDir = domGetFirstChild(pndDir, NAME_DIR)) != NULL) {
 	      /*! DOM of files to compress */
-	      arcAddNodeList(prnZip, pndDir, pccHere);
+	      AddNodeList(prnZip, pndDir, pccHere);
 	      xmlFreeDoc(pdocResultT);
 	    }
 	  }
@@ -132,16 +129,16 @@ arcProcessZipNode(xmlNodePtr pndArgZip, cxpContextPtr pccArg)
 	    pucResultT = cxpProcessPlainNode(pndChildZip, pccHere);
 	    if (pucResultT) {
 	      /*! plain list of files to compress */
-	      arcAddTextList(prnZip, pucResultT, pccHere);
+	      AddTextList(prnZip, pucResultT, pccHere);
 	      xmlFree(pucResultT);
 	    }
 	  }
 	  else if (xmlNodeIsText(pndChildZip) && STR_IS_NOT_EMPTY(pndChildZip->content)) {
 	    /*! plain list of files to compress */
-	    arcAddTextList(prnZip, pndChildZip->content, pccHere);
+	    AddTextList(prnZip, pndChildZip->content, pccHere);
 	  }
 	  else if (IS_NODE_PIE(pndChildZip) || IS_NODE_DIR(pndChildZip) || IS_NODE_FILE(pndChildZip)) {
-	    arcAddNodeList(prnZip, pndChildZip, pccHere);
+	    AddNodeList(prnZip, pndChildZip, pccHere);
 	  }
 	  else {
 	    cxpCtxtLogPrint(pccArg, 1, "Element '%s' ignored", pndChildZip->name);
@@ -165,124 +162,10 @@ arcProcessZipNode(xmlNodePtr pndArgZip, cxpContextPtr pccArg)
 } /* end of arcProcessZipNode() */
 
 
-/*! compress prnArgAdd and all descendants to archive prnArgZip
-
-\bug writing ISO9660 image format
-
-\return TRUE in case of success
-*/
-BOOL_T
-arcAddResNode(resNodePtr prnArgZip, resNodePtr prnArgAdd, xmlChar* pucArg, cxpContextPtr pccArg)
-{
-  BOOL_T fResult = FALSE;
-
-  if (resNodeIsError(prnArgZip) == FALSE && resNodeGetHandleIO(prnArgZip) != NULL) {
-    char* pcPathInZip;
-    xmlChar* pucT = NULL;
-    arcEntryPtr pArcEntryAdd;
-
-    if (STR_IS_NOT_EMPTY(pucArg)) {
-      /* use mapped name */
-      pucT = xmlStrdup(pucArg);
-    }
-    else if (resNodeGetNameAlias(prnArgAdd)) {
-      pucT = xmlStrdup(resNodeGetNameAlias(prnArgAdd));
-    }
-    else if ((pucT = resPathDiffPtr(resNodeGetNameNormalized(prnArgAdd), resNodeGetNameNormalized(cxpCtxtLocationGet(pccArg))))) {
-      pucT = xmlStrdup(pucT);
-    }
-    else {
-      pucT = resNodeGetAncestorPathStr(prnArgAdd);
-    }
-
-    if (resNodeIsDir(prnArgAdd)) {
-      pucT = xmlStrcat(pucT, BAD_CAST"/");
-    }
-    resPathChangeToSlashes(pucT);
-
-    if (arcGetFileNameEncoded(pucT, &pcPathInZip) == FALSE || pcPathInZip == NULL) {
-      cxpCtxtLogPrint(pccArg, 1, "Skipping file because of context encoding error");
-    }
-    else {
-
-#ifdef DEBUG
-      cxpCtxtLogPrint(pccArg, 3, "Compress '%s' as '%s' to '%s'",
-	resNodeGetNameNormalizedNative(prnArgAdd),
-	pucT,
-	resNodeGetNameNormalizedNative(prnArgZip));
-#else
-      //PrintStatusDot(2);
-#endif
-
-      pArcEntryAdd = archive_entry_new();
-      if (pArcEntryAdd) {
-	if (prnArgAdd) {
-	  archive_entry_set_mtime(pArcEntryAdd, resNodeGetMtime(prnArgAdd), 0);
-	}
-	archive_entry_set_mode(pArcEntryAdd, AE_IFREG | 0755);
-	//archive_write_set_filter_option((arcPtr)resNodeGetHandleIO(prnArgZip), NULL, "compression-level", "1");
-
-	if (resNodeIsDir(prnArgAdd)) {
-	  int iErr;
-
-	  archive_entry_copy_pathname(pArcEntryAdd, pcPathInZip);
-	  archive_entry_set_size(pArcEntryAdd, 0);
-	  iErr = archive_write_header((arcPtr)resNodeGetHandleIO(prnArgZip), pArcEntryAdd);
-	  if (iErr == ARCHIVE_OK) {
-	    resNodePtr prnT;
-
-	    for (prnT = resNodeGetChild(prnArgAdd); prnT; prnT = resNodeGetNext(prnT)) {
-	      arcAddResNode(prnArgZip, prnT, pucArg, pccArg);
-	    }
-	  }
-	  else {
-	    cxpCtxtLogPrint(pccArg, 1, "Error writing header file '%s' to '%s': %s",
-	      resNodeGetNameNormalizedNative(prnArgAdd), resNodeGetNameNormalizedNative(prnArgZip), archive_error_string((arcPtr)resNodeGetHandleIO(prnArgZip)));
-	  }
-	}
-	else {
-	  int iErr;
-	  unsigned int l = 0;
-
-	  if (prnArgAdd != NULL && resNodeGetContent(prnArgAdd,1024) != NULL) {
-	    l = resNodeGetSize(prnArgAdd);
-	  }
-	  archive_entry_copy_pathname(pArcEntryAdd, pcPathInZip);
-	  archive_entry_set_size(pArcEntryAdd, l);
-	  iErr = archive_write_header((arcPtr)resNodeGetHandleIO(prnArgZip), pArcEntryAdd);
-	  if (iErr == ARCHIVE_OK) {
-	    if (l > 0) {
-	      unsigned int m = 0;
-
-	      /*!\todo update content to existing archive file */
-
-	      m = archive_write_data((arcPtr)resNodeGetHandleIO(prnArgZip), resNodeGetContent(prnArgAdd, 1024), l);
-	      if (m != l) {
-		cxpCtxtLogPrint(pccArg, 1, "Error writing file '%s' to '%s'",
-		  resNodeGetNameNormalizedNative(prnArgAdd), resNodeGetNameNormalizedNative(prnArgZip));
-	      }
-	    }
-	  }
-	  else {
-	    cxpCtxtLogPrint(pccArg, 1, "Error writing header file '%s' to '%s': %s",
-	      resNodeGetNameNormalizedNative(prnArgAdd), resNodeGetNameNormalizedNative(prnArgZip), archive_error_string((arcPtr)resNodeGetHandleIO(prnArgZip)));
-	  }
-	}
-	archive_entry_free(pArcEntryAdd);
-	fResult = TRUE;
-      }
-    }
-    xmlFree(pcPathInZip);
-    xmlFree(pucT);
-  }
-  return fResult;
-} /* end of arcAddResNode() */
-
-
 /*! \return
 */
 BOOL_T
-arcAddTextList(resNodePtr prnArgZip, xmlChar *pucArg, cxpContextPtr pccArg)
+AddTextList(resNodePtr prnArgZip, xmlChar *pucArg, cxpContextPtr pccArg)
 {
   BOOL_T fResult = FALSE;
 
@@ -293,18 +176,18 @@ arcAddTextList(resNodePtr prnArgZip, xmlChar *pucArg, cxpContextPtr pccArg)
       if (resNodeGetNameBaseDir(prnTree) == NULL) {
 	resNodeSetNameBaseDir(prnTree, cxpCtxtLocationGetStr(pccArg));
       }
-      fResult = arcAddResNode(prnArgZip, prnTree, NULL, pccArg);
+      fResult = arcAddResNode(prnArgZip, prnTree, NULL, resNodeGetNameNormalized(cxpCtxtLocationGet(pccArg)));
       resNodeFree(prnTree);
     }
   }
   return fResult;
-} /* end of arcNodeTextAdd() */
+} /* end of AddTextList() */
 
 
 /*! \return
 */
 BOOL_T
-arcAddNodeList(resNodePtr prnArgZip, xmlNodePtr pndArg, cxpContextPtr pccArg)
+AddNodeList(resNodePtr prnArgZip, xmlNodePtr pndArg, cxpContextPtr pccArg)
 {
   BOOL_T fResult = FALSE;
 
@@ -312,15 +195,18 @@ arcAddNodeList(resNodePtr prnArgZip, xmlNodePtr pndArg, cxpContextPtr pccArg)
     resNodePtr prnTree;
 
     if ((prnTree = dirNodeToResNodeList(pndArg))) {
-      if (resNodeGetNameBaseDir(prnTree) == NULL) {
-	resNodeSetNameBaseDir(prnTree, cxpCtxtLocationGetStr(pccArg));
-      }
-      fResult = arcAddResNode(prnArgZip, prnTree, NULL, pccArg);
-      resNodeFree(prnTree);
+//       if (resNodeGetNameBaseDir(prnTree) == NULL) {
+// 	resNodeSetNameBaseDir(prnTree, cxpCtxtLocationGetStr(pccArg));
+//       }
+//      fResult = arcAddResNode(prnArgZip, prnTree, NULL, resNodeGetNameNormalized(cxpCtxtLocationGet(pccArg)));
+
+resNodeAddChild(prnArgZip, prnTree);
+fResult = arcFileWrite(prnArgZip);
+resNodeFree(prnTree);
     }
   }
   return fResult;
-} /* end of arcAddNodeList() */
+} /* end of AddNodeList() */
 
 
 #ifdef TESTCODE

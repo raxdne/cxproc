@@ -320,13 +320,13 @@ arcTestResNodeWrite(void)
   n_ok=0;
   i=0;
 
-  if (SKIPTEST) {
+  if (RUNTEST) {
     resNodePtr prnT = NULL;
 
     i++;
     printf("TEST %i in '%s:%i': create and close a non-existing TAR file context = ",i,__FILE__,__LINE__);
 
-    if ((prnT = resNodeDirNew(BAD_CAST"tmp/created.tar")) == NULL) {
+    if ((prnT = resNodeDirNew(BAD_CAST TEMPPREFIX "created.tar")) == NULL) {
       printf("Error resNodeDirNew()\n");
     }
     else if (resNodeOpen(prnT,"wa") == FALSE) {
@@ -370,7 +370,7 @@ arcTestResNodeWrite(void)
     if ((prnT = resNodeDirNew(BAD_CAST "\"" TEMPPREFIX "/created.tar\"")) == NULL) {
       printf("Error resNodeDirNew()\n");
     }
-    else if ((prnTT = resNodeRootNew(prnT,BAD_CAST "\"" TESTPREFIX "plain/Length_1024.txt\"")) == NULL) {
+    else if ((prnTT = resNodeRootNew(NULL,BAD_CAST "\"" TESTPREFIX "plain/Length_1024.txt\"")) == NULL) {
       //xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeRootNew(): %s\n",resNodeGetErrorMsg(prnT));
     }
     else if (resNodeReadStatus(prnTT) == FALSE) {
@@ -379,7 +379,7 @@ arcTestResNodeWrite(void)
     else if (resNodeOpen(prnT,"wa") == FALSE) {
       printf("Error resNodeOpen()\n");
     }
-    else if (arcFileWrite(prnT) == FALSE) {
+    else if (arcAddResNode(prnT,prnTT,NULL,TESTPREFIX) == FALSE) {
       printf("Error arcFileWrite()\n");
     }
     else if (resNodeClose(prnT) == FALSE) {
@@ -391,6 +391,154 @@ arcTestResNodeWrite(void)
     resNodeFree(prnTT);
     resNodeFree(prnT);
   }
+
+
+ if (SKIPTEST) {
+    resNodePtr prnArchive = NULL;
+
+    i++;
+    printf("TEST %i in '%s:%i': compress res node into archive = ", i, __FILE__, __LINE__);
+
+    if (arcAddResNode(NULL, NULL, NULL, NULL) == TRUE) {
+      printf("Error arcAddResNode()\n");
+    }
+    else if ((prnArchive = resNodeDirNew(BAD_CAST TEMPPREFIX "aaa.zip")) == NULL) {
+      printf("Error resNodeDirNew()\n");
+    }
+    else if (arcAddResNode(prnArchive, NULL, NULL, NULL) == TRUE) {
+      printf("Error arcAddResNode()\n");
+    }
+    else if (resNodeOpen(prnArchive, "wa") == FALSE) {
+      printf("error of resNodeOpen()\n");
+    }
+    else if (arcAddResNode(prnArchive, NULL, BAD_CAST"html/sub/123.html", NULL) == FALSE) {
+      printf("Error arcAddResNode()\n");
+    }
+    else if (arcAddResNode(prnArchive, NULL, BAD_CAST"html/sub-2/456.html", NULL) == FALSE) {
+      printf("Error arcAddResNode()\n");
+    }
+    else if (resNodeClose(prnArchive) == FALSE) {
+      printf("error of resNodeClose()\n");
+    }
+    else if (resNodeGetSize(prnArchive) < 1) {
+      printf("error of resNodeGetSize()\n");
+    }
+    else {
+      printf("OK\n");
+      n_ok++;
+    }
+    resNodeFree(prnArchive);
+  }
+
+
+   if (SKIPTEST) {
+    resNodePtr prnArchive = NULL;
+    resNodePtr prnT = NULL;
+    resNodePtr prnTT = NULL;
+    resNodePtr prnTTT = NULL;
+
+    i++;
+    printf("TEST %i in '%s:%i': compress res node into archive = ", i, __FILE__, __LINE__);
+
+    if ((prnT = resNodeDirNew(BAD_CAST"sub/")) == NULL) {
+      printf("Error resNodeDirNew()\n");
+    }
+    else if (resNodeAddChildNew(prnT, BAD_CAST"a.txt") == NULL) {
+      printf("Error resNodeAddChildNew()\n");
+    }
+    else if (resNodeAddChildNew(prnT, BAD_CAST"b.xml") == NULL) {
+      printf("Error resNodeAddChildNew()\n");
+    }
+    else if ((prnTTT = resNodeAddChildNew(prnT, BAD_CAST"html/")) == NULL) {
+      printf("Error resNodeAddChildNew()\n");
+    }
+    else if (resNodeAddChildNew(prnTTT, BAD_CAST"c.html") == NULL) {
+      printf("Error resNodeAddChildNew()\n");
+    }
+    else if ((prnArchive = resNodeDirNew(BAD_CAST TEMPPREFIX "ccc.zip")) == NULL) {
+      printf("Error resNodeDirNew()\n");
+    }
+    else if (resNodeOpen(prnArchive, "wa") == FALSE) {
+      printf("error of resNodeOpen()\n");
+    }
+    else if (arcAddResNode(prnArchive, prnT, NULL, NULL) == FALSE) {
+      printf("Error arcAddResNode()\n");
+    }
+    else if ((prnTT = resNodeDirNew(BAD_CAST"test/")) == NULL) {
+      printf("Error resNodeDirNew()\n");
+    }
+    else if (resNodeAddChildNew(prnTT, BAD_CAST"a.txt") == NULL) {
+      printf("Error resNodeAddChildNew()\n");
+    }
+    else if (resNodeAddChildNew(prnTT, BAD_CAST"b.xml") == NULL) {
+      printf("Error resNodeAddChildNew()\n");
+    }
+    else if ((prnTTT = resNodeAddChildNew(prnTT, BAD_CAST"html/")) == NULL) {
+      printf("Error resNodeAddChildNew()\n");
+    }
+    else if (resNodeAddChildNew(prnTTT, BAD_CAST"c.html") == NULL) {
+      printf("Error resNodeAddChildNew()\n");
+    }
+    else if (arcAddResNode(prnArchive, prnTT, NULL, NULL) == FALSE) {
+      printf("Error arcAddResNode()\n");
+    }
+    else if ((prnTTT = resNodeAddChildNew(prnTT, BAD_CAST"DUMMY")) == NULL) {
+      printf("Error resNodeAddChildNew()\n");
+    }
+    else if (resNodeSetNameAlias(prnTTT, BAD_CAST"y.html") == NULL) {
+      printf("Error resNodeSetNameAlias()\n");
+    }
+    else if (arcAddResNode(prnArchive, prnTTT, NULL, NULL) == FALSE) {
+      printf("Error arcAddResNode()\n");
+    }
+    else if (resNodeClose(prnArchive) == FALSE) {
+      printf("error of resNodeClose()\n");
+    }
+    else if (resNodeGetSize(prnArchive) < 1) {
+      printf("error of resNodeGetSize()\n");
+    }
+    else {
+      printf("OK\n");
+      n_ok++;
+    }
+    resNodeFree(prnArchive);
+    resNodeFree(prnT);
+  }
+
+
+  if (RUNTEST) {
+    size_t j;
+    resNodePtr prnT = NULL;
+
+    i++;
+    printf("TEST %i in '%s:%i': clone an archive into a different location = ", i, __FILE__, __LINE__);
+
+    if ((prnT = resNodeDirNew(BAD_CAST TESTPREFIX "option/archive/test-zip-7.zip")) == NULL) { // 
+      printf("Error resNodeDirNew()\n");
+    }
+    else if (arcAppendEntries(prnT, NULL, TRUE) == FALSE) {
+      printf("Error 1 x arcAppendEntries() ...\n");
+    }
+    else if ((j = resNodeGetChildCount(resNodeGetChild(prnT), rn_type_file_in_archive)) != 4) {
+      printf("Error resNodeListParse() = %i\n", j);
+    }
+    else if (resNodeSetNameBaseDir(prnT,BAD_CAST TEMPPREFIX) == FALSE) {
+      printf("Error resNodeSetNameBaseDir()\n");
+    }
+    else if (arcFileWrite(prnT) == FALSE) {
+      printf("Error arcFileWrite()\n");
+    }
+    else if (resNodeReadStatus(prnT) == FALSE) {
+      //xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeRootNew(): %s\n",resNodeGetErrorMsg(prnT));
+    }
+    else {
+      n_ok++;
+      printf("OK\n");
+    }
+    // puts(resNodeListToPlain(prnT,1));
+    resNodeFree(prnT);
+  }
+
 
 
   printf("TEST in '%s': %i/%i OK\n\n", __FILE__, n_ok, i);
