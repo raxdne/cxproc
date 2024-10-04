@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <cxp:make xmlns:cxp="http://www.tenbusch.info/cxproc">
-  <cxp:system mkdir="result"/>
+  <cxp:system mkdir="result/"/>
   <cxp:system message="**** test-pie-import-log-001: "/>
   <cxp:xml name="result/test-pie-import-log-001.pie">
     <cxp:pie url="yes" figure="no" date="no">

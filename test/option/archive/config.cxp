@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <cxp:make xmlns:cxp="http://www.tenbusch.info/cxproc">
-  <cxp:system mkdir="result"/>
+  <cxp:system mkdir="result/"/>
   <cxp:system message="*** Test 1a: compressing of existing files ***"/>
   <cxp:zip name="result/test-zip-001a.zip" level="3" context="../..">
     <dir name="plain">

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <cxp:make xmlns:cxp="http://www.tenbusch.info/cxproc" log="3">
   <cxp:subst string="%PATH_IMG%" to="result/Alps.jpg"/>
-  <cxp:system mkdir="result"/>
+  <cxp:system mkdir="result/"/>
   <cxp:copy from="Alps.jpg" to="%PATH_IMG%"/>
 
   <cxp:system message="Read and scale an existing image file"/>

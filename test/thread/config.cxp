@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <cxp:make xmlns:cxp="http://www.tenbusch.info/cxproc" log="3" thread="yes">
-  <cxp:system mkdir="result"/>
+  <cxp:system mkdir="result/"/>
   <cxp:plain name="result/test-threads-plain-1.txt">
 ** Import I
 

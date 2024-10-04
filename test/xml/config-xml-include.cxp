@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <cxp:make xmlns:cxp="http://www.tenbusch.info/cxproc">
-  <cxp:system mkdir="result"/>
+  <cxp:system mkdir="result/"/>
     <cxp:system message="*** test-xml-include-000: include XML in a new context ***"/>
     <cxp:xml name="result/test-xml-include-000.xml">
       <cxp:include name="not-exist.xml"/>

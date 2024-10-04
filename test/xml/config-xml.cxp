@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <cxp:make xmlns:cxp="http://www.tenbusch.info/cxproc" log="3">
-	<cxp:system mkdir="result"/>
+	<cxp:system mkdir="result/"/>
 	<cxp:system message="*** test-xml-000: empty DOM ***"/>
 	<cxp:xml name="result/test-xml-000.xml"/>
 	<cxp:xml name="result/test-xml-000-000.xml">

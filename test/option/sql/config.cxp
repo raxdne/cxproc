@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <cxp:make xmlns:cxp="http://www.tenbusch.info/cxproc" log="2">
-  <cxp:system mkdir="result"/>
+  <cxp:system mkdir="result/"/>
   <cxp:system message="TEST 1: CREATE and INSERT into database"/>
   <cxp:db name="result/test-db-1.db3" append="no" write="yes">
     <cxp:plain>
