@@ -28,6 +28,9 @@ extern BOOL_T
 arcFileClose(resNodePtr prnArg);
 
 extern BOOL_T
+arcFileWriteTraverse(resNodePtr prnArgZip, resNodePtr prnArg);
+
+extern BOOL_T
 arcFileWrite(resNodePtr prnArg);
 
 extern BOOL_T

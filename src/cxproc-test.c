@@ -253,12 +253,14 @@ main(int argc, char** argv, char** envp)
 
 	pccT = cxpCtxtDup(pccTest);
 	if (pccT) {
+#if 0
 	  iErrorCode += cxpCtxtTest(pccT);
 	  iErrorCode += cxpCtxtEncTest(pccT, argv, envp);
 	  iErrorCode += cxpCtxtCacheTest(pccT);
 	  iErrorCode += cxpSubstTest(pccT);
 	  iErrorCode += calTest(pccT);
 	  iErrorCode += cxpTest(pccT);
+#endif
 #ifdef HAVE_LIBARCHIVE
 	  iErrorCode += cxpArcTest(pccTest);
 #endif

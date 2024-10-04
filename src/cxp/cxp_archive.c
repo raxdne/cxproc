@@ -173,10 +173,8 @@ AddTextList(resNodePtr prnArgZip, xmlChar *pucArg, cxpContextPtr pccArg)
     resNodePtr prnTree = NULL;
 
     if ((prnTree = resNodeSplitLineBufferNew(pucArg))) {
-      if (resNodeGetNameBaseDir(prnTree) == NULL) {
-	resNodeSetNameBaseDir(prnTree, cxpCtxtLocationGetStr(pccArg));
-      }
-      fResult = arcAddResNode(prnArgZip, prnTree, NULL, resNodeGetNameNormalized(cxpCtxtLocationGet(pccArg)));
+      resNodeSetNameBaseDir(prnTree, cxpCtxtLocationGetStr(pccArg));
+      fResult = arcFileWriteTraverse(prnArgZip, prnTree);
       resNodeFree(prnTree);
     }
   }
@@ -195,14 +193,9 @@ AddNodeList(resNodePtr prnArgZip, xmlNodePtr pndArg, cxpContextPtr pccArg)
     resNodePtr prnTree;
 
     if ((prnTree = dirNodeToResNodeList(pndArg))) {
-//       if (resNodeGetNameBaseDir(prnTree) == NULL) {
-// 	resNodeSetNameBaseDir(prnTree, cxpCtxtLocationGetStr(pccArg));
-//       }
-//      fResult = arcAddResNode(prnArgZip, prnTree, NULL, resNodeGetNameNormalized(cxpCtxtLocationGet(pccArg)));
-
-resNodeAddChild(prnArgZip, prnTree);
-fResult = arcFileWrite(prnArgZip);
-resNodeFree(prnTree);
+      resNodeSetNameBaseDir(prnTree, cxpCtxtLocationGetStr(pccArg));
+      fResult = arcFileWriteTraverse(prnArgZip, prnTree);
+      resNodeFree(prnTree);
     }
   }
   return fResult;

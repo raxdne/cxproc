@@ -2073,7 +2073,7 @@ resNodeSetNameBaseDir(resNodePtr prnArg, xmlChar* pucArgPath)
 
   if (prnArg) {
     if (resNodeIsDir(prnArg) || resNodeIsFile(prnArg)) {
-      assert(prnArg->pucNameBase);
+      resNodeResetNameBase(prnArg);
       xmlFree(prnArg->pcNameNormalizedNative);
       prnArg->pcNameNormalizedNative = NULL;
       xmlFree(prnArg->pucNameNormalized);
