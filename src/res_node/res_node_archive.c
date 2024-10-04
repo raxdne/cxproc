@@ -256,8 +256,13 @@ arcFileWriteTraverse(resNodePtr prnArgZip, resNodePtr prnArg)
     }
     else if ((prnI = resNodeGetChild(prnArg)) == NULL) {
       resNodeUpdate(prnArg, RN_INFO_CONTENT, NULL, NULL);
-      fResult |= arcAddResNode(prnArgZip, prnArg, resPathDiffPtr(resNodeGetNameNormalized(prnArgZip), resNodeGetNameNormalized(prnArg)), NULL);
-      resNodeResetContentPtr(prnArg);
+      if (resNodeGetNameAlias(prnArg)) {
+	fResult |= arcAddResNode(prnArgZip, prnArg, NULL, NULL);
+      }
+      else {
+	fResult |= arcAddResNode(prnArgZip, prnArg, resPathDiffPtr(resNodeGetNameNormalized(prnArgZip), resNodeGetNameNormalized(prnArg)), NULL);
+      }
+      // resNodeResetContentPtr(prnArg);
     }
     else {
       for (; prnI; prnI = resNodeGetNext(prnI)) {

@@ -68,13 +68,15 @@ arcProcessZipNode(xmlNodePtr pndArgZip, cxpContextPtr pccArg)
 
       resNodeSetMimeType(prnZip,MIME_APPLICATION_ZIP);
 #if 0
-      if ((pucT = domGetPropValuePtr(pndArgZip, BAD_CAST"context"))) {
+      if (xmlHasProp(pndArgZip, BAD_CAST"context")) {
 	pccHere = cxpCtxtFromAttr(pccArg, pndArgZip);
       }
       else {
-      }
-#endif
 	pccHere = pccArg;
+      }
+#else
+      pccHere = cxpCtxtFromAttr(pccArg, pndArgZip);
+#endif
 
       if (pndArgZip->children == NULL) { /* zip element has no childs, parse content only */
 	if (resNodeIsReadable(prnZip) && resNodeUpdate(prnZip, RN_INFO_CONTENT, NULL, NULL)) { /*! read Resource Node as list of childs */

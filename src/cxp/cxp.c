@@ -564,7 +564,13 @@ cxpAttributeLocatorResNodeNew(cxpContextPtr pccArg, xmlNodePtr pndArg, xmlChar *
 	cxpCtxtLogPrint(pccArg, 3, "Get Context '%s' from attribute 'dir' relative", resNodeGetNameNormalized(prnT));
       }
     }
-    
+    else if ((pucAttrValue = domGetPropValuePtr(pndArg, BAD_CAST "context")) != NULL ||
+	     (pucAttrValue = domGetAncestorPropValuePtr(pndArg, BAD_CAST "context")) != NULL) {
+      /*  */
+      prnT = resNodeConcatNew(cxpCtxtLocationGetStr(pccArg), pucAttrValue);
+      cxpCtxtLogPrint(pccArg, 3, "Get Context '%s' from attribute 'dir' relative", resNodeGetNameNormalized(prnT));
+    }
+
 #ifdef HAVE_PIE
     if (prnT == NULL && (pucAttrValue = pieGetAncestorContextStr(pndArg)) != NULL) {
       prnT = resNodeDirNew(pucAttrValue);
@@ -655,18 +661,24 @@ cxpResNodeResolveNew(cxpContextPtr pccArg, xmlNodePtr pndArg, xmlChar *pucArg, i
       pucShortcut = pucAttrName;
     }
 
+#if 0
 #ifdef HAVE_CGI
     if ((pucLocation = domGetPropValuePtr(pndArg, BAD_CAST "context")) != NULL) {
       /*  */
     }
 #else
-    if ((pucLocation = domGetSelfOrAncestorPropValuePtr(pndArg, BAD_CAST "context")) != NULL) {
+    if ((pucLocation = domGetAncestorPropValuePtr(pndArg, BAD_CAST "context")) != NULL) {
       /*  */
     }
 #endif
     else if ((pucLocation = resNodeGetNameNormalized(cxpCtxtLocationGet(pccArg))) != NULL) {
       /*  */
     }
+#else
+    if ((pucLocation = resNodeGetNameNormalized(cxpCtxtLocationGet(pccArg))) != NULL) {
+      /*  */
+    }
+#endif
 
     if (cxpCtxtRootGet(pccArg)) {
       pucRootPath = resNodeGetNameNormalized(cxpCtxtRootGet(pccArg));

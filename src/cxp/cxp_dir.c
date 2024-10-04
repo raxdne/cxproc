@@ -561,7 +561,7 @@ dirNodeToResNodeList(xmlNodePtr pndArg)
     prnNew = resNodeSplitStrNew(pucName);
     resNodeSetType(prnNew, rn_type_file);
     if (resPathIsRelative(pucAttrMap)) {
-      resNodeSetNameAlias(prnNew, pucAttrMap);
+      resNodeSetNameAlias(resNodeGetLastDescendant(prnNew), pucAttrMap);
     }
     prnResult = prnNew;
   }

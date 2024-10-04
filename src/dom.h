@@ -102,7 +102,7 @@ extern xmlChar *
 domGetPropValuePtr(xmlNodePtr pndArg, xmlChar *pucNameAttr);
 
 extern xmlChar *
-domGetSelfOrAncestorPropValuePtr(xmlNodePtr pndArg, xmlChar *pucNameAttr);
+domGetAncestorPropValuePtr(xmlNodePtr pndArg, xmlChar *pucNameAttr);
 
 extern void
 domUnsetPropAll(xmlNodePtr pndArg);

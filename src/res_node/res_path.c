@@ -627,6 +627,9 @@ resPathIsRelative(xmlChar *pucArg)
       }
     }
   }
+  else {
+    fResult = FALSE;
+  }
   return fResult;
 }
 /* end of resPathIsRelative() */

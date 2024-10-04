@@ -440,7 +440,7 @@ domGetPropValuePtr(xmlNodePtr pndArg, xmlChar *pucNameAttr)
 } /* End of domGetPropValuePtr() */
 
 
-/*! use of domGetPropValuePtr() on pndArg and acestors, returns only a pointer
+/*! use of domGetPropValuePtr() on acestors, returns only a pointer
 * 
 \param pndArg parent node for attributes
 \param pucNameAttr name of wanted attribute
@@ -448,19 +448,23 @@ domGetPropValuePtr(xmlNodePtr pndArg, xmlChar *pucNameAttr)
 of 'pndArg' OR NULL if no attribute found
 */
 xmlChar *
-domGetSelfOrAncestorPropValuePtr(xmlNodePtr pndArg, xmlChar *pucNameAttr)
+domGetAncestorPropValuePtr(xmlNodePtr pndArg, xmlChar *pucNameAttr)
 {
   xmlChar *pucResult = NULL;
+  xmlNodePtr pndI;
 
-  if (IS_ENODE(pndArg) && STR_IS_NOT_EMPTY(pucNameAttr)) {
-    pucResult = domGetPropValuePtr(pndArg, pucNameAttr);
-    if (STR_IS_EMPTY(pucResult)) {
-      /* check node ancestors */
-      pucResult = domGetSelfOrAncestorPropValuePtr(pndArg->parent, pucNameAttr);
+  assert(IS_ENODE(pndArg));
+  assert(STR_IS_NOT_EMPTY(pucNameAttr));
+
+  for (pndI = pndArg->parent; pndI; pndI = pndI->parent) {
+    pucResult = domGetPropValuePtr(pndI, pucNameAttr);
+    if (STR_IS_NOT_EMPTY(pucResult)) {
+      break;
     }
   }
   return pucResult;
-} /* End of domGetSelfOrAncestorPropValuePtr() */
+} /* End of domGetAncestorPropValuePtr() */
+
 
 /*!
 \param pndArg node for content
