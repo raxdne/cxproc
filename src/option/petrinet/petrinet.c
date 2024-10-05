@@ -23,6 +23,7 @@
 
 #include "basics.h"
 #include "utils.h"
+#include "dom.h"
 #include <res_node/res_node.h>
 #include <cxp/cxp.h>
 #include <petrinet/petrinet.h>

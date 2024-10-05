@@ -9,6 +9,7 @@ OPTION(CXPROC_PETRINET "Include Petrinet code" ON)
 IF (CXPROC_PETRINET)
 
   SET(PETRINET_FILES
+    ${CXPROC_SRC_DIR}/option/petrinet/petrinet_dtd.h
     ${CXPROC_SRC_DIR}/option/petrinet/petrinet.h
     ${CXPROC_SRC_DIR}/option/petrinet/petrinet.c
     )

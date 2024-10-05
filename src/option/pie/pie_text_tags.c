@@ -31,9 +31,8 @@
 #ifdef HAVE_PETRINET
 #include <cxp/cxp.h>
 #include <petrinet/petrinet.h>
-#else
-#include "dom.h"
 #endif
+#include "dom.h"
 #include <pie/pie_dtd.h>
 #include <pie/pie_text_tags.h>
 

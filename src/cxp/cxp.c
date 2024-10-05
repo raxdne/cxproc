@@ -3318,6 +3318,17 @@ cxpProcessInfoNode(xmlNodePtr pndInfo, cxpContextPtr pccArg)
 #ifdef HAVE_PIE
     pndOption = xmlNewChild(pndProgram,NULL,BAD_CAST"module",NULL);
     pieTextInfo(pndOption);
+
+    pndOption = xmlNewChild(pndProgram, NULL, BAD_CAST"option", NULL);
+    xmlSetProp(pndOption,BAD_CAST "name",BAD_CAST"cmark");
+    xmlSetProp(pndOption,BAD_CAST "ns",BAD_CAST"https://github.com/commonmark/cmark");
+#ifdef WITH_MARKDOWN
+    xmlSetProp(pndOption,BAD_CAST "select", BAD_CAST "yes");
+    xmlSetProp(pndOption,BAD_CAST "version", BAD_CAST cmark_version_string());
+#else
+    xmlSetProp(pndOption,BAD_CAST "select", BAD_CAST "no");
+#endif
+
 #endif
 
     pndOption = xmlNewChild(pndProgram,NULL,BAD_CAST"module",NULL);
@@ -3410,16 +3421,6 @@ cxpProcessInfoNode(xmlNodePtr pndInfo, cxpContextPtr pccArg)
 #ifdef HAVE_LIBID3TAG
     xmlSetProp(pndOption,BAD_CAST "select", BAD_CAST "yes");
     xmlSetProp(pndOption,BAD_CAST "version", BAD_CAST ID3_VERSION);
-#else
-    xmlSetProp(pndOption,BAD_CAST "select", BAD_CAST "no");
-#endif
-
-    pndOption = xmlNewChild(pndProgram, NULL, BAD_CAST"option", NULL);
-    xmlSetProp(pndOption,BAD_CAST "name",BAD_CAST"cmark");
-    xmlSetProp(pndOption,BAD_CAST "ns",BAD_CAST"https://github.com/commonmark/cmark");
-#ifdef WITH_MARKDOWN
-    xmlSetProp(pndOption,BAD_CAST "select", BAD_CAST "yes");
-    xmlSetProp(pndOption,BAD_CAST "version", BAD_CAST cmark_version_string());
 #else
     xmlSetProp(pndOption,BAD_CAST "select", BAD_CAST "no");
 #endif

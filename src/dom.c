@@ -34,19 +34,11 @@
 #include "basics.h"
 #include "utils.h"
 #include <res_node/res_node_io.h>
-#include <cxp/cxp.h>
-
-#ifdef HAVE_PIE
-#include <pie/pie_text.h>
-#else
 #include <pie/pie_dtd.h>
-#endif
-
-#include <cxp/cxp_dir.h>
 #include "dom.h"
 
 #ifdef HAVE_PETRINET
-#include <petrinet/petrinet.h>
+#include <petrinet/petrinet_dtd.h>
 #endif
 
 

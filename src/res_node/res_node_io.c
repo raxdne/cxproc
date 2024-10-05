@@ -35,7 +35,6 @@
 #include "basics.h"
 #include "utils.h"
 #include <res_node/res_node_ops.h>
-#include <cxp/cxp.h>
 #include "dom.h"
 #include "plain_text.h"
 

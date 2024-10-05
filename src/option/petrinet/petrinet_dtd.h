@@ -18,23 +18,29 @@
   Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 */
 
-#include <petrinet/petrinet_dtd.h>
+#define PKG2_NAMESPACE_URL      "http://pkg2.tenbusch.info/"
 
-/****************************************************************************
+#define NAME_PKG2_TRANSITION BAD_CAST "transition"
 
-   Declaration of public functions (prototypes)
-*/
+#define NAME_PKG2_STATE BAD_CAST "stelle"
 
-extern xmlNsPtr
-pkgGetNs(void);
+#define NAME_PKG2_EDGE BAD_CAST "relation"
 
-extern void
-pkgCleanup(void);
+#define NAME_PKG2_REQUIREMENT BAD_CAST "requirement"
 
-extern xmlDocPtr
-pnetProcessNode(xmlNodePtr pndArg, cxpContextPtr pccArg);
+#define NAME_PKG2_PATHTABLE BAD_CAST "pathtable"
 
-#ifdef TESTCODE
-extern int
-petrinetTest(cxpContextPtr pccArg);
-#endif
+#define NAME_PKG2_PATHNET BAD_CAST "pathnet"
+
+#define IS_NODE_PKG2_TRANSITION(NODE) (IS_NODE(NODE,NAME_PKG2_TRANSITION))
+
+#define IS_NODE_PKG2_STATE(NODE) (IS_NODE(NODE,NAME_PKG2_STATE))
+
+#define IS_NODE_PKG2_EDGE(NODE) (IS_NODE(NODE,NAME_PKG2_EDGE))
+
+#define IS_NODE_PKG2_REQUIREMENT(NODE) (IS_NODE(NODE,NAME_PKG2_REQUIREMENT))
+
+#define IS_NODE_PKG2_PATHTABLE(NODE) (IS_NODE(NODE,NAME_PKG2_PATHTABLE))
+
+#define IS_NODE_PKG2_PATHNET(NODE) (IS_NODE(NODE,NAME_PKG2_PATHNET))
+

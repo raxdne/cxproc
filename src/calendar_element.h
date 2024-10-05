@@ -18,6 +18,10 @@
   Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 */
 
+#ifndef __CALENDAR_ELEMENT_H__
+
+#define __CALENDAR_ELEMENT_H__
+
 #include <c-dt/dt.h>
 
 /*! structure
@@ -121,4 +125,6 @@ AddNodeDateAttributes(xmlNodePtr pndArg, ceElementPtr pceArg);
 #ifdef TESTCODE
 extern int
 ceTest(void);
+#endif
+
 #endif

@@ -38,9 +38,8 @@
 #include "basics.h"
 #include "utils.h"
 #include <res_node/res_node_ops.h>
-#include <cxp/cxp.h>
 #include "dom.h"
-#include <cxp/cxp_dir.h>
+#include <cxp/cxp_dtd.h>
 
 
 /*! split a prnArg into its single ancestor resource nodes
