@@ -213,9 +213,8 @@ dirTest(cxpContextPtr pccArg)
     xmlFreeNode(pndPie);
   }
 
-  
   if (RUNTEST) {
-    xmlChar* pucT;
+    xmlChar *pucT;
     xmlNodePtr pndT;
     xmlNodePtr pndTT;
     xmlNodePtr pndPie;
@@ -226,37 +225,30 @@ dirTest(cxpContextPtr pccArg)
     printf("TEST %i in '%s:%i': SetTopPrefix() = ", i, __FILE__, __LINE__);
 
     pndPie = xmlNewNode(NULL, NAME_PIE);
+    pndDir = xmlNewChild(pndPie, NULL, NAME_DIR, NULL);
+    pndT = xmlNewChild(pndDir, NULL, NAME_DIR, NULL);
+    xmlSetProp(pndT, BAD_CAST "name", BAD_CAST "test");
+    pndTT = xmlNewChild(pndDir, NULL, NAME_FILE, NULL);
+    xmlSetProp(pndTT, BAD_CAST "name", BAD_CAST "xyz.xml");
+    xmlSetProp(pndTT, BAD_CAST "map", BAD_CAST "sub/uvw.xml");
+    pndTT = xmlNewChild(pndT, NULL, NAME_FILE, NULL);
+    xmlSetProp(pndTT, BAD_CAST "name", BAD_CAST "xyz.xml");
+    pndTT = xmlNewChild(pndT, NULL, NAME_FILE, NULL);
+    xmlSetProp(pndTT, BAD_CAST "name", BAD_CAST "abc.xml");
+    xmlSetProp(pndTT, BAD_CAST "map", BAD_CAST "sub/abc.xml");
+    domPutNodeString(stderr, BAD_CAST "SetTopPrefix(): ", pndPie);
 
-    if ((pndDir = xmlNewChild(pndPie, NULL, NAME_DIR, NULL)) == NULL) {
-      printf("Error xmlNewChild()\n");
-    }
-    else if ((pndT = xmlNewChild(pndDir, NULL, NAME_DIR, NULL)) == NULL
-      || xmlSetProp(pndT,BAD_CAST"name", BAD_CAST"test") == NULL) {
-      printf("Error xmlNewChild()\n");
-    }
-    else if ((pndTT = xmlNewChild(pndDir, NULL, NAME_FILE, NULL)) == NULL
-      || xmlSetProp(pndTT,BAD_CAST"name", BAD_CAST"xyz.xml") == NULL
-      || xmlSetProp(pndTT, BAD_CAST"map", BAD_CAST"sub/uvw.xml") == NULL) {
-      printf("Error xmlNewChild()\n");
-    }
-    else if ((pndTT = xmlNewChild(pndT, NULL, NAME_FILE, NULL)) == NULL
-      || xmlSetProp(pndTT, BAD_CAST"name", BAD_CAST"xyz.xml") == NULL) {
-      printf("Error xmlNewChild()\n");
-    }
-    else if ((pndTT = xmlNewChild(pndT, NULL, NAME_FILE, NULL)) == NULL
-      || xmlSetProp(pndTT, BAD_CAST"name", BAD_CAST"abc.xml") == NULL
-      || xmlSetProp(pndTT, BAD_CAST"map", BAD_CAST"sub/abc.xml") == NULL) {
+    if (pndPie == NULL) {
       printf("Error xmlNewChild()\n");
     }
     else if ((prnT = dirNodeToResNodeList(pndPie)) == NULL) {
-      printf("Error resNodeDirNew()\n");
+      printf("Error dirNodeToResNodeList()\n");
     }
     else {
       n_ok++;
       printf("OK\n");
     }
-    //domPutNodeString(stderr, BAD_CAST "SetTopPrefix(): ", pndPie);
-    //pucT = resNodeListToPlain(prnT,RN_INFO_MIN); fputs((const char *)pucT,stderr); xmlFree(pucT);
+    // pucT = resNodeListToPlain(prnT, RN_INFO_MIN); fputs((const char *)pucT, stderr); xmlFree(pucT);
     resNodeListFree(prnT);
     xmlFreeNode(pndPie);
   }
@@ -274,7 +266,8 @@ dirTest(cxpContextPtr pccArg)
 
     pndTestDir = xmlNewNode(NULL, NAME_DIR);
     xmlSetProp(pndTestDir, BAD_CAST"name", BAD_CAST TESTPREFIX);
-    xmlSetProp(pndTestDir, BAD_CAST"depth", BAD_CAST"2");
+    xmlSetProp(pndTestDir, BAD_CAST"depth", BAD_CAST"3");
+    xmlSetProp(pndTestDir, BAD_CAST"verbosity", BAD_CAST"1");
 
     if ((pdocTest = dirProcessDirNode(pndTestDir, NULL, pccArg)) == NULL) {
       printf("Error dirProcessDirNode()\n");
