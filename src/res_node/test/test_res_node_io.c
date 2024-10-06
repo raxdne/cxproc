@@ -241,6 +241,9 @@ resNodeTestInOut(void)
       else if (resNodePutContent(prnT) == FALSE) {
 	printf("Error resNodePutContent()\n");
       }      
+      else if (resNodeTestFileStr(pucNameFile) == FALSE) {
+	printf("Error resNodeTestFileStr()\n");
+      }      
       else {
 	n_ok++;
 	printf("OK\n");

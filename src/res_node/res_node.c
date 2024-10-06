@@ -969,7 +969,9 @@ resNodeGetAncestorPathStr(resNodePtr prnArg)
       if (pucResult) {
 	pucT = xmlStrdup(resNodeGetNameBase(prnT));
 	pucT = xmlStrcat(pucT,BAD_CAST"/");
-	pucResult = xmlStrcat(pucT, pucResult);
+	pucT = xmlStrcat(pucT, pucResult);
+	xmlFree(pucResult);
+	pucResult = pucT;
       }
       else {
 	pucResult = xmlStrdup(resNodeGetNameBase(prnT));
@@ -4685,6 +4687,7 @@ resNodeGetExtension(resNodePtr prnArg)
     case rn_type_image:
     case rn_type_archive:
     case rn_type_file_in_archive:
+    case rn_type_zip:
     case rn_type_file_in_zip:
     case rn_type_database:
     case rn_type_file_in_database:

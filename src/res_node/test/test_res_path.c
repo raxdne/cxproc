@@ -35,17 +35,29 @@ resNodeTestString(void)
     i++;
     printf("TEST %i in '%s:%i': resPathIsRelative() = ", i, __FILE__, __LINE__);
 
-    if (resPathIsRelative(NULL) == FALSE || resPathIsRelative(BAD_CAST"") == FALSE ||resPathIsRelative(BAD_CAST"\"\"") == FALSE) {
+    if (resPathIsRelative(NULL) == FALSE) {
       printf("Error 1\n");
     }
-    else if (resPathIsRelative(BAD_CAST".") == FALSE || resPathIsRelative(BAD_CAST"\".\"") == FALSE) {
+    if (resPathIsRelative(BAD_CAST"") == FALSE) {
       printf("Error 2\n");
     }
-    else if (resPathIsRelative(BAD_CAST"../abc") == FALSE || resPathIsRelative(BAD_CAST"\"..\\D E F\"") == FALSE) {
+    if (resPathIsRelative(BAD_CAST"\"\"") == FALSE) {
       printf("Error 3\n");
     }
-    else if (resPathIsRelative(BAD_CAST"\"\\D E F\"") == TRUE) {
+    else if (resPathIsRelative(BAD_CAST".") == FALSE) {
       printf("Error 4\n");
+    }
+    else if (resPathIsRelative(BAD_CAST"\".\"") == FALSE) {
+      printf("Error 5\n");
+    }
+    else if (resPathIsRelative(BAD_CAST"../abc") == FALSE) {
+      printf("Error 6\n");
+    }
+    else if (resPathIsRelative(BAD_CAST"\"..\\D E F\"") == FALSE) {
+      printf("Error 7\n");
+    }
+    else if (resPathIsRelative(BAD_CAST"\"\\D E F\"") == TRUE) {
+      printf("Error 8\n");
     }
     else {
       n_ok++;

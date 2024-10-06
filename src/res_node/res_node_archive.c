@@ -255,7 +255,7 @@ arcFileWriteTraverse(resNodePtr prnArgZip, resNodePtr prnArg)
       fResult = arcFileWriteTraverse(prnArgZip, prnArgZip);
     }
     else if ((prnI = resNodeGetChild(prnArg)) == NULL) {
-      resNodeUpdate(prnArg, RN_INFO_CONTENT, NULL, NULL);
+      //resNodeUpdate(prnArg, RN_INFO_CONTENT, NULL, NULL);
       if (resNodeGetNameAlias(prnArg)) {
 	fResult |= arcAddResNode(prnArgZip, prnArg, NULL, NULL);
       }
@@ -686,7 +686,7 @@ arcAddResNode(resNodePtr prnArgZip, resNodePtr prnArgAdd, xmlChar* pucArg, xmlCh
 {
   BOOL_T fResult = FALSE;
 
-  if (resNodeIsError(prnArgZip) == FALSE && resNodeGetHandleIO(prnArgZip) != NULL) {
+  if (resNodeIsError(prnArgZip) == FALSE && resNodeGetHandleIO(prnArgZip) != NULL && resNodeIsError(prnArgAdd) == FALSE) {
     char* pcPathInZip;
     xmlChar* pucT = NULL;
     arcEntryPtr pArcEntryAdd;
@@ -725,14 +725,11 @@ arcAddResNode(resNodePtr prnArgZip, resNodePtr prnArgAdd, xmlChar* pucArg, xmlCh
       if (pArcEntryAdd) {
 	int iErr;
 
-	if (prnArgAdd) {
-
-	  if (resNodeGetMtime(prnArgAdd) > 0) {
-	    archive_entry_set_mtime(pArcEntryAdd, resNodeGetMtime(prnArgAdd), 0);
-	  }
-	  else {
-	    archive_entry_set_mtime(pArcEntryAdd, time(NULL), 0);
-	  }
+	if (resNodeGetMtime(prnArgAdd) > 0) {
+	  archive_entry_set_mtime(pArcEntryAdd, resNodeGetMtime(prnArgAdd), 0);
+	}
+	else {
+	  archive_entry_set_mtime(pArcEntryAdd, time(NULL), 0);
 	}
 
 	/*!\bug define mode based on file/dir attributes */
@@ -741,7 +738,10 @@ arcAddResNode(resNodePtr prnArgZip, resNodePtr prnArgAdd, xmlChar* pucArg, xmlCh
 	/*!\todo define compression level */
 	// archive_write_set_filter_option((arcPtr)resNodeGetHandleIO(prnArgZip), NULL, "compression-level", "1");
 
-	if (resNodeIsDir(prnArgAdd)) {
+	if (resNodeIsDirInArchive(prnArgAdd) || resNodeIsFileInArchive(prnArgAdd)) {
+	  /* ignore direct sources from an other archive */
+	}
+	else if (resNodeIsDir(prnArgAdd)) {
 	  archive_entry_copy_pathname(pArcEntryAdd, pcPathInZip);
 	  archive_entry_set_size(pArcEntryAdd, 0);
 	  iErr = archive_write_header((arcPtr)resNodeGetHandleIO(prnArgZip), pArcEntryAdd);
@@ -753,7 +753,7 @@ arcAddResNode(resNodePtr prnArgZip, resNodePtr prnArgAdd, xmlChar* pucArg, xmlCh
 	else if (resNodeIsFile(prnArgAdd)) {
 	  unsigned int l = 0;
 
-	  if (prnArgAdd != NULL && resNodeGetContent(prnArgAdd,1024) != NULL) {
+	  if (prnArgAdd != NULL && resNodeGetContent(prnArgAdd, 1024) != NULL) {
 	    l = resNodeGetSize(prnArgAdd);
 	  }
 	  archive_entry_copy_pathname(pArcEntryAdd, pcPathInZip);

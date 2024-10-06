@@ -66,17 +66,8 @@ arcProcessZipNode(xmlNodePtr pndArgZip, cxpContextPtr pccArg)
       xmlChar* pucT;
       cxpContextPtr pccHere;
 
-      resNodeSetMimeType(prnZip,MIME_APPLICATION_ZIP);
-#if 0
-      if (xmlHasProp(pndArgZip, BAD_CAST"context")) {
-	pccHere = cxpCtxtFromAttr(pccArg, pndArgZip);
-      }
-      else {
-	pccHere = pccArg;
-      }
-#else
+      resNodeGetMimeType(prnZip);
       pccHere = cxpCtxtFromAttr(pccArg, pndArgZip);
-#endif
 
       if (pndArgZip->children == NULL) { /* zip element has no childs, parse content only */
 	if (resNodeIsReadable(prnZip) && resNodeUpdate(prnZip, RN_INFO_CONTENT, NULL, NULL)) { /*! read Resource Node as list of childs */
@@ -112,7 +103,14 @@ arcProcessZipNode(xmlNodePtr pndArgZip, cxpContextPtr pccArg)
 
 	for (pndChildZip = pndArgZip->children; pndChildZip; pndChildZip = pndChildZip->next) {
 
-	  if (IS_NODE_XML(pndChildZip)) {
+	  if (IS_NODE_PIE(pndChildZip) || IS_NODE_DIR(pndChildZip) || IS_NODE_FILE(pndChildZip)) {
+	    AddNodeList(prnZip, pndChildZip, pccHere);
+	  }
+	  else if (xmlNodeIsText(pndChildZip) && STR_IS_NOT_EMPTY(pndChildZip->content)) {
+	    /*! plain list of files to compress */
+	    AddTextList(prnZip, pndChildZip->content, pccHere);
+	  }
+	  else if (IS_NODE_XML(pndChildZip)) {
 	    /*! we must handle the result of cxpProcessXml(), run evaluation and free */
 	    xmlDocPtr pdocResultT;
 	    xmlNodePtr pndDir = NULL;
@@ -128,19 +126,13 @@ arcProcessZipNode(xmlNodePtr pndArgZip, cxpContextPtr pccArg)
 	  }
 	  else if (IS_NODE_PLAIN(pndChildZip)) {
 	    xmlChar* pucResultT;
+
 	    pucResultT = cxpProcessPlainNode(pndChildZip, pccHere);
-	    if (pucResultT) {
+	    if (STR_IS_NOT_EMPTY(pucResultT)) {
 	      /*! plain list of files to compress */
 	      AddTextList(prnZip, pucResultT, pccHere);
 	      xmlFree(pucResultT);
 	    }
-	  }
-	  else if (xmlNodeIsText(pndChildZip) && STR_IS_NOT_EMPTY(pndChildZip->content)) {
-	    /*! plain list of files to compress */
-	    AddTextList(prnZip, pndChildZip->content, pccHere);
-	  }
-	  else if (IS_NODE_PIE(pndChildZip) || IS_NODE_DIR(pndChildZip) || IS_NODE_FILE(pndChildZip)) {
-	    AddNodeList(prnZip, pndChildZip, pccHere);
 	  }
 	  else {
 	    cxpCtxtLogPrint(pccArg, 1, "Element '%s' ignored", pndChildZip->name);
@@ -165,6 +157,7 @@ arcProcessZipNode(xmlNodePtr pndArgZip, cxpContextPtr pccArg)
 
 
 /*! \return
+\todo option to add existing content only
 */
 BOOL_T
 AddTextList(resNodePtr prnArgZip, xmlChar *pucArg, cxpContextPtr pccArg)
@@ -175,9 +168,13 @@ AddTextList(resNodePtr prnArgZip, xmlChar *pucArg, cxpContextPtr pccArg)
     resNodePtr prnTree = NULL;
 
     if ((prnTree = resNodeSplitLineBufferNew(pucArg))) {
-      resNodeSetNameBaseDir(prnTree, cxpCtxtLocationGetStr(pccArg));
-      fResult = arcFileWriteTraverse(prnArgZip, prnTree);
-      resNodeFree(prnTree);
+      resNodePtr prnI;
+
+      for (prnI = prnTree; prnI; prnI = resNodeGetNext(prnI)) {
+	resNodeSetNameBaseDir(prnI, cxpCtxtLocationGetStr(pccArg));
+	fResult |= arcFileWriteTraverse(prnArgZip, prnI);
+      }
+      resNodeListFree(prnTree);
     }
   }
   return fResult;
@@ -185,6 +182,7 @@ AddTextList(resNodePtr prnArgZip, xmlChar *pucArg, cxpContextPtr pccArg)
 
 
 /*! \return
+\todo option to add existing content only
 */
 BOOL_T
 AddNodeList(resNodePtr prnArgZip, xmlNodePtr pndArg, cxpContextPtr pccArg)
@@ -195,9 +193,13 @@ AddNodeList(resNodePtr prnArgZip, xmlNodePtr pndArg, cxpContextPtr pccArg)
     resNodePtr prnTree;
 
     if ((prnTree = dirNodeToResNodeList(pndArg))) {
-      resNodeSetNameBaseDir(prnTree, cxpCtxtLocationGetStr(pccArg));
-      fResult = arcFileWriteTraverse(prnArgZip, prnTree);
-      resNodeFree(prnTree);
+      resNodePtr prnI;
+
+      for (prnI = prnTree; prnI; prnI = resNodeGetNext(prnI)) {
+	resNodeSetNameBaseDir(prnI, cxpCtxtLocationGetStr(pccArg));
+	fResult |= arcFileWriteTraverse(prnArgZip, prnI);
+      }
+      resNodeListFree(prnTree);
     }
   }
   return fResult;

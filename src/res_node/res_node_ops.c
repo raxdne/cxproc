@@ -352,7 +352,7 @@ resNodeMakeDirectory(resNodePtr prnArg, int mode)
 	resNodePtr prnT;
 
 	prnT = resNodeDirNew(resNodeGetNameBaseDir(prnArg));
-	if (resNodeMakeDirectory(prnT, mode)) {
+	if (resNodeMakeDirectory(prnT, mode) == rn_error_none) {
 	  eResult = resNodeMakeDirectory(prnArg, mode);
 	}
 	resNodeFree(prnT);

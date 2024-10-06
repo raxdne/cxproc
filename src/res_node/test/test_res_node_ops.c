@@ -43,7 +43,7 @@ resNodeTestOperations(void)
 
 
   if (RUNTEST) {
-    xmlChar *pucT = BAD_CAST TEMPPREFIX "AAA/";
+    xmlChar *pucT = BAD_CAST TEMPPREFIX "AAA/BBB/CCC/DDD/";
     resNodePtr prnT = NULL;
 
     i++;

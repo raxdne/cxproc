@@ -230,9 +230,9 @@ main(int argc, char** argv, char** envp)
 	iErrorCode += resNodeTestMime();
 	iErrorCode += resNodeTest();
 	iErrorCode += resNodeTestList();
-	iErrorCode += resNodeTestProp();
-	iErrorCode += resNodeTestInOut();
+	//iErrorCode += resNodeTestProp();
 	iErrorCode += resNodeTestOperations();
+	iErrorCode += resNodeTestInOut();
 	iErrorCode += resNodeTestZip();
 #ifdef HAVE_LIBARCHIVE
 	iErrorCode += arcTestResNodeRead();

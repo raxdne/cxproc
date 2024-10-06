@@ -321,7 +321,7 @@ rpProcessImage(xmlNodePtr pndArg, resNodePtr prnArgSrc, resNodePtr prnArgTo)
     }
     else {
       /* create target directory first */
-      if (resNodeMakeDirectoryStr(resNodeGetNameBaseDir(prnArgSrc),MODE_DIR_CREATE)) {
+      if (resNodeMakeDirectoryStr(resNodeGetNameBaseDir(prnArgSrc),MODE_DIR_CREATE) == rn_error_none) {
 	/* needed basedir created successfully */
       }
       WriteImages(pInfoImage,pImage,resNodeGetNameNormalizedNative(prnArgTo),pException);

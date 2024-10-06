@@ -861,87 +861,83 @@ resNodeReadContent(resNodePtr prnArg, int iArgMax)
 } /* end of resNodeReadContent() */
 
 
-  /*! Reads the whole file content of this context, sets liSizeContent and returns a POINTER to the buffer.
+/*! Reads the whole file content of this context, sets liSizeContent and returns a POINTER to the buffer.
 
-  \param prnArg the context
-  \param iArgMax maximum number of buffer blocks (Bytes = BUFFER_LENGTH * iArgMax)
-  \return a pointer to the buffer of content or NULL in case of errors
-  */
-  void *resNodeGetContent(resNodePtr prnArg, int iArgMax)
-  {
-    void *pResult = NULL;
+\param prnArg the context
+\param iArgMax maximum number of buffer blocks (Bytes = BUFFER_LENGTH * iArgMax)
+\return a pointer to the buffer of content or NULL in case of errors
+*/
+void *
+resNodeGetContent(resNodePtr prnArg, int iArgMax)
+{
+  void *pResult = NULL;
 
-    if (prnArg) {
-      if ((pResult = resNodeGetContentPtr(prnArg))) {
-	/* content read already */
+  if (prnArg != NULL && (pResult = resNodeGetContentPtr(prnArg)) == NULL) {
+    if (resNodeIsURL(prnArg)) {
+      if (resNodeOpen(prnArg, "rb") && resNodeReadContent(prnArg, iArgMax)) {
+	pResult = resNodeGetContentPtr(prnArg);
       }
-      else {
-	if (resNodeIsURL(prnArg)) {
-	  if (resNodeOpen(prnArg, "rb") && resNodeReadContent(prnArg, iArgMax)) {
-	    pResult = resNodeGetContentPtr(prnArg);
-	  }
-	}
-	else if (resNodeIsStd(prnArg)) {
-	  if (resNodeOpen(prnArg, "rb") && resNodeReadContent(prnArg, iArgMax)) {
-	    pResult = resNodeGetContentPtr(prnArg);
-	  }
-	}
-	else if (resNodeIsDatabase(prnArg)) { /* handle database content as binary content only */
-	  if (resNodeOpen(prnArg, "rb") == FALSE) {
-	    /* error while opening */
-	  }
-	  else if (resNodeReadContent(prnArg, iArgMax)) {
-	    pResult = resNodeGetContentPtr(prnArg);
-	  }
-	}
+    }
+    else if (resNodeIsStd(prnArg)) {
+      if (resNodeOpen(prnArg, "rb") && resNodeReadContent(prnArg, iArgMax)) {
+	pResult = resNodeGetContentPtr(prnArg);
+      }
+    }
 #if 0
-	else if (resNodeIsFileInZip(prnArg)) {
-	  resNodePtr prnZip;
-	  resNodePtr prnUrl;
-
-	  if ((prnZip = resNodeGetAncestorZip(prnArg)) != NULL) {
-	    if (resPathIsURL(resNodeGetNameNormalized(prnZip)) && !resNodeIsMemory(prnZip)) {
-	      /* must fetch zip content from URL into memory */
-	      if (resNodeOpen(prnZip, "rb")) {
-		resNodeReadContent(prnZip, iArgMax);
-		resNodeClose(prnZip);
-	      }
-	    }
-	    if (zipAppendEntries(prnZip, NULL, TRUE)) {
-	      pResult = resNodeGetContentPtr(prnArg);
-	    }
-	  }
-	}
-#endif
-	else if (resNodeIsFileInArchive(prnArg)) {
-	  resNodePtr prnArchive;
-	  resNodePtr prnUrl;
-
-	  if ((prnArchive = resNodeGetAncestorArchive(prnArg)) != NULL) {
-
-	    if (resPathIsURL(resNodeGetNameNormalized(prnArchive)) && !resNodeIsMemory(prnArchive)) {
-	      /* must fetch archive content from URL into memory */
-	      if (resNodeOpen(prnArchive, "rb")) {
-		resNodeReadContent(prnArchive, iArgMax);
-		resNodeClose(prnArchive);
-	      }
-	    }
-
-#ifdef HAVE_LIBARCHIVE
-	  if (arcAppendEntries(prnArchive, NULL, TRUE)) {
-	    pResult = resNodeGetContentPtr(prnArg);
-	  }
-#endif
-	}
-      }
-      else if (resNodeGetHandleIO(prnArg) == NULL && resNodeOpen(prnArg, "rb") == FALSE) {
+    else if (resNodeIsDatabase(prnArg) || resNodeIsArchive(prnArg) || resNodeIsZipDocument(prnArg)) { /* handle database/archive content as binary content only */
+      if (resNodeOpen(prnArg, "rb") == FALSE) {
 	/* error while opening */
       }
       else if (resNodeReadContent(prnArg, iArgMax)) {
 	pResult = resNodeGetContentPtr(prnArg);
       }
-      resNodeClose(prnArg);
     }
+    else if (resNodeIsFileInZip(prnArg)) {
+      resNodePtr prnZip;
+      resNodePtr prnUrl;
+
+      if ((prnZip = resNodeGetAncestorZip(prnArg)) != NULL) {
+	if (resPathIsURL(resNodeGetNameNormalized(prnZip)) && !resNodeIsMemory(prnZip)) {
+	  /* must fetch zip content from URL into memory */
+	  if (resNodeOpen(prnZip, "rb")) {
+	    resNodeReadContent(prnZip, iArgMax);
+	    resNodeClose(prnZip);
+	  }
+	}
+	if (zipAppendEntries(prnZip, NULL, TRUE)) {
+	  pResult = resNodeGetContentPtr(prnArg);
+	}
+      }
+    }
+#endif
+    else if (resNodeIsFileInArchive(prnArg)) {
+      resNodePtr prnArchive;
+      resNodePtr prnUrl;
+
+      if ((prnArchive = resNodeGetAncestorArchive(prnArg)) != NULL) {
+
+	if (resPathIsURL(resNodeGetNameNormalized(prnArchive)) && !resNodeIsMemory(prnArchive)) {
+	  /* must fetch archive content from URL into memory */
+	  if (resNodeOpen(prnArchive, "rb")) {
+	    resNodeReadContent(prnArchive, iArgMax);
+	    resNodeClose(prnArchive);
+	  }
+	}
+
+#ifdef HAVE_LIBARCHIVE
+	if (arcAppendEntries(prnArchive, NULL, TRUE)) {
+	  pResult = resNodeGetContentPtr(prnArg);
+	}
+#endif
+      }
+    }
+    else if (resNodeGetHandleIO(prnArg) == NULL && resNodeOpen(prnArg, "rb") == FALSE) {
+      /* error while opening */
+    }
+    else if (resNodeReadContent(prnArg, iArgMax)) {
+      pResult = resNodeGetContentPtr(prnArg);
+    }
+    resNodeClose(prnArg);
   }
   return pResult;
 } /* end of resNodeGetContent() */

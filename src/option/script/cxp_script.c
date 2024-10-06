@@ -84,7 +84,8 @@ output of plain text file
 #include <cxp/cxp.h>
 #include "dom.h"
 #include <cxp/cxp_dir.h>
-#include <pie/pie_text.h>
+#include <plain_text.h>
+#include <pie/pie_dtd.h>
 
 
 static BOOL_T
