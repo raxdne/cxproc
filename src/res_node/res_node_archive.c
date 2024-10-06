@@ -516,8 +516,17 @@ arcAppendEntries(resNodePtr prnArgArchive, const pcre2_code* re_match, BOOL_T fA
     /* resNode is open/parsed already */
   }
   else if (resNodeReadStatus(prnArgArchive) && resNodeIsArchive(prnArgArchive) && resNodeOpen(prnArgArchive, "ra")) {
+    BOOL_T fLoop;
+    xmlChar *pucT = NULL;
+    resNodePtr prnContent = NULL;
+
+    prnContent = resNodeGetLastDescendant(prnArgArchive);
+    if (prnContent) {
+      pucT = resNodeGetNameRelative(prnArgArchive, prnContent);
+    }
+
     PrintFormatLog(4, "Begin of '%s'", resNodeGetNameNormalized(prnArgArchive));
-    while (TRUE) {
+    for (fLoop = TRUE; fLoop;) {
       /* Read entries, match up names with regexp. */
       arcEntryPtr pArcEntryT;
       int iError;
@@ -537,7 +546,17 @@ arcAppendEntries(resNodePtr prnArgArchive, const pcre2_code* re_match, BOOL_T fA
 	  resNodePtr prnChild = NULL;
 	  time_t mtimeEntry;
 
-	  if (resNodeGetChild(prnArgArchive) != NULL && resNodeGetMimeType(prnArgArchive) == MIME_APPLICATION_GZIP) { /* */
+	  if (STR_IS_NOT_EMPTY(pucT)) {
+	    if (resPathIsEquivalent(pucT, pucNameEncoded)) {
+	      prnChild = prnContent;
+	      fResult = TRUE;
+	      fLoop = FALSE;
+	    }
+	    else {
+	      continue;
+	    }
+	  }
+	  else if (resNodeGetChild(prnArgArchive) != NULL && resNodeGetMimeType(prnArgArchive) == MIME_APPLICATION_GZIP) { /* */
 	    prnChild = resNodeGetChild(prnArgArchive);
 	  }
 	  else if (resNodeGetChild(prnArgArchive) != NULL) { /* */
