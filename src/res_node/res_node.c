@@ -2462,7 +2462,7 @@ resNodeIsFile(resNodePtr prnArg)
     if (resNodeGetType(prnArg) == rn_type_undef) {
       resNodeReadStatus(prnArg);
     }
-    fResult = (resNodeGetType(prnArg) == rn_type_file || resNodeGetType(prnArg) == rn_type_archive || resNodeGetType(prnArg) == rn_type_file_in_archive);
+    fResult = (resNodeGetType(prnArg) == rn_type_file || resNodeGetType(prnArg) == rn_type_archive || resNodeGetType(prnArg) == rn_type_file_in_archive || resNodeGetType(prnArg) == rn_type_file_in_zip);
   }
   return fResult;
 } /* end of resNodeIsFile() */
@@ -3335,10 +3335,10 @@ resNodeContentToDOM(xmlNodePtr pndArg, resNodePtr prnArg)
       }
       xmlFree(pucContent);
       /*!\todo split content into separate text nodes (MIME multi-part?) */
-#endif
 
       xmlFree(resNodeEatContentPtr(prnArg));
       break;
+#endif
     }
 
 #if 0
@@ -3639,6 +3639,7 @@ resNodeToDOM(resNodePtr prnArg, int iArgOptions)
 	}
       }
     }
+#endif
     else if (resNodeIsFileInArchive(prnArg)) {
       if (iArgOptions & RN_INFO_CONTENT && (resNodeGetContentPtr(prnArg) || resNodeUpdate(prnArg, RN_INFO_CONTENT, NULL, NULL))) {
 	resNodeContentToDOM(pndT, prnArg);
@@ -3649,7 +3650,6 @@ resNodeToDOM(resNodePtr prnArg, int iArgOptions)
 	}
       }
     }
-#endif
     else if (iArgOptions & RN_INFO_CONTENT && resNodeIsURL(prnArg)) {
       if (resNodeGetChild(prnArg)) { /* there are updated childs of this URL already */
 	for (prnEntry = resNodeGetChild(prnArg); prnEntry; prnEntry = resNodeGetNext(prnEntry)) {

@@ -29,6 +29,9 @@ SET(CMAKE_VERBOSE_MAKEFILE ON)
 
 # (shell-command "(cmake --graphviz=cxproc.dot --build ../x86_64-gnu-linux/ && dot -T png -o cxproc.png cxproc.dot.cxproc)")
 
+# default value for Testing
+SET(CXPROC_HTTPPREFIX CACHE STRING "http://localhost:8183/")
+
 FIND_PATH(CXPROC_SRC_DIR
   NAME cxproc.c
   PATHS "src")
@@ -382,9 +385,6 @@ IF (CURL_LIBRARY_RELEASE)
 ELSE ()
   SET(CXPROC_CURL OFF)
 ENDIF ()
-
-# default value for Testing
-SET(CXPROC_HTTPPREFIX CACHE STRING "http://localhost:8183/")
 
 ################################################################################
 #

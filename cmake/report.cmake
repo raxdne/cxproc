@@ -30,6 +30,7 @@
 
   MESSAGE(STATUS "")
   MESSAGE(STATUS "  Test directory .................... : ${CXPROC_TEST_DIR}")
+  MESSAGE(STATUS "  Test URL .......................... : ${CXPROC_HTTPPREFIX}")
   MESSAGE(STATUS "")
 #  MESSAGE(STATUS "  Build static binary ............... : ${CXPROC_STATIC}")
 #  MESSAGE(STATUS "  Buffer size for cxproc ............ : ${CXPROC_BUFSIZE}")

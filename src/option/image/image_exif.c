@@ -48,25 +48,17 @@ imgParseFileExif(xmlNodePtr pndArg, resNodePtr prnArg)
 
   /*! Read an image file.
   */
-  if (resNodeIsFile(prnArg) == FALSE) {
-    PrintFormatLog(1,"Permission at IMAGE file '%s' denied",resNodeGetNameNormalized(prnArg));
-  }
-  /*!\todo test exif-enabled picture formats */
-  else if ((pExifDataFile = exif_data_new_from_file((const char*)resNodeGetNameNormalizedNative(prnArg))) == NULL) {
-    PrintFormatLog(1,"No Exif data in '%s' found",resNodeGetNameNormalized(prnArg));
-  }
-  else {
+  if ((resNodeGetContentPtr(prnArg) != NULL && (pExifDataFile = exif_data_new_from_data((const unsigned char *)resNodeGetContentPtr(prnArg), resNodeGetSize(prnArg))) != NULL) ||
+      (pExifDataFile = exif_data_new_from_file((const char *)resNodeGetNameNormalizedNative(prnArg))) != NULL) {
     int i;
     xmlNodePtr pndExif;
     xmlNodePtr pndExifChild;
     xmlChar mpucValue[BUFFER_LENGTH];
     ExifEntry *pExifEntry;
-    int iX = 0;
-    int iY = 0;
 
     PrintFormatLog(2,"Read Exif info from file '%s'",resNodeGetNameNormalized(prnArg));
 
-    pndExif = xmlNewChild(pndArg, NULL, BAD_CAST"exif", NULL);
+    pndExif = xmlNewNode(NULL, BAD_CAST"exif");
 
     /* See if this tag exists */
     pExifEntry = exif_content_get_entry(pExifDataFile->ifd[EXIF_IFD_0],EXIF_TAG_MAKE);
@@ -144,47 +136,52 @@ imgParseFileExif(xmlNodePtr pndArg, resNodePtr prnArg)
 	}
       }
     }
-    
-    pndExifChild = xmlNewChild(pndExif, NULL, BAD_CAST"size",NULL);
+
     pExifEntry = exif_content_get_entry(pExifDataFile->ifd[EXIF_IFD_EXIF], EXIF_TAG_PIXEL_X_DIMENSION);
     if (pExifEntry) {
+      int iX = 0;
+      int iY = 0;
+
       /* Get the contents of the tag in human-readable form */
       exif_entry_get_value(pExifEntry, (char *)mpucValue, sizeof(mpucValue));
       /*  */
-      xmlSetProp(pndExifChild, BAD_CAST "x",mpucValue);
+      pndExifChild = xmlNewChild(pndExif, NULL, BAD_CAST "size", NULL);
+      xmlSetProp(pndExifChild, BAD_CAST "x", mpucValue);
       iX = atoi((const char *)mpucValue);
+
+      pExifEntry = exif_content_get_entry(pExifDataFile->ifd[EXIF_IFD_EXIF], EXIF_TAG_PIXEL_Y_DIMENSION);
+      if (pExifEntry) {
+	/* Get the contents of the tag in human-readable form */
+	exif_entry_get_value(pExifEntry, (char *)mpucValue, sizeof(mpucValue));
+	/*  */
+	xmlSetProp(pndExifChild, BAD_CAST "y", mpucValue);
+	iY = atoi((const char *)mpucValue);
+      }
     }
 
-    pExifEntry = exif_content_get_entry(pExifDataFile->ifd[EXIF_IFD_EXIF], EXIF_TAG_PIXEL_Y_DIMENSION);
+    pExifEntry = exif_content_get_entry(pExifDataFile->ifd[EXIF_IFD_0], EXIF_TAG_X_RESOLUTION);
     if (pExifEntry) {
       /* Get the contents of the tag in human-readable form */
       exif_entry_get_value(pExifEntry, (char *)mpucValue, sizeof(mpucValue));
       /*  */
-      xmlSetProp(pndExifChild, BAD_CAST "y",mpucValue);
-      iY = atoi((const char *)mpucValue);
-    }
+      pndExifChild = xmlNewChild(pndExif, NULL, BAD_CAST "resolution", NULL);
+      xmlSetProp(pndExifChild, BAD_CAST "x", mpucValue);
 
-    pndExifChild = xmlNewChild(pndExif, NULL, BAD_CAST"resolution",NULL);
-    pExifEntry = exif_content_get_entry(pExifDataFile->ifd[EXIF_IFD_0],EXIF_TAG_X_RESOLUTION);
-    if (pExifEntry) {
-      /* Get the contents of the tag in human-readable form */
-      exif_entry_get_value(pExifEntry, (char *)mpucValue, sizeof(mpucValue));
-      /*  */
-      xmlSetProp(pndExifChild, BAD_CAST "x",mpucValue);
-    }
-    pExifEntry = exif_content_get_entry(pExifDataFile->ifd[EXIF_IFD_0],EXIF_TAG_Y_RESOLUTION);
-    if (pExifEntry) {
-      /* Get the contents of the tag in human-readable form */
-      exif_entry_get_value(pExifEntry, (char *)mpucValue, sizeof(mpucValue));
-      /*  */
-      xmlSetProp(pndExifChild, BAD_CAST "y",mpucValue);
-    }
-    pExifEntry = exif_content_get_entry(pExifDataFile->ifd[EXIF_IFD_0],EXIF_TAG_RESOLUTION_UNIT);
-    if (pExifEntry) {
-      /* Get the contents of the tag in human-readable form */
-      exif_entry_get_value(pExifEntry, (char *)mpucValue, sizeof(mpucValue));
-      /*  */
-      xmlSetProp(pndExifChild, BAD_CAST "dotper",mpucValue);
+      pExifEntry = exif_content_get_entry(pExifDataFile->ifd[EXIF_IFD_0], EXIF_TAG_Y_RESOLUTION);
+      if (pExifEntry) {
+	/* Get the contents of the tag in human-readable form */
+	exif_entry_get_value(pExifEntry, (char *)mpucValue, sizeof(mpucValue));
+	/*  */
+	xmlSetProp(pndExifChild, BAD_CAST "y", mpucValue);
+
+	pExifEntry = exif_content_get_entry(pExifDataFile->ifd[EXIF_IFD_0], EXIF_TAG_RESOLUTION_UNIT);
+	if (pExifEntry) {
+	  /* Get the contents of the tag in human-readable form */
+	  exif_entry_get_value(pExifEntry, (char *)mpucValue, sizeof(mpucValue));
+	  /*  */
+	  xmlSetProp(pndExifChild, BAD_CAST "dotper", mpucValue);
+	}
+      }
     }
 
     if ((pExifEntry = exif_content_get_entry(pExifDataFile->ifd[EXIF_IFD_0],EXIF_TAG_ORIENTATION))) {
@@ -218,6 +215,16 @@ imgParseFileExif(xmlNodePtr pndArg, resNodePtr prnArg)
     
     /* Free the EXIF data */
     exif_data_unref(pExifDataFile);
+
+    if (domNodeHasChild(pndExif, NULL)) {
+      xmlAddChild(pndArg, pndExif);
+    }
+    else {
+      xmlFreeNode(pndExif);
+    }
+  }
+  else {
+    PrintFormatLog(1, "No Exif data in '%s' found", resNodeGetNameNormalized(prnArg));
   }
 
   return fResult;
