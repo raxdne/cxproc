@@ -451,7 +451,10 @@ resNodePutContent(resNodePtr prnArg)
 {
   BOOL_T fResult = FALSE;
 
-  if (prnArg) {
+  if (resNodeIsStd(prnArg)) {
+    fResult = resNodeSaveContent(prnArg);
+  }
+  else if (prnArg) {
     int iMode = 0;
 
     //assert(prnArg->eAccess == rn_access_undef && prnArg->handleIO == NULL);
@@ -479,7 +482,7 @@ resNodeSaveContent(resNodePtr prnArg)
 
   if (prnArg) {
 
-    assert(prnArg->eAccess != rn_access_undef && prnArg->handleIO != NULL);
+    //assert(prnArg->eAccess != rn_access_undef && prnArg->handleIO != NULL);
     
     if (prnArg->eAccess == rn_access_std) {
       if (fwrite(resNodeGetContentPtr(prnArg), resNodeGetSize(prnArg), 1, (FILE *)resNodeGetHandleIO(prnArg)) == 1) {
@@ -1121,7 +1124,7 @@ resNodeSwapContent(resNodePtr prnArgFrom, resNodePtr prnArgTo)
     resNodeSetError(prnArgTo,rn_error_copy,"There is no target for content");
     eResult = rn_error_target;
   }
-  else if (resNodeGetContent(prnArgFrom, 1024) == FALSE) {
+  else if (resNodeGetContent(prnArgFrom, 1024) == NULL) {
     resNodeSetError(prnArgFrom, rn_error_copy, "Can't get content '%s'", resNodeGetNameNormalized(prnArgFrom));
     eResult = rn_error_source;
   }

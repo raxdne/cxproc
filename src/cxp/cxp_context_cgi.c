@@ -203,7 +203,20 @@ cxpCtxtCgiParse(cxpContextPtr pccArg)
   */
   pucCgiEncoding = cxpCtxtCgiGetValueByName(pccArg, BAD_CAST "encoding");
 
-  if ((pucCgiPathTranslated = cxpCtxtEnvGetValueByName(pccArg, BAD_CAST"PATH_TRANSLATED")) != NULL) {
+  if ((pucT = cxpCtxtEnvGetValueByName(pccArg, BAD_CAST "QUERY_STRING")) != NULL && xmlStrchr(pucT, '=') == NULL) {
+    /* copy file content to client */
+    xmlNodePtr pndCopy = NULL;
+    resNodePtr prnFrom = NULL;
+
+    if ((prnFrom = resNodeRootNew(cxpCtxtRootGet(pccArg), pucT)) != NULL && resNodeIsReadable(prnFrom)) {
+      pndCopy = xmlNewChild(pndMake, NULL, NAME_FILECOPY, NULL);
+      //xmlSetProp(pndCopy, BAD_CAST "from", resNodeGetNameNormalized(prnFrom));
+      xmlSetProp(pndCopy, BAD_CAST "from", pucT);
+      xmlSetProp(pndCopy, BAD_CAST "to", BAD_CAST "-");
+      resNodeFree(prnFrom);
+    }
+  }
+  else if ((pucCgiPathTranslated = cxpCtxtEnvGetValueByName(pccArg, BAD_CAST "PATH_TRANSLATED")) != NULL) {
     resNodePtr prnPathTranslated = NULL;
 
     prnPathTranslated = resNodeRootNew(cxpCtxtRootGet(pccArg),pucCgiPathTranslated);

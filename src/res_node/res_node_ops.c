@@ -211,7 +211,12 @@ resNodeTransfer(resNodePtr prnArgFrom, resNodePtr prnArgTo, BOOL_T fArgMove)
   */
   if (eResult == rn_error_none) {
     if (resNodeIsStd(prnArgTo)) {
-      eResult = (resNodeGetContent(prnArgFrom, 1024) && resNodeSwapContent(prnArgFrom, prnArgTo) && resNodePutContent(prnArgTo));
+      if (resNodeGetContent(prnArgFrom, 1024) != NULL && resNodeSwapContent(prnArgFrom, prnArgTo) == rn_error_none && resNodePutContent(prnArgTo)) {
+	/* OK */
+      }
+      else {
+	eResult = rn_error_undef;
+      }
     }
     else if (resNodeMakeDirectoryStr(resNodeGetNameBaseDir(prnArgTo), MODE_DIR_CREATE) != rn_error_none) {
       eResult = rn_error_undef;

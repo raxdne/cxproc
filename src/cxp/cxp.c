@@ -3106,11 +3106,13 @@ cxpProcessCopyNode(xmlNodePtr pndArgCopy, cxpContextPtr pccArg)
     }
     else {
       fResult = TRUE;
+#ifdef HAVE_CGI
       printf("Status: 200 OK\r\n"
 	     "Content-Type: text/plain;\r\n\r\n"
 	     "Cxproc %s '%s' '%s' OK\r\n",
 	     fMove ? "move" : "copy",
 	     pucFrom, pucTo);
+#endif
     }
 
 #if 0
