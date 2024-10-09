@@ -29,6 +29,8 @@ cxpCtxtCgiParse(cxpContextPtr pccArg);
 extern BOOL_T
 cxpCtxtCgiProcess(cxpContextPtr pccArg);
 
+extern BOOL_T
+cxpProcessCGICopyNode(xmlNodePtr pndArgCopy, cxpContextPtr pccArg);
 
 #ifdef TESTCODE
 extern int

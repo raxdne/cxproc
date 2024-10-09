@@ -336,6 +336,15 @@ resMimeIsPlain(int iMimeType)
 } /* end of resMimeIsPlain() */
 
 
+/*! \return TRUE if iMimeType is a viewable in web browser
+*/
+BOOL_T
+resMimeIsBrowserViewable(int iMimeType)
+{
+  return (resMimeIsPlain(iMimeType)|| iMimeType == MIME_TEXT_XML || resMimeIsPicture(iMimeType));
+} /* end of resMimeIsBrowserViewable() */
+
+
 /*! Read and sets the file MIME type of this context.
 
   \param prnArg the context

@@ -208,6 +208,9 @@ resMimeIsXml(int iMimeType);
 extern BOOL_T
 resMimeIsPlain(int iMimeType);
 
+extern BOOL_T
+resMimeIsBrowserViewable(int iMimeType);
+
 #ifdef TESTCODE
 extern int
 resNodeTestMime(void);

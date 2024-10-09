@@ -1707,7 +1707,11 @@ cxpProcessMakeNode(xmlNodePtr pndArg,cxpContextPtr pccArg)
 	  continue; /* ignore all non-valid element nodes */
 	}
 	else if (IS_NODE_FILECOPY(pndChild)) {
+#ifdef HAVE_CGI
+	  cxpProcessCGICopyNode(pndChild, pccHere);
+#else
 	  cxpProcessCopyNode(pndChild, pccHere);
+#endif
 	}
 	else if (IS_NODE_EACH(pndChild)) {
 	  xmlDocPtr pdocMake;
@@ -3017,6 +3021,7 @@ cxpViewNodeResult(xmlNodePtr pndArg, cxpContextPtr pccArg)
 
 
 /*! \return 
+see also "cxp_context_cgi.c/cxpProcessCGICopyNode()"
 */
 BOOL_T
 cxpProcessCopyNode(xmlNodePtr pndArgCopy, cxpContextPtr pccArg)
@@ -3038,103 +3043,29 @@ cxpProcessCopyNode(xmlNodePtr pndArgCopy, cxpContextPtr pccArg)
     fMove = domGetPropFlag(pndArgCopy, BAD_CAST "delete", FALSE);
     fSearch = domGetPropFlag(pndArgCopy, BAD_CAST "search", FALSE);
 
-#ifdef HAVE_CGI
-    if (STR_IS_EMPTY(pucTo) || (prnTo = resNodeFromNodeNew(cxpCtxtRootGet(pccArg), pucTo)) == NULL || cxpCtxtAccessIsPermitted(pccArg, prnTo) == FALSE) {
-      printf("Status: 507\r\n"
-	     "Content-Type: text/plain\r\n\r\n"
-	     "Cxproc write error '%s = '%s''\r\n",
-	     pucTo, resNodeGetErrorMsg(prnTo));
-      cxpCtxtLogPrint(pccArg, 1, "DIR '%s'", resNodeGetNameNormalized(prnTo));
-    }
-#else
     if (STR_IS_EMPTY(pucTo) || (prnTo = cxpResNodeResolveNew(pccArg, pndArgCopy, pucTo, CXP_O_WRITE)) == NULL || cxpCtxtAccessIsPermitted(pccArg, prnTo) == FALSE) {
       cxpCtxtLogPrint(pccArg, 1, "No valid target name");
     }
-#endif
     else if (STR_IS_EMPTY(pucFrom) ||
 	     (prnFrom = cxpResNodeResolveNew(pccArg, pndArgCopy, pucFrom, (fSearch ? CXP_O_SEARCH | CXP_O_READ : CXP_O_READ))) == NULL
 					     || cxpCtxtAccessIsPermitted(pccArg, prnFrom) == FALSE) {
-#ifdef HAVE_CGI
-      printf("Status: 507\r\n"
-	     "Content-Type: text/plain\r\n\r\n"
-	     "Cxproc read error '%s' = '%s'\r\n",
-	     pucFrom, resNodeGetErrorMsg(prnFrom));
-#endif
       cxpCtxtLogPrint(pccArg, 1, "No valid source name '%s'", pucFrom);
     }
     else if ((prnContent = resNodeGetLastDescendant(prnFrom)) == NULL || resNodeIsDir(prnContent) || resNodeIsDirInArchive(prnContent)) {
-#ifdef HAVE_CGI
-      printf("Status: 503\r\n"
-	     "Content-Type: text/plain\r\n\r\n"
-	     "Cxproc access error '%s' '%s' = '%s'\r\n",
-	     pucFrom, pucTo, resNodeGetErrorMsg(prnContent));
-#endif
       cxpCtxtLogPrint(pccArg, 1, "Cxproc access error '%s' '%s'\r\n", pucFrom, pucTo);
     }
     else if (resNodeIsStd(prnTo)) {
-#ifdef HAVE_CGI
-      /* s. RFC 1806 */
-      xmlChar *pucAttrType = domGetPropValuePtr(pndArgCopy, BAD_CAST "type");
-      xmlChar *pucAttrDisposition = domGetPropValuePtr(pndArgCopy, BAD_CAST "disposition");
-
-      printf("Content-Type: %s\n", (pucAttrType && xmlStrlen(pucAttrType) > 5) ? pucAttrType : BAD_CAST resNodeGetMimeTypeStr(prnContent));
-      printf("Content-Disposition: attachment; filename=%s\n",
-	     (pucAttrDisposition && xmlStrlen(pucAttrDisposition) > 5) ? pucAttrDisposition : resNodeGetNameBase(prnContent));
-      printf("Content-Description: Dynamic cxproc content\n\n");
-#endif
       if (resNodeTransfer(prnContent, prnTo, FALSE) != rn_error_none) {
-#ifdef HAVE_CGI
-	printf("Status: 503\r\n"
-	       "Content-Type: text/plain\r\n\r\n"
-	       "Cxproc copy error '%s' '%s' = '%s'\r\n",
-	       pucFrom, pucTo, resNodeGetErrorMsg(prnFrom));
-#endif
       }
       else {
 	fResult = TRUE;
       }
     }
     else if (resNodeTransfer(prnContent, prnTo, fMove) != rn_error_none || resNodeReadStatus(prnTo) == FALSE) {
-#ifdef HAVE_CGI
-      printf("Status: 503\r\n"
-	     "Content-Type: text/plain\r\n\r\n"
-	     "Cxproc %s error:\r\n  '%s' = '%s'\r\n  '%s' = '%s'\r\n",
-	     fMove ? "move" : "copy",
-	     pucFrom, resNodeGetErrorMsg(prnFrom) ? resNodeGetErrorMsg(prnFrom) : "",
-	     pucTo, resNodeGetErrorMsg(prnTo) ? resNodeGetErrorMsg(prnTo) : "");
-#endif
     }
     else {
       fResult = TRUE;
-#ifdef HAVE_CGI
-      printf("Status: 200 OK\r\n"
-	     "Content-Type: text/plain;\r\n\r\n"
-	     "Cxproc %s '%s' '%s' OK\r\n",
-	     fMove ? "move" : "copy",
-	     pucFrom, pucTo);
-#endif
     }
-
-#if 0
-    if (fResult == FALSE) {
-      printf("Status: 503 OK\r\n"
-	     "Content-Type: text/plain;\r\n\r\n"
-	     "Cxproc '%s' '%s' = '%s'\r\n",
-	     pucFrom, pucTo, resNodeGetErrorMsg(prnTo));
-    }
-    else if ((pucAttrResponse = domGetPropValuePtr(pndArgCopy, BAD_CAST "response"))) {
-      printf("Status: 200 OK\r\n"
-	     "Content-Type: text/plain;\r\n\r\n"
-	     "Cxproc '%s' '%s' = '%s' OK\r\n",
-	     pucFrom, pucTo, pucAttrResponse);
-    }
-    else {
-      printf("Status: 200 OK\r\n"
-	     "Content-Type: text/plain;\r\n\r\n"
-	     "Cxproc '%s' '%s' OK\r\n",
-	     pucFrom, pucTo);
-    }
-#endif
 
     fflush(stdout); /*! because problems with VC++ (reverse order in stdout) */
 
