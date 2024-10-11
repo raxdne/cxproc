@@ -1,7 +1,7 @@
 /*
 cxproc - Configurable Xml PROCessor
 
-Copyright (C) 2006..2022 by Alexander Tenbusch
+Copyright (C) 2006..2024 by Alexander Tenbusch
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -207,7 +207,7 @@ cxpCtxtCliPrintHelp(cxpContextPtr pccArg)
     xmlFree(pucValue);
   }
   
-  cxpCtxtLogPrint(pccArg, 1,"\n%s - " CXP_VER_FILE_DESCRIPTION_STR " " CXP_VER_FILE_VERSION_STR "\n", pucExecutable);
+  cxpCtxtLogPrint(pccArg, 1,"\n%s " CXP_VER_FILE_VERSION_STR " - " CXP_VER_FILE_DESCRIPTION_STR "\n", pucExecutable);
 
   cxpCtxtLogPrint(pccArg, 1,"Copyright " CXP_VER_COPYRIGHT_STR "\n");
 

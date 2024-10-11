@@ -66,18 +66,20 @@ execute_process(COMMAND git describe --tags --long
   OUTPUT_VARIABLE GIT_TAG
   WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
   )
-string(STRIP "${GIT_TAG}" GIT_TAG)
+string(STRIP ${GIT_TAG} GIT_TAG)
+string(REGEX REPLACE "^v" "" GIT_TAG ${GIT_TAG})
+string(FIND ${GIT_TAG} "." POS_DOT)
+string(FIND ${GIT_TAG} "-" POS_MINUS)
+string(SUBSTRING ${GIT_TAG} 0 ${POS_DOT} GIT_TAG_MAJOR)
+MATH(EXPR POS_DOT "${POS_DOT}+1")
+MATH(EXPR L_MINUS "${POS_MINUS} - ${POS_DOT}")
+string(SUBSTRING ${GIT_TAG} ${POS_DOT} ${L_MINUS} GIT_TAG_MINOR)
 
 execute_process(COMMAND git branch --show-current
   OUTPUT_VARIABLE GIT_BRANCH
   WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
   )
 string(STRIP "${GIT_BRANCH}" GIT_BRANCH)
-
-# TODO: to be aligned with "src/version.h"
-set(PROJECT_VERSION_MAJOR "2")
-set(PROJECT_VERSION_MINOR "0")
-set(PROJECT_VERSION_PATCH "-pre")
 
 include(docs)
 
@@ -525,7 +527,17 @@ IF (CXPROC_EXPERIMENTAL)
   add_compile_definitions(EXPERIMENTAL)
 ENDIF (CXPROC_EXPERIMENTAL)
 
-add_compile_definitions(CXP_VER_FILE_VERSION_STR="${GIT_TAG}" CXP_VER_FILE_BRANCH_STR="${GIT_BRANCH}")
+add_compile_definitions(CXP_VERSION_URL="https://github.com/raxdne/cxproc")
+add_compile_definitions(CXP_VER_FILE_DESCRIPTION_STR="A Configurable Xml PROCessor.")
+add_compile_definitions(CXP_VERSION_MAJOR=${GIT_TAG_MAJOR})
+add_compile_definitions(CXP_VERSION_MINOR=${GIT_TAG_MINOR})
+add_compile_definitions(CXP_VER_FILE_VERSION_STR="v${GIT_TAG_MAJOR}.${GIT_TAG_MINOR}")
+add_compile_definitions(CXP_VER_FILE_BRANCH_STR="${GIT_BRANCH}")
+add_compile_definitions(CXP_VERSION_REVISION=0)
+add_compile_definitions(CXP_REVISION_STR="0")
+add_compile_definitions(CXP_VERSION_BUILD=0000)
+add_compile_definitions(CXP_VERSION_BUILD_STR="0000")
+add_compile_definitions(CXP_VER_COPYRIGHT_STR="\(C\) 2006..2024 by Alexander Tenbusch")
 
 IF(MSVC)
   SET(CMAKE_C_FLAGS "/TC /std:c17 /permissive- /fp:fast /MT /Gm- /MP /GS /GR- /Gd /analyze- /J /errorreport:prompt -D_REENTRANT -DDEF_MEM_LEVEL=8 -D_CRT_NONSTDC_NO_DEPRECATE -D_CRT_SECURE_NO_DEPRECATE -D_CRT_SECURE_NO_WARNINGS -DWIN32_LEAN_AND_MEAN")

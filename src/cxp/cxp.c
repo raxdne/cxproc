@@ -1,7 +1,7 @@
 /*
   cxproc - Configurable Xml PROCessor
 
-  Copyright (C) 2006..2022 by Alexander Tenbusch
+  Copyright (C) 2006..2024 by Alexander Tenbusch
 
   This program is free software; you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -3104,7 +3104,7 @@ cxpInfoProgram(xmlNodePtr pndArg, cxpContextPtr pccArg)
     xmlSetProp(pndSource, BAD_CAST "branch", BAD_CAST CXP_VER_FILE_BRANCH_STR);
 
     pndOption = xmlNewChild(pndResult, NULL, BAD_CAST"compilation", NULL);
-    xmlSetProp(pndOption, BAD_CAST "build", BAD_CAST CXP_VERSION_BUILD_STR);
+    //xmlSetProp(pndOption, BAD_CAST "build", BAD_CAST CXP_VERSION_BUILD_STR);
     xmlSetProp(pndOption, BAD_CAST "platform", BAD_CAST
 #ifdef _MSC_VER
 #ifdef _WIN64
