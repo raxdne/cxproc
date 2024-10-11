@@ -323,7 +323,7 @@ cxpCtxtCgiParse(cxpContextPtr pccArg)
       //pndXml = xmlNewChild(pndMake, NULL, NAME_PLAIN, BAD_CAST"File not found");
     }
   }
-  else if ((pucT = cxpCtxtEnvGetValueByName(pccArg, BAD_CAST "QUERY_STRING")) != NULL && xmlStrchr(pucT, '=') == NULL) { /*!\todo define a more stable criteria than '=' */
+  else if ((pucT = cxpCtxtEnvGetValueByName(pccArg, BAD_CAST "QUERY_STRING")) != NULL && STR_IS_NOT_EMPTY(pucT) && xmlStrchr(pucT, '=') == NULL) { /*!\todo define a more stable criteria than '=' */
     /* copy file content to client */
     xmlNodePtr pndCopy = NULL;
     resNodePtr prnFrom = NULL;
