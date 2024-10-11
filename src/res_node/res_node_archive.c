@@ -82,7 +82,7 @@ arcFileOpen(resNodePtr prnArg)
   BOOL_T fResult = FALSE;
 
 #ifdef HAVE_LIBARCHIVE
-  assert(prnArg != NULL && prnArg->handleIO == NULL);
+//  assert(prnArg != NULL && prnArg->handleIO == NULL);
 
   if (prnArg->eMode == mode_read) {
     prnArg->handleIO = (void *)archive_read_new();
@@ -130,11 +130,11 @@ arcFileOpen(resNodePtr prnArg)
     prnArg->handleIO = (void *)archive_write_new();
     if (prnArg->handleIO) {
       //archive_write_set_options((arcPtr)prnArg->handleIO, "compression=store");
-      if ((resNodeGetMimeType(prnArg) == MIME_APPLICATION_ZIP
-	&& archive_write_set_format_zip((arcPtr)prnArg->handleIO) == ARCHIVE_OK)
-	||
-	(resNodeGetMimeType(prnArg) == MIME_APPLICATION_X_TAR
+      if ((resNodeGetMimeType(prnArg) == MIME_APPLICATION_X_TAR
 	&& archive_write_set_format_gnutar((arcPtr)prnArg->handleIO) == ARCHIVE_OK)
+	||
+	archive_write_set_format_zip((arcPtr)prnArg->handleIO) == ARCHIVE_OK
+	
 #if 0
 	||
 	(resNodeGetMimeType(prnArg) == MIME_APPLICATION_X_ISO9660_IMAGE
@@ -161,7 +161,13 @@ arcFileOpen(resNodePtr prnArg)
 	    }
 	  }
 #endif
-	  if (archive_write_open_filename((arcPtr)prnArg->handleIO, resNodeGetNameNormalizedNative(prnArg)) == ARCHIVE_OK) {
+	  if (resNodeIsStd(prnArg) && archive_write_open_fd((arcPtr)prnArg->handleIO, 1) == ARCHIVE_OK) {
+	    prnArg->fExist = TRUE;
+	    prnArg->eAccess = rn_access_archive;
+	    fResult = TRUE;
+	    //PrintFormatLog(4, "archive_write_open_filename('%s') OK", resNodeGetNameNormalized(prnArg));
+	  }
+	  else if (archive_write_open_filename((arcPtr)prnArg->handleIO, resNodeGetNameNormalizedNative(prnArg)) == ARCHIVE_OK) {
 	    prnArg->fExist = TRUE;
 	    prnArg->eAccess = rn_access_archive;
 	    fResult = TRUE;

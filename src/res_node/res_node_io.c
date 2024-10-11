@@ -122,7 +122,14 @@ resNodeOpen(resNodePtr prnArg, const char *pchArgMode)
       prnArg->eAccess = rn_access_std;
       if (prnArg->eMode == mode_write) {
 	resNodeSetType(prnArg,rn_type_stdout);
+#ifdef HAVE_LIBARCHIVE
+	if (strchr(pchArgMode, (int)'a')) {
+	  fResult = arcFileOpen(prnArg);
+	}
+	else
+#else
 	prnArg->handleIO = (void *)stdout;
+#endif
 	prnArg->fRead = FALSE;
 	prnArg->fWrite = TRUE;
       }

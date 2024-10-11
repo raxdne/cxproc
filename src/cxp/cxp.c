@@ -570,6 +570,10 @@ cxpAttributeLocatorResNodeNew(cxpContextPtr pccArg, xmlNodePtr pndArg, xmlChar *
       prnT = resNodeConcatNew(cxpCtxtLocationGetStr(pccArg), pucAttrValue);
       cxpCtxtLogPrint(pccArg, 3, "Get Context '%s' from attribute 'dir' relative", resNodeGetNameNormalized(prnT));
     }
+    else if (resPathIsStd(domGetPropValuePtr(pndArg, BAD_CAST "name"))) {
+      /*  */
+      return prnResult;
+    }
 
 #ifdef HAVE_PIE
     if (prnT == NULL && (pucAttrValue = pieGetAncestorContextStr(pndArg)) != NULL) {

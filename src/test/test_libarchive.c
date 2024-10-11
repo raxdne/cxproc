@@ -283,6 +283,56 @@ arcTestWrite(void)
     archive_write_free(a);
   }
 
+
+  if (SKIPTEST) {
+    arcPtr a;
+    arcEntryPtr ae;
+
+    i++;
+    printf("TEST %i in '%s:%i': packing existing files into ZIP stdout = ", i, __FILE__, __LINE__);
+
+    /* https://github.com/libarchive/libarchive/wiki/Examples#user-content-A_Basic_Write_Example */
+
+    if ((a = archive_write_new()) == NULL) {
+      printf("error of archive_write_new()\n");
+    }
+    else if (archive_write_set_format_zip(a) != ARCHIVE_OK) {
+      printf("error of archive_write_set_format_pax_restricted()\n");
+    }
+    else if (archive_write_set_compression_none(a) != ARCHIVE_OK) {
+      printf("error of archive_write_set_compression_none()\n");
+    }
+    else if (archive_write_open_fd(a, 1) != ARCHIVE_OK) {
+      printf("error of archive_write_open_fd()\n");
+    }
+    else if ((ae = archive_entry_new()) == NULL) {
+      printf("error of archive_entry_new()\n");
+    }
+    else {
+      char *pcContent = "0123456789";
+      char *pcT;
+
+      archive_entry_set_pathname(ae, "entry-1");
+      archive_entry_set_size(ae, strlen(pcContent));
+      archive_entry_set_filetype(ae, AE_IFREG);
+      archive_entry_set_perm(ae, 0644);
+      if (archive_write_header(a, ae) != ARCHIVE_OK) {
+	printf("error archive_write_header()");
+      }
+      else if (archive_write_data(a, pcContent, strlen(pcContent)) != strlen(pcContent)) {
+	printf("error of archive_write_data()\n");
+      }
+      else {
+	printf("OK\n");
+	n_ok++;
+      }
+
+      archive_entry_free(ae);
+    }
+    archive_write_close(a);
+    archive_write_free(a);
+  }
+
   return (i - n_ok);
 }
 /* end of arcTestWrite() */

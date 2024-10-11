@@ -531,7 +531,7 @@ dirNodeToResNodeList(xmlNodePtr pndArg)
   if (IS_NODE_DIR(pndArg) && STR_IS_NOT_EMPTY(pucName)) {
     xmlChar* pucPrefix;
 
-    prnNew = resNodeDirNew(pucName);
+    prnNew = resNodeSplitStrNew(pucName);
     resNodeSetType(prnNew, rn_type_dir);
     if (resPathIsRelative(pucAttrMap)) {
       resNodeSetNameAlias(prnNew, pucAttrMap);
@@ -547,14 +547,15 @@ dirNodeToResNodeList(xmlNodePtr pndArg)
     else {
       printf("Error resNodeListParse() ...\n");
     }
+    prnResult = prnNew;
 
     if ((pucPrefix = domGetPropValuePtr(pndArg, BAD_CAST"prefix"))) {
-      //prnResult = resNodeSplitStrNew(pucPrefix);
+      prnResult = resNodeSplitStrNew(pucPrefix);
+      resNodeAddChild(prnResult, prnNew);
       //resNodeAddChild(resNodeGetLastDescendant(prnResult), prnNew);
-      if (resNodeSetNameBaseDir(prnNew, pucPrefix)) {
-      }
+      //if (resNodeSetNameBaseDir(prnNew, pucPrefix)) {
+      //}
     }
-    prnResult = prnNew;
   }
   else if (IS_NODE_FILE(pndArg) && STR_IS_NOT_EMPTY(pucName)) {
     /*!\bug handle URL etc */

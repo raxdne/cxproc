@@ -506,6 +506,39 @@ arcTestResNodeWrite(void)
   }
 
 
+  if (SKIPTEST) {
+    resNodePtr prnT = NULL;
+    resNodePtr prnTT = NULL;
+
+    i++;
+    printf("TEST %i in '%s:%i': write TAR content to stdout = ",i,__FILE__,__LINE__);
+    
+    if ((prnT = resNodeDirNew(BAD_CAST "-")) == NULL) {
+      printf("Error resNodeDirNew()\n");
+    }
+    else if ((prnTT = resNodeRootNew(NULL,BAD_CAST "\"" TESTPREFIX "plain/Length_1024.txt\"")) == NULL) {
+      //xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeRootNew(): %s\n",resNodeGetErrorMsg(prnT));
+    }
+    else if (resNodeReadStatus(prnTT) == FALSE) {
+      //xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeRootNew(): %s\n",resNodeGetErrorMsg(prnT));
+    }
+    else if (resNodeOpen(prnT,"wa") == FALSE) {
+      printf("Error resNodeOpen()\n");
+    }
+    else if (arcAddResNode(prnT,prnTT,NULL,TESTPREFIX) == FALSE) {
+      printf("Error arcFileWrite()\n");
+    }
+    else if (resNodeClose(prnT) == FALSE) {
+      printf("Error resNodeClose()\n");
+    }
+    else {
+      n_ok++;
+    }
+    resNodeFree(prnTT);
+    resNodeFree(prnT);
+  }
+
+
   if (RUNTEST) {
     size_t j;
     resNodePtr prnT = NULL;

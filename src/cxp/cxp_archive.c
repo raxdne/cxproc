@@ -101,6 +101,16 @@ arcProcessZipNode(xmlNodePtr pndArgZip, cxpContextPtr pccArg)
 	  iLevelCompress = CXP_COMRESSION_DEFAULT;
 	}
 
+#ifdef HAVE_CGI
+	if (resNodeIsStd(prnZip)) {
+	  printf("Status: 200 OK\r\n"
+		 "Content-Type: %s;\r\n\r\n",
+		 resMimeGetTypeStr(MIME_APPLICATION_ZIP));
+	  // printf("Content-Disposition: attachment; filename=%s\n", "abc.zip");
+	  // printf("Content-Description: Dynamic cxproc content\n\n");
+	}
+#endif
+
 	for (pndChildZip = pndArgZip->children; pndChildZip; pndChildZip = pndChildZip->next) {
 
 	  if (IS_NODE_PIE(pndChildZip) || IS_NODE_DIR(pndChildZip) || IS_NODE_FILE(pndChildZip)) {
@@ -121,8 +131,8 @@ arcProcessZipNode(xmlNodePtr pndArgZip, cxpContextPtr pccArg)
 	      && (pndDir = domGetFirstChild(pndDir, NAME_DIR)) != NULL) {
 	      /*! DOM of files to compress */
 	      AddNodeList(prnZip, pndDir, pccHere);
-	      xmlFreeDoc(pdocResultT);
 	    }
+	    xmlFreeDoc(pdocResultT);
 	  }
 	  else if (IS_NODE_PLAIN(pndChildZip)) {
 	    xmlChar* pucResultT;
@@ -131,8 +141,8 @@ arcProcessZipNode(xmlNodePtr pndArgZip, cxpContextPtr pccArg)
 	    if (STR_IS_NOT_EMPTY(pucResultT)) {
 	      /*! plain list of files to compress */
 	      AddTextList(prnZip, pucResultT, pccHere);
-	      xmlFree(pucResultT);
 	    }
+	    xmlFree(pucResultT);
 	  }
 	  else {
 	    cxpCtxtLogPrint(pccArg, 1, "Element '%s' ignored", pndChildZip->name);
