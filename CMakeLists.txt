@@ -67,13 +67,13 @@ execute_process(COMMAND git describe --tags --long
   WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
   )
 string(STRIP ${GIT_TAG} GIT_TAG)
-string(REGEX REPLACE "^v" "" GIT_TAG ${GIT_TAG})
-string(FIND ${GIT_TAG} "." POS_DOT)
-string(FIND ${GIT_TAG} "-" POS_MINUS)
-string(SUBSTRING ${GIT_TAG} 0 ${POS_DOT} GIT_TAG_MAJOR)
+string(REGEX REPLACE "^v" "" INFO ${GIT_TAG})
+string(FIND ${INFO} "." POS_DOT)
+string(FIND ${INFO} "-" POS_MINUS)
+string(SUBSTRING ${INFO} 0 ${POS_DOT} GIT_TAG_MAJOR)
 MATH(EXPR POS_DOT "${POS_DOT}+1")
 MATH(EXPR L_MINUS "${POS_MINUS} - ${POS_DOT}")
-string(SUBSTRING ${GIT_TAG} ${POS_DOT} ${L_MINUS} GIT_TAG_MINOR)
+string(SUBSTRING ${INFO} ${POS_DOT} ${L_MINUS} GIT_TAG_MINOR)
 
 execute_process(COMMAND git branch --show-current
   OUTPUT_VARIABLE GIT_BRANCH
@@ -532,6 +532,7 @@ add_compile_definitions(CXP_VER_FILE_DESCRIPTION_STR="A Configurable Xml PROCess
 add_compile_definitions(CXP_VERSION_MAJOR=${GIT_TAG_MAJOR})
 add_compile_definitions(CXP_VERSION_MINOR=${GIT_TAG_MINOR})
 add_compile_definitions(CXP_VER_FILE_VERSION_STR="v${GIT_TAG_MAJOR}.${GIT_TAG_MINOR}")
+add_compile_definitions(CXP_VER_FILE_DEVELOP_STR="${GIT_TAG}")
 add_compile_definitions(CXP_VER_FILE_BRANCH_STR="${GIT_BRANCH}")
 add_compile_definitions(CXP_VERSION_REVISION=0)
 add_compile_definitions(CXP_REVISION_STR="0")
