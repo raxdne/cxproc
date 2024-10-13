@@ -90,10 +90,7 @@ ioTest(void)
     fputs((const char *)mucTestLabel, stderr);
     mucTestResult[0] = '\0';
 
-    if (mkdir(NULL, iMode) == 0) {
-      xmlStrPrintf(mucTestResult, BUFFER_LENGTH, "Error 1 mkdir()\n");
-    }
-    else if (mkdir(TESTDIR, iMode) != 0) {
+    if (mkdir(TESTDIR, iMode) != 0) {
       xmlStrPrintf(mucTestResult, BUFFER_LENGTH, "Error 2 mkdir()\n");
     }
     else if ((dd = opendir(TESTDIR)) == NULL) {
@@ -116,6 +113,8 @@ ioTest(void)
     }
   }
 #endif
+
+  xmlFree(pucModuleTestReport);
 
   printf("Result in '%s': %i/%i OK\n\n",__FILE__,n_ok,i);
 

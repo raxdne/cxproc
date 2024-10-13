@@ -745,6 +745,7 @@ utilsTest(void)
     i++;
     printf("TEST %i in '%s:%i': ",i,__FILE__,__LINE__);
 
+    r = 0;
     if (dt_parse_iso_recurrence(NULL, 20, NULL) != 0) {
       printf("ERROR 1 dt_parse_iso_recurrence()\n");
     }

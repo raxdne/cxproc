@@ -59,6 +59,7 @@ xmlTest(void)
   if (RUNTEST) {
     /* TEST:
      */
+    int j;
     xmlDocPtr pdocResult = NULL;
     xmlDocPtr pdocT = NULL;
     int options;
@@ -96,18 +97,16 @@ xmlTest(void)
       }
 
       pndBlock = xmlNewChild(pndPieRoot, NULL, BAD_CAST"block", NULL);
-      for (pNsI = *ppList; pNsI; pNsI = pNsI->next) {
+      for (j=0, pNsI = ppList[j]; pNsI; j++, pNsI = ppList[j]) {
 	/* s. code in tree.c:xmlNewReconciliedNs() */
-
 	pNsT = xmlNewNs(pndBlock, pNsI->href, pNsI->prefix);
-
 	pndT = xmlNewChild(pndBlock, pNsT, BAD_CAST"p", pNsT->prefix);
       }
       pndT = xmlNewChild(pndBlock, NULL, BAD_CAST"p", NULL);
 
       //xmlSaveFileEnc("-", pdocResult, "UTF-8");
 
-      //xmlFreeNsList(pList);
+      xmlFree(ppList);
       xmlFreeDoc(pdocT);
       xmlFreeDoc(pdocResult);
     }

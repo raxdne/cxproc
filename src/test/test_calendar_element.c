@@ -675,6 +675,7 @@ ceTest(void)
       printf("OK\n");
     }
     CalendarElementFree(pceT);
+    CalendarElementFree(pceList);
   }
 
 

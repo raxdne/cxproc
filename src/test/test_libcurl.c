@@ -153,6 +153,8 @@ curlTest(void)
     
     curl_free(host);
     curl_free(path);
+    curl_free(query);
+    curl_free(fragment);
     curl_free(path2);
     curl_url_cleanup(h); /* free url handle */
   }
