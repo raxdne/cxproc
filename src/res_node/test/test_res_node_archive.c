@@ -98,7 +98,7 @@ arcTestResNodeRead(void)
   }
 
 
-  if (RUNTEST) {
+  if (SKIPTEST) {
     resNodePtr prnT = NULL;
     xmlNodePtr pndT = NULL;
 
@@ -185,6 +185,9 @@ arcTestResNodeRead(void)
     }
     else if (resNodeIsArchive(prnT) == FALSE) {
       printf("Error resNodeIsArchive()\n");
+    }
+    else if (arcAppendEntries(prnT,NULL,TRUE) == FALSE) {
+      printf("Error 1 arcAppendEntries()\n");
     }
     else if (arcAppendEntries(prnT,NULL,TRUE) == FALSE) {
       printf("Error 1 arcAppendEntries()\n");

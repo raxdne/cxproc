@@ -553,7 +553,8 @@ cxpAttributeLocatorResNodeNew(cxpContextPtr pccArg, xmlNodePtr pndArg, xmlChar *
     if (IS_NODE_MAKE(pndArg)) {
       pucAttrValue = domGetPropValuePtr(pndArg, BAD_CAST "dir");
       if (STR_IS_EMPTY(pucAttrValue) || xmlStrEqual(pucAttrValue,BAD_CAST"pwd")) {
-	/* keep location of pccArg */
+	prnT = resNodeCwdNew();
+	cxpCtxtLogPrint(pccArg, 3, "Get Context '%s' from cwd", resNodeGetNameNormalized(prnT));
       }
       else if (resPathIsAbsolute(pucAttrValue)) {
 	prnT = resNodeDirNew(pucAttrValue);

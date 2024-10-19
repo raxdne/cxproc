@@ -189,6 +189,8 @@ resNodeTestOperations(void)
       pucModuleTestReport = xmlStrcat(pucModuleTestReport,mucTestLabel);
       pucModuleTestReport = xmlStrcat(pucModuleTestReport,mucTestResult);
     }
+    resNodeFree(prnTo);
+    resNodeFree(prnFrom);
   }
 
   

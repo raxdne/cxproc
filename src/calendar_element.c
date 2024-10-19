@@ -84,12 +84,7 @@ CalendarElementNew(xmlChar *pucArg)
   pceResult = (ceElementPtr)xmlMalloc(sizeof(ceElementType));
   if (pceResult) {
     memset(pceResult, 0, sizeof(ceElementType));
-    if (CalendarElementUpdate(pceResult, pucArg)) {
-    }
-    else {
-      CalendarElementFree(pceResult);
-      pceResult = NULL;
-    }
+    CalendarElementUpdate(pceResult, pucArg);
   }
   return pceResult;
 } /* end of CalendarElementNew() */
@@ -241,9 +236,7 @@ void
 CalendarElementFree(ceElementPtr pceArg)
 {
   if (pceArg) {
-    if (pceArg->pNext) {
-      CalendarElementFree(pceArg->pNext);
-    }
+    CalendarElementFree(pceArg->pNext);
     CalendarElementReset(pceArg);
     xmlFree(pceArg);
   }
@@ -298,19 +291,12 @@ SplitCalendarElementRecurrences(ceElementPtr pceArg)
       o = (pceArg->dt1.dt - pceArg->dt0.dt);
     }
 
-    for (r = pceArg->iRecurrence, pceI = CalendarElementDup(pceArg); pceI != NULL && r > -1; r--) {
-      ceElementPtr pceNew;
-
-      pceNew = CalendarElementDup(pceI);
-      if (pceNew) {
-	pceNew->iRecurrence = -1; /* this calendar element is resulting from a recurrence */
-	if (pceResult) {
-	  CalendarElementListAdd(pceResult, pceNew);
-	}
-	else {
-	  pceResult = pceNew;
-	}
+    for (r = pceArg->iRecurrence; r > -1; r--) {
+      pceI = CalendarElementDup(pceArg);
+      if (pceI == NULL) {
+	break;
       }
+      pceI->iRecurrence = -1; /* this calendar element is resulting from a recurrence */
 
       /*!\bug time value is ignored */
 
@@ -353,8 +339,13 @@ SplitCalendarElementRecurrences(ceElementPtr pceArg)
       else {
       }
 
+      if (pceResult) {
+	CalendarElementListAdd(pceResult, pceI);
+      }
+      else {
+	pceResult = pceI;
+      }
     }
-    CalendarElementFree(pceI);
   }
 
   return pceResult;

@@ -1253,41 +1253,7 @@ cxpCtxtLogInfo(cxpContextPtr pccArg)
       xmlFree(pucN);
     }
 
-#if 0
-    if (pccArg->in == stdin) {
-      cxpCtxtLogPrint(pccArg, 1, "\t in = 'stdin'");
-    }
-    else {
-      cxpCtxtLogPrint(pccArg, 1, "\t in = '%0x'", pccArg->in);
-    }
-
-    if (pccArg->out == stdout) {
-      cxpCtxtLogPrint(pccArg, 1, "\tout = 'stdout'");
-    }
-    else {
-      cxpCtxtLogPrint(pccArg, 1, "\tout = '%0x'", pccArg->out);
-    }
-
-    if (pccArg->log == stdout) {
-      cxpCtxtLogPrint(pccArg, 1, "\tlog = 'stdout'");
-    }
-    else {
-      cxpCtxtLogPrint(pccArg, 1, "\tlog = '%0x'", pccArg->log);
-    }
-
-    if (pccArg->err == stderr) {
-      cxpCtxtLogPrint(pccArg, 1, "\terr = 'stderr'");
-    }
-    else {
-      cxpCtxtLogPrint(pccArg, 1, "\terr = '%0x'", pccArg->err);
-    }
-#endif
-
     cxpCtxtLogPrintDoc(pccArg, 1, "\nContext DOM:", pccArg->pdocContextNode);
-
-    //cxpCtxtLogPrintDoc(pccArg, 1, "Context DOM:", pccArg->pndContextNode);
-
-    //cxpCtxtLogPrintDoc(pccArg, 1, "Context DOM:", NULL);
 
     cxpCtxtLogPrint(pccArg, 1, "childs are: ");
     for (pccIter = pccArg->children; pccIter; pccIter = pccIter->children) {

@@ -46,7 +46,7 @@
    s. https://www.regular-expressions.info/
 */
 #define RE_UNC "(?:\\b[a-z]:\\\\|\\\\{1,2}[a-zäÄöÖüÜß0-9_.$\\-]+\\\\[a-zäÄöÖüÜß0-9_.$\\-]+)\\\\*(?:[^\\\\/:*?\"<>|\\r\\n]+\\\\)*[^\\\\/:*?\"<>|\\r\\n]*"
-#define RE_URL "(tel|onenote|file|http|https|ftp|ftps|mailto|smb)(://+|%%3A%%2F%%2F|:|%%3A)([a-zäÄöÖüÜß0-9\\.\\-\\&\\#\\;\\:\\,\\+\\_%%\\~\\?\\!=\\@]+|[a-zäÄöÖüÜß0-9\\.\\-]+@)([/a-zäÄöÖüÜß0-9\\(\\)\\.\\-\\&\\#\\;\\,\\+\\:\\_%%\\~\\*\\?\\!=\\@\\{\\}]+)*"
+#define RE_URL "(tel|onenote|file|http|https|ftp|ftps|mailto|smb|rtp)(://+|%%3A%%2F%%2F|:|%%3A)([a-zäÄöÖüÜß0-9\\.\\-\\&\\#\\;\\:\\,\\+\\_%%\\~\\?\\!=\\@]+|[a-zäÄöÖüÜß0-9\\.\\-]+@)([/a-zäÄöÖüÜß0-9\\(\\)\\.\\-\\&\\#\\;\\,\\+\\:\\_%%\\~\\*\\?\\!=\\@\\{\\}]+)*"
 #define RE_LINK_MD "!*\\[([^\\]]*)\\]\\(([^\\)]+)\\)"
 #define RE_LINK_MD_AUTO "(<|&lt;|\\xE2\\x80\\x99)([^<> \\t]+)(>|&gt;|\\xE2\\x80\\x98)"
 
@@ -2172,7 +2172,7 @@ SplitStringToDateNodes(const xmlChar *pucArg, RN_MIME_TYPE eMimeTypeArg)
 #endif
 
 #ifdef EXPERIMENTAL
-	      xmlNewTextChild(pndIn, NULL, NAME_PIE_TTAG, BAD_CAST"#date");
+	      //xmlNewTextChild(pndIn, NULL, NAME_PIE_TTAG, BAD_CAST"#date");
 #endif
 
 	      if (pucSep > pucDate && !isend(*pucSep)) {

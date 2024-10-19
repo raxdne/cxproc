@@ -176,7 +176,7 @@ cxpArcTest(cxpContextPtr pccArg)
     xmlSetProp(pndChild,BAD_CAST"name",BAD_CAST"dummy.txt");
     //domPutNodeString(stderr, BAD_CAST "arcProcessZipNode(): ", pndZip);
 
-    if (arcProcessZipNode(pndZip,pccArg)==NULL) {
+    if (arcProcessZipNode(pndZip,pccArg) != NULL) {
       printf("Error arcProcessZipNode()\n");
     }
     else {
