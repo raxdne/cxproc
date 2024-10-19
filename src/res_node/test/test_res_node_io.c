@@ -373,6 +373,8 @@ resNodeTestInOut(void)
     resNodeFree(prnT);
   }
 
+#ifdef HTTPPREFIX
+
   if (RUNTEST) {
     resNodePtr prnT = NULL;
     xmlChar *pucContent = NULL;
@@ -463,6 +465,7 @@ resNodeTestInOut(void)
     resNodeFree(prnT);
   }
 
+#endif
 
   if (SKIPTEST) {
     resNodePtr prnT = NULL;

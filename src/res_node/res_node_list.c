@@ -424,7 +424,7 @@ resNodeListFindPath(resNodePtr prnArg, xmlChar *pucArgPath, int iArgOptions)
 	}
       }
     }
-#ifdef HAVE_LIBARCHIVE
+#if 0
     else if (prnResult == NULL && (iArgOptions & RN_FIND_IN_ARCHIVE) && resNodeIsArchive(prnArg)) {
       if (arcAppendEntries(prnArg, NULL, FALSE)) { /* there are no childs, append list of archive entries */
 	for (prnI = resNodeGetChild(prnArg); prnI != NULL && prnResult == NULL; prnI = resNodeGetNext(prnI)) {
@@ -786,7 +786,7 @@ resNodeListDumpRecursively(FILE *argout, resNodePtr prnArg, BOOL_T fArgDetails, 
       resNodeListDumpRecursively(argout,prnEntry,fArgDetails,pfArg);
     }
 
-    if ((pucT = (*pfArg)(prnArg, RN_INFO_META))) {
+    if ((pucT = (*pfArg)(prnArg, RN_INFO_STAT))) {
       fputs((const char*)pucT, argout);
       xmlFree(pucT);
     }
@@ -813,7 +813,7 @@ resNodeListDumpRecursively(FILE *argout, resNodePtr prnArg, BOOL_T fArgDetails, 
       resNodeIncrRecursiveSize(prnArg, resNodeGetSize(prnArg));
     }
 
-    if ((pucT = (*pfArg)(prnArg, RN_INFO_META))) {
+    if ((pucT = (*pfArg)(prnArg, RN_INFO_STAT))) {
       fputs((const char*)pucT, argout);
       xmlFree(pucT);
     }
@@ -845,7 +845,7 @@ resNodeListDumpRecursively(FILE *argout, resNodePtr prnArg, BOOL_T fArgDetails, 
     resNodeListUnlinkDescendants(prnArg);
     resNodeListFree(prnRelease);      
 
-    if ((pucT = (*pfArg)(prnArg, RN_INFO_META))) {
+    if ((pucT = (*pfArg)(prnArg, RN_INFO_STAT))) {
       fputs((const char*)pucT, argout);
       xmlFree(pucT);
     }
@@ -873,7 +873,7 @@ resNodeListDumpRecursively(FILE *argout, resNodePtr prnArg, BOOL_T fArgDetails, 
     fputc('.',stderr);
 #endif
     
-    if ((pucT = (pfArg)(prnArg, RN_INFO_META)) == NULL) {
+    if ((pucT = (pfArg)(prnArg, RN_INFO_STAT)) == NULL) {
     }
     else {
       fputs((const char*)pucT, argout);

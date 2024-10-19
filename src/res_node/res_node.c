@@ -1076,7 +1076,7 @@ resNodeGetCountDescendants(resNodePtr prnArgList)
 } /* end of resNodeGetCountDescendants() */
 
 
-/*! \return last node on child axis or prnArgList if there is no child
+/*! \return last and only node on child axis or prnArgList if there is no child
 */
 resNodePtr
 resNodeGetLastDescendant(resNodePtr prnArgList)
@@ -1087,7 +1087,14 @@ resNodeGetLastDescendant(resNodePtr prnArgList)
     resNodePtr prnT;
 
     for (prnT = resNodeGetChild(prnArgList); prnT; prnT = resNodeGetChild(prnT)) {
-      prnResult = prnT;
+      if (prnT->next) {
+	/* there are other descendants of prnArgList */
+	break;
+      }
+      else if (prnT->children == NULL) {
+	/* this last is the result */
+	prnResult = prnT;
+      }
     }
   }
   return prnResult;
@@ -1308,7 +1315,6 @@ resNodeDirNew(xmlChar *pucArgPath)
 
     if (resPathIsStd(pucArgPath)) {
       resNodeSetType(prnResult, rn_type_stdout);
-      prnResult->handleIO = stdout;
       prnResult->eAccess = rn_access_std;
       prnResult->pucNameNormalized = xmlStrdup(pucArgPath);
       prnResult->pcNameNormalizedNative = (char *)xmlStrdup(prnResult->pucNameNormalized);
@@ -2713,7 +2719,7 @@ resNodeIsExist(resNodePtr prnArg)
 
   /*!\bug check for ROOT */
   if (prnArg) {
-    if (resNodeGetType(prnArg) == rn_type_undef || prnArg->fStat == FALSE) {
+    if (resNodeGetType(prnArg) == rn_type_undef || resNodeIsUpToDate(prnArg,RN_INFO_STAT) == FALSE) {
       resNodeReadStatus(prnArg);
     }
     fResult = prnArg->fExist;
@@ -2731,7 +2737,7 @@ resNodeIsReadable(resNodePtr prnArg)
 
   /*!\bug check for ROOT */
   if (prnArg) {
-    if (resNodeGetType(prnArg) == rn_type_undef || prnArg->fStat == FALSE) {
+    if (resNodeGetType(prnArg) == rn_type_undef || resNodeIsUpToDate(prnArg,RN_INFO_STAT) == FALSE) {
       resNodeReadStatus(prnArg);
     }
     fResult = prnArg->fRead;
@@ -2791,7 +2797,7 @@ resNodeIsWriteable(resNodePtr prnArg)
 
   /*!\bug check for ROOT */
   if (prnArg) {
-    if (resNodeGetType(prnArg) == rn_type_undef || prnArg->fStat == FALSE) {
+    if (resNodeGetType(prnArg) == rn_type_undef || resNodeIsUpToDate(prnArg,RN_INFO_STAT) == FALSE) {
       resNodeReadStatus(prnArg);
     }
 
@@ -2837,7 +2843,7 @@ resNodeIsCreateable(resNodePtr prnArg)
 
   /*!\bug check for ROOT */
   if (prnArg) {
-    if (resNodeGetType(prnArg) == rn_type_undef || prnArg->fStat == FALSE) {
+    if (resNodeGetType(prnArg) == rn_type_undef || resNodeIsUpToDate(prnArg,RN_INFO_STAT) == FALSE) {
       resNodeReadStatus(prnArg);
     }
 
@@ -2871,7 +2877,7 @@ resNodeIsExecuteable(resNodePtr prnArg)
 
   /*!\bug check for ROOT */
   if (prnArg) {
-    if (resNodeGetType(prnArg) == rn_type_undef || prnArg->fStat == FALSE) {
+    if (resNodeGetType(prnArg) == rn_type_undef || resNodeIsUpToDate(prnArg,RN_INFO_STAT) == FALSE) {
       resNodeReadStatus(prnArg);
     }
     fResult = prnArg->fExecute;
@@ -2889,7 +2895,7 @@ resNodeIsHidden(resNodePtr prnArg)
 
   /*!\bug check for ROOT */
   if (prnArg) {
-    if (resNodeGetType(prnArg) == rn_type_undef || prnArg->fStat == FALSE) {
+    if (resNodeGetType(prnArg) == rn_type_undef || resNodeIsUpToDate(prnArg,RN_INFO_STAT) == FALSE) {
       if (prnArg->pucNameBase == NULL) {
 	resNodeResetNameBase(prnArg); /* leading dot in basename */
       }
@@ -2984,7 +2990,6 @@ resNodeResetError(resNodePtr prnArg)
       xmlFree(prnArg->pucMsg);
       prnArg->pucMsg = NULL;
     }
-    prnArg->fStat = FALSE;
     fResult = TRUE;
   }
   return fResult;
@@ -3558,7 +3563,7 @@ resNodeToDOM(resNodePtr prnArg, int iArgOptions)
       xmlSetProp(pndT, BAD_CAST "error", BAD_CAST "context");
     }
 
-    if (resNodeIsExist(prnArg) && (iArgOptions & RN_INFO_META)) {
+    if (resNodeIsExist(prnArg) && (iArgOptions & RN_INFO_STAT)) {
       long int liMtime;
 
       /* set values from filesystem as file properties
@@ -3664,7 +3669,7 @@ resNodeToDOM(resNodePtr prnArg, int iArgOptions)
     else if (iArgOptions & RN_INFO_CONTENT && resNodeIsLink(prnArg)) {
       /*!\todo add link target content */
     }
-    else if (iArgOptions & RN_INFO_META && (resNodeIsShortcut(prnArg) || resNodeGetMimeType(prnArg) == MIME_APPLICATION_CXP_XML)) {
+    else if (iArgOptions & RN_INFO_STAT && (resNodeIsShortcut(prnArg) || resNodeGetMimeType(prnArg) == MIME_APPLICATION_CXP_XML)) {
       /*! required for shortcuts, titles and icons */
       resNodeContentToDOM(pndT, prnArg);
     }
@@ -4272,6 +4277,38 @@ resNodeSetOwner(resNodePtr prnArg)
 } /* end of resNodeSetOwner() */
 
 
+
+/*! \return TRUE if prnArg is up to date
+*/
+BOOL_T
+resNodeIsUpToDate(resNodePtr prnArg, int iArgOptions)
+{
+  BOOL_T fResult = FALSE;
+
+  if (prnArg) {
+
+    fResult = TRUE;
+
+    if (fResult && (iArgOptions & RN_INFO_STAT) != 0) {
+      fResult = (prnArg->iDetails & RN_INFO_STAT) != 0;
+    }
+
+    if (fResult && (iArgOptions & RN_INFO_INFO) != 0) {
+      fResult = (prnArg->iDetails & RN_INFO_INFO) != 0;
+    }
+
+    if (fResult && (iArgOptions & RN_INFO_STRUCT) != 0) {
+      fResult = (prnArg->iDetails & RN_INFO_STRUCT) != 0;
+    }
+
+    if (fResult && (iArgOptions & RN_INFO_CONTENT) != 0) {
+      fResult = (prnArg->iDetails & RN_INFO_CONTENT) != 0 && (prnArg->pContent != NULL || prnArg->pdocContent != NULL);
+    }
+  }
+  return fResult;
+} /* end of resNodeIsUpToDate() */
+
+
 /*! Resource Node List Parse  list different types of resource nodes
 
 \param prnArg -- new resNode to parse (directory, share, archive, file)
@@ -4286,12 +4323,12 @@ resNodeUpdate(resNodePtr prnArg, int iArgOptions, const pcre2_code *re_match, co
 {
   BOOL_T fResult = FALSE;
 
-  if ( ! resNodeIsHidden(prnArg)) {
+  if ( ! resNodeIsHidden(prnArg) && resNodeReadStatus(prnArg)) {
     resNodePtr prnEntry;
 
     fResult = TRUE;
 
-    if (iArgOptions & RN_INFO_INDEX) {
+    if ((iArgOptions & RN_INFO_INDEX) != 0 && resNodeIsUpToDate(prnArg, RN_INFO_INDEX)) {
       for (prnEntry = resNodeGetChild(prnArg); prnEntry; prnEntry = resNodeGetNext(prnEntry)) {
 	if (resNodeIsDir(prnEntry) && resNodeIsRecursive(prnArg)) {
 	  resNodeSetRecursion(prnEntry, resNodeIsRecursive(prnArg));
@@ -4300,12 +4337,12 @@ resNodeUpdate(resNodePtr prnArg, int iArgOptions, const pcre2_code *re_match, co
       }
     }
     else {
-      if (iArgOptions & RN_INFO_INFO) {
+      if (resNodeIsUpToDate(prnArg, RN_INFO_INFO) == FALSE) {
 	resNodeResetMimeType(prnArg);
       }
 
 #if 0
-      if (iArgOptions & RN_INFO_META
+      if (iArgOptions & RN_INFO_STAT
 	&& (resNodeIsFile(prnArg) || resNodeIsDir(prnArg) || resNodeIsFileInArchive(prnArg) || resNodeIsDirInArchive(prnArg))) {
 #ifdef _MSC_VER
 	/*!\todo implement a stable file owner detection for win64 */
@@ -4315,8 +4352,8 @@ resNodeUpdate(resNodePtr prnArg, int iArgOptions, const pcre2_code *re_match, co
 	/*\todo use resNodeSetProp() */
       }
 #endif
-      
-      if (iArgOptions & RN_INFO_STRUCT && resNodeReadStatus(prnArg)) {
+
+      if (resNodeIsUpToDate(prnArg, RN_INFO_STRUCT) == FALSE) {
 	if (resNodeIsArchive(prnArg)) {
 	  /*  */
 	  if (resNodeGetChild(prnArg)) {
@@ -4325,8 +4362,6 @@ resNodeUpdate(resNodePtr prnArg, int iArgOptions, const pcre2_code *re_match, co
 	  else {
 #ifdef HAVE_LIBARCHIVE
 	    fResult = arcAppendEntries(prnArg, re_match, FALSE);
-#elif 0
-	    fResult = zipAppendEntries(prnArg, re_match, FALSE);
 #endif
 	  }
 	}
@@ -4354,8 +4389,8 @@ resNodeUpdate(resNodePtr prnArg, int iArgOptions, const pcre2_code *re_match, co
 	  }
 	}
       }
-      
-      if (iArgOptions & RN_INFO_CONTENT) {
+
+      if (resNodeIsUpToDate(prnArg, RN_INFO_CONTENT) == FALSE) {
 	if (resNodeIsURL(prnArg)) {
 	  if (resNodeGetContent(prnArg, 1024) != NULL && resNodeIsMemory(prnArg)) { /* content fetched from URL */
 #ifdef HAVE_LIBARCHIVE
@@ -4384,14 +4419,6 @@ resNodeUpdate(resNodePtr prnArg, int iArgOptions, const pcre2_code *re_match, co
 	else if (resNodeIsArchive(prnArg)) {
 	  fResult = arcAppendEntries(prnArg, re_match, TRUE); /* update achive nodes */
 	}
-	else if (resNodeIsFileInArchive(prnArg)) {
-	  fResult = arcAppendEntries(resNodeGetAncestorArchive(prnArg), re_match, TRUE);
-	  /*\todo avoid redundant parsing */
-	}
-#elif 0
-	else if (resNodeGetMimeType(prnArg) == MIME_APPLICATION_ZIP) {
-	  fResult = zipAppendEntries(prnArg, re_match, FALSE); /* update achive nodes */
-	}
 #endif
 	else if (resNodeIsLink(prnArg)) {
 	  fResult = (resNodeResolveLinkChildNew(prnArg) != NULL);
@@ -4408,10 +4435,11 @@ resNodeUpdate(resNodePtr prnArg, int iArgOptions, const pcre2_code *re_match, co
 	}
       }
 
-      if (iArgOptions & RN_INFO_COMMENT) {
+      if (resNodeIsUpToDate(prnArg, RN_INFO_COMMENT) == FALSE) {
 	/*\todo insert comment text from file */
       }
     }
+    prnArg->iDetails = fResult ? iArgOptions : RN_INFO_MIN;
   }
   return fResult;
 } /* end of resNodeUpdate() */
@@ -4429,7 +4457,7 @@ resNodeReadStatus(resNodePtr prnArg)
   BOOL_T fResult = FALSE;
 
   if (resNodeResetError(prnArg)) {
-    if (prnArg->fStat) {
+    if (resNodeIsUpToDate(prnArg, RN_INFO_STAT)) {
       /* this resource node was stat'd already */
       fResult = prnArg->fExist;
     }
@@ -4623,7 +4651,7 @@ resNodeReadStatus(resNodePtr prnArg)
 	  }
 	}
       }
-      prnArg->fStat = TRUE;
+      prnArg->iDetails |= RN_INFO_STAT;
 
       /* set all parent directories too */
       for (prnAncestor = resNodeGetParent(prnArg); prnAncestor != NULL; prnAncestor = resNodeGetParent(prnAncestor)) {

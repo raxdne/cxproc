@@ -94,7 +94,7 @@ AddNameSpaces(xmlNodePtr pndPie)
 int
 dirMapInfoVerbosity(xmlNodePtr pndArgFile, cxpContextPtr pccArg)
 {
-  int iResult = RN_INFO_META;
+  int iResult = RN_INFO_STAT;
   xmlChar *pucAttrVerbosity;
 
   /* map integer attribute to info level */

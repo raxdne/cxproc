@@ -126,21 +126,21 @@ main(int argc, char *argv[], char *envp[])
 #else
 	    xmlNodePtr pndT;
 
-	    if (resNodeUpdate(prnT, RN_INFO_META | RN_INFO_STRUCT, NULL, NULL)) {
+	    if (resNodeUpdate(prnT, RN_INFO_STAT | RN_INFO_STRUCT, NULL, NULL)) {
 
 	      if (resNodeIsArchive(prnT)) {
 		resNodePtr prnTT;
 
 		prnTT = resNodeGetLastDescendant(prnT);
 		if (resNodeIsDirInArchive(prnTT)) {
-		  if (resNodeUpdate(prnTT, RN_INFO_META | RN_INFO_STRUCT, NULL, NULL)) {
-		    xmlAddChild(pndRootNew, resNodeToDOM(prnTT, RN_INFO_META | RN_INFO_STRUCT));
+		  if (resNodeUpdate(prnTT, RN_INFO_STAT | RN_INFO_STRUCT, NULL, NULL)) {
+		    xmlAddChild(pndRootNew, resNodeToDOM(prnTT, RN_INFO_STAT | RN_INFO_STRUCT));
 		  }
 		}
 		else if (resNodeIsFileInArchive(prnTT)) {
 		  if (resNodeIsArchive(prnTT)) {
-		    if (resNodeUpdate(prnTT, RN_INFO_META | RN_INFO_STRUCT, NULL, NULL)) {
-		      xmlAddChild(pndRootNew, resNodeToDOM(prnTT, RN_INFO_META | RN_INFO_STRUCT));
+		    if (resNodeUpdate(prnTT, RN_INFO_STAT | RN_INFO_STRUCT, NULL, NULL)) {
+		      xmlAddChild(pndRootNew, resNodeToDOM(prnTT, RN_INFO_STAT | RN_INFO_STRUCT));
 		    }
 		  }
 		  else {
@@ -148,11 +148,11 @@ main(int argc, char *argv[], char *envp[])
 		  }
 		}
 		else {
-		  xmlAddChild(pndRootNew, resNodeToDOM(prnT, RN_INFO_META | RN_INFO_STRUCT));
+		  xmlAddChild(pndRootNew, resNodeToDOM(prnT, RN_INFO_STAT | RN_INFO_STRUCT));
 		}
 	      }
 	      else if (resNodeIsDir(prnT)) {
-		xmlAddChild(pndRootNew, resNodeToDOM(prnT, RN_INFO_META | RN_INFO_STRUCT));
+		xmlAddChild(pndRootNew, resNodeToDOM(prnT, RN_INFO_STAT | RN_INFO_STRUCT));
 	      }
 	      else if (resNodeIsFile(prnT)) {
 		xmlAddChild(pndRootNew, resNodeToDOM(prnT, RN_INFO_MAX));
