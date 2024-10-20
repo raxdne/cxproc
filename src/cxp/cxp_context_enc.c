@@ -1122,7 +1122,7 @@ cxpCtxtCliGetValue(cxpContextPtr pccArg, index_t iIndex)
     }
 
     if (pucResult) {
-      resPathRemoveQuotes(pucResult);
+      //resPathRemoveQuotes(pucResult);
 #ifdef DEBUG
       cxpCtxtLogPrint(pccArg, 4, "Value of argv[%i] = '%s'", iIndex, pucResult);
 #endif

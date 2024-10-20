@@ -519,7 +519,7 @@ cxpCtxtCliParse(cxpContextPtr pccArg)
 	  pndXml = xmlNewChild(pndPlain, NULL, NAME_XML, NULL);
 	  pndXml = xmlNewChild(pndXml, NULL, NAME_DIR, NULL);
 	  if (STR_IS_NOT_EMPTY(pucPattern)) {
-	    xmlSetProp(pndXml, BAD_CAST "verbosity", pucLevelDirVerbosity);
+	    xmlSetProp(pndXml, BAD_CAST "verbosity", BAD_CAST"1");
 	    xmlSetProp(pndXml, BAD_CAST "imatch", pucPattern);
 
 	    if (j < iArgCount) {
@@ -543,11 +543,11 @@ cxpCtxtCliParse(cxpContextPtr pccArg)
 	      resNodePtr prnT;
 	      cxpContextPtr pccI;
 
-	      pndDir = xmlNewChild(pndXml, NULL, NAME_DIR, NULL);
 
 	      /* handle multiple search dir names */
 	      for (pccI = pccArg; pccI; pccI = cxpCtxtGetParent(pccI)) {
 		for (prnT = cxpCtxtSearchGet(pccI); prnT; prnT = resNodeGetNext(prnT)) {
+		  pndDir = xmlNewChild(pndXml, NULL, NAME_DIR, NULL);
 		  xmlSetProp(pndDir, BAD_CAST "name", resNodeGetNameNormalized(prnT));
 		  xmlSetProp(pndDir, BAD_CAST "depth", BAD_CAST(resNodeIsRecursive(prnT) ? "99" : "1"));
 		}
