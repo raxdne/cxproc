@@ -95,7 +95,7 @@
 
 #define RN_INFO_XML     (4)
 
-#define RN_INFO_PIE     (8)
+#define RN_INFO_OWNER   (8)
 
 #define RN_INFO_STRUCT  (16)
 
@@ -118,7 +118,7 @@ re-build full list of contextxts
 */
 #define RN_INFO_LIST    (256)
 
-#define RN_INFO_MAX     (RN_INFO_STAT | RN_INFO_INFO | RN_INFO_XML | RN_INFO_PIE | RN_INFO_STRUCT | RN_INFO_CONTENT | RN_INFO_COMMENT | RN_INFO_LIST)
+#define RN_INFO_MAX     (RN_INFO_STAT | RN_INFO_INFO | RN_INFO_XML | RN_INFO_OWNER | RN_INFO_STRUCT | RN_INFO_CONTENT | RN_INFO_COMMENT | RN_INFO_LIST)
 
 
 typedef enum {
@@ -319,6 +319,12 @@ struct _resNode {
   int iCountUse;  		/*! usage counter for this context (caching) */
 
   int iDetails;			/*! bit mask of details (s. RN_INFO_*) */
+
+#ifdef _MSC_VER
+  struct _stat s;
+#else
+  struct stat s;
+#endif
 
   struct _resNode *parent;   /*! parent context of list */
   struct _resNode *children; /*! children context in list */
@@ -560,7 +566,7 @@ extern BOOL_T
 resNodeReadStatus(resNodePtr prnArg);
 
 extern BOOL_T
-resNodeSetOwner(resNodePtr prnArg);
+resNodeReadOwner(resNodePtr prnArg);
 
 extern xmlChar *
 resNodeGetURI(resNodePtr prnArg);

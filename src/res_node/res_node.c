@@ -1361,8 +1361,11 @@ resNodeDirNew(xmlChar *pucArgPath)
 
       /*!\todo handle "mem:///tmp/test.txt" */
 
+#ifdef HAVE_LIBARCHIVE
       pucNameArchive = resPathGetNameOfNextArchivePtr(pucPath);
-      if ((pucNameInArchive = resPathGetPathInNextArchivePtr(pucPath)) != NULL && pucNameInArchive > pucPath) {}
+      if ((pucNameInArchive = resPathGetPathInNextArchivePtr(pucPath)) != NULL && pucNameInArchive > pucPath) {
+	/*  */
+      }
       else if (pucNameInArchive != NULL) {	   /*  */
 	if (resPathIsTrailingSeparator(pucPath)) { /*  */
 	  eType = rn_type_dir_in_archive;
@@ -1374,7 +1377,9 @@ resNodeDirNew(xmlChar *pucArgPath)
       else if (pucNameArchive != NULL) { /*  */
 	eType = rn_type_archive;
       }
-      else if (resPathIsHttpURL(pucPath)) { /*  */
+      else 
+#endif
+      if (resPathIsHttpURL(pucPath)) { /*  */
 	eType = rn_type_url_http;
       }
       else if (resPathIsFtpURL(pucPath)) { /*  */
@@ -1441,6 +1446,7 @@ resNodeDirNew(xmlChar *pucArgPath)
 	eType = rn_type_url;
       }
 #endif
+#ifdef HAVE_LIBARCHIVE
       else if (resPathIsInArchive(pucPath)) {
 	xmlChar *pucZip = NULL;
 
@@ -1473,6 +1479,7 @@ resNodeDirNew(xmlChar *pucArgPath)
 	}
 	xmlFree(pucT);
       }
+#endif
       else if (resPathIsRelative(pucPath)) {
 	pucT = resPathGetCwdStr();
 	resNodeReset(prnResult, pucT);
@@ -3573,10 +3580,6 @@ resNodeToDOM(resNodePtr prnArg, int iArgOptions)
 	xmlSetProp(pndT, BAD_CAST "size", mpucOut);
       }
 
-      if ((pucT = resNodeGetOwner(prnArg)) != NULL) {
-	xmlSetProp(pndT, BAD_CAST "owner", pucT);
-      }
-
       liMtime = (long int)resNodeGetMtime(prnArg);
       if (liMtime == 0 || liMtime == 315529200) {
 	/* avoid symbolic dates "1970-01-01T00:00:00" "1980-01-01T00:00:00" */
@@ -3684,7 +3687,7 @@ resNodeToDOM(resNodePtr prnArg, int iArgOptions)
       if ((iArgOptions & RN_INFO_CONTENT)
 	|| ((iArgOptions & RN_INFO_XML) && resMimeIsXml(resNodeGetMimeType(prnArg)))
 #ifdef HAVE_PIE
-	|| ((iArgOptions & RN_INFO_PIE) && resMimeIsPlain(resNodeGetMimeType(prnArg)))
+	|| resMimeIsPlain(resNodeGetMimeType(prnArg))
 #endif
 	) {
 	if (resNodeUpdate(prnArg, RN_INFO_CONTENT, NULL, NULL)) {
@@ -3695,6 +3698,10 @@ resNodeToDOM(resNodePtr prnArg, int iArgOptions)
       if ((iArgOptions & RN_INFO_CONTENT) && resNodeGetNameObject(prnArg) != NULL) {
 	xmlSetProp(pndT, BAD_CAST "object", resNodeGetNameObject(prnArg));
       }
+    }
+
+    if ((iArgOptions & RN_INFO_OWNER) && (pucT = resNodeGetOwner(prnArg)) != NULL) {
+      xmlSetProp(pndT, BAD_CAST "owner", pucT);
     }
 
     if (resNodeIsExist(prnArg) && iArgOptions & RN_INFO_COMMENT) {
@@ -4156,7 +4163,7 @@ resNodeToSQL(resNodePtr prnArg, int iArgOptions)
   \deprecated because of portability and performance issues
 */
 BOOL_T
-resNodeSetOwner(resNodePtr prnArg)
+resNodeReadOwner(resNodePtr prnArg)
 {
   BOOL_T fResult = FALSE;
 
@@ -4245,23 +4252,17 @@ resNodeSetOwner(resNodePtr prnArg)
       GlobalFree(AcctName);
     }
     /*!\bug Freeing of pSidOwner cause to crash */
-    LocalFree(pSidOwner);
-    LocalFree(pSecurityDescriptor);
+    //LocalFree(pSidOwner);
+    //LocalFree(pSecurityDescriptor);
 #elif defined(_WIN32)
     /*!\todo owner detection on MinGW */
 #else
     struct passwd *pOwner;
-    struct stat s;
-    int err;
 
     xmlFree(prnArg->pucOwner);
     prnArg->pucOwner = NULL;
 
-    err = lstat(prnArg->pcNameNormalizedNative, &s);
-    if (err == -1) {
-      resNodeSetError(prnArg,rn_error_stat,"stat");
-    }
-    else if ((pOwner = getpwuid(s.st_uid)) != NULL && pOwner->pw_name != NULL && pOwner->pw_name[0] != '\0') {
+    if ((pOwner = getpwuid(prnArg->s.st_uid)) != NULL && pOwner->pw_name != NULL && pOwner->pw_name[0] != '\0') {
       prnArg->pucOwner = xmlStrdup(BAD_CAST pOwner->pw_name);
     }
     else {
@@ -4274,7 +4275,7 @@ resNodeSetOwner(resNodePtr prnArg)
   }
 
   return fResult;
-} /* end of resNodeSetOwner() */
+} /* end of resNodeReadOwner() */
 
 
 
@@ -4299,6 +4300,10 @@ resNodeIsUpToDate(resNodePtr prnArg, int iArgOptions)
 
     if (fResult && (iArgOptions & RN_INFO_STRUCT) != 0) {
       fResult = (prnArg->iDetails & RN_INFO_STRUCT) != 0;
+    }
+
+    if (fResult && (iArgOptions & RN_INFO_OWNER) != 0) {
+      fResult = (prnArg->iDetails & RN_INFO_OWNER) != 0;
     }
 
     if (fResult && (iArgOptions & RN_INFO_CONTENT) != 0) {
@@ -4341,44 +4346,30 @@ resNodeUpdate(resNodePtr prnArg, int iArgOptions, const pcre2_code *re_match, co
 	resNodeResetMimeType(prnArg);
       }
 
-#if 0
-      if (iArgOptions & RN_INFO_STAT
-	&& (resNodeIsFile(prnArg) || resNodeIsDir(prnArg) || resNodeIsFileInArchive(prnArg) || resNodeIsDirInArchive(prnArg))) {
-#ifdef _MSC_VER
-	/*!\todo implement a stable file owner detection for win64 */
-#else
-	resNodeSetOwner(prnArg);
-#endif
-	/*\todo use resNodeSetProp() */
-      }
-#endif
-
-      if (resNodeIsUpToDate(prnArg, RN_INFO_STRUCT) == FALSE) {
-	if (resNodeIsArchive(prnArg)) {
-	  /*  */
-	  if (resNodeGetChild(prnArg)) {
-	    /* there is a listing already */
-	  }
-	  else {
-#ifdef HAVE_LIBARCHIVE
-	    fResult = arcAppendEntries(prnArg, re_match, FALSE);
-#endif
-	  }
+      if (resNodeIsUpToDate(prnArg, RN_INFO_STRUCT) == FALSE || resNodeGetChild(prnArg) == NULL) {
+	if (resNodeIsURL(prnArg)) {
 	}
+#ifdef HAVE_LIBSQLITE3
+	else if (resNodeIsDatabase(prnArg)) {
+	  /*! database is without child nodes */
+	  //fResult = dbAppendScheme(prnArg, re_match, TRUE);
+	}
+#endif
+	else if (resNodeIsZipDocument(prnArg)) {
+	  fResult = zipDocumentRead(prnArg,iArgOptions); /* update archive nodes */
+	}
+#ifdef HAVE_LIBARCHIVE
+	else if (resNodeIsArchive(prnArg)) {
+	  fResult = arcAppendEntries(prnArg, re_match, FALSE);
+	}
+#endif
 	else if (resNodeIsDir(prnArg)) {
-	  /*  */
-	  if (resNodeGetChild(prnArg)) {
-	    /* there is a listing already */
-	  }
-	  else {
-	    /* append a non-recursive list of directory */
-	    resNodeDirAppendEntries(prnArg, re_match);
-	  }
+	  /* append a non-recursive list of directory */
+	  fResult = resNodeDirAppendEntries(prnArg, re_match);
 
 	  if (resNodeIsRecursive(prnArg)) {
 	    for (prnEntry = resNodeGetChild(prnArg); prnEntry; prnEntry = resNodeGetNext(prnEntry)) {
 	      if (resNodeIsArchive(prnEntry)) {
-		/*  */
 		resNodeUpdate(prnEntry, iArgOptions, re_match, re_grep);
 	      }
 	      else if (resNodeIsDir(prnEntry)) {
@@ -4388,6 +4379,18 @@ resNodeUpdate(resNodePtr prnArg, int iArgOptions, const pcre2_code *re_match, co
 	    }
 	  }
 	}
+	else if (resNodeIsLink(prnArg)) {
+	  //fResult = (resNodeResolveLinkChildNew(prnArg) != NULL);
+	}
+	else if (resNodeIsFile(prnArg)) {
+	}
+	else {
+	}
+      }
+
+      if (resNodeIsUpToDate(prnArg, RN_INFO_OWNER) == FALSE && (resNodeIsFile(prnArg) || resNodeIsDir(prnArg))) {
+	resNodeReadOwner(prnArg);
+	/*\todo use resNodeSetProp() */
       }
 
       if (resNodeIsUpToDate(prnArg, RN_INFO_CONTENT) == FALSE) {
@@ -4534,7 +4537,6 @@ resNodeReadStatus(resNodePtr prnArg)
 	  int err;
 	  char *pcName;
 #ifdef _MSC_VER
-	  struct _stat s;
 
 	  resPathCutTrailingChars(BAD_CAST prnArg->pcNameNormalizedNative);
 	  pcName = prnArg->pcNameNormalizedNative; /* use 'pcName' as shortcut only */
@@ -4544,14 +4546,12 @@ resNodeReadStatus(resNodePtr prnArg)
 	    prnArg->pcNameNormalizedNative = pcName;
 	  }
 
-	  err = _stat(pcName,&s);
+	  err = _stat(pcName, &(prnArg->s));
 #else
-	  struct stat s;
-
 	  resPathCutTrailingChars(BAD_CAST prnArg->pcNameNormalizedNative);
 	  pcName = prnArg->pcNameNormalizedNative; /* use 'pcName' as shortcut only */
 
-	  err = lstat(pcName, &s);
+	  err = lstat(pcName, &(prnArg->s));
 #endif
 
 	  if (err == -1) {
@@ -4563,11 +4563,11 @@ resNodeReadStatus(resNodePtr prnArg)
 	    int attr;
 
 	    prnArg->fExist = TRUE;
-	    prnArg->liSize = (long int)s.st_size;
+	    prnArg->liSize = (long int)prnArg->s.st_size;
 	    if (prnArg->liSize == 0) {
 	      prnArg->eMimeType = MIME_EMPTY;
 	    }
-	    prnArg->tMtime = s.st_mtime;
+	    prnArg->tMtime = prnArg->s.st_mtime;
 
 #ifdef _MSC_VER
 	    attr = GetFileAttributes(pcName);
@@ -4577,10 +4577,10 @@ resNodeReadStatus(resNodePtr prnArg)
 	    else if (attr > 0 && (attr & FILE_ATTRIBUTE_REPARSE_POINT)) {
 	      resNodeSetType(prnArg,rn_type_symlink);
 	    }
-	    else if (s.st_mode & _S_IFDIR) {
+	    else if (prnArg->s.st_mode & _S_IFDIR) {
 	      resNodeSetType(prnArg,rn_type_dir);
 	    }
-	    else if (s.st_mode & _S_IFREG) {
+	    else if (prnArg->s.st_mode & _S_IFREG) {
 	      if (xmlStrEqual(resNodeGetExtension(prnArg), BAD_CAST"lnk")) {
 		char *pcT;
 		size_t i;
@@ -4613,32 +4613,32 @@ resNodeReadStatus(resNodePtr prnArg)
 	    if (resNodeGetType(prnArg) == rn_type_root) {
 	      /* keep this type */
 	    }
-	    else if (S_ISLNK(s.st_mode)) {
+	    else if (S_ISLNK(prnArg->s.st_mode)) {
 	      resNodeSetType(prnArg,rn_type_symlink);
 	    }
-	    else if (S_ISDIR(s.st_mode)) {
+	    else if (S_ISDIR(prnArg->s.st_mode)) {
 	      resNodeSetType(prnArg,rn_type_dir);
 	    }
 	    else if (resNodeGetType(prnArg) == rn_type_undef) {
 	      resNodeSetType(prnArg,rn_type_file);
 	    }
-	    else if (S_ISREG(s.st_mode)) {
+	    else if (S_ISREG(prnArg->s.st_mode)) {
 	    }
 #endif
 
 	    /* check permissions of path */
 #ifdef _MSC_VER
-	    prnArg->fRead    = (s.st_mode & _S_IREAD) ? TRUE : FALSE;
-	    prnArg->fWrite   = (s.st_mode & _S_IWRITE) ? TRUE : FALSE;
-	    prnArg->fExecute = (s.st_mode & _S_IEXEC) ? TRUE : FALSE;
+	    prnArg->fRead    = (prnArg->s.st_mode & _S_IREAD) ? TRUE : FALSE;
+	    prnArg->fWrite   = (prnArg->s.st_mode & _S_IWRITE) ? TRUE : FALSE;
+	    prnArg->fExecute = (prnArg->s.st_mode & _S_IEXEC) ? TRUE : FALSE;
 	    if (resNodeGetMimeType(prnArg) == MIME_APPLICATION_X_BAT || resNodeGetMimeType(prnArg) == MIME_APPLICATION_VND_MICROSOFT_PORTABLE_EXECUTABLE) {
 	      prnArg->fExecute = TRUE;
 	    }
 	    prnArg->fHidden  = (attr > 0 && (attr & FILE_ATTRIBUTE_HIDDEN)) ? TRUE : FALSE;
 #elif 0
-	    prnArg->fRead    = s.st_mode & (S_IRUSR | S_IRGRP | S_IROTH);
-	    prnArg->fWrite   = s.st_mode & (S_IWUSR | S_IWGRP | S_IWOTH);
-	    prnArg->fExecute = s.st_mode & (S_IXUSR | S_IXGRP | S_IXOTH);
+	    prnArg->fRead    = prnArg->s.st_mode & (S_IRUSR | S_IRGRP | S_IROTH);
+	    prnArg->fWrite   = prnArg->s.st_mode & (S_IWUSR | S_IWGRP | S_IWOTH);
+	    prnArg->fExecute = prnArg->s.st_mode & (S_IXUSR | S_IXGRP | S_IXOTH);
 #else
 	    /*!\todo OPTIMIZE without access() */
 	    prnArg->fRead    = (access((const char*)prnArg->pcNameNormalizedNative,R_OK)==0);
@@ -4766,8 +4766,6 @@ _resNodeGetFileCrc(resNodePtr prnArg)
 
 
 /*! \return a pointer to the owner string of resource node
-
-\deprecated s. resNodeSetOwner()
 */
 xmlChar *
 resNodeGetOwner(resNodePtr prnArg)
@@ -4841,6 +4839,7 @@ resNodeGetType(resNodePtr prnArg)
       else if (resPathIsUNC(pucT)) { /* UNC */
 	resNodeSetType(prnArg, rn_type_dir);
       }
+#ifdef HAVE_LIBARCHIVE
       else if (resNodeGetAncestorArchive(prnArg) != NULL
 	|| resPathGetNameOfNextArchivePtr(pucT) > pucT) { /*  */
 	if (resPathGetPathInNextArchivePtr(pucT) == NULL) { /* archive only */
@@ -4853,6 +4852,7 @@ resNodeGetType(resNodePtr prnArg)
 	  resNodeSetType(prnArg, rn_type_file_in_archive);
 	}
       }
+#endif
       else {
 	resNodeSetType(prnArg,rn_type_file);
       }
