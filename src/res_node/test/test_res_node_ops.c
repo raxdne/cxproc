@@ -546,7 +546,7 @@ resNodeTestOperations(void)
       xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeUnlinkStr()\n");
     }
     else if (resNodeTestDirStr(BAD_CAST TEMPPREFIX "test-res_node_ops") == TRUE) {
-      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeTestFileStr()\n");
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeTestDirStr()\n");
     }
     else {
       n_ok++;
@@ -556,7 +556,42 @@ resNodeTestOperations(void)
       pucModuleTestReport = xmlStrcat(pucModuleTestReport,mucTestLabel);
       pucModuleTestReport = xmlStrcat(pucModuleTestReport,mucTestResult);
     }
-    
+  }
+
+
+  if (SKIPTEST) {
+    resNodePtr prnT = NULL;
+
+    i++;
+    xmlStrPrintf(mucTestLabel, BUFFER_LENGTH, "\nTEST %i in '%s:%i':  = ", i, __FILE__, __LINE__);
+
+    if ((prnT = resNodeDirNew(BAD_CAST TESTPREFIX "option//")) == NULL) {
+      printf("Error resNodeDirNew()\n");
+    }
+    else if (resNodeUpdate(prnT, RN_INFO_MAX, NULL, NULL) == FALSE) {
+      xmlStrPrintf(mucTestResult, BUFFER_LENGTH, "Error 1 resNodeUpdate()\n");
+    }
+    else if (resNodeSetNameBaseDir(prnT, TEMPPREFIX) == FALSE) {
+      xmlStrPrintf(mucTestResult, BUFFER_LENGTH, "Error resNodeSetNameBaseDir()\n");
+    }
+    else if (resNodeListPut(prnT) == FALSE) {
+      xmlStrPrintf(mucTestResult, BUFFER_LENGTH, "Error resNodeListPut()\n");
+    }
+    else if (resNodeTestDirStr(BAD_CAST TEMPPREFIX "option/") == FALSE) {
+      xmlStrPrintf(mucTestResult, BUFFER_LENGTH, "Error resNodeTestDirStr()\n");
+    }
+    else if (resNodeTestFileStr(BAD_CAST TEMPPREFIX "option/petrinet/config.cxp") == FALSE) {
+      xmlStrPrintf(mucTestResult, BUFFER_LENGTH, "Error 1 resNodeTestFileStr()\n");
+    }
+    else {
+      n_ok++;
+    }
+    resNodeFree(prnT);
+
+    if (xmlStrlen(mucTestResult) > 0) {
+      pucModuleTestReport = xmlStrcat(pucModuleTestReport, mucTestLabel);
+      pucModuleTestReport = xmlStrcat(pucModuleTestReport, mucTestResult);
+    }
   }
 
   if (SKIPTEST) {

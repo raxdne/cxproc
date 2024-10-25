@@ -3243,7 +3243,7 @@ resNodeContentToDOM(xmlNodePtr pndArg, resNodePtr prnArg)
     {
 #if 1
       xmlNodePtr pndArchive;
-      resNodePtr prnEntry;
+      resNodePtr prnI;
 
       PrintFormatLog(2, "Use document content of file '%s'", resNodeGetNameNormalized(prnArg));
       if (IS_NODE_ARCHIVE(pndArg)) {
@@ -3253,10 +3253,10 @@ resNodeContentToDOM(xmlNodePtr pndArg, resNodePtr prnArg)
 	pndArchive = xmlNewChild(pndArg, NULL, NAME_ARCHIVE, NULL);
       }
 
-      for (prnEntry = resNodeGetChild(prnArg); prnEntry; prnEntry = resNodeGetNext(prnEntry)) {
+      for (prnI = resNodeGetChild(prnArg); prnI; prnI = resNodeGetNext(prnI)) {
 	xmlNodePtr pndEntry;
 
-	if ((pndEntry = resNodeToDOM(prnEntry, RN_INFO_MAX))) {
+	if ((pndEntry = resNodeToDOM(prnI, RN_INFO_MAX))) {
 	  xmlAddChild(pndArchive, pndEntry);
 	}
       }
@@ -3294,7 +3294,7 @@ resNodeContentToDOM(xmlNodePtr pndArg, resNodePtr prnArg)
     case MIME_APPLICATION_X_ISO9660_IMAGE:
     {
 	xmlNodePtr pndArchive;
-	resNodePtr prnEntry;
+	resNodePtr prnI;
 	
 	PrintFormatLog(2, "Use archive content of file '%s'", resNodeGetNameNormalized(prnArg));
 	if (IS_NODE_ARCHIVE(pndArg)) {
@@ -3304,10 +3304,10 @@ resNodeContentToDOM(xmlNodePtr pndArg, resNodePtr prnArg)
 	  pndArchive = xmlNewChild(pndArg, NULL, NAME_ARCHIVE, NULL);
 	}
 
-	for (prnEntry = resNodeGetChild(prnArg); prnEntry; prnEntry = resNodeGetNext(prnEntry)) {
+	for (prnI = resNodeGetChild(prnArg); prnI; prnI = resNodeGetNext(prnI)) {
 	  xmlNodePtr pndEntry;
 
-	  if ((pndEntry = resNodeToDOM(prnEntry, RN_INFO_MAX))) {
+	  if ((pndEntry = resNodeToDOM(prnI, RN_INFO_MAX))) {
 	    xmlAddChild(pndArchive, pndEntry);
 	  }
 	}
@@ -3529,7 +3529,7 @@ resNodeToDOM(resNodePtr prnArg, int iArgOptions)
     xmlChar *pucT;
     xmlChar mpucOut[BUFFER_LENGTH];
     xmlNodePtr pndT;
-    resNodePtr prnEntry;
+    resNodePtr prnI;
 
     if (resNodeIsDir(prnArg) || resNodeIsDirInArchive(prnArg)) {
       pndT = xmlNewNode(NULL, NAME_DIR);
@@ -3628,8 +3628,8 @@ resNodeToDOM(resNodePtr prnArg, int iArgOptions)
     }
 
     if (resNodeIsDir(prnArg) || resNodeIsDirInArchive(prnArg)) {
-      for (prnEntry = resNodeGetChild(prnArg); prnEntry; prnEntry = resNodeGetNext(prnEntry)) {
-	xmlAddChild(pndT, resNodeToDOM(prnEntry, iArgOptions));
+      for (prnI = resNodeGetChild(prnArg); prnI; prnI = resNodeGetNext(prnI)) {
+	xmlAddChild(pndT, resNodeToDOM(prnI, iArgOptions));
       }
     }
     else if ((iArgOptions & RN_INFO_INFO) && resNodeIsZipDocument(prnArg)) {
@@ -3648,8 +3648,8 @@ resNodeToDOM(resNodePtr prnArg, int iArgOptions)
 	  zipDocumentRead(prnArg, iArgOptions);
 	}
 
-	for (prnEntry = resNodeGetChild(prnArg); prnEntry; prnEntry = resNodeGetNext(prnEntry)) {
-	  xmlAddChild(pndArchive, resNodeToDOM(prnEntry, iArgOptions));
+	for (prnI = resNodeGetChild(prnArg); prnI; prnI = resNodeGetNext(prnI)) {
+	  xmlAddChild(pndArchive, resNodeToDOM(prnI, iArgOptions));
 	}
       }
     }
@@ -3661,8 +3661,8 @@ resNodeToDOM(resNodePtr prnArg, int iArgOptions)
       pndArchive = xmlNewChild(pndT, NULL, BAD_CAST "archive", NULL);
       if (pndArchive) {
 	if (arcAppendEntries(prnArg, NULL, (iArgOptions & RN_INFO_CONTENT))) {
-	  for (prnEntry = resNodeGetChild(prnArg); prnEntry; prnEntry = resNodeGetNext(prnEntry)) {
-	    xmlAddChild(pndArchive, resNodeToDOM(prnEntry, iArgOptions));
+	  for (prnI = resNodeGetChild(prnArg); prnI; prnI = resNodeGetNext(prnI)) {
+	    xmlAddChild(pndArchive, resNodeToDOM(prnI, iArgOptions));
 	  }
 	}
       }
@@ -3673,15 +3673,15 @@ resNodeToDOM(resNodePtr prnArg, int iArgOptions)
 	resNodeContentToDOM(pndT, prnArg);
       }
       else if (resNodeGetChild(prnArg)) {
-	for (prnEntry = resNodeGetChild(prnArg); prnEntry; prnEntry = resNodeGetNext(prnEntry)) {
-	  xmlAddChild(pndT, resNodeToDOM(prnEntry, iArgOptions));
+	for (prnI = resNodeGetChild(prnArg); prnI; prnI = resNodeGetNext(prnI)) {
+	  xmlAddChild(pndT, resNodeToDOM(prnI, iArgOptions));
 	}
       }
     }
     else if (iArgOptions & RN_INFO_CONTENT && resNodeIsURL(prnArg)) {
       if (resNodeGetChild(prnArg)) { /* there are updated childs of this URL already */
-	for (prnEntry = resNodeGetChild(prnArg); prnEntry; prnEntry = resNodeGetNext(prnEntry)) {
-	  xmlAddChild(pndT, resNodeToDOM(prnEntry, iArgOptions));
+	for (prnI = resNodeGetChild(prnArg); prnI; prnI = resNodeGetNext(prnI)) {
+	  xmlAddChild(pndT, resNodeToDOM(prnI, iArgOptions));
 	}
       }
       else if (resNodeGetContentPtr(prnArg) || resNodeUpdate(prnArg, RN_INFO_CONTENT, NULL, NULL)) {
@@ -4358,16 +4358,16 @@ resNodeUpdate(resNodePtr prnArg, int iArgOptions, const pcre2_code *re_match, co
   BOOL_T fResult = FALSE;
 
   if ( ! resNodeIsHidden(prnArg) && resNodeReadStatus(prnArg)) {
-    resNodePtr prnEntry;
+    resNodePtr prnI;
 
     fResult = TRUE;
 
     if ((iArgOptions & RN_INFO_INDEX) != 0 && resNodeIsUpToDate(prnArg, RN_INFO_INDEX)) {
-      for (prnEntry = resNodeGetChild(prnArg); prnEntry; prnEntry = resNodeGetNext(prnEntry)) {
-	if (resNodeIsDir(prnEntry) && resNodeIsRecursive(prnArg)) {
-	  resNodeSetRecursion(prnEntry, resNodeIsRecursive(prnArg));
+      for (prnI = resNodeGetChild(prnArg); prnI; prnI = resNodeGetNext(prnI)) {
+	if (resNodeIsDir(prnI) && resNodeIsRecursive(prnArg)) {
+	  resNodeSetRecursion(prnI, resNodeIsRecursive(prnArg));
 	}
-	resNodeUpdate(prnEntry, iArgOptions, re_match, re_grep);
+	resNodeUpdate(prnI, iArgOptions, re_match, re_grep);
       }
     }
     else {
@@ -4396,16 +4396,11 @@ resNodeUpdate(resNodePtr prnArg, int iArgOptions, const pcre2_code *re_match, co
 	  /* append a non-recursive list of directory */
 	  fResult = resNodeDirAppendEntries(prnArg, re_match);
 
-	  if (resNodeIsRecursive(prnArg)) {
-	    for (prnEntry = resNodeGetChild(prnArg); prnEntry; prnEntry = resNodeGetNext(prnEntry)) {
-	      if (resNodeIsArchive(prnEntry)) {
-		resNodeUpdate(prnEntry, iArgOptions, re_match, re_grep);
-	      }
-	      else if (resNodeIsDir(prnEntry)) {
-		resNodeSetRecursion(prnEntry, TRUE);
-		resNodeUpdate(prnEntry, iArgOptions, re_match, re_grep);
-	      }
+	  for (prnI = resNodeGetChild(prnArg); prnI; prnI = resNodeGetNext(prnI)) {
+	    if (resNodeIsDir(prnI)) {
+	      resNodeSetRecursion(prnI, resNodeIsRecursive(prnArg));
 	    }
+	    fResult &= resNodeUpdate(prnI, iArgOptions, re_match, re_grep);
 	  }
 	}
 	else if (resNodeIsLink(prnArg)) {

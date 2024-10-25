@@ -85,7 +85,7 @@ zipFileOpen(resNodePtr prnArg, const char *pchArgMode)
 
     if ((prnArg->handleIO = zip_open(resNodeGetNameNormalizedNative(prnArg), 0, &err)) == NULL) {
       zip_error_to_str(buf, sizeof(buf), err, errno);
-      PrintFormatLog(1, "can't open zip archive `%s': %s\n", resNodeGetNameNormalizedNative(prnArg), buf);
+      resNodeSetError(prnArg, rn_error_open, "can't open zip archive `%s': %s\n", resNodeGetNameNormalizedNative(prnArg), buf);
     }
 #if 0
     else if (resNodeIsMemory(prnArg)) { /* achive in memory already */

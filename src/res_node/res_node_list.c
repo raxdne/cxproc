@@ -170,7 +170,7 @@ resNodeListParse(resNodePtr prnArg, int iArgDepth, const pcre2_code *re_match)
   BOOL_T fResult = FALSE;
 
   if (iArgDepth > -1) { /* recursion depth reached? */
-    resNodePtr prnEntry;
+    resNodePtr prnI;
 
     if (resNodeReadStatus(prnArg) == FALSE) {
       /* error */
@@ -178,10 +178,10 @@ resNodeListParse(resNodePtr prnArg, int iArgDepth, const pcre2_code *re_match)
     else if (resNodeIsDir(prnArg)) {
       /*  */
       if (iArgDepth > 0 && resNodeDirAppendEntries(prnArg, re_match)) {
-	for (prnEntry = resNodeGetChild(prnArg); prnEntry; prnEntry = resNodeGetNext(prnEntry)) {
-	  if (resNodeReadStatus(prnEntry)) {
-	    if (iArgDepth > 1 && (resNodeIsDir(prnEntry) || resNodeIsArchive(prnEntry))) {
-	      if (resNodeListParse(prnEntry, iArgDepth - 1, re_match)) { /* recursion */
+	for (prnI = resNodeGetChild(prnArg); prnI; prnI = resNodeGetNext(prnI)) {
+	  if (resNodeReadStatus(prnI)) {
+	    if (iArgDepth > 1 && (resNodeIsDir(prnI) || resNodeIsArchive(prnI))) {
+	      if (resNodeListParse(prnI, iArgDepth - 1, re_match)) { /* recursion */
 	      }
 	    }
 	  }
@@ -773,17 +773,17 @@ resNodeListDumpRecursively(FILE *argout, resNodePtr prnArg, BOOL_T fArgDetails, 
 {
   BOOL_T fResult = FALSE;
   xmlChar *pucT;
+  resNodePtr prnI;
 
 #ifdef HAVE_LIBARCHIVE
   if (resNodeIsDirInArchive(prnArg)) {
-    resNodePtr prnEntry;
 
 #ifdef DEBUG
     fputc('/',stderr);
 #endif
     
-    for (prnEntry = resNodeGetChild(prnArg); prnEntry; prnEntry = resNodeGetNext(prnEntry)) {
-      resNodeListDumpRecursively(argout,prnEntry,fArgDetails,pfArg);
+    for (prnI = resNodeGetChild(prnArg); prnI; prnI = resNodeGetNext(prnI)) {
+      resNodeListDumpRecursively(argout,prnI,fArgDetails,pfArg);
     }
 
     if ((pucT = (*pfArg)(prnArg, RN_INFO_STAT))) {
@@ -804,11 +804,9 @@ resNodeListDumpRecursively(FILE *argout, resNodePtr prnArg, BOOL_T fArgDetails, 
 #endif
     
     if (resNodeDirAppendEntries(prnArg, NULL)) {
-      resNodePtr prnEntry;
-    
-      for (prnEntry = resNodeGetChild(prnArg); prnEntry; prnEntry = resNodeGetNext(prnEntry)) {
-	resNodeListDumpRecursively(argout,prnEntry,fArgDetails,pfArg);
-	resNodeIncrRecursiveSize(prnArg, resNodeGetRecursiveSize(prnEntry));
+      for (prnI = resNodeGetChild(prnArg); prnI; prnI = resNodeGetNext(prnI)) {
+	resNodeListDumpRecursively(argout,prnI,fArgDetails,pfArg);
+	resNodeIncrRecursiveSize(prnArg, resNodeGetRecursiveSize(prnI));
       }
       resNodeIncrRecursiveSize(prnArg, resNodeGetSize(prnArg));
     }
@@ -834,10 +832,8 @@ resNodeListDumpRecursively(FILE *argout, resNodePtr prnArg, BOOL_T fArgDetails, 
 #endif
 
     if (arcAppendEntries(prnArg, NULL, FALSE)) {
-      resNodePtr prnEntry;
-    
-      for (prnEntry = resNodeGetChild(prnArg); prnEntry; prnEntry = resNodeGetNext(prnEntry)) {
-	resNodeListDumpRecursively(argout,prnEntry,fArgDetails,pfArg);
+      for (prnI = resNodeGetChild(prnArg); prnI; prnI = resNodeGetNext(prnI)) {
+	resNodeListDumpRecursively(argout,prnI,fArgDetails,pfArg);
       }
     }
     

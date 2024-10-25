@@ -281,7 +281,7 @@
 		)
 
 
-(global-set-key [f3]  (lambda ()
+(global-set-key [f7]  (lambda ()
 			  ""
 			  (interactive)
 			  (if (buffer-file-name)

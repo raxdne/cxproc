@@ -479,6 +479,46 @@ resNodePutContent(resNodePtr prnArg)
 } /* end of resNodePutContent() */
 
 
+/*! saves context prnArg content (open, save & close)
+
+  \return TRUE if successful
+*/
+BOOL_T
+resNodeListPut(resNodePtr prnArg)
+{
+  BOOL_T fResult = FALSE;
+
+  if (resNodeIsStd(prnArg)) {
+    //fResult = resNodeSaveContent(prnArg);
+  }
+  else if (resNodeIsDir(prnArg)) {
+    int iMode = 0;
+    resNodePtr prnI;
+
+    // assert(prnArg->eAccess == rn_access_undef && prnArg->handleIO == NULL);
+    // assert(resNodeIsArchive(prnArg) == FALSE);
+
+#ifdef _MSC_VER
+    /* no create mode */
+#else
+    iMode = (S_IRUSR | S_IWUSR | S_IXUSR);
+#endif
+
+    fResult = (resNodeMakeDirectory(prnArg, iMode) == rn_error_none);
+
+    for (prnI = resNodeGetChild(prnArg); prnI; prnI = resNodeGetNext(prnI)) { 
+      fResult |= resNodeListPut(prnI); 
+    }
+  }
+  else if (resNodeIsFile(prnArg)) {
+     fResult = (resNodeOpen(prnArg,"w") && resNodeSaveContent(prnArg));
+     resNodeClose(prnArg);
+  }
+
+  return fResult;
+} /* end of resNodeListPut() */
+
+
 /*! saves context prnArg content
   \return TRUE if successful
 */
@@ -491,7 +531,10 @@ resNodeSaveContent(resNodePtr prnArg)
 
     //assert(prnArg->eAccess != rn_access_undef && prnArg->handleIO != NULL);
     
-    if (prnArg->eAccess == rn_access_std) {
+    if(resNodeGetContentPtr(prnArg) == NULL) {
+      resNodeSetError(prnArg, rn_error_read, "No content available");
+    }
+    else if (prnArg->eAccess == rn_access_std) {
       if (fwrite(resNodeGetContentPtr(prnArg), resNodeGetSize(prnArg), 1, stdout) == 1) {
       }
       else {
