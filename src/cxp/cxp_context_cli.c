@@ -96,7 +96,7 @@ cxpCtxtCliNew(int argc, char *argv[], char *envp[])
 
     /*! set initial context locator to current working directory (startup directory)
     */
-    prnNew = resNodeDirNew(NULL);
+    prnNew = resNodeCwdNew();
     cxpCtxtLocationSet(pccResult, prnNew);
     resNodeFree(prnNew);
 
@@ -991,7 +991,7 @@ cxpCtxtCliAddXsl(xmlNodePtr pndArgParent, cxpContextPtr pccArg)
     assert(k < 256);
     pucArgvN = cxpCtxtCliGetValue(pccArg,k);
     if (STR_IS_NOT_EMPTY(pucArgvN)) {
-      prnT = resNodeConcatNew(cxpCtxtLocationGetStr(pccArg), pucArgvN);
+      prnT = cxpResNodeResolveNew(pccArg, NULL, pucArgvN, CXP_O_FILE | CXP_O_READ | CXP_O_SEARCH);
       if (resNodeGetMimeType(prnT) == MIME_TEXT_XSL) {
 	xmlNodePtr pndXsl;
 	xmlDocPtr pdocXsl;
