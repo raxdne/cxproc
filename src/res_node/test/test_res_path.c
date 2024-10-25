@@ -69,11 +69,29 @@ resNodeTestString(void)
     i++;
     printf("TEST %i in '%s:%i': resPathIsRoot() = ", i, __FILE__, __LINE__);
 
-    if (resPathIsRoot(BAD_CAST"c:/") == FALSE || resPathIsRoot(BAD_CAST"\"D:\\\"") == FALSE || resPathIsRoot(BAD_CAST"\"/\"") == FALSE) {
+    if (resPathIsRoot(BAD_CAST"c:") == FALSE) {
       printf("Error 1\n");
     }
-    else if (resPathIsRoot(BAD_CAST"c:/tmp") == TRUE || resPathIsRoot(BAD_CAST"\"D:\\User and Tester\"") == TRUE || resPathIsRoot(BAD_CAST"/tmp") == TRUE) {
+    else if (resPathIsRoot(BAD_CAST"\"D:\"") == FALSE) {
+      printf("Error 4\n");
+    }
+    else if (resPathIsRoot(BAD_CAST"c:/") == FALSE) {
       printf("Error 2\n");
+    }
+    else if (resPathIsRoot(BAD_CAST"\"D:\\\"") == FALSE) {
+      printf("Error 3\n");
+    }
+    else if (resPathIsRoot(BAD_CAST"\"/\"") == FALSE) {
+      printf("Error 5\n");
+    }
+    else if (resPathIsRoot(BAD_CAST"c:/tmp") == TRUE) {
+      printf("Error 6\n");
+    }
+    else if (resPathIsRoot(BAD_CAST"\"D:\\User and Tester\"") == TRUE) {
+      printf("Error 7\n");
+    }
+    else if (resPathIsRoot(BAD_CAST"/tmp") == TRUE) {
+      printf("Error 8\n");
     }
     else {
       n_ok++;
@@ -898,15 +916,30 @@ resNodeTestString(void)
 
     i++;
     printf("TEST %i in '%s:%i': detecting file basename = ",i,__FILE__,__LINE__);
-    pucTest = resPathGetBasenameStr(BAD_CAST"/..///.\\\\./");
-    if (pucTest == NULL) {
+
+    if ((pucTest = resPathGetBasenameStr(NULL)) != NULL) {
+      printf("Error 1 resPathGetBasenameStr() '%s'\n",pucTest);
+    }
+    else if ((pucTest = resPathGetBasenameStr(BAD_CAST"")) != NULL) {
+      printf("Error 2 resPathGetBasenameStr() '%s'\n",pucTest);
+    }
+    else if ((pucTest = resPathGetBasenameStr(BAD_CAST"/")) != NULL) {
+      printf("Error 3 resPathGetBasenameStr() '%s'\n",pucTest);
+    }
+    else if ((pucTest = resPathGetBasenameStr(BAD_CAST"\\")) != NULL) {
+      printf("Error 4 resPathGetBasenameStr() '%s'\n",pucTest);
+    }
+    else if ((pucTest = resPathGetBasenameStr(BAD_CAST"C:")) != NULL) {
+      printf("Error 5 resPathGetBasenameStr() '%s'\n",pucTest);
+    }
+    else if ((pucTest = resPathGetBasenameStr(BAD_CAST"/..///.\\\\./")) != NULL) {
+      printf("Error 6 resPathGetBasenameStr() '%s'\n",pucTest);
+    }
+    else {
       n_ok++;
       printf("OK\n");
     }
-    else {
-      printf("Error resPathGetBasenameStr() '%s'\n",pucTest);
-    }
-    if (pucTest) xmlFree(pucTest);
+    xmlFree(pucTest);
   }
 
 

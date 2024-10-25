@@ -725,9 +725,6 @@ cxpResNodeResolveNew(cxpContextPtr pccArg, xmlNodePtr pndArg, xmlChar *pucArg, i
     }
     else if (resPathIsAbsolute(pucShortcut)) {
       prnResult = resNodeDirNew(pucShortcut);
-      if (IS_NODE_DIR(pndArg)) {
-	resNodeSetType(prnResult, rn_type_dir);
-      }
     }
     else if ((iArgOptions & CXP_O_READ)) { /* find a readable ressource */
 
@@ -838,8 +835,13 @@ cxpResNodeResolveNew(cxpContextPtr pccArg, xmlNodePtr pndArg, xmlChar *pucArg, i
 #endif
     }
 
-    if (IS_NODE_DIR(pndArg)) {
-      resNodeSetType(prnResult, rn_type_dir);
+    if (resNodeGetType(prnResult) == rn_type_undef) { /* fallback assumtions */
+      if (IS_NODE_DIR(pndArg)) {
+	resNodeSetType(prnResult, rn_type_dir);
+      }
+      else if (IS_NODE_FILE(pndArg)) {
+	resNodeSetType(prnResult, rn_type_file);
+      }
     }
 
     // resNodeGetMimeType(prnResult)

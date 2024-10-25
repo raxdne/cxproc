@@ -112,6 +112,9 @@ resNodeSetNameBaseNative(resNodePtr prnArg, char *pcArgPath);
 static BOOL_T
 resNodeResetNameBase(resNodePtr prnArg);
 
+static BOOL_T
+resNodeReadOwner(resNodePtr prnArg);
+
 /* **********************************************************************************************
 
    filesystem resource node functions
@@ -1313,7 +1316,10 @@ resNodeDirNew(xmlChar *pucArgPath)
   if (prnResult) {
     RN_TYPE eType = rn_type_undef;
 
-    if (resPathIsStd(pucArgPath)) {
+    if (STR_IS_EMPTY(pucArgPath)) {
+      resNodeSetError(prnResult,rn_error_name,"name");
+    }
+    else if (resPathIsStd(pucArgPath)) {
       resNodeSetType(prnResult, rn_type_stdout);
       prnResult->eAccess = rn_access_std;
       prnResult->pucNameNormalized = xmlStrdup(pucArgPath);
@@ -1321,7 +1327,12 @@ resNodeDirNew(xmlChar *pucArgPath)
       prnResult->fWrite = TRUE;
       eType = rn_type_stdout;
     }
-    else if (STR_IS_NOT_EMPTY(pucArgPath)) { /* a trailing separator indicates a directory */
+    else if (resPathIsRoot(pucArgPath)) { /* root of a filesystem */
+      prnResult->pucNameNormalized = xmlStrdup(pucArgPath);
+      prnResult->pcNameNormalizedNative = (char *)xmlStrdup(prnResult->pucNameNormalized);
+      eType = rn_type_root;
+    }
+    else { /* a trailing separator indicates a directory */
       xmlChar *pucT = NULL;
       xmlChar *pucPath = NULL;
       xmlChar *pucNameArchive = NULL;
@@ -1523,17 +1534,14 @@ resNodeDirNew(xmlChar *pucArgPath)
       else {
 	resNodeReset(prnResult, pucPath);
 	if (resPathIsTrailingSeparator(pucPath)) { /*  */
+	  resNodeSetRecursion(prnResult, fRecursion);
+	// resPathCutTrailingChars(prnResult->pucNameNormalized);
 	  eType = rn_type_dir;
 	}
       }
-
-      resNodeSetType(prnResult, eType);
-      if (resNodeIsDir(prnResult)) { /*  */
-	resNodeSetRecursion(prnResult, fRecursion);
-	// resPathCutTrailingChars(prnResult->pucNameNormalized);
-      }
       xmlFree(pucPath);
     }
+    resNodeSetType(prnResult, eType);
   }
   return prnResult;
 } /* end of resNodeDirNew() */
@@ -2130,8 +2138,10 @@ resNodeResetNameBase(resNodePtr prnArg)
     xmlFree(prnArg->pcNameBaseNative);
     prnArg->pcNameBaseNative = NULL;
 
-    pucT = resPathGetBasenameStr(prnArg->pucNameNormalized);
-    if (pucT) {
+    if (resNodeIsRoot(prnArg)) {
+      fResult = TRUE;
+    }
+    else if ((pucT = resPathGetBasenameStr(prnArg->pucNameNormalized)) != NULL) {
       if (xmlStrlen(pucT) > 0) {
 	prnArg->pucNameBase = pucT;
 	prnArg->pcNameBaseNative = resPathDecodeStr(prnArg->pucNameBase);
@@ -2371,10 +2381,19 @@ resNodeIsDir(resNodePtr prnArg)
 	resNodeReadStatus(prnArg);
       }
     }
-    fResult = (resNodeGetType(prnArg) == rn_type_dir || resNodeGetType(prnArg) == rn_type_dir_in_archive || resNodeGetType(prnArg) == rn_type_dir_in_zip); //  || resNodeGetChild(prnArg) != NULL
+    fResult = (resNodeGetType(prnArg) == rn_type_root || resNodeGetType(prnArg) == rn_type_dir || resNodeGetType(prnArg) == rn_type_dir_in_archive || resNodeGetType(prnArg) == rn_type_dir_in_zip); //  || resNodeGetChild(prnArg) != NULL
   }
   return fResult;
 } /* end of resNodeIsDir() */
+
+
+/*! \return TRUE if prnArg is root of a file system
+*/
+BOOL_T
+resNodeIsRoot(resNodePtr prnArg)
+{
+  return resNodeGetType(prnArg) == rn_type_root;
+} /* end of resNodeIsRoot() */
 
 
 /*! \return TRUE if prnArg is a directory
@@ -3521,14 +3540,14 @@ resNodeToDOM(resNodePtr prnArg, int iArgOptions)
 	xmlSetProp(pndT, BAD_CAST "name", BAD_CAST".");
       }
 
-      if (resNodeGetParent(prnArg) == NULL && (pucT = resNodeGetNameBaseDir(prnArg)) != NULL && xmlStrlen(pucT) > 0) {
+      if (resNodeIsRoot(prnArg) == FALSE && resNodeGetParent(prnArg) == NULL && (pucT = resNodeGetNameBaseDir(prnArg)) != NULL && xmlStrlen(pucT) > 0) {
 	xmlSetProp(pndT, BAD_CAST "prefix", pucT);
       }
     }
     else if (resNodeIsLink(prnArg)) {
       pndT = xmlNewNode(NULL, NAME_SYMLINK);
       xmlSetProp(pndT, BAD_CAST"name", resNodeGetNameBase(prnArg));
-      xmlSetProp(pndT, BAD_CAST"prefix", resNodeGetNameBaseDir(resNodeGetChild(prnArg)));
+      //xmlSetProp(pndT, BAD_CAST"prefix", resNodeGetNameBaseDir(resNodeGetChild(prnArg)));
     }
     else {
       pndT = xmlNewNode(NULL, NAME_FILE);
@@ -4170,7 +4189,7 @@ resNodeReadOwner(resNodePtr prnArg)
   if (prnArg != NULL
       && prnArg->pcNameNormalizedNative != NULL
       && resNodeIsError(prnArg) == FALSE
-      && (resNodeGetType(prnArg) == rn_type_dir || resNodeGetType(prnArg) == rn_type_file || resNodeGetType(prnArg) == rn_type_symlink)) {
+      && (resNodeIsDir(prnArg) || resNodeIsFile(prnArg) || resNodeIsLink(prnArg))) {
 
 #ifdef _MSC_VER
     // s. http://stackoverflow.com/questions/11384220/getnamedsecurityinfo-returns-error-access-denied5-when-writting-owner-of-a-rem
@@ -4273,6 +4292,7 @@ resNodeReadOwner(resNodePtr prnArg)
   else {
     resNodeSetError(prnArg,rn_error_path,"No valid directory path");
   }
+  prnArg->iDetails |= RN_INFO_OWNER;
 
   return fResult;
 } /* end of resNodeReadOwner() */
@@ -4388,9 +4408,8 @@ resNodeUpdate(resNodePtr prnArg, int iArgOptions, const pcre2_code *re_match, co
 	}
       }
 
-      if (resNodeIsUpToDate(prnArg, RN_INFO_OWNER) == FALSE && (resNodeIsFile(prnArg) || resNodeIsDir(prnArg))) {
-	resNodeReadOwner(prnArg);
-	/*\todo use resNodeSetProp() */
+      if (resNodeIsUpToDate(prnArg, RN_INFO_OWNER) == FALSE) {
+	resNodeGetOwner(prnArg);
       }
 
       if (resNodeIsUpToDate(prnArg, RN_INFO_CONTENT) == FALSE) {
@@ -4536,24 +4555,15 @@ resNodeReadStatus(resNodePtr prnArg)
 	  /*! local file */
 	  int err;
 	  char *pcName;
-#ifdef _MSC_VER
 
 	  resPathCutTrailingChars(BAD_CAST prnArg->pcNameNormalizedNative);
 	  pcName = prnArg->pcNameNormalizedNative; /* use 'pcName' as shortcut only */
-	  if (isalpha(pcName[0]) && pcName[1] == ':' && isend(pcName[2])) { /* root of a drive */
-	    pcName = strncat(strdup(pcName),"\\",3);
-	    xmlFree(prnArg->pcNameNormalizedNative);
-	    prnArg->pcNameNormalizedNative = pcName;
-	  }
 
+#ifdef _MSC_VER
 	  err = _stat(pcName, &(prnArg->s));
 #else
-	  resPathCutTrailingChars(BAD_CAST prnArg->pcNameNormalizedNative);
-	  pcName = prnArg->pcNameNormalizedNative; /* use 'pcName' as shortcut only */
-
 	  err = lstat(pcName, &(prnArg->s));
 #endif
-
 	  if (err == -1) {
 	    resNodeSetError(prnArg,rn_error_stat,"Cant stat() '%s'",pcName);
 	    prnArg->fExist = FALSE;
@@ -4771,6 +4781,9 @@ xmlChar *
 resNodeGetOwner(resNodePtr prnArg)
 {
   if (prnArg) {
+    if (prnArg->pucOwner == NULL && (resNodeIsFile(prnArg) || resNodeIsDir(prnArg))) {
+      resNodeReadOwner(prnArg);
+    }
     return prnArg->pucOwner;
   }
   return NULL;

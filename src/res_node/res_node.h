@@ -482,6 +482,9 @@ extern BOOL_T
 resNodeIsDir(resNodePtr prnArg);
 
 extern BOOL_T
+resNodeIsRoot(resNodePtr prnArg);
+
+extern BOOL_T
 resNodeIsRecursive(resNodePtr prnArg);
 
 extern BOOL_T
@@ -564,9 +567,6 @@ resNodeIsError(resNodePtr prnArg);
 
 extern BOOL_T
 resNodeReadStatus(resNodePtr prnArg);
-
-extern BOOL_T
-resNodeReadOwner(resNodePtr prnArg);
 
 extern xmlChar *
 resNodeGetURI(resNodePtr prnArg);
