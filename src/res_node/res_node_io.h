@@ -38,6 +38,9 @@ extern BOOL_T
 resNodePutContent(resNodePtr prnArg);
 
 extern BOOL_T
+resNodeListPut(resNodePtr prnArg);
+
+extern BOOL_T
 resNodeSaveContent(resNodePtr prnArg);
 
 extern void *

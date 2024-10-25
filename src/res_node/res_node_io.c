@@ -113,12 +113,15 @@ resNodeOpen(resNodePtr prnArg, const char *pchArgMode)
 
   if (resNodeResetError(prnArg)) {
 
-   // assert(prnArg->handleIO == NULL || prnArg->handleIO == (void *)stdin || prnArg->handleIO == (void *)stdout);
     resNodeSetMode(prnArg, pchArgMode);
     
     PrintFormatLog(3, "Open file '%s' in '%s' mode", resNodeGetNameNormalized(prnArg), pchArgMode);
     
-    if (resNodeIsStd(prnArg)) {
+    if (resNodeIsOpen(prnArg)) {
+      PrintFormatLog(3, "Already open file '%s'", resNodeGetNameNormalized(prnArg));
+      fResult = TRUE;
+    }
+    else if (resNodeIsStd(prnArg)) {
       prnArg->eAccess = rn_access_std;
       if (prnArg->eMode == mode_write) {
 	resNodeSetType(prnArg,rn_type_stdout);
@@ -127,15 +130,12 @@ resNodeOpen(resNodePtr prnArg, const char *pchArgMode)
 	  fResult = arcFileOpen(prnArg);
 	}
 	else
-#else
-	prnArg->handleIO = (void *)stdout;
 #endif
 	prnArg->fRead = FALSE;
 	prnArg->fWrite = TRUE;
       }
       else {
 	resNodeSetType(prnArg,rn_type_stdin);
-	prnArg->handleIO = (void *)stdin;
 	prnArg->fRead = TRUE;
 	prnArg->fWrite = FALSE;
       }
@@ -479,6 +479,46 @@ resNodePutContent(resNodePtr prnArg)
 } /* end of resNodePutContent() */
 
 
+/*! saves context prnArg content (open, save & close)
+
+  \return TRUE if successful
+*/
+BOOL_T
+resNodeListPut(resNodePtr prnArg)
+{
+  BOOL_T fResult = FALSE;
+
+  if (resNodeIsStd(prnArg)) {
+    //fResult = resNodeSaveContent(prnArg);
+  }
+  else if (resNodeIsDir(prnArg)) {
+    int iMode = 0;
+    resNodePtr prnI;
+
+    // assert(prnArg->eAccess == rn_access_undef && prnArg->handleIO == NULL);
+    // assert(resNodeIsArchive(prnArg) == FALSE);
+
+#ifdef _MSC_VER
+    /* no create mode */
+#else
+    iMode = (S_IRUSR | S_IWUSR | S_IXUSR);
+#endif
+
+    fResult = (resNodeMakeDirectory(prnArg, iMode) == rn_error_none);
+
+    for (prnI = resNodeGetChild(prnArg); prnI; prnI = resNodeGetNext(prnI)) { 
+      fResult |= resNodeListPut(prnI); 
+    }
+  }
+  else if (resNodeIsFile(prnArg)) {
+     fResult = (resNodeOpen(prnArg,"w") && resNodeSaveContent(prnArg));
+     resNodeClose(prnArg);
+  }
+
+  return fResult;
+} /* end of resNodeListPut() */
+
+
 /*! saves context prnArg content
   \return TRUE if successful
 */
@@ -491,8 +531,11 @@ resNodeSaveContent(resNodePtr prnArg)
 
     //assert(prnArg->eAccess != rn_access_undef && prnArg->handleIO != NULL);
     
-    if (prnArg->eAccess == rn_access_std) {
-      if (fwrite(resNodeGetContentPtr(prnArg), resNodeGetSize(prnArg), 1, (FILE *)resNodeGetHandleIO(prnArg)) == 1) {
+    if(resNodeGetContentPtr(prnArg) == NULL) {
+      resNodeSetError(prnArg, rn_error_read, "No content available");
+    }
+    else if (prnArg->eAccess == rn_access_std) {
+      if (fwrite(resNodeGetContentPtr(prnArg), resNodeGetSize(prnArg), 1, stdout) == 1) {
       }
       else {
 	/*!\todo handle error code 'errno' */
@@ -922,7 +965,6 @@ resNodeGetContent(resNodePtr prnArg, int iArgMax)
 #endif
     else if (resNodeIsFileInArchive(prnArg)) {
       resNodePtr prnArchive;
-      resNodePtr prnUrl;
 
       if ((prnArchive = resNodeGetAncestorArchive(prnArg)) != NULL) {
 
@@ -1269,10 +1311,19 @@ resNodeGetUsageCount(resNodePtr prnArg)
 void *
 resNodeGetHandleIO(resNodePtr prnArg)
 {
-  if (prnArg != NULL) {
-    return prnArg->handleIO;
+  if (prnArg == NULL) {
+    return NULL;
   }
-  return NULL;
+  else if (prnArg->eType == rn_type_stdout) {
+    return stdout;
+  }
+  else if (prnArg->eType == rn_type_stdin) {
+    return stdin;
+  }
+  else if (prnArg->eType == rn_type_stderr) {
+    return stderr;
+  }
+  return prnArg->handleIO;
 } /* end of resNodeGetHandleIO() */
 
 

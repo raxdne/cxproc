@@ -28,13 +28,13 @@ extern BOOL_T
 zipIconvInit(void);
 
 extern BOOL_T
-zipAppendEntries(resNodePtr prnArgZip, const pcre2_code *re_match, BOOL_T fArgContent);
+_zipAppendEntries(resNodePtr prnArgZip, const pcre2_code *re_match, BOOL_T fArgContent);
 
 extern BOOL_T
 zipDocumentRead(resNodePtr prnArgZip, int iArgOptions);
 
 extern BOOL_T
-zipArchiveWrite(resNodePtr prnArgZip, int iArgOptions);
+_zipArchiveWrite(resNodePtr prnArgZip, int iArgOptions);
 
 extern BOOL_T
 zipGetFileNameDecoded(char *pcArg, xmlChar **ppucResult);

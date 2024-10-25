@@ -410,7 +410,7 @@ dbParseDirTraverse(resNodePtr prnArgDb, resNodePtr prnArgContext, int iDepthArg,
 	resNodeResetMimeType(prnArgContext);
 #if 0
 	if (iLevelVerboseArg > 2) {
-	  resNodeSetOwner(prnArgContext);
+	  resNodeReadOwner(prnArgContext);
 	}
 #endif
       }

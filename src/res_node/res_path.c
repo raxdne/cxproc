@@ -923,13 +923,15 @@ resPathIsRoot(xmlChar *pucArg)
 	   ||
 	   (isquot(pucArg[0]) && issep(pucArg[1]) && isquot(pucArg[2]) && isend(pucArg[3]))
 	   ||
-	   (resPathIsDosDrive(pucArg) && isend(pucArg[3]))
+	   (isalpha(pucArg[0]) && pucArg[1] == (xmlChar)':' && isend(pucArg[2]))
 	   ||
-	   (isquot(pucArg[0]) && resPathIsDosDrive(pucArg + 1) && isquot(pucArg[4]) && isend(pucArg[5]))
-	   )
+	   (isquot(pucArg[0]) && isalpha(pucArg[1]) && pucArg[2] == (xmlChar)':' && isquot(pucArg[3]) && isend(pucArg[4]))
+	   ||
+	   (isalpha(pucArg[0]) && pucArg[1] == (xmlChar)':' && issep(pucArg[2]) && isend(pucArg[3]))
+	   ||
+	   (isquot(pucArg[0]) && isalpha(pucArg[1]) && pucArg[2] == (xmlChar)':' && issep(pucArg[3]) && isquot(pucArg[4]) && isend(pucArg[5])))
 	  );
-}
-/* end of resPathIsRoot() */
+} /* end of resPathIsRoot() */
 
 
 /*! \return a dynamically allocated string containing the lowercase extension of pucArg or NULL
@@ -1105,7 +1107,7 @@ resPathGetBasenameStr(xmlChar *pucArgNameFile)
   xmlChar *pucEnd;
   int l;
 
-  if (STR_IS_EMPTY(pucArgNameFile)) {
+  if (STR_IS_EMPTY(pucArgNameFile) || resPathIsRoot(pucArgNameFile)) {
     return NULL;
   }
 

@@ -218,7 +218,10 @@ arcFileClose(resNodePtr prnArg)
 #ifdef HAVE_LIBARCHIVE
   assert(prnArg != NULL);
 
-  if (prnArg->eMode == mode_read) {
+  if (resNodeGetHandleIO(prnArg) == NULL) {
+    /* closed already, OK */
+  }
+  else if (prnArg->eMode == mode_read) {
     archive_read_close((arcPtr)resNodeGetHandleIO(prnArg));
     if (archive_read_free((arcPtr)resNodeGetHandleIO(prnArg)) == ARCHIVE_OK) {
       fResult = TRUE;
@@ -499,7 +502,7 @@ arcGetFileNameDecoded(char *pcArg, xmlChar **ppucResult)
 /* end of arcGetFileNameDecoded() */
 
 
-/*! wrapper for , append all directory entries as childs
+/*! wrapper for , append all archive entries as childs
 
 similar to resNodeDirAppendEntries()
 
@@ -507,21 +510,25 @@ similar to resNodeDirAppendEntries()
 \param re_match pointer to a compiled regexp
 \param fArgContent flag to extract data of a matching header
 \return TRUE if successful, else FALSE
+
+\todo handle archive in archive recursively 
 */
 BOOL_T
 arcAppendEntries(resNodePtr prnArgArchive, const pcre2_code* re_match, BOOL_T fArgContent)
 {
   BOOL_T fResult = FALSE;
 
-  /*!\bug test permission to this directory first */
+  assert(resNodeIsArchive(prnArgArchive));
 
-  /*!\todo handle archive in archive recursively */
-
-
-  if (resNodeIsArchive(prnArgArchive) && resNodeIsOpen(prnArgArchive) && resNodeGetChild(prnArgArchive)) {
-    /* resNode is open/parsed already */
+  if (fArgContent && resNodeIsUpToDate(prnArgArchive, RN_INFO_CONTENT)) {
+    /* archive conent was read already */
+    fResult = TRUE;
   }
-  else if (resNodeReadStatus(prnArgArchive) && resNodeIsArchive(prnArgArchive) && resNodeOpen(prnArgArchive, "ra")) {
+  else if (!fArgContent && resNodeIsUpToDate(prnArgArchive, RN_INFO_STRUCT)) {
+    /* archive was parsed already */
+    fResult = TRUE;
+  }
+  else if (resNodeReadStatus(prnArgArchive) && resNodeOpen(prnArgArchive, "ra")) {
     BOOL_T fLoop;
     xmlChar *pucT = NULL;
     resNodePtr prnContent = NULL;
@@ -559,6 +566,7 @@ arcAppendEntries(resNodePtr prnArgArchive, const pcre2_code* re_match, BOOL_T fA
 	      fLoop = FALSE;
 	    }
 	    else {
+	      xmlFree(pucNameEncoded);
 	      continue;
 	    }
 	  }
@@ -621,7 +629,6 @@ arcAppendEntries(resNodePtr prnArgArchive, const pcre2_code* re_match, BOOL_T fA
 	    resNodeResetContentPtr(prnChild);
 	    resNodeResetMimeType(prnChild);
 	    prnChild->fExist = TRUE;
-	    prnChild->fStat = TRUE;
 	    prnChild->fRead = TRUE;
 	    prnChild->eAccess = rn_access_archive;
 
@@ -630,9 +637,9 @@ arcAppendEntries(resNodePtr prnArgArchive, const pcre2_code* re_match, BOOL_T fA
 	      resNodeGetType(prnAncestor) == rn_type_dir_in_archive;
 	      prnAncestor = resNodeGetParent(prnAncestor)) {
 	      prnAncestor->fExist = TRUE;
-	      prnAncestor->fStat = TRUE;
 	      prnAncestor->fRead = TRUE;
 	      prnAncestor->eAccess = rn_access_archive;
+	      prnAncestor->iDetails |= RN_INFO_STAT;
 	    }
 
 
@@ -677,10 +684,17 @@ arcAppendEntries(resNodePtr prnArgArchive, const pcre2_code* re_match, BOOL_T fA
 		  fResult = TRUE;
 
 		  if (resMimeIsArchive(prnChild->eMimeType)) {
-		    fResult = arcAppendEntries(prnChild, re_match, fArgContent);
+		    //fResult = arcAppendEntries(prnChild, re_match, fArgContent);
 		  }
 		}
 	      }
+	    }
+	    
+	    if (fArgContent) {
+	      prnChild->iDetails = RN_INFO_MAX;
+	    }
+	    else {
+	      prnChild->iDetails |= RN_INFO_STAT | RN_INFO_STRUCT;
 	    }
 	  }
 	  else {
@@ -695,6 +709,13 @@ arcAppendEntries(resNodePtr prnArgArchive, const pcre2_code* re_match, BOOL_T fA
       }
     }
     resNodeClose(prnArgArchive);
+
+    if (fResult) {
+      if (fArgContent) {
+	prnArgArchive->iDetails |= RN_INFO_CONTENT;
+      }
+      prnArgArchive->iDetails |= RN_INFO_STRUCT;
+    }
   }
   return fResult;
 } /* end of arcAppendEntries() */

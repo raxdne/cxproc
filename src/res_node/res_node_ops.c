@@ -111,6 +111,12 @@ resNodeTransfer(resNodePtr prnArgFrom, resNodePtr prnArgTo, BOOL_T fArgMove)
       resNodeSetError(prnArgFrom,rn_error_copy,"Copy source contexts not usable");
       eResult = rn_error_undef;
     }
+    else if (resNodeIsStd(prnArgFrom)) {
+      if (fArgMove) {
+	resNodeSetError(prnArgTo, rn_error_copy, "Moving from stdin is not permitted");
+	eResult = rn_error_undef;
+      }
+    }
     else if (resNodeReadStatus(prnArgFrom)) { /* try to get some context info */
       if (resNodeIsURL(prnArgFrom)) {
 	/* OK */
@@ -320,6 +326,8 @@ resNodeMakeDirectory(resNodePtr prnArg, int mode)
     }
     else {
       int i;
+
+      prnArg->iDetails = RN_INFO_MIN; /* reset info bits */
 
       PrintFormatLog(3, "MKDIR '%s'", resNodeGetNameNormalized(prnArg));
 #ifdef _MSC_VER

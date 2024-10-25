@@ -85,7 +85,7 @@ zipFileOpen(resNodePtr prnArg, const char *pchArgMode)
 
     if ((prnArg->handleIO = zip_open(resNodeGetNameNormalizedNative(prnArg), 0, &err)) == NULL) {
       zip_error_to_str(buf, sizeof(buf), err, errno);
-      PrintFormatLog(1, "can't open zip archive `%s': %s\n", resNodeGetNameNormalizedNative(prnArg), buf);
+      resNodeSetError(prnArg, rn_error_open, "can't open zip archive `%s': %s\n", resNodeGetNameNormalizedNative(prnArg), buf);
     }
 #if 0
     else if (resNodeIsMemory(prnArg)) { /* achive in memory already */
@@ -306,7 +306,7 @@ similar to arcAppendEntries()
 \return TRUE if successful, else FALSE
 */
 BOOL_T
-zipAppendEntries(resNodePtr prnArgZip, const pcre2_code *re_match, BOOL_T fArgContent)
+_zipAppendEntries(resNodePtr prnArgZip, const pcre2_code *re_match, BOOL_T fArgContent)
 {
   BOOL_T fResult = FALSE;
 
@@ -386,7 +386,6 @@ zipAppendEntries(resNodePtr prnArgZip, const pcre2_code *re_match, BOOL_T fArgCo
 	    // sb.mtime
 	    resNodeResetMimeType(prnInZip);
 	    prnInZip->fExist = TRUE;
-	    prnInZip->fStat = TRUE;
 	    prnInZip->fRead = TRUE;
 	    prnInZip->eAccess = rn_access_zip;
 
@@ -419,11 +418,12 @@ zipAppendEntries(resNodePtr prnArgZip, const pcre2_code *re_match, BOOL_T fArgCo
 	    /* set all parent directories in this zip too */
 	    for (prnAncestor = resNodeGetParent(prnInZip); resNodeGetType(prnAncestor) == rn_type_dir_in_zip; prnAncestor = resNodeGetParent(prnAncestor)) {
 	      prnAncestor->fExist = TRUE;
-	      prnAncestor->fStat = TRUE;
 	      prnAncestor->fRead = TRUE;
 	      prnAncestor->eAccess = rn_access_zip;
+	      prnAncestor->iDetails |= RN_INFO_STAT;
 	    }
 	  }
+	  prnInZip->iDetails = RN_INFO_MAX;
 	}
 	else {
 	  PrintFormatLog(1, "zip access error");
@@ -475,9 +475,9 @@ zipDocumentRead(resNodePtr prnArgZip, int iArgOptions)
 	}
 	prnInZip->tMtime = sb.mtime;
 	prnInZip->fExist = TRUE;
-	prnInZip->fStat = TRUE;
 	prnInZip->fRead = TRUE;
 	prnInZip->eAccess = rn_access_zip;
+	prnInZip->iDetails = iArgOptions;
 
 	if (resPathIsEquivalent(BAD_CAST ".rels", resNodeGetNameBase(prnInZip)) &&
 	    resNodeGetMimeType(prnArgZip) == MIME_APPLICATION_VND_OPENXMLFORMATS_OFFICEDOCUMENT_WORDPROCESSINGML_DOCUMENT) {

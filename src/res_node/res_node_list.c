@@ -170,7 +170,7 @@ resNodeListParse(resNodePtr prnArg, int iArgDepth, const pcre2_code *re_match)
   BOOL_T fResult = FALSE;
 
   if (iArgDepth > -1) { /* recursion depth reached? */
-    resNodePtr prnEntry;
+    resNodePtr prnI;
 
     if (resNodeReadStatus(prnArg) == FALSE) {
       /* error */
@@ -178,10 +178,10 @@ resNodeListParse(resNodePtr prnArg, int iArgDepth, const pcre2_code *re_match)
     else if (resNodeIsDir(prnArg)) {
       /*  */
       if (iArgDepth > 0 && resNodeDirAppendEntries(prnArg, re_match)) {
-	for (prnEntry = resNodeGetChild(prnArg); prnEntry; prnEntry = resNodeGetNext(prnEntry)) {
-	  if (resNodeReadStatus(prnEntry)) {
-	    if (iArgDepth > 1 && (resNodeIsDir(prnEntry) || resNodeIsArchive(prnEntry))) {
-	      if (resNodeListParse(prnEntry, iArgDepth - 1, re_match)) { /* recursion */
+	for (prnI = resNodeGetChild(prnArg); prnI; prnI = resNodeGetNext(prnI)) {
+	  if (resNodeReadStatus(prnI)) {
+	    if (iArgDepth > 1 && (resNodeIsDir(prnI) || resNodeIsArchive(prnI))) {
+	      if (resNodeListParse(prnI, iArgDepth - 1, re_match)) { /* recursion */
 	      }
 	    }
 	  }
@@ -424,7 +424,7 @@ resNodeListFindPath(resNodePtr prnArg, xmlChar *pucArgPath, int iArgOptions)
 	}
       }
     }
-#ifdef HAVE_LIBARCHIVE
+#if 0
     else if (prnResult == NULL && (iArgOptions & RN_FIND_IN_ARCHIVE) && resNodeIsArchive(prnArg)) {
       if (arcAppendEntries(prnArg, NULL, FALSE)) { /* there are no childs, append list of archive entries */
 	for (prnI = resNodeGetChild(prnArg); prnI != NULL && prnResult == NULL; prnI = resNodeGetNext(prnI)) {
@@ -773,20 +773,20 @@ resNodeListDumpRecursively(FILE *argout, resNodePtr prnArg, BOOL_T fArgDetails, 
 {
   BOOL_T fResult = FALSE;
   xmlChar *pucT;
+  resNodePtr prnI;
 
 #ifdef HAVE_LIBARCHIVE
   if (resNodeIsDirInArchive(prnArg)) {
-    resNodePtr prnEntry;
 
 #ifdef DEBUG
     fputc('/',stderr);
 #endif
     
-    for (prnEntry = resNodeGetChild(prnArg); prnEntry; prnEntry = resNodeGetNext(prnEntry)) {
-      resNodeListDumpRecursively(argout,prnEntry,fArgDetails,pfArg);
+    for (prnI = resNodeGetChild(prnArg); prnI; prnI = resNodeGetNext(prnI)) {
+      resNodeListDumpRecursively(argout,prnI,fArgDetails,pfArg);
     }
 
-    if ((pucT = (*pfArg)(prnArg, RN_INFO_META))) {
+    if ((pucT = (*pfArg)(prnArg, RN_INFO_STAT))) {
       fputs((const char*)pucT, argout);
       xmlFree(pucT);
     }
@@ -804,16 +804,14 @@ resNodeListDumpRecursively(FILE *argout, resNodePtr prnArg, BOOL_T fArgDetails, 
 #endif
     
     if (resNodeDirAppendEntries(prnArg, NULL)) {
-      resNodePtr prnEntry;
-    
-      for (prnEntry = resNodeGetChild(prnArg); prnEntry; prnEntry = resNodeGetNext(prnEntry)) {
-	resNodeListDumpRecursively(argout,prnEntry,fArgDetails,pfArg);
-	resNodeIncrRecursiveSize(prnArg, resNodeGetRecursiveSize(prnEntry));
+      for (prnI = resNodeGetChild(prnArg); prnI; prnI = resNodeGetNext(prnI)) {
+	resNodeListDumpRecursively(argout,prnI,fArgDetails,pfArg);
+	resNodeIncrRecursiveSize(prnArg, resNodeGetRecursiveSize(prnI));
       }
       resNodeIncrRecursiveSize(prnArg, resNodeGetSize(prnArg));
     }
 
-    if ((pucT = (*pfArg)(prnArg, RN_INFO_META))) {
+    if ((pucT = (*pfArg)(prnArg, RN_INFO_STAT))) {
       fputs((const char*)pucT, argout);
       xmlFree(pucT);
     }
@@ -834,10 +832,8 @@ resNodeListDumpRecursively(FILE *argout, resNodePtr prnArg, BOOL_T fArgDetails, 
 #endif
 
     if (arcAppendEntries(prnArg, NULL, FALSE)) {
-      resNodePtr prnEntry;
-    
-      for (prnEntry = resNodeGetChild(prnArg); prnEntry; prnEntry = resNodeGetNext(prnEntry)) {
-	resNodeListDumpRecursively(argout,prnEntry,fArgDetails,pfArg);
+      for (prnI = resNodeGetChild(prnArg); prnI; prnI = resNodeGetNext(prnI)) {
+	resNodeListDumpRecursively(argout,prnI,fArgDetails,pfArg);
       }
     }
     
@@ -845,7 +841,7 @@ resNodeListDumpRecursively(FILE *argout, resNodePtr prnArg, BOOL_T fArgDetails, 
     resNodeListUnlinkDescendants(prnArg);
     resNodeListFree(prnRelease);      
 
-    if ((pucT = (*pfArg)(prnArg, RN_INFO_META))) {
+    if ((pucT = (*pfArg)(prnArg, RN_INFO_STAT))) {
       fputs((const char*)pucT, argout);
       xmlFree(pucT);
     }
@@ -873,7 +869,7 @@ resNodeListDumpRecursively(FILE *argout, resNodePtr prnArg, BOOL_T fArgDetails, 
     fputc('.',stderr);
 #endif
     
-    if ((pucT = (pfArg)(prnArg, RN_INFO_META)) == NULL) {
+    if ((pucT = (pfArg)(prnArg, RN_INFO_STAT)) == NULL) {
     }
     else {
       fputs((const char*)pucT, argout);

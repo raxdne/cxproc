@@ -128,7 +128,7 @@ main(int argc, char** argv, char** envp)
   int iErrorCode = 0;
   int i;
 
-  SetLogLevel(2);
+  SetLogLevel(LEVEL_MAX - 2);
 
   for (i = 1; i < argc; i++) {
     if (xmlStrEqual(BAD_CAST argv[i], BAD_CAST "-t") && i < argc - 1) {

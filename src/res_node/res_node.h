@@ -88,13 +88,14 @@
  */
 #define RN_INFO_MIN     (0)
 
-#define RN_INFO_META    (1)
+/*! all info from stat() are available */
+#define RN_INFO_STAT    (1)
 
 #define RN_INFO_INFO    (2)
 
 #define RN_INFO_XML     (4)
 
-#define RN_INFO_PIE     (8)
+#define RN_INFO_OWNER   (8)
 
 #define RN_INFO_STRUCT  (16)
 
@@ -117,7 +118,7 @@ re-build full list of contextxts
 */
 #define RN_INFO_LIST    (256)
 
-#define RN_INFO_MAX     (RN_INFO_META | RN_INFO_INFO | RN_INFO_XML | RN_INFO_PIE | RN_INFO_STRUCT | RN_INFO_CONTENT | RN_INFO_COMMENT | RN_INFO_LIST)
+#define RN_INFO_MAX     (RN_INFO_STAT | RN_INFO_INFO | RN_INFO_XML | RN_INFO_OWNER | RN_INFO_STRUCT | RN_INFO_CONTENT | RN_INFO_COMMENT | RN_INFO_LIST)
 
 
 typedef enum {
@@ -235,7 +236,6 @@ struct _resNode {
 
   /*! flags 
    */
-  BOOL_T fStat;			/*! TRUE if this context was stat'd already */
   BOOL_T fExist;
   BOOL_T fRead;
   BOOL_T fWrite;
@@ -318,6 +318,14 @@ struct _resNode {
 
   int iCountUse;  		/*! usage counter for this context (caching) */
 
+  int iDetails;			/*! bit mask of details (s. RN_INFO_*) */
+
+#ifdef _MSC_VER
+  struct _stat s;
+#else
+  struct stat s;
+#endif
+
   struct _resNode *parent;   /*! parent context of list */
   struct _resNode *children; /*! children context in list */
   struct _resNode *last;     /*! last children context in list */
@@ -330,6 +338,9 @@ resNodeNew(void);
 
 extern BOOL_T
 resNodeReset(resNodePtr prnArg, xmlChar *pucArgPath);
+
+extern BOOL_T
+resNodeIsUpToDate(resNodePtr prnArg, int iArgOptions);
 
 extern BOOL_T
 resNodeUpdate(resNodePtr prnArg, int iArgOptions, const pcre2_code *re_match, const pcre2_code *re_grep);
@@ -471,6 +482,9 @@ extern BOOL_T
 resNodeIsDir(resNodePtr prnArg);
 
 extern BOOL_T
+resNodeIsRoot(resNodePtr prnArg);
+
+extern BOOL_T
 resNodeIsRecursive(resNodePtr prnArg);
 
 extern BOOL_T
@@ -553,9 +567,6 @@ resNodeIsError(resNodePtr prnArg);
 
 extern BOOL_T
 resNodeReadStatus(resNodePtr prnArg);
-
-extern BOOL_T
-resNodeSetOwner(resNodePtr prnArg);
 
 extern xmlChar *
 resNodeGetURI(resNodePtr prnArg);
