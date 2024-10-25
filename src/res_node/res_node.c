@@ -3874,7 +3874,18 @@ resNodeToCSV(resNodePtr prnArg, int iArgOptions)
       case rn_type_symlink:
 #endif
 	xmlStrPrintf(pucResult, BUFFER_LENGTH,
-	  "\"%c%c%c%c%c\";%lu;%lu;%lu;\"%s\";%lu;\"%s\";\"%s\";=HYPERLINK(\"%s\");\"%s\";\"%s\";\"%s\"\n",
+	  "\"%c%c%c%c%c\";" /* file system attributes */
+	  "%lu;"
+	  "%lu;"
+	  "%lu;"
+	  "\"%s\";"
+	  "%lu;"
+	  "\"%s\";"
+	  "\"%s\";"
+	  "=HYPERLINK(\"%s\",\"%s\");"
+	  "\"%s\";" /* owner */
+	  "\"%s\";"
+	  "\"%s\"\n",
 	  (resNodeIsDir(prnArg) ? 'd' : resNodeIsLink(prnArg) ? 'l' : '-'),
 	  resNodeIsReadable(prnArg) ? 'r' : '-',
 	  resNodeIsWriteable(prnArg) ? 'w' : '-',
@@ -3891,7 +3902,7 @@ resNodeToCSV(resNodePtr prnArg, int iArgOptions)
 	  //
 	  (resNodeGetNameBase(prnArg) != NULL ? resNodeGetNameBase(prnArg) : BAD_CAST""),
 	  (resNodeGetExtension(prnArg) != NULL ? resNodeGetExtension(prnArg) : BAD_CAST""),
-	  (resNodeGetNameBaseDir(prnArg) != NULL ? resNodeGetNameBaseDir(prnArg) : BAD_CAST"."),
+	  resNodeGetNameBaseDir(prnArg), resNodeGetNameBaseDir(prnArg),
 	  //
 	  (resNodeGetOwner(prnArg) != NULL ? resNodeGetOwner(prnArg) : BAD_CAST"---"),
 	  //
@@ -4111,13 +4122,11 @@ resNodeToSQL(resNodePtr prnArg, int iArgOptions)
 	}
 	pucSqlValues = xmlStrcat(pucSqlValues,BAD_CAST"\",");
 
-#if 0
 	pucSqlValues = xmlStrcat(pucSqlValues,BAD_CAST"\"");
 	if ((pucT = resNodeGetOwner(prnArg))) {
 	  pucSqlValues = xmlStrcat(pucSqlValues,pucT);
 	}
 	pucSqlValues = xmlStrcat(pucSqlValues,BAD_CAST"\",");
-#endif
 	
 	if (resNodeIsDir(prnArg)) {
 	  xmlStrPrintf(pucResult, BUFFER_LENGTH, "%li,\"\",\"\",", resNodeGetRecursiveSize(prnArg));
@@ -5676,9 +5685,7 @@ resNodeDatabaseSchemaStr(void)
     "depth INTEGER, "
     "type INTEGER, "
     "name text, "
-#if 0
     "owner text, "
-#endif
     "size INTEGER, "
     "ext text, "
     "object text, "
