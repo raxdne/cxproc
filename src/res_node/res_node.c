@@ -3703,12 +3703,7 @@ resNodeToDOM(resNodePtr prnArg, int iArgOptions)
     }
     else if (resNodeIsFile(prnArg) || resNodeIsFileInArchive(prnArg)) {
 
-      if ((iArgOptions & RN_INFO_CONTENT)
-	|| ((iArgOptions & RN_INFO_XML) && resMimeIsXml(resNodeGetMimeType(prnArg)))
-#ifdef HAVE_PIE
-	|| resMimeIsPlain(resNodeGetMimeType(prnArg))
-#endif
-	) {
+      if ((iArgOptions & RN_INFO_CONTENT) || ((iArgOptions & RN_INFO_XML) && resMimeIsXml(resNodeGetMimeType(prnArg)))) {
 	if (resNodeUpdate(prnArg, RN_INFO_CONTENT, NULL, NULL)) {
 	  resNodeContentToDOM(pndT, prnArg);
 	}

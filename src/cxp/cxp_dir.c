@@ -339,18 +339,16 @@ dirProcessDirNode(xmlNodePtr pndArgDir, resNodePtr prnArgContext, cxpContextPtr 
   domSetPropEat(pndMeta,BAD_CAST "ctime2", GetDateIsoString(0));
 
   for (pndEntry = (fDirChilds ? pndArgDir->children : pndArgDir); pndEntry; pndEntry = (fDirChilds ? pndEntry->next : NULL)) {
-    int iVerbosityChild = iVerbosity;
+    int iVerbosityChild;
     int iDepthChild;
     resNodePtr prnT;
     xmlNodePtr pndT;
 
-    if (domGetPropValuePtr(pndEntry, BAD_CAST "verbosity")) {
-      iVerbosityChild = dirMapInfoVerbosity(pndEntry, pccArg);
-    }
+    iVerbosityChild = domGetPropValuePtr(pndEntry, BAD_CAST "verbosity") ? dirMapInfoVerbosity(pndEntry, pccArg) : iVerbosity;
 
     /*! get depth attribute per single dir element, instead of global */
     iDepthChild = domGetPropInt(pndEntry, BAD_CAST "depth", iDepth);
-    cxpCtxtLogPrint(pccArg,2,"Set DIR depth to '%i'", iDepthChild);
+    cxpCtxtLogPrint(pccArg,3,"Set DIR depth to '%i'", iDepthChild);
   
     prnT = NULL;
     
