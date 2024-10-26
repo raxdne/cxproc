@@ -48,12 +48,6 @@ typedef int index_t;
 /*! value for error */
 #define ERROR_INDEX -1
 
-#define NAME_FILE_INDEX ".index.pie"
-
-#define NAME_TMP_INDEX "#index.pie#"
-
-#define NAME_CONFIG_INDEX ".index.cxp"
-
 /*! size of static buffers */
 #define BUFFER_LENGTH ((size_t)(4 * 1024))
 

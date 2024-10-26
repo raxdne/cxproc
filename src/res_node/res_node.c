@@ -2583,10 +2583,24 @@ resNodeIsShortcut(resNodePtr prnArg)
   BOOL_T fResult = FALSE;
 
   if (resNodeIsFile(prnArg)) {
-    fResult = resPathIsEquivalent(resNodeGetNameBase(prnArg), BAD_CAST"shortcuts.pie");
+    fResult = resPathIsEquivalent(resNodeGetNameBase(prnArg), BAD_CAST NAME_FILE_SHORTCUTS);
   }
   return fResult;
 } /* end of resNodeIsShortcut() */
+
+
+/*! \return TRUE if prnArg is a processable shortcut file
+*/
+BOOL_T
+resNodeIsIndex(resNodePtr prnArg)
+{
+  BOOL_T fResult = FALSE;
+
+  if (resNodeIsFile(prnArg)) {
+    fResult = resPathIsEquivalent(resNodeGetNameBase(prnArg), BAD_CAST NAME_FILE_INDEX);
+  }
+  return fResult;
+} /* end of resNodeIsIndex() */
 
 
 /*! \return TRUE if prnArg is a processable video file
@@ -3691,12 +3705,20 @@ resNodeToDOM(resNodePtr prnArg, int iArgOptions)
     else if (iArgOptions & RN_INFO_CONTENT && resNodeIsLink(prnArg)) {
       /*!\todo add link target content */
     }
-    else if (iArgOptions & RN_INFO_STAT && (resNodeIsShortcut(prnArg) || resNodeGetMimeType(prnArg) == MIME_APPLICATION_CXP_XML)) {
+    else if (iArgOptions & RN_INFO_INFO && (resNodeIsShortcut(prnArg) || resNodeGetMimeType(prnArg) == MIME_APPLICATION_CXP_XML)) {
       /*! required for shortcuts, titles and icons */
       resNodeContentToDOM(pndT, prnArg);
     }
-    else if (iArgOptions & RN_INFO_CONTENT && resNodeIsPicture(prnArg)) {
-      resNodeContentToDOM(pndT, prnArg);
+    else if (resNodeIsPicture(prnArg)) {
+      if (iArgOptions & RN_INFO_CONTENT) {
+	resNodeContentToDOM(pndT, prnArg);
+      }
+#ifdef HAVE_LIBEXIF
+      else if (iArgOptions & RN_INFO_INFO) {
+	/* get image information details via libexif */
+	imgParseFileExif(pndT, prnArg);
+      }
+#endif
     }
     else if (resNodeIsVideo(prnArg)) {
       //resNodeContentToDOM(pndT, prnArg);
@@ -5312,7 +5334,7 @@ resNodeResetMimeType(resNodePtr prnArg)
       resNodeSetType(prnArg,rn_type_stdout);
       resNodeSetMimeType(prnArg,MIME_PIPE_STDOUT);
     }
-    else if (xmlStrcasecmp(prnArg->pucNameBase, BAD_CAST NAME_FILE_INDEX) == 0) {
+    else if (resNodeIsIndex(prnArg)) {
 #ifdef HAVE_PIE
       resNodeSetMimeType(prnArg,MIME_APPLICATION_PIE_XML_INDEX);
 #else

@@ -13,8 +13,8 @@
 <cxp:system dialog="Search for files in '%SOURCE%' ..."/>
 <cxp:plain name="-">
   <cxp:xml>
-    <cxp:dir imatch=".+\..+" verbosity="4">
-      <cxp:dir name="%SOURCE%" depth="1"/>
+    <cxp:dir imatch=".+\.(jpe*g|tiff*)$" verbosity="2" depth="1">
+      <cxp:dir name="%SOURCE%"/>
     </cxp:dir>
   </cxp:xml>
   <xsl:stylesheet xmlns:cxp="http://www.tenbusch.info/cxproc" xmlns:exif="http://www.w3.org/2003/12/exif/ns" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.0">

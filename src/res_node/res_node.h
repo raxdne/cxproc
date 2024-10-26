@@ -68,6 +68,14 @@
 #include <res_node/res_path.h>
 #include <res_node/res_mime.h>
 
+#define NAME_FILE_INDEX ".index.pie"
+
+#define NAME_TMP_INDEX "#index.pie#"
+
+#define NAME_CONFIG_INDEX ".index.cxp"
+
+#define NAME_FILE_SHORTCUTS "shortcuts.pie"
+
 /*! option bits for duplicating of resource nodes
  */
 #define RN_DUP_THIS    (0)

@@ -5,7 +5,7 @@
   <cxp:system message="List Directory '%DIR%' at %TAGTIME% ..."/>
   <cxp:plain name="-">
     <cxp:xml>
-      <cxp:dir verbosity="2">
+      <cxp:dir verbosity="1">
         <cxp:dir name="%DIR%"/>
       </cxp:dir>
     </cxp:xml>

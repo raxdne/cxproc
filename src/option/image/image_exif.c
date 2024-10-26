@@ -216,12 +216,7 @@ imgParseFileExif(xmlNodePtr pndArg, resNodePtr prnArg)
     /* Free the EXIF data */
     exif_data_unref(pExifDataFile);
 
-    if (domNodeHasChild(pndExif, NULL)) {
-      xmlAddChild(pndArg, pndExif);
-    }
-    else {
-      xmlFreeNode(pndExif);
-    }
+    xmlAddChild(pndArg, pndExif);
   }
   else {
     PrintFormatLog(1, "No Exif data in '%s' found", resNodeGetNameNormalized(prnArg));
