@@ -543,7 +543,24 @@ ceTest(void)
     else if ((pceList = SplitCalendarElementRecurrences(pceT)) != NULL) {
       printf("ERROR\n");
     }
-    else if (CalendarElementUpdate(pceT, BAD_CAST"R2/20110703/P3M TEST") == NULL) {
+    else {
+      n_ok++;
+      printf("OK\n");
+    }
+    CalendarElementFree(pceList);
+    CalendarElementFree(pceT);
+  }
+
+
+  if (RUNTEST) {
+    ceElementPtr pceT;
+    ceElementPtr pceI;
+    ceElementPtr pceList = NULL;
+
+    i++;
+    printf("TEST %i in '%s:%i': ", i, __FILE__, __LINE__);
+
+    if ((pceT = CalendarElementNew(BAD_CAST "R2/20110703/P3M TEST")) == NULL) {
       printf("ERROR CalendarElementUpdate()\n");
     }
     else if (ScanCalendarElementDate(pceT) == FALSE) {
@@ -555,45 +572,60 @@ ceTest(void)
     else if ((pceList = SplitCalendarElementRecurrences(pceT)) == NULL) {
       printf("ERROR\n");
     }
-    else if ((pceI = pceList) == NULL     || pceI->dt0.dt != dt_from_ymd(2011, 7, 3) || pceI->dt1.dt != 0 || pceI->iRecurrence != -1) {
+    else if ((pceI = pceList) == NULL || pceI->dt0.dt != dt_from_ymd(2011, 7, 3) || pceI->dt1.dt != 0 || pceI->iRecurrence != 2) {
       printf("ERROR\n");
     }
-    else if ((pceI = pceI->pNext) == NULL || pceI->dt0.dt != dt_from_ymd(2011, 10, 3) || pceI->dt1.dt != 0 || pceI->iRecurrence != -1) {
+    else if ((pceI = pceI->pNext) == NULL || pceI->dt0.dt != dt_from_ymd(2011, 10, 3) || pceI->dt1.dt != 0 || pceI->iRecurrence != 1) {
       printf("ERROR\n");
     }
-    else if ((pceI = pceI->pNext) == NULL || pceI->dt0.dt != dt_from_ymd(2012, 1, 3) || pceI->dt1.dt != 0 || pceI->iRecurrence != -1) {
+    else if ((pceI = pceI->pNext) == NULL || pceI->dt0.dt != dt_from_ymd(2012, 1, 3) || pceI->dt1.dt != 0 || pceI->iRecurrence != 0) {
       printf("ERROR\n");
     }
     else if ((pceI = pceI->pNext) != NULL) {
       printf("ERROR\n");
     }
-    else if (CalendarElementUpdate(pceT, BAD_CAST"R2/2022-02-06T14:00:00/2022-02-06T16:00:00/P4D TEST") == NULL) {
+    else {
+      n_ok++;
+      printf("OK\n");
+    }
+    CalendarElementFree(pceList);
+    CalendarElementFree(pceT);
+  }
+
+  if (RUNTEST) {
+    ceElementPtr pceT;
+    ceElementPtr pceI;
+    ceElementPtr pceList = NULL;
+
+    i++;
+    printf("TEST %i in '%s:%i': ", i, __FILE__, __LINE__);
+
+    if ((pceT = CalendarElementNew(BAD_CAST "R2/2022-02-06T14:00:00/2022-02-06T16:00:00/P4D TEST")) == NULL) {
       printf("ERROR CalendarElementUpdate()\n");
     }
     else if (ScanCalendarElementDate(pceT) == FALSE) {
       printf("ERROR\n");
     }
-    else if (pceT->dt0.dt != dt_from_ymd(2022, 2, 6) || (pceT->dt0.iSec != 46800 && pceT->dt0.iSec != 46800 - 3600)
-      || pceT->dt1.dt != pceT->dt0.dt || (pceT->dt1.iSec != 54000 && pceT->dt1.iSec != 54000 - 3600)
-      || pceT->period.d != 4 || pceT->iRecurrence != 2) {
+    else if (pceT->dt0.dt != dt_from_ymd(2022, 2, 6) || (pceT->dt0.iSec != 46800 && pceT->dt0.iSec != 46800 - 3600) || pceT->dt1.dt != pceT->dt0.dt ||
+	     (pceT->dt1.iSec != 54000 && pceT->dt1.iSec != 54000 - 3600) || pceT->period.d != 4 || pceT->iRecurrence != 2) {
       printf("ERROR\n");
     }
     else if ((pceList = SplitCalendarElementRecurrences(pceT)) == NULL) {
       printf("ERROR\n");
     }
-    else if ((pceI = pceList) == NULL || pceI->dt0.dt != dt_from_ymd(2022, 2, 6)
-      || pceI->dt1.dt != pceI->dt0.dt || (pceI->dt0.iSec != 46800 && pceI->dt0.iSec != 46800 - 3600)
-      || (pceI->dt1.iSec != 54000 && pceI->dt1.iSec != 54000 - 3600) || pceI->iRecurrence != -1) {
+    else if ((pceI = pceList) == NULL || pceI->dt0.dt != dt_from_ymd(2022, 2, 6) || pceI->dt1.dt != pceI->dt0.dt ||
+	     (pceI->dt0.iSec != 43200 && pceI->dt0.iSec != 43200 - 7200) || (pceI->dt1.iSec != 54000 && pceI->dt1.iSec != 54000 - 3600) ||
+	     pceI->iRecurrence != 2) {
       printf("ERROR\n");
     }
-    else if ((pceI = pceI->pNext) == NULL || pceI->dt0.dt != dt_from_ymd(2022, 2, 10)
-      || pceI->dt1.dt != pceI->dt0.dt || (pceI->dt0.iSec != 46800 && pceI->dt0.iSec != 46800 - 3600)
-      || (pceI->dt1.iSec != 54000 && pceI->dt1.iSec != 54000 - 3600) || pceI->iRecurrence != -1) {
+    else if ((pceI = pceI->pNext) == NULL || pceI->dt0.dt != dt_from_ymd(2022, 2, 10) || pceI->dt1.dt != pceI->dt0.dt ||
+	     (pceI->dt0.iSec != 46800 && pceI->dt0.iSec != 46800 - 3600) || (pceI->dt1.iSec != 54000 && pceI->dt1.iSec != 54000 - 3600) ||
+	     pceI->iRecurrence != 1) {
       printf("ERROR\n");
     }
-    else if ((pceI = pceI->pNext) == NULL || pceI->dt0.dt != dt_from_ymd(2022, 2, 14)
-      || pceI->dt1.dt != pceI->dt0.dt || (pceI->dt0.iSec != 46800 && pceI->dt0.iSec != 46800 - 3600)
-      || (pceI->dt1.iSec != 54000 && pceI->dt1.iSec != 54000 - 3600) || pceI->iRecurrence != -1) {
+    else if ((pceI = pceI->pNext) == NULL || pceI->dt0.dt != dt_from_ymd(2022, 2, 14) || pceI->dt1.dt != pceI->dt0.dt ||
+	     (pceI->dt0.iSec != 46800 && pceI->dt0.iSec != 46800 - 3600) || (pceI->dt1.iSec != 54000 && pceI->dt1.iSec != 54000 - 3600) ||
+	     pceI->iRecurrence != 0) {
       printf("ERROR\n");
     }
     else if ((pceI = pceI->pNext) != NULL) {
@@ -634,13 +666,13 @@ ceTest(void)
     else if ((pceList = SplitCalendarElementRecurrences(pceT)) == NULL) {
       printf("ERROR\n");
     }
-    else if ((pceI = pceList) == NULL || pceI->dt0.dt != dt_from_ymd(2011, 7, 3) || pceI->dt1.dt != 0 || pceI->iRecurrence != -1) {
+    else if ((pceI = pceList) == NULL || pceI->dt0.dt != dt_from_ymd(2011, 7, 3) || pceI->dt1.dt != 0 || pceI->iRecurrence != 2) {
       printf("ERROR\n");
     }
-    else if ((pceI = pceI->pNext) == NULL || pceI->dt0.dt != dt_from_ymd(2011, 10, 5) || pceI->dt1.dt != 0 || pceI->iRecurrence != -1) {
+    else if ((pceI = pceI->pNext) == NULL || pceI->dt0.dt != dt_from_ymd(2011, 10, 5) || pceI->dt1.dt != 0 || pceI->iRecurrence != 1) {
       printf("ERROR\n");
     }
-    else if ((pceI = pceI->pNext) == NULL || pceI->dt0.dt != dt_from_ymd(2012, 1, 7) || pceI->dt1.dt != 0 || pceI->iRecurrence != -1) {
+    else if ((pceI = pceI->pNext) == NULL || pceI->dt0.dt != dt_from_ymd(2012, 1, 7) || pceI->dt1.dt != 0 || pceI->iRecurrence != 0) {
       printf("ERROR\n");
     }
     else if ((pceI = pceI->pNext) != NULL) {
@@ -658,13 +690,13 @@ ceTest(void)
     else if ((pceList = SplitCalendarElementRecurrences(pceT)) == NULL) {
       printf("ERROR\n");
     }
-    else if ((pceI = pceList) == NULL || pceI->dt0.dt != 0 || pceI->dt1.dt != dt_from_ymd(2011, 7, 3) || pceI->iRecurrence != -1) {
+    else if ((pceI = pceList) == NULL || pceI->dt0.dt != 0 || pceI->dt1.dt != dt_from_ymd(2011, 7, 3) || pceI->iRecurrence != 2) {
       printf("ERROR\n");
     }
-    else if ((pceI = pceI->pNext) == NULL || pceI->dt0.dt != 0 || pceI->dt1.dt != dt_from_ymd(2011, 4, 1) || pceI->iRecurrence != -1) {
+    else if ((pceI = pceI->pNext) == NULL || pceI->dt0.dt != 0 || pceI->dt1.dt != dt_from_ymd(2011, 4, 1) || pceI->iRecurrence != 1) {
       printf("ERROR\n");
     }
-    else if ((pceI = pceI->pNext) == NULL || pceI->dt0.dt != 0 || pceI->dt1.dt != dt_from_ymd(2010, 12, 30) || pceI->iRecurrence != -1) {
+    else if ((pceI = pceI->pNext) == NULL || pceI->dt0.dt != 0 || pceI->dt1.dt != dt_from_ymd(2010, 12, 30) || pceI->iRecurrence != 0) {
       printf("ERROR\n");
     }
     else if ((pceI = pceI->pNext) != NULL) {

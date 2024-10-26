@@ -280,23 +280,20 @@ SplitCalendarElementRecurrences(ceElementPtr pceArg)
 {
   ceElementPtr pceResult = NULL;
 
-  if (pceArg != NULL && pceArg->iRecurrence > 0) {
+  if (pceArg != NULL && pceArg->pNext == NULL && pceArg->iRecurrence > 0) {
     int r;
     int o = 0;
     ceElementPtr pceI;
 
-    assert(pceArg->pNext == NULL);
-    
-    if (pceArg->dt0.dt > 0 && pceArg->dt1.dt > 0) {
-      o = (pceArg->dt1.dt - pceArg->dt0.dt);
+    pceResult = CalendarElementDup(pceArg);
+    assert(pceResult);
+    if (pceResult->dt0.dt > 0 && pceResult->dt1.dt > 0) {
+      o = (pceResult->dt1.dt - pceResult->dt0.dt);
     }
 
-    for (r = pceArg->iRecurrence; r > -1; r--) {
-      pceI = CalendarElementDup(pceArg);
-      if (pceI == NULL) {
-	break;
-      }
-      pceI->iRecurrence = -1; /* this calendar element is resulting from a recurrence */
+    for (pceI = CalendarElementDup(pceResult); pceI != NULL && pceI->iRecurrence > 0; pceI = CalendarElementDup(pceI)) {
+
+      pceI->iRecurrence--; /* this calendar element is resulting from a recurrence */
 
       /*!\bug time value is ignored */
 
@@ -339,12 +336,7 @@ SplitCalendarElementRecurrences(ceElementPtr pceArg)
       else {
       }
 
-      if (pceResult) {
-	CalendarElementListAdd(pceResult, pceI);
-      }
-      else {
-	pceResult = pceI;
-      }
+      CalendarElementListAdd(pceResult, pceI);
     }
   }
 
