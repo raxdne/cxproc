@@ -598,20 +598,16 @@ cxpCtxtFromAttr(cxpContextPtr pccArg, xmlNodePtr pndArg)
     }
   }
 
-#ifdef EXPERIMENTAL
-
+#ifdef HAVE_CGI
+  cxpCtxtLogPrint(pccArg, 1, "ERROR: '%s' NOT to be used in CGI mode (CXP_PATH only) !!!", pucAttr);
+#else
   pucAttr = domGetPropValuePtr(pndArg, BAD_CAST "searchpath");
   if (STR_IS_NOT_EMPTY(pucAttr)) {
     /* detect additional searchpath */
-
-#ifdef HAVE_CGI
-    cxpCtxtLogPrint(pccArg, 1, "ERROR: '%s' NOT to be used in CGI mode (CXP_PATH only) !!!", pucAttr);
-#else
     if ((prnT = resNodeStrNew(pucAttr))) {
       cxpCtxtSearchSet(pccArg, prnT);
       resNodeListFree(prnT);
     }
-#endif
   }
 #endif
 

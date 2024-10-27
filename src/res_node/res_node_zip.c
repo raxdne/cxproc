@@ -64,9 +64,7 @@ iconv_t iconvZipEncode = NULL;     /*! charset of zip headers */
 iconv_t iconvZipDecode = NULL;     /*! charset of zip headers */
 
 
-/*! opens context prnArg
-
-\todo handle in-memory achives for stdout/stdin s. zip_write_open_memory()
+/*! opens zip file (Office Document) for reading
 
 \return TRUE if successful
 */
@@ -76,10 +74,10 @@ zipFileOpen(resNodePtr prnArg, const char *pchArgMode)
   BOOL_T fResult = FALSE;
 
   if (prnArg != NULL && prnArg->handleIO != NULL && prnArg->eAccess == rn_access_zip) {
-      fResult = TRUE;
-      PrintFormatLog(4, "zip_open('%s') already open", resNodeGetNameNormalized(prnArg));
+    fResult = TRUE;
+    PrintFormatLog(4, "zip_open('%s') already open", resNodeGetNameNormalized(prnArg));
   }
- else if (strchr(pchArgMode,(int)'r') || prnArg->eMode == mode_read) {
+  else if (strchr(pchArgMode, (int)'r') || prnArg->eMode == mode_read) {
     int err;
     char buf[BUFFER_LENGTH];
 
@@ -87,41 +85,13 @@ zipFileOpen(resNodePtr prnArg, const char *pchArgMode)
       zip_error_to_str(buf, sizeof(buf), err, errno);
       resNodeSetError(prnArg, rn_error_open, "can't open zip archive `%s': %s\n", resNodeGetNameNormalizedNative(prnArg), buf);
     }
-#if 0
-    else if (resNodeIsMemory(prnArg)) { /* achive in memory already */
-	  if (zip_read_open_memory((arcPtr)prnArg->handleIO, prnArg->pContent, resNodeGetSize(prnArg)) == ZIP_OK) {
-	    prnArg->fExist = TRUE;
-	    prnArg->eAccess = rn_access_zip;
-	    fResult = TRUE;
-	    PrintFormatLog(4, "zip_read_open_memory('%s') OK", resNodeGetNameNormalized(prnArg));
-	  }
-	  else {
-	    zipFileClose(prnArg);
-	    resNodeSetError(prnArg, rn_error_zip, "zip_read_open_memory() failed");
-	  }
-	  /*!\todo read zip from memory buffer ":memory:" zip_read_open_memory() */
-     }
-#endif
-    else {
+    else { /* success */
       prnArg->fExist = TRUE;
       prnArg->eAccess = rn_access_zip;
       fResult = TRUE;
       PrintFormatLog(4, "zip_open('%s') OK", resNodeGetNameNormalized(prnArg));
     }
   }
-#if 0
-  else if (strchr(pchArgMode,(int)'w') || prnArg->eMode == mode_write) {
-    /*\todo append content to existing zip file */
-
-    /*\todo delete existing zip file first */
-
-    }
-    else {
-      zipFileClose(prnArg);
-      resNodeSetError(prnArg, rn_error_zip, "zip_write_new('%s') failed", resNodeGetNameNormalized(prnArg));
-    }
-  }
-#endif
   else {
     resNodeSetError(prnArg, rn_error_open, "unknown mode for zip opening '%s'", resNodeGetNameNormalized(prnArg));
   }

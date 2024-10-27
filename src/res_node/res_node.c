@@ -44,9 +44,6 @@
 #endif
 
 #include <libxml/uri.h>
-#if 0
-#include <libxml/nanohttp.h>
-#endif
 #include <libxml/parser.h>
 
 #include "basics.h"
@@ -4766,36 +4763,6 @@ resNodeGetExtension(resNodePtr prnArg)
 } /* end of resNodeGetExtension() */
 
 
-#if 0
-
-/* calculate the CRC32 of a file, because to encrypt a file, we need known the CRC32 of the file before 
-  \deprecated not used yet
-
-*/
-unsigned long
-_resNodeGetFileCrc(resNodePtr prnArg)
-{
-  unsigned long ulResult = 0;
-
-  if (prnArg) {
-    if (prnArg->pContent == NULL) {
-      if (resNodeGetContent(prnArg,1024) == NULL || prnArg->handleIO == NULL) {
-	return ulResult;
-      }
-    }
-    if (prnArg->pContent != NULL && prnArg->liSize > 0) {
-      unsigned long calculate_crc=0;
-
-//      calculate_crc = crc32(calculate_crc,prnArg->pContent,prnArg->liSize);
-      ulResult = calculate_crc;
-    }
-  }
-  return ulResult;
-} /* end of _resNodeGetFileCrc() */
-
-#endif
-
-
 /*! \return a pointer to the owner string of resource node
 */
 xmlChar *
@@ -5382,22 +5349,14 @@ resNodeGetMimeType(resNodePtr prnArg)
 
 
 /*! \return a pointer to string of mime attribute or NULL in case of errors
+
+  \todo handle symlinks and in-archive content
 */
 const char *
 resNodeGetMimeTypeStr(resNodePtr prnArg)
 {
   if (prnArg) {
-#if 0
-    /*!\todo handle symlinks and in-archive content */
-    if (prnArg->children) {
-      return resMimeGetTypeStr(resNodeGetMimeType(prnArg->children));
-    }
-    else {
-      return resMimeGetTypeStr(resNodeGetMimeType(prnArg));
-    }
-#else
     return resMimeGetTypeStr(resNodeGetMimeType(prnArg));
-#endif
   }
   return NULL;
 } /* end of resNodeGetMimeTypeStr() */

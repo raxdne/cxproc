@@ -1650,10 +1650,6 @@ resPathCollapseStr(xmlChar *pucArg, int iArgOpts)
     return pucResult;
   }
 
-#if 0
-  pucResult = xmlStrdup(pucArg);
-  resPathRemoveQuotes(pucResult);
-#else
   for ( ; isquot(*pucArg); pucArg++); /* skip leading quotes */
 
   for (ciLength=0; ! isend(pucArg[ciLength]) && ! isquot(pucArg[ciLength]); ciLength++) { /* count chars between quotes */
@@ -1662,7 +1658,6 @@ resPathCollapseStr(xmlChar *pucArg, int iArgOpts)
     }
   }
   pucResult = xmlStrndup(pucArg,ciLength); /* copy without quotes */
-#endif
   
   if (STR_IS_EMPTY(pucResult) || resPathIsStd(pucResult) || (iArgOpts & FS_PATH_NUL)) {
     /* path contains nothing or stdout "-" */

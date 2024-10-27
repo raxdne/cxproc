@@ -751,7 +751,6 @@ AddNodeDateAttributes(xmlNodePtr pndArg, ceElementPtr pceArg)
 	  dt_year(pceArg->dt1.dt), dt_month(pceArg->dt1.dt), dt_dom(pceArg->dt1.dt));
 	xmlSetProp(pndArg, BAD_CAST"end", mpucT);
 
-#ifdef EXPERIMENTAL
 	/*!\todo use an ics namespace for these attributes */
 
 	if (pceArg->dt0.iSec > 0) {
@@ -787,7 +786,6 @@ AddNodeDateAttributes(xmlNodePtr pndArg, ceElementPtr pceArg)
 	    dt_year(iDayEnd), dt_month(iDayEnd), dt_dom(iDayEnd));
 	}
 	xmlSetProp(pndArg, BAD_CAST"DTEND", mpucT);
-#endif
 
 	xmlStrPrintf(mpucT, BUFFER_LENGTH, "%i", pceArg->dt1.dt - pceArg->dt0.dt + 1);
 	xmlSetProp(pndArg, BAD_CAST"interval", mpucT);
@@ -803,7 +801,6 @@ AddNodeDateAttributes(xmlNodePtr pndArg, ceElementPtr pceArg)
 	  dt_year(pdti->dt), dt_month(pdti->dt), dt_dom(pdti->dt));
 	xmlSetProp(pndArg, BAD_CAST"iso", mpucT);
 
-#ifdef EXPERIMENTAL
 	if (pdti->iSec > 0) {
 	  xmlStrPrintf(mpucT, BUFFER_LENGTH, "%04i%02i%02iT%02i%02i%02iZ",
 	    dt_year(pdti->dt), dt_month(pdti->dt), dt_dom(pdti->dt),
@@ -828,7 +825,6 @@ AddNodeDateAttributes(xmlNodePtr pndArg, ceElementPtr pceArg)
 	xmlSetProp(pndArg, BAD_CAST"DTEND", mpucT);
 
 	/*!\todo process reccurancing dates in ICS */
-#endif
       }
 
       //xmlStrPrintf(mpucT, BUFFER_LENGTH, "%i", pceArg->dt0.dt);

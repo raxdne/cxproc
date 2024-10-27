@@ -29,10 +29,6 @@
 #include <curl/curl.h>
 #endif
 
-#if 0
-#include <libxml/uri.h>
-#include <libxml/nanohttp.h>
-#endif
 #include <libxml/tree.h>
 
 #include "basics.h"
@@ -627,15 +623,6 @@ resNodeListToXml(resNodePtr prnArg, int iArgOptions)
   if (prnArg) {
     if ((pndT = resNodeListToDOM(prnArg,iArgOptions)) != NULL && (pdocT = domDocFromNodeNew(pndT)) != NULL) {
       int iLength = 0;
-
-      /*!\bug XML declaration is missing */
-    
-#if 0
-      xmlDocDumpMemory(pdocT,&pucResult,&iLength);
-      if (iLength > -1) {
-	pucResult[iLength] = '\0';
-      }
-#else
       xmlBufferPtr buffer;
 
       buffer = xmlBufferCreate();
@@ -646,7 +633,7 @@ resNodeListToXml(resNodePtr prnArg, int iArgOptions)
 	}
 	xmlBufferFree(buffer);
       }
-#endif
+      /*!\bug XML declaration is missing */
     }
     else {
       resNodeSetError(prnArg,rn_error_xml,"Error resNodeListToXml()");
