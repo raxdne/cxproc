@@ -797,10 +797,10 @@ cxpTest(cxpContextPtr pccArg)
     else if (cxpCtxtSearchSet(pccTop, prnT) == FALSE) {
       printf("Error cxpCtxtSearchSet()\n");
     }
-    else if((pccT = cxpCtxtNew()) == NULL || cxpCtxtAddChild(pccTop, pccT) == FALSE) {
+    else if((pccT = cxpCtxtNew()) == NULL || cxpCtxtAddChild(pccTop, pccT) == NULL) {
       printf("Error cxpCtxtAddChild()\n");
     }
-    else if ((pccTT = cxpCtxtNew()) == NULL || cxpCtxtAddChild(pccTop, pccTT) == FALSE) {
+    else if ((pccTT = cxpCtxtNew()) == NULL || cxpCtxtAddChild(pccTop, pccTT) == NULL) {
       printf("Error cxpCtxtAddChild()\n");
     }
     else if ((prnTT = cxpCtxtSearchFind(pccTT, BAD_CAST"config.cxp")) == NULL) {

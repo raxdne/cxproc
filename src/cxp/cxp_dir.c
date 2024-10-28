@@ -106,7 +106,7 @@ dirMapInfoVerbosity(xmlNodePtr pndArgFile, cxpContextPtr pccArg)
   }
 #ifdef HAVE_PIE
   else if (STR_IS_EMPTY(pucAttrVerbosity)) {
-    if (domNodeHasAncestor(pndArgFile, NAME_PIE_IMPORT)) {
+    if (domNodeHasAncestor(pndArgFile, BAD_CAST NAME_PIE_IMPORT)) {
       iResult = RN_INFO_MAX;
     }
     else {
@@ -160,7 +160,7 @@ GrepDirNew(xmlNodePtr pndArg, const pcre2_code *re_grep, cxpContextPtr pccArg)
     pndContent = pndArg->children;
     xmlUnlinkNode(pndContent);
 
-    pndGrep = xmlNewNode(NULL,NAME_GREP);
+    pndGrep = xmlNewNode(NULL,BAD_CAST NAME_GREP);
     if (pndGrep) {
 #ifdef HAVE_PCRE2
 #if 1
@@ -212,8 +212,6 @@ dirProcessDirNode(xmlNodePtr pndArgDir, resNodePtr prnArgContext, cxpContextPtr 
   int iDepth;
   int iVerbosity;
   int iOptions = FS_PARSE_DEFAULT;
-
-  xmlChar mpucT[BUFFER_LENGTH];
   xmlDocPtr pdocResult = NULL;
   xmlNodePtr pndPie = NULL;
   xmlNodePtr pndMeta = NULL;
@@ -226,7 +224,7 @@ dirProcessDirNode(xmlNodePtr pndArgDir, resNodePtr prnArgContext, cxpContextPtr 
   int opt_match_pcre = PCRE2_UTF;
 #endif
   BOOL_T fLocator;
-  BOOL_T fDirChilds = (domNodeHasChild(pndArgDir,NAME_DIR) || domNodeHasChild(pndArgDir,NAME_FILE));
+  BOOL_T fDirChilds = (domNodeHasChild(pndArgDir,BAD_CAST NAME_DIR) || domNodeHasChild(pndArgDir,BAD_CAST NAME_FILE));
   
 #ifdef HAVE_CGI
   fLocator = TRUE;
@@ -253,11 +251,11 @@ dirProcessDirNode(xmlNodePtr pndArgDir, resNodePtr prnArgContext, cxpContextPtr 
     int errornumber;
 
     if (xmlHasProp(pndArgDir, BAD_CAST "igrep")) {
-      cxpCtxtLogPrint(pccArg,2, "Use caseless file grep '%s' in %s with depth '%i'", pucAttrGrep, NAME_DIR, iDepth);
+      cxpCtxtLogPrint(pccArg,2, "Use caseless file grep '%s' in %s with depth '%i'", pucAttrGrep, BAD_CAST NAME_DIR, iDepth);
       opt_grep_pcre |= PCRE2_CASELESS;
     }
     else {
-      cxpCtxtLogPrint(pccArg,2, "Use file grep '%s' in %s with depth '%i'", pucAttrGrep, NAME_DIR, iDepth);
+      cxpCtxtLogPrint(pccArg,2, "Use file grep '%s' in %s with depth '%i'", pucAttrGrep, BAD_CAST NAME_DIR, iDepth);
     }
 
     re_grep = pcre2_compile(
@@ -284,11 +282,11 @@ dirProcessDirNode(xmlNodePtr pndArgDir, resNodePtr prnArgContext, cxpContextPtr 
     int errornumber;
 
     if (xmlHasProp(pndArgDir, BAD_CAST "imatch")) {
-      cxpCtxtLogPrint(pccArg,2, "Use caseless file match '%s' in %s with depth '%i'", pucAttrMatch, NAME_DIR, iDepth);
+      cxpCtxtLogPrint(pccArg,2, "Use caseless file match '%s' in %s with depth '%i'", pucAttrMatch, BAD_CAST NAME_DIR, iDepth);
       opt_match_pcre |= PCRE2_CASELESS;
     }
     else {
-      cxpCtxtLogPrint(pccArg,2, "Use file match '%s' in %s with depth '%i'", pucAttrMatch, NAME_DIR, iDepth);
+      cxpCtxtLogPrint(pccArg,2, "Use file match '%s' in %s with depth '%i'", pucAttrMatch, BAD_CAST NAME_DIR, iDepth);
     }
 
     re_match = pcre2_compile(
@@ -319,7 +317,7 @@ dirProcessDirNode(xmlNodePtr pndArgDir, resNodePtr prnArgContext, cxpContextPtr 
 
   pdocResult = xmlNewDoc(BAD_CAST "1.0");
   /*!\todo use dir as root node */
-  pndPie = xmlNewDocNode(pdocResult, NULL, NAME_PIE, NULL);
+  pndPie = xmlNewDocNode(pdocResult, NULL, BAD_CAST NAME_PIE, NULL);
   xmlSetProp(pndPie, BAD_CAST "class", BAD_CAST "directory");
   xmlDocSetRootElement(pdocResult, pndPie);
   /* this is default namespace */
@@ -331,7 +329,7 @@ dirProcessDirNode(xmlNodePtr pndArgDir, resNodePtr prnArgContext, cxpContextPtr 
   }
 #endif
 
-  pndMeta = xmlNewChild(pndPie, NULL, NAME_META, NULL);
+  pndMeta = xmlNewChild(pndPie, NULL, BAD_CAST NAME_META, NULL);
   cxpInfoProgram(pndMeta, pccArg);
   xmlAddChild(pndMeta, xmlCopyNode(pndArgDir, 1));
   /* Get the current time. */

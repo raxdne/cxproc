@@ -749,7 +749,7 @@ GetXslInsertAsPlain(void)
       "</xsl:stylesheet>"
       ;
 
-  pdocResult = xmlParseMemory(pcXsl,strlen(pcXsl));
+  pdocResult = xmlParseMemory((const char *)pcXsl,strlen(pcXsl));
 
   return pdocResult;
 }

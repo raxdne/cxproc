@@ -34,7 +34,7 @@ zipTest()
     struct zip *za;
     char buf[BUFFER_LENGTH];
     int err;
-    int i, len;
+    int j, len;
     long long sum;
     char *pcNameFile = TESTPREFIX "option/archive/Demo.mmap";
 
@@ -47,9 +47,9 @@ zipTest()
         return 1;
     }
  
-    for (i = 0; i < zip_get_num_entries(za, 0); i++) {
+    for (j = 0; j < zip_get_num_entries(za, 0); j++) {
     struct zip_stat sb;
-        if (zip_stat_index(za, i, 0, &sb) == 0) {
+        if (zip_stat_index(za, j, 0, &sb) == 0) {
             printf("==================\n");
             len = strlen(sb.name);
             printf("Name: [%s], ", sb.name);
@@ -59,7 +59,7 @@ zipTest()
 	      //safe_create_dir(sb.name);
             } else {
     struct zip_file *zf;
-                zf = zip_fopen_index(za, i, 0);
+                zf = zip_fopen_index(za, j, 0);
                 if (!zf) {
                     fprintf(stderr, "boese, boese\n");
                     exit(100);

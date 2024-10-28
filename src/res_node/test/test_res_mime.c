@@ -77,16 +77,16 @@ resNodeTestMime(void)
     if (resMimeGetTypeFromDataBase64(NULL) != MIME_UNDEFINED) {
       printf("Error 1 resMimeGetTypeFromDataBase64() ...\n");
     }
-    else if (resMimeGetTypeFromDataBase64("data:") != MIME_UNDEFINED) {
+    else if (resMimeGetTypeFromDataBase64(BAD_CAST "data:") != MIME_UNDEFINED) {
       printf("Error 2a resMimeGetTypeFromDataBase64() ...\n");
     }
-    else if (resMimeGetTypeFromDataBase64("data:blabla ...") != MIME_UNDEFINED) {
+    else if (resMimeGetTypeFromDataBase64(BAD_CAST "data:blabla ...") != MIME_UNDEFINED) {
       printf("Error 2b resMimeGetTypeFromDataBase64() ...\n");
     }
-    else if (resMimeGetTypeFromDataBase64("data:text/x-script.tcl;base64,") != MIME_UNDEFINED) {
+    else if (resMimeGetTypeFromDataBase64(BAD_CAST "data:text/x-script.tcl;base64,") != MIME_UNDEFINED) {
       printf("Error 2c resMimeGetTypeFromDataBase64() ...\n");
     }
-    else if (resMimeGetTypeFromDataBase64("data:text/x-script.tcl;base64,ABCDE") != MIME_TEXT_X_SCRIPT_TCL) {
+    else if (resMimeGetTypeFromDataBase64(BAD_CAST "data:text/x-script.tcl;base64,ABCDE") != MIME_TEXT_X_SCRIPT_TCL) {
       printf("Error 3 resMimeGetTypeFromDataBase64() ...\n");
     }
     else {

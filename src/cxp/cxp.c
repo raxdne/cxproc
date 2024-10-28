@@ -286,7 +286,7 @@ cxpProcessEachNode(xmlNodePtr pndArg, cxpContextPtr pccArg)
   }
   else if ((pucAttrName = domGetPropValuePtr(pndArg,BAD_CAST "name"))!=NULL
       && (xmlStrlen(pucAttrName) > 0)
-      && (pndFrom = domGetFirstChild(pndArg,NAME_FROM))!=NULL ) {
+      && (pndFrom = domGetFirstChild(pndArg,BAD_CAST NAME_FROM))!=NULL ) {
     if (pndFrom->children) {
       /*
 	FROM element
@@ -319,7 +319,7 @@ cxpProcessEachNode(xmlNodePtr pndArg, cxpContextPtr pccArg)
 #endif
 
       pdocResult = xmlNewDoc(BAD_CAST "1.0");
-      pndMake = xmlNewDocNode(pdocResult, NULL, NAME_MAKE, NULL); 
+      pndMake = xmlNewDocNode(pdocResult, NULL, BAD_CAST NAME_MAKE, NULL); 
       xmlDocSetRootElement(pdocResult,pndMake);
       /* pdocResult->encoding = xmlStrdup(BAD_CAST "ISO-8859-1"); */
       pdocResult->encoding = xmlStrdup(BAD_CAST "UTF-8"); /* according to conversion in ParseImportNodePlainContent() */
@@ -622,7 +622,6 @@ cxpResNodeResolveNew(cxpContextPtr pccArg, xmlNodePtr pndArg, xmlChar *pucArg, i
     xmlChar *pucDocUrlDir = NULL;
     xmlChar *pucLocation = NULL;
     xmlChar *pucRootPath = NULL;
-    xmlChar *pucParentPath = NULL;
     xmlChar *pucAttrName = NULL;
     resNodePtr prnParent = NULL;
 
@@ -1858,12 +1857,11 @@ cxpCtxtSearchGet(cxpContextPtr pccArg)
   resNodePtr prnResult = NULL;
 
   if (pccArg) {
-    cxpContextPtr pccParent;
-
     if (pccArg->prnSearch) {
       prnResult = pccArg->prnSearch;
     }
     else {
+      prnResult = cxpCtxtSearchGet(pccArg->parent);
     }
   }
   return prnResult;
@@ -2181,9 +2179,9 @@ cxpProcessTransformations(const xmlDocPtr pdocArgXml, const xmlNodePtr pndArgPar
 	      /*!\todo check cross-site references */
 
 #ifdef HAVE_CGI
-	      xmlStrPrintf(mucT, BUFFER_LENGTH, BAD_CAST "href=\"?spath=%s\" type=\"text/xsl\"", pucEmbedd);
+	      xmlStrPrintf(mucT, BUFFER_LENGTH, "href=\"?spath=%s\" type=\"text/xsl\"", pucEmbedd);
 #else
-	      xmlStrPrintf(mucT, BUFFER_LENGTH, BAD_CAST "href=\"%s\" type=\"text/xsl\"", pucEmbedd);
+	      xmlStrPrintf(mucT, BUFFER_LENGTH, "href=\"%s\" type=\"text/xsl\"", pucEmbedd);
 #endif
 	      pndPI = xmlNewDocPI(pdocResult, BAD_CAST "xml-stylesheet", mucT);
 	      xmlAddPrevSibling(xmlDocGetRootElement(pdocResult), pndPI);
@@ -2307,7 +2305,7 @@ cxpXslRetrieve(const xmlNodePtr pndArgXsl, cxpContextPtr pccArg)
 
     //pccHere = cxpCtxtFromAttr(pccArg,pndArgXsl);
 
-    if ((pndChild = domGetFirstChild(pndArgXsl,NAME_XML))) {
+    if ((pndChild = domGetFirstChild(pndArgXsl,BAD_CAST NAME_XML))) {
       /* the XSL DOM has to be transformed first */
       pdocResult = cxpProcessXmlNode(pndChild,pccArg);
       if (pdocResult != NULL && (pndRootXsl = xmlDocGetRootElement(pdocResult)) != NULL && IS_NODE(pndRootXsl,BAD_CAST"stylesheet")) {
@@ -3040,7 +3038,6 @@ cxpProcessCopyNode(xmlNodePtr pndArgCopy, cxpContextPtr pccArg)
     BOOL_T fSearch = FALSE;
     xmlChar *pucFrom = NULL;
     xmlChar *pucTo = NULL;
-    xmlChar *pucAttrResponse = NULL;
     resNodePtr prnFrom = NULL;
     resNodePtr prnContent = NULL;
     resNodePtr prnTo = NULL;
@@ -3191,7 +3188,7 @@ cxpProcessInfoNode(xmlNodePtr pndInfo, cxpContextPtr pccArg)
   xmlNodePtr pndRoot;
 
   pdocResult = xmlNewDoc(BAD_CAST "1.0");
-  pndRoot = xmlNewDocNode(pdocResult, NULL, NAME_INFO, NULL); 
+  pndRoot = xmlNewDocNode(pdocResult, NULL, BAD_CAST NAME_INFO, NULL); 
   xmlDocSetRootElement(pdocResult, pndRoot);
   xmlSetNs(pndRoot,cxpGetNs());
 
@@ -3396,7 +3393,6 @@ cxpProcessInfoNode(xmlNodePtr pndInfo, cxpContextPtr pccArg)
   if (pndRuntime) {
     xmlChar *pucT;
     xmlChar mpucIndex[BUFFER_LENGTH];
-    xmlNodePtr pndDate;
     resNodePtr prnTest;
     cxpContextPtr pccI;
 #ifdef _MSC_VER
@@ -3414,7 +3410,7 @@ cxpProcessInfoNode(xmlNodePtr pndInfo, cxpContextPtr pccArg)
     xmlSetProp(pndRuntime, BAD_CAST "context", cxpCtxtLocationGetStr(pccArg));
 
     pucT = GetDateIsoString(0);
-    pndDate = xmlNewChild(pndRuntime, NULL, BAD_CAST"date", pucT);
+    xmlNewChild(pndRuntime, NULL, BAD_CAST"date", pucT);
     xmlFree(pucT);
 
     /*! program arguments */
@@ -3450,7 +3446,7 @@ cxpProcessInfoNode(xmlNodePtr pndInfo, cxpContextPtr pccArg)
     /*! Environment */
     for (i = 0; (pucArgv = cxpCtxtEnvGetName(pccArg, i)); i++) {
       xmlNodePtr pndEnv;
-      pndEnv = xmlNewChild(pndRuntime, NULL, NAME_ENV, NULL);
+      pndEnv = xmlNewChild(pndRuntime, NULL, BAD_CAST NAME_ENV, NULL);
       domSetPropEat(pndEnv,BAD_CAST "name",pucArgv);
       domSetPropEat(pndEnv,BAD_CAST "select",cxpCtxtEnvGetValue(pccArg,i));
     }
@@ -3477,8 +3473,6 @@ xmlNodePtr
 cxpRemoveInvalidsFromTree(xmlNodePtr pndArg)
 {
   if (IS_ENODE(pndArg)) {
-    xmlChar* pucV;
-
     if (IS_VALID_NODE(pndArg) == FALSE) {
       xmlNodePtr pndRelease = pndArg;
 
@@ -3528,16 +3522,16 @@ pieProcessPieNode(xmlNodePtr pndArgPie, cxpContextPtr pccArg)
     pdocResult = xmlNewDoc(BAD_CAST "1.0");
     pdocResult->encoding = xmlStrdup(BAD_CAST "UTF-8");
 
-    pndPieRoot = xmlNewNode(NULL,NAME_PIE_PIE);
+    pndPieRoot = xmlNewNode(NULL,BAD_CAST NAME_PIE_PIE);
     xmlSetTreeDoc(pndPieRoot,pdocResult);
     xmlDocSetRootElement(pdocResult, pndPieRoot);
       
     pndPiePre = xmlCopyNode(pndArgPie, 1); /* first copy for import processing */
-    xmlNodeSetName(pndPiePre,NAME_PIE_PRE);
+    xmlNodeSetName(pndPiePre,BAD_CAST NAME_PIE_PRE);
     xmlSetTreeDoc(pndPiePre, pdocResult);
     xmlAddChild(pndPieRoot, pndPiePre);
     
-    pndMeta = xmlNewChild(pndPieRoot,NULL,NAME_PIE_META,NULL);
+    pndMeta = xmlNewChild(pndPieRoot,NULL,BAD_CAST NAME_PIE_META,NULL);
     /* Get the current time. */
     domSetPropEat(pndMeta, BAD_CAST "ctime", GetNowFormatStr(BAD_CAST "%s"));
     domSetPropEat(pndMeta, BAD_CAST "ctime2", GetDateIsoString(0));

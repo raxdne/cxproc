@@ -833,7 +833,6 @@ int
 cxpCtxtEnvSet(cxpContextPtr pccArg, xmlChar *pucArgName, xmlChar *pucArgValue)
 {
   index_t iResult;
-  xmlChar *pucArgv;
 
   if ((iResult = cxpCtxtEnvGetIndexByName(pccArg,pucArgName)) > -1) {
     /* variable exists already */
@@ -854,7 +853,7 @@ cxpCtxtEnvSet(cxpContextPtr pccArg, xmlChar *pucArgName, xmlChar *pucArgValue)
     cxpCtxtLogPrint(pccArg, 2, " Append env[%s]='%s'", pucArgName, pucArgValue);
 #endif
 
-    xmlStrPrintf(mucNew,BUFFER_LENGTH,"%s=%s",pucArgName,pucArgValue);
+    xmlStrPrintf(BAD_CAST mucNew,BUFFER_LENGTH,"%s=%s",pucArgName,pucArgValue);
     pccArg->ppcEnv[iResult] = mucNew;
     pccArg->ppcEnv[iResult+1] = NULL;
     pccArg->iCountEnv = iResult;
@@ -967,7 +966,6 @@ cxpCtxtEncShellCommand(cxpContextPtr pccArg, xmlChar *pucArg)
   char* pcResult = NULL;
 
   if (pccArg) {
-    xmlChar mpucCall[BUFFER_LENGTH];
     char mpchIn[BUFFER_LENGTH];
     char mpchOut[BUFFER_LENGTH];
     char *pchOut;

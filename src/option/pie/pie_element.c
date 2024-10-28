@@ -929,11 +929,11 @@ pieElementToDOM(pieTextElementPtr ppeT)
 
     /*! build to result DOM */
     if (pieElementGetMode(ppeT) == RMODE_PRE || pieElementIsPre(ppeT)) {
-      pndResult = xmlNewNode(NULL, NAME_PIE_PRE);
+      pndResult = xmlNewNode(NULL, BAD_CAST NAME_PIE_PRE);
       xmlAddChild(pndResult, xmlNewText(pucC));
     }
     else if (pieElementGetMode(ppeT) == RMODE_TABLE) {
-      pndResult = xmlNewNode(NULL, (pieElementIsHeader(ppeT) ? NAME_PIE_HEADER : NAME_PIE_PAR));
+      pndResult = xmlNewNode(NULL, (pieElementIsHeader(ppeT) ? BAD_CAST NAME_PIE_HEADER : BAD_CAST NAME_PIE_PAR));
       if (ppeT->iWeight > 1) {
 	xmlSetProp(pndResult, BAD_CAST"impact", BAD_CAST((ppeT->iWeight > 2) ? "1" : "2"));
       }
@@ -941,11 +941,11 @@ pieElementToDOM(pieTextElementPtr ppeT)
     }
     else {
       if (pieElementIsHeader(ppeT)) {
-	pndResult = xmlNewNode(NULL, NAME_PIE_SECTION);
+	pndResult = xmlNewNode(NULL, BAD_CAST NAME_PIE_SECTION);
 	if (STR_IS_NOT_EMPTY(pucC)) {
 	  xmlNodePtr pndH = NULL;
 
-	  pndH = xmlNewNode(NULL, NAME_PIE_HEADER);
+	  pndH = xmlNewNode(NULL, BAD_CAST NAME_PIE_HEADER);
 	  xmlAddChild(pndH, xmlNewText(pucC));
 	  xmlAddChild(pndResult, pndH);
 	}
@@ -953,29 +953,29 @@ pieElementToDOM(pieTextElementPtr ppeT)
       else {
 	if (pieElementIsListItem(ppeT)) {
 	  if (STR_IS_NOT_EMPTY(pucC)) {
-	    pndResult = xmlNewNode(NULL, NAME_PIE_PAR);
+	    pndResult = xmlNewNode(NULL, BAD_CAST NAME_PIE_PAR);
 	    xmlAddChild(pndResult, xmlNewText(pucC));
 	  }
 	}
 	else if (pieElementIsRuler(ppeT)) {
-	  pndResult = xmlNewNode(NULL, NAME_PIE_RULER);
+	  pndResult = xmlNewNode(NULL, BAD_CAST NAME_PIE_RULER);
 	}
 	else if (pieElementIsPre(ppeT)) {
 	  if (STR_IS_NOT_EMPTY(pucC)) {
-	    pndResult = xmlNewNode(NULL, NAME_PIE_PRE);
+	    pndResult = xmlNewNode(NULL, BAD_CAST NAME_PIE_PRE);
 	    xmlAddChild(pndResult, xmlNewText(pucC));
 	  }
 	}
 	else if (pieElementIsCsv(ppeT)) {
 	  if (STR_IS_NOT_EMPTY(pucC)) {
-	    pndResult = xmlNewNode(NULL, NAME_PIE_IMPORT);
+	    pndResult = xmlNewNode(NULL, BAD_CAST NAME_PIE_IMPORT);
 	    xmlSetProp(pndResult, BAD_CAST "type", BAD_CAST NAME_PIE_CSV);
 	    xmlAddChild(pndResult, xmlNewText(pucC));
 	  }
 	}
 	else if (pieElementIsScript(ppeT)) {
 	  if (STR_IS_NOT_EMPTY(pucC)) {
-	    pndResult = xmlNewNode(NULL, NAME_PIE_IMPORT);
+	    pndResult = xmlNewNode(NULL, BAD_CAST NAME_PIE_IMPORT);
 	    xmlSetProp(pndResult, BAD_CAST "type", BAD_CAST "script");
 	    xmlAddChild(pndResult, xmlNewText(pucC));
 	  }
@@ -984,7 +984,7 @@ pieElementToDOM(pieTextElementPtr ppeT)
 	  if (STR_IS_NOT_EMPTY(pucC)) {
 	    xmlDocPtr pdocInclude = NULL;
 
-	    pdocInclude = xmlParseMemory((const char*)pucC, xmlStrlen(pucC));
+	    pdocInclude = xmlParseMemory((const char *)pucC, xmlStrlen(pucC));
 	    if (pdocInclude) {
 	      xmlNodePtr pndRootInclude;
 
@@ -994,7 +994,7 @@ pieElementToDOM(pieTextElementPtr ppeT)
 
 		xmlUnlinkNode(pndRootInclude);
 
-		pndResult = xmlNewNode(NULL, NAME_PIE_IMPORT);
+		pndResult = xmlNewNode(NULL, BAD_CAST NAME_PIE_IMPORT);
 		xmlSetProp(pndResult, BAD_CAST "type", BAD_CAST "cxp");
 		xmlAddChild(pndResult, pndRootInclude);
 	      }
@@ -1007,7 +1007,7 @@ pieElementToDOM(pieTextElementPtr ppeT)
 	}
 	else if (STR_IS_NOT_EMPTY(pucC)) {
 	  if (pndResult == NULL) {
-	    pndResult = xmlNewNode(NULL, NAME_PIE_PAR);
+	    pndResult = xmlNewNode(NULL, BAD_CAST NAME_PIE_PAR);
 	  }
 	  xmlAddChild(pndResult, xmlNewText(pucC));
 	}

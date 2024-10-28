@@ -281,7 +281,6 @@ SplitCalendarElementRecurrences(ceElementPtr pceArg)
   ceElementPtr pceResult = NULL;
 
   if (pceArg != NULL && pceArg->pNext == NULL && pceArg->iRecurrence > 0) {
-    int r;
     int o = 0;
     ceElementPtr pceI;
 
@@ -411,7 +410,6 @@ ScanCalendarElementDate(ceElementPtr pceArgResult)
 	/* system time "1311186519" */
 	unsigned long iT;
 	time_t tT;
-	xmlChar* pucSepEnd;
 
 	pucT = xmlStrndup(pucT, 10);
 	iT = strtoul((const char*)pucT, NULL, 10);
@@ -995,11 +993,9 @@ GetToday(void)
 dt_t
 UpdateToday(xmlChar *pucArgToday)
 {
-  xmlChar mpucT[BUFFER_LENGTH];
   xmlChar *pucEnvDate;
 
   if (STR_IS_NOT_EMPTY(pucArgToday)) {
-    ceElementPtr pceNew;
     int s;
 
     if (dt_parse_iso_date_time_zone((const char*)pucArgToday, xmlStrlen(pucArgToday), &dtToday, &s) < 1) {

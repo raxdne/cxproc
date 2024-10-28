@@ -247,7 +247,12 @@ resNodeTransfer(resNodePtr prnArgFrom, resNodePtr prnArgTo, BOOL_T fArgMove)
 	if (errno == EROFS || errno == EXDEV) {
 	  /* rename fails if different volumes */
 	  resNodeSetError(prnArgFrom, rn_error_copy, "Cant move to an other filesystem, will copy instead");
-	  eResult = (resNodeTransfer(prnArgFrom, prnArgTo, FALSE) && resNodeUnlink(prnArgFrom, FALSE));
+	  if ((eResult = resNodeTransfer(prnArgFrom, prnArgTo, FALSE)) != rn_error_none) {
+	    /* failed to copy */
+	  }
+	  else if ((eResult = resNodeUnlink(prnArgFrom, FALSE)) != rn_error_none) {
+	    /* failed to delete */
+	  }
 	}
 	else {
 	  resNodeSetError(prnArgFrom, rn_error_copy, "Error moving '%i'", errno);
@@ -550,7 +555,7 @@ resNodeUnlink(resNodePtr prnArg, BOOL_T fRecursively)
 	resNodePtr prnT;
 
 	for (prnT = resNodeGetChild(prnArg); prnT; prnT = resNodeGetNext(prnT)) {
-	  eResult |= resNodeUnlink(prnT,TRUE);
+	  eResult = resNodeUnlink(prnT,TRUE);
 	}
       }
       

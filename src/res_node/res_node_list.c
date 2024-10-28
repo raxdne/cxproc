@@ -53,7 +53,7 @@ resNodeListPathNew(xmlChar* pucArgPath)
     xmlChar* pucStart;
     xmlChar* pucT;
     xmlChar* pucTT;
-    resNodePtr prnT;
+    resNodePtr prnT = NULL;
 
     if ((pucSep = resPathGetNextPathPtr(pucArgPath)) == NULL) {
       pucSep = pucArgPath + xmlStrlen(pucArgPath);

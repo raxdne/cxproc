@@ -3121,10 +3121,10 @@ resNodeContentToDOM(xmlNodePtr pndArg, resNodePtr prnArg)
 	  xmlNodePtr pndMeta;
 	  xmlNodePtr pndTags;
 
-	  if ((pndMeta = domGetFirstChild(pndPie, NAME_META)) == NULL) {
-	    pndMeta = xmlNewChild(pndPie, NULL, NAME_PIE_META, NULL);
+	  if ((pndMeta = domGetFirstChild(pndPie, BAD_CAST NAME_META)) == NULL) {
+	    pndMeta = xmlNewChild(pndPie, NULL, BAD_CAST NAME_PIE_META, NULL);
 	  }
-	  pndTags = xmlNewChild(pndMeta, NULL, NAME_PIE_TAGLIST, NULL);
+	  pndTags = xmlNewChild(pndMeta, NULL, BAD_CAST NAME_PIE_TAGLIST, NULL);
 
 	  RecognizeIncludes(pndPie);
 	  RecognizeSubsts(pndPie);
@@ -3261,7 +3261,7 @@ resNodeContentToDOM(xmlNodePtr pndArg, resNodePtr prnArg)
 	pndArchive = pndArg;
       }
       else {
-	pndArchive = xmlNewChild(pndArg, NULL, NAME_ARCHIVE, NULL);
+	pndArchive = xmlNewChild(pndArg, NULL, BAD_CAST NAME_ARCHIVE, NULL);
       }
 
       for (prnI = resNodeGetChild(prnArg); prnI; prnI = resNodeGetNext(prnI)) {
@@ -3312,7 +3312,7 @@ resNodeContentToDOM(xmlNodePtr pndArg, resNodePtr prnArg)
 	  pndArchive = pndArg;
 	}
 	else {
-	  pndArchive = xmlNewChild(pndArg, NULL, NAME_ARCHIVE, NULL);
+	  pndArchive = xmlNewChild(pndArg, NULL, BAD_CAST NAME_ARCHIVE, NULL);
 	}
 
 	for (prnI = resNodeGetChild(prnArg); prnI; prnI = resNodeGetNext(prnI)) {
@@ -3373,7 +3373,7 @@ resNodeContentToDOM(xmlNodePtr pndArg, resNodePtr prnArg)
 #if 0
       pucContent = BAD_CAST resNodeGetContentBase64Eat(prnArg, 512);
       if (STR_IS_NOT_EMPTY(pucContent)) {
-	xmlNewChild(pndArg, NULL, NAME_BASE64, pucContent);
+	xmlNewChild(pndArg, NULL, BAD_CAST NAME_BASE64, pucContent);
 	/*!\todo optimize direct use of buffer as node content */
       }
       xmlFree(pucContent);
@@ -3395,13 +3395,13 @@ resNodeContentToDOM(xmlNodePtr pndArg, resNodePtr prnArg)
 	}
 	else if (resNodeIsFile(resNodeGetChild(prnArg)) && resNodeIsReadable(resNodeGetChild(prnArg))) {
 	  /*! follow link to file */
-	  if ((pndChild = domGetFirstChild(pndArg, NAME_FILE)) == NULL) {
-	    xmlNewChild(pndArg, NULL, NAME_FILE, NULL);
+	  if ((pndChild = domGetFirstChild(pndArg, BAD_CAST NAME_FILE)) == NULL) {
+	    xmlNewChild(pndArg, NULL, BAD_CAST NAME_FILE, NULL);
 	  }
 	  resNodeContentToDOM(pndChild, resNodeGetChild(prnArg));
 	}
 	else {
-	  xmlNewChild(pndArg, NULL, NAME_ERROR, BAD_CAST "File link broken");
+	  xmlNewChild(pndArg, NULL, BAD_CAST NAME_ERROR, BAD_CAST "File link broken");
 	}
       }
       break;
@@ -3417,7 +3417,7 @@ resNodeContentToDOM(xmlNodePtr pndArg, resNodePtr prnArg)
 #if 1
       pucContent = BAD_CAST resNodeGetContentBase64Eat(prnArg, 512);
       if (STR_IS_NOT_EMPTY(pucContent)) {
-	xmlNewChild(pndArg, NULL, NAME_BASE64, pucContent);
+	xmlNewChild(pndArg, NULL, BAD_CAST NAME_BASE64, pucContent);
 	/*!\todo optimize direct use of buffer as node content */
       }
       xmlFree(pucContent);
@@ -3435,7 +3435,7 @@ resNodeContentToDOM(xmlNodePtr pndArg, resNodePtr prnArg)
 	if (pucContent) {
 	  xmlNodePtr pndBase64;
 	  
-	  pndBase64 = xmlNewChild(pndArg,NULL,NAME_BASE64,NULL);
+	  pndBase64 = xmlNewChild(pndArg,NULL,BAD_CAST NAME_BASE64,NULL);
 	  if (pndBase64) {
 	    xmlNodePtr pndBase64Text;
 
@@ -3498,9 +3498,9 @@ check/merge code of dirNodeToResNodeList()
     }
     resNodeSetNameBaseDir(prnResult, domGetPropValuePtr(pndArg, BAD_CAST "prefix"));
     // resNodeSetSize(prnResult,domGetPropValuePtr(pndArg,BAD_CAST"size"));
-    resNodeSetMimeType(prnResult, resMimeGetType(domGetPropValuePtr(pndArg, BAD_CAST "type")));
+    resNodeSetMimeType(prnResult, resMimeGetType((const char *)domGetPropValuePtr(pndArg, BAD_CAST "type")));
 
-    if ((pndT = domGetFirstChild(pndArg, NAME_BASE64)) != NULL && pndT->children != NULL && (pucT = pndT->children->content) != NULL) {
+    if ((pndT = domGetFirstChild(pndArg, BAD_CAST NAME_BASE64)) != NULL && pndT->children != NULL && (pucT = pndT->children->content) != NULL) {
       int ret;
       char *pchT;
       size_t inlen;
@@ -3552,7 +3552,7 @@ resNodeToDOM(resNodePtr prnArg, int iArgOptions)
     resNodePtr prnI;
 
     if (resNodeIsDir(prnArg) || resNodeIsDirInArchive(prnArg)) {
-      pndT = xmlNewNode(NULL, NAME_DIR);
+      pndT = xmlNewNode(NULL, BAD_CAST NAME_DIR);
       if ((pucT = resNodeGetNameBase(prnArg)) != NULL && xmlStrlen(pucT) > 0 && xmlStrEqual(pucT, BAD_CAST".") == FALSE) {
 	xmlSetProp(pndT, BAD_CAST "name", pucT);
       }
@@ -3565,7 +3565,7 @@ resNodeToDOM(resNodePtr prnArg, int iArgOptions)
       }
     }
     else if (resNodeIsLink(prnArg)) {
-      pndT = xmlNewNode(NULL, NAME_SYMLINK);
+      pndT = xmlNewNode(NULL, BAD_CAST NAME_SYMLINK);
       xmlSetProp(pndT, BAD_CAST"name", resNodeGetNameBase(prnArg));
       if (resNodeGetChild(prnArg)) {
 	xmlNodePtr pndTT;
@@ -3587,7 +3587,7 @@ resNodeToDOM(resNodePtr prnArg, int iArgOptions)
       }
     }
     else {
-      pndT = xmlNewNode(NULL, NAME_FILE);
+      pndT = xmlNewNode(NULL, BAD_CAST NAME_FILE);
       xmlSetProp(pndT, BAD_CAST"name", resNodeGetNameBase(prnArg));
       if (resNodeGetParent(prnArg) == NULL && (pucT = resNodeGetNameBaseDir(prnArg)) != NULL && xmlStrlen(pucT) > 0) {
 	xmlSetProp(pndT, BAD_CAST "prefix", pucT);

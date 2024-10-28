@@ -423,11 +423,11 @@ FindCalendarElementCol(xmlNodePtr pndArgParent, xmlChar *pucArgIdCol, xmlNodePtr
 
   if (pndArgParent != NULL && pndArgInsert != NULL) {
     xmlNodePtr pndCol;
-    xmlNodePtr pndHour;
     xmlNodePtr pndChild;
+#if 0
+    xmlNodePtr pndHour;
     xmlChar *pucHour;
 
-#if 0
     if ((pndHour = domGetFirstChild(pndArgParent,NAME_CXP_HOUR))
 	&& (pucHour = domGetPropValuePtr(pndArgInsert, BAD_CAST "hour"))) {
       /*  */
@@ -522,7 +522,6 @@ CalendarUpdate(cxpCalendarPtr pCalendarArg)
 	else if (cxpCalendarIndex(pceT->dt0.dt) > 0
 	  && pCalendarArg->mpndDay[cxpCalendarIndex(pceT->dt0.dt)] != NULL) {
 	  /* an anchor is specified */
-	  dt_t dtI;
 
 	  assert(pCalendarArg->mpndDay[cxpCalendarIndex(pceT->dt0.dt)]);
 
@@ -924,21 +923,16 @@ void
 CalendarFree(cxpCalendarPtr pCalendarArg)
 {
   if (pCalendarArg) {
-    ceElementPtr pceT;
-
 #ifdef DEBUG
     PrintFormatLog(1,"CalendarFree(pCalendarArg=%0x)",pCalendarArg);
 #endif
-
     CalendarElementFree(pCalendarArg->pceFirst);
     xmlMemFree(pCalendarArg->pmiYear);
     xmlFreeDoc(pCalendarArg->pdocCalendar);
-  
 #ifdef DEBUG
     memset(pCalendarArg->mpndDay, 0, CXP_CALENDAR_SIZE);
     memset(pCalendarArg,0,sizeof(cxpCalendar));
 #endif
-
     xmlFree(pCalendarArg);
   }
 } /* end of CalendarFree() */
@@ -975,7 +969,7 @@ CalendarNew(void)
   pCalendarResult = (cxpCalendarPtr) xmlMalloc(sizeof(cxpCalendar));
   if (pCalendarResult) {
     memset(pCalendarResult,0,sizeof(cxpCalendar));
-    memset(pCalendarResult->mpndDay, 0, CXP_CALENDAR_SIZE);
+    memset(pCalendarResult->mpndDay, 0, CXP_CALENDAR_SIZE * sizeof(xmlNodePtr));
     pCalendarResult->eType = CXP_CALENDAR_MDAY;
   }
   return pCalendarResult;
@@ -1387,7 +1381,7 @@ SubstituteFormatStr(xmlNodePtr pndContext, xmlChar *fmt)
 	/* multiple char formats */
 	if (puc1[2] == 'O' && puc1[3] == 'O' && puc1[4] == 'N') {
 	  if (puc1 - puc0 > 0) {
-	    pucResult = xmlStrncat(pucResult,puc0,puc1 - puc0);
+	    pucResult = xmlStrncat(pucResult, puc0, (int)(puc1 - puc0));
 	  }
 
 	  pucValue = domGetPropValuePtr(pndDay,BAD_CAST "moon");
@@ -1441,7 +1435,6 @@ SubstituteFormatStr(xmlNodePtr pndContext, xmlChar *fmt)
       else if (puc1[1] == 'D') {
 	if (isdigit(puc1[2]) && isdigit(puc1[3]) && isdigit(puc1[4]) && isdigit(puc1[5])
 	    && isdigit(puc1[6]) && isdigit(puc1[7]) && isdigit(puc1[8]) && isdigit(puc1[9]) && isspace(puc1[10])) {
-	  int l, t;
 	  dt_t dtpAbs;
 	  dt_t dtpDate;
 	  
@@ -1580,7 +1573,6 @@ AddTreeYear(cxpCalendarPtr pCalendarArg, int year)
     unsigned int iDayToday = GetToday();
     xmlNodePtr pndMonth = NULL;
     xmlNodePtr pndWeek = NULL;
-    int iDaysDiff;
     int i;
 
     if (pCalendarArg->mpndDay[cxpCalendarIndex(0)] == NULL) {

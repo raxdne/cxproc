@@ -935,7 +935,6 @@ cxpSubstInChildNodes(xmlNodePtr pndArgTop, xmlNodePtr pndArgSubst, cxpContextPtr
   }
   else if (pndArgSubst == NULL) {
     /* subst nodes not yet detected */
-    xmlNodePtr pndT;
     xmlNodePtr pndChild;
     xmlNodePtr pndNextChild;
 

@@ -454,7 +454,7 @@ GetParentElement(pieTextElementPtr ppeArg, xmlNodePtr pndArgParent)
 
       for (; iDepth < (pieElementGetDepth(ppeArg) - 1); iDepth++) {
 	/* create empty SECTION elements */
-	pndResult = xmlNewChild(pndResult, NULL, NAME_PIE_SECTION, NULL);
+	pndResult = xmlNewChild(pndResult, NULL, BAD_CAST NAME_PIE_SECTION, NULL);
       }
 
       if (pndResult) {
@@ -464,7 +464,7 @@ GetParentElement(pieTextElementPtr ppeArg, xmlNodePtr pndArgParent)
 	pndResult = pndArgParent;
 	for (i=1; i < pieElementGetDepth(ppeArg); i++) {
 	  /* create empty SECTION elements */
-	  pndResult = xmlNewChild(pndResult, NULL, NAME_PIE_SECTION, NULL);
+	  pndResult = xmlNewChild(pndResult, NULL, BAD_CAST NAME_PIE_SECTION, NULL);
 	}
       }
     }
@@ -494,13 +494,13 @@ GetParentElement(pieTextElementPtr ppeArg, xmlNodePtr pndArgParent)
 	  /*
 	  last element is a list, create a child list element
 	  */
-	  pndList = xmlNewChild(pndList, NULL, NAME_PIE_LIST, NULL);
+	  pndList = xmlNewChild(pndList, NULL, BAD_CAST NAME_PIE_LIST, NULL);
 	}
 	else if (pndLast == pndArgParent) {
 	  /*
 	  last element is parent element, create a child list element
 	  */
-	  pndList = xmlNewChild(pndArgParent, NULL, NAME_PIE_LIST, NULL);
+	  pndList = xmlNewChild(pndArgParent, NULL, BAD_CAST NAME_PIE_LIST, NULL);
 	}
 	else {
 	  /*
@@ -508,7 +508,7 @@ GetParentElement(pieTextElementPtr ppeArg, xmlNodePtr pndArgParent)
 	  */
 	  assert(pndLast != NULL);
 
-	  pndList = xmlNewNode(NULL, NAME_PIE_LIST);
+	  pndList = xmlNewNode(NULL, BAD_CAST NAME_PIE_LIST);
 
 	  if (IS_NODE_PIE_PAR(pndLast)) {
 	    xmlAddChild(pndLast, pndList);
@@ -585,10 +585,10 @@ ParsePlainBuffer(xmlNodePtr pndArgTop, xmlChar* pucArg, rmode_t eArgMode)
 	pndBlock = pndArgTop;
       }
       else if (pndArgTop) { /* use as parent node for new block element */
-	pndBlock = xmlNewChild(pndArgTop, NULL, NAME_PIE_BLOCK, NULL);
+	pndBlock = xmlNewChild(pndArgTop, NULL, BAD_CAST NAME_PIE_BLOCK, NULL);
       }
       else { /* there is nor parent element, return new block element */
-	pndBlock = xmlNewNode(NULL, NAME_PIE_BLOCK);
+	pndBlock = xmlNewNode(NULL, BAD_CAST NAME_PIE_BLOCK);
       }
       SetTypeAttr(pndBlock, eArgMode);
 
@@ -608,7 +608,7 @@ ParsePlainBuffer(xmlNodePtr pndArgTop, xmlChar* pucArg, rmode_t eArgMode)
 	xmlNodePtr pndNew = NULL;
 
 	if (pieElementIsQuote(ppeT)) {
-	  pndNew = xmlNewChild(pndParent, NULL, NAME_PIE_BLOCK, NULL);
+	  pndNew = xmlNewChild(pndParent, NULL, BAD_CAST NAME_PIE_BLOCK, NULL);
 	  xmlSetProp(pndNew, BAD_CAST "type", BAD_CAST"quote");
 	  pndNew = ParsePlainBuffer(pndNew, pieElementGetBeginPtr(ppeT), eArgMode);
 	}
@@ -616,10 +616,10 @@ ParsePlainBuffer(xmlNodePtr pndArgTop, xmlChar* pucArg, rmode_t eArgMode)
 	  if (pieElementGetStrlen(ppeT) > 6) {
 	    xmlDocPtr pdocHtml;
 	    
-	    pdocHtml = xmlParseMemory(pieElementGetBeginPtr(ppeT),pieElementGetStrlen(ppeT));
+	    pdocHtml = xmlParseMemory((const char *)pieElementGetBeginPtr(ppeT),pieElementGetStrlen(ppeT));
 	    if ((pndNew = xmlDocGetRootElement(pdocHtml)) != NULL && IS_NODE(pndNew,BAD_CAST"make") && pndNew->children != NULL) {
 	      xmlUnlinkNode(pndNew);
-	      xmlNodeSetName(pndNew,NAME_PIE_IMPORT);
+	      xmlNodeSetName(pndNew,BAD_CAST NAME_PIE_IMPORT);
 	      xmlSetProp(pndNew, BAD_CAST "type", BAD_CAST"cxp");
 	      xmlAddChild(pndParent, pndNew);
 	    }
@@ -633,7 +633,7 @@ ParsePlainBuffer(xmlNodePtr pndArgTop, xmlChar* pucArg, rmode_t eArgMode)
 	  if (pieElementGetStrlen(ppeT) > 6) {
 	    xmlDocPtr pdocHtml;
 
-	    pdocHtml = xmlParseMemory(pieElementGetBeginPtr(ppeT), pieElementGetStrlen(ppeT));
+	    pdocHtml = xmlParseMemory((const char *)pieElementGetBeginPtr(ppeT), pieElementGetStrlen(ppeT));
 	    if ((pndNew = xmlDocGetRootElement(pdocHtml)) != NULL && IS_NODE_PIE_HTML(pndNew) && pndNew->children != NULL) {
 	      xmlUnlinkNode(pndNew);
 	      xmlNodeSetName(pndNew, BAD_CAST"block");
@@ -663,7 +663,7 @@ ParsePlainBuffer(xmlNodePtr pndArgTop, xmlChar* pucArg, rmode_t eArgMode)
 		/* there is a table parent already */
 	      }
 	      else {
-		pndParent = xmlNewChild(pndParent, NULL, NAME_PIE_SECTION, NULL);
+		pndParent = xmlNewChild(pndParent, NULL, BAD_CAST NAME_PIE_SECTION, NULL);
 		xmlSetProp(pndParent, BAD_CAST "type", BAD_CAST "table");
 		xmlSetProp(pndParent, BAD_CAST "sep", (pieElementGetSepPtr(ppeT) ? pieElementGetSepPtr(ppeT) : BAD_CAST ";"));
 	      }
@@ -704,7 +704,7 @@ ParsePlainBuffer(xmlNodePtr pndArgTop, xmlChar* pucArg, rmode_t eArgMode)
 /*! return TRUE if pucArg ends at postion iArg with an XML entity like '&amp;'
 */
 BOOL_T
-StringEndsWithEntity(xmlChar*pucArg, int iArg)
+StringEndsWithEntity(xmlChar *pucArg, int iArg)
 {
   BOOL_T fResult = FALSE;
 
@@ -767,7 +767,7 @@ SplitNodeToTableDataNodes(xmlNodePtr pndArgParent, xmlChar* pucPatternSep)
   if (pndArgParent == NULL) {
   }
   else if (pndArgParent->children == NULL || STR_IS_EMPTY(pndArgParent->children->content)) {
-    xmlNodeSetName(pndArgParent, NAME_PIE_TR);
+    xmlNodeSetName(pndArgParent, BAD_CAST NAME_PIE_TR);
   }
   else if (pndArgParent->children != NULL && pndArgParent->children == pndArgParent->last
       && pndArgParent->children->content != NULL && xmlStrlen(pndArgParent->children->content) > 0) {
@@ -792,10 +792,10 @@ SplitNodeToTableDataNodes(xmlNodePtr pndArgParent, xmlChar* pucPatternSep)
       else if ((pucCell = xmlStrndup(pucBegin, (int)(pucSep - pucBegin))) != NULL) {
 	StringRemovePairQuotes(pucCell);
 	if ((pucT = StringGetEndOfHeaderMarker(pucCell))) {
-	  xmlNewChild(pndArgParent, NULL, NAME_PIE_TH, pucT);
+	  xmlNewChild(pndArgParent, NULL, BAD_CAST NAME_PIE_TH, pucT);
 	}
 	else {
-	  xmlNewChild(pndArgParent, NULL, NAME_PIE_TD, pucCell);
+	  xmlNewChild(pndArgParent, NULL, BAD_CAST NAME_PIE_TD, pucCell);
 	}
 	xmlFree(pucCell);
       }
@@ -807,16 +807,16 @@ SplitNodeToTableDataNodes(xmlNodePtr pndArgParent, xmlChar* pucPatternSep)
     if (STR_IS_NOT_EMPTY(pucBegin) && (pucCell = xmlStrdup(pucBegin)) != NULL) { /* append last cell in line */
       StringRemovePairQuotes(pucCell);
       if ((pucT = StringGetEndOfHeaderMarker(pucCell))) {
-	xmlNewChild(pndArgParent, NULL, NAME_PIE_TH, pucT);
+	xmlNewChild(pndArgParent, NULL, BAD_CAST NAME_PIE_TH, pucT);
       }
       else {
-	xmlNewChild(pndArgParent, NULL, NAME_PIE_TD, pucCell);
+	xmlNewChild(pndArgParent, NULL, BAD_CAST NAME_PIE_TD, pucCell);
       }
       xmlFree(pucCell);
     }
 
     xmlFreeNode(pndChild);
-    xmlNodeSetName(pndArgParent,NAME_PIE_TR);
+    xmlNodeSetName(pndArgParent,BAD_CAST NAME_PIE_TR);
     RecognizeSymbols(pndArgParent, LANG_DEFAULT);
     fResult = TRUE;
   }
@@ -871,7 +871,7 @@ AddTableColumnNames(xmlNodePtr pndArg)
     xmlNodePtr pndTableHeader;
     xmlNodePtr pndTableBody;
 
-    pndTableHeader = domGetFirstChild(pndArg, "thead");
+    pndTableHeader = domGetFirstChild(pndArg, BAD_CAST "thead");
     if (pndTableHeader) {
       domUnlinkNodeList(pndTableHeader);
     }
@@ -900,7 +900,7 @@ AddTableColumnNames(xmlNodePtr pndArg)
       }
     }
 
-    pndTableBody = domGetFirstChild(pndArg, "tbody");
+    pndTableBody = domGetFirstChild(pndArg, BAD_CAST "tbody");
     if (pndTableBody) {
       domUnlinkNodeList(pndTableBody);
     }
@@ -963,7 +963,7 @@ AddTableCellsEmpty(xmlNodePtr pndArg)
 	    }
 	    else if (IS_NODE_PIE_TD(pndCell)) {
 	      if (fHeader) {
-		xmlNodeSetName(pndCell, NAME_PIE_TH);
+		xmlNodeSetName(pndCell, BAD_CAST NAME_PIE_TH);
 	      }
 	      j++;
 	      pndCell = pndCell->next;
@@ -972,7 +972,7 @@ AddTableCellsEmpty(xmlNodePtr pndArg)
 	      pndCell = pndCell->next;
 	    }
 	    else {
-	      xmlNewChild(pndArgRow, NULL, (fHeader ? NAME_PIE_TH : NAME_PIE_TD), BAD_CAST" ");
+	      xmlNewChild(pndArgRow, NULL, (fHeader ? BAD_CAST NAME_PIE_TH : BAD_CAST NAME_PIE_TD), BAD_CAST" ");
 	      j++;
 	    }
 	  }
@@ -1110,8 +1110,8 @@ TransformToTable(xmlNodePtr pndArgParent, xmlNodePtr pndArg, xmlChar *pucPattern
     xmlNodePtr pndChild;
 
     if (IS_NODE_PIE_BLOCK(pndArg) || (IS_NODE_PIE_SECTION(pndArg) && domPropIsEqual(pndArg, BAD_CAST"type", BAD_CAST"table"))) {
-      xmlNodeSetName(pndArg, NAME_PIE_TABLE);
-      xmlNewTextChild(pndArg, NULL, NAME_PIE_TTAG, BAD_CAST"#table");
+      xmlNodeSetName(pndArg, BAD_CAST NAME_PIE_TABLE);
+      xmlNewTextChild(pndArg, NULL, BAD_CAST NAME_PIE_TTAG, BAD_CAST"#table");
 
       for (pndChild = pndArg->children; pndChild;) {
 	xmlNodePtr pndChildNext;
@@ -1127,7 +1127,7 @@ TransformToTable(xmlNodePtr pndArgParent, xmlNodePtr pndArg, xmlChar *pucPattern
     else if (IS_NODE_PIE_HEADER(pndArg)) {
       SplitNodeToTableDataNodes(pndArg, pucPatternSep);
       for (pndChild = pndArg->children; pndChild; pndChild = pndChild->next) {
-	xmlNodeSetName(pndChild,NAME_PIE_TH);
+	xmlNodeSetName(pndChild,BAD_CAST NAME_PIE_TH);
       }
     }
     else if (IS_NODE_PIE_TD(pndArg) || IS_NODE_PIE_TH(pndArg) || IS_NODE_PIE_TABLE(pndArg)) {
@@ -1462,20 +1462,20 @@ SplitTupelToLinkNodesMd(const xmlChar *pucArg)
 	  DecodeRFC1738((char *)pucUrlDisplay);
 	  if (pucArg[ovector[0]] == '!') {
 	    PrintFormatLog(3, "Image display text '%s' (%i..%i) in '%s'", pucUrlDisplay, ovector[i*2], ovector[i*2+1], pucArg);
-	    pndLink = xmlNewChild(pndResult, NULL, NAME_PIE_IMG, NULL);
+	    pndLink = xmlNewChild(pndResult, NULL, BAD_CAST NAME_PIE_IMG, NULL);
 	    xmlSetProp(pndLink, BAD_CAST "title", pucUrlDisplay);
 	    xmlSetProp(pndLink, BAD_CAST "alt", pucUrlDisplay);
 	  }
 	  else {
 	    PrintFormatLog(3, "URL display text '%s' (%i..%i) in '%s'", pucUrlDisplay, ovector[i * 2], ovector[i * 2 + 1], pucArg);
-	    pndLink = xmlNewChild(pndResult, NULL, NAME_PIE_LINK, NULL);
+	    pndLink = xmlNewChild(pndResult, NULL, BAD_CAST NAME_PIE_LINK, NULL);
 	    xmlAddChild(pndLink, xmlNewText(pucUrlDisplay));
 	  }
 	}
       }
       else {
 	/* empty value */
-	pndLink = xmlNewChild(pndResult, NULL, NAME_PIE_LINK, NULL);
+	pndLink = xmlNewChild(pndResult, NULL, BAD_CAST NAME_PIE_LINK, NULL);
       }
 
       i++;
@@ -1487,11 +1487,11 @@ SplitTupelToLinkNodesMd(const xmlChar *pucArg)
 
 	  if (resMimeIsPicture((t = resMimeGetTypeFromDataBase64(pucUrl)))) {
 	    /* embedded base64-encoded image */
-	    xmlChar *pucT;
+	    xmlChar *pucTT;
 
 	    xmlSetProp(pndLink, BAD_CAST "type", BAD_CAST resMimeGetTypeStr(t));
-	    if ((pucT = xmlStrchr(pucUrl, ',')) != NULL && pucT++) {
-	      xmlNewChild(pndLink, NULL, NAME_BASE64, pucT);
+	    if ((pucTT = BAD_CAST xmlStrchr((const xmlChar *)pucUrl, (xmlChar)',')) != NULL && pucTT++) {
+	      xmlNewChild(pndLink, NULL, BAD_CAST NAME_BASE64, pucTT);
 	    }
 	  }
 	  else {
@@ -1607,15 +1607,15 @@ SplitStringToLinkNodes(const xmlChar *pucArg)
 	  DecodeRFC1738((char *)pucUrlDisplay);
 	  if (xmlCheckUTF8(pucUrlDisplay)) {
 	    /* OK */
-	    pndLink = xmlNewTextChild(pndResult, NULL, NAME_PIE_LINK, pucUrlDisplay);
+	    pndLink = xmlNewTextChild(pndResult, NULL, BAD_CAST NAME_PIE_LINK, pucUrlDisplay);
 	    xmlSetProp(pndLink, BAD_CAST "href", pucUrl);
 	  }
 	  else {
-	    pndLink = xmlNewTextChild(pndResult, NULL, NAME_PIE_LINK, pucUrl);
+	    pndLink = xmlNewTextChild(pndResult, NULL, BAD_CAST NAME_PIE_LINK, pucUrl);
 	  }
 	}
 	else {
-	  pndLink = xmlNewTextChild(pndResult, NULL, NAME_PIE_LINK, pucUrl);
+	  pndLink = xmlNewTextChild(pndResult, NULL, BAD_CAST NAME_PIE_LINK, pucUrl);
 	}
 
 	if (ducOrigin > ovector[1]) {
@@ -1733,14 +1733,14 @@ SplitStringToAutoLinkNodes(const xmlChar *pucArg)
 	  DecodeRFC1738((char *)pucUrlDisplay);
 	  if (xmlCheckUTF8(pucUrlDisplay)) {
 	    /* OK */
-	    pndLink = xmlNewTextChild(pndResult, NULL, NAME_PIE_LINK, pucUrlDisplay);
+	    pndLink = xmlNewTextChild(pndResult, NULL, BAD_CAST NAME_PIE_LINK, pucUrlDisplay);
 	  }
 	  else {
-	    pndLink = xmlNewTextChild(pndResult, NULL, NAME_PIE_LINK, pucUrl);
+	    pndLink = xmlNewTextChild(pndResult, NULL, BAD_CAST NAME_PIE_LINK, pucUrl);
 	  }
 	}
 	else {
-	  pndLink = xmlNewTextChild(pndResult, NULL, NAME_PIE_LINK, pucUrl);
+	  pndLink = xmlNewTextChild(pndResult, NULL, BAD_CAST NAME_PIE_LINK, pucUrl);
 	}
 
 	if (ducOrigin > ovector[1]) {
@@ -1816,13 +1816,13 @@ RecognizeUrls(xmlNodePtr pndArg)
 	  */
 	  xmlNodePtr pndT = pndReplace->children;
 
-	  xmlNodeSetName(pndArg, NAME_PIE_FIG);
+	  xmlNodeSetName(pndArg, BAD_CAST NAME_PIE_FIG);
 	  xmlNodeSetContent(pndArg,NULL);
-	  xmlNewChild(pndArg, NULL, NAME_PIE_HEADER, domGetPropValuePtr(pndT, BAD_CAST"title"));
+	  xmlNewChild(pndArg, NULL, BAD_CAST NAME_PIE_HEADER, domGetPropValuePtr(pndT, BAD_CAST"title"));
 	  xmlUnlinkNode(pndT);
 	  xmlAddChild(pndArg, pndT);
 	  xmlFreeNode(pndReplace);
-	  xmlNewTextChild(pndArg, NULL, NAME_PIE_TTAG, BAD_CAST"#fig");
+	  xmlNewTextChild(pndArg, NULL, BAD_CAST NAME_PIE_TTAG, BAD_CAST"#fig");
 	  pndChild = NULL; /* end the loop */
 	}
 	else {
@@ -1910,7 +1910,7 @@ SplitStringToScriptNode(const xmlChar *pucArg)
 
       i++;
       if (ovector[i*2+1] - ovector[i*2] > 0) {
-	pndScript = xmlNewNode(NULL,NAME_PIE_IMPORT);
+	pndScript = xmlNewNode(NULL,BAD_CAST NAME_PIE_IMPORT);
 	xmlSetProp(pndScript, BAD_CAST "type", BAD_CAST "script");
 
 	pucScript = xmlStrndup(&pucArg[ovector[i*2]], (int)(ovector[i*2+1] - ovector[i*2]));
@@ -2065,9 +2065,15 @@ SplitStringToInlineNodes(const xmlChar *pucArg)
 	  xmlFree(pucT);
 	}
 
-	pndIn = xmlNewTextChild(pndResult, NULL, 
-	  (pucArg[ovector[0]] == (xmlChar)'`') ? NAME_PIE_TT : ((i0 - ovector[0] > 2) ? NAME_PIE_STRONG : NAME_PIE_EM),
-	  pucIn);
+	if (pucArg[ovector[0]] == (xmlChar)'`') {
+	  pndIn = xmlNewTextChild(pndResult, NULL, BAD_CAST NAME_PIE_TT, pucIn);
+	}
+	else if (i0 - ovector[0] > 2) {
+	  pndIn = xmlNewTextChild(pndResult, NULL, BAD_CAST NAME_PIE_STRONG, pucIn);
+	}
+	else {
+	  pndIn = xmlNewTextChild(pndResult, NULL, BAD_CAST NAME_PIE_EM, pucIn);
+	}
 
 	if (ducOrigin > ovector[1]) {
 	  /* the content ends with text, recursion */
@@ -2162,10 +2168,10 @@ SplitStringToDateNodes(const xmlChar *pucArg, RN_MIME_TYPE eMimeTypeArg)
 	      }
 	    }
 
-	    if (((pucSep > pucDate && !isend(*pucSep)) && (pucD = xmlStrndup(pucDate, (pucSep - pucDate))))
+	    if (((pucSep > pucDate && !isend(*pucSep)) && (pucD = xmlStrndup(pucDate, (int)(pucSep - pucDate))))
 	      || (pucD = xmlStrdup(pucDate))) {
 
-	      pndIn = xmlNewTextChild(pndResult, NULL, NAME_PIE_DATE, pucD);
+	      pndIn = xmlNewTextChild(pndResult, NULL, BAD_CAST NAME_PIE_DATE, pucD);
 #ifdef PIE_STANDALONE
 #else
 	      AddNodeDateAttributes(pndIn,NULL);
@@ -2503,8 +2509,8 @@ RecognizeSymbols(xmlNodePtr pndArg, lang_t eLangArg)
 
 	assert(pndArg->parent != NULL);
 	
-	if (StringBeginsWith(pucTT, STR_PIE_HIDDEN)) {
-	  if (IS_NODE_PIE_IMPORT(pndArg->parent) && xmlStrEqual(domGetPropValuePtr(pndArg->parent,BAD_CAST "type"), NAME_PIE_CSV)) {
+	if (StringBeginsWith((char *)pucTT, STR_PIE_HIDDEN)) {
+	  if (IS_NODE_PIE_IMPORT(pndArg->parent) && xmlStrEqual(domGetPropValuePtr(pndArg->parent,BAD_CAST "type"), BAD_CAST NAME_PIE_CSV)) {
 	    /* it's a column separator */
 	  }
 	  else {
@@ -2512,7 +2518,7 @@ RecognizeSymbols(xmlNodePtr pndArg, lang_t eLangArg)
 	  }
 	}
 
-	if (StringEndsWith(pucTT, STR_PIE_IMPACT_HIGH) != NULL) {
+	if (StringEndsWith((char *)pucTT, STR_PIE_IMPACT_HIGH) != NULL) {
 	  if (IS_NODE_PIE_HEADER(pndArg->parent) && pndArg->parent->parent != NULL) {
 	    /*! inherit this attribute to all childs */
 	    SetPropInherit(pndArg->parent->parent,BAD_CAST"impact",BAD_CAST"1");
@@ -2521,7 +2527,7 @@ RecognizeSymbols(xmlNodePtr pndArg, lang_t eLangArg)
 	    xmlSetProp(pndArg->parent,BAD_CAST"impact",BAD_CAST"1");
 	  }
 	}
-	else if (StringEndsWith(pucTT, STR_PIE_IMPACT_MEDIUM) != NULL) {
+	else if (StringEndsWith((char *)pucTT, STR_PIE_IMPACT_MEDIUM) != NULL) {
 	  if (IS_NODE_PIE_HEADER(pndArg->parent) && pndArg->parent->parent != NULL) {
 	    xmlSetProp(pndArg->parent->parent,BAD_CAST"impact",BAD_CAST"2");
 	    /*! inherit this attribute to all childs */
@@ -2565,11 +2571,11 @@ RecognizeSymbols(xmlNodePtr pndArg, lang_t eLangArg)
     else if (IS_NODE_PIE_ETAG(pndArg) || IS_NODE_PIE_HTAG(pndArg) || IS_NODE_PIE_TTAG(pndArg) || IS_NODE_PIE_IMG(pndArg)) {
       /* skip existing tag elements */
     }
-    else if (IS_NODE_PIE_PAR(pndArg) && (pucT = domNodeGetContentPtr(pndArg)) != NULL && StringBeginsWith(pucT,"TAGS: ")) {
+    else if (IS_NODE_PIE_PAR(pndArg) && (pucT = domNodeGetContentPtr(pndArg)) != NULL && StringBeginsWith((char *)pucT,"TAGS: ")) {
       xmlNodePtr pndNew;
 
       assert(pndArg->parent != NULL);
-      pndNew = xmlNewPI(NAME_PIE_PI_TAG, &pucT[6]);
+      pndNew = xmlNewPI(BAD_CAST NAME_PIE_PI_TAG, &pucT[6]);
       /*! insert all PI nodes at the begin of block */
       if (pndNew != NULL) {
 	domReplaceNodeList(pndArg, pndNew);
@@ -2814,7 +2820,7 @@ SubstNodeNew(xmlNodePtr pndArg)
     }
 
     if (STR_IS_NOT_EMPTY(puc0) && STR_IS_NOT_EMPTY(puc1)) {
-      pndResult = xmlNewNode(NULL, NAME_SUBST);
+      pndResult = xmlNewNode(NULL, BAD_CAST NAME_SUBST);
       xmlSetProp(pndResult, BAD_CAST(fRegexp ? "regexp" : "string"), puc0);
       xmlSetProp(pndResult, (STR_IS_NOT_EMPTY(pucAttrName) ? pucAttrName : BAD_CAST "to"), puc1);
       // TODO: xmlSetProp(pndResult, BAD_CAST"case", BAD_CAST (StringEndsWith('i') ? "yes" : "to"), puc1);
@@ -2918,7 +2924,7 @@ ImportNodeNew(xmlNodePtr pndArg, int iArgMode)
     }
 
     if (STR_IS_NOT_EMPTY(puc0)) {
-      pndResult = xmlNewNode(NULL, ((iArgMode == 0) ? NAME_PIE_INCLUDE : NAME_PIE_IMPORT));
+      pndResult = xmlNewNode(NULL, ((iArgMode == 0) ? BAD_CAST NAME_PIE_INCLUDE : BAD_CAST NAME_PIE_IMPORT));
       xmlSetProp(pndResult, BAD_CAST"name", puc0);
     }
     else {
@@ -3002,12 +3008,12 @@ TaskNodeNew(xmlNodePtr pndArg)
 
       ovector = pcre2_get_ovector_pointer(match_data);
 
-      pndResult = xmlNewNode(NULL, NAME_PIE_TASK);
+      pndResult = xmlNewNode(NULL, BAD_CAST NAME_PIE_TASK);
       pndHeader = xmlCopyNode(pndArg, 1); /* copy all child elements 'link' etc */
       if (pndHeader != NULL && pndHeader->children != NULL) {
 	xmlChar* pucT;
 
-	xmlNodeSetName(pndHeader, NAME_PIE_HEADER);
+	xmlNodeSetName(pndHeader, BAD_CAST NAME_PIE_HEADER);
 	xmlAddChild(pndResult, pndHeader);
 
 	/*! remove leading markup
@@ -3070,7 +3076,7 @@ TaskNodeNew(xmlNodePtr pndArg)
 	  if (xmlStrEqual(pucT, BAD_CAST"done") || (xmlStrEqual(pucT, BAD_CAST"todo") && IS_PIE_OK(pucTTT))) {
 	    xmlSetProp(pndResult, BAD_CAST"class", BAD_CAST"todo");
 	    xmlSetProp(pndResult, BAD_CAST"state", BAD_CAST"done");
-	    xmlNewTextChild(pndResult, NULL, NAME_PIE_TTAG, BAD_CAST"#done");
+	    xmlNewTextChild(pndResult, NULL, BAD_CAST NAME_PIE_TTAG, BAD_CAST"#done");
 	  }
 	  else {
 	    xmlChar* pucTT;
@@ -3079,19 +3085,19 @@ TaskNodeNew(xmlNodePtr pndArg)
 	    
 	    if (IS_PIE_CANCEL(pucTTT)) {
 	      xmlSetProp(pndResult, BAD_CAST"state", BAD_CAST"rejected");
-	      xmlNewTextChild(pndResult, NULL, NAME_PIE_TTAG, BAD_CAST"#rejected");
+	      xmlNewTextChild(pndResult, NULL, BAD_CAST NAME_PIE_TTAG, BAD_CAST"#rejected");
 	    }
 
 	    pucTT = xmlStrdup(BAD_CAST"#");
 	    pucTT = xmlStrcat(pucTT, pucT);
-	    xmlNewTextChild(pndResult, NULL, NAME_PIE_TTAG, pucTT);
+	    xmlNewTextChild(pndResult, NULL, BAD_CAST NAME_PIE_TTAG, pucTT);
 	    xmlFree(pucTT);
 	  }
 	  xmlFree(pucTTT);
 	  xmlFree(pucT);
 	}
       }
-      xmlNewTextChild(pndResult, NULL, NAME_PIE_TTAG, BAD_CAST"#task");
+      xmlNewTextChild(pndResult, NULL, BAD_CAST NAME_PIE_TTAG, BAD_CAST"#task");
     }
     pcre2_match_data_free(match_data);   /* Release memory used for the match */
   }
@@ -3123,7 +3129,7 @@ RecognizeTasks(xmlNodePtr pndArg)
 
 	/*! detect if following sibling is a list element
 	*/
-	if ((pndList = domGetFirstChild(pndTask, NAME_PIE_LIST)) != NULL) {
+	if ((pndList = domGetFirstChild(pndTask, BAD_CAST NAME_PIE_LIST)) != NULL) {
 	  /* there is an list of details already */
 	}
 	else if (IS_NODE_PIE_LIST(pndArg->next) && IS_ENODE(pndArg->next->children)) {
@@ -3182,10 +3188,10 @@ RecognizeFigures(xmlNodePtr pndArg)
 	  xmlChar *pucT;
 	  xmlNodePtr pndImage;
 
-	  pndImage = xmlNewChild(pndArg, NULL, NAME_PIE_IMG,NULL);
+	  pndImage = xmlNewChild(pndArg, NULL, BAD_CAST NAME_PIE_IMG,NULL);
 	  xmlSetProp(pndImage, BAD_CAST "type", BAD_CAST resMimeGetTypeStr(t));
-	  if ((pucT = xmlStrchr(pndChild->content, ',')) != NULL && pucT++) {
-	    xmlNewChild(pndImage, NULL, NAME_BASE64, pucT);
+	  if ((pucT = BAD_CAST xmlStrchr(pndChild->content, (xmlChar)',')) != NULL && pucT++) {
+	    xmlNewChild(pndImage, NULL, BAD_CAST NAME_BASE64, pucT);
 	  }
 	  xmlNodeSetContent(pndChild,NULL);
 	  for ( ; pndChild; pndChild = RecognizeFigures(pndChild));
@@ -3223,8 +3229,8 @@ RecognizeFigures(xmlNodePtr pndArg)
 
 	      pndRelease = pndArg->children;
 	      xmlUnlinkNode(pndRelease);
-	      xmlNodeSetName(pndArg, NAME_PIE_FIG);
-	      pndForAppend = xmlNewChild(pndArg, NULL, NAME_PIE_IMG, NULL);
+	      xmlNodeSetName(pndArg, BAD_CAST NAME_PIE_FIG);
+	      pndForAppend = xmlNewChild(pndArg, NULL, BAD_CAST NAME_PIE_IMG, NULL);
 	      xmlSetProp(pndForAppend, BAD_CAST "src", pucRelease);
 
 	      if (pcre2_get_ovector_count(match_data) > 2 && ovector[7] - ovector[6] > 0) {
@@ -3236,12 +3242,12 @@ RecognizeFigures(xmlNodePtr pndArg)
 		//pucT = resPathGetBasenameStr(pucRelease);
 	      }
 	      if (pucT != NULL && xmlStrlen(pucT) > 0) {
-		xmlNewChild(pndArg, NULL, NAME_PIE_HEADER, pucT);
+		xmlNewChild(pndArg, NULL, BAD_CAST NAME_PIE_HEADER, pucT);
 	      }
 	      xmlFree(pucT);
 	      xmlFree(pucRelease);
 	      xmlFreeNode(pndRelease);
-	      xmlNewTextChild(pndArg, NULL, NAME_PIE_TTAG, BAD_CAST"#fig");
+	      xmlNewTextChild(pndArg, NULL, BAD_CAST NAME_PIE_TTAG, BAD_CAST"#fig");
 	    }
 	  }
 	  /* else ignore empty p elements */

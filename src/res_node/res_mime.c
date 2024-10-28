@@ -360,7 +360,7 @@ resMimeGetTypeFromDataBase64(const xmlChar *pucArg)
 
     for (i = MIME_END - 1, j = 5; i > MIME_UNDEFINED; i--) {
       if (StringBeginsWith((char *)&pucArg[j], resMimeTypeStr[i])) {
-	j += xmlStrlen(resMimeTypeStr[i]);
+	j += xmlStrlen(BAD_CAST resMimeTypeStr[i]);
 	if (StringBeginsWith((char *)&pucArg[j], ";base64,") && pucArg[j + 8] != '\0') {
 	  return (RN_MIME_TYPE)i;
 	}

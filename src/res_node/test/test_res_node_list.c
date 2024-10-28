@@ -176,7 +176,7 @@ resNodeTestList(void)
     else if ((prnTTT = resNodeAddChildNew(prnTT, BAD_CAST"Images/0987654321.JPG")) == NULL) {
       printf("Error resNodeAddChildNew() ...\n");
     }
-    else if (resNodeAddChild(prnT, resNodeCommentNew(prnTTT)) == NULL) {
+    else if (resNodeAddChild(prnT, resNodeCommentNew(prnTTT)) == FALSE) {
       printf("Error resNodeCommentNew() ...\n");
     }
     else if (resNodeAddChildNew(prnTT, BAD_CAST"Settings/default.ini") == NULL) {

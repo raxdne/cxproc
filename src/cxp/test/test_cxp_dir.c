@@ -172,7 +172,7 @@ dirTest(cxpContextPtr pccArg)
     else if ((prnT = resNodeDirNew(BAD_CAST TESTPREFIX)) == NULL) {
       printf("Error resNodeDirNew()\n");
     }
-    else if (xmlSetProp(pndT, BAD_CAST"prefix", resNodeGetNameNormalized(prnT)) == FALSE) {
+    else if (xmlSetProp(pndT, BAD_CAST"prefix", resNodeGetNameNormalized(prnT)) == NULL) {
       printf("Error xmlSetProp()\n");
     }
     else if ((pndTT = xmlNewChild(pndDir, NULL, NAME_DIR, NULL)) == NULL) {
@@ -181,7 +181,7 @@ dirTest(cxpContextPtr pccArg)
     else if ((prnTT = resNodeDirNew(BAD_CAST TESTPREFIX "xml/")) == NULL) {
       printf("Error resNodeDirNew()\n");
     }
-    else if (xmlSetProp(pndTT, BAD_CAST"prefix", resNodeGetNameNormalized(prnTT)) == FALSE) {
+    else if (xmlSetProp(pndTT, BAD_CAST"prefix", resNodeGetNameNormalized(prnTT)) == NULL) {
       printf("Error xmlSetProp()\n");
     }
     else if (SetTopPrefix(NULL, NULL, NULL) == TRUE) {

@@ -21,15 +21,15 @@
 
 #include <cxp/cxp_dtd.h>
 
-#define IS_PIE_OK(P) (xmlStrstr(P, BAD_CAST STR_UTF8_HEAVY_CHECK_MARK) != NULL || xmlStrstr(P, "&#x2714;") != NULL)
+#define IS_PIE_OK(P) (xmlStrstr(P, BAD_CAST STR_UTF8_HEAVY_CHECK_MARK) != NULL || xmlStrstr(P, BAD_CAST "&#x2714;") != NULL)
 
-#define IS_PIE_CANCEL(P) (xmlStrstr(P, BAD_CAST STR_UTF8_HEAVY_BALLOT_X) != NULL || xmlStrstr(P, "&#x2718;") != NULL)
+#define IS_PIE_CANCEL(P) (xmlStrstr(P, BAD_CAST STR_UTF8_HEAVY_BALLOT_X) != NULL || xmlStrstr(P, BAD_CAST "&#x2718;") != NULL)
 
-#define STR_PIE_IMPACT_HIGH (BAD_CAST"+++")
+#define STR_PIE_IMPACT_HIGH "+++"
 
-#define STR_PIE_IMPACT_MEDIUM (BAD_CAST"++")
+#define STR_PIE_IMPACT_MEDIUM "++"
 
-#define STR_PIE_HIDDEN (BAD_CAST";")
+#define STR_PIE_HIDDEN ";"
 
 /* 
    definition of element names (s. pie.dtd)

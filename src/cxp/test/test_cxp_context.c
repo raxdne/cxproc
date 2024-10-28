@@ -260,7 +260,6 @@ cxpCtxtTest(cxpContextPtr pccArg)
   if (RUNTEST) {
     xmlDocPtr pdocTest;
     xmlNodePtr pndXml;
-    xmlNodePtr pndPie;
     resNodePtr prnT = NULL;
     cxpContextPtr pccT;
 
@@ -294,10 +293,8 @@ cxpCtxtTest(cxpContextPtr pccArg)
     xmlChar* pucTTT = NULL;
     xmlDocPtr pdocTest;
     xmlNodePtr pndMake;
-    xmlNodePtr pndPie;
     xmlNodePtr pndT;
     xmlNodePtr pndXml;
-    resNodePtr prnT = NULL;
     cxpContextPtr pccT = NULL;
     cxpContextPtr pccTT = NULL;
 

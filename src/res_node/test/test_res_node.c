@@ -1167,13 +1167,13 @@ resNodeTest(void)
     if ((prnT = resNodeDirNew(BAD_CAST"test/dummy.txt")) == NULL) {
       xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeDirNew()\n");
     }
-    else if (resNodeAddSibling(prnT, resNodeDirNew(BAD_CAST"a.png")) == NULL) {
+    else if (resNodeAddSibling(prnT, resNodeDirNew(BAD_CAST"a.png")) == FALSE) {
       xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeAddSibling()\n");
     }
-    else if (resNodeAddSibling(prnT, resNodeDirNew(BAD_CAST"b.png")) == NULL) {
+    else if (resNodeAddSibling(prnT, resNodeDirNew(BAD_CAST"b.png")) == FALSE) {
       xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeAddSibling()\n");
     }
-    else if (resNodeAddSibling(prnT, resNodeDirNew(BAD_CAST"c.png")) == NULL) {
+    else if (resNodeAddSibling(prnT, resNodeDirNew(BAD_CAST"c.png")) == FALSE) {
       xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeAddSibling()\n");
     }
     else if (resNodeGetLength(prnT) != 1) {
@@ -1207,13 +1207,13 @@ resNodeTest(void)
     if ((prnT = resNodeDirNew(BAD_CAST"test/")) == NULL) {
       xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeDirNew()\n");
     }
-    else if (resNodeAddChildNew(prnT, BAD_CAST"a.png") == FALSE) {
+    else if (resNodeAddChildNew(prnT, BAD_CAST"a.png") == NULL) {
       xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeAddChildNew()\n");
     }
-    else if (resNodeAddChildNew(prnT, BAD_CAST"b.png") == FALSE) {
+    else if (resNodeAddChildNew(prnT, BAD_CAST"b.png") == NULL) {
       xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeAddChildNew()\n");
     }
-    else if (resNodeAddChildNew(prnT, BAD_CAST"c.png") == FALSE) {
+    else if (resNodeAddChildNew(prnT, BAD_CAST"c.png") == NULL) {
       xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeAddChildNew()\n");
     }
     else if (resNodeGetParent(resNodeGetChild(prnT)) != prnT) {
@@ -1375,16 +1375,16 @@ resNodeTest(void)
     if ((prnT = resNodeDirNew(BAD_CAST TESTPREFIX)) == NULL) {
       xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeDirNew()\n");
     }
-    else if (resNodeAddChildNew(prnT, BAD_CAST"a.txt") == FALSE) {
+    else if (resNodeAddChildNew(prnT, BAD_CAST"a.txt") == NULL) {
       xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeAddChildNew()\n");
     }
-    else if (resNodeSetContentPtr(prnT, pucT, xmlStrlen(pucT) + 1) == FALSE) {
+    else if (resNodeSetContentPtr(prnT, pucT, xmlStrlen(pucT) + 1) == NULL) {
       xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeSetContentPtr()\n");
     }
-    else if (resNodeAddChildNew(prnT, BAD_CAST"b.png") == FALSE) {
+    else if (resNodeAddChildNew(prnT, BAD_CAST"b.png") == NULL) {
       xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeAddChildNew()\n");
     }
-    else if (resNodeAddChildNew(prnT, BAD_CAST"c.png") == FALSE) {
+    else if (resNodeAddChildNew(prnT, BAD_CAST"c.png") == NULL) {
       xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeAddChildNew()\n");
     }
     else if ((prnTT = resNodeDirNew(BAD_CAST TESTPREFIX "empty/")) == NULL) {
@@ -1880,7 +1880,7 @@ resNodeTest(void)
     }
     else if (resPathIsEquivalent(resNodeGetNameNormalized(prnT), pucTT) == FALSE) {
     }
-    else if (resNodeSetNameBaseNative(prnT,"t.txt") == FALSE) {
+    else if (resNodeSetNameBaseNative(prnT,(char *)"t.txt") == FALSE) {
     }
     else if (xmlStrcasecmp(resNodeGetNameBase(prnT),BAD_CAST"t.txt") != 0) {
     }

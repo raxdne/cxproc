@@ -116,7 +116,7 @@ GetParentElement(cmark_node* pcmnArg, xmlNodePtr pndArgParent)
 
       for (; iDepth < (cmarkNodeGetDepth(pcmnArg) - 1); iDepth++) {
 	/* create empty SECTION elements */
-	pndResult = xmlNewChild(pndResult, NULL, NAME_PIE_SECTION, NULL);
+	pndResult = xmlNewChild(pndResult, NULL, BAD_CAST NAME_PIE_SECTION, NULL);
       }
 
       if (pndResult) {
@@ -126,7 +126,7 @@ GetParentElement(cmark_node* pcmnArg, xmlNodePtr pndArgParent)
 	pndResult = pndArgParent;
 	for (i = 1; i < cmarkNodeGetDepth(pcmnArg); i++) {
 	  /* create empty SECTION elements */
-	  pndResult = xmlNewChild(pndResult, NULL, NAME_PIE_SECTION, NULL);
+	  pndResult = xmlNewChild(pndResult, NULL, BAD_CAST NAME_PIE_SECTION, NULL);
 	}
       }
     }
@@ -179,14 +179,14 @@ cmarkTreeToDOM(xmlNodePtr pndArgBlock, xmlNodePtr pndArg, cmark_node* pcmnArg)
     }
     /* Block */
     else if (pcmnArg->type == CMARK_NODE_DOCUMENT) {
-      pndResult = xmlNewChild(pndArg, NULL, NAME_PIE_BLOCK, NULL);
+      pndResult = xmlNewChild(pndArg, NULL, BAD_CAST NAME_PIE_BLOCK, NULL);
       SetTypeAttr(pndResult, RMODE_MD);
       for (pndT = pndResult,  pcmnIter = pcmnArg->first_child; pcmnIter; pcmnIter = pcmnIter->next) {
 	pndT = cmarkTreeToDOM(pndResult, pndT, pcmnIter);
       }
     }
     else if (pcmnArg->type == CMARK_NODE_BLOCK_QUOTE) {
-      pndT = xmlNewChild(pndArg, NULL, NAME_PIE_BLOCKQUOTE, NULL);
+      pndT = xmlNewChild(pndArg, NULL, BAD_CAST NAME_PIE_BLOCKQUOTE, NULL);
       xmlAddChild(pndT, xmlNewComment(BAD_CAST"TODO: CMARK_NODE_BLOCK_QUOTE"));
       for (pcmnIter = pcmnArg->first_child; pcmnIter; pcmnIter = pcmnIter->next) {
 	cmarkTreeToDOM(pndArgBlock, pndT, pcmnIter);
@@ -195,10 +195,10 @@ cmarkTreeToDOM(xmlNodePtr pndArgBlock, xmlNodePtr pndArg, cmark_node* pcmnArg)
     else if (pcmnArg->type == CMARK_NODE_LIST) {
       if (IS_NODE_PIE_PAR(pndArg->last)) {
 	/* append this list to its preceeding paragraph */
-	pndT = xmlNewChild(pndArg->last, NULL, NAME_PIE_LIST, NULL);
+	pndT = xmlNewChild(pndArg->last, NULL, BAD_CAST NAME_PIE_LIST, NULL);
       }
       else {
-	pndT = xmlNewChild(pndArg, NULL, NAME_PIE_LIST, NULL);
+	pndT = xmlNewChild(pndArg, NULL, BAD_CAST NAME_PIE_LIST, NULL);
       }
 
       if (pcmnArg->as.list.list_type == 2) {
@@ -216,26 +216,26 @@ cmarkTreeToDOM(xmlNodePtr pndArgBlock, xmlNodePtr pndArg, cmark_node* pcmnArg)
     }
     else if (pcmnArg->type == CMARK_NODE_CODE_BLOCK) {
       pucT = StringEncodeXmlDefaultEntitiesNew(BAD_CAST pcmnArg->data);
-      pndT = xmlNewChild(pndArg, NULL, NAME_PIE_PRE, pucT);
+      pndT = xmlNewChild(pndArg, NULL, BAD_CAST NAME_PIE_PRE, pucT);
       xmlFree(pucT);
     }
     else if (pcmnArg->type == CMARK_NODE_HTML_BLOCK) {
       xmlNodePtr pndNew = NULL;
 
-      if (StringBeginsWith(pcmnArg->data,BAD_CAST "<" NAME_PIE_CSV ">")) {
+      if (StringBeginsWith((char *)pcmnArg->data, "<" NAME_PIE_CSV ">")) {
 	xmlChar *puc0;
 	xmlChar *puc1 = NULL;
 
-	pndNew = xmlNewChild(pndArg, NULL, NAME_PIE_IMPORT, NULL);
+	pndNew = xmlNewChild(pndArg, NULL, BAD_CAST NAME_PIE_IMPORT, NULL);
 	xmlSetProp(pndNew, BAD_CAST "type", BAD_CAST NAME_PIE_CSV);
 	
-	if ((puc0 = xmlStrstr(pcmnArg->data,BAD_CAST "<" NAME_PIE_CSV ">")) != NULL) {
+	if ((puc0 = BAD_CAST xmlStrstr(BAD_CAST pcmnArg->data, BAD_CAST "<" NAME_PIE_CSV ">")) != NULL) {
 	  puc0 += xmlStrlen(BAD_CAST "<" NAME_PIE_CSV ">");
 	  while (isspace(*puc0)) { puc0++; }
-	  if ((puc1 = xmlStrstr(pcmnArg->data,BAD_CAST "</" NAME_PIE_CSV ">")) != NULL) {
+	  if ((puc1 = BAD_CAST xmlStrstr(BAD_CAST pcmnArg->data, BAD_CAST "</" NAME_PIE_CSV ">")) != NULL) {
 	    xmlChar *pucContent;
 
-	    if (puc1 > puc0 && (pucContent = xmlStrndup(puc0, puc1 - puc0)) != NULL) {
+	    if (puc1 > puc0 && (pucContent = xmlStrndup(puc0, (int)(puc1 - puc0))) != NULL) {
 	      /*!\bug XML entities, StringEncodeXmlDefaultEntitiesNew() would cause problems with ';' */
 	      xmlNodeSetContent(pndNew, pucContent);
 	      xmlFree(pucContent);
@@ -243,19 +243,19 @@ cmarkTreeToDOM(xmlNodePtr pndArgBlock, xmlNodePtr pndArg, cmark_node* pcmnArg)
 	  }
 	}
       }
-      else if (StringBeginsWith(pcmnArg->data,BAD_CAST "<" NAME_PIE_SCRIPT ">")) {
+      else if (StringBeginsWith((char *)pcmnArg->data, "<" NAME_PIE_SCRIPT ">")) {
 	xmlChar *puc0;
 	xmlChar *puc1 = NULL;
 
-	pndNew = xmlNewChild(pndArg, NULL, NAME_PIE_IMPORT, NULL);
+	pndNew = xmlNewChild(pndArg, NULL, BAD_CAST NAME_PIE_IMPORT, NULL);
 	xmlSetProp(pndNew, BAD_CAST "type", BAD_CAST NAME_PIE_SCRIPT);
 	
-	if ((puc0 = xmlStrstr(pcmnArg->data,BAD_CAST "<" NAME_PIE_SCRIPT ">")) != NULL) {
+	if ((puc0 = BAD_CAST xmlStrstr(BAD_CAST pcmnArg->data, BAD_CAST "<" NAME_PIE_SCRIPT ">")) != NULL) {
 	  puc0 += xmlStrlen(BAD_CAST "<" NAME_PIE_SCRIPT ">");
-	  if ((puc1 = xmlStrstr(pcmnArg->data,BAD_CAST "</" NAME_PIE_SCRIPT ">")) != NULL) {
+	  if ((puc1 = BAD_CAST xmlStrstr(BAD_CAST pcmnArg->data, BAD_CAST "</" NAME_PIE_SCRIPT ">")) != NULL) {
 	    xmlChar *pucContent;
 
-	    if (puc1 > puc0 && (pucContent = xmlStrndup(puc0, puc1 - puc0)) != NULL) {
+	    if (puc1 > puc0 && (pucContent = xmlStrndup(puc0, (int)(puc1 - puc0))) != NULL) {
 	      pucT = StringEncodeXmlDefaultEntitiesNew(pucContent);
 	      xmlNodeSetContent(pndNew, pucT);
 	      //xmlAddChild(pndArg, xmlNewComment(pucT));
@@ -268,7 +268,7 @@ cmarkTreeToDOM(xmlNodePtr pndArgBlock, xmlNodePtr pndArg, cmark_node* pcmnArg)
       else {
 	xmlDocPtr pdocHtml;
 
-	pdocHtml = xmlParseMemory(BAD_CAST pcmnArg->data,xmlStrlen(BAD_CAST pcmnArg->data)); /* XHTML only */
+	pdocHtml = xmlParseMemory((const char *)pcmnArg->data, xmlStrlen(BAD_CAST pcmnArg->data)); /* XHTML only */
 	if ((pndNew = xmlDocGetRootElement(pdocHtml)) != NULL && IS_NODE_PIE_HTML(pndNew) && pndNew->children != NULL) {
 	  xmlUnlinkNode(pndNew);
 	  xmlNodeSetName(pndNew, BAD_CAST"block");
@@ -288,18 +288,18 @@ cmarkTreeToDOM(xmlNodePtr pndArgBlock, xmlNodePtr pndArg, cmark_node* pcmnArg)
       RN_MIME_TYPE t;
 
       if (pcmnArg->first_child != NULL && pcmnArg->first_child == pcmnArg->last_child && pcmnArg->first_child->data != NULL && resMimeIsPicture((t = resMimeGetTypeFromDataBase64(pcmnArg->first_child->data)))) {
-	xmlChar *pucT;
+	xmlChar *pucTT;
 	xmlNodePtr pndImage;
 
-	pndImage = xmlNewChild(pndArg, NULL, NAME_PIE_IMG, NULL);
+	pndImage = xmlNewChild(pndArg, NULL, BAD_CAST NAME_PIE_IMG, NULL);
 	xmlSetProp(pndImage, BAD_CAST "type", BAD_CAST resMimeGetTypeStr(t));
 
-	if ((pucT = xmlStrchr(pcmnArg->first_child->data, ',')) != NULL && pucT++) {
-	  xmlNewChild(pndImage, NULL, NAME_BASE64, pucT);
+	if ((pucTT = BAD_CAST xmlStrchr(pcmnArg->first_child->data, ',')) != NULL && pucTT++) {
+	  xmlNewChild(pndImage, NULL, BAD_CAST NAME_BASE64, pucTT);
 	}
       }
       else {
-        pndT = xmlNewChild(pndArg, NULL, NAME_PIE_PAR, NULL);
+        pndT = xmlNewChild(pndArg, NULL, BAD_CAST NAME_PIE_PAR, NULL);
         for (pcmnIter = pcmnArg->first_child; pcmnIter; pcmnIter = pcmnIter->next) {
 	  cmarkTreeToDOM(pndArgBlock, pndT, pcmnIter);
         }
@@ -308,16 +308,16 @@ cmarkTreeToDOM(xmlNodePtr pndArgBlock, xmlNodePtr pndArg, cmark_node* pcmnArg)
     else if (pcmnArg->type == CMARK_NODE_HEADING) {
       pndArg = GetParentElement(pcmnArg, pndArgBlock);
 
-      pndResult = xmlNewChild(pndArg, NULL, NAME_PIE_SECTION, NULL);
+      pndResult = xmlNewChild(pndArg, NULL, BAD_CAST NAME_PIE_SECTION, NULL);
       if (pcmnArg->first_child) {
-	pndT = xmlNewChild(pndResult, NULL, NAME_PIE_HEADER, NULL);
+	pndT = xmlNewChild(pndResult, NULL, BAD_CAST NAME_PIE_HEADER, NULL);
 	for (pcmnIter = pcmnArg->first_child; pcmnIter; pcmnIter = pcmnIter->next) {
 	  cmarkTreeToDOM(pndArgBlock, pndT, pcmnIter);
 	}
       }
     }
     else if (pcmnArg->type == CMARK_NODE_THEMATIC_BREAK) {
-      pndT = xmlNewChild(pndArg, NULL, NAME_PIE_RULER, NULL);
+      pndT = xmlNewChild(pndArg, NULL, BAD_CAST NAME_PIE_RULER, NULL);
     }
     /* Inline */
     else if (pcmnArg->type == CMARK_NODE_TEXT) {
@@ -344,7 +344,7 @@ cmarkTreeToDOM(xmlNodePtr pndArgBlock, xmlNodePtr pndArg, cmark_node* pcmnArg)
     }
     else if (pcmnArg->type == CMARK_NODE_CODE) {
       pucT = StringEncodeXmlDefaultEntitiesNew(BAD_CAST pcmnArg->data);
-      pndT = xmlNewChild(pndArg, NULL, NAME_PIE_TT, pucT);
+      pndT = xmlNewChild(pndArg, NULL, BAD_CAST NAME_PIE_TT, pucT);
       xmlFree(pucT);
     }
     else if (pcmnArg->type == CMARK_NODE_HTML_INLINE) {
@@ -353,17 +353,17 @@ cmarkTreeToDOM(xmlNodePtr pndArgBlock, xmlNodePtr pndArg, cmark_node* pcmnArg)
       xmlAddChild(pndArg, xmlNewComment(BAD_CAST"CMARK_NODE_CUSTOM_INLINE"));
     }
     else if (pcmnArg->type == CMARK_NODE_EMPH) {
-      pndT = xmlNewChild(pndArg, NULL, NAME_PIE_EM, NULL);
+      pndT = xmlNewChild(pndArg, NULL, BAD_CAST NAME_PIE_EM, NULL);
       cmarkTreeToDOM(pndArgBlock, pndT, pcmnArg->first_child);
     }
     else if (pcmnArg->type == CMARK_NODE_STRONG) {
-      pndT = xmlNewChild(pndArg, NULL, NAME_PIE_STRONG, NULL);
+      pndT = xmlNewChild(pndArg, NULL, BAD_CAST NAME_PIE_STRONG, NULL);
       cmarkTreeToDOM(pndArgBlock, pndT, pcmnArg->first_child);
     }
     else if (pcmnArg->type == CMARK_NODE_LINK) {
-      pndT = xmlNewChild(pndArg, NULL, NAME_PIE_LINK, NULL);
+      pndT = xmlNewChild(pndArg, NULL, BAD_CAST NAME_PIE_LINK, NULL);
       if (pcmnArg->first_child != NULL && pcmnArg->first_child == pcmnArg->last_child) {
-	if (StringBeginsWith(BAD_CAST pcmnArg->first_child->data, BAD_CAST "mailto:")) {
+	if (StringBeginsWith((char *) pcmnArg->first_child->data, "mailto:")) {
 	  xmlAddChild(pndT, xmlNewText(BAD_CAST & (pcmnArg->first_child->data[7])));
 	  xmlSetProp(pndT, BAD_CAST "href", pcmnArg->as.link.url);
 	}
@@ -381,16 +381,16 @@ cmarkTreeToDOM(xmlNodePtr pndArgBlock, xmlNodePtr pndArg, cmark_node* pcmnArg)
       RN_MIME_TYPE t;
       xmlNodePtr pndImage;
 
-      pndImage = xmlNewChild(pndArg, NULL, NAME_PIE_IMG, NULL);
+      pndImage = xmlNewChild(pndArg, NULL, BAD_CAST NAME_PIE_IMG, NULL);
 
       t = resMimeGetTypeFromDataBase64(pcmnArg->as.link.url);
       if (resMimeIsPicture(t)) {
-	xmlChar *pucT;
+	xmlChar *pucTT;
 
 	xmlSetProp(pndImage, BAD_CAST "type", BAD_CAST resMimeGetTypeStr(t));
 
-	if ((pucT = xmlStrchr(pcmnArg->as.link.url, ',')) != NULL && pucT++) {
-	  xmlNewChild(pndImage, NULL, NAME_BASE64, pucT);
+	if ((pucTT = BAD_CAST xmlStrchr(pcmnArg->as.link.url, ',')) != NULL && pucTT++) {
+	  xmlNewChild(pndImage, NULL, BAD_CAST NAME_BASE64, pucTT);
 	}
       }
       else {
@@ -403,15 +403,15 @@ cmarkTreeToDOM(xmlNodePtr pndArgBlock, xmlNodePtr pndArg, cmark_node* pcmnArg)
 
       if (pcmnArg->next == NULL && pcmnArg->prev == NULL && !IS_NODE_PIE_LIST(pndArg->parent)) {
 	/* its an image in a single paragraph */
-	xmlNodeSetName(pndArg, NAME_PIE_FIG);
+	xmlNodeSetName(pndArg, BAD_CAST NAME_PIE_FIG);
 	xmlAddChild(pndArg, pndImage);
 
 	if (pcmnArg->first_child != NULL && STR_IS_NOT_EMPTY(pcmnArg->first_child->data)) {
-	  pndT = xmlNewChild(pndArg, NULL, NAME_PIE_HEADER, pcmnArg->first_child->data);
+	  pndT = xmlNewChild(pndArg, NULL, BAD_CAST NAME_PIE_HEADER, pcmnArg->first_child->data);
 	}
 
 	//cmarkTreeToDOM(pndArg, pndImage, pcmnArg->first_child);
-	xmlNewTextChild(pndArg, NULL, NAME_PIE_TTAG, BAD_CAST "#fig");
+	xmlNewTextChild(pndArg, NULL, BAD_CAST NAME_PIE_TTAG, BAD_CAST "#fig");
       }
       else {
 	/* the image is inline (prefix and/or postfix text) */
@@ -422,7 +422,7 @@ cmarkTreeToDOM(xmlNodePtr pndArgBlock, xmlNodePtr pndArg, cmark_node* pcmnArg)
       xmlAddChild(pndArg, xmlNewComment(BAD_CAST"CMARK_NODE_LAST_INLINE"));
     }
     else if (pcmnArg->type == CMARK_NODE_HRULE) {
-      pndT = xmlNewChild(pndArg, NULL, NAME_PIE_RULER, NULL);
+      pndT = xmlNewChild(pndArg, NULL, BAD_CAST NAME_PIE_RULER, NULL);
     }
     else {
       /* recursion without any footprint of pcmnArg itself */
@@ -451,7 +451,7 @@ ParseMarkdownBuffer(xmlNodePtr pndArgTop, xmlChar* pucArg)
   if (STR_IS_NOT_EMPTY(pucArg)) {
     cmark_node* doc;
 
-    if ((doc = cmark_parse_document(pucArg, strlen(pucArg), CMARK_OPT_DEFAULT)) != NULL) {
+    if ((doc = cmark_parse_document((const char *)pucArg, strlen((const char *)pucArg), CMARK_OPT_DEFAULT)) != NULL) {
       cmarkTreeToDOM(pndArgTop, pndArgTop, doc);
       cmark_node_free(doc);
       pndResult = pndArgTop;

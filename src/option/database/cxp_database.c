@@ -301,8 +301,6 @@ dbProcessDbNodeToPlain(xmlNodePtr pndArgDb, cxpContextPtr pccArg)
 	  xmlNodePtr pndQueryQuery = pndQuery->children;
 
 	  if (IS_VALID_NODE(pndQueryQuery) && IS_NODE_QUERY(pndQueryQuery)) { /* result of first query is the query */
-	    xmlChar *pucQueryResult;
-
 	    pucQueryResult = dbProcessQueryNodeToPlain(prnDb, pndQueryQuery, (DB_PROC_ENTRIES|DB_PROC_LINES), pccArg);
 	    if (pucQueryResult) {
 	      pndQuery = xmlNewNode(NULL, NAME_QUERY);

@@ -333,7 +333,7 @@ domGetPropInt(xmlNodePtr pndArg, xmlChar *pucNameAttr, int iDefault)
   xmlChar *pucAttr = domGetPropValuePtr(pndArg, pucNameAttr);
 
   if (STR_IS_NOT_EMPTY(pucAttr)) {
-    iResult = atoi(pucAttr);
+    iResult = atoi((const char *)pucAttr);
   }
   else {
     iResult = iDefault;
@@ -808,7 +808,7 @@ domMimeType(xmlDocPtr pdocArg)
 	eTypeResult = MIME_TEXT_HTML;
       }
 #ifdef HAVE_PIE
-      else if (xmlStrEqual(pndRoot->name,NAME_PIE_PIE)) {
+      else if (xmlStrEqual(pndRoot->name,BAD_CAST NAME_PIE_PIE)) {
 	eTypeResult = MIME_APPLICATION_PIE_XML;
       }
 #endif
@@ -1441,13 +1441,13 @@ domAddNodeToError(xmlDocPtr pdocArg, xmlNodePtr pndArg)
   assert(pdocArg);
   pndRoot = xmlDocGetRootElement(pdocArg);
   assert(pndRoot);
-  pndMeta = domGetFirstChild(pndRoot,NAME_META);
+  pndMeta = domGetFirstChild(pndRoot,BAD_CAST NAME_META);
   if (pndMeta == NULL) {
-      pndMeta = xmlNewChild(pndRoot,NULL,NAME_META,NULL);
+      pndMeta = xmlNewChild(pndRoot,NULL,BAD_CAST NAME_META,NULL);
   }
-  pndError = domGetFirstChild(pndMeta,NAME_ERROR);
+  pndError = domGetFirstChild(pndMeta,BAD_CAST NAME_ERROR);
   if (pndError == NULL) {
-    pndError = xmlNewChild(pndMeta,NULL,NAME_ERROR,NULL);
+    pndError = xmlNewChild(pndMeta,NULL,BAD_CAST NAME_ERROR,NULL);
   }
   return xmlAddChild(pndError,pndArg);
 }
@@ -1494,7 +1494,7 @@ domGrepRegExpInTree(xmlNodePtr pndResultArg, xmlNodePtr pndArg, const pcre2_code
 			 NULL);            /* number of elements (NOT size in bytes) */
 
 	if (rc > -1) {
-	  pndMatch = xmlNewChild(pndResultArg,NULL,NAME_MATCH,NULL);
+	  pndMatch = xmlNewChild(pndResultArg,NULL,BAD_CAST NAME_MATCH,NULL);
 	  domSetPropEat(pndMatch, BAD_CAST"xpath", xmlGetNodePath(pndArg));
 	  pndT = xmlNewChild(pndMatch,NULL,pndArg->name,NULL);
 	  //pndT = xmlNewChild(pndT,NULL,pndAttr->name,pucText);
@@ -1528,7 +1528,7 @@ domGrepRegExpInTree(xmlNodePtr pndResultArg, xmlNodePtr pndArg, const pcre2_code
 			 NULL);            /* number of elements (NOT size in bytes) */
 
 	if (rc > -1) {
-	  pndMatch = xmlNewChild(pndResultArg,NULL,NAME_MATCH,NULL);
+	  pndMatch = xmlNewChild(pndResultArg,NULL,BAD_CAST NAME_MATCH,NULL);
 	  domSetPropEat(pndMatch, BAD_CAST"xpath", xmlGetNodePath(pndChild->parent));
 	  xmlNewChild(pndMatch,NULL,pndChild->parent->name,pucText);
 	  /*!\todo split text() into resulting substrings */
@@ -1572,7 +1572,7 @@ domNodeGrepNew(xmlNodePtr pndArg, xmlChar *pucArgGrep)
 
     if (re_grep != NULL) {
     
-      pndResult = xmlNewNode(NULL,NAME_GREP);
+      pndResult = xmlNewNode(NULL,BAD_CAST NAME_GREP);
       if (pndResult != NULL) {
 	xmlSetProp(pndResult, BAD_CAST ((opt_match_pcre & PCRE2_CASELESS) ? "imatch" : "match"), pucArgGrep);
 	if (domGrepRegExpInTree(pndResult,pndArg,re_grep)) {

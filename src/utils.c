@@ -2363,12 +2363,12 @@ dt_parse_iso_date_time_zone(const char* str, size_t len, dt_t *dtp, int *sp) {
 
 	  n += j;
 
-	  if (StringBeginsWith(&p[n], BAD_CAST"CST")) {
+	  if (StringBeginsWith(&p[n], "CST")) {
 	    /* assumption "China Standard Time UTC+08:00" */
 	    o = 8 * 60 * 60;
 	    n += 3;
 	  }
-	  else if (StringBeginsWith(&p[n], BAD_CAST"IST")) {
+	  else if (StringBeginsWith(&p[n], "IST")) {
 	    /* assumption "Indian Standard Time" UTC+05:30 */
 	    o = (5 * 60 + 30) * 60;
 	    n += 3;

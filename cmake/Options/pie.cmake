@@ -72,6 +72,7 @@ IF (CXPROC_PIE)
       ${CXPROC_SRC_DIR}/option/pie/pie_cmark.c
       ${CXPROC_SRC_DIR}/option/pie/pie_cmark.h
       )
+    target_compile_definitions(cpp-check PUBLIC WITH_MARKDOWN)
   ENDIF ()
 
   target_sources(cxproc PUBLIC ${PIE_FILES})
@@ -82,6 +83,9 @@ IF (CXPROC_PIE)
 
   target_sources(cxproc-test PUBLIC ${PIE_FILES})
   target_compile_definitions(cxproc-test PUBLIC HAVE_PIE)
+
+  target_sources(cpp-check PUBLIC ${PIE_FILES})
+  target_compile_definitions(cpp-check PUBLIC HAVE_PIE)
 
 IF (BUILD_TESTING)
   add_test(NAME pie-code

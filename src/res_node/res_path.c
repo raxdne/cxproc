@@ -403,7 +403,7 @@ resPathSkipPrefixFilePtr(xmlChar *pucArgPath)
 
   if (STR_IS_NOT_EMPTY(pucResult)) {
 
-    if (StringBeginsWith(pucResult, "file://")) {
+    if (StringBeginsWith((char *)pucResult, "file://")) {
       pucResult += 7;
     }
     

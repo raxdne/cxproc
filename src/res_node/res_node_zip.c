@@ -111,7 +111,7 @@ zipFileClose(resNodePtr prnArg)
 
   assert(prnArg != NULL);
 
-  if (zip_close(resNodeGetHandleIO(prnArg)) == -1) {
+  if (zip_close((zip_t *)resNodeGetHandleIO(prnArg)) == -1) {
     resNodeSetError(prnArg, rn_error_zip, "Error zip_close('%s')", resNodeGetNameNormalized(prnArg));
   }
   else {
@@ -297,7 +297,7 @@ _zipAppendEntries(resNodePtr prnArgZip, const pcre2_code *re_match, BOOL_T fArgC
       xmlChar *pucNameEncoded = NULL;
 
       if (zip_stat_index((struct zip *)resNodeGetHandleIO(prnArgZip), i, 0, &sb) == 0 && STR_IS_NOT_EMPTY(sb.name) &&
-	  zipGetFileNameDecoded(sb.name, &pucNameEncoded) && STR_IS_NOT_EMPTY(pucNameEncoded)) {
+	  zipGetFileNameDecoded((char *) sb.name, &pucNameEncoded) && STR_IS_NOT_EMPTY(pucNameEncoded)) {
 	resNodePtr prnInZip = NULL;
 	resNodePtr prnAncestor;
 	resNodePtr prnChild = NULL;
@@ -465,12 +465,12 @@ zipDocumentRead(resNodePtr prnArgZip, int iArgOptions)
 	  PrintFormatLog(3, "skip big zip[%i] '%s'", i, sb.name);
 	}
 	else if ((zf = zip_fopen_index((struct zip *)resNodeGetHandleIO(prnArgZip), i, 0)) != NULL) {
-	  long long sum;
+	  long long size;
 	  char buf[BUFFER_LENGTH];
 
 	  PrintFormatLog(3, "zip[%i] of '%s'", i, sb.name);
-	  sum = 0;
-	  while (sum != sb.size) {
+	  
+	  for (size = 0; size != sb.size; ) {
 	    len = zip_fread(zf, buf, sizeof(buf));
 	    if (len < 0) {
 	      PrintFormatLog(1, "zip[%i] read error", i);
@@ -479,7 +479,7 @@ zipDocumentRead(resNodePtr prnArgZip, int iArgOptions)
 	    }
 	    else {
 	      resNodeAppendContent(prnInZip, (void *)buf, len);
-	      sum += len;
+	      size += len;
 	    }
 	  }
 	  zip_fclose(zf);

@@ -874,7 +874,7 @@ resNodeReadContent(resNodePtr prnArg, int iArgMax)
     else if (resNodeGetType(prnArg) == rn_type_file || resNodeGetType(prnArg) == rn_type_stdin) {
       char *pchI = NULL; /*! pointer to collection buffer */
 
-      pchI = xmlMalloc(resNodeGetBlockSize(prnArg));
+      pchI = (char *) xmlMalloc(resNodeGetBlockSize(prnArg));
 
       iLoop = (iArgMax < 1 || iArgMax > 1024 * 1024) ? 1024 : iArgMax;
       do {
@@ -1221,7 +1221,7 @@ resNodeReadDoc(resNodePtr prnArg)
   else if (prnArg != NULL && prnArg->pdocContent == NULL && prnArg->pContent != NULL && resMimeIsXml(prnArg->eMimeType) &&
 	(StringBeginsWith(prnArg->pContent, "<?xml version=") || StringBeginsWith(prnArg->pContent, "<!DOCTYPE ") ||
 	 StringBeginsWith(prnArg->pContent, "<html>"))) {
-      prnArg->pdocContent = xmlParseMemory(prnArg->pContent, prnArg->liSizeContent);
+      prnArg->pdocContent = xmlParseMemory((const char *)prnArg->pContent, prnArg->liSizeContent);
       pdocResult = prnArg->pdocContent;
     } 
   else if (resNodeIsError(prnArg)) {

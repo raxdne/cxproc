@@ -190,14 +190,6 @@ cxpCtxtCgiParse(cxpContextPtr pccArg)
   pnsCxp = xmlNewNs(pndMake, BAD_CAST CXP_VER_URL, BAD_CAST "cxp");
   xmlSetNs(pndMake, pnsCxp);
 
-#if 0
-  /* debugging of CGI calls */
-  pndMake = xmlNewChild(pndMake, NULL, NAME_XML, NULL);
-  xmlSetProp(pndMake, BAD_CAST "name", BAD_CAST "-");
-  pndMake = xmlNewChild(pndMake, NULL, NAME_XML, NULL);
-  xmlSetProp(pndMake, BAD_CAST "eval", BAD_CAST "no");
-#endif
-
   /*
     detect all CGI variables
   */
@@ -379,12 +371,6 @@ cxpCtxtCgiParse(cxpContextPtr pccArg)
 	}
       }
       else if (resNodeReadStatus(prnTest) && resNodeIsFile(prnTest)) {
-	resNodePtr prnContent = NULL;
-	RN_MIME_TYPE iMimeType = 0;
-
-	prnContent = resNodeGetLastDescendant(prnTest);
-	iMimeType = resNodeGetMimeType(prnContent);
-
 	if (cxpCtxtAccessIsPermitted(pccArg, prnTest) == FALSE) {
 	  // access error
 	}
@@ -504,7 +490,7 @@ cxpCtxtCgiParse(cxpContextPtr pccArg)
 		xmlNodePtr pndVariable = NULL;
 
 		// cxpCtxtLogPrint(pccArg, 1, "CGI: '%s' = '%s'", pucName, pucValue);
-		pndVariable = xmlNewChild(pndXsl, NULL, "variable", NULL);
+		pndVariable = xmlNewChild(pndXsl, NULL, BAD_CAST "variable", NULL);
 		xmlSetProp(pndVariable, BAD_CAST "name", pucName);
 		xmlSetProp(pndVariable, BAD_CAST "select", pucValue);
 	      }
@@ -636,8 +622,8 @@ cxpProcessCGICopyNode(xmlNodePtr pndArgCopy, cxpContextPtr pccArg)
 	     "Content-Type: text/plain\r\n\r\n"
 	     "Cxproc %s error:\r\n  '%s' = '%s'\r\n  '%s' = '%s'\r\n",
 	     fMove ? "move" : "copy",
-	     pucFrom, resNodeGetErrorMsg(prnFrom) ? resNodeGetErrorMsg(prnFrom) : "",
-	     pucTo, resNodeGetErrorMsg(prnTo) ? resNodeGetErrorMsg(prnTo) : "");
+	     pucFrom, (resNodeGetErrorMsg(prnFrom) != NULL) ? resNodeGetErrorMsg(prnFrom) : BAD_CAST "",
+	     pucTo, (resNodeGetErrorMsg(prnTo) != NULL) ? resNodeGetErrorMsg(prnTo) : BAD_CAST "");
     }
     else {
       fResult = TRUE;
