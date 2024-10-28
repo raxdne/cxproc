@@ -407,12 +407,12 @@ addUrlEncoding(xmlNodePtr pndArg)
   xmlChar *pucAttrName;
   xmlNodePtr pndChild;
 
-  if (IS_NODE_PIE(pndArg) || IS_NODE_ARCHIVE(pndArg)) {
+  if (IS_NODE_PIE(pndArg)) {
     for (pndChild=pndArg->children; pndChild; pndChild=pndChild->next) {
       addUrlEncoding(pndChild);
     }
   }
-  else if (IS_NODE_DIR(pndArg)) {
+  else if (IS_NODE_DIR(pndArg) || IS_NODE_ARCHIVE(pndArg) || IS_NODE_SYMLINK(pndArg)) {
     if ((pucAttrName = domGetPropValuePtr(pndArg,BAD_CAST "name")) != NULL) {
       domSetPropEat(pndArg, BAD_CAST "urlname", EncodeRFC1738(pucAttrName));
     }

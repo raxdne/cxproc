@@ -520,11 +520,11 @@ arcAppendEntries(resNodePtr prnArgArchive, const pcre2_code* re_match, BOOL_T fA
 
   assert(resNodeIsArchive(prnArgArchive));
 
-  if (fArgContent && resNodeIsUpToDate(prnArgArchive, RN_INFO_CONTENT)) {
+  if (fArgContent && resNodeHasDetails(prnArgArchive, RN_INFO_CONTENT)) {
     /* archive conent was read already */
     fResult = TRUE;
   }
-  else if (!fArgContent && resNodeIsUpToDate(prnArgArchive, RN_INFO_STRUCT)) {
+  else if (!fArgContent && resNodeHasDetails(prnArgArchive, RN_INFO_STRUCT)) {
     /* archive was parsed already */
     fResult = TRUE;
   }
@@ -639,7 +639,7 @@ arcAppendEntries(resNodePtr prnArgArchive, const pcre2_code* re_match, BOOL_T fA
 	      prnAncestor->fExist = TRUE;
 	      prnAncestor->fRead = TRUE;
 	      prnAncestor->eAccess = rn_access_archive;
-	      prnAncestor->iDetails |= RN_INFO_STAT;
+	      resNodeAddDetails(prnAncestor, RN_INFO_STAT);
 	    }
 
 
@@ -691,10 +691,10 @@ arcAppendEntries(resNodePtr prnArgArchive, const pcre2_code* re_match, BOOL_T fA
 	    }
 	    
 	    if (fArgContent) {
-	      prnChild->iDetails = RN_INFO_MAX;
+	      resNodeAddDetails(prnChild, RN_INFO_MAX);
 	    }
 	    else {
-	      prnChild->iDetails |= RN_INFO_STAT | RN_INFO_STRUCT;
+	      resNodeAddDetails(prnChild, RN_INFO_STAT | RN_INFO_STRUCT);
 	    }
 	  }
 	  else {
@@ -712,9 +712,9 @@ arcAppendEntries(resNodePtr prnArgArchive, const pcre2_code* re_match, BOOL_T fA
 
     if (fResult) {
       if (fArgContent) {
-	prnArgArchive->iDetails |= RN_INFO_CONTENT;
+	resNodeAddDetails(prnArgArchive, RN_INFO_CONTENT);
       }
-      prnArgArchive->iDetails |= RN_INFO_STRUCT;
+      resNodeAddDetails(prnArgArchive, RN_INFO_STRUCT);
     }
   }
   return fResult;

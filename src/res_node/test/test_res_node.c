@@ -266,27 +266,27 @@ resNodeTest(void)
     resNodePtr prnT = NULL;
 
     i++;
-    xmlStrPrintf(mucTestLabel,BUFFER_LENGTH,"\nTEST %i in '%s:%i': resNodeIsUpToDate() = ", i, __FILE__, __LINE__);
+    xmlStrPrintf(mucTestLabel,BUFFER_LENGTH,"\nTEST %i in '%s:%i': resNodeHasDetails() = ", i, __FILE__, __LINE__);
     fputs((const char *)mucTestLabel,stderr);
     mucTestResult[0] = '\0';
 
     if ((prnT = resNodeDirNew(NULL)) == NULL) {
       xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeDirNew()\n");
     }
-    else if (resNodeIsUpToDate(prnT, RN_INFO_STAT) == TRUE) {
-      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeIsUpToDate()\n");
+    else if (resNodeHasDetails(prnT, RN_INFO_STAT) == TRUE) {
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeHasDetails()\n");
     }
-    else if (resNodeIsUpToDate(prnT, RN_INFO_INFO) == TRUE) {
-      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeIsUpToDate()\n");
+    else if (resNodeHasDetails(prnT, RN_INFO_INFO) == TRUE) {
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeHasDetails()\n");
     }
-    else if (resNodeIsUpToDate(prnT, RN_INFO_STRUCT) == TRUE) {
-      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeIsUpToDate()\n");
+    else if (resNodeHasDetails(prnT, RN_INFO_STRUCT) == TRUE) {
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeHasDetails()\n");
     }
-    else if (resNodeIsUpToDate(prnT, RN_INFO_CONTENT) == TRUE) {
-      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeIsUpToDate()\n");
+    else if (resNodeHasDetails(prnT, RN_INFO_CONTENT) == TRUE) {
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeHasDetails()\n");
     }
-    else if (resNodeIsUpToDate(prnT, RN_INFO_MAX) == TRUE) {
-      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeIsUpToDate()\n");
+    else if (resNodeHasDetails(prnT, RN_INFO_MAX) == TRUE) {
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeHasDetails()\n");
     }
     else {
       n_ok++;
@@ -305,30 +305,30 @@ resNodeTest(void)
     resNodePtr prnT = NULL;
 
     i++;
-    xmlStrPrintf(mucTestLabel,BUFFER_LENGTH,"\nTEST %i in '%s:%i': resNodeIsUpToDate() = ", i, __FILE__, __LINE__);
+    xmlStrPrintf(mucTestLabel,BUFFER_LENGTH,"\nTEST %i in '%s:%i': resNodeHasDetails() = ", i, __FILE__, __LINE__);
     fputs((const char *)mucTestLabel,stderr);
     mucTestResult[0] = '\0';
 
     if ((prnT = resNodeDirNew(TESTPREFIX "config-test.cxp")) == NULL) {
       xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeDirNew()\n");
     }
-    else if (resNodeIsUpToDate(prnT, RN_INFO_STAT) == TRUE) {
-      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeIsUpToDate()\n");
+    else if (resNodeHasDetails(prnT, RN_INFO_STAT) == TRUE) {
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeHasDetails()\n");
     }
     else if (resNodeUpdate(prnT, RN_INFO_STAT, NULL, NULL) == FALSE) {
       xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeUpdate(): %s\n",resNodeGetErrorMsg(prnT));
     }
-    else if (resNodeIsUpToDate(prnT, RN_INFO_STAT) == FALSE) {
-      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeIsUpToDate()\n");
+    else if (resNodeHasDetails(prnT, RN_INFO_STAT) == FALSE) {
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeHasDetails()\n");
     }
-    else if (resNodeIsUpToDate(prnT, RN_INFO_STRUCT) == TRUE) {
-      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeIsUpToDate()\n");
+    else if (resNodeHasDetails(prnT, RN_INFO_STRUCT) == TRUE) {
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeHasDetails()\n");
     }
     else if (resNodeUpdate(prnT, RN_INFO_STRUCT, NULL, NULL) == FALSE) {
       xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeUpdate(): %s\n",resNodeGetErrorMsg(prnT));
     }
-    else if (resNodeIsUpToDate(prnT, RN_INFO_STRUCT) == FALSE) {
-      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeIsUpToDate()\n");
+    else if (resNodeHasDetails(prnT, RN_INFO_STRUCT) == FALSE) {
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeHasDetails()\n");
     }
     else if (resNodeUpdate(prnT, RN_INFO_CONTENT, NULL, NULL) == FALSE) {
       xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeUpdate(): %s\n",resNodeGetErrorMsg(prnT));
@@ -336,11 +336,11 @@ resNodeTest(void)
     else if (resNodeUpdate(prnT, RN_INFO_CONTENT, NULL, NULL) == FALSE) {
       xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeUpdate(): %s\n",resNodeGetErrorMsg(prnT));
     }
-    else if (resNodeIsUpToDate(prnT, RN_INFO_CONTENT) == FALSE) {
-      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeIsUpToDate()\n");
+    else if (resNodeHasDetails(prnT, RN_INFO_CONTENT) == FALSE) {
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeHasDetails()\n");
     }
-    else if (resNodeIsUpToDate(prnT, RN_INFO_MAX) == TRUE) {
-      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeIsUpToDate()\n");
+    else if (resNodeHasDetails(prnT, RN_INFO_MAX) == TRUE) {
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeHasDetails()\n");
     }
     else {
       n_ok++;
@@ -366,8 +366,8 @@ resNodeTest(void)
     if ((prnT = resNodeDirNew(NULL)) == NULL) {
       xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeDirNew(): %s\n",resNodeGetErrorMsg(prnT));
     }
-    else if (resNodeIsUpToDate(prnT, RN_INFO_STAT) == TRUE) {
-      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeIsUpToDate()\n");
+    else if (resNodeHasDetails(prnT, RN_INFO_STAT) == TRUE) {
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeHasDetails()\n");
     }
     else if (resNodeReadStatus(prnT) == TRUE) {
       xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeReadStatus(): %s\n",resNodeGetErrorMsg(prnT));
@@ -384,8 +384,8 @@ resNodeTest(void)
     else if (resNodeReadStatus(prnT) == TRUE) {
       xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeReadStatus(): %s\n",resNodeGetErrorMsg(prnT));
     }
-    else if (resNodeIsUpToDate(prnT, RN_INFO_STAT) == FALSE) {
-      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeIsUpToDate()\n");
+    else if (resNodeHasDetails(prnT, RN_INFO_STAT) == FALSE) {
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeHasDetails()\n");
     }
     else if (resNodeGetMimeType(prnT) != MIME_UNDEFINED) {
       xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeGetMimeType(): %s\n",resNodeGetErrorMsg(prnT));
@@ -2074,20 +2074,20 @@ resNodeTest(void)
     if ((prnT = resNodeDirNew(BAD_CAST TESTPREFIX "xml/dummy-a.xml")) == NULL) {
       xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeDirNew()\n");
     }
-    else if (resNodeIsUpToDate(prnT, RN_INFO_STAT) == TRUE) {
-      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeIsUpToDate()\n");
+    else if (resNodeHasDetails(prnT, RN_INFO_STAT) == TRUE) {
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeHasDetails()\n");
     }
     else if (resNodeReadStatus(prnT) == FALSE) {
       xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeReadStatus()\n");
     }
-    else if (resNodeIsUpToDate(prnT, RN_INFO_STAT) == FALSE) {
-      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeIsUpToDate()\n");
+    else if (resNodeHasDetails(prnT, RN_INFO_STAT) == FALSE) {
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeHasDetails()\n");
     }
     else if (resNodeUpdate(prnT, RN_INFO_MAX, NULL, NULL) == FALSE) {
       xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeUpdate()\n");
     }
-    else if (resNodeIsUpToDate(prnT, RN_INFO_STAT | RN_INFO_STRUCT | RN_INFO_INFO) == FALSE) {
-      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeIsUpToDate()\n");
+    else if (resNodeHasDetails(prnT, RN_INFO_STAT | RN_INFO_STRUCT | RN_INFO_INFO) == FALSE) {
+      xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeHasDetails()\n");
     }
     else if (resNodeUpdate(prnT, RN_INFO_MAX, NULL, NULL) == FALSE) {
       xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeUpdate()\n");

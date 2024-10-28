@@ -216,6 +216,10 @@ resNodeTransfer(resNodePtr prnArgFrom, resNodePtr prnArgTo, BOOL_T fArgMove)
      ... and action ...
   */
   if (eResult == rn_error_none) {
+
+    resNodeResetDetails(prnArgFrom);
+    resNodeResetDetails(prnArgTo);
+
     if (resNodeIsStd(prnArgTo)) {
       if (resNodeGetContent(prnArgFrom, 1024) != NULL && resNodeSwapContent(prnArgFrom, prnArgTo) == rn_error_none && resNodePutContent(prnArgTo)) {
 	/* OK */
@@ -248,16 +252,32 @@ resNodeTransfer(resNodePtr prnArgFrom, resNodePtr prnArgTo, BOOL_T fArgMove)
 	else {
 	  resNodeSetError(prnArgFrom, rn_error_copy, "Error moving '%i'", errno);
 	}
-	// prnArgTo->eError = error_move;
       }
 #endif
+      else if (resNodeReadStatus(prnArgFrom) != FALSE || resNodeReadStatus(prnArgTo) != TRUE) {
+	/* check status of resulting resNodes */
+        resNodeSetError(prnArgFrom, rn_error_copy, "Error moving result");
+	eResult = rn_error_copy;
+      }
       else {
 	PrintFormatLog(3, "OK moving");
 	eResult = rn_error_none;
       }
     }
     else if (resNodeSwapContent(prnArgFrom, prnArgTo) == rn_error_none) {
-      if (resNodePutContent(prnArgTo)) {}
+      if (resNodePutContent(prnArgTo) == FALSE) {
+        resNodeSetError(prnArgFrom, rn_error_copy, "Error moving to target");
+	eResult = rn_error_copy;
+      }
+      else if (resNodeReadStatus(prnArgFrom) != TRUE || resNodeReadStatus(prnArgTo) != TRUE) {
+	/* check status of resulting resNodes */
+        resNodeSetError(prnArgFrom, rn_error_copy, "Error moving result");
+	eResult = rn_error_copy;
+      }
+      else {
+	PrintFormatLog(3, "OK moving");
+	eResult = rn_error_none;
+      }
     }
   }
   return eResult;
@@ -327,7 +347,7 @@ resNodeMakeDirectory(resNodePtr prnArg, int mode)
     else {
       int i;
 
-      prnArg->iDetails = RN_INFO_MIN; /* reset info bits */
+      resNodeResetDetails(prnArg);
 
       PrintFormatLog(3, "MKDIR '%s'", resNodeGetNameNormalized(prnArg));
 #ifdef _MSC_VER

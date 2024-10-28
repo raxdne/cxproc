@@ -3068,7 +3068,7 @@ cxpProcessCopyNode(xmlNodePtr pndArgCopy, cxpContextPtr pccArg)
 	fResult = TRUE;
       }
     }
-    else if (resNodeTransfer(prnContent, prnTo, fMove) != rn_error_none || resNodeReadStatus(prnTo) == FALSE) {
+    else if (resNodeTransfer(prnContent, prnTo, fMove) != rn_error_none) {
     }
     else {
       fResult = TRUE;

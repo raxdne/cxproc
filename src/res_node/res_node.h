@@ -27,6 +27,8 @@
 
 #define IS_NODE_DIR(NODE) (IS_NODE(NODE,NAME_DIR))
 
+#define IS_NODE_SYMLINK(NODE) (IS_NODE(NODE,NAME_SYMLINK))
+
 #define IS_NODE_FILE(NODE) (IS_NODE(NODE,NAME_FILE))
 
 #if (!defined(_WIN32)) && (!defined(WIN32)) && (!defined(__APPLE__))
@@ -348,7 +350,13 @@ extern BOOL_T
 resNodeReset(resNodePtr prnArg, xmlChar *pucArgPath);
 
 extern BOOL_T
-resNodeIsUpToDate(resNodePtr prnArg, int iArgOptions);
+resNodeResetDetails(resNodePtr prnArg);
+
+extern BOOL_T
+resNodeAddDetails(resNodePtr prnArg, int iArgOptions);
+
+extern BOOL_T
+resNodeHasDetails(resNodePtr prnArg, int iArgOptions);
 
 extern BOOL_T
 resNodeUpdate(resNodePtr prnArg, int iArgOptions, const pcre2_code *re_match, const pcre2_code *re_grep);

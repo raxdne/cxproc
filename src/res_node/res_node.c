@@ -695,7 +695,6 @@ resNodeResolveLinkChildNew(resNodePtr prnArg)
       assert(ciLength < MAX_PATH);
       mcT[ciLength] = '\0';
       prnResult = resNodeConcatNew(resNodeGetNameBaseDir(prnArg),BAD_CAST mcT);
-      resNodeSetType(prnArg,rn_type_symlink);
     }
 #endif
 
@@ -2332,6 +2331,7 @@ resNodeReset(resNodePtr prnArg, xmlChar *pucArgPath)
 #endif
       xmlFree(pucArgPathCopy);
     }
+    resNodeResetDetails(prnArg);
     fResult = TRUE;
   }
   return fResult;
@@ -2756,7 +2756,7 @@ resNodeIsExist(resNodePtr prnArg)
 
   /*!\bug check for ROOT */
   if (prnArg) {
-    if (resNodeGetType(prnArg) == rn_type_undef || resNodeIsUpToDate(prnArg,RN_INFO_STAT) == FALSE) {
+    if (resNodeGetType(prnArg) == rn_type_undef || resNodeHasDetails(prnArg,RN_INFO_STAT) == FALSE) {
       resNodeReadStatus(prnArg);
     }
     fResult = prnArg->fExist;
@@ -2774,7 +2774,7 @@ resNodeIsReadable(resNodePtr prnArg)
 
   /*!\bug check for ROOT */
   if (prnArg) {
-    if (resNodeGetType(prnArg) == rn_type_undef || resNodeIsUpToDate(prnArg,RN_INFO_STAT) == FALSE) {
+    if (resNodeGetType(prnArg) == rn_type_undef || resNodeHasDetails(prnArg,RN_INFO_STAT) == FALSE) {
       resNodeReadStatus(prnArg);
     }
     fResult = prnArg->fRead;
@@ -2834,7 +2834,7 @@ resNodeIsWriteable(resNodePtr prnArg)
 
   /*!\bug check for ROOT */
   if (prnArg) {
-    if (resNodeGetType(prnArg) == rn_type_undef || resNodeIsUpToDate(prnArg,RN_INFO_STAT) == FALSE) {
+    if (resNodeGetType(prnArg) == rn_type_undef || resNodeHasDetails(prnArg,RN_INFO_STAT) == FALSE) {
       resNodeReadStatus(prnArg);
     }
 
@@ -2880,7 +2880,7 @@ resNodeIsCreateable(resNodePtr prnArg)
 
   /*!\bug check for ROOT */
   if (prnArg) {
-    if (resNodeGetType(prnArg) == rn_type_undef || resNodeIsUpToDate(prnArg,RN_INFO_STAT) == FALSE) {
+    if (resNodeGetType(prnArg) == rn_type_undef || resNodeHasDetails(prnArg,RN_INFO_STAT) == FALSE) {
       resNodeReadStatus(prnArg);
     }
 
@@ -2914,7 +2914,7 @@ resNodeIsExecuteable(resNodePtr prnArg)
 
   /*!\bug check for ROOT */
   if (prnArg) {
-    if (resNodeGetType(prnArg) == rn_type_undef || resNodeIsUpToDate(prnArg,RN_INFO_STAT) == FALSE) {
+    if (resNodeGetType(prnArg) == rn_type_undef || resNodeHasDetails(prnArg,RN_INFO_STAT) == FALSE) {
       resNodeReadStatus(prnArg);
     }
     fResult = prnArg->fExecute;
@@ -2932,7 +2932,7 @@ resNodeIsHidden(resNodePtr prnArg)
 
   /*!\bug check for ROOT */
   if (prnArg) {
-    if (resNodeGetType(prnArg) == rn_type_undef || resNodeIsUpToDate(prnArg,RN_INFO_STAT) == FALSE) {
+    if (resNodeGetType(prnArg) == rn_type_undef || resNodeHasDetails(prnArg,RN_INFO_STAT) == FALSE) {
       if (prnArg->pucNameBase == NULL) {
 	resNodeResetNameBase(prnArg); /* leading dot in basename */
       }
@@ -3384,12 +3384,21 @@ resNodeContentToDOM(xmlNodePtr pndArg, resNodePtr prnArg)
 #endif
     }
 
-#if 0
+#ifdef EXPERIMENTAL
     case MIME_INODE_SYMLINK:
       if (resNodeGetChild(prnArg) != NULL) {
-	if (resNodeIsDir(resNodeGetChild(prnArg)) || resNodeIsFile(resNodeGetChild(prnArg))) {
-	  /*!\todo follow link to directory or file */
+	xmlNodePtr pndChild;
+
+	if (resNodeIsDir(resNodeGetChild(prnArg))) {
+	  /*! follow link to directory */
 	  /*!\bug avoid circular references */
+	}
+	else if (resNodeIsFile(resNodeGetChild(prnArg)) && resNodeIsReadable(resNodeGetChild(prnArg))) {
+	  /*! follow link to file */
+	  if ((pndChild = domGetFirstChild(pndArg, NAME_FILE)) == NULL) {
+	    xmlNewChild(pndArg, NULL, NAME_FILE, NULL);
+	  }
+	  resNodeContentToDOM(pndChild, resNodeGetChild(prnArg));
 	}
 	else {
 	  xmlNewChild(pndArg, NULL, NAME_ERROR, BAD_CAST "File link broken");
@@ -3558,7 +3567,24 @@ resNodeToDOM(resNodePtr prnArg, int iArgOptions)
     else if (resNodeIsLink(prnArg)) {
       pndT = xmlNewNode(NULL, NAME_SYMLINK);
       xmlSetProp(pndT, BAD_CAST"name", resNodeGetNameBase(prnArg));
-      //xmlSetProp(pndT, BAD_CAST"prefix", resNodeGetNameBaseDir(resNodeGetChild(prnArg)));
+      if (resNodeGetChild(prnArg)) {
+	xmlNodePtr pndTT;
+
+	pndTT = resNodeToDOM(resNodeGetChild(prnArg), RN_INFO_MIN);
+#ifdef HAVE_CGI
+	pucT = resPathDiffPtr(resNodeGetNameBaseDir(prnArg), resNodeGetNameBaseDir(resNodeGetChild(prnArg)));
+	if (STR_IS_NOT_EMPTY(pucT)) {
+	  xmlSetProp(pndTT, BAD_CAST "prefix", pucT);
+	}
+	else {
+	  xmlNodeSetName(pndTT, BAD_CAST "error");
+	  xmlNodeSetContent(pndTT, BAD_CAST "out of root");
+	}
+#else
+	xmlSetProp(pndTT, BAD_CAST "prefix", resNodeGetNameBaseDir(resNodeGetChild(prnArg)));
+#endif
+	xmlAddChild(pndT, pndTT);
+      }
     }
     else {
       pndT = xmlNewNode(NULL, NAME_FILE);
@@ -3700,7 +3726,8 @@ resNodeToDOM(resNodePtr prnArg, int iArgOptions)
       }
     }
     else if (iArgOptions & RN_INFO_CONTENT && resNodeIsLink(prnArg)) {
-      /*!\todo add link target content */
+      /*! add link target content */
+      resNodeContentToDOM(pndT, prnArg);
     }
     else if (iArgOptions & RN_INFO_INFO && (resNodeIsShortcut(prnArg) || resNodeGetMimeType(prnArg) == MIME_APPLICATION_CXP_XML)) {
       /*! required for shortcuts, titles and icons */
@@ -4315,17 +4342,46 @@ resNodeReadOwner(resNodePtr prnArg)
   else {
     resNodeSetError(prnArg,rn_error_path,"No valid directory path");
   }
-  prnArg->iDetails |= RN_INFO_OWNER;
+  resNodeAddDetails(prnArg, RN_INFO_OWNER);
 
   return fResult;
 } /* end of resNodeReadOwner() */
 
 
+/*! \return TRUE if an error occures while processing of prnArg
+ */
+BOOL_T
+resNodeResetDetails(resNodePtr prnArg)
+{
+  BOOL_T fResult = FALSE;
+
+  if (prnArg != NULL) {
+    prnArg->iDetails = RN_INFO_MIN;
+    fResult = TRUE;
+  }
+  return fResult;
+} /* end of resNodeResetDetails() */
+
+
+/*! \return TRUE if an error occures while processing of prnArg
+ */
+BOOL_T
+resNodeAddDetails(resNodePtr prnArg, int iArgOptions)
+{
+  BOOL_T fResult = FALSE;
+
+  if (prnArg != NULL) {
+    prnArg->iDetails |= iArgOptions;
+    fResult = TRUE;
+  }
+  return fResult;
+} /* end of resNodeAddDetails() */
+
 
 /*! \return TRUE if prnArg is up to date
 */
 BOOL_T
-resNodeIsUpToDate(resNodePtr prnArg, int iArgOptions)
+resNodeHasDetails(resNodePtr prnArg, int iArgOptions)
 {
   BOOL_T fResult = FALSE;
 
@@ -4354,7 +4410,7 @@ resNodeIsUpToDate(resNodePtr prnArg, int iArgOptions)
     }
   }
   return fResult;
-} /* end of resNodeIsUpToDate() */
+} /* end of resNodeHasDetails() */
 
 
 /*! Resource Node List Parse  list different types of resource nodes
@@ -4376,7 +4432,7 @@ resNodeUpdate(resNodePtr prnArg, int iArgOptions, const pcre2_code *re_match, co
 
     fResult = TRUE;
 
-    if ((iArgOptions & RN_INFO_INDEX) != 0 && resNodeIsUpToDate(prnArg, RN_INFO_INDEX)) {
+    if ((iArgOptions & RN_INFO_INDEX) != 0 && resNodeHasDetails(prnArg, RN_INFO_INDEX)) {
       for (prnI = resNodeGetChild(prnArg); prnI; prnI = resNodeGetNext(prnI)) {
 	if (resNodeIsDir(prnI) && resNodeIsRecursive(prnArg)) {
 	  resNodeSetRecursion(prnI, resNodeIsRecursive(prnArg));
@@ -4385,11 +4441,11 @@ resNodeUpdate(resNodePtr prnArg, int iArgOptions, const pcre2_code *re_match, co
       }
     }
     else {
-      if (resNodeIsUpToDate(prnArg, RN_INFO_INFO) == FALSE) {
+      if (resNodeHasDetails(prnArg, RN_INFO_INFO) == FALSE) {
 	resNodeResetMimeType(prnArg);
       }
 
-      if (resNodeIsUpToDate(prnArg, RN_INFO_STRUCT) == FALSE || resNodeGetChild(prnArg) == NULL) {
+      if (resNodeHasDetails(prnArg, RN_INFO_STRUCT) == FALSE || resNodeGetChild(prnArg) == NULL) {
 	if (resNodeIsURL(prnArg)) {
 	}
 #ifdef HAVE_LIBSQLITE3
@@ -4426,11 +4482,11 @@ resNodeUpdate(resNodePtr prnArg, int iArgOptions, const pcre2_code *re_match, co
 	}
       }
 
-      if (resNodeIsUpToDate(prnArg, RN_INFO_OWNER) == FALSE) {
+      if (resNodeHasDetails(prnArg, RN_INFO_OWNER) == FALSE) {
 	resNodeGetOwner(prnArg);
       }
 
-      if (resNodeIsUpToDate(prnArg, RN_INFO_CONTENT) == FALSE) {
+      if (resNodeHasDetails(prnArg, RN_INFO_CONTENT) == FALSE) {
 	if (resNodeIsURL(prnArg)) {
 	  if (resNodeGetContent(prnArg, 1024) != NULL && resNodeIsMemory(prnArg)) { /* content fetched from URL */
 #ifdef HAVE_LIBARCHIVE
@@ -4461,7 +4517,6 @@ resNodeUpdate(resNodePtr prnArg, int iArgOptions, const pcre2_code *re_match, co
 	}
 #endif
 	else if (resNodeIsLink(prnArg)) {
-	  fResult = (resNodeResolveLinkChildNew(prnArg) != NULL);
 	}
 	else if (resNodeIsFile(prnArg)) {
 	  if (resMimeIsXml(resNodeGetMimeType(prnArg))) {
@@ -4475,11 +4530,15 @@ resNodeUpdate(resNodePtr prnArg, int iArgOptions, const pcre2_code *re_match, co
 	}
       }
 
-      if (resNodeIsUpToDate(prnArg, RN_INFO_COMMENT) == FALSE) {
+      if (resNodeHasDetails(prnArg, RN_INFO_COMMENT) == FALSE) {
 	/*\todo insert comment text from file */
       }
     }
-    prnArg->iDetails = fResult ? iArgOptions : RN_INFO_MIN;
+
+    resNodeResetDetails(prnArg);
+    if (fResult) {
+      resNodeAddDetails(prnArg, iArgOptions);
+    }
   }
   return fResult;
 } /* end of resNodeUpdate() */
@@ -4497,7 +4556,7 @@ resNodeReadStatus(resNodePtr prnArg)
   BOOL_T fResult = FALSE;
 
   if (resNodeResetError(prnArg)) {
-    if (resNodeIsUpToDate(prnArg, RN_INFO_STAT)) {
+    if (resNodeHasDetails(prnArg, RN_INFO_STAT)) {
       /* this resource node was stat'd already */
       fResult = prnArg->fExist;
     }
@@ -4610,17 +4669,9 @@ resNodeReadStatus(resNodePtr prnArg)
 	    }
 	    else if (prnArg->s.st_mode & _S_IFREG) {
 	      if (xmlStrEqual(resNodeGetExtension(prnArg), BAD_CAST"lnk")) {
-		char *pcT;
-		size_t i;
-
-		if ((pcT = resNodeGetNameNormalizedNative(prnArg)) && (i = strlen(pcT)) && pcT[i-4] == '.' && pcT[i-3] == 'l' && pcT[i-2] == 'n' && pcT[i-1] == 'k') {
-		  /* cut trailing ".lnk" from windows native name */
-		  pcT[i-4] = '\0';
-		  xmlFree(prnArg->pucExtension);
-		  prnArg->pucExtension = NULL;
-		}
 		// Windows shell link (handle like a symbolic link)
 		resNodeSetType(prnArg,rn_type_symlink);
+		fResult = (resNodeResolveLinkChildNew(prnArg) != NULL);
 	      }
 	      else if (resNodeGetType(prnArg) == rn_type_undef) {
 		resNodeSetType(prnArg,rn_type_file);
@@ -4643,6 +4694,7 @@ resNodeReadStatus(resNodePtr prnArg)
 	    }
 	    else if (S_ISLNK(prnArg->s.st_mode)) {
 	      resNodeSetType(prnArg,rn_type_symlink);
+	      fResult = (resNodeResolveLinkChildNew(prnArg) != NULL);
 	    }
 	    else if (S_ISDIR(prnArg->s.st_mode)) {
 	      resNodeSetType(prnArg,rn_type_dir);
@@ -4679,7 +4731,7 @@ resNodeReadStatus(resNodePtr prnArg)
 	  }
 	}
       }
-      prnArg->iDetails |= RN_INFO_STAT;
+      resNodeAddDetails(prnArg, RN_INFO_STAT);
 
       /* set all parent directories too */
       for (prnAncestor = resNodeGetParent(prnArg); prnAncestor != NULL; prnAncestor = resNodeGetParent(prnAncestor)) {

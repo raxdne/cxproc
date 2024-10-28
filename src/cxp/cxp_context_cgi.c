@@ -631,7 +631,7 @@ cxpProcessCGICopyNode(xmlNodePtr pndArgCopy, cxpContextPtr pccArg)
 	fResult = TRUE;
       }
     }
-    else if (resNodeTransfer(prnContent, prnTo, fMove) != rn_error_none || resNodeReadStatus(prnTo) == FALSE) {
+    else if (resNodeTransfer(prnContent, prnTo, fMove) != rn_error_none) {
       printf("Status: 503\r\n"
 	     "Content-Type: text/plain\r\n\r\n"
 	     "Cxproc %s error:\r\n  '%s' = '%s'\r\n  '%s' = '%s'\r\n",
