@@ -291,6 +291,7 @@ cxpCtxtTest(cxpContextPtr pccArg)
   if (RUNTEST) {
     xmlChar* pucTT = NULL;
     xmlChar* pucTTT = NULL;
+    xmlChar* pucTTTT = NULL;
     xmlDocPtr pdocTest;
     xmlNodePtr pndMake;
     xmlNodePtr pndT;
@@ -311,9 +312,13 @@ cxpCtxtTest(cxpContextPtr pccArg)
     xmlSetProp(pndXml, BAD_CAST "context", BAD_CAST "../..");
     xmlSetProp(pndXml, BAD_CAST "log", BAD_CAST "3");
     pndT = xmlNewChild(pndMake, NULL, NAME_PLAIN, NULL);
+    //domPutDocString(stderr,BAD_CAST"",pdocTest);
 
     if ((pccT = cxpCtxtFromAttr(pccArg, pndMake)) == NULL) {
       printf("Error 1\n");
+    }
+    else if (cxpCtxtProcessSetNodeCopy(pccT,pdocTest) == FALSE) {
+      printf("Error 4\n");
     }
     else if ((pucTTT = resPathCollapseStr(BAD_CAST BUILDPREFIX, FS_PATH_FULL)) == NULL) {
       printf("Error 4\n");
@@ -330,6 +335,9 @@ cxpCtxtTest(cxpContextPtr pccArg)
     else if (resPathIsEquivalent(resNodeGetNameNormalized(cxpCtxtLocationGet(pccTT)), pucTT) == FALSE) {
       printf("Error 5\n");
     }
+    else if ((pucTTTT = cxpCtxtProcessDump(pccT)) == NULL) {
+      printf("Error 4\n");
+    }
     else if (cxpCtxtFromAttr(pccT, pndT) != pccT) {
       printf("Error 6\n");
     }
@@ -338,7 +346,7 @@ cxpCtxtTest(cxpContextPtr pccArg)
       printf("OK\n");
     }
 
-    //domPutDocString(stderr,BAD_CAST"",pdocTest);
+    xmlFree(pucTTTT);
     xmlFree(pucTTT);
     xmlFree(pucTT);
     xmlFreeDoc(pdocTest);

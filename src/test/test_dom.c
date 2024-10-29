@@ -726,6 +726,41 @@ domTest(void)
     xmlFreeDoc(pdocResult);
   }
 
+  if (RUNTEST) {
+    /* TEST:
+     */
+    xmlDocPtr pdocResult = NULL;
+    xmlNodePtr pndT;
+
+    i++;
+    printf("TEST %i in '%s:%i': domNodeDumpMemoryEnc() ", i, __FILE__, __LINE__);
+
+    if ((pdocResult = xmlReadFile((const char *)TESTPREFIX "option/pie/text/test-pie-14.pie", NULL, 0)) == NULL) {
+      printf("Error xmlReadFile()\n");
+    }
+    else if ((pndT = xmlDocGetRootElement(pdocResult)) == NULL || (pndT = pndT->children) == NULL) {
+      printf("Error xmlDocGetRootElement()\n");
+    }
+    else {
+      xmlChar *pucT = NULL;
+      int iT;
+
+      domNodeDumpMemoryEnc(pndT, &pucT, &iT, "UTF-8");
+      if (STR_IS_EMPTY(pucT)) {
+	printf("Error empty\n");
+      }
+      else if (iT < 10) {
+	printf("Error length\n");
+      }
+      else {
+	n_ok++;
+	printf("OK\n");
+      }
+      //puts((char *)pucT);
+      xmlFree(pucT);
+    }
+    xmlFreeDoc(pdocResult);
+  }
 
 #ifdef HAVE_PCRE2
   if (RUNTEST) {

@@ -1113,37 +1113,28 @@ cxpCtxtProcessGetNode(cxpContextPtr pccArg)
 xmlChar*
 cxpCtxtProcessDump(cxpContextPtr pccArg)
 {
-  xmlChar* pucResult = NULL;
+  xmlChar *pucResult = NULL;
 
   if (pccArg) {
-    xmlNodePtr pndT = NULL;
+    int iLength = 0;
 
     if (pccArg->pndContextNode) {
-      pndT = pccArg->pndContextNode;
+      domNodeDumpMemoryEnc(pccArg->pndContextNode, &pucResult, &iLength, "UTF-8");
     }
     else if (pccArg->pdocContextNode) {
-      pndT = xmlDocGetRootElement(pccArg->pdocContextNode);
+      xmlDocDumpMemoryEnc(pccArg->pdocContextNode, &pucResult, &iLength, "UTF-8");
     }
 
-    if (pndT) {
-      xmlBufferPtr buffer;
-
-      buffer = xmlBufferCreate();
-      if (buffer) {
-        int size;
-
-        size = xmlNodeDump(buffer, NULL, pndT, 0, 1);
-        if (size > 0) {
-	  pucResult = xmlBufferDetach(buffer);
-        }
-        xmlBufferFree(buffer);
-      }
+    if (iLength > 0 && pucResult != NULL) {
+      /* success */
     }
     else {
-      printf("Error cxpCtxtProcessDump() ...\n");
+      cxpCtxtLogPrint(pccArg, 1, "Error xmlDocDumpMemoryEnc()");
     }
   }
-
+  else {
+    cxpCtxtLogPrint(pccArg, 1, "Error cxpCtxtProcessDump() ...\n");
+  }
   return pucResult;
 } /* end of cxpCtxtProcessDump() */
 

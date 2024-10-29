@@ -840,6 +840,30 @@ domDocIsHtml(xmlDocPtr pdocArg)
 /* end of domDocIsHtml() */
 
 
+/*! similar use as xmlDocDumpMemoryEnc()
+*/
+void
+domNodeDumpMemoryEnc(xmlNodePtr pndArg, xmlChar **ppucArg, int *piArg, const char *pcArg)
+{
+  xmlBufferPtr buffer;
+
+  if (pndArg != NULL && ppucArg != NULL && pndArg != NULL && piArg != NULL) {
+    if ((buffer = xmlBufferCreate()) != NULL) {
+      int iLength = 0;
+      xmlOutputBufferPtr outbuf;
+
+      if ((outbuf = xmlOutputBufferCreateBuffer(buffer, NULL)) != NULL) {
+	xmlNodeDumpOutput(outbuf, pndArg->doc, pndArg, 2, 1, "UTF-8");
+	if ((*piArg = xmlOutputBufferGetSize(outbuf)) > 0 && xmlOutputBufferGetContent(outbuf) != NULL) {
+	  *ppucArg = xmlStrdup(xmlOutputBufferGetContent(outbuf));
+	}
+	xmlOutputBufferClose(outbuf);
+      }
+      xmlBufferFree(buffer);
+    }
+  }
+} /* end of domNodeDumpMemoryEnc() */
+
 #ifdef DEBUG
 
 /*! 
