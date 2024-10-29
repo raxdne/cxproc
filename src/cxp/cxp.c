@@ -665,7 +665,7 @@ cxpResNodeResolveNew(cxpContextPtr pccArg, xmlNodePtr pndArg, xmlChar *pucArg, i
       pucShortcut = pucAttrName;
     }
 
-#if 0
+#if 1
 #ifdef HAVE_CGI
     if ((pucLocation = domGetPropValuePtr(pndArg, BAD_CAST "context")) != NULL) {
       /*  */
@@ -1607,7 +1607,7 @@ cxpProcessSystemNode(xmlNodePtr pndArg, cxpContextPtr pccArg)
 
       prnRmdir = resNodeConcatNew(cxpCtxtLocationGetStr(pccHere),pucAttrT);
       /*!\todo test if cxpCtxtLocationGet(pccHere) != prnRmdir */
-      fResult = resNodeUnlink(prnRmdir,domGetPropFlag(pndArg,BAD_CAST "recursive",FALSE));
+      fResult = (resNodeUnlink(prnRmdir,domGetPropFlag(pndArg,BAD_CAST "recursive",FALSE)) == rn_error_none);
       resNodeFree(prnRmdir);
     }
     else {

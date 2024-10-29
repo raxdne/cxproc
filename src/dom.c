@@ -449,20 +449,19 @@ xmlChar *
 domGetAncestorPropValuePtr(xmlNodePtr pndArg, xmlChar *pucNameAttr)
 {
   xmlChar *pucResult = NULL;
-  xmlNodePtr pndI;
 
-  assert(IS_ENODE(pndArg));
-  assert(STR_IS_NOT_EMPTY(pucNameAttr));
-
-  for (pndI = pndArg->parent; pndI; pndI = pndI->parent) {
-    pucResult = domGetPropValuePtr(pndI, pucNameAttr);
-    if (STR_IS_NOT_EMPTY(pucResult)) {
-      break;
+  if (IS_ENODE(pndArg) && STR_IS_NOT_EMPTY(pucNameAttr)) {
+    xmlNodePtr pndI;
+    
+    for (pndI = pndArg->parent; pndI; pndI = pndI->parent) {
+      pucResult = domGetPropValuePtr(pndI, pucNameAttr);
+      if (STR_IS_NOT_EMPTY(pucResult)) {
+	break;
+      }
     }
   }
   return pucResult;
 } /* End of domGetAncestorPropValuePtr() */
-
 
 /*!
 \param pndArg node for content
