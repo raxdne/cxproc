@@ -32,6 +32,9 @@ SET(CMAKE_VERBOSE_MAKEFILE ON)
 # default value for Testing
 SET(CXPROC_HTTPPREFIX CACHE STRING "http://localhost:8183/")
 
+# flag for Code check (see target "cpp-check")
+SET(CXPROC_CHECK OFF)
+
 FIND_PATH(CXPROC_SRC_DIR
   NAME cxproc.c
   PATHS "src")
@@ -305,14 +308,30 @@ IF(MSVC)
   target_sources(cxproc-cgi PUBLIC ${CXPROC_SRC_DIR}/version.rc)
 ENDIF(MSVC)
 
-# dummy target to compile as C++
-add_library(cpp-check OBJECT ${CXPROC_SOURCES} ${CXPROC_SRC_DIR}/cxp/cxp_context_cgi.c ${CXPROC_SRC_DIR}/cxproc-cgi.c ${CXPROC_SRC_DIR}/cxproc.c)
-target_compile_definitions(cpp-check PUBLIC
-  TESTCODE
-  BUILDPREFIX="${CXPROC_PREFIX}/"
-  TESTPREFIX="${CXPROC_TEST_DIR}/"
-  TEMPPREFIX="${CXPROC_TEMP_DIR}/"
-  HTTPPREFIX="${CXPROC_HTTPPREFIX}")
+################################################################################
+#
+# dummy target to compile as C++ (without linking)
+#
+
+IF(CXPROC_CHECK)
+  add_library(cpp-check OBJECT ${CXPROC_SOURCES} ${CXPROC_SRC_DIR}/cxp/cxp_context_cgi.c ${CXPROC_SRC_DIR}/cxproc-cgi.c ${CXPROC_SRC_DIR}/cxproc.c)
+
+  target_compile_definitions(cpp-check PUBLIC
+    TESTCODE
+    BUILDPREFIX="${CXPROC_PREFIX}/"
+    TESTPREFIX="${CXPROC_TEST_DIR}/"
+    TEMPPREFIX="${CXPROC_TEMP_DIR}/"
+    HTTPPREFIX="${CXPROC_HTTPPREFIX}")
+
+  IF(MSVC)
+    target_compile_options(cpp-check PUBLIC /W4 /permissive- /analyze)
+    # /TP /std:c++17 /Od  /WX /Wall
+    #  /errorreport:prompt
+    #  /showIncludes
+  ELSE(MSVC)
+    target_compile_options(cpp-check PUBLIC -x c++ -std=c++17 -Wall -Wno-unused-function -Wno-unused-variable -Wno-unused-but-set-variable -fmax-errors=25 -funsigned-char)
+  ENDIF (MSVC)
+ENDIF (CXPROC_CHECK)
 
 ################################################################################
 #
@@ -363,7 +382,9 @@ IF (CXPROC_PCRE2)
   target_compile_definitions(cxproc PUBLIC HAVE_PCRE2 PCRE2_CODE_UNIT_WIDTH=8)
   target_compile_definitions(cxproc-cgi PUBLIC HAVE_PCRE2 PCRE2_CODE_UNIT_WIDTH=8)
   target_compile_definitions(cxproc-test PUBLIC HAVE_PCRE2 PCRE2_CODE_UNIT_WIDTH=8)
-  target_compile_definitions(cpp-check PUBLIC HAVE_PCRE2 PCRE2_CODE_UNIT_WIDTH=8)
+  IF(CXPROC_CHECK)
+    target_compile_definitions(cpp-check PUBLIC HAVE_PCRE2 PCRE2_CODE_UNIT_WIDTH=8)
+  ENDIF ()
   IF (${PCRE2_LIBRARY} MATCHES ".+static.*\\.lib$" OR ${PCRE2_LIBRARY} MATCHES ".+\\.a$")
     #ADD_LIBRARY(pcre2-8 STATIC IMPORTED)
     add_compile_definitions(PCRE2_STATIC)
@@ -563,8 +584,6 @@ ELSE(MSVC)
   set(CMAKE_C_FLAGS_PROFILE "-pg -DNDEBUG -O3")
   #set(CMAKE_SHARED_LINKER_FLAGS "")
 ENDIF (MSVC)
-
-target_compile_options(cpp-check PUBLIC -x c++ -std=c++17 -Wall -Wno-unused-function -Wno-unused-variable -Wno-unused-but-set-variable -fmax-errors=25 -funsigned-char)
 
 ################################################################################
 #
