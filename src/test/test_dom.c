@@ -386,6 +386,7 @@ domTest(void)
     xmlAddChild(pndCur, xmlNewPI(NAME_ERROR, BAD_CAST"post"));
 
     domReplaceNodeList(pndOld, pndCur->children);
+    xmlFreeNode(pndOld);
     xmlFreeNode(pndCur);
     xmlNewChild(pndRoot->children, NULL, NAME_META, NULL);
     //domPutDocString(stderr,BAD_CAST"domReplaceNodeList()",pdocTest);
@@ -427,11 +428,11 @@ domTest(void)
       //domPutDocString(stderr,pdocT,BAD_CAST"cxpAddXpath()");
       n_ok++;
       printf("OK\n");
-      xmlFreeDoc(pdocT);
     }
     else {
       printf("Error \n");
     }
+    xmlFreeDoc(pdocT);
   }
 
   if (RUNTEST) {
@@ -525,7 +526,6 @@ domTest(void)
   if (RUNTEST) {
     xmlDocPtr pdocT;
     xmlNodePtr pndRoot;
-    xmlNsPtr pnsXsl;
     xmlNodePtr pndXslNew;
     xmlNodePtr pndNew;
 
@@ -538,7 +538,7 @@ domTest(void)
       /*\todo resNodeChangeDomURL(pdocResult,cxpCtxtLocationGet(pccArg)); ?? */
 
       /* create local namespace for XSL */
-      pnsXsl = xmlNewNs(pndXslNew,XSLT_NAMESPACE,BAD_CAST "xsl");
+      //pnsXsl = xmlNewNs(pndXslNew,XSLT_NAMESPACE,BAD_CAST "xsl");
       xmlSetNs(pndXslNew,pnsXsl);
       xmlSetProp(pndXslNew, BAD_CAST "version", BAD_CAST "1.0");
 
@@ -706,11 +706,11 @@ domTest(void)
       printf("Error 4 domGetXPathNodeset()\n");
     }
     else {
-      int i;
+      int j;
       BOOL_T fResult;
 
-      for (fResult = TRUE, i=0; fResult && i < nodeset->nodeNr; i++) {
-	fResult = IS_NODE_PIE_PAR(nodeset->nodeTab[i]);
+      for (fResult = TRUE, j=0; fResult && j < nodeset->nodeNr; j++) {
+	fResult = IS_NODE_PIE_PAR(nodeset->nodeTab[j]);
       }
 
       if (fResult) {

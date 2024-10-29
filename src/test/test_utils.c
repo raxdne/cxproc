@@ -313,19 +313,19 @@ utilsTest(void)
     if (Strnstr(NULL,-1,NULL) != NULL) {
       printf("ERROR 1\n");
     }
-    else if (Strnstr("ABC",3,"") == NULL) {
+    else if (Strnstr(BAD_CAST "ABC", 3, BAD_CAST "") == NULL) {
       printf("ERROR 2\n");
     }
-    else if (Strnstr("ABC DEF",7,"DE") == NULL) {
+    else if (Strnstr(BAD_CAST "ABC DEF", 7, BAD_CAST "DE") == NULL) {
       printf("ERROR 3\n");
     }
-    else if (Strnstr("AB AB ABC",-1,"ABC") == NULL) {
+    else if (Strnstr(BAD_CAST "AB AB ABC", -1, BAD_CAST "ABC") == NULL) {
       printf("ERROR 3\n");
     }
-    else if (Strnstr("AB:ABC",-1,":") == NULL) {
+    else if (Strnstr(BAD_CAST "AB:ABC", -1, BAD_CAST ":") == NULL) {
       printf("ERROR 3\n");
     }
-    else if (Strnstr("DE",2,"ABC DEF") != NULL) {
+    else if (Strnstr(BAD_CAST "DE", 2, BAD_CAST "ABC DEF") != NULL) {
       printf("ERROR 3\n");
     }
     else {
@@ -818,7 +818,6 @@ utilsTest(void)
 
 
   if (RUNTEST) {
-    xmlChar *pucTest;
 
     i++;
     printf("TEST %i in '%s:%i': ", i, __FILE__, __LINE__);
@@ -834,7 +833,6 @@ utilsTest(void)
   }
 
   if (RUNTEST) {
-    xmlChar *pucTest;
 
     i++;
     printf("TEST %i in '%s:%i': ", i, __FILE__, __LINE__);

@@ -1040,7 +1040,7 @@ base64encode(const void* data_buf, size_t dataLength, char* result, size_t resul
 #define EQUALS     65
 #define INVALID    66
 
-static const unsigned char d[] = {
+static const unsigned char mucD[] = {
     66,66,66,66,66,66,66,66,66,64,66,66,66,66,66,66,66,66,66,66,66,66,66,66,66,
     66,66,66,66,66,66,66,66,66,66,66,66,66,66,66,66,66,66,62,66,66,66,63,52,53,
     54,55,56,57,58,59,60,61,66,66,66,65,66,66,66, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9,
@@ -1067,7 +1067,7 @@ base64decode(char *in, size_t inLen, unsigned char *out, size_t *outLen)
     if(outLen == NULL ) return 0;   /* indicate failure: no result length pointer */
 
     while (in < end) {
-        unsigned char c = d[*in++];
+        unsigned char c = mucD[*in++];
 
         switch (c) {
         case WHITESPACE: continue;   /* skip whitespace */
@@ -1874,7 +1874,7 @@ GetSelectedFileName(xmlChar *pucArgMsg, xmlChar *pucArgPath)
     ofn.lpstrFileTitle = (LPSTR)pucArgMsg;
   }
   else {
-    ofn.lpstrFileTitle = TEXT("Please select a File");
+    ofn.lpstrFileTitle = (LPSTR)TEXT("Please select a File");
   }
   ofn.nMaxFileTitle = 0;
   ofn.lpstrInitialDir = (LPSTR)pucArgPath;

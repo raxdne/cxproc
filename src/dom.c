@@ -232,6 +232,8 @@ domUnsetNs(xmlNodePtr pndArg)
 xmlAttrPtr
 domCopyPropList(xmlNodePtr target, xmlNodePtr cur)
 {
+  xmlAttrPtr pResult = NULL;
+
   if (target != NULL && target->type == XML_ELEMENT_NODE && cur != NULL && cur->type == XML_ELEMENT_NODE && target != cur) {
     xmlAttrPtr p;
 
@@ -240,8 +242,12 @@ domCopyPropList(xmlNodePtr target, xmlNodePtr cur)
 	xmlSetProp(target, p->name, p->children->content);
       }
     }
+
+    if (p != cur->properties) { /* one attribute minimum */
+      pResult = target->properties;
+    }
   }
-  return(target->properties);
+  return pResult;
 } /* end of domCopyPropList() */
 
 
@@ -542,7 +548,7 @@ domNodeListGetString(xmlNodePtr pndArg, xmlChar* pucArg)
       pucResult = domNodeListGetString(pndIter, pucResult);
     }
   }
-  else if (xmlNodeIsText(pndArg) && STR_IS_NOT_EMPTY(pndArg->content)) {
+  else if (pndArg != NULL && xmlNodeIsText(pndArg) && STR_IS_NOT_EMPTY(pndArg->content)) {
     pucResult = xmlStrcat(pucResult, BAD_CAST" ");
     pucResult = xmlStrcat(pucResult, pndArg->content);
   }
