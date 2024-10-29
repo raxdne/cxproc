@@ -29,9 +29,8 @@ cxpCtxtEncTest(cxpContextPtr pccArg, char** argv, char** envp)
   index_t i = 0;
 
   if (RUNTEST) {
-    int j = 0;
     cxpContextPtr pccT;
-    char *e[] = {"AAA=1","BBB=2","CCC=3",NULL};
+    const char *e[] = {"AAA=1","BBB=2","CCC=3",NULL};
     
     i++;
     printf("TEST %i in '%s:%i': cxpCtxtDup() = ", i, __FILE__, __LINE__);
@@ -54,7 +53,7 @@ cxpCtxtEncTest(cxpContextPtr pccArg, char** argv, char** envp)
     else if (cxpCtxtEnvGetCount(pccT) != 0) {
       printf("Error %i\n", 6);
     }
-    else if (cxpCtxtEnvDup(pccT,e) == FALSE) {
+    else if (cxpCtxtEnvDup(pccT,(char **)e) == FALSE) {
       printf("Error %i\n", 7);
     }
     else if (cxpCtxtEnvGetCount(pccT) != 3) {

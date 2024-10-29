@@ -122,10 +122,10 @@ cxpCtxtCacheTest(cxpContextPtr pccArg)
     else if (cxpCtxtCacheGetResNode(pccT,BAD_CAST"cache-12") != prnTT) {
       printf("Error 12\n");
     }
-    else if (xmlStrEqual(cxpCtxtCacheGetBuffer(pccT, BAD_CAST "cache-12"), pucTextAlpha) == FALSE) {
+    else if (xmlStrEqual(cxpCtxtCacheGetBuffer(pccT, BAD_CAST "cache-12"), pucTextAlpha) == 0) {
       printf("Error 13\n");
     }
-    else if (xmlStrEqual(cxpCtxtCacheGetBuffer(pccT, BAD_CAST "cache-11"), pucTextAlpha) == TRUE) {
+    else if (xmlStrEqual(cxpCtxtCacheGetBuffer(pccT, BAD_CAST "cache-11"), pucTextAlpha) == 1) {
       printf("Error 15\n");
     }
     else if (cxpCtxtCacheEnable(pccT, FALSE) == TRUE) {

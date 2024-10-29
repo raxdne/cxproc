@@ -841,7 +841,7 @@ cxpCtxtEnvSet(cxpContextPtr pccArg, xmlChar *pucArgName, xmlChar *pucArgValue)
     /* environment is not empty, there are already variables */
     cxpCtxtEnvDup(pccArg,pccArg->ppcEnv);
   }
-  else {
+  else if (pccArg != NULL) {
     /* environment is empty */
     char mucNew[BUFFER_LENGTH];
 
@@ -859,7 +859,7 @@ cxpCtxtEnvSet(cxpContextPtr pccArg, xmlChar *pucArgName, xmlChar *pucArgValue)
     pccArg->iCountEnv = iResult;
   }
 
-  return pccArg->iCountEnv;
+  return iResult;
 } /* end of cxpCtxtEnvSet() */
 
 
