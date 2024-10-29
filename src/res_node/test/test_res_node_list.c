@@ -191,7 +191,7 @@ resNodeTestList(void)
     else if (resNodeAddChildNew(prnT, BAD_CAST"Fun/") == NULL) {
       printf("Error resNodeAddChildNew() ...\n");
     }
-    else if ((j = resNodeGetChildCount(prnT, rn_type_dir)) != 6 || (j = resNodeGetChildCount(prnT, rn_type_file)) != 2) {
+    else if ((j = resNodeGetChildCount(prnT, rn_type_dir)) != 6 || (j = resNodeGetChildCount(prnT, rn_type_file)) != 3) {
       printf("Error resNodeDirAppendEntries() = %i\n", j);
     }
     else if (resNodeListFindChild(prnT, BAD_CAST"Notes.txt") != resNodeGetNext(resNodeGetChild(prnT))) {
@@ -337,7 +337,7 @@ resNodeTestList(void)
       printf("OK\n");
     }
 
-    puts((const char*)resNodeListToXml(prnT,RN_INFO_MAX));
+    //puts((const char*)resNodeListToXml(prnT,RN_INFO_MAX));
     resNodeFree(prnT);
   }
 

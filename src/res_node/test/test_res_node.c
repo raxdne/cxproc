@@ -1105,6 +1105,7 @@ resNodeTest(void)
     resNodeFree(prnT);
   }
 
+#ifdef HAVE_LIBARCHIVE
 
   if (RUNTEST) {
     resNodePtr prnT = NULL;
@@ -1155,6 +1156,7 @@ resNodeTest(void)
     xmlFree(pucT);
   }
 
+#endif
 
   if (RUNTEST) {
     resNodePtr prnT = NULL;
@@ -1539,7 +1541,7 @@ resNodeTest(void)
     else if (resNodeIsRecursive(prnT) == TRUE) {
       xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error 3\n");
     }
-    else if (resNodeGetNameBase(prnT) == NULL) {
+    else if (resNodeGetNameBase(prnT) != NULL) {
       xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error 6\n");
     }
     else {

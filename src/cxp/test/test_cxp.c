@@ -651,7 +651,7 @@ cxpTest(cxpContextPtr pccArg)
     i++;
     printf("TEST %i in '%s:%i': process system node", i, __FILE__, __LINE__);
 
-    if ((pndSystem = xmlNewNode(NULL, NAME_SYSTEM)) == NULL) {
+    if ((pndSystem = xmlNewNode(NULL, BAD_CAST NAME_SYSTEM)) == NULL) {
       printf("Error 1\n");
     }
     else if (cxpProcessSystemNode(pndSystem, pccTest) == TRUE) {

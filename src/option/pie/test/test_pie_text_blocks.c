@@ -936,7 +936,7 @@ pieTextBlocksTest(void)
       "##NOPQ\n\n"
       ;
 
-    puts((const char *)pucT);
+    //puts((const char *)pucT);
 
     ppeT = pieElementNew(pucT, RMODE_MD);
 
@@ -947,7 +947,7 @@ pieTextBlocksTest(void)
 
       pieElementParse(ppeT);
       pucTT = pieElementToPlain(ppeT);
-      puts((const char *)pucTT);
+      //puts((const char *)pucTT);
       xmlFree(pucTT);
 
       switch (k) {
