@@ -289,6 +289,7 @@
 			  (compile (concat "cmake --build " prefix "/../x86_64-gnu-linux/build/ -j 4"
 					   ;;" --target cpp-check"
 					   ;;" --target cxproc"
+					   ;;" --target doc_doxygen"
 					   ;;" --target all" cxproc filex cxproc-cgi cxproc-test 
 			  		   ))
 					;(compile "make test")

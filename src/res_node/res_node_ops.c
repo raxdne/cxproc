@@ -35,15 +35,13 @@
    - Linux
  */
 
-/*! the content of a single file 'pucFrom' to 'pucTo'. There is neither globbing nor
+/*! the content of a single file 'pucArgFrom' to 'pucArgTo'. There is neither globbing nor
   directory handling (Use cxp:system instead).
 
   \param pucArgFrom source file name
   \param pucArgTo directory or file name
   \param fArgMove move flag
   \return TRUE if successful
-
-  \bug handling of stdin, stdout
 */
 RN_ERROR
 resNodeTransferStr(xmlChar *pucArgFrom, xmlChar *pucArgTo, BOOL_T fArgMove)
@@ -116,6 +114,9 @@ resNodeTransfer(resNodePtr prnArgFrom, resNodePtr prnArgTo, BOOL_T fArgMove)
 	resNodeSetError(prnArgTo, rn_error_copy, "Moving from stdin is not permitted");
 	eResult = rn_error_undef;
       }
+      else {
+	resNodeSetType(prnArgFrom,rn_type_stdin);
+      }
     }
     else if (resNodeReadStatus(prnArgFrom)) { /* try to get some context info */
       if (resNodeIsURL(prnArgFrom)) {
@@ -160,6 +161,9 @@ resNodeTransfer(resNodePtr prnArgFrom, resNodePtr prnArgTo, BOOL_T fArgMove)
       if (fArgMove) {
 	resNodeSetError(prnArgTo, rn_error_copy, "Moving to stdout is not permitted");
 	eResult = rn_error_undef;
+      }
+      else {
+	resNodeSetType(prnArgTo,rn_type_stdout);
       }
     }
     else if (resNodeReadStatus(prnArgTo)) { /* try to get some context info */
@@ -331,7 +335,7 @@ resNodeMakeDirectory(resNodePtr prnArg, int mode)
       /* ignoring root node */
       eResult = rn_error_none;
     }
-    else if (resNodeGetType(prnArg) == rn_type_stdout || resNodeGetType(prnArg) == rn_type_stdin || resNodeGetType(prnArg) == rn_type_stderr) {
+    else if (resNodeIsStd(prnArg)) {
       /* ignoring std* nodes */
       eResult = rn_error_none;
     }
@@ -342,7 +346,6 @@ resNodeMakeDirectory(resNodePtr prnArg, int mode)
       prnParent = resNodeDup(prnArg,RN_DUP_THIS);
       resNodeSetToParent(prnParent);
       eResult = resNodeMakeDirectory(prnParent, mode);
-      /*!\todo check errors */
       resNodeFree(prnParent);
     }
     else if (resNodeIsExist(prnArg)) {

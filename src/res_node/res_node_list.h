@@ -70,7 +70,7 @@ extern xmlChar *
 resNodeListToJSON(resNodePtr prnArg, int iLevelVerboseArg);
 
 extern xmlChar *
-resNodeListToXml(resNodePtr prnArg, int iLevelVerboseArg);
+resNodeListToXmlStr(resNodePtr prnArg, int iLevelVerboseArg);
 
 extern xmlChar *
 resNodeListToPlain(resNodePtr prnArg, int iLevelVerboseArg);

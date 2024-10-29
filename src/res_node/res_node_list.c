@@ -607,43 +607,40 @@ resNodeListToJSON(resNodePtr prnArg, int iArgOptions)
 } /* end of resNodeListToJSON() */
 
 
-/*! Resource Node List To Xml  
+/*! Resource Node List To Xml String 
 
 \param prnArg -- resNode tree to build as XML string
 \param iArgOptions bits for options 
-\return pointer to buffer with XML
+\return pointer to buffer with XML string
 */
 xmlChar *
-resNodeListToXml(resNodePtr prnArg, int iArgOptions)
+resNodeListToXmlStr(resNodePtr prnArg, int iArgOptions)
 {
   xmlChar *pucResult = NULL;
   xmlNodePtr pndT = NULL;
   xmlDocPtr pdocT = NULL;
 
   if (prnArg) {
-    if ((pndT = resNodeListToDOM(prnArg,iArgOptions)) != NULL && (pdocT = domDocFromNodeNew(pndT)) != NULL) {
+    if ((pndT = resNodeListToDOM(prnArg, iArgOptions)) != NULL && (pdocT = domDocFromNodeNew(pndT)) != NULL) {
       int iLength = 0;
-      xmlBufferPtr buffer;
 
-      buffer = xmlBufferCreate();
-      if (buffer) {
-	iLength = xmlNodeDump(buffer, pndT->doc, pndT, 0, 1);
-	if (iLength > 0) {
-	  pucResult = xmlBufferDetach(buffer);
-	}
-	xmlBufferFree(buffer);
+      xmlDocDumpMemoryEnc(pdocT, &pucResult, &iLength, "UTF-8");
+      if (iLength > 0 && pucResult != NULL) {
+	/* success */
       }
-      /*!\bug XML declaration is missing */
+      else {
+	resNodeSetError(prnArg, rn_error_xml, "Error xmlDocDumpMemoryEnc()");
+      }
     }
     else {
-      resNodeSetError(prnArg,rn_error_xml,"Error resNodeListToXml()");
+      resNodeSetError(prnArg, rn_error_xml, "Error resNodeListToXmlStr()");
     }
 
     xmlFreeNode(pndT);
     xmlFreeDoc(pdocT);
   }
   return pucResult;
-} /* end of resNodeListToXml() */
+} /* end of resNodeListToXmlStr() */
 
 
 /*! Resource Node List To Plain

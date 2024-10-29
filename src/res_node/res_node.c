@@ -2853,22 +2853,26 @@ resNodeIsWriteable(resNodePtr prnArg)
 
 
 /*! \return TRUE if prnArg check if parent directory is writeable
-
-\bug check for ROOT, stdin etc 
  */
 BOOL_T
 resNodeParentIsWriteable(resNodePtr prnArg)
 {
   BOOL_T fResult = FALSE;
-  resNodePtr prnT;
 
-  if ((prnT = resNodeDup(prnArg, RN_DUP_THIS)) != NULL) {
-    resNodeSetToParent(prnT);
-    fResult = (resNodeReadStatus(prnT) && resNodeIsWriteable(prnT) && prnT->fWrite);
-    resNodeFree(prnT);
+  if (prnArg) {
+    resNodePtr prnT;
+
+    if (resNodeIsLink(prnArg) || resNodeIsRoot(prnArg) || resNodeIsStd(prnArg)) {
+      /* exceptions */
+    }
+    else if (resNodeGetNameBaseDir(prnArg) != NULL && (prnT = resNodeDup(prnArg, RN_DUP_THIS)) != NULL) {
+      resNodeSetToParent(prnT);
+      fResult = (resNodeReadStatus(prnT) && resNodeIsWriteable(prnT) && prnT->fWrite);
+      resNodeFree(prnT);
+    }
   }
   return fResult;
-} /* end of resNodeIsWriteable() */
+} /* end of resNodeParentIsWriteable() */
 
 
 /*! \return TRUE if prnArg is existing or createable
@@ -4224,12 +4228,10 @@ resNodeToSQL(resNodePtr prnArg, int iArgOptions)
 } /* end of resNodeToSQL() */
 
 
-/*! Detects and sets owner of the resource node.
+/*! Detects and sets "owner" string of the resource node.
 
   \param prnArg a pointer to a resource node
   \return TRUE if an according filesystem entry exists
-
-  \deprecated because of portability and performance issues
 */
 BOOL_T
 resNodeReadOwner(resNodePtr prnArg)
@@ -4333,6 +4335,7 @@ resNodeReadOwner(resNodePtr prnArg)
 
     if ((pOwner = getpwuid(prnArg->s.st_uid)) != NULL && pOwner->pw_name != NULL && pOwner->pw_name[0] != '\0') {
       prnArg->pucOwner = xmlStrdup(BAD_CAST pOwner->pw_name);
+      fResult = TRUE;
     }
     else {
       resNodeSetError(prnArg,rn_error_owner,"owner");
@@ -5325,23 +5328,8 @@ resNodeResetMimeType(resNodePtr prnArg)
 	xmlFree(pucE);
       }
     }
-#if 0
-    else if (resNodeGetType(prnArg) == rn_type_url_http) { /*! detect MIME type by fetching Content-type */
-      resNodeSetMimeType(prnArg,resMimeGetType((char *)xmlNanoHTTPMimeType(resNodeGetHandleIO(prnArg))));
-      if (prnArg->eMimeType == MIME_UNDEFINED) {
-	resNodeSetMimeType(prnArg,resMimeGetTypeFromExt(resNodeGetExtension(prnArg)));
-	if (prnArg->eMimeType == MIME_UNDEFINED) {
-	  resNodeSetMimeType(prnArg,MIME_TEXT_HTML);
-	  PrintFormatLog(4, "Assumed default Content type of URL '%s' is '%s'", resNodeGetNameNormalized(prnArg), resNodeGetMimeTypeStr(prnArg));
-	}
-	else {
-	  PrintFormatLog(4, "Detected Content type of URL '%s' is '%s'", resNodeGetNameNormalized(prnArg), resNodeGetMimeTypeStr(prnArg));
-	}
-      }
-    }
-#endif
     else if (resNodeGetType(prnArg) == rn_type_url) {
-      /*!\bug detect MIME type by fetching Content-type */
+      /*!\todo detect MIME type by fetching Content-type */
       resNodeSetMimeType(prnArg,resMimeGetTypeFromExt(resNodeGetExtension(prnArg)));
     }
     else if (resNodeGetType(prnArg) == rn_type_stdout) {

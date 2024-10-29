@@ -102,7 +102,7 @@ xmlDocPtr pdocT = NULL;
     domPutDocString(stderr,BAD_CAST"Result Document",pdocT);
 xmlFreeDoc(pdocT);
 
-    //puts((const char*)resNodeListToXml(prnZip,RN_INFO_MAX));
+    //puts((const char*)resNodeListToXmlStr(prnZip,RN_INFO_MAX));
     resNodeFree(prnZip);
   }
 
@@ -228,7 +228,7 @@ xmlFreeDoc(pdocT);
       n_ok++;
     }
 
-    //puts((const char*)resNodeListToXml(prnZipDoc,RN_INFO_MAX));
+    //puts((const char*)resNodeListToXmlStr(prnZipDoc,RN_INFO_MAX));
     resNodeFree(prnZipDoc);
   }
 
@@ -263,7 +263,7 @@ xmlFreeDoc(pdocT);
       n_ok++;
     }
 
-    //puts((const char*)resNodeListToXml(prnZipDoc,RN_INFO_MAX));
+    //puts((const char*)resNodeListToXmlStr(prnZipDoc,RN_INFO_MAX));
     resNodeFree(prnZipDoc);
   }
 

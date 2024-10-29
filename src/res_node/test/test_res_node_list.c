@@ -228,7 +228,7 @@ resNodeTestList(void)
       printf("OK\n");
     }
 
-    //puts((const char*)resNodeListToXml(prnT,RN_INFO_MIN));
+    //puts((const char*)resNodeListToXmlStr(prnT,RN_INFO_MIN));
     resNodeFree(prnT);
   }
 
@@ -263,7 +263,7 @@ resNodeTestList(void)
       printf("OK\n");
     }
 
-    //puts((const char*)resNodeListToXml(prnT,RN_INFO_MIN));
+    //puts((const char*)resNodeListToXmlStr(prnT,RN_INFO_MIN));
     resNodeFree(prnU);
     resNodeFree(prnT);
   }
@@ -292,7 +292,7 @@ resNodeTestList(void)
       printf("OK\n");
     }
 
-    //puts((const char*)resNodeListToXml(prnT,RN_INFO_MIN));
+    //puts((const char*)resNodeListToXmlStr(prnT,RN_INFO_MIN));
     resNodeFree(prnT);
   }
 
@@ -337,7 +337,7 @@ resNodeTestList(void)
       printf("OK\n");
     }
 
-    //puts((const char*)resNodeListToXml(prnT,RN_INFO_MAX));
+    //puts((const char*)resNodeListToXmlStr(prnT,RN_INFO_MAX));
     resNodeFree(prnT);
   }
 
@@ -377,7 +377,7 @@ resNodeTestList(void)
       printf("OK\n");
     }
 
-    //puts((const char*)resNodeListToXml(prnT,RN_INFO_MAX));
+    //puts((const char*)resNodeListToXmlStr(prnT,RN_INFO_MAX));
     resNodeFree(prnT);
   }
 #endif
@@ -408,7 +408,7 @@ resNodeTestList(void)
       printf("OK\n");
     }
 
-    //puts((const char*)resNodeListToXml(prnT,RN_INFO_MAX));
+    //puts((const char*)resNodeListToXmlStr(prnT,RN_INFO_MAX));
     resNodeFree(prnT);
   }
 
@@ -441,7 +441,7 @@ resNodeTestList(void)
       printf("OK\n");
     }
 
-    //puts((const char*)resNodeListToXml(prnT,RN_INFO_MAX));
+    //puts((const char*)resNodeListToXmlStr(prnT,RN_INFO_MAX));
     resNodeFree(prnT);
   }
 
@@ -477,7 +477,7 @@ resNodeTestList(void)
       printf("OK\n");
     }
 
-    //puts((const char*)resNodeListToXml(prnT,RN_INFO_MAX));
+    //puts((const char*)resNodeListToXmlStr(prnT,RN_INFO_MAX));
     resNodeFree(prnT);
   }
 
@@ -522,7 +522,7 @@ resNodeTestList(void)
       printf("OK\n");
     }
 
-    //puts((const char*)resNodeListToXml(prnT,RN_INFO_MAX));
+    //puts((const char*)resNodeListToXmlStr(prnT,RN_INFO_MAX));
     resNodeFree(prnT);
   }
 #endif
@@ -569,7 +569,7 @@ resNodeTestList(void)
       printf("OK\n");
     }
     pcre2_code_free(re_match);
-    //puts((const char*)resNodeListToXml(prnFound,RN_INFO_MIN));
+    //puts((const char*)resNodeListToXmlStr(prnFound,RN_INFO_MIN));
     resNodeFree(prnT);
   }
 #endif
@@ -769,13 +769,13 @@ resNodeTestList(void)
 
 	i++;
 	printf("TEST %i in '%s:%i': transform resNodeList to XML text = ", i, __FILE__, __LINE__);
-	if ((pucT = resNodeListToXml(prnT, RN_INFO_MAX))) {
-	  //puts((const char*)pucT);
+	if ((pucT = resNodeListToXmlStr(prnT, RN_INFO_MAX))) {
+	  puts((const char*)pucT);
 	  n_ok++;
 	  printf("OK\n");
 	}
 	else {
-	  printf("Error resNodeListToXml() ...\n");
+	  printf("Error resNodeListToXmlStr() ...\n");
 	}
 	xmlFree(pucT);
 
