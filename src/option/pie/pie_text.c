@@ -1490,7 +1490,7 @@ ProcessPieNodeOptions(xmlNodePtr pndArgPie, xmlNodePtr pndArgImport, cxpContextP
       resNodePtr prnDoc;
 
       cxpCtxtLogPrint(pccArg, 2, "Add locator attribute");
-      if (pndArgImport->doc != NULL && (prnDoc = resNodeDirNew(BAD_CAST pndArgImport->doc->URL)) != NULL) {
+      if (pndArgImport != NULL && pndArgImport->doc != NULL && (prnDoc = resNodeDirNew(BAD_CAST pndArgImport->doc->URL)) != NULL) {
 	SetPropXpathInBlock(pndArgPie, NULL);
 	resNodeFree(prnDoc);
       }
@@ -1670,16 +1670,11 @@ pieGetSelfAncestorNodeList(xmlNodePtr pndArg, xmlChar *pucArgId)
 	  xmlAddChild(pndResult, pndH);
 	}
       }
-    }
-    else {
-    }
 
-    if (pndResult->children) {
-      /* OK */
-    }
-    else {
-      xmlFreeNode(pndResult);
-      pndResult = NULL;
+      if (pndResult->children == NULL) {
+	xmlFreeNode(pndResult);
+	pndResult = NULL;
+      }
     }
   }
   else if (IS_NODE_PIE_TR(pndArg)) { /*! tr/td/date */

@@ -39,7 +39,7 @@ pieCmarkTest(void)
     i++;
     printf("TEST %i in '%s:%i': parse empty markdown text = ", i, __FILE__, __LINE__);
 
-    if ((pndPie = xmlNewNode(NULL, NAME_PIE_PIE)) == NULL) {
+    if ((pndPie = xmlNewNode(NULL, BAD_CAST NAME_PIE_PIE)) == NULL) {
       printf("Error xmlNewNode()\n");
     }
     else if (ParseMarkdownBuffer(pndPie, NULL) != NULL) {
@@ -96,7 +96,7 @@ pieCmarkTest(void)
     i++;
     printf("TEST %i in '%s:%i': parse markdown text and build list of import elements = ", i, __FILE__, __LINE__);
 
-    if ((pndPie = xmlNewNode(NULL, NAME_PIE_PIE)) == NULL) {
+    if ((pndPie = xmlNewNode(NULL, BAD_CAST NAME_PIE_PIE)) == NULL) {
       printf("Error xmlNewNode()\n");
     }
     else if (ParseMarkdownBuffer(pndPie, pucContent) == NULL) {
@@ -106,7 +106,7 @@ pieCmarkTest(void)
       printf("Error 2 ParseMarkdownBuffer()\n");
     }
 #if 0 
-    else if (domNumberOfChild(pndBlock, NAME_PIE_SECTION) != 2) {
+    else if (domNumberOfChild(pndBlock, BAD_CAST NAME_PIE_SECTION) != 2) {
       printf("Error 3 ParseMarkdownBuffer()\n");
     }
 #endif

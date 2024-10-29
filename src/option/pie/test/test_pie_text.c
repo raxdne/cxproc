@@ -39,7 +39,7 @@ pieTextTest(cxpContextPtr pccArg)
     i++;
     printf("TEST %i in '%s:%i': import dummy = ", i, __FILE__, __LINE__);
 
-    if ((pndPie = xmlNewNode(NULL, NAME_PIE_PIE)) == NULL) {
+    if ((pndPie = xmlNewNode(NULL, BAD_CAST NAME_PIE_PIE)) == NULL) {
       printf("Error xmlNewNode()\n");
     }
     else if (ProcessImportNode(NULL, pccArg) == TRUE) {
@@ -72,7 +72,7 @@ pieTextTest(cxpContextPtr pccArg)
     }
     else if ((pndPie = xmlDocGetRootElement(pdocT)) == NULL
       || IS_NODE_PIE(pndPie) == FALSE
-      || domNumberOfChild(pndPie, NAME_PIE_SECTION) != 1) {
+      || domNumberOfChild(pndPie, BAD_CAST NAME_PIE_SECTION) != 1) {
       printf("Error file structure\n");
     }
     else if ((pdocTT = pieProcessPieNode(pndPie, pccArg)) == NULL) {
@@ -96,14 +96,14 @@ pieTextTest(cxpContextPtr pccArg)
     i++;
     printf("TEST %i in '%s:%i': complex circular import = ", i, __FILE__, __LINE__);
 
-    pndPie = xmlNewNode(NULL, NAME_PIE_PIE);
-    pndT = xmlNewChild(pndPie, NULL, NAME_PIE_IMPORT, NULL);
+    pndPie = xmlNewNode(NULL, BAD_CAST NAME_PIE_PIE);
+    pndT = xmlNewChild(pndPie, NULL, BAD_CAST NAME_PIE_IMPORT, NULL);
     xmlSetProp(pndT, BAD_CAST "name", BAD_CAST TESTPREFIX "option/pie/text/circular/test-pie-circular-a.pie");
 
     if ((pdocT = pieProcessPieNode(pndPie, pccArg)) == NULL) {
       printf("Error 1 pieProcessPieNode()\n");
     }
-    else if (domNumberOfChild(pndPie, NAME_PIE_SECTION) == 2) {
+    else if (domNumberOfChild(pndPie, BAD_CAST NAME_PIE_SECTION) == 2) {
       printf("Error 2 pieProcessPieNode()\n");
     }
     else {
@@ -131,13 +131,13 @@ pieTextTest(cxpContextPtr pccArg)
     i++;
     printf("TEST %i in '%s:%i': parse CSV text and build tree = ", i, __FILE__, __LINE__);
 
-    if ((pndPie = xmlNewNode(NULL, NAME_PIE_PIE)) == NULL) {
+    if ((pndPie = xmlNewNode(NULL, BAD_CAST NAME_PIE_PIE)) == NULL) {
       printf("Error xmlNewNode()\n");
     }
-    else if (ParsePlainBuffer(pndPie, pucContent, RMODE_TABLE) == FALSE) {
+    else if (ParsePlainBuffer(pndPie, pucContent, RMODE_TABLE) == NULL) {
       printf("Error 1 ParsePlainBuffer()\n");
     }
-    else if (domNumberOfChild(pndPie, NAME_PIE_BLOCK) != 1 || domNumberOfChild(pndPie->children, NAME_PIE_TABLE) != 1) {
+    else if (domNumberOfChild(pndPie, BAD_CAST NAME_PIE_BLOCK) != 1 || domNumberOfChild(pndPie->children, BAD_CAST NAME_PIE_TABLE) != 1) {
       printf("Error 2 ParsePlainBuffer()\n");
     }
     else {
@@ -182,13 +182,13 @@ pieTextTest(cxpContextPtr pccArg)
     i++;
     printf("TEST %i in '%s:%i': parse plain text and build tree = ", i, __FILE__, __LINE__);
 
-    if ((pndPie = xmlNewNode(NULL, NAME_PIE_PIE)) == NULL) {
+    if ((pndPie = xmlNewNode(NULL, BAD_CAST NAME_PIE_PIE)) == NULL) {
       printf("Error xmlNewNode()\n");
     }
-    else if (ParsePlainBuffer(pndPie, pucContent, RMODE_PAR) == FALSE) {
+    else if (ParsePlainBuffer(pndPie, pucContent, RMODE_PAR) == NULL) {
       printf("Error 1 ParsePlainBuffer()\n");
     }
-    else if (IS_NODE_PIE(pndPie) == FALSE || domNumberOfChild(pndPie, NAME_PIE_BLOCK) != 1 || domNumberOfChild(pndPie->children, NAME_PIE_SECTION) != 1) {
+    else if (IS_NODE_PIE(pndPie) == FALSE || domNumberOfChild(pndPie, BAD_CAST NAME_PIE_BLOCK) != 1 || domNumberOfChild(pndPie->children, BAD_CAST NAME_PIE_SECTION) != 1) {
       printf("Error 2 ParsePlainBuffer()\n");
     }
     else {
@@ -215,16 +215,16 @@ pieTextTest(cxpContextPtr pccArg)
     else if (resNodeGetContent(prnT, 1) == NULL || resNodeGetSize(prnT) < 1) {
       printf("Error content\n");
     }
-    else if ((pndPie = xmlNewNode(NULL, NAME_PIE_PIE)) == NULL) {
+    else if ((pndPie = xmlNewNode(NULL, BAD_CAST NAME_PIE_PIE)) == NULL) {
       printf("Error xmlNewNode()\n");
     }
-    else if (ParsePlainBuffer(pndPie, BAD_CAST resNodeGetContentPtr(prnT), RMODE_PAR) == FALSE) {
+    else if (ParsePlainBuffer(pndPie, BAD_CAST resNodeGetContentPtr(prnT), RMODE_PAR) == NULL) {
       printf("Error ParsePlainBuffer()\n");
     }
     else if ((pndBlock = pndPie->children) == NULL || IS_NODE_PIE_BLOCK(pndBlock) == FALSE) {
       printf("Error 1 tree\n");
     }
-    else if (domNumberOfChild(pndBlock, NAME_PIE_SECTION) != 3) {
+    else if (domNumberOfChild(pndBlock, BAD_CAST NAME_PIE_SECTION) != 3) {
       printf("Error 2 tree\n");
     }
     else {
@@ -255,22 +255,22 @@ pieTextTest(cxpContextPtr pccArg)
     i++;
     printf("TEST %i in '%s:%i': parse plain text with script attributes and build tree = ", i, __FILE__, __LINE__);
 
-    if ((pndPie = xmlNewNode(NULL, NAME_PIE_PIE)) == NULL) {
+    if ((pndPie = xmlNewNode(NULL, BAD_CAST NAME_PIE_PIE)) == NULL) {
       printf("Error xmlNewNode()\n");
     }
-    else if (ParsePlainBuffer(pndPie, pucContent, RMODE_PAR) == FALSE) {
+    else if (ParsePlainBuffer(pndPie, pucContent, RMODE_PAR) == NULL) {
       printf("Error ParsePlainBuffer()\n");
     }
-    else if (IS_NODE_PIE(pndPie) == FALSE || domNumberOfChild(pndPie, NAME_PIE_BLOCK) != 1
-      || domNumberOfChild(pndPie->children, NAME_PIE_SECTION) != 1 || domNumberOf(pndPie->children, NAME_PIE_PAR, 0) != 3) {
+    else if (IS_NODE_PIE(pndPie) == FALSE || domNumberOfChild(pndPie, BAD_CAST NAME_PIE_BLOCK) != 1
+      || domNumberOfChild(pndPie->children, BAD_CAST NAME_PIE_SECTION) != 1 || domNumberOf(pndPie->children, BAD_CAST NAME_PIE_PAR, 0) != 3) {
       printf("Error 1 tree\n");
     }
 #if 0
     else if (RecognizeScripts(pndPie) == FALSE) {
       printf("Error RecognizeScripts()\n");
     }
-    else if (IS_NODE_PIE(pndPie) == FALSE || domNumberOfChild(pndPie, NAME_PIE_SECTION) != 1
-	     || domNumberOf(pndPie, NAME_PIE_PAR, 0) != 3 || domNumberOf(pndPie, NAME_PIE_SCRIPT, 0) != 4) {
+    else if (IS_NODE_PIE(pndPie) == FALSE || domNumberOfChild(pndPie, BAD_CAST NAME_PIE_SECTION) != 1
+	     || domNumberOf(pndPie, BAD_CAST NAME_PIE_PAR, 0) != 3 || domNumberOf(pndPie, BAD_CAST NAME_PIE_SCRIPT, 0) != 4) {
       printf("Error 2 tree\n");
     }
 #endif
@@ -302,17 +302,17 @@ pieTextTest(cxpContextPtr pccArg)
     i++;
     printf("TEST %i in '%s:%i': parse text node content = ", i, __FILE__, __LINE__);
 
-    if ((pndPie = xmlNewNode(NULL, NAME_PIE_PIE)) == NULL) {
+    if ((pndPie = xmlNewNode(NULL, BAD_CAST NAME_PIE_PIE)) == NULL) {
       printf("Error xmlNewNode()\n");
     }
-    else if ((pndPieImport = xmlNewChild(pndPie, NULL, NAME_PIE_IMPORT, pucData)) == NULL
+    else if ((pndPieImport = xmlNewChild(pndPie, NULL, BAD_CAST NAME_PIE_IMPORT, pucData)) == NULL
       || xmlSetProp(pndPieImport, BAD_CAST "type", BAD_CAST"log") == NULL) {
       printf("Error xmlNewChild()\n");
     }
     else if (ProcessImportNode(pndPieImport, pccArg) == FALSE) {
       printf("Error ProcessImportNode()\n");
     }
-    else if (IS_NODE_PIE(pndPie) == FALSE || domNumberOfChild(pndPie, NAME_PIE_BLOCK) != 1 || domNumberOfChild(pndPie->children, NAME_PIE_PAR) != 22) {
+    else if (IS_NODE_PIE(pndPie) == FALSE || domNumberOfChild(pndPie, BAD_CAST NAME_PIE_BLOCK) != 1 || domNumberOfChild(pndPie->children, BAD_CAST NAME_PIE_PAR) != 22) {
     }
     else {
       n_ok++;
@@ -330,18 +330,18 @@ pieTextTest(cxpContextPtr pccArg)
     i++;
     printf("TEST %i in '%s:%i': import of plain text file = ",i,__FILE__,__LINE__);
 
-    if ((pndPie = xmlNewNode(NULL, NAME_PIE_PIE)) == NULL) {
+    if ((pndPie = xmlNewNode(NULL, BAD_CAST NAME_PIE_PIE)) == NULL) {
       printf("Error xmlNewNode()\n");
     }
-    else if ((pndPieImport = xmlNewChild(pndPie, NULL, NAME_PIE_IMPORT, NULL)) == NULL
+    else if ((pndPieImport = xmlNewChild(pndPie, NULL, BAD_CAST NAME_PIE_IMPORT, NULL)) == NULL
       || xmlSetProp(pndPieImport, BAD_CAST "name", BAD_CAST TESTPREFIX "option/pie/text/test-pie-6.txt") == NULL) {
       printf("Error xmlNewChild()\n");
     }
     else if (ProcessImportNode(pndPieImport, pccArg) == FALSE) {
       printf("Error ProcessImportNode()\n");
     }
-    else if (IS_NODE_PIE(pndPie) == FALSE || domNumberOfChild(pndPie, NAME_PIE_BLOCK) != 1
-      || domNumberOfChild(pndPie->children, NAME_PIE_SECTION) != 1 || domNumberOfChild(pndPie->children, NAME_PIE_IMPORT) != 0) {
+    else if (IS_NODE_PIE(pndPie) == FALSE || domNumberOfChild(pndPie, BAD_CAST NAME_PIE_BLOCK) != 1
+      || domNumberOfChild(pndPie->children, BAD_CAST NAME_PIE_SECTION) != 1 || domNumberOfChild(pndPie->children, BAD_CAST NAME_PIE_IMPORT) != 0) {
       printf("Error 1 tree\n");
     }
     else {
@@ -361,18 +361,18 @@ pieTextTest(cxpContextPtr pccArg)
     i++;
     printf("TEST %i in '%s:%i': import text file to a text node = ",i,__FILE__,__LINE__);
 
-    if ((pndPie = xmlNewNode(NULL, NAME_PIE_PIE)) == NULL) {
+    if ((pndPie = xmlNewNode(NULL, BAD_CAST NAME_PIE_PIE)) == NULL) {
       printf("Error xmlNewNode()\n");
     }
-    else if ((pndPieImport = xmlNewChild(pndPie, NULL, NAME_PIE_IMPORT, NULL)) == NULL
+    else if ((pndPieImport = xmlNewChild(pndPie, NULL, BAD_CAST NAME_PIE_IMPORT, NULL)) == NULL
       || xmlSetProp(pndPieImport, BAD_CAST "name", BAD_CAST TESTPREFIX "plain/test-content-utf16be.txt") == NULL) {
       printf("Error xmlNewChild()\n");
     }
     else if (ProcessImportNode(pndPieImport, pccArg) == FALSE) {
       printf("Error ProcessImportNode()\n");
     }
-    else if (IS_NODE_PIE(pndPie) == FALSE || domNumberOfChild(pndPie, NAME_PIE_BLOCK) != 1
-      || domNumberOfChild(pndPie->children, NAME_PIE_PAR) != 1) {
+    else if (IS_NODE_PIE(pndPie) == FALSE || domNumberOfChild(pndPie, BAD_CAST NAME_PIE_BLOCK) != 1
+      || domNumberOfChild(pndPie->children, BAD_CAST NAME_PIE_PAR) != 1) {
       printf("Error 1 tree\n");
     }
     else {
@@ -391,37 +391,37 @@ pieTextTest(cxpContextPtr pccArg)
     i++;
     printf("TEST %i in '%s:%i': include text file to a text node = ", i, __FILE__, __LINE__);
 
-    if ((pndPie = xmlNewNode(NULL, NAME_PIE_PIE)) == NULL) {
+    if ((pndPie = xmlNewNode(NULL, BAD_CAST NAME_PIE_PIE)) == NULL) {
       printf("Error xmlNewNode()\n");
     }
-    else if ((pndT = xmlNewChild(pndPie, NULL, NAME_PIE_INCLUDE, NULL)) == NULL
+    else if ((pndT = xmlNewChild(pndPie, NULL, BAD_CAST NAME_PIE_INCLUDE, NULL)) == NULL
       || xmlSetProp(pndT, BAD_CAST "name", BAD_CAST TESTPREFIX "option/pie/text/test-pie-subst.txt") == NULL) {
       printf("Error xmlNewChild()\n");
     }
-    else if ((pndT = xmlNewChild(pndPie, NULL, NAME_SUBST, NULL)) == NULL
+    else if ((pndT = xmlNewChild(pndPie, NULL, BAD_CAST NAME_SUBST, NULL)) == NULL
       || xmlSetProp(pndT, BAD_CAST "string", BAD_CAST "Logbook") == NULL
       || xmlSetProp(pndT, BAD_CAST "to", BAD_CAST "LOGBOOK") == NULL
       || xmlNewChild(pndPie, NULL, BAD_CAST "hr", NULL) == NULL) {
       printf("Error xmlNewChild()\n");
     }
-    else if ((pndT = xmlNewChild(pndPie, NULL, NAME_PIE_INCLUDE, NULL)) == NULL
+    else if ((pndT = xmlNewChild(pndPie, NULL, BAD_CAST NAME_PIE_INCLUDE, NULL)) == NULL
       || xmlSetProp(pndT, BAD_CAST "name", BAD_CAST TESTPREFIX "option/pie/text/test-pie-12a.txt") == NULL
       || xmlNewChild(pndPie, NULL, BAD_CAST "hr", NULL) == NULL) {
       printf("Error xmlNewChild()\n");
     }
-    else if ((pndT = xmlNewChild(pndPie, NULL, NAME_PIE_INCLUDE, NULL)) == NULL
+    else if ((pndT = xmlNewChild(pndPie, NULL, BAD_CAST NAME_PIE_INCLUDE, NULL)) == NULL
       || xmlSetProp(pndT, BAD_CAST "name", BAD_CAST TESTPREFIX "option/pie/text/test-pie-14.pie") == NULL) {
       printf("Error xmlNewChild()\n");
     }
     else {
-	int j;
+      int j = 0;
       xmlDocPtr pdocT = NULL;
 
       //domPutNodeString(stderr, BAD_CAST "pre include", pndPie);
       TraverseIncludeNodes(pndPie, pccArg);
       //domPutNodeString(stderr, BAD_CAST "post include", pndPie);
       if (IS_NODE_PIE(pndPie) == FALSE || (j = domNumberOfChild(pndPie, NULL)) != 13
-	|| domNumberOfChild(pndPie->children, NAME_PIE_INCLUDE) != 0) {
+	|| domNumberOfChild(pndPie->children, BAD_CAST NAME_PIE_INCLUDE) != 0) {
 	printf("Error 1 tree: %i\n",j);
       }
       else if ((pdocT = pieProcessPieNode(pndPie, pccArg)) == NULL) {
@@ -447,10 +447,10 @@ pieTextTest(cxpContextPtr pccArg)
     i++;
     printf("TEST %i in '%s:%i': import from single import script node = ", i, __FILE__, __LINE__);
 
-    pndPie = xmlNewNode(NULL, NAME_PIE_PIE);
+    pndPie = xmlNewNode(NULL, BAD_CAST NAME_PIE_PIE);
 
-    pndTest = xmlNewChild(pndPie, NULL, NAME_PIE_PAR, BAD_CAST"pre script ");
-    pndImport = xmlNewChild(pndTest, NULL, NAME_PIE_IMPORT, BAD_CAST"\n123 + 144\n\n");
+    pndTest = xmlNewChild(pndPie, NULL, BAD_CAST NAME_PIE_PAR, BAD_CAST"pre script ");
+    pndImport = xmlNewChild(pndTest, NULL, BAD_CAST NAME_PIE_IMPORT, BAD_CAST"\n123 + 144\n\n");
     xmlSetProp(pndImport, BAD_CAST "type", BAD_CAST"script");
     xmlAddChild(pndTest, xmlNewText(BAD_CAST" post script"));
     //domPutNodeString(stderr, BAD_CAST "script result", pndPie);
@@ -458,7 +458,7 @@ pieTextTest(cxpContextPtr pccArg)
     if (ImportNodeContent(pndImport,pccArg) == FALSE) {
       printf("Error 1 ImportNodeContent()\n");
     }
-    else if (domNumberOf(pndPie, NAME_PIE_PAR, 0) != 1) {
+    else if (domNumberOf(pndPie, BAD_CAST NAME_PIE_PAR, 0) != 1) {
       printf("Error 2 ImportNodeContent()\n");
     }
     else {
@@ -479,10 +479,10 @@ pieTextTest(cxpContextPtr pccArg)
     i++;
     printf("TEST %i in '%s:%i': import from single import script file = ", i, __FILE__, __LINE__);
 
-    pndPie = xmlNewNode(NULL, NAME_PIE_PIE);
+    pndPie = xmlNewNode(NULL, BAD_CAST NAME_PIE_PIE);
 
-    pndTest = xmlNewChild(pndPie, NULL, NAME_PIE_PAR, BAD_CAST"pre script ");
-    pndImport = xmlNewChild(pndTest, NULL, NAME_PIE_IMPORT, NULL);
+    pndTest = xmlNewChild(pndPie, NULL, BAD_CAST NAME_PIE_PAR, BAD_CAST"pre script ");
+    pndImport = xmlNewChild(pndTest, NULL, BAD_CAST NAME_PIE_IMPORT, NULL);
     xmlSetProp(pndImport, BAD_CAST "type", BAD_CAST"script");
     xmlSetProp(pndImport, BAD_CAST "name", BAD_CAST TESTPREFIX "option/script/test-js-3.js");
     xmlAddChild(pndTest, xmlNewText(BAD_CAST" post script"));
@@ -491,7 +491,7 @@ pieTextTest(cxpContextPtr pccArg)
     if (ImportNodeFile(pndImport,pccArg) == FALSE) {
       printf("Error 1 ImportNodeFile()\n");
     }
-    else if (domNumberOf(pndPie, NAME_PIE_PAR, 0) != 1) {
+    else if (domNumberOf(pndPie, BAD_CAST NAME_PIE_PAR, 0) != 1) {
       printf("Error 2 ImportNodeFile()\n");
     }
     else {
@@ -512,24 +512,24 @@ pieTextTest(cxpContextPtr pccArg)
     i++;
     printf("TEST %i in '%s:%i': import from single import script file = ", i, __FILE__, __LINE__);
 
-    pndPie = xmlNewNode(NULL, NAME_PIE_PIE);
+    pndPie = xmlNewNode(NULL, BAD_CAST NAME_PIE_PIE);
 
-    pndTest = xmlNewChild(pndPie, NULL, NAME_PIE_PAR, BAD_CAST"pre script ");
-    pndImport = xmlNewChild(pndPie, NULL, NAME_PIE_IMPORT, NULL);
+    pndTest = xmlNewChild(pndPie, NULL, BAD_CAST NAME_PIE_PAR, BAD_CAST"pre script ");
+    pndImport = xmlNewChild(pndPie, NULL, BAD_CAST NAME_PIE_IMPORT, NULL);
     xmlSetProp(pndImport, BAD_CAST "type", BAD_CAST"script");
     xmlSetProp(pndImport, BAD_CAST "name", BAD_CAST TESTPREFIX "option/script/test-js-3.js");
-    xmlNewChild(pndPie, NULL, NAME_PIE_PAR, BAD_CAST" post script");
+    xmlNewChild(pndPie, NULL, BAD_CAST NAME_PIE_PAR, BAD_CAST" post script");
     //domPutNodeString(stderr, BAD_CAST "script result", pndPie);
 
     if (ImportNodeFile(pndImport,pccArg) == FALSE) {
       printf("Error 1 ImportNodeFile()\n");
     }
 #ifdef HAVE_JS
-    else if (domNumberOf(pndPie, NAME_PIE_PAR, 0) != 3) {
+    else if (domNumberOf(pndPie, BAD_CAST NAME_PIE_PAR, 0) != 3) {
       printf("Error 2 ImportNodeFile()\n");
     }
 #else
-    else if (domNumberOf(pndPie, NAME_PIE_PAR, 0) != 2) {
+    else if (domNumberOf(pndPie, BAD_CAST NAME_PIE_PAR, 0) != 2) {
       printf("Error 2 ImportNodeFile()\n");
     }
 #endif
@@ -551,32 +551,32 @@ pieTextTest(cxpContextPtr pccArg)
     i++;
     printf("TEST %i in '%s:%i': import from various import nodes = ", i, __FILE__, __LINE__);
 
-    pndPie = xmlNewNode(NULL, NAME_PIE_PIE);
+    pndPie = xmlNewNode(NULL, BAD_CAST NAME_PIE_PIE);
 
-    pndTest = xmlNewChild(pndPie, NULL, NAME_PIE_SECTION, NULL);
-    pndTest = xmlNewChild(pndTest, NULL, NAME_PIE_SECTION, NULL);
-    xmlNewChild(pndTest, NULL, NAME_PIE_HEADER, BAD_CAST"header 11");
-    xmlNewChild(pndTest, NULL, NAME_PIE_PAR, BAD_CAST"pre list");
-    pndImport = xmlNewChild(pndTest, NULL, NAME_PIE_IMPORT, BAD_CAST"\n+ A\n\n+ B\n\n+ C\n\n");
-    xmlNewChild(pndTest, NULL, NAME_PIE_PAR, BAD_CAST"post list");
+    pndTest = xmlNewChild(pndPie, NULL, BAD_CAST NAME_PIE_SECTION, NULL);
+    pndTest = xmlNewChild(pndTest, NULL, BAD_CAST NAME_PIE_SECTION, NULL);
+    xmlNewChild(pndTest, NULL, BAD_CAST NAME_PIE_HEADER, BAD_CAST"header 11");
+    xmlNewChild(pndTest, NULL, BAD_CAST NAME_PIE_PAR, BAD_CAST"pre list");
+    pndImport = xmlNewChild(pndTest, NULL, BAD_CAST NAME_PIE_IMPORT, BAD_CAST"\n+ A\n\n+ B\n\n+ C\n\n");
+    xmlNewChild(pndTest, NULL, BAD_CAST NAME_PIE_PAR, BAD_CAST"post list");
 
-    pndTest = xmlNewChild(pndPie, NULL, NAME_PIE_SECTION, NULL);
-    xmlNewChild(pndTest, NULL, NAME_PIE_HEADER, BAD_CAST"header 2");
-    xmlNewChild(pndTest, NULL, NAME_PIE_PAR, BAD_CAST"pre pre");
-    pndImport = xmlNewChild(pndTest, NULL, NAME_PIE_IMPORT, BAD_CAST"P\nQ\nR\nS\nT\n\n");
+    pndTest = xmlNewChild(pndPie, NULL, BAD_CAST NAME_PIE_SECTION, NULL);
+    xmlNewChild(pndTest, NULL, BAD_CAST NAME_PIE_HEADER, BAD_CAST"header 2");
+    xmlNewChild(pndTest, NULL, BAD_CAST NAME_PIE_PAR, BAD_CAST"pre pre");
+    pndImport = xmlNewChild(pndTest, NULL, BAD_CAST NAME_PIE_IMPORT, BAD_CAST"P\nQ\nR\nS\nT\n\n");
     xmlSetProp(pndImport, BAD_CAST "type", BAD_CAST"pre");
-    xmlNewChild(pndTest, NULL, NAME_PIE_PAR, BAD_CAST"post pre");
-    pndImport = xmlNewChild(pndTest, NULL, NAME_PIE_IMPORT, NULL);
+    xmlNewChild(pndTest, NULL, BAD_CAST NAME_PIE_PAR, BAD_CAST"post pre");
+    pndImport = xmlNewChild(pndTest, NULL, BAD_CAST NAME_PIE_IMPORT, NULL);
     xmlSetProp(pndImport, BAD_CAST "name", BAD_CAST TESTPREFIX "option/pie/text/test-pie-12b.txt");
-    pndImport = xmlNewChild(pndTest, NULL, NAME_PIE_IMPORT, NULL);
+    pndImport = xmlNewChild(pndTest, NULL, BAD_CAST NAME_PIE_IMPORT, NULL);
     xmlSetProp(pndImport, BAD_CAST "name", BAD_CAST TESTPREFIX "option/pie/text/test-pie-12c.txt");
 
     TraverseImportNodes(pndPie, pccArg);
 
-    if (domNumberOfChild(pndPie, NAME_PIE_SECTION) != 2) {
+    if (domNumberOfChild(pndPie, BAD_CAST NAME_PIE_SECTION) != 2) {
       printf("Error 1 TraverseImportNodes()\n");
     }
-    else if (domNumberOf(pndPie, NAME_PIE_PRE, 0) != 1) {
+    else if (domNumberOf(pndPie, BAD_CAST NAME_PIE_PRE, 0) != 1) {
       printf("Error 2 TraverseImportNodes()\n");
     }
     else {
@@ -600,12 +600,12 @@ pieTextTest(cxpContextPtr pccArg)
       "KLM NOP QRS\n"
       "\n"
       ;
-    xmlDocPtr  pdocT;
+    xmlDocPtr  pdocT = NULL;
 
     i++;
     printf("TEST %i in '%s:%i': parse plain text node and build tree = ", i, __FILE__, __LINE__);
 
-    if ((pndPie = xmlNewNode(NULL, NAME_PIE_PIE)) == NULL || xmlAddChild(pndPie, xmlNewText(pucContent)) == NULL) {
+    if ((pndPie = xmlNewNode(NULL, BAD_CAST NAME_PIE_PIE)) == NULL || xmlAddChild(pndPie, xmlNewText(pucContent)) == NULL) {
       printf("Error xmlNewTextChild()\n");
     }
     else if ((pdocT = pieProcessPieNode(pndPie, pccArg)) == NULL) {
@@ -618,7 +618,7 @@ pieTextTest(cxpContextPtr pccArg)
       || (pndBlock = pndBlock->children) == NULL || IS_NODE_PIE_BLOCK(pndBlock) == FALSE) {
       printf("Error 2 tree\n");
     }
-    else if (domNumberOfChild(pndBlock, NAME_PIE_SECTION) != 1) {
+    else if (domNumberOfChild(pndBlock, BAD_CAST NAME_PIE_SECTION) != 1) {
       printf("Error 3 tree\n");
     }
     else {
@@ -643,8 +643,8 @@ pieTextTest(cxpContextPtr pccArg)
     i++;
     printf("TEST %i in '%s:%i': pieProcessPieNode() import of plain text file = ", i, __FILE__, __LINE__);
 
-    pndPie = xmlNewNode(NULL, NAME_PIE_PIE);
-    pndPieChild = xmlNewChild(pndPie, NULL, NAME_PIE_IMPORT, NULL);
+    pndPie = xmlNewNode(NULL, BAD_CAST NAME_PIE_PIE);
+    pndPieChild = xmlNewChild(pndPie, NULL, BAD_CAST NAME_PIE_IMPORT, NULL);
     xmlSetProp(pndPieChild, BAD_CAST "name", BAD_CAST TESTPREFIX "option/pie/text/test-pie-6.txt");
 
     if ((pdocT = pieProcessPieNode(pndPie, pccArg)) == NULL) {
@@ -657,7 +657,7 @@ pieTextTest(cxpContextPtr pccArg)
       || (pndBlock = pndBlock->children) == NULL || IS_NODE_PIE_BLOCK(pndBlock) == FALSE) {
       printf("Error 2 tree\n");
     }
-    else if (domNumberOfChild(pndBlock, NAME_PIE_SECTION) != 1) {
+    else if (domNumberOfChild(pndBlock, BAD_CAST NAME_PIE_SECTION) != 1) {
       printf("Error 3 tree\n");
     }
     else {
@@ -680,8 +680,8 @@ pieTextTest(cxpContextPtr pccArg)
     i++;
     printf("TEST %i in '%s:%i': pieMain() import of plain text file with imports (circular, multi-step) = ",i,__FILE__,__LINE__);
 
-    pndPie = xmlNewNode(NULL,NAME_PIE_PIE);
-    pndPieChild = xmlNewChild(pndPie, NULL, NAME_PIE_IMPORT, NULL);
+    pndPie = xmlNewNode(NULL, BAD_CAST NAME_PIE_PIE);
+    pndPieChild = xmlNewChild(pndPie, NULL, BAD_CAST NAME_PIE_IMPORT, NULL);
     xmlSetProp(pndPieChild, BAD_CAST "name", BAD_CAST TESTPREFIX "option/pie/text/test-pie-22.txt");
 
     if ((pdocT = pieProcessPieNode(pndPie, pccArg)) == NULL) {
@@ -694,7 +694,7 @@ pieTextTest(cxpContextPtr pccArg)
       || (pndBlock = pndBlock->children) == NULL || IS_NODE_PIE_BLOCK(pndBlock) == FALSE) {
       printf("Error 2 tree\n");
     }
-    else if (domNumberOfChild(pndBlock, NAME_PIE_SECTION) != 1) {
+    else if (domNumberOfChild(pndBlock, BAD_CAST NAME_PIE_SECTION) != 1) {
       printf("Error 3 tree\n");
     }
     else {

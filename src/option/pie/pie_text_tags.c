@@ -273,9 +273,9 @@ BOOL_T
 RecognizeHashtags(xmlNodePtr pndArg, pcre2_code* preArgHashTag, pcre2_code* preArgBlockTag)
 {
   BOOL_T fResult = TRUE;
-  xmlNodePtr pndIter;
   int errornumber = 0;
   size_t erroroffset;
+  xmlNodePtr pndIter = NULL;
 
   if (preArgHashTag == NULL) {
     /* build default regexp */

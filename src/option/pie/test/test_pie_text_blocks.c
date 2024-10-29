@@ -85,9 +85,9 @@ pieTextBlocksTest(void)
     i++;
     printf("TEST %i in '%s:%i': = ",i,__FILE__,__LINE__);
 
-    pndPie = xmlNewNode(NULL,NAME_PIE_PIE);
+    pndPie = xmlNewNode(NULL, BAD_CAST NAME_PIE_PIE);
 
-    pndTest = xmlNewChild(pndPie, NULL, NAME_PIE_IMPORT, NULL);
+    pndTest = xmlNewChild(pndPie, NULL, BAD_CAST NAME_PIE_IMPORT, NULL);
     
     if (GetModeByAttr(NULL) != RMODE_PAR) {
       printf("Error 1\n");
@@ -215,7 +215,7 @@ pieTextBlocksTest(void)
     i++;
     printf("TEST %i in '%s:%i': detect todo markup = ", i, __FILE__, __LINE__);
 
-    if ((pndT = xmlNewNode(NULL, NAME_PIE_PAR)) == NULL || (xmlAddChild(pndT, xmlNewText(pucData))) == NULL) {
+    if ((pndT = xmlNewNode(NULL, BAD_CAST NAME_PIE_PAR)) == NULL || (xmlAddChild(pndT, xmlNewText(pucData))) == NULL) {
       printf("Error xmlNewTextChild\n");
     }
     else if ((pndTT = TaskNodeNew(pndT)) == NULL || IS_NODE_PIE_TASK(pndTT) == FALSE || IS_NODE_PIE_HEADER(pndTT->children) == FALSE) {
@@ -237,7 +237,7 @@ pieTextBlocksTest(void)
     i++;
     printf("TEST %i in '%s:%i': split Markdown automatic link < ... > = ",i,__FILE__,__LINE__);
 
-    if ((pndPie = xmlNewNode(NULL,NAME_PIE_PIE)) == NULL) {
+    if ((pndPie = xmlNewNode(NULL, BAD_CAST NAME_PIE_PIE)) == NULL) {
       printf("Error xmlNewNode\n");
     }
     else if ((pndT = SplitStringToAutoLinkNodes(NULL)) != NULL) {
@@ -323,18 +323,18 @@ pieTextBlocksTest(void)
     i++;
     printf("TEST %i in '%s:%i': = ", i, __FILE__, __LINE__);
 
-    pndPie = xmlNewNode(NULL, NAME_PIE_PIE);
+    pndPie = xmlNewNode(NULL, BAD_CAST NAME_PIE_PIE);
 
-    pndBlock = xmlNewChild(pndPie, NULL, NAME_PIE_BLOCK, NULL);
-    pndTest = xmlNewChild(pndBlock, NULL, NAME_PIE_SECTION, NULL);
-    pndTest = xmlNewChild(pndTest, NULL, NAME_PIE_SECTION, NULL);
-    pndTest = xmlNewChild(pndTest, NULL, NAME_PIE_HEADER, BAD_CAST"header");
-    pndTest = xmlNewChild(pndBlock, NULL, NAME_PIE_SECTION, NULL);
-    xmlNewChild(pndTest, NULL, NAME_PIE_HEADER, BAD_CAST"header");
-    pndTest = xmlNewChild(pndTest, NULL, NAME_PIE_SECTION, NULL);
-    pndTest = xmlNewChild(pndTest, NULL, NAME_PIE_SECTION, NULL);
-    pndResult = xmlNewChild(pndTest, NULL, NAME_PIE_SECTION, NULL);
-    xmlNewChild(pndResult, NULL, NAME_PIE_HEADER, BAD_CAST"result");
+    pndBlock = xmlNewChild(pndPie, NULL, BAD_CAST NAME_PIE_BLOCK, NULL);
+    pndTest = xmlNewChild(pndBlock, NULL, BAD_CAST NAME_PIE_SECTION, NULL);
+    pndTest = xmlNewChild(pndTest, NULL, BAD_CAST NAME_PIE_SECTION, NULL);
+    pndTest = xmlNewChild(pndTest, NULL, BAD_CAST NAME_PIE_HEADER, BAD_CAST"header");
+    pndTest = xmlNewChild(pndBlock, NULL, BAD_CAST NAME_PIE_SECTION, NULL);
+    xmlNewChild(pndTest, NULL, BAD_CAST NAME_PIE_HEADER, BAD_CAST"header");
+    pndTest = xmlNewChild(pndTest, NULL, BAD_CAST NAME_PIE_SECTION, NULL);
+    pndTest = xmlNewChild(pndTest, NULL, BAD_CAST NAME_PIE_SECTION, NULL);
+    pndResult = xmlNewChild(pndTest, NULL, BAD_CAST NAME_PIE_SECTION, NULL);
+    xmlNewChild(pndResult, NULL, BAD_CAST NAME_PIE_HEADER, BAD_CAST"result");
 
     //domPutNodeString(stderr, BAD_CAST"import result", pndPie);
 
@@ -389,8 +389,8 @@ pieTextBlocksTest(void)
     i++;
     printf("TEST %i in '%s:%i': = ", i, __FILE__, __LINE__);
 
-    pndPie = xmlNewNode(NULL, NAME_PIE_PIE);
-    pndBlock = xmlNewChild(pndPie, NULL, NAME_PIE_BLOCK, NULL);
+    pndPie = xmlNewNode(NULL, BAD_CAST NAME_PIE_PIE);
+    pndBlock = xmlNewChild(pndPie, NULL, BAD_CAST NAME_PIE_BLOCK, NULL);
 
     if ((ppeT = pieElementNew(pucContent, RMODE_PAR)) == NULL) {
       printf("Error pieElementNew()\n");
@@ -483,13 +483,13 @@ pieTextBlocksTest(void)
     i++;
     printf("TEST %i in '%s:%i': = ", i, __FILE__, __LINE__);
 
-    pndPie = xmlNewNode(NULL, NAME_PIE_PIE);
+    pndPie = xmlNewNode(NULL, BAD_CAST NAME_PIE_PIE);
 
-    pndTest = xmlNewChild(pndPie, NULL, NAME_PIE_SECTION, NULL);
-    pndTest = xmlNewChild(pndTest, NULL, NAME_PIE_SECTION, NULL);
-    xmlAddChild(pndTest, xmlNewPI(NAME_PIE_IMPORT, BAD_CAST "c:/temp/a.txt"));
-    pndTest = xmlNewChild(pndTest, NULL, NAME_PIE_SECTION, NULL);
-    pndTest = xmlNewChild(pndTest, NULL, NAME_PIE_HEADER, BAD_CAST"header");
+    pndTest = xmlNewChild(pndPie, NULL, BAD_CAST NAME_PIE_SECTION, NULL);
+    pndTest = xmlNewChild(pndTest, NULL, BAD_CAST NAME_PIE_SECTION, NULL);
+    xmlAddChild(pndTest, xmlNewPI(BAD_CAST NAME_PIE_IMPORT, BAD_CAST "c:/temp/a.txt"));
+    pndTest = xmlNewChild(pndTest, NULL, BAD_CAST NAME_PIE_SECTION, NULL);
+    pndTest = xmlNewChild(pndTest, NULL, BAD_CAST NAME_PIE_HEADER, BAD_CAST"header");
 
     if (domNodeIsDescendant(pndPie, pndTest) == FALSE) {
       printf("Error domNodeIsDescendant()\n");
@@ -517,13 +517,13 @@ pieTextBlocksTest(void)
     prnTT = resNodeDirNew(BAD_CAST "c:/temp/B.txt");
     prnTTT = resNodeDirNew(BAD_CAST "c:/temp/C.PNG");
 
-    pndPie = xmlNewNode(NULL, NAME_PIE_PIE);
+    pndPie = xmlNewNode(NULL, BAD_CAST NAME_PIE_PIE);
 
-    pndTest = xmlNewChild(pndPie, NULL, NAME_PIE_SECTION, NULL);
-    pndTest = xmlNewChild(pndTest, NULL, NAME_PIE_SECTION, NULL);
+    pndTest = xmlNewChild(pndPie, NULL, BAD_CAST NAME_PIE_SECTION, NULL);
+    pndTest = xmlNewChild(pndTest, NULL, BAD_CAST NAME_PIE_SECTION, NULL);
     xmlSetProp(pndTest, BAD_CAST "context", resNodeGetURI(prnT));
-    pndTest = xmlNewChild(pndTest, NULL, NAME_PIE_SECTION, NULL);
-    pndTest = xmlNewChild(pndTest, NULL, NAME_PIE_HEADER, BAD_CAST"header");
+    pndTest = xmlNewChild(pndTest, NULL, BAD_CAST NAME_PIE_SECTION, NULL);
+    pndTest = xmlNewChild(pndTest, NULL, BAD_CAST NAME_PIE_HEADER, BAD_CAST"header");
 
     //domPutNodeString(stderr, BAD_CAST "import result", pndPie);
     if (IsImportCircular(NULL, NULL)) {
@@ -573,21 +573,21 @@ pieTextBlocksTest(void)
     prnTT = resNodeDirNew(BAD_CAST "c:/temp/B.pie");
     prnTTT = resNodeDirNew(BAD_CAST "c:/temp/C.txt");
 
-    pndPie = xmlNewNode(NULL, NAME_PIE_PIE);
+    pndPie = xmlNewNode(NULL, BAD_CAST NAME_PIE_PIE);
 
-    pndT = xmlNewChild(pndPie, NULL, NAME_PIE_SECTION, NULL);
-    pndT = xmlNewChild(pndT, NULL, NAME_PIE_SECTION, NULL);
+    pndT = xmlNewChild(pndPie, NULL, BAD_CAST NAME_PIE_SECTION, NULL);
+    pndT = xmlNewChild(pndT, NULL, BAD_CAST NAME_PIE_SECTION, NULL);
     xmlSetProp(pndT, BAD_CAST "context", resNodeGetURI(prnT));
     
-    pndTT = xmlNewChild(pndT, NULL, NAME_PIE_SECTION, NULL);
+    pndTT = xmlNewChild(pndT, NULL, BAD_CAST NAME_PIE_SECTION, NULL);
     xmlSetProp(pndTT, BAD_CAST "context", resNodeGetURI(prnTT));
     
-    pndTTT = xmlNewChild(pndTT, NULL, NAME_PIE_SECTION, NULL);
+    pndTTT = xmlNewChild(pndTT, NULL, BAD_CAST NAME_PIE_SECTION, NULL);
     xmlSetProp(pndTTT, BAD_CAST "context", resNodeGetURI(prnTTT));
     
-    pndTLast = xmlNewChild(pndTTT, NULL, NAME_PIE_HEADER, BAD_CAST"header");
+    pndTLast = xmlNewChild(pndTTT, NULL, BAD_CAST NAME_PIE_HEADER, BAD_CAST"header");
 
-    pndTNext = xmlNewChild(pndPie, NULL, NAME_PIE_SECTION, BAD_CAST"header");
+    pndTNext = xmlNewChild(pndPie, NULL, BAD_CAST NAME_PIE_SECTION, BAD_CAST"header");
 
     //domPutNodeString(stderr, BAD_CAST "import node", pndPie);
     
@@ -711,7 +711,7 @@ pieTextBlocksTest(void)
     i++;
     printf("TEST %i in '%s:%i': parse empty plain text = ", i, __FILE__, __LINE__);
 
-    if ((pndPie = xmlNewNode(NULL, NAME_PIE_PIE)) == NULL) {
+    if ((pndPie = xmlNewNode(NULL, BAD_CAST NAME_PIE_PIE)) == NULL) {
       printf("Error xmlNewNode()\n");
     }
     else if (ParsePlainBuffer(pndPie, NULL, RMODE_PAR) != NULL) {
@@ -769,7 +769,7 @@ pieTextBlocksTest(void)
     i++;
     printf("TEST %i in '%s:%i': parse multi-block plain text and build list of import elements = ", i, __FILE__, __LINE__);
 
-    if ((pndPie = xmlNewNode(NULL, NAME_PIE_PIE)) == NULL) {
+    if ((pndPie = xmlNewNode(NULL, BAD_CAST NAME_PIE_PIE)) == NULL) {
       printf("Error xmlNewNode()\n");
     }
     else if (ParsePlainBuffer(pndPie, pucContent, RMODE_PAR) == NULL) {
@@ -778,7 +778,7 @@ pieTextBlocksTest(void)
     else if ((pndBlock = pndPie->children) == NULL || IS_NODE_PIE_BLOCK(pndBlock) == FALSE) {
       printf("Error 2 ParsePlainBuffer()\n");
     }
-    else if (domNumberOfChild(pndBlock, NAME_PIE_SECTION) != 2) {
+    else if (domNumberOfChild(pndBlock, BAD_CAST NAME_PIE_SECTION) != 2) {
       printf("Error 3 ParsePlainBuffer()\n");
     }
     else {
@@ -799,7 +799,7 @@ pieTextBlocksTest(void)
     i++;
     printf("TEST %i in '%s:%i': parse multi-block plain text from file and build list of import elements = ", i, __FILE__, __LINE__);
 
-    if ((pndPie = xmlNewNode(NULL, NAME_PIE_PIE)) == NULL) {
+    if ((pndPie = xmlNewNode(NULL, BAD_CAST NAME_PIE_PIE)) == NULL) {
       printf("Error xmlNewNode()\n");
     }
     else if ((prnT = resNodeDirNew(BAD_CAST TESTPREFIX "option/pie/text/test-pie-loop-step-0.txt")) == NULL) {
@@ -811,7 +811,7 @@ pieTextBlocksTest(void)
     else if ((pndBlock = pndPie->children) == NULL || IS_NODE_PIE_BLOCK(pndBlock) == FALSE) {
       printf("Error 2 ParsePlainBuffer()\n");
     }
-    else if (domNumberOfChild(pndBlock, NAME_PIE_SECTION) != 3) {
+    else if (domNumberOfChild(pndBlock, BAD_CAST NAME_PIE_SECTION) != 3) {
       printf("Error 3 ParsePlainBuffer()\n");
     }
     else {
@@ -878,7 +878,7 @@ pieTextBlocksTest(void)
     i++;
     printf("TEST %i in '%s:%i': parse inlines must fail = ", i, __FILE__, __LINE__);
 
-    if ((pndPie = xmlNewNode(NULL, NAME_PIE_PIE)) == NULL) {
+    if ((pndPie = xmlNewNode(NULL, BAD_CAST NAME_PIE_PIE)) == NULL) {
       printf("Error xmlNewNode()\n");
     }
     else if ((pndT = SplitStringToInlineNodes(NULL)) != NULL || (pndT = SplitStringToInlineNodes(BAD_CAST"")) != NULL) {
@@ -901,7 +901,7 @@ pieTextBlocksTest(void)
     i++;
     printf("TEST %i in '%s:%i': parse inlines = ", i, __FILE__, __LINE__);
 
-    if ((pndPie = xmlNewNode(NULL, NAME_PIE_PIE)) == NULL) {
+    if ((pndPie = xmlNewNode(NULL, BAD_CAST NAME_PIE_PIE)) == NULL) {
       printf("Error xmlNewNode()\n");
     }
     else if ((pndT = SplitStringToInlineNodes(BAD_CAST"ABC __EM EM__ or **EM\n EM** or `ttt` ")) == NULL || xmlAddChild(pndPie, pndT) == NULL) {
@@ -930,7 +930,7 @@ pieTextBlocksTest(void)
     i++;
     printf("TEST %i in '%s:%i': Markdown Links = ", i, __FILE__, __LINE__);
 
-    pndTT = xmlNewNode(NULL, NAME_PIE_PIE);
+    pndTT = xmlNewNode(NULL, BAD_CAST NAME_PIE_PIE);
     pucT = BAD_CAST
       "ABCDE\n"
       "##NOPQ\n\n"
@@ -1002,7 +1002,7 @@ pieTextBlocksTest(void)
     i++;
     printf("TEST %i in '%s:%i': Markdown Images = ", i, __FILE__, __LINE__);
 
-    pndTT = xmlNewNode(NULL, NAME_PIE_PIE);
+    pndTT = xmlNewNode(NULL, BAD_CAST NAME_PIE_PIE);
     pucT = BAD_CAST
       "# Images\n"
       ;
@@ -1067,7 +1067,7 @@ pieTextBlocksTest(void)
     i++;
     printf("TEST %i in '%s:%i': Markdown Backslash Escapes = ", i, __FILE__, __LINE__);
 
-    pndTT = xmlNewNode(NULL, NAME_PIE_PIE);
+    pndTT = xmlNewNode(NULL, BAD_CAST NAME_PIE_PIE);
     pucT = BAD_CAST
       "ABCDE\n"
       ;
@@ -1085,7 +1085,7 @@ pieTextBlocksTest(void)
     i++;
     printf("TEST %i in '%s:%i': Markdown Automatic Links = ", i, __FILE__, __LINE__);
 
-    pndTT = xmlNewNode(NULL, NAME_PIE_PIE);
+    pndTT = xmlNewNode(NULL, BAD_CAST NAME_PIE_PIE);
     pucT = BAD_CAST
       "# Automatic Links\n"
       ;
@@ -1103,7 +1103,7 @@ pieTextBlocksTest(void)
     i++;
     printf("TEST %i in '%s:%i': parse date must fail = ", i, __FILE__, __LINE__);
 
-    if ((pndPie = xmlNewNode(NULL, NAME_PIE_PIE)) == NULL) {
+    if ((pndPie = xmlNewNode(NULL, BAD_CAST NAME_PIE_PIE)) == NULL) {
       printf("Error xmlNewNode()\n");
     }
     else if ((pndT = SplitStringToDateNodes(NULL,MIME_TEXT_PLAIN)) != NULL || (pndT = SplitStringToDateNodes(BAD_CAST"",MIME_TEXT_PLAIN)) != NULL) {
@@ -1126,7 +1126,7 @@ pieTextBlocksTest(void)
     i++;
     printf("TEST %i in '%s:%i': parse date = ", i, __FILE__, __LINE__);
 
-    if ((pndPie = xmlNewNode(NULL, NAME_PIE_PIE)) == NULL) {
+    if ((pndPie = xmlNewNode(NULL, BAD_CAST NAME_PIE_PIE)) == NULL) {
       printf("Error xmlNewNode()\n");
     }
     else if ((pndT = SplitStringToDateNodes(BAD_CAST"TODO: 20160301 done",MIME_TEXT_PLAIN)) == NULL || xmlAddChild(pndPie, pndT) == NULL) {
@@ -1168,27 +1168,27 @@ pieTextBlocksTest(void)
     i++;
     printf("TEST %i in '%s:%i': parse date elements = ", i, __FILE__, __LINE__);
 
-    pndPie = xmlNewNode(NULL, NAME_PIE_PIE);
-    pndT = xmlNewChild(pndPie, NULL, NAME_PIE_SECTION, NULL);
-    xmlNewChild(pndT, NULL, NAME_PIE_HEADER, BAD_CAST"header");
-    pndPar = xmlNewChild(pndT, NULL, NAME_PIE_PAR, BAD_CAST"Test ");
+    pndPie = xmlNewNode(NULL, BAD_CAST NAME_PIE_PIE);
+    pndT = xmlNewChild(pndPie, NULL, BAD_CAST NAME_PIE_SECTION, NULL);
+    xmlNewChild(pndT, NULL, BAD_CAST NAME_PIE_HEADER, BAD_CAST"header");
+    pndPar = xmlNewChild(pndT, NULL, BAD_CAST NAME_PIE_PAR, BAD_CAST"Test ");
 
-    if ((pndT = xmlNewChild(pndPar, NULL, NAME_PIE_DATE, BAD_CAST"2016/2017")) == NULL || AddNodeDateAttributes(pndT,NULL) == FALSE) {
+    if ((pndT = xmlNewChild(pndPar, NULL, BAD_CAST NAME_PIE_DATE, BAD_CAST"2016/2017")) == NULL || AddNodeDateAttributes(pndT,NULL) == FALSE) {
       printf("Error 1 AddNodeDateAttributes()\n");
     }
-    else if ((pndT = xmlNewChild(pndPar, NULL, NAME_PIE_DATE, BAD_CAST"2018-03-01/2017-04-03")) == NULL || AddNodeDateAttributes(pndT,NULL) == FALSE) {
+    else if ((pndT = xmlNewChild(pndPar, NULL, BAD_CAST NAME_PIE_DATE, BAD_CAST"2018-03-01/2017-04-03")) == NULL || AddNodeDateAttributes(pndT,NULL) == FALSE) {
       printf("Error 2 AddNodeDateAttributes()\n");
     }
-    else if ((pndT = xmlNewChild(pndPar, NULL, NAME_PIE_DATE, BAD_CAST"2018-03-01/P2Y3M")) == NULL || AddNodeDateAttributes(pndT,NULL) == FALSE) {
+    else if ((pndT = xmlNewChild(pndPar, NULL, BAD_CAST NAME_PIE_DATE, BAD_CAST"2018-03-01/P2Y3M")) == NULL || AddNodeDateAttributes(pndT,NULL) == FALSE) {
       printf("Error 3 AddNodeDateAttributes()\n");
     }
-    else if ((pndT = xmlNewChild(pndPar, NULL, NAME_PIE_DATE, BAD_CAST"P3D/2017-04-03")) == NULL || AddNodeDateAttributes(pndT,NULL) == FALSE) {
+    else if ((pndT = xmlNewChild(pndPar, NULL, BAD_CAST NAME_PIE_DATE, BAD_CAST"P3D/2017-04-03")) == NULL || AddNodeDateAttributes(pndT,NULL) == FALSE) {
       printf("Error 4 AddNodeDateAttributes()\n");
     }
-    else if ((pndT = xmlNewChild(pndPar, NULL, NAME_PIE_DATE, BAD_CAST"R3/2017-04-03/P3D")) == NULL || AddNodeDateAttributes(pndT, NULL) == FALSE) {
+    else if ((pndT = xmlNewChild(pndPar, NULL, BAD_CAST NAME_PIE_DATE, BAD_CAST"R3/2017-04-03/P3D")) == NULL || AddNodeDateAttributes(pndT, NULL) == FALSE) {
       printf("Error 5 AddNodeDateAttributes()\n");
     }
-    else if ((pndT = xmlNewChild(pndPar, NULL, NAME_PIE_DATE, BAD_CAST"R4/P4D/2017-04-20")) == NULL || AddNodeDateAttributes(pndT, NULL) == FALSE) {
+    else if ((pndT = xmlNewChild(pndPar, NULL, BAD_CAST NAME_PIE_DATE, BAD_CAST"R4/P4D/2017-04-20")) == NULL || AddNodeDateAttributes(pndT, NULL) == FALSE) {
       printf("Error 6 AddNodeDateAttributes()\n");
     }
     else {
@@ -1208,19 +1208,19 @@ pieTextBlocksTest(void)
     i++;
     printf("TEST %i in '%s:%i': parse TODO must fail = ", i, __FILE__, __LINE__);
 
-    if ((pndPie = xmlNewNode(NULL, NAME_PIE_PIE)) == NULL) {
+    if ((pndPie = xmlNewNode(NULL, BAD_CAST NAME_PIE_PIE)) == NULL) {
       printf("Error xmlNewNode()\n");
     }
     else if ((pndT = TaskNodeNew(NULL)) != NULL) {
       printf("Error TaskNodeNew()\n");
     }
-    else if ((pndP = xmlNewChild(pndPie, NULL, NAME_PIE_PAR, BAD_CAST"")) == NULL || (pndT = TaskNodeNew(pndP)) != NULL) {
+    else if ((pndP = xmlNewChild(pndPie, NULL, BAD_CAST NAME_PIE_PAR, BAD_CAST"")) == NULL || (pndT = TaskNodeNew(pndP)) != NULL) {
       printf("Error TaskNodeNew()\n");
     }
-    else if ((pndP = xmlNewChild(pndPie, NULL, NAME_PIE_PAR, BAD_CAST"ToDoERROR")) == NULL || (pndT = TaskNodeNew(pndP)) != NULL) {
+    else if ((pndP = xmlNewChild(pndPie, NULL, BAD_CAST NAME_PIE_PAR, BAD_CAST"ToDoERROR")) == NULL || (pndT = TaskNodeNew(pndP)) != NULL) {
       printf("Error TaskNodeNew()\n");
     }
-    else if ((pndP = xmlNewChild(pndPie, NULL, NAME_PIE_HEADER, BAD_CAST"TODOOO: ERROR")) == NULL || (pndT = TaskNodeNew(pndP)) != NULL) {
+    else if ((pndP = xmlNewChild(pndPie, NULL, BAD_CAST NAME_PIE_HEADER, BAD_CAST"TODOOO: ERROR")) == NULL || (pndT = TaskNodeNew(pndP)) != NULL) {
       printf("Error TaskNodeNew()\n");
     }
     else {
@@ -1242,85 +1242,85 @@ pieTextBlocksTest(void)
     i++;
     printf("TEST %i in '%s:%i': parse TODO = ", i, __FILE__, __LINE__);
 
-    if ((pndPie = xmlNewNode(NULL, NAME_PIE_PIE)) == NULL || (pndList = xmlNewNode(NULL, NAME_PIE_PIE)) == NULL) {
+    if ((pndPie = xmlNewNode(NULL, BAD_CAST NAME_PIE_PIE)) == NULL || (pndList = xmlNewNode(NULL, BAD_CAST NAME_PIE_PIE)) == NULL) {
       printf("Error xmlNewNode()\n");
     }
-    else if ((pndP = xmlNewChild(pndPie, NULL, NAME_PIE_PAR, BAD_CAST"TODO: might\n be \ndone")) == NULL
+    else if ((pndP = xmlNewChild(pndPie, NULL, BAD_CAST NAME_PIE_PAR, BAD_CAST"TODO: might\n be \ndone")) == NULL
       || (pndT = TaskNodeNew(pndP)) == NULL || xmlAddChild(pndList, pndT) == NULL) {
       printf("Error 1 TaskNodeNew()\n");
     }
     else if (IS_NODE_PIE_TASK(pndT) == FALSE
       || xmlStrEqual(domGetPropValuePtr(pndT, BAD_CAST"class"), BAD_CAST"todo") == FALSE
-      || domNumberOfChild(pndT, NAME_PIE_HEADER) != 1) {
+      || domNumberOfChild(pndT, BAD_CAST NAME_PIE_HEADER) != 1) {
       printf("Error 2 TaskNodeNew()\n");
     }
-    else if ((pndP = xmlNewChild(pndPie, NULL, NAME_PIE_PAR, BAD_CAST"TODO: ")) == NULL
-      || (pndT = xmlNewChild(pndP, NULL, NAME_PIE_LINK, BAD_CAST"ABC")) == NULL
+    else if ((pndP = xmlNewChild(pndPie, NULL, BAD_CAST NAME_PIE_PAR, BAD_CAST"TODO: ")) == NULL
+      || (pndT = xmlNewChild(pndP, NULL, BAD_CAST NAME_PIE_LINK, BAD_CAST"ABC")) == NULL
       || xmlSetProp(pndT, BAD_CAST"href", BAD_CAST"abc.html") == NULL
       || (pndT = xmlAddChild(pndP, xmlNewText(BAD_CAST" "))) == NULL
-      || (pndT = xmlNewChild(pndP, NULL, NAME_PIE_HTAG, BAD_CAST"@me")) == NULL
+      || (pndT = xmlNewChild(pndP, NULL, BAD_CAST NAME_PIE_HTAG, BAD_CAST"@me")) == NULL
       || (pndT = xmlAddChild(pndP, xmlNewText(BAD_CAST" "))) == NULL
-      || (pndT = xmlNewChild(pndP, NULL, NAME_PIE_HTAG, BAD_CAST"#abc")) == NULL
+      || (pndT = xmlNewChild(pndP, NULL, BAD_CAST NAME_PIE_HTAG, BAD_CAST"#abc")) == NULL
       || (pndT = xmlAddChild(pndP, xmlNewText(BAD_CAST"+++"))) == NULL
       || (pndT = TaskNodeNew(pndP)) == NULL || xmlAddChild(pndList, pndT) == NULL) {
       printf("Error 1 TaskNodeNew()\n");
     }
     else if (IS_NODE_PIE_TASK(pndT) == FALSE
       || xmlStrEqual(domGetPropValuePtr(pndT, BAD_CAST"class"), BAD_CAST"todo") == FALSE
-      || domNumberOfChild(pndT, NAME_PIE_HEADER) != 1) {
+      || domNumberOfChild(pndT, BAD_CAST NAME_PIE_HEADER) != 1) {
       printf("Error 2 TaskNodeNew()\n");
     }
-    else if ((pndP = xmlNewChild(pndPie, NULL, NAME_PIE_PAR, NULL)) == NULL
-      || (pndT = xmlNewChild(pndP, NULL, NAME_PIE_LINK, BAD_CAST"TODO: ABC @me #abc")) == NULL
+    else if ((pndP = xmlNewChild(pndPie, NULL, BAD_CAST NAME_PIE_PAR, NULL)) == NULL
+      || (pndT = xmlNewChild(pndP, NULL, BAD_CAST NAME_PIE_LINK, BAD_CAST"TODO: ABC @me #abc")) == NULL
       || xmlSetProp(pndT, BAD_CAST"href", BAD_CAST"abc.html") == NULL
       || (pndT = TaskNodeNew(pndP)) == NULL || xmlAddChild(pndList, pndT) == NULL) {
       printf("Error 1 TaskNodeNew()\n");
     }
     else if (IS_NODE_PIE_TASK(pndT) == FALSE
       || xmlStrEqual(domGetPropValuePtr(pndT, BAD_CAST"class"), BAD_CAST"todo") == FALSE
-      || domNumberOfChild(pndT, NAME_PIE_HEADER) != 1) {
+      || domNumberOfChild(pndT, BAD_CAST NAME_PIE_HEADER) != 1) {
       printf("Error 2 TaskNodeNew()\n");
     }
-    else if ((pndP = xmlNewChild(pndPie, NULL, NAME_PIE_PAR, BAD_CAST"ToDo: also allowed")) == NULL
+    else if ((pndP = xmlNewChild(pndPie, NULL, BAD_CAST NAME_PIE_PAR, BAD_CAST"ToDo: also allowed")) == NULL
       || (pndT = TaskNodeNew(pndP)) == NULL
-      || IS_NODE_PIE_TASK(pndT) == FALSE || domNumberOfChild(pndT, NAME_PIE_HEADER) != 1) {
+      || IS_NODE_PIE_TASK(pndT) == FALSE || domNumberOfChild(pndT, BAD_CAST NAME_PIE_HEADER) != 1) {
       printf("Error 3 TaskNodeNew()\n");
     }
-    else if ((pndP = xmlNewChild(pndPie, NULL, NAME_PIE_PAR, BAD_CAST"DONE: finished")) == NULL
+    else if ((pndP = xmlNewChild(pndPie, NULL, BAD_CAST NAME_PIE_PAR, BAD_CAST"DONE: finished")) == NULL
       || (pndT = TaskNodeNew(pndP)) == NULL || xmlAddChild(pndList, pndT) == NULL) {
       printf("Error 1 TaskNodeNew()\n");
     }
     else if (IS_NODE_PIE_TASK(pndT) == FALSE
       || xmlStrEqual(domGetPropValuePtr(pndT, BAD_CAST"class"), BAD_CAST"todo") == FALSE
       || xmlStrEqual(domGetPropValuePtr(pndT, BAD_CAST"state"), BAD_CAST"done") == FALSE
-      || domNumberOfChild(pndT, NAME_PIE_HEADER) != 1) {
+      || domNumberOfChild(pndT, BAD_CAST NAME_PIE_HEADER) != 1) {
       printf("Error 2 TaskNodeNew()\n");
     }
-    else if ((pndP = xmlNewChild(pndPie, NULL, NAME_PIE_PAR, BAD_CAST"BUG: problem")) == NULL
+    else if ((pndP = xmlNewChild(pndPie, NULL, BAD_CAST NAME_PIE_PAR, BAD_CAST"BUG: problem")) == NULL
       || (pndT = TaskNodeNew(pndP)) == NULL || xmlAddChild(pndList, pndT) == NULL) {
       printf("Error 1 TaskNodeNew()\n");
     }
     else if (IS_NODE_PIE_TASK(pndT) == FALSE
       || xmlStrEqual(domGetPropValuePtr(pndT, BAD_CAST"class"), BAD_CAST"bug") == FALSE
-      || domNumberOfChild(pndT, NAME_PIE_HEADER) != 1) {
+      || domNumberOfChild(pndT, BAD_CAST NAME_PIE_HEADER) != 1) {
       printf("Error 2 TaskNodeNew()\n");
     }
-    else if ((pndP = xmlNewChild(pndPie, NULL, NAME_PIE_PAR, BAD_CAST"REQ: requirement")) == NULL
+    else if ((pndP = xmlNewChild(pndPie, NULL, BAD_CAST NAME_PIE_PAR, BAD_CAST"REQ: requirement")) == NULL
       || (pndT = TaskNodeNew(pndP)) == NULL || xmlAddChild(pndList, pndT) == NULL) {
       printf("Error 1 TaskNodeNew()\n");
     }
     else if (IS_NODE_PIE_TASK(pndT) == FALSE
       || xmlStrEqual(domGetPropValuePtr(pndT, BAD_CAST"class"), BAD_CAST"req") == FALSE
-      || domNumberOfChild(pndT, NAME_PIE_HEADER) != 1) {
+      || domNumberOfChild(pndT, BAD_CAST NAME_PIE_HEADER) != 1) {
       printf("Error 2 TaskNodeNew()\n");
     }
-    else if ((pndP = xmlNewChild(pndPie, NULL, NAME_PIE_PAR, BAD_CAST"TARGET: my target")) == NULL
+    else if ((pndP = xmlNewChild(pndPie, NULL, BAD_CAST NAME_PIE_PAR, BAD_CAST"TARGET: my target")) == NULL
       || (pndT = TaskNodeNew(pndP)) == NULL || xmlAddChild(pndList, pndT) == NULL) {
       printf("Error 1 TaskNodeNew()\n");
     }
     else if (IS_NODE_PIE_TASK(pndT) == FALSE
       || xmlStrEqual(domGetPropValuePtr(pndT, BAD_CAST"class"), BAD_CAST"target") == FALSE
-      || domNumberOfChild(pndT, NAME_PIE_HEADER) != 1) {
+      || domNumberOfChild(pndT, BAD_CAST NAME_PIE_HEADER) != 1) {
       printf("Error 2 TaskNodeNew()\n");
     }
     else {
@@ -1345,10 +1345,10 @@ pieTextBlocksTest(void)
     if ((pndT = RecognizeIncludes(NULL)) != NULL) {
       printf("Error 1 RecognizeIncludes()\n");
     }
-    else if ((pndPie = xmlNewNode(NULL, NAME_PIE_PIE)) == NULL) {
+    else if ((pndPie = xmlNewNode(NULL, BAD_CAST NAME_PIE_PIE)) == NULL) {
       printf("Error xmlNewNode()\n");
     }
-    else if ((pndP = xmlNewChild(pndPie, NULL, NAME_PIE_PAR, BAD_CAST"#include \t ( \"abc.txt\" \t ) ; ")) == NULL
+    else if ((pndP = xmlNewChild(pndPie, NULL, BAD_CAST NAME_PIE_PAR, BAD_CAST"#include \t ( \"abc.txt\" \t ) ; ")) == NULL
       || (pndT = RecognizeIncludes(pndP)) != NULL) {
       printf("Error 2 RecognizeIncludes()\n");
     }
@@ -1377,10 +1377,10 @@ pieTextBlocksTest(void)
     if ((pndT = RecognizeImports(NULL)) != NULL) {
       printf("Error 1 RecognizeImports()\n");
     }
-    else if ((pndPie = xmlNewNode(NULL, NAME_PIE_PIE)) == NULL) {
+    else if ((pndPie = xmlNewNode(NULL, BAD_CAST NAME_PIE_PIE)) == NULL) {
       printf("Error xmlNewNode()\n");
     }
-    else if ((pndP = xmlNewChild(pndPie, NULL, NAME_PIE_PAR, BAD_CAST"#import \t ( \"abc.txt\" \t ) ; ")) == NULL
+    else if ((pndP = xmlNewChild(pndPie, NULL, BAD_CAST NAME_PIE_PAR, BAD_CAST"#import \t ( \"abc.txt\" \t ) ; ")) == NULL
       || (pndT = RecognizeImports(pndP)) != NULL) {
       printf("Error 2 RecognizeImports()\n");
     }
