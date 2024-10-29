@@ -73,29 +73,33 @@ zipFileOpen(resNodePtr prnArg, const char *pchArgMode)
 {
   BOOL_T fResult = FALSE;
 
-  if (prnArg != NULL && prnArg->handleIO != NULL && prnArg->eAccess == rn_access_zip) {
-    fResult = TRUE;
-    PrintFormatLog(4, "zip_open('%s') already open", resNodeGetNameNormalized(prnArg));
-  }
-  else if (strchr(pchArgMode, (int)'r') || prnArg->eMode == mode_read) {
-    int err;
-    char buf[BUFFER_LENGTH];
-
-    if ((prnArg->handleIO = zip_open(resNodeGetNameNormalizedNative(prnArg), 0, &err)) == NULL) {
-      zip_error_to_str(buf, sizeof(buf), err, errno);
-      resNodeSetError(prnArg, rn_error_open, "can't open zip archive `%s': %s\n", resNodeGetNameNormalizedNative(prnArg), buf);
-    }
-    else { /* success */
-      prnArg->fExist = TRUE;
-      prnArg->eAccess = rn_access_zip;
+  if (prnArg != NULL) {
+    if (prnArg->handleIO != NULL && prnArg->eAccess == rn_access_zip) {
       fResult = TRUE;
-      PrintFormatLog(4, "zip_open('%s') OK", resNodeGetNameNormalized(prnArg));
+      PrintFormatLog(4, "zip_open('%s') already open", resNodeGetNameNormalized(prnArg));
+    }
+    else if (strchr(pchArgMode, (int)'r') || prnArg->eMode == mode_read) {
+      int err;
+      char buf[BUFFER_LENGTH];
+      zip_error_t error;
+
+      zip_error_init(&error);
+      if ((prnArg->handleIO = zip_open(resNodeGetNameNormalizedNative(prnArg), 0, &err)) == NULL) {
+	zip_error_init_with_code(&error, err);
+	resNodeSetError(prnArg, rn_error_open, "can't open zip archive `%s': %s\n", resNodeGetNameNormalizedNative(prnArg), zip_error_strerror(&error));
+      }
+      else { /* success */
+	prnArg->fExist = TRUE;
+	prnArg->eAccess = rn_access_zip;
+	fResult = TRUE;
+	PrintFormatLog(4, "zip_open('%s') OK", resNodeGetNameNormalized(prnArg));
+      }
+      zip_error_fini(&error);
+    }
+    else {
+      resNodeSetError(prnArg, rn_error_open, "unknown mode for zip opening '%s'", resNodeGetNameNormalized(prnArg));
     }
   }
-  else {
-    resNodeSetError(prnArg, rn_error_open, "unknown mode for zip opening '%s'", resNodeGetNameNormalized(prnArg));
-  }
-
   return fResult;
 } /* end of zipFileOpen() */
 

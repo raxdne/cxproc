@@ -353,7 +353,7 @@ resNodeTestString(void)
 
 
   if (RUNTEST) {
-    xmlChar *pucT;
+    xmlChar *pucT = NULL;
 
     i++;
     printf("TEST %i in '%s:%i': path into ZIP = ", i, __FILE__, __LINE__);

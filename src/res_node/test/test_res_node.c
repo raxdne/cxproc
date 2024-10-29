@@ -309,7 +309,7 @@ resNodeTest(void)
     fputs((const char *)mucTestLabel,stderr);
     mucTestResult[0] = '\0';
 
-    if ((prnT = resNodeDirNew(TESTPREFIX "config-test.cxp")) == NULL) {
+    if ((prnT = resNodeDirNew(BAD_CAST TESTPREFIX "config-test.cxp")) == NULL) {
       xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeDirNew()\n");
     }
     else if (resNodeHasDetails(prnT, RN_INFO_STAT) == TRUE) {
@@ -899,8 +899,8 @@ resNodeTest(void)
 
   if (RUNTEST) {
     resNodePtr prnT = NULL;
-    xmlChar *pucT;
-    xmlChar *pucTT;
+    xmlChar *pucT = NULL;
+    xmlChar *pucTT = NULL;
 
     i++;
     xmlStrPrintf(mucTestLabel,BUFFER_LENGTH,"\nTEST %i in '%s:%i': URI of an existing file context = ",i,__FILE__,__LINE__);
@@ -1026,7 +1026,7 @@ resNodeTest(void)
 
 
   if (RUNTEST) {
-    xmlChar *pucTT;
+    xmlChar *pucTT = NULL;
     resNodePtr prnT = NULL;
 
     i++;
@@ -1433,7 +1433,7 @@ resNodeTest(void)
 
 
   if (RUNTEST) {
-    xmlChar *pucTT;
+    xmlChar *pucTT = NULL;
     resNodePtr prnContext = NULL;
     resNodePtr prnT = NULL;
 
@@ -2279,7 +2279,7 @@ resNodeTest(void)
       || xmlSetProp(pndT,BAD_CAST"read", BAD_CAST"yes") == NULL
       || xmlSetProp(pndT,BAD_CAST"write", BAD_CAST"no") == NULL
       || xmlSetProp(pndT,BAD_CAST"execute", BAD_CAST"no") == NULL
-      || xmlSetProp(pndT,BAD_CAST"prefix", TEMPPREFIX) == NULL
+      || xmlSetProp(pndT,BAD_CAST"prefix", BAD_CAST TEMPPREFIX) == NULL
       || xmlNewChild(pndT,NULL,BAD_CAST"base64", BAD_CAST"PD94bWwgdmVyc2lvbj0iMS4wIj8+CjxkdW1teS1hPgogIDxkdW1teS1hLWNoaWxkLz4KPC9kdW1teS1hPgo=") == NULL) {
       printf("Error xmlNewChild()\n");
     }

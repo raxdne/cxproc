@@ -571,7 +571,7 @@ resNodeTestOperations(void)
     else if (resNodeUpdate(prnT, RN_INFO_MAX, NULL, NULL) == FALSE) {
       xmlStrPrintf(mucTestResult, BUFFER_LENGTH, "Error 1 resNodeUpdate()\n");
     }
-    else if (resNodeSetNameBaseDir(prnT, TEMPPREFIX) == FALSE) {
+    else if (resNodeSetNameBaseDir(prnT, BAD_CAST TEMPPREFIX) == FALSE) {
       xmlStrPrintf(mucTestResult, BUFFER_LENGTH, "Error resNodeSetNameBaseDir()\n");
     }
     else if (resNodeListPut(prnT) == FALSE) {
