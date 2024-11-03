@@ -273,6 +273,13 @@ dirProcessDirNode(xmlNodePtr pndArgDir, resNodePtr prnArgContext, cxpContextPtr 
     }
   }
 
+#ifdef EXPERIMENTAL
+  if (((pucAttrMatch = domGetPropValuePtr(pndArgDir, BAD_CAST "tmatch")) != NULL && xmlStrlen(pucAttrMatch) > 0)) {
+    /*!\todo File type matching tmatch="^image/" */
+    cxpCtxtLogPrint(pccArg, 1, "File type matching regexp '%s'", pucAttrMatch);
+  }
+#endif
+
   if (((pucAttrMatch = domGetPropValuePtr(pndArgDir, BAD_CAST "imatch")) != NULL
     && xmlStrlen(pucAttrMatch) > 0)
     ||

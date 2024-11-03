@@ -3,18 +3,36 @@
 
 dir verbosity ✔
 
-
 pie move Archive etc (path)
 - save in Editor
-
-`?path=dir/abc.docx/embeddings/object.bin`
 
 jacascript to download from HTML `<img src="data:image/png;base64,">` 
 - https://github.com/eligrey/FileSaver.js
 
-
+REQ: Emacs macro `clipboard-to-base64` via shell
 
 ## v2.0 #v20
+
+REQ: trailing Markup `---` and `--` to display non-positive aspects
+
+BUG: XPath for ZIP Documents
+- use in pie scope
+
+REQ: embedd non-image data in ZIP Documents into txt/md/pie
+- download with content-type and name
+
+BUG: dir2csv output + verbosity
+
+REQ: dir2csv LoD ++
+1) directories
+2) + files
+3) + archive entries
+
+REQ: LoD for archives `CXP_DIR_VERBOSITY` ++
+1) stat
+1) owner
+1) content list
+1) content as base64
 
 TODO: remove legacy code
 
@@ -23,8 +41,6 @@ TODO: fix testing code #v20
 TODO: review code internal tags
 
 TODO: update Windows libraries and vcpkg ✔
-
-TODO: prepare as a package for `vcpkg` #v20
 
 ## Documentation
 
@@ -35,6 +51,10 @@ s. `./option/*/TODO.md`
 TODO: update program description #v20
 
 ## Refactoring
+
+TODO: fix format string warnings #v20 ++
+
+TODO: clean-up of third-party modules #v20 ++
 
 TODO: use `islinebreak(C)` ✔
 
@@ -49,6 +69,7 @@ TODO: in `res_path.c` change  ✔
 [Linux kernel coding style](https://www.kernel.org/doc/html/v4.10/process/coding-style.html)
 
 TODO: check need of `res_node/res_node_properties.c` #v20
+- TEST: or remove resNode properties
 
 TODO: check usage of `ProcessImportOptions()` #v20 ++
 - replacing URLs in `<script>` etc
@@ -59,6 +80,10 @@ TODO: unify usage of `scriptProcessScriptNode()` `TraverseScriptNodes()` and add
 
 REQ: provide checksums of files/base64 (sha256)
 - attribute in DOM
+
+REQ: dedicated frontends using compile-in DOMs of cxp, xsl, xml
+
+REQ: archive `?path=dir/abc.docx/embeddings/object.bin`
 
 REQ: copy-on-write with an iteration suffix `abc.txt.1` `abc.txt.2` `abc.txt.3`
 
@@ -151,6 +176,8 @@ DONE: Binary without Microsoft Runtime DLL (at all requiered libs??)
 TODO: statically linked binaries for ARMv7, x64_linux, x64_windows (using `vcpkg`) ✘
 
 TODO: provide a Flatpack #v20
+
+TODO: prepare as a package for `vcpkg` #v20
 
 TODO: detail information in binaries #v20
 

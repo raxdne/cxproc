@@ -485,7 +485,7 @@ resNodeListFindPathNext(resNodePtr prnArg, xmlChar *pucArgPath, int iArgOptions)
 } /* end of resNodeListFindPathNext() */
 
 
-/*! Resource Node List from DOM
+/*!\todo constructs a resNodeList out of a pie/dir DOM
 
 \param prnArg -- resNode tree to build as DOM
 \param iArgOptions bits for options 

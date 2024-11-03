@@ -143,6 +143,8 @@ resNodeNew(void)
 
 /*! Duplicates an existing resource node into an new one (Path only!).
 
+  \todo complete code for duplication of archive with childs
+
   \param prnArg pointer to resource node to duplicate
   \return a pointer to new 'resNode'
  */
@@ -3467,13 +3469,10 @@ resNodeContentToDOM(xmlNodePtr pndArg, resNodePtr prnArg)
 } /* end of resNodeContentToDOM() */
 
 
-/*!tests the readability of a file or directory with given name 
+/*!\todo constructs a resNode out of a file DOM
 
-  \param pndFile pointer to file node for appending of results
-  \param pucArgPath relative or absolute path and name of file
-  \return true if the named file is is readable
-
-  set all file stat to pndFile as attributes
+  \param pndArg pointer to dir/file node
+  \return resNodeListPtr
 */
 resNodePtr 
 resNodeFromDOM(xmlNodePtr pndArg, int iArgOptions)
