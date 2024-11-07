@@ -3057,6 +3057,29 @@ resNodeContentToDOM(xmlNodePtr pndArg, resNodePtr prnArg)
     iMimeType = resNodeGetMimeType(prnArg);
     switch (iMimeType) {
 
+#ifdef EXPERIMENTAL
+    case MIME_INODE_SYMLINK:
+      if (resNodeGetChild(prnArg) != NULL) {
+	xmlNodePtr pndChild;
+
+	if (resNodeIsDir(resNodeGetChild(prnArg))) {
+	  /*! follow link to directory */
+	  /*!\bug avoid circular references */
+	}
+	else if (resNodeIsFile(resNodeGetChild(prnArg)) && resNodeIsReadable(resNodeGetChild(prnArg))) {
+	  /*! follow link to file */
+	  if ((pndChild = domGetFirstChild(pndArg, BAD_CAST NAME_FILE)) == NULL) {
+	    xmlNewChild(pndArg, NULL, BAD_CAST NAME_FILE, NULL);
+	  }
+	  resNodeContentToDOM(pndChild, resNodeGetChild(prnArg));
+	}
+	else {
+	  xmlNewChild(pndArg, NULL, BAD_CAST NAME_ERROR, BAD_CAST "File link broken");
+	}
+      }
+      break;
+#endif
+      
     case MIME_EMPTY:
       /* no file content */
     break;
@@ -3361,66 +3384,31 @@ resNodeContentToDOM(xmlNodePtr pndArg, resNodePtr prnArg)
       break;
 #endif
 
+#ifdef HAVE_LIBEXIF
+    case MIME_IMAGE_JPEG:
+    case MIME_IMAGE_TIFF:
+    {
+      /* get image information details via libexif */
+      imgParseFileExif(pndArg, prnArg);
+      /*! no break, due to required default block */
+    }
+#elif defined HAVE_LIBMAGICK	
     case MIME_IMAGE_GIF:
     case MIME_IMAGE_JPEG:
     case MIME_IMAGE_PNG:
     case MIME_IMAGE_TIFF:
     {
-      xmlChar *pucContent;
-
-#ifdef HAVE_LIBEXIF
-      /* get image information details via libexif */
-      imgParseFileExif(pndArg, prnArg);
       /* get image information details via ImageMagick */
-#elif defined HAVE_LIBMAGICK	
-      //imgParseFile(pndArg, prnArg);
-#endif
-
-#if 0
-      pucContent = BAD_CAST resNodeGetContentBase64Eat(prnArg, 512);
-      if (STR_IS_NOT_EMPTY(pucContent)) {
-	xmlNewChild(pndArg, NULL, BAD_CAST NAME_BASE64, pucContent);
-	/*!\todo optimize direct use of buffer as node content */
-      }
-      xmlFree(pucContent);
-      /*!\todo split content into separate text nodes (MIME multi-part?) */
-
-      xmlFree(resNodeEatContentPtr(prnArg));
-      break;
-#endif
+      imgParseFile(pndArg, prnArg);
+      /*! no break, due to required default block */
     }
-
-#ifdef EXPERIMENTAL
-    case MIME_INODE_SYMLINK:
-      if (resNodeGetChild(prnArg) != NULL) {
-	xmlNodePtr pndChild;
-
-	if (resNodeIsDir(resNodeGetChild(prnArg))) {
-	  /*! follow link to directory */
-	  /*!\bug avoid circular references */
-	}
-	else if (resNodeIsFile(resNodeGetChild(prnArg)) && resNodeIsReadable(resNodeGetChild(prnArg))) {
-	  /*! follow link to file */
-	  if ((pndChild = domGetFirstChild(pndArg, BAD_CAST NAME_FILE)) == NULL) {
-	    xmlNewChild(pndArg, NULL, BAD_CAST NAME_FILE, NULL);
-	  }
-	  resNodeContentToDOM(pndChild, resNodeGetChild(prnArg));
-	}
-	else {
-	  xmlNewChild(pndArg, NULL, BAD_CAST NAME_ERROR, BAD_CAST "File link broken");
-	}
-      }
-      break;
 #endif
       
     default: /* no addtitional file information details */
-#if 0
-      PrintFormatLog(1, "No file information details '%s' %i", resNodeGetNameNormalized(prnArg),iMimeType);
-#elif 1
+#if 1
     {
       xmlChar *pucContent;
 
-#if 1
       pucContent = BAD_CAST resNodeGetContentBase64Eat(prnArg, 512);
       if (STR_IS_NOT_EMPTY(pucContent)) {
 	xmlNewChild(pndArg, NULL, BAD_CAST NAME_BASE64, pucContent);
@@ -3428,10 +3416,7 @@ resNodeContentToDOM(xmlNodePtr pndArg, resNodePtr prnArg)
       }
       xmlFree(pucContent);
       /*!\todo split content into separate text nodes (MIME multi-part?) */
-#endif
-
       xmlFree(resNodeEatContentPtr(prnArg));
-      break;
     }
 #else
       {
@@ -3457,7 +3442,6 @@ resNodeContentToDOM(xmlNodePtr pndArg, resNodePtr prnArg)
 	}
       }
 #endif
-      break;
     }
     xmlAddChild(pndArg, xmlNewPI(BAD_CAST "end-of", resNodeGetNameBase(prnArg)));
   }
