@@ -126,6 +126,7 @@ typedef enum {
     Image formats
   */
   MIME_IMAGE_GIF,
+  MIME_IMAGE_BMP,
   MIME_IMAGE_JPEG,
   MIME_IMAGE_PNG,
   MIME_IMAGE_SVG_XML,

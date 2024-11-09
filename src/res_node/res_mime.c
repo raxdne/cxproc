@@ -131,6 +131,7 @@ static const char* resMimeTypeStr[] = {
     Image formats
   */
   /* MIME_IMAGE_GIF */ "image/gif",
+  /* MIME_IMAGE_BMP */ "image/bmp",
   /* MIME_IMAGE_JPEG */ "image/jpeg",
   /* MIME_IMAGE_PNG */ "image/png",
   /* MIME_IMAGE_SVG_XML */ "image/svg+xml",
@@ -258,6 +259,7 @@ BOOL_T
 resMimeIsPicture(int iMimeType)
 {
   return (iMimeType == MIME_IMAGE_GIF
+	  || iMimeType == MIME_IMAGE_BMP
 	  || iMimeType == MIME_IMAGE_JPEG
 	  || iMimeType == MIME_IMAGE_PNG
 	  || iMimeType == MIME_IMAGE_SVG_XML
@@ -568,7 +570,10 @@ resMimeGetTypeFromExt(const xmlChar *pucArg)
   else if (xmlStrcasecmp(pucArg, BAD_CAST"gif") == 0) {
     eMimeTypeResult = MIME_IMAGE_GIF;
   }
-  else if (xmlStrcasecmp(pucArg, BAD_CAST"tif") == 0) {
+  else if (xmlStrcasecmp(pucArg, BAD_CAST"bmp") == 0) {
+    eMimeTypeResult = MIME_IMAGE_BMP;
+  }
+  else if (xmlStrcasecmp(pucArg, BAD_CAST"tif") == 0 || xmlStrcasecmp(pucArg, BAD_CAST"tiff") == 0) {
     eMimeTypeResult = MIME_IMAGE_TIFF;
   }
   else if (xmlStrcasecmp(pucArg, BAD_CAST"crw") == 0 || xmlStrcasecmp(pucArg, BAD_CAST"cr2") == 0) {

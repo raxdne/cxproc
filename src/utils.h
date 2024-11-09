@@ -44,6 +44,9 @@ extern int
 GetPositionISO6709(const char *pchArg,double *pdArgLatitude,double *pdArgLongitude);
 
 extern int
+base64removespaces(const void *data_buf);
+
+extern int
 base64encode(const void* data_buf, size_t dataLength, char* result, size_t resultSize);
 
 extern int

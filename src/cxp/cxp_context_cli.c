@@ -336,6 +336,7 @@ cxpCtxtCliParse(cxpContextPtr pccArg)
       /* OK */
     }
     else {
+      xmlFree(pucLevelDirVerbosity);
       pucLevelDirVerbosity = xmlStrdup(BAD_CAST "4");
     }
 

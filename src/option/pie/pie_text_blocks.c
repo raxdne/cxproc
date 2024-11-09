@@ -1489,9 +1489,14 @@ SplitTupelToLinkNodesMd(const xmlChar *pucArg)
 	    /* embedded base64-encoded image */
 	    xmlChar *pucTT;
 
-	    xmlSetProp(pndLink, BAD_CAST "type", BAD_CAST resMimeGetTypeStr(t));
 	    if ((pucTT = BAD_CAST xmlStrchr((const xmlChar *)pucUrl, (xmlChar)',')) != NULL && pucTT++) {
-	      xmlNewChild(pndLink, NULL, BAD_CAST NAME_BASE64, pucTT);
+	      xmlNodePtr pndBase64;
+
+	      pndBase64 = xmlNewChild(pndLink, NULL, BAD_CAST NAME_BASE64, pucTT);
+	      if (pndBase64 != NULL && xmlNodeIsText(pndBase64->children) && (pucTT = pndBase64->children->content) != NULL) {
+		base64removespaces(pucTT);
+		xmlSetProp(pndBase64, BAD_CAST "type", BAD_CAST resMimeGetTypeStr(t));
+	      }
 	    }
 	  }
 	  else {
@@ -3188,10 +3193,15 @@ RecognizeFigures(xmlNodePtr pndArg)
 	  xmlChar *pucT;
 	  xmlNodePtr pndImage;
 
-	  pndImage = xmlNewChild(pndArg, NULL, BAD_CAST NAME_PIE_IMG,NULL);
-	  xmlSetProp(pndImage, BAD_CAST "type", BAD_CAST resMimeGetTypeStr(t));
+	  pndImage = xmlNewChild(pndArg, NULL, BAD_CAST NAME_PIE_IMG, NULL);
 	  if ((pucT = BAD_CAST xmlStrchr(pndChild->content, (xmlChar)',')) != NULL && pucT++) {
-	    xmlNewChild(pndImage, NULL, BAD_CAST NAME_BASE64, pucT);
+	    xmlNodePtr pndBase64;
+
+	    pndBase64 = xmlNewChild(pndImage, NULL, BAD_CAST NAME_BASE64, pucT);
+	    if (pndBase64 != NULL && xmlNodeIsText(pndBase64->children) && (pucT = pndBase64->children->content) != NULL) {
+	      base64removespaces(pucT);
+	      xmlSetProp(pndBase64, BAD_CAST "type", BAD_CAST resMimeGetTypeStr(t));
+	    }
 	  }
 	  xmlNodeSetContent(pndChild,NULL);
 	  for ( ; pndChild; pndChild = RecognizeFigures(pndChild));

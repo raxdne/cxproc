@@ -948,6 +948,35 @@ chomp(unsigned char *c)
 /* end of chomp() */
 
 /*
+ * https://base64.guru/learn/base64-characters
+ * */
+int
+base64removespaces(const void *data_buf)
+{
+  int iResult = 0;
+
+  if (data_buf) {
+    char *pcBegin = (char *)data_buf;
+    int i;
+    int j;
+
+    for (i = j = 0;; i++) {
+      if (pcBegin[i] == '\0') {
+	iResult = j;
+	pcBegin[iResult] = '\0';
+	break;
+      }
+      if (isalnum(pcBegin[i]) || pcBegin[i] == '+' || pcBegin[i] == '/' || pcBegin[i] == '=') {
+	pcBegin[j] = pcBegin[i];
+	j++;
+      }
+    }
+  }
+  return iResult;
+} /* end of base64removespaces() */
+
+
+/*
  * Base 64 encoding/decoding (s. http://en.wikibooks.org/wiki/Algorithm_Implementation/Miscellaneous/Base64)
  *
  * */

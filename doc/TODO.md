@@ -13,6 +13,8 @@ REQ: Emacs macro `clipboard-to-base64` via shell
 
 ## v2.0 #v20
 
+REQ: domSetPropFlag()
+
 REQ: trailing Markup `---` and `--` to display non-positive aspects
 
 BUG: XPath for ZIP Documents

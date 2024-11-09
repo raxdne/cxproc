@@ -3405,20 +3405,6 @@ resNodeContentToDOM(xmlNodePtr pndArg, resNodePtr prnArg)
 #endif
       
     default: /* no addtitional file information details */
-#if 1
-    {
-      xmlChar *pucContent;
-
-      pucContent = BAD_CAST resNodeGetContentBase64Eat(prnArg, 512);
-      if (STR_IS_NOT_EMPTY(pucContent)) {
-	xmlNewChild(pndArg, NULL, BAD_CAST NAME_BASE64, pucContent);
-	/*!\todo optimize direct use of buffer as node content */
-      }
-      xmlFree(pucContent);
-      /*!\todo split content into separate text nodes (MIME multi-part?) */
-      xmlFree(resNodeEatContentPtr(prnArg));
-    }
-#else
       {
 	xmlChar *pucContent;
 
@@ -3430,18 +3416,17 @@ resNodeContentToDOM(xmlNodePtr pndArg, resNodePtr prnArg)
 	  if (pndBase64) {
 	    xmlNodePtr pndBase64Text;
 
-	    //xmlSetProp(pndBase64,BAD_CAST"name",resNodeGetNameBase(prnArg));
 	    xmlSetProp(pndBase64,BAD_CAST"type",BAD_CAST resNodeGetMimeTypeStr(prnArg));
 	    pndBase64Text = xmlNewText(NULL);
-	    pndBase64Text->content = pucContent;
-	    xmlAddChild(pndBase64,pndBase64Text);
+	    if (pndBase64Text) {
+	      pndBase64Text->content = pucContent; /* direct use of buffer as node content, to avoid duplication of large buffers */
+	      pucContent = NULL;
+	      xmlAddChild(pndBase64,pndBase64Text);
+	    }
 	  }
-	  else {
-	    xmlFree(pucContent);
-	  }
+	  xmlFree(pucContent);
 	}
       }
-#endif
     }
     xmlAddChild(pndArg, xmlNewPI(BAD_CAST "end-of", resNodeGetNameBase(prnArg)));
   }

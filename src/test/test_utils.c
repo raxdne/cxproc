@@ -176,6 +176,28 @@ utilsTest(void)
 
 
   if (RUNTEST) {
+    xmlChar mucBase64[BUFFER_LENGTH];
+    xmlChar mucResult[BUFFER_LENGTH];
+    size_t l = BUFFER_LENGTH;
+
+    i++;
+    printf("TEST %i in '%s:%i': base64 as block = ",i,__FILE__,__LINE__);
+    pucTest = xmlStrdup(BAD_CAST"iVBORw0K GgoAAAAN\nSUhEUgAA\r\nAfQAA\t\tAJEC ");
+
+    if (base64removespaces((char *)pucTest) != 33) {
+      printf("ERROR '%s'\n", pucTest);
+    }
+    else if (xmlStrEqual(BAD_CAST "iVBORw0KGgoAAAANSUhEUgAAAfQAAAJEC",pucTest) == FALSE) {
+      printf("ERROR '%s'\n", pucTest);
+    }
+    else {
+      n_ok++;
+      printf("OK\n");
+    }
+    xmlFree(pucTest);
+  }
+
+  if (RUNTEST) {
     xmlChar* pucError = xmlStrdup(BAD_CAST"=47=08=1=6H=7a=74 ");
     xmlChar* pucT = xmlStrdup(BAD_CAST"Der Almsee ist ein Bergsee im ober=F6sterreichischen Teil des Salzkammergutes im Gemeindegebiet von Gr=FCnau im Almtal, am Nordfu=DF des Toten Gebirges und liegt auf 589 m =FC. A.");
 
