@@ -3112,6 +3112,7 @@ cxpInfoProgram(xmlNodePtr pndArg, cxpContextPtr pccArg)
 #endif
     pndOption = xmlNewChild(pndResult, NULL, BAD_CAST"compilation", NULL);
     //xmlSetProp(pndOption, BAD_CAST "build", BAD_CAST CXP_VERSION_BUILD_STR);
+    /* https://stackoverflow.com/questions/152016/detecting-cpu-architecture-compile-time */
     xmlSetProp(pndOption, BAD_CAST "platform", BAD_CAST
 #ifdef _MSC_VER
 #ifdef _WIN64
@@ -3127,6 +3128,8 @@ cxpInfoProgram(xmlNodePtr pndArg, cxpContextPtr pccArg)
       "GNU/Linux 32bit"
 #elif defined (__x86_64__)
       "GNU/Linux 64bit"
+#elif defined(__ARM_ARCH_6__) || defined(__ARM_ARCH_6J__) || defined(__ARM_ARCH_6K__) || defined(__ARM_ARCH_6Z__) || defined(__ARM_ARCH_6ZK__)
+      "GNU/Linux ARM6 32bit"
 #elif defined(__ARM_ARCH_7A__) || defined(__ARM_ARCH_7R__) || defined(__ARM_ARCH_7S__)
       "GNU/Linux ARM7 32bit"
 #else

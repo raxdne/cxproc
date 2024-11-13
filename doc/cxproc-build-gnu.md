@@ -1,6 +1,34 @@
 
 # How to build cxproc on a GNU/Linux system
 
+## Debian (package names for Bookworm)
+
+Core tools
+
+    sudo apt install debconf debconf-i18n debianutils lintian debhelper g++ cpp gcc gdb make diffutils patch cmake
+
+Optional tools
+
+    sudo apt install valgrind strace splint mc screen wget curl ssh rsync git xsltproc
+
+    sudo apt install cmake-qt-gui kcachegrind gitk emacs meld doxygen graphviz
+
+Core libraries
+
+    sudo apt install libc6-dev libpcre2-dev libarchive-dev zip unzip libzip-dev zlib1g zlib1g-dev libxml2 libxml2-utils libxml2-dev libxslt1-dev libxslt1.1 sqlite3 libsqlite3-dev liblzma-dev libbz2-dev duktape duktape-dev libssl-dev libcurl4-openssl-dev
+
+Graphic libraries (optional)
+
+    sudo apt install imagemagick libmagickcore-dev libgif-dev libgif7 libexif12 libexif-dev libjpeg8 libjpeg8-dev libpng16-16 libpng-dev libtiff5 libtiff5-dev
+
+Audio libraries (optional)
+
+    sudo apt install libid3tag0-dev libogg-dev libvorbis-dev
+
+Network runtime environment
+
+	sudo apt install apache2 apache2-utils samba samba-common smbclient cifs-utils
+
 ## Ubuntu (package names for Focal Fossa)
 
 Core tools
@@ -9,7 +37,7 @@ Core tools
 
 Core libraries
 
-    sudo apt install libc6-dev libpcre2-dev libarchive-dev zip unzip libzip-dev zlib1g zlib1g-dev libxml2 libxml2-utils libxml2-dev libxslt1-dev libxslt1.1 sqlite3 libsqlite3-dev liblzma-dev libbz2-dev duktape duktape-dev libssl-dev curl libcurl4-openssl-dev
+    sudo apt install libc6-dev libpcre2-dev libarchive-dev zip unzip libzip-dev zlib1g zlib1g-dev libxml2 libxml2-utils libxml2-dev libxslt1-dev libxslt1.1 sqlite3 libsqlite3-dev liblzma-dev libbz2-dev duktape duktape-dev libssl-dev libcurl4-openssl-dev
 
 Graphic libraries (optional)
 
@@ -21,7 +49,7 @@ Audio libraries (optional)
 
 Development environment
 
-    sudo apt install apache2 apache2-utils doxygen graphviz valgrind kcachegrind strace splint cflow mc screen w3m wget ssh rsync meld git gitk emacs samba samba-common smbclient cifs-utils
+    sudo apt install apache2 apache2-utils doxygen graphviz valgrind kcachegrind strace splint mc screen wget curl ssh rsync meld git gitk emacs samba samba-common smbclient cifs-utils
 
 to find missing libraries or header files on Debian/Ubuntu
 
@@ -41,7 +69,7 @@ Core tools
 
 additional core libraries
 
-    sudo dnf install pcre2 pcre2-devel zip unzip libzip-devel libzip zlib zlib-devel libxml2 libxml2-devel libxslt libxslt-devel sqlite sqlite-devel libarchive libarchive-devel curl curl-devel
+    sudo dnf install pcre2 pcre2-devel zip unzip libzip-devel libzip zlib zlib-devel libxml2 libxml2-devel libxslt libxslt-devel sqlite sqlite-devel libarchive libarchive-devel curl-devel
 
 Graphic libraries
 
@@ -53,7 +81,7 @@ Audio libraries
 
 Development environment
 
-    sudo dnf install httpd emacs doxygen graphviz valgrind mc screen w3m wget rsync meld git gitk samba-client samba-common cifs-utils openssh openssh-devel
+    sudo dnf install httpd emacs doxygen graphviz valgrind mc screen wget curl rsync meld git gitk samba-client samba-common cifs-utils openssh openssh-devel
 
 ## Samba Share
 
@@ -63,26 +91,10 @@ Development environment
 
 	mkdir -p ~/cxproc-build/
 	cd ~/cxproc-build/
-    git clone https://github.com/raxdne/cxproc.git
+	git clone https://github.com/raxdne/cxproc.git
 	cd ~/cxproc-build/cxproc
-    git submodule update --remote
-
-## CMake
-
-build directory is defined by `misc/prepare-cmake.sh`
-
-	cd ~/cxproc-build/cxproc
-	. misc/prepare-cmake.sh
-	cmake -S `pwd` -B $DIR_BUILD -G 'Unix Makefiles' -DCMAKE_BUILD_TYPE=Release -DCXPROC_DOC:BOOL=OFF -DCXPROC_LEGACY:BOOL=ON -DCXPROC_EXPERIMENTAL:BOOL=ON -DCXPROC_MARKDOWN:BOOL=ON -DCXPROC_ARCHIVE:BOOL=ON -DCXPROC_CURL:BOOL=ON -DCXPROC_DUKTAPE:BOOL=ON -DCXPROC_SQLITE3:BOOL=ON
-	# cmake-gui -S `pwd` -B $DIR_BUILD &
-	cmake --build $DIR_BUILD -j 4 --target all
-	(cd $DIR_BUILD && ctest)
-	cmake --install $DIR_BUILD --prefix $PREFIX/
-	#cmake --build $DIR_BUILD --target package
-	#(cd $DIR_BUILD && cpack -V --debug)
-	cmake -B $DIR_BUILD --target clean
-
-GUI
+	git submodule update --remote
+	git switch develop
 
 ## third party
 
@@ -119,6 +131,23 @@ select `~/cxproc-build/cxproc/third-party/duktape-src` as value for `DUKTAPE_INC
 
 ### sqlite as Source code
 
+## CMake
+
+build directory is defined by `misc/prepare-cmake.sh`
+
+	cd ~/cxproc-build/cxproc
+	. misc/prepare-cmake.sh
+	cmake -S `pwd` -B $DIR_BUILD -G 'Unix Makefiles' -DCMAKE_BUILD_TYPE=Release -DCXPROC_DOC:BOOL=OFF -DCXPROC_LEGACY:BOOL=ON -DCXPROC_EXPERIMENTAL:BOOL=ON -DCXPROC_MARKDOWN:BOOL=ON -DCXPROC_ARCHIVE:BOOL=ON -DCXPROC_CURL:BOOL=ON -DCXPROC_DUKTAPE:BOOL=ON -DCXPROC_SQLITE3:BOOL=ON
+	# cmake-gui -S `pwd` -B $DIR_BUILD &
+	cmake --build $DIR_BUILD -j 4 --target all
+	(cd $DIR_BUILD && ctest)
+	cmake --install $DIR_BUILD --prefix $PREFIX/
+	#cmake --build $DIR_BUILD --target package
+	#(cd $DIR_BUILD && cpack -V --debug)
+	cmake -B $DIR_BUILD --target clean
+
+GUI
+
 ## Doxygen
 
     doxygen misc/Doxyfile
@@ -134,10 +163,18 @@ https://askubuntu.com/questions/250696/how-to-cross-compile-for-arm
 	sudo a2enmod cgi actions
 	sudo systemctl reload apache2
 	curl 'http://localhost/cxproc/exe'
-	
+
+PIE
+
 	cd $PREFIX/www/html && git clone https://github.com/raxdne/pie.git
 	cp -r $PREFIX/www/html/pie/test .
 	sudo chgrp -R www-data $PREFIX/www
+
+jQuery
+
+tablesorter
+
+ACE
 
 ### Virtualhost + [suexec](https://httpd.apache.org/docs/trunk/suexec.html)
 
