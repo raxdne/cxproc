@@ -24,19 +24,25 @@ IF (CXPROC_LIBEXIF)
 
   target_sources(cxproc-cgi PUBLIC ${EXIF_FILES})
 
-  target_sources(cxproc-test PUBLIC ${EXIF_FILES})
+  IF(CXPROC_TESTS)
+    target_sources(cxproc-test PUBLIC ${EXIF_FILES})
+  ENDIF ()
 
   INCLUDE_DIRECTORIES(${LIBEXIF_INCLUDE_DIR})
 
   target_compile_definitions(filex       PUBLIC HAVE_LIBEXIF)
   target_compile_definitions(cxproc      PUBLIC HAVE_LIBEXIF)
   target_compile_definitions(cxproc-cgi  PUBLIC HAVE_LIBEXIF)
-  target_compile_definitions(cxproc-test PUBLIC HAVE_LIBEXIF)
+  IF(CXPROC_TESTS)
+    target_compile_definitions(cxproc-test PUBLIC HAVE_LIBEXIF)
+  ENDIF ()
 
   target_link_libraries(filex ${LIBEXIF_LIBRARY})
   target_link_libraries(cxproc ${LIBEXIF_LIBRARY})
-  target_link_libraries(cxproc-test ${LIBEXIF_LIBRARY})
   target_link_libraries(cxproc-cgi  ${LIBEXIF_LIBRARY})
+  IF(CXPROC_TESTS)
+    target_link_libraries(cxproc-test ${LIBEXIF_LIBRARY})
+  ENDIF ()
   #IF (LIBMICROHTTPD_FOUND)
   #  target_link_libraries(cxproc-httpd ${LIBEXIF_LIBRARY})
   #ENDIF ()
@@ -74,17 +80,23 @@ IF (ImageMagick_FOUND)
 
     target_sources(cxproc-cgi PUBLIC ${IMAGE_FILES})
 
-    target_sources(cxproc-test PUBLIC ${IMAGE_FILES})
+    IF(CXPROC_TESTS)
+      target_sources(cxproc-test PUBLIC ${IMAGE_FILES})
+    ENDIF ()
 
     INCLUDE_DIRECTORIES(${ImageMagick_INCLUDE_DIRS})
     
     target_compile_definitions(cxproc      PUBLIC HAVE_LIBMAGICK)
     target_compile_definitions(cxproc-cgi  PUBLIC HAVE_LIBMAGICK)
-    target_compile_definitions(cxproc-test PUBLIC HAVE_LIBMAGICK)
+    IF(CXPROC_TESTS)
+      target_compile_definitions(cxproc-test PUBLIC HAVE_LIBMAGICK)
+    ENDIF ()
     
     target_link_libraries(cxproc      ${ImageMagick_LIBRARIES})
-    target_link_libraries(cxproc-test ${ImageMagick_LIBRARIES})
     target_link_libraries(cxproc-cgi  ${ImageMagick_LIBRARIES})
+    IF(CXPROC_TESTS)
+      target_link_libraries(cxproc-test ${ImageMagick_LIBRARIES})
+    ENDIF ()
     
   ENDIF (CXPROC_LIBMAGICK)
 

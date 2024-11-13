@@ -2,7 +2,7 @@
 # https://gitlab.kitware.com/cmake/community/-/wikis/home#ctest
 include (CTest)
 
-OPTION(CXPROC_TESTS "Enable test generator." OFF)
+OPTION(CXPROC_TESTS "Enable binary cxproc-test." OFF)
 
 ###############################################################################
 ## testing ####################################################################

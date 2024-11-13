@@ -31,8 +31,10 @@ IF (JSMN_INCLUDE_DIR)
     target_sources(cxproc-cgi PUBLIC ${JSON_FILES})
     target_compile_definitions(cxproc-cgi  PUBLIC HAVE_JSON)
 
-    target_sources(cxproc-test PUBLIC ${JSON_FILES})
-    target_compile_definitions(cxproc-test PUBLIC HAVE_JSON)
+    IF(CXPROC_TESTS)
+      target_sources(cxproc-test PUBLIC ${JSON_FILES})
+      target_compile_definitions(cxproc-test PUBLIC HAVE_JSON)
+    ENDIF ()
 
   ENDIF (CXPROC_JSON)
 

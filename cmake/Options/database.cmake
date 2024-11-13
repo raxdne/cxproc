@@ -41,15 +41,19 @@ IF (CXPROC_SQLITE3)
   target_sources(cxproc-cgi PUBLIC ${SQLITE3_FILES})
   target_compile_definitions(cxproc-cgi  PUBLIC HAVE_LIBSQLITE3)
 
-  target_sources(cxproc-test PUBLIC ${SQLITE3_FILES})
-  target_compile_definitions(cxproc-test PUBLIC HAVE_LIBSQLITE3)
+  IF(CXPROC_TESTS)
+    target_sources(cxproc-test PUBLIC ${SQLITE3_FILES})
+    target_compile_definitions(cxproc-test PUBLIC HAVE_LIBSQLITE3)
+  ENDIF ()
 
   IF (SQLite3_SOURCE_FILE)
     target_sources(cxproc PUBLIC ${SQLite3_SOURCE_FILE})
 
     target_sources(cxproc-cgi PUBLIC ${SQLite3_SOURCE_FILE})
 
-    target_sources(cxproc-test PUBLIC ${SQLite3_SOURCE_FILE})
+    IF(CXPROC_TESTS)
+      target_sources(cxproc-test PUBLIC ${SQLite3_SOURCE_FILE})
+    ENDIF ()
 
     target_sources(filex PUBLIC ${SQLite3_SOURCE_FILE})
   ENDIF ()
@@ -59,8 +63,10 @@ IF (CXPROC_SQLITE3)
   ELSE (SQLite3_SOURCE_FILE)
     target_link_libraries(filex ${SQLite3_LIBRARY})
     target_link_libraries(cxproc ${SQLite3_LIBRARY})
-    target_link_libraries(cxproc-test ${SQLite3_LIBRARY})
     target_link_libraries(cxproc-cgi  ${SQLite3_LIBRARY})
+    IF(CXPROC_TESTS)
+      target_link_libraries(cxproc-test ${SQLite3_LIBRARY})
+    ENDIF ()
     #IF (LIBMICROHTTPD_FOUND)
     #  target_link_libraries(cxproc-httpd ${SQLite3_LIBRARY})
     #ENDIF ()
@@ -68,14 +74,21 @@ IF (CXPROC_SQLITE3)
 
 IF(BUILD_TESTING)
   
-  add_test(NAME sql-code  
-    COMMAND ${CXPROC_PREFIX}/bin/cxproc-test -t sql)
+  IF(CXPROC_TESTS)
+    add_test(NAME sql-code  
+      COMMAND ${CXPROC_PREFIX}/bin/cxproc-test -t sql)
+
+    set_tests_properties(sql-code
+      PROPERTIES ENVIRONMENT "CXP_PATH=${PROJECT_SOURCE_DIR}//"
+    )
+
+    ENDIF ()
 
   add_test(NAME sql-cxp
     WORKING_DIRECTORY ${CXPROC_TEST_DIR}/option/sql
     COMMAND ${CXPROC_PREFIX}/bin/cxproc config.cxp)
 
-  set_tests_properties(sql-code sql-cxp
+  set_tests_properties(sql-cxp
     PROPERTIES ENVIRONMENT "CXP_PATH=${PROJECT_SOURCE_DIR}//"
   )
 

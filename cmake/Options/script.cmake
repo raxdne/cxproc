@@ -31,18 +31,25 @@ IF (CXPROC_DUKTAPE)
 
   target_sources(cxproc-cgi PUBLIC ${DUKTAPE_FILES})
 
-  target_sources(cxproc-test PUBLIC ${DUKTAPE_FILES})
+  IF(CXPROC_TESTS)
+    target_sources(cxproc-test PUBLIC ${DUKTAPE_FILES})
+  ENDIF ()
 
   INCLUDE_DIRECTORIES(${DUKTAPE_INCLUDE_DIR})
 
   target_compile_definitions(cxproc      PUBLIC HAVE_JS)
   target_compile_definitions(cxproc-cgi  PUBLIC HAVE_JS)
-  target_compile_definitions(cxproc-test PUBLIC HAVE_JS)
+  IF(CXPROC_TESTS)
+    target_compile_definitions(cxproc-test PUBLIC HAVE_JS)
+  ENDIF ()
+
   IF (DUKTAPE_SOURCE_FILE)
   ELSE (DUKTAPE_SOURCE_FILE)
     target_link_libraries(cxproc ${DUKTAPE_LIBRARY})
-    target_link_libraries(cxproc-test ${DUKTAPE_LIBRARY})
     target_link_libraries(cxproc-cgi ${DUKTAPE_LIBRARY})
+    IF(CXPROC_TESTS)
+      target_link_libraries(cxproc-test ${DUKTAPE_LIBRARY})
+    ENDIF ()
     #IF (LIBMICROHTTPD_FOUND)
     #  target_link_libraries(cxproc-httpd ${DUKTAPE_LIBRARY})
     #ENDIF ()

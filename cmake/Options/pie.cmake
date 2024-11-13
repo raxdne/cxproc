@@ -83,8 +83,10 @@ IF (CXPROC_PIE)
   target_sources(cxproc-cgi PUBLIC ${PIE_FILES})
   target_compile_definitions(cxproc-cgi PUBLIC HAVE_PIE)
 
-  target_sources(cxproc-test PUBLIC ${PIE_FILES})
-  target_compile_definitions(cxproc-test PUBLIC HAVE_PIE)
+  IF(CXPROC_TESTS)
+    target_sources(cxproc-test PUBLIC ${PIE_FILES})
+    target_compile_definitions(cxproc-test PUBLIC HAVE_PIE)
+  ENDIF ()
 
   IF(CXPROC_CHECK)
     target_sources(cpp-check PUBLIC ${PIE_FILES})
@@ -92,9 +94,17 @@ IF (CXPROC_PIE)
   ENDIF (CXPROC_CHECK)
 
 IF (BUILD_TESTING)
-  add_test(NAME pie-code
-    WORKING_DIRECTORY ${CXPROC_PREFIX}
-    COMMAND ${CXPROC_PREFIX}/bin/cxproc-test -t pie)
+
+  IF(CXPROC_TESTS)
+    add_test(NAME pie-code
+      WORKING_DIRECTORY ${CXPROC_PREFIX}
+      COMMAND ${CXPROC_PREFIX}/bin/cxproc-test -t pie)
+
+    set_property(TEST pie-code
+      APPEND PROPERTY ENVIRONMENT CXP_PATH=${PROJECT_SOURCE_DIR}//
+      )
+
+  ENDIF ()
 
   add_test(NAME pietextx-cli
     WORKING_DIRECTORY ${CXPROC_PREFIX}
@@ -132,17 +142,19 @@ IF (BUILD_TESTING)
     WORKING_DIRECTORY ${CXPROC_TEST_DIR}/option/pie/text/xml
     COMMAND ${CXPROC_PREFIX}/bin/cxproc config-pie-import-xml.cxp)
 
-  set_property(TEST pie-code pie-cxp-import-cxp
+  set_property(TEST pie-cxp-import-cxp
     APPEND PROPERTY ENVIRONMENT CXP_PATH=${PROJECT_SOURCE_DIR}//
     )
   
-  add_test(NAME ics-code
-    WORKING_DIRECTORY ${CXPROC_PREFIX}
-    COMMAND ${CXPROC_PREFIX}/bin/cxproc-test -t ics)
+  IF(CXPROC_TESTS)
+    add_test(NAME ics-code
+      WORKING_DIRECTORY ${CXPROC_PREFIX}
+      COMMAND ${CXPROC_PREFIX}/bin/cxproc-test -t ics)
 
-  add_test(NAME vcf-code
-    WORKING_DIRECTORY ${CXPROC_PREFIX}
-    COMMAND ${CXPROC_PREFIX}/bin/cxproc-test -t vcf)
+    add_test(NAME vcf-code
+      WORKING_DIRECTORY ${CXPROC_PREFIX}
+      COMMAND ${CXPROC_PREFIX}/bin/cxproc-test -t vcf)
+  ENDIF ()
 
 ENDIF (BUILD_TESTING)
 
@@ -173,8 +185,10 @@ IF (CXPROC_MARKDOWN)
   target_link_libraries(filex ${LIBCMARK_LIBRARY})
   target_link_libraries(pietextx ${LIBCMARK_LIBRARY})
   target_link_libraries(cxproc ${LIBCMARK_LIBRARY})
-  target_link_libraries(cxproc-test ${LIBCMARK_LIBRARY})
   target_link_libraries(cxproc-cgi ${LIBCMARK_LIBRARY})
+  IF(CXPROC_TESTS)
+    target_link_libraries(cxproc-test ${LIBCMARK_LIBRARY})
+  ENDIF ()
 ENDIF ()
 
 

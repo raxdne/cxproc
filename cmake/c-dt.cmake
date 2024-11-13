@@ -54,8 +54,9 @@ target_sources(cxproc     PUBLIC ${CDT_SOURCE_FILES})
 
 target_sources(cxproc-cgi PUBLIC ${CDT_SOURCE_FILES})
 
-target_sources(cxproc-test PUBLIC ${CDT_SOURCE_FILES})
-
+IF(CXPROC_TESTS)
+  target_sources(cxproc-test PUBLIC ${CDT_SOURCE_FILES})
+ENDIF ()
 
 # add_library(cdt STATIC ${CDT_SOURCE_FILES})
 

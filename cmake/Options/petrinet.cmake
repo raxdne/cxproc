@@ -20,14 +20,18 @@ IF (CXPROC_PETRINET)
   target_sources(cxproc-cgi PUBLIC ${PETRINET_FILES})
   target_compile_definitions(cxproc-cgi PUBLIC HAVE_PETRINET)
 
-  target_sources(cxproc-test PUBLIC ${PETRINET_FILES})
-  target_compile_definitions(cxproc-test PUBLIC HAVE_PETRINET)
+  IF(CXPROC_TESTS)
+    target_sources(cxproc-test PUBLIC ${PETRINET_FILES})
+    target_compile_definitions(cxproc-test PUBLIC HAVE_PETRINET)
+  ENDIF ()
 
 IF(BUILD_TESTING)
   
-  add_test(NAME petrinet-code
-    WORKING_DIRECTORY ${CXPROC_PREFIX}
-    COMMAND ${CXPROC_PREFIX}/bin/cxproc-test -t petrinet)
+  IF(CXPROC_TESTS)
+    add_test(NAME petrinet-code
+      WORKING_DIRECTORY ${CXPROC_PREFIX}
+      COMMAND ${CXPROC_PREFIX}/bin/cxproc-test -t petrinet)
+  ENDIF ()
 
   add_test(NAME petrinet-cxp
     WORKING_DIRECTORY ${CXPROC_TEST_DIR}/option/petrinet

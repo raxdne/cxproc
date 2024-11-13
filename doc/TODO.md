@@ -13,6 +13,8 @@ REQ: Emacs macro `clipboard-to-base64` via shell
 
 ## v2.0 #v20
 
+TODO: add build target `cxproc-test` only if `CXPROC_TESTS` is true ✔
+
 REQ: domSetPropFlag()
 
 REQ: trailing Markup `---` and `--` to display non-positive aspects
