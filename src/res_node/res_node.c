@@ -3879,6 +3879,7 @@ resNodeToCSV(resNodePtr prnArg, int iArgOptions)
 	break;
       case rn_type_dir:
 #if 1
+      case rn_type_archive:
       case rn_type_dir_in_archive:
       case rn_type_dir_in_zip:
       case rn_type_file:
@@ -3908,7 +3909,8 @@ resNodeToCSV(resNodePtr prnArg, int iArgOptions)
 	  resNodeGetSize(prnArg),
 	  resNodeGetRecursiveSize(prnArg),
 	  //
-	  (resNodeIsDir(prnArg) ? resNodeGetChildCount(prnArg,rn_type_file) : 0),
+	  //(resNodeIsDir(prnArg) ? resNodeGetChildCount(prnArg,rn_type_file) : 0),
+	  resNodeGetCountChilds(prnArg),
 	  //
 	  resNodeGetMtimeStr(prnArg),
 	  resNodeGetMtimeDiff(prnArg),
@@ -4140,7 +4142,10 @@ resNodeToSQL(resNodePtr prnArg, int iArgOptions)
 	  pucSqlValues = xmlStrcat(pucSqlValues,pucT);
 	}
 	pucSqlValues = xmlStrcat(pucSqlValues,BAD_CAST"\",");
-	
+
+	xmlStrPrintf(pucResult, BUFFER_LENGTH, "%li,", resNodeGetCountChilds(prnArg));
+	pucSqlValues = xmlStrcat(pucSqlValues, pucResult);
+
 	if (resNodeIsDir(prnArg)) {
 	  xmlStrPrintf(pucResult, BUFFER_LENGTH, "%li,\"\",\"\",", resNodeGetRecursiveSize(prnArg));
 	  pucSqlValues = xmlStrcat(pucSqlValues,pucResult);
@@ -4396,12 +4401,13 @@ resNodeHasDetails(resNodePtr prnArg, int iArgOptions)
 BOOL_T
 resNodeUpdate(resNodePtr prnArg, int iArgOptions, const pcre2_code *re_match, const pcre2_code *re_grep)
 {
-  BOOL_T fResult = FALSE;
+  BOOL_T fResult = TRUE;
 
-  if ( ! resNodeIsHidden(prnArg) && resNodeReadStatus(prnArg)) {
+  if (resNodeIsHidden(prnArg)) {
+    /* empty result */
+  }
+  else if (resNodeReadStatus(prnArg)) {
     resNodePtr prnI;
-
-    fResult = TRUE;
 
     if ((iArgOptions & RN_INFO_INDEX) != 0 && resNodeHasDetails(prnArg, RN_INFO_INDEX)) {
       for (prnI = resNodeGetChild(prnArg); prnI; prnI = resNodeGetNext(prnI)) {
@@ -4977,6 +4983,36 @@ resNodeGetMtimeDiff(resNodePtr prnArg)
   }
   return liResult;
 } /* end of resNodeGetMtimeDiff() */
+
+
+/*! Sets and returns the current number of child nodes of this resource node.
+
+  \param prnArg a pointer to a resource node
+  \return recursive value of liSize or -1 in case of errors
+*/
+size_t
+resNodeIncrChilds(resNodePtr prnArg, size_t iArg)
+{
+  if (prnArg) {
+    prnArg->liChilds += iArg;
+    return prnArg->liChilds;
+  }
+  return -1;
+} /* end of resNodeIncrChilds() */
+
+
+/*! Sets and returns the current number of child nodes of this resource node.
+
+  \param prnArg a pointer to a resource node
+*/
+size_t
+resNodeGetCountChilds(resNodePtr prnArg)
+{
+  if (prnArg) {
+    return prnArg->liChilds;
+  }
+  return -1;
+} /* end of resNodeGetCountChilds() */
 
 
 /*! Sets and returns the liSize of this resource node.
@@ -5665,6 +5701,7 @@ resNodeDatabaseSchemaStr(void)
     "type INTEGER, "
     "name text, "
     "owner text, "
+    "childs INTEGER, "
     "size INTEGER, "
     "ext text, "
     "object text, "

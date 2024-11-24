@@ -10,14 +10,13 @@ jacascript to download from HTML `<img src="data:image/png;base64,">`
 - https://github.com/eligrey/FileSaver.js
 
 REQ: Emacs macro `clipboard-to-base64` via shell
+- Linux + Windows
 
 ## v2.0 #v20
 
 TODO: add build target `cxproc-test` only if `CXPROC_TESTS` is true ✔
 
 REQ: domSetPropFlag()
-
-REQ: trailing Markup `---` and `--` to display non-positive aspects
 
 BUG: XPath for ZIP Documents
 - use in pie scope
@@ -170,6 +169,11 @@ REQ: flags for permissions
 	<cxp:make network="no">
 
 ## Profiling
+
+mem usage
+
+	valgrind --tool=massif ~/cxproc-build/x86_64-gnu-linux/bin/dir2csv -f ../x86_64-gnu-linux/ > ../t-301.csv
+	ms_print massif.out.660588 |less
 
 TODO: gprof and valgrind/cachegrind (KCachegrind) #v20
 

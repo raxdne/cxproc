@@ -84,7 +84,7 @@ main(int argc, char *argv[], char *envp[])
 	if (resNodeReset(prnI, BAD_CAST argv[i]) == FALSE) {
 	  PrintFormatLog(1, "%s\n", resNodeGetErrorMsg(prnI));
 	}
-	else if (resNodeUpdate(prnI, RN_INFO_INFO, NULL, NULL) == FALSE) {
+	else if (resNodeReadStatus(prnI) == FALSE) {
 	  PrintFormatLog(1, "%s\n", resNodeGetErrorMsg(prnI));
 	}
 	else {
@@ -108,7 +108,7 @@ main(int argc, char *argv[], char *envp[])
 	if (resNodeReset(prnI, BAD_CAST mcLine) == FALSE) {
 	  PrintFormatLog(1, "%s\n", resNodeGetErrorMsg(prnI));
 	}
-	else if (resNodeUpdate(prnI, RN_INFO_INFO, NULL, NULL) == FALSE) {
+	else if (resNodeReadStatus(prnI) == FALSE) {
 	  PrintFormatLog(1, "%s\n", resNodeGetErrorMsg(prnI));
 	}
 	else {

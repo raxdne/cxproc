@@ -265,6 +265,8 @@ struct _resNode {
   size_t liSize;			/*! size _info_ in Bytes (meta datum!) */
   size_t liRecursiveSize;
 
+  size_t liChilds;			/*! number of childs */
+
   time_t tMtime;            /*! modification time value of context */
   xmlChar *pucMtime;        /*! UTF-8 encoded entry mtime string */
 
@@ -649,6 +651,12 @@ resNodeGetMtimeStr(resNodePtr prnArg);
 
 extern long
 resNodeGetMtimeDiff(resNodePtr prnArg);
+
+extern size_t
+resNodeIncrChilds(resNodePtr prnArg, size_t iArg);
+
+extern size_t
+resNodeGetCountChilds(resNodePtr prnArg);
 
 extern size_t
 resNodeGetSize(resNodePtr prnArg);

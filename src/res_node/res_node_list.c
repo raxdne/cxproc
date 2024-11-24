@@ -260,14 +260,15 @@ resNodeListUnlink(resNodePtr prnArg)
     /*! remove link from sibling resource nodes */
     if (prnArg->next != NULL) {
       prnArg->next->prev = prnArg->prev;
-      prnArg->next = NULL;
     }
     
     if (prnArg->prev != NULL) {
       prnArg->prev->next = prnArg->next;
-      prnArg->prev = NULL;
     }
-    
+
+    prnArg->prev = NULL;
+    prnArg->next = NULL;
+
     fResult = TRUE;
   }
   return fResult;
@@ -744,7 +745,7 @@ resNodeListToGraphviz(resNodePtr prnArg, int iArgOptions)
 
 /*! dump a resNode to 'argout' using 'pfArg'
 
-\todo handle links and archives
+\todo handle links and archives in archive
 
 \param argout -- output stream
 \param prnArg -- resNode to dump
@@ -761,24 +762,34 @@ resNodeListDumpRecursively(FILE *argout, resNodePtr prnArg, BOOL_T fArgDetails, 
 
 #ifdef HAVE_LIBARCHIVE
   if (resNodeIsDirInArchive(prnArg)) {
+    resNodePtr prnRelease;
 
 #ifdef DEBUG
-    fputc('/',stderr);
+    fputc('\\', stderr);
 #endif
-    
+
+    /* archive entries are listed recursively already */
     for (prnI = resNodeGetChild(prnArg); prnI; prnI = resNodeGetNext(prnI)) {
-      resNodeListDumpRecursively(argout,prnI,fArgDetails,pfArg);
+      resNodeListDumpRecursively(argout, prnI, fArgDetails, pfArg);
+      resNodeIncrRecursiveSize(prnArg, resNodeGetRecursiveSize(prnI));
+      resNodeIncrChilds(prnArg, 1);
     }
+
+    resNodeIncrRecursiveSize(prnArg, resNodeGetSize(prnArg));
 
     if ((pucT = (*pfArg)(prnArg, RN_INFO_STAT))) {
       fputs((const char*)pucT, argout);
       xmlFree(pucT);
     }
 
+    prnRelease = resNodeGetChild(prnArg);
+    resNodeListUnlinkDescendants(prnArg);
+    resNodeListFree(prnRelease);
+
     fflush(argout);
     fResult = TRUE;
   }
-  else 
+  else
 #endif
   if (resNodeIsDir(prnArg)) {
     resNodePtr prnRelease;
@@ -788,10 +799,38 @@ resNodeListDumpRecursively(FILE *argout, resNodePtr prnArg, BOOL_T fArgDetails, 
 #endif
     
     if (resNodeDirAppendEntries(prnArg, NULL)) {
+#if 1
+      for (prnI = resNodeGetChild(prnArg); prnI;) { /* output and unlink file contexts from list first */
+	if (resNodeIsFile(prnI) || resNodeIsLink(prnI)) {
+	  resNodeListDumpRecursively(argout, prnI, fArgDetails, pfArg);
+	  resNodeIncrRecursiveSize(prnArg, resNodeGetRecursiveSize(prnI));
+	  resNodeIncrChilds(prnArg,1);
+	  prnRelease = prnI;
+	  prnI = resNodeGetNext(prnI);
+	  resNodeListUnlink(prnRelease);
+	  resNodeFree(prnRelease);
+	}
+	else {
+	  prnI = resNodeGetNext(prnI);
+	}
+      }
+
+      for (prnI = resNodeGetChild(prnArg); prnI; ) { /* remaining list contains directories only */
+	resNodeListDumpRecursively(argout, prnI, fArgDetails, pfArg);
+	resNodeIncrRecursiveSize(prnArg, resNodeGetRecursiveSize(prnI));
+	resNodeIncrChilds(prnArg, 1);
+	prnRelease = prnI;
+	prnI = resNodeGetNext(prnI);
+	resNodeListUnlink(prnRelease);
+	resNodeListFree(prnRelease);
+      }
+#else
       for (prnI = resNodeGetChild(prnArg); prnI; prnI = resNodeGetNext(prnI)) {
 	resNodeListDumpRecursively(argout,prnI,fArgDetails,pfArg);
 	resNodeIncrRecursiveSize(prnArg, resNodeGetRecursiveSize(prnI));
+	resNodeIncrChilds(prnArg,1);
       }
+#endif
       resNodeIncrRecursiveSize(prnArg, resNodeGetSize(prnArg));
     }
 
@@ -812,7 +851,7 @@ resNodeListDumpRecursively(FILE *argout, resNodePtr prnArg, BOOL_T fArgDetails, 
     resNodePtr prnRelease;
 
 #ifdef DEBUG
-    fputc('.',stderr);
+    fputc('a',stderr);
 #endif
 
     if (arcAppendEntries(prnArg, NULL, FALSE)) {
@@ -846,7 +885,7 @@ resNodeListDumpRecursively(FILE *argout, resNodePtr prnArg, BOOL_T fArgDetails, 
   }
 #endif
   
-  else if (fArgDetails && resNodeIsFile(prnArg)) {
+  else if (fArgDetails && (resNodeIsFile(prnArg) || resNodeIsFileInArchive(prnArg) || resNodeIsZipDocument(prnArg) || resNodeIsLink(prnArg))) {
     /*  */
       
 #ifdef DEBUG
