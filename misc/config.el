@@ -133,9 +133,9 @@
   ;(local-set-key    [C-f4] 'developer-c-for-insert)
   ;;
 ;; gud
-  (local-set-key    [f5] 'gud-break)
-  (local-set-key    [f6] 'gud-step)
-  (local-set-key    [f7] 'gud-next)
+  ;(local-set-key    [f5] 'gud-break)
+  ;(local-set-key    [f6] 'gud-step)
+  ;(local-set-key    [f7] 'gud-next)
   (font-lock-mode)
   ;;
 

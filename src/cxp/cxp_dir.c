@@ -102,7 +102,7 @@ dirMapInfoVerbosity(xmlNodePtr pndArgFile, cxpContextPtr pccArg)
 
   if (domGetPropValuePtr(pndArgFile, BAD_CAST "igrep") != NULL
       || domGetPropValuePtr(pndArgFile, BAD_CAST "grep") != NULL) {
-    iResult |= RN_INFO_CONTENT;
+    SET_OPTION_CONTENT(iResult);
   }
 #ifdef HAVE_PIE
   else if (STR_IS_EMPTY(pucAttrVerbosity)) {

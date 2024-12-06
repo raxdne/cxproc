@@ -394,7 +394,7 @@ _zipAppendEntries(resNodePtr prnArgZip, const pcre2_code *re_match, BOOL_T fArgC
 	      prnAncestor->fExist = TRUE;
 	      prnAncestor->fRead = TRUE;
 	      prnAncestor->eAccess = rn_access_zip;
-	      prnAncestor->iDetails |= RN_INFO_STAT;
+	      resNodeAddDetails(prnAncestor, RN_INFO_STAT);
 	    }
 	  }
 	  prnInZip->iDetails = RN_INFO_MAX;
@@ -461,7 +461,7 @@ zipDocumentRead(resNodePtr prnArgZip, int iArgOptions)
 	  resNodeResetMimeType(prnInZip);
 	}
 
-	if ((iArgOptions & RN_INFO_CONTENT) == 0 && ((iArgOptions & RN_INFO_XML) && resMimeIsXml(resNodeGetMimeType(prnInZip)) == FALSE)) {
+	if (IS_OPTION_CONTENT(iArgOptions) && (IS_OPTION_XML(iArgOptions) && resMimeIsXml(resNodeGetMimeType(prnInZip)) == FALSE)) {
 	  PrintFormatLog(3, "skip content zip[%i] '%s'", i, sb.name);
 	}
 	else if (sb.size > 1e7 || sum > 1e8) {

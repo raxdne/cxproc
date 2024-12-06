@@ -70,6 +70,8 @@
 #include <res_node/res_path.h>
 #include <res_node/res_mime.h>
 
+#define CSV_SEP_STR ","
+
 #define NAME_FILE_INDEX ".index.pie"
 
 #define NAME_TMP_INDEX "#index.pie#"
@@ -93,6 +95,7 @@
 #define RN_DUP_READ    (16 | RN_DUP_EXIST)
 
 #define RN_DUP_WRITE   (32 | RN_DUP_EXIST)
+
 
  /*! option bits for parsing of resource nodes
  */
@@ -129,6 +132,40 @@ re-build full list of contextxts
 #define RN_INFO_LIST    (256)
 
 #define RN_INFO_MAX     (RN_INFO_STAT | RN_INFO_INFO | RN_INFO_XML | RN_INFO_OWNER | RN_INFO_STRUCT | RN_INFO_CONTENT | RN_INFO_COMMENT | RN_INFO_LIST)
+
+/*! macros for bit logic 
+*/
+#define IS_OPTION_STAT(I) ((I & RN_INFO_STAT) != 0)
+
+#define IS_OPTION_INFO(I) ((I & RN_INFO_INFO) != 0)
+
+#define IS_OPTION_XML(I) ((I & RN_INFO_XML) != 0)
+
+#define IS_OPTION_OWNER(I) ((I & RN_INFO_OWNER) != 0)
+
+#define IS_OPTION_STRUCT(I) ((I & RN_INFO_STRUCT) != 0)
+
+#define IS_OPTION_CONTENT(I) ((I & RN_INFO_CONTENT) != 0)
+
+#define IS_OPTION_COMMENT(I) ((I & RN_INFO_COMMENT) != 0)
+
+#define IS_OPTION_INDEX(I) ((I & RN_INFO_INDEX) != 0)
+
+#define SET_OPTION_STAT(I) I |= RN_INFO_STAT
+
+#define SET_OPTION_INFO(I) I |= RN_INFO_INFO
+
+#define SET_OPTION_XML(I) I |= RN_INFO_XML
+
+#define SET_OPTION_OWNER(I) I |= RN_INFO_OWNER
+
+#define SET_OPTION_STRUCT(I) I |= RN_INFO_STRUCT
+
+#define SET_OPTION_CONTENT(I) I |= RN_INFO_CONTENT
+
+#define SET_OPTION_COMMENT(I) I |= RN_INFO_COMMENT
+
+#define SET_OPTION_INDEX(I) I |= RN_INFO_INDEX
 
 
 typedef enum {

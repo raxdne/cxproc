@@ -3598,7 +3598,7 @@ resNodeToDOM(resNodePtr prnArg, int iArgOptions)
       xmlSetProp(pndT, BAD_CAST "error", BAD_CAST "context");
     }
 
-    if (resNodeIsExist(prnArg) && (iArgOptions & RN_INFO_STAT)) {
+    if (resNodeIsExist(prnArg) && IS_OPTION_STAT(iArgOptions)) {
       long int liMtime;
 
       /* set values from filesystem as file properties
@@ -3641,7 +3641,7 @@ resNodeToDOM(resNodePtr prnArg, int iArgOptions)
 	xmlAddChild(pndT, resNodeToDOM(prnI, iArgOptions));
       }
     }
-    else if ((iArgOptions & RN_INFO_INFO) && resNodeIsZipDocument(prnArg)) {
+    else if (IS_OPTION_INFO(iArgOptions) && resNodeIsZipDocument(prnArg)) {
       xmlNodePtr pndArchive;
 
       prnArg->eType = rn_type_zip;
@@ -3669,7 +3669,7 @@ resNodeToDOM(resNodePtr prnArg, int iArgOptions)
       prnArg->eType = rn_type_archive;
       pndArchive = xmlNewChild(pndT, NULL, BAD_CAST "archive", NULL);
       if (pndArchive) {
-	if (arcAppendEntries(prnArg, NULL, (iArgOptions & RN_INFO_CONTENT))) {
+	if (arcAppendEntries(prnArg, NULL, IS_OPTION_CONTENT(iArgOptions))) {
 	  for (prnI = resNodeGetChild(prnArg); prnI; prnI = resNodeGetNext(prnI)) {
 	    xmlAddChild(pndArchive, resNodeToDOM(prnI, iArgOptions));
 	  }
@@ -3678,7 +3678,7 @@ resNodeToDOM(resNodePtr prnArg, int iArgOptions)
     }
 #endif
     else if (resNodeIsFileInArchive(prnArg)) {
-      if (iArgOptions & RN_INFO_CONTENT && (resNodeGetContentPtr(prnArg) || resNodeUpdate(prnArg, RN_INFO_CONTENT, NULL, NULL))) {
+      if (IS_OPTION_CONTENT(iArgOptions) && (resNodeGetContentPtr(prnArg) || resNodeUpdate(prnArg, RN_INFO_CONTENT, NULL, NULL))) {
 	resNodeContentToDOM(pndT, prnArg);
       }
       else if (resNodeGetChild(prnArg)) {
@@ -3687,7 +3687,7 @@ resNodeToDOM(resNodePtr prnArg, int iArgOptions)
 	}
       }
     }
-    else if (iArgOptions & RN_INFO_CONTENT && resNodeIsURL(prnArg)) {
+    else if (IS_OPTION_CONTENT(iArgOptions) && resNodeIsURL(prnArg)) {
       if (resNodeGetChild(prnArg)) { /* there are updated childs of this URL already */
 	for (prnI = resNodeGetChild(prnArg); prnI; prnI = resNodeGetNext(prnI)) {
 	  xmlAddChild(pndT, resNodeToDOM(prnI, iArgOptions));
@@ -3697,20 +3697,20 @@ resNodeToDOM(resNodePtr prnArg, int iArgOptions)
 	resNodeContentToDOM(pndT, prnArg);
       }
     }
-    else if (iArgOptions & RN_INFO_CONTENT && resNodeIsLink(prnArg)) {
+    else if (IS_OPTION_CONTENT(iArgOptions) && resNodeIsLink(prnArg)) {
       /*! add link target content */
       resNodeContentToDOM(pndT, prnArg);
     }
-    else if (iArgOptions & RN_INFO_INFO && (resNodeIsShortcut(prnArg) || resNodeGetMimeType(prnArg) == MIME_APPLICATION_CXP_XML)) {
+    else if (IS_OPTION_INFO(iArgOptions) && (resNodeIsShortcut(prnArg) || resNodeGetMimeType(prnArg) == MIME_APPLICATION_CXP_XML)) {
       /*! required for shortcuts, titles and icons */
       resNodeContentToDOM(pndT, prnArg);
     }
     else if (resNodeIsPicture(prnArg)) {
-      if (iArgOptions & RN_INFO_CONTENT) {
+      if (IS_OPTION_CONTENT(iArgOptions)) {
 	resNodeContentToDOM(pndT, prnArg);
       }
 #ifdef HAVE_LIBEXIF
-      else if (iArgOptions & RN_INFO_INFO) {
+      else if (IS_OPTION_INFO(iArgOptions)) {
 	/* get image information details via libexif */
 	imgParseFileExif(pndT, prnArg);
       }
@@ -3721,22 +3721,22 @@ resNodeToDOM(resNodePtr prnArg, int iArgOptions)
     }
     else if (resNodeIsFile(prnArg) || resNodeIsFileInArchive(prnArg)) {
 
-      if ((iArgOptions & RN_INFO_CONTENT) || ((iArgOptions & RN_INFO_XML) && resMimeIsXml(resNodeGetMimeType(prnArg)))) {
+      if (IS_OPTION_CONTENT(iArgOptions) || (IS_OPTION_XML(iArgOptions) && resMimeIsXml(resNodeGetMimeType(prnArg)))) {
 	if (resNodeUpdate(prnArg, RN_INFO_CONTENT, NULL, NULL)) {
 	  resNodeContentToDOM(pndT, prnArg);
 	}
       }
 
-      if ((iArgOptions & RN_INFO_CONTENT) && resNodeGetNameObject(prnArg) != NULL) {
+      if (IS_OPTION_CONTENT(iArgOptions) && resNodeGetNameObject(prnArg) != NULL) {
 	xmlSetProp(pndT, BAD_CAST "object", resNodeGetNameObject(prnArg));
       }
     }
 
-    if ((iArgOptions & RN_INFO_OWNER) && (pucT = resNodeGetOwner(prnArg)) != NULL) {
+    if (IS_OPTION_OWNER(iArgOptions) && (pucT = resNodeGetOwner(prnArg)) != NULL) {
       xmlSetProp(pndT, BAD_CAST "owner", pucT);
     }
 
-    if (resNodeIsExist(prnArg) && iArgOptions & RN_INFO_COMMENT) {
+    if (resNodeIsExist(prnArg) && IS_OPTION_COMMENT(iArgOptions)) {
       /*\todo insert comment text from file */
     }
 
@@ -3762,7 +3762,7 @@ resNodeToPlain(resNodePtr prnArg, int iArgOptions)
     pucResult = BAD_CAST xmlMalloc((BUFFER_LENGTH + 1) * sizeof(xmlChar));
     if (pucResult) {
 
-      if (iArgOptions & RN_INFO_INDEX) {
+      if (IS_OPTION_INDEX(iArgOptions)) {
 	switch (resNodeGetType(prnArg)) {
 	case rn_type_file:
 	case rn_type_archive:
@@ -3816,7 +3816,7 @@ resNodeToPlain(resNodePtr prnArg, int iArgOptions)
 		       //
 		       resNodeGetMimeTypeStr(prnArg)
 		       );
-	  if (iArgOptions & RN_INFO_CONTENT && resNodeIsFile(prnArg) && STR_IS_NOT_EMPTY(BAD_CAST resNodeGetContentPtr(prnArg))) {
+	  if (IS_OPTION_CONTENT(iArgOptions) && resNodeIsFile(prnArg) && STR_IS_NOT_EMPTY(BAD_CAST resNodeGetContentPtr(prnArg))) {
 	    pucResult = xmlStrncat(pucResult, BAD_CAST resNodeGetContentPtr(prnArg), resNodeGetSize(prnArg));
 	  }
 	  break;
@@ -3836,10 +3836,8 @@ resNodeToPlain(resNodePtr prnArg, int iArgOptions)
 
 
 /*!
-\todo change to a single line format
-
   \param prnArg a pointer to a resource node
-  \return TRUE if prnArg is initialized
+  \return pointer to a string buffer containing separated columns
  */
 xmlChar*
 resNodeToCSV(resNodePtr prnArg, int iArgOptions)
@@ -3850,7 +3848,7 @@ resNodeToCSV(resNodePtr prnArg, int iArgOptions)
   pucResult = BAD_CAST xmlMalloc((BUFFER_LENGTH + 1) * sizeof(xmlChar));
   if (pucResult) {
 
-    if (iArgOptions & RN_INFO_INDEX) {
+    if (IS_OPTION_INDEX(iArgOptions)) {
       switch (resNodeGetType(prnArg)) {
       case rn_type_file:
       case rn_type_archive:
@@ -3888,17 +3886,17 @@ resNodeToCSV(resNodePtr prnArg, int iArgOptions)
       case rn_type_symlink:
 #endif
 	xmlStrPrintf(pucResult, BUFFER_LENGTH,
-	  "\"%c%c%c%c%c\";" /* file system attributes */
-	  "%lu;"
-	  "%lu;"
-	  "%lu;"
-	  "\"%s\";"
-	  "%lu;"
-	  "\"%s\";"
-	  "\"%s\";"
-	  "=HYPERLINK(\"%s\",\"%s\");"
-	  "\"%s\";" /* owner */
-	  "\"%s\";"
+	  "\"%c%c%c%c%c\"" CSV_SEP_STR /* file system attributes */
+	  "%lu" CSV_SEP_STR
+	  "%lu" CSV_SEP_STR
+	  "%lu" CSV_SEP_STR
+	  "\"%s\"" CSV_SEP_STR
+	  "%lu" CSV_SEP_STR
+	  "\"%s\"" CSV_SEP_STR
+	  "\"%s\"" CSV_SEP_STR
+	  "=HYPERLINK(\"%s\";\"%s\")" CSV_SEP_STR
+	  "\"%s\"" CSV_SEP_STR /* owner */
+	  "\"%s\"" CSV_SEP_STR
 	  "\"%s\"\n",
 	  (resNodeIsDir(prnArg) ? 'd' : resNodeIsLink(prnArg) ? 'l' : '-'),
 	  resNodeIsReadable(prnArg) ? 'r' : '-',
@@ -4365,23 +4363,23 @@ resNodeHasDetails(resNodePtr prnArg, int iArgOptions)
 
     fResult = TRUE;
 
-    if (fResult && (iArgOptions & RN_INFO_STAT) != 0) {
+    if (fResult && IS_OPTION_STAT(iArgOptions)) {
       fResult = (prnArg->iDetails & RN_INFO_STAT) != 0;
     }
 
-    if (fResult && (iArgOptions & RN_INFO_INFO) != 0) {
+    if (fResult && IS_OPTION_INFO(iArgOptions)) {
       fResult = (prnArg->iDetails & RN_INFO_INFO) != 0;
     }
 
-    if (fResult && (iArgOptions & RN_INFO_STRUCT) != 0) {
+    if (fResult && IS_OPTION_STRUCT(iArgOptions)) {
       fResult = (prnArg->iDetails & RN_INFO_STRUCT) != 0;
     }
 
-    if (fResult && (iArgOptions & RN_INFO_OWNER) != 0) {
+    if (fResult && IS_OPTION_OWNER(iArgOptions)) {
       fResult = (prnArg->iDetails & RN_INFO_OWNER) != 0;
     }
 
-    if (fResult && (iArgOptions & RN_INFO_CONTENT) != 0) {
+    if (fResult && IS_OPTION_CONTENT(iArgOptions)) {
       fResult = (prnArg->iDetails & RN_INFO_CONTENT) != 0 && (prnArg->pContent != NULL || prnArg->pdocContent != NULL);
     }
   }
@@ -4409,7 +4407,7 @@ resNodeUpdate(resNodePtr prnArg, int iArgOptions, const pcre2_code *re_match, co
   else if (resNodeReadStatus(prnArg)) {
     resNodePtr prnI;
 
-    if ((iArgOptions & RN_INFO_INDEX) != 0 && resNodeHasDetails(prnArg, RN_INFO_INDEX)) {
+    if (IS_OPTION_INDEX(iArgOptions) && resNodeHasDetails(prnArg, RN_INFO_INDEX)) {
       for (prnI = resNodeGetChild(prnArg); prnI; prnI = resNodeGetNext(prnI)) {
 	if (resNodeIsDir(prnI) && resNodeIsRecursive(prnArg)) {
 	  resNodeSetRecursion(prnI, resNodeIsRecursive(prnArg));
