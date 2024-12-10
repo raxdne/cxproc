@@ -117,7 +117,7 @@
 /*
 "PICTURE.JPG.TXT"
 */
-#define RN_INFO_COMMENT (64)
+#define RN_INFO_COMMENT (64) /*! read comment file to buffer */
 
 /*
 ".index.txt"
@@ -126,9 +126,6 @@
 */
 #define RN_INFO_INDEX   (128)
 
-/*
-re-build full list of contextxts
-*/
 #define RN_INFO_LIST    (256)
 
 #define RN_INFO_MAX     (RN_INFO_STAT | RN_INFO_INFO | RN_INFO_XML | RN_INFO_OWNER | RN_INFO_STRUCT | RN_INFO_CONTENT | RN_INFO_COMMENT | RN_INFO_LIST)
@@ -564,6 +561,12 @@ extern BOOL_T
 resNodeIsDatabase(resNodePtr prnArg);
 
 extern BOOL_T
+resNodeIsPicture(resNodePtr prnArg);
+
+extern BOOL_T
+resNodeIsVideo(resNodePtr prnArg);
+
+extern BOOL_T
 resNodeIsArchive(resNodePtr prnArg);
 
 extern BOOL_T
@@ -604,6 +607,9 @@ resNodeIsCreateable(resNodePtr prnArg);
 
 extern BOOL_T
 resNodeIsHidden(resNodePtr prnArg);
+
+extern BOOL_T
+resNodeIsShortcut(resNodePtr prnArg);
 
 extern RN_ERROR
 resNodeSetError(resNodePtr prnArg, RN_ERROR eArg, const char *fmt, ...);
@@ -725,38 +731,11 @@ resNodeStepInTo(resNodePtr prnArg);
 extern BOOL_T
 resNodeDirAppendEntries(resNodePtr prnArgDir, const pcre2_code *re_match);
 
-extern resNodePtr 
-resNodeFromDOM(xmlNodePtr pndArg, int iArgOptions);
-
-extern xmlNodePtr
-resNodeToDOM(resNodePtr prnArg, int iArgOptions);
-
-extern xmlChar *
-resNodeToPlain(resNodePtr prnArg, int iArgOptions);
-
-extern xmlChar*
-resNodeToCSV(resNodePtr prnArg, int iArgOptions);
-
-extern xmlChar*
-resNodeToGraphviz(resNodePtr prnArg, int iArgOptions);
-
-extern xmlChar *
-resNodeToJSON(resNodePtr prnArg, int iArgOptions);
-
-extern xmlChar *
-resNodeToSQL(resNodePtr prnArg, int iArgOptions);
-
 extern xmlChar *
 resNodeSetProp(resNodePtr prnArg, xmlChar *pucArgKey, xmlChar *pucArgValue);
 
 extern xmlChar *
 resNodeGetProp(resNodePtr prnArg, xmlChar *pucArgKey);
-
-extern BOOL_T
-resNodeContentToDOM(xmlNodePtr pndArg, resNodePtr prnArg);
-
-extern xmlChar*
-resNodeDatabaseSchemaStr(void);
 
 #ifdef TESTCODE
 extern int

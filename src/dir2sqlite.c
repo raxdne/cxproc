@@ -59,13 +59,13 @@ main(int argc, char *argv[], char *envp[])
   }
   else {
     int i = 1;
-    xmlChar *pucT;
-    BOOL_T fDetails = FALSE;
+    int iArgOptions = RN_OUT_MAX;
+    xmlChar *pucT = NULL;
     resNodePtr prnI;
     time_t system_zeit_1;
 
     /*! write sqlite declarations first */
-    pucT = resNodeDatabaseSchemaStr();
+    pucT = resNodeDatabaseSchemaStr(iArgOptions);
     fputs((const char *)pucT,stdout);
     xmlFree(pucT);
 
@@ -77,7 +77,7 @@ main(int argc, char *argv[], char *envp[])
     fflush(stdout);
 
     if (argc > 1 && strcmp(argv[1], "-f") == 0) {
-      fDetails = TRUE; /* output of file detail information */
+      //iArgOptions |= RN_OUT_OWNER; /* output of file detail information */
       i++;
     }
 
@@ -95,7 +95,7 @@ main(int argc, char *argv[], char *envp[])
 	  PrintFormatLog(1, "%s\n", resNodeGetErrorMsg(prnI));
 	}
 	else {
-	  resNodeListDumpRecursively(stdout, prnI, fDetails, resNodeToSQL);
+	  resNodeListDumpRecursively(stdout, prnI, iArgOptions, resNodeToSQL);
 	}
       }
       resNodeListFree(prnI);
@@ -110,7 +110,7 @@ main(int argc, char *argv[], char *envp[])
 	for (j = strlen(mcLine); j > 0 && (isend(mcLine[j]) || islinebreak(mcLine[j])); j--) {
 	  mcLine[j] = '\0';
 	}
-	PrintFormatLog(3,"%s\n",mcLine);
+	PrintFormatLog(4,"%s\n",mcLine);
 
 	if (resNodeReset(prnI, BAD_CAST mcLine) == FALSE) {
 	  PrintFormatLog(1, "%s\n", resNodeGetErrorMsg(prnI));
@@ -119,7 +119,7 @@ main(int argc, char *argv[], char *envp[])
 	  PrintFormatLog(1, "%s\n", resNodeGetErrorMsg(prnI));
 	}
 	else {
-	  resNodeListDumpRecursively(stdout, prnI, fDetails, resNodeToSQL);
+	  resNodeListDumpRecursively(stdout, prnI, iArgOptions, resNodeToSQL);
 	}
 	fflush(stdout);
       }

@@ -57,33 +57,6 @@ resNodeListFindPath(resNodePtr prnArg, xmlChar *pucArgPath, int iArgOptions);
 extern resNodePtr
 resNodeListFindPathNext(resNodePtr prnArg, xmlChar *pucArgPath, int iArgOptions);
 
-extern resNodePtr 
-resNodeListFromDOM(xmlNodePtr pndArg, int iArgOptions);
-
-extern xmlNodePtr
-resNodeListToDOM(resNodePtr prnArg, int iLevelVerboseArg);
-
-extern xmlChar *
-resNodeListToSQL(resNodePtr prnArg, int iLevelVerboseArg);
-
-extern xmlChar *
-resNodeListToJSON(resNodePtr prnArg, int iLevelVerboseArg);
-
-extern xmlChar *
-resNodeListToXmlStr(resNodePtr prnArg, int iLevelVerboseArg);
-
-extern xmlChar *
-resNodeListToPlain(resNodePtr prnArg, int iLevelVerboseArg);
-
-extern xmlChar *
-resNodeListToGraphviz(resNodePtr prnArg, int iArgOptions);
-
-extern BOOL_T
-resNodeListDumpRecursively(FILE *argout, resNodePtr prnArg, BOOL_T fArgDetails, xmlChar *(*pfArg)(resNodePtr, int));
-
-extern xmlChar*
-resNodeListToPlainTree(resNodePtr prnArg, xmlChar* pucArgPrefix, int iArgOptions);
-
 #ifdef TESTCODE
 int
 resNodeTestList(void);

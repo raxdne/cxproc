@@ -453,7 +453,7 @@ dbParseDirCreateTables(resNodePtr prnArgDb)
   if ((pdbContext = (sqlite3 *)resNodeGetHandleIO(prnArgDb)) != NULL) {
     xmlChar *pucSql = NULL;
 
-    if ((pucSql = resNodeDatabaseSchemaStr()) != NULL) {
+    if ((pucSql = resNodeDatabaseSchemaStr(RN_OUT_MAX)) != NULL) {
       char* zErr = NULL;
       int rc;
     

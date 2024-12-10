@@ -133,6 +133,8 @@ ADD_EXECUTABLE(filex
   ${CXPROC_SRC_DIR}/res_node/res_mime.h
   ${CXPROC_SRC_DIR}/res_node/res_node.c
   ${CXPROC_SRC_DIR}/res_node/res_node.h
+  ${CXPROC_SRC_DIR}/res_node/res_node_formats.c
+  ${CXPROC_SRC_DIR}/res_node/res_node_formats.h
   ${CXPROC_SRC_DIR}/res_node/res_node_io.c
   ${CXPROC_SRC_DIR}/res_node/res_node_io.h
   ${CXPROC_SRC_DIR}/res_node/res_node_zip.c
@@ -158,6 +160,8 @@ ADD_EXECUTABLE(dir2csv
   ${CXPROC_SRC_DIR}/res_node/res_mime.h
   ${CXPROC_SRC_DIR}/res_node/res_node.c
   ${CXPROC_SRC_DIR}/res_node/res_node.h
+  ${CXPROC_SRC_DIR}/res_node/res_node_formats.c
+  ${CXPROC_SRC_DIR}/res_node/res_node_formats.h
   ${CXPROC_SRC_DIR}/res_node/res_node_io.c
   ${CXPROC_SRC_DIR}/res_node/res_node_io.h
   ${CXPROC_SRC_DIR}/res_node/res_node_zip.c
@@ -182,6 +186,8 @@ ADD_EXECUTABLE(dir2sqlite
   ${CXPROC_SRC_DIR}/res_node/res_mime.h
   ${CXPROC_SRC_DIR}/res_node/res_node.c
   ${CXPROC_SRC_DIR}/res_node/res_node.h
+  ${CXPROC_SRC_DIR}/res_node/res_node_formats.c
+  ${CXPROC_SRC_DIR}/res_node/res_node_formats.h
   ${CXPROC_SRC_DIR}/res_node/res_node_io.c
   ${CXPROC_SRC_DIR}/res_node/res_node_io.h
   ${CXPROC_SRC_DIR}/res_node/res_node_zip.c
@@ -230,6 +236,7 @@ SET(CXPROC_HEADERS
   ${CXPROC_SRC_DIR}/cxp/cxp_calendar.h
   ${CXPROC_SRC_DIR}/dom.h
   ${CXPROC_SRC_DIR}/res_node/res_node.h
+  ${CXPROC_SRC_DIR}/res_node/res_node_formats.h
   ${CXPROC_SRC_DIR}/res_node/res_node_list.h
   ${CXPROC_SRC_DIR}/res_node/res_node_io.h
   ${CXPROC_SRC_DIR}/res_node/res_node_zip.h
@@ -252,6 +259,7 @@ SET(CXPROC_SOURCES
   ${CXPROC_SRC_DIR}/cxp/cxp_calendar.c
   ${CXPROC_SRC_DIR}/dom.c
   ${CXPROC_SRC_DIR}/res_node/res_node.c
+  ${CXPROC_SRC_DIR}/res_node/res_node_formats.c
   ${CXPROC_SRC_DIR}/res_node/res_node_list.c
   ${CXPROC_SRC_DIR}/res_node/res_node_properties.c
   ${CXPROC_SRC_DIR}/res_node/res_node_io.c

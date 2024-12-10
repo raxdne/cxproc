@@ -230,6 +230,7 @@ main(int argc, char** argv, char** envp)
 	iErrorCode += resNodeTestMime();
 	iErrorCode += resNodeTest();
 	iErrorCode += resNodeTestList();
+	iErrorCode += resNodeTestFormats();
 	//iErrorCode += resNodeTestProp();
 	iErrorCode += resNodeTestOperations();
 	iErrorCode += resNodeTestInOut();

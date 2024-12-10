@@ -121,7 +121,7 @@ main(int argc, char *argv[], char *envp[])
 	  for (prnT=prnNew; prnT; prnT = resNodeGetNext(prnT)) {
 #if 1
 	    if (resNodeUpdate(prnT, RN_INFO_MAX, NULL, NULL)) {
-	      xmlAddChild(pndRootNew, resNodeToDOM(prnT, RN_INFO_MAX));
+	      xmlAddChild(pndRootNew, resNodeToDOM(prnT, RN_OUT_MAX));
 	    }
 #else
 	    xmlNodePtr pndT;
@@ -134,28 +134,28 @@ main(int argc, char *argv[], char *envp[])
 		prnTT = resNodeGetLastDescendant(prnT);
 		if (resNodeIsDirInArchive(prnTT)) {
 		  if (resNodeUpdate(prnTT, RN_INFO_STAT | RN_INFO_STRUCT, NULL, NULL)) {
-		    xmlAddChild(pndRootNew, resNodeToDOM(prnTT, RN_INFO_STAT | RN_INFO_STRUCT));
+		    xmlAddChild(pndRootNew, resNodeToDOM(prnTT, RN_OUT_STAT | RN_OUT_STRUCT));
 		  }
 		}
 		else if (resNodeIsFileInArchive(prnTT)) {
 		  if (resNodeIsArchive(prnTT)) {
 		    if (resNodeUpdate(prnTT, RN_INFO_STAT | RN_INFO_STRUCT, NULL, NULL)) {
-		      xmlAddChild(pndRootNew, resNodeToDOM(prnTT, RN_INFO_STAT | RN_INFO_STRUCT));
+		      xmlAddChild(pndRootNew, resNodeToDOM(prnTT, RN_OUT_STAT | RN_OUT_STRUCT));
 		    }
 		  }
 		  else {
-		    xmlAddChild(pndRootNew, resNodeToDOM(prnTT, RN_INFO_MAX));
+		    xmlAddChild(pndRootNew, resNodeToDOM(prnTT, RN_OUT_MAX));
 		  }
 		}
 		else {
-		  xmlAddChild(pndRootNew, resNodeToDOM(prnT, RN_INFO_STAT | RN_INFO_STRUCT));
+		  xmlAddChild(pndRootNew, resNodeToDOM(prnT, RN_OUT_STAT | RN_OUT_STRUCT));
 		}
 	      }
 	      else if (resNodeIsDir(prnT)) {
-		xmlAddChild(pndRootNew, resNodeToDOM(prnT, RN_INFO_STAT | RN_INFO_STRUCT));
+		xmlAddChild(pndRootNew, resNodeToDOM(prnT, RN_OUT_STAT | RN_OUT_STRUCT));
 	      }
 	      else if (resNodeIsFile(prnT)) {
-		xmlAddChild(pndRootNew, resNodeToDOM(prnT, RN_INFO_MAX));
+		xmlAddChild(pndRootNew, resNodeToDOM(prnT, RN_OUT_MAX));
 	      }
 	    }
 #endif

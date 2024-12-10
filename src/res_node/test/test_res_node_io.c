@@ -570,28 +570,6 @@ resNodeTestInOut(void)
 
 #endif
 
-  if (SKIPTEST) {
-    resNodePtr prnT = NULL;
-    xmlNodePtr pndT = NULL;
-
-    i++;
-    printf("TEST %i in '%s:%i': reads content of archive file context = ", i, __FILE__, __LINE__);
-
-    if ((prnT = resNodeDirNew(BAD_CAST TESTPREFIX "xml/test-xml-zip.docx")) == NULL) {
-      printf("Error 2 resNodeGetSize()\n");
-    }
-    else if ((pndT = resNodeToDOM(prnT,RN_INFO_MAX)) == NULL) {
-      printf("Error resNodeToDOM()\n");
-    }
-    else {
-      n_ok++;
-      printf("OK\n");
-    }
-    //domPutNodeString(stderr, BAD_CAST "ODT ", pndT);
-    resNodeFree(prnT);
-  }
-
-
   if (RUNTEST) {
     resNodePtr prnT = NULL;
     xmlDocPtr pdocT = NULL;

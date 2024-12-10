@@ -60,19 +60,21 @@ main(int argc, char *argv[], char *envp[])
   }
   else {
     int i = 1;
-    BOOL_T fDetails = FALSE;
+    int iArgOptions = RN_OUT_MAX;
+    xmlChar *pucT = NULL;
     resNodePtr prnI;
 
-    /*! write CSV declarations first */
-    fputs("sep=;\n", stdout);
-    fputs("\"Mode\";\"Size [Byte]\";\"Recursive Size [Byte]\";\"# Childs\";\"MTime\";\"DiffTime [s]\";\"Name\";\"Extension\";\"Basedir\";\"Owner\";\"MIME\";\"Object Name\"\n", stdout);
-
-    fflush(stdout);
-
     if (argc > 1 && strcmp(argv[1], "-f") == 0) {
-      fDetails = TRUE; /* output of file detail information */
+      //iArgOptions |= RN_OUT_OWNER; /* output of file detail information */
       i++;
     }
+
+    /*! write CSV declarations first 
+    */
+    pucT = resNodeCSVHeaderStr(iArgOptions);
+    fputs((const char *)pucT, stdout);
+    xmlFree(pucT);
+    fflush(stdout);
 
     if (argc - i > 0) {
       /* use program arguments as paths */
@@ -88,7 +90,7 @@ main(int argc, char *argv[], char *envp[])
 	  PrintFormatLog(1, "%s\n", resNodeGetErrorMsg(prnI));
 	}
 	else {
-	  resNodeListDumpRecursively(stdout, prnI, fDetails, resNodeToCSV);
+	  resNodeListDumpRecursively(stdout, prnI, iArgOptions, resNodeToCSV);
 	}
       }
       resNodeListFree(prnI);
@@ -112,7 +114,7 @@ main(int argc, char *argv[], char *envp[])
 	  PrintFormatLog(1, "%s\n", resNodeGetErrorMsg(prnI));
 	}
 	else {
-	  resNodeListDumpRecursively(stdout, prnI, fDetails, resNodeToCSV);
+	  resNodeListDumpRecursively(stdout, prnI, iArgOptions, resNodeToCSV);
 	}
 	fflush(stdout);
       }
