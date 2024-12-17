@@ -222,6 +222,8 @@ cmarkTreeToDOM(xmlNodePtr pndArgBlock, xmlNodePtr pndArg, cmark_node* pcmnArg)
     else if (pcmnArg->type == CMARK_NODE_HTML_BLOCK) {
       xmlNodePtr pndNew = NULL;
 
+      /*!\bug block is interrupted by empty lines */
+
       if (StringBeginsWith((char *)pcmnArg->data, "<" NAME_PIE_CSV ">")) {
 	xmlChar *puc0;
 	xmlChar *puc1 = NULL;
@@ -236,8 +238,7 @@ cmarkTreeToDOM(xmlNodePtr pndArgBlock, xmlNodePtr pndArg, cmark_node* pcmnArg)
 	    xmlChar *pucContent;
 
 	    if (puc1 > puc0 && (pucContent = xmlStrndup(puc0, (int)(puc1 - puc0))) != NULL) {
-	      /*!\bug XML entities, StringEncodeXmlDefaultEntitiesNew() would cause problems with ';' */
-	      xmlNodeSetContent(pndNew, pucContent);
+	      xmlAddChild(pndNew, xmlNewText(pucContent));
 	      xmlFree(pucContent);
 	    }
 	  }

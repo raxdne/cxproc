@@ -1468,7 +1468,10 @@ ProcessPieNodeOptions(xmlNodePtr pndArgPie, xmlNodePtr pndArgImport, cxpContextP
   cxpCtxtLogPrint(pccArg, 3, "ProcessPieNodeOptions(pndArgImport=%0x,pccArg=%0x)", pndArgImport, pccArg);
 #endif
 
-  if (IS_ENODE(pndArgPie) && (pndArgImport == NULL || IS_ENODE(pndArgImport))) {
+  if (IS_NODE_PIE_IMPORT(pndArgImport)) {
+    /* it's yet an import node, process on block nodes only */
+  }
+  else if (IS_ENODE(pndArgPie) && (pndArgImport == NULL || IS_ENODE(pndArgImport))) {
 
     if (domGetPropFlag(pndArgImport, BAD_CAST "figure", TRUE)) {
       cxpCtxtLogPrint(pccArg, 2, "Recognize Figures");
@@ -1589,86 +1592,105 @@ pieGetSelfAncestorNodeList(xmlNodePtr pndArg, xmlChar *pucArgId)
   if (IS_NODE_PIE_DATE(pndArg)) {
     xmlNodePtr pndA = pndArg; /* ancestor axis */
 
-    if ((pndResult = xmlNewNode(NULL, BAD_CAST NAME_PIE_BLOCK))) {
+    if (pndA->parent == NULL || (pndA->parent->children == pndArg && pndA->parent->last == pndArg)) {
+      /* date node is isolated or the only child */
+    }
+    else if ((pndResult = xmlNewNode(NULL, BAD_CAST NAME_PIE_BLOCK))) {
 
-      xmlSetProp(pndResult, BAD_CAST"idref", pucArgId);
+      xmlSetProp(pndResult, BAD_CAST "idref", pucArgId);
 
       pndA = pndA->parent;
       if (IS_NODE_PIE_PAR(pndA)) { /* p/date */
-	xmlNodePtr pndPar;
+	xmlNodePtr pndAA;
 
-	pndPar = xmlCopyNode(pndA, 1);
+	pndAA = pndA->parent;
+	if (IS_NODE_PIE_LIST(pndAA)) { /* list/p/date */
+	  xmlNodePtr pndAAA;
+	  xmlNodePtr pndI;
+	  xmlNodePtr pndII;
+	  xmlNodePtr pndT;
 
-	for ( ; IS_NODE_PIE_PAR(pndA->parent) || IS_NODE_PIE_LIST(pndA->parent); pndA = pndA->parent) {
-	  /* skip all list parents */
-	  /*!\todo handle parent p for context */
-	}
+	  pndAAA = pndAA->parent;
+	  if (IS_NODE_PIE_SECTION(pndAAA)) { /* section/section/header/date */
+	    xmlNodePtr pndIII;
 
-	pndA = pndA->parent;
-	if (IS_NODE_PIE_SECTION(pndA) || IS_NODE_PIE_TASK(pndA)) { /* section/p/date or task/p/date */
-	  xmlNodePtr pndI, pndT;
-
-	  pndI = xmlNewNode(NULL, pndA->name);
-	  domCopyPropList(pndI, pndA);
-
-	  if ((pndT = domGetFirstChild(pndA, BAD_CAST NAME_PIE_HEADER)) != NULL) {
-	    xmlAddChild(pndI, xmlCopyNode(pndT, 1));
-	  }
-	  xmlAddChild(pndI, pndPar);
-
-	  pndA = pndA->parent;
-	  if (IS_NODE_PIE_SECTION(pndA)) { /* section/section/header/date */
-	    xmlNodePtr pndII;
-
-	    pndII = xmlNewNode(NULL, pndA->name);
-	    domCopyPropList(pndII, pndA);
-
-	    if ((pndT = domGetFirstChild(pndA, BAD_CAST NAME_PIE_HEADER)) != NULL) {
-	      xmlAddChild(pndII, xmlCopyNode(pndT, 1));
+	    pndIII = xmlNewChild(pndResult, NULL, pndAAA->name, NULL);
+	    domCopyPropList(pndIII, pndAAA);
+	    if ((pndT = domGetFirstChild(pndAAA, BAD_CAST NAME_PIE_HEADER)) != NULL) {
+	      xmlAddChild(pndIII, xmlCopyNode(pndT, 1));
 	    }
+
+	    pndII = xmlNewChild(pndIII, NULL, pndAA->name, NULL);
+	    domCopyPropList(pndII, pndAA);
+
+	    pndI = xmlCopyNode(pndA, 1);
 	    xmlAddChild(pndII, pndI);
-	    xmlAddChild(pndResult, pndII);
 	  }
 	  else {
-	    xmlAddChild(pndResult, pndI);
+	    pndII = xmlNewChild(pndResult, NULL, pndAA->name, NULL);
+	    domCopyPropList(pndII, pndAA);
+
+	    pndI = xmlCopyNode(pndA, 1);
+	    xmlAddChild(pndII, pndI);
 	  }
 	}
+	else if (IS_NODE_PIE_SECTION(pndAA) || IS_NODE_PIE_TASK(pndAA)) { /* section/par/date or task/par/date */
+	  xmlNodePtr pndI;
+	  xmlNodePtr pndT;
+	  xmlNodePtr pndII;
+
+	  pndII = xmlNewChild(pndResult, NULL, pndAA->name, NULL);
+	  domCopyPropList(pndII, pndAA);
+	  if ((pndT = domGetFirstChild(pndAA, BAD_CAST NAME_PIE_HEADER)) != NULL) {
+	    xmlAddChild(pndII, xmlCopyNode(pndT, 1));
+	  }
+
+	  xmlAddChild(pndII, xmlCopyNode(pndA, 1));
+	}
 	else { /* p */
-	  xmlAddChild(pndResult, pndPar);
+	  xmlAddChild(pndResult, xmlCopyNode(pndA, 1));
 	}
       }
       else if (IS_NODE_PIE_HEADER(pndA)) { /* header/date */
-	xmlNodePtr pndH;
+	xmlNodePtr pndAA;
 
-	pndH = xmlCopyNode(pndA, 1);
+	pndAA = pndA->parent;
+	if (IS_NODE_PIE_SECTION(pndAA) || IS_NODE_PIE_TASK(pndAA)) { /* section/header/date */
+	  xmlNodePtr pndAAA;
+	  xmlNodePtr pndI;
+	  xmlNodePtr pndII;
+	  xmlNodePtr pndT;
 
-	pndA = pndA->parent;
-	if (IS_NODE_PIE_SECTION(pndA) || IS_NODE_PIE_TASK(pndA)) { /* section/header/date */
-	  xmlNodePtr pndI, pndT;
+	  pndAAA = pndAA->parent;
+	  if (IS_NODE_PIE_SECTION(pndAAA)) { /* section/section/header/date */
+	    xmlNodePtr pndIII;
 
-	  xmlFreeNode(pndH);
-	  pndI = xmlCopyNode(pndA, 1);
-
-	  pndA = pndA->parent;
-	  if (IS_NODE_PIE_SECTION(pndA)) { /* section/section/header/date */
-	    xmlNodePtr pndII;
-
-	    pndII = xmlNewNode(NULL, pndA->name);
-	    domCopyPropList(pndII, pndA);
-
-	    if ((pndT = domGetFirstChild(pndA, BAD_CAST NAME_PIE_HEADER)) != NULL) {
-	      xmlAddChild(pndII, xmlCopyNode(pndT, 1));
+	    pndIII = xmlNewChild(pndResult, NULL, pndAAA->name, NULL);
+	    domCopyPropList(pndIII, pndAAA);
+	    if ((pndT = domGetFirstChild(pndAAA, BAD_CAST NAME_PIE_HEADER)) != NULL) {
+	      xmlAddChild(pndIII, xmlCopyNode(pndT, 1));
 	    }
+
+	    pndII = xmlNewChild(pndIII, NULL, pndAA->name, NULL);
+	    domCopyPropList(pndII, pndAA);
+
+	    pndI = xmlCopyNode(pndA, 1);
 	    xmlAddChild(pndII, pndI);
-	    xmlAddChild(pndResult, pndII);
 	  }
 	  else {
-	    xmlAddChild(pndResult, pndI);
+	    pndII = xmlNewChild(pndResult, NULL, pndAA->name, NULL);
+	    domCopyPropList(pndII, pndAA);
+
+	    pndI = xmlCopyNode(pndA, 1);
+	    xmlAddChild(pndII, pndI);
 	  }
 	}
 	else { /* p */
-	  xmlAddChild(pndResult, pndH);
+	  xmlAddChild(pndResult, xmlCopyNode(pndA, 1));
 	}
+      }
+      else { /* */
+	xmlAddChild(pndResult, xmlCopyNode(pndA, 1));
       }
 
       if (pndResult->children == NULL) {

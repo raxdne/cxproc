@@ -708,16 +708,17 @@ StringEndsWithEntity(xmlChar *pucArg, int iArg)
 {
   BOOL_T fResult = FALSE;
 
-  if (pucArg != NULL && iArg > 1 && pucArg[iArg] == (xmlChar)';') {
-    int i;
+  if (pucArg != NULL) {
 
-    for (i=iArg-1; i > 0; i--) {
-      if (isalnum(pucArg[i])) {
-      }
-      else {
-	fResult = (pucArg[i] == (xmlChar)'&' || (i > 0 && pucArg[i-1] == (xmlChar)'&' && pucArg[i] == (xmlChar)'#'));
-	break;
-      }
+    /*!\bug check numerically encoded entities '&#xF3F5;' */
+
+    if (iArg > 4 && pucArg[iArg] == (xmlChar)';' && pucArg[iArg - 1] == (xmlChar)'p' && pucArg[iArg - 2] == (xmlChar)'m' && pucArg[iArg - 3] == (xmlChar)'a' &&
+	pucArg[iArg - 4] == (xmlChar)'&') {
+      fResult = TRUE;
+    }
+    else if (iArg > 3 && pucArg[iArg] == (xmlChar)';' && pucArg[iArg - 1] == (xmlChar)'t' &&
+	     (pucArg[iArg - 2] == (xmlChar)'g' || pucArg[iArg - 2] == (xmlChar)'l') && pucArg[iArg - 3] == (xmlChar)'&') {
+      fResult = TRUE;
     }
   }
   return fResult;
@@ -783,36 +784,54 @@ SplitNodeToTableDataNodes(xmlNodePtr pndArgParent, xmlChar* pucPatternSep)
 
     fMix = (xmlStrchr(pucPatternSep,(xmlChar)';') != NULL);
 
-    for (pucBegin = pucSep = pndChild->content; (pucSep = BAD_CAST xmlStrstr(pucSep, pucPatternSep)); ) {
+    for (pucBegin = pucSep = pndChild->content;;) {
+      xmlNodePtr pndT;
 
-      if (fMix && StringEndsWithEntity(pucBegin, (int)(pucSep - pucBegin))) {
-	/* its a XML entity like '&amp;' dont use this as separator */
-	pucSep++;
+      if ((pucSep = BAD_CAST xmlStrstr(pucSep, pucPatternSep)) != NULL) {
+
+	if (fMix && StringEndsWithEntity(pucBegin, (int)(pucSep - pucBegin))) {
+	  /* its a XML entity like '&amp;' dont use this as separator */
+	  pucSep = BAD_CAST xmlStrstr(pucSep + 1, pucPatternSep); /*!\bug to be repeated */
+	}
+
+	if ((pucCell = xmlStrndup(pucBegin, (int)(pucSep - pucBegin))) != NULL) {
+	  StringRemovePairQuotes(pucCell);
+	  if ((pucT = StringGetEndOfHeaderMarker(pucCell))) {
+	    pndT = xmlNewChild(pndArgParent, NULL, BAD_CAST NAME_PIE_TH, NULL);
+	    if (STR_IS_NOT_EMPTY(pucT)) {
+	      xmlAddChild(pndT, xmlNewText(pucT));
+	    }
+	  }
+	  else {
+	    pndT = xmlNewChild(pndArgParent, NULL, BAD_CAST NAME_PIE_TD, NULL);
+	    if (STR_IS_NOT_EMPTY(pucCell)) {
+	      xmlAddChild(pndT, xmlNewText(pucCell));
+	    }
+	  }
+	  xmlFree(pucCell);
+	}
+
+	pucBegin = pucSep + xmlStrlen(pucPatternSep);
+	pucSep = pucBegin;
       }
-      else if ((pucCell = xmlStrndup(pucBegin, (int)(pucSep - pucBegin))) != NULL) {
+      else if ((pucCell = xmlStrdup(pucBegin)) != NULL) { /* no more separator */
+	/*!\bug StringEndsWithEntity() required */
 	StringRemovePairQuotes(pucCell);
 	if ((pucT = StringGetEndOfHeaderMarker(pucCell))) {
-	  xmlNewChild(pndArgParent, NULL, BAD_CAST NAME_PIE_TH, pucT);
+	  pndT = xmlNewChild(pndArgParent, NULL, BAD_CAST NAME_PIE_TH, NULL);
+	  if (STR_IS_NOT_EMPTY(pucT)) {
+	    xmlAddChild(pndT, xmlNewText(pucT));
+	  }
 	}
 	else {
-	  xmlNewChild(pndArgParent, NULL, BAD_CAST NAME_PIE_TD, pucCell);
+	  pndT = xmlNewChild(pndArgParent, NULL, BAD_CAST NAME_PIE_TD, NULL);
+	  if (STR_IS_NOT_EMPTY(pucCell)) {
+	    xmlAddChild(pndT, xmlNewText(pucCell));
+	  }
 	}
 	xmlFree(pucCell);
+	break;
       }
-
-      pucBegin = pucSep + xmlStrlen(pucPatternSep);
-      pucSep = pucBegin;
-    }
-
-    if (STR_IS_NOT_EMPTY(pucBegin) && (pucCell = xmlStrdup(pucBegin)) != NULL) { /* append last cell in line */
-      StringRemovePairQuotes(pucCell);
-      if ((pucT = StringGetEndOfHeaderMarker(pucCell))) {
-	xmlNewChild(pndArgParent, NULL, BAD_CAST NAME_PIE_TH, pucT);
-      }
-      else {
-	xmlNewChild(pndArgParent, NULL, BAD_CAST NAME_PIE_TD, pucCell);
-      }
-      xmlFree(pucCell);
     }
 
     xmlFreeNode(pndChild);
@@ -1783,7 +1802,7 @@ SplitStringToAutoLinkNodes(const xmlChar *pucArg)
 xmlNodePtr
 RecognizeUrls(xmlNodePtr pndArg)
 {
-  if (IS_NODE_META(pndArg) || IS_NODE_PIE_PRE(pndArg) || IS_NODE_PIE_TT(pndArg) || IS_NODE_PIE_LINK(pndArg) || IS_NODE_PIE_IMPORT(pndArg) || IS_NODE_PIE_IMG(pndArg)) {
+  if (IS_NODE_PIE_IGNORE_TAGS(pndArg)) {
     /* skip */
   }
   else if (IS_VALID_NODE(pndArg) == FALSE || xmlHasProp(pndArg,BAD_CAST"hidden") != NULL) {
@@ -2626,7 +2645,7 @@ RecognizeInlines(xmlNodePtr pndArg)
     else if (IS_VALID_NODE(pndArg) == FALSE || xmlHasProp(pndArg, BAD_CAST"hidden") != NULL) {
       /* skip */
     }
-    else if (IS_NODE_PIE_IGNORE_TAGS(pndArg) || IS_NODE_SCRIPT(pndArg)) {
+    else if (IS_NODE_PIE_IGNORE_TAGS(pndArg)) {
       /* skip */
     }
     else if (IS_NODE_PIE_ETAG(pndArg) || IS_NODE_PIE_HTAG(pndArg) || IS_NODE_PIE_TTAG(pndArg) || IS_NODE_PIE_IMG(pndArg)) {
@@ -2667,7 +2686,7 @@ RecognizeDates(xmlNodePtr pndArg, RN_MIME_TYPE eMimeTypeArg)
 	xmlFreeNodeList(pndReplace);
       }
     }
-    else if (IS_NODE_PIE_IGNORE_TAGS(pndArg) || IS_NODE_SCRIPT(pndArg)) {
+    else if (IS_NODE_PIE_IGNORE_TAGS(pndArg)) {
       /* skip */
     }
     else if (IS_VALID_NODE(pndArg) == FALSE || xmlHasProp(pndArg,BAD_CAST"hidden") != NULL) {

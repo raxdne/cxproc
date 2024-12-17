@@ -123,13 +123,50 @@ pieTextTest(cxpContextPtr pccArg)
       "sep=,\n"
       "* Test 2\n"
       "A,B,C\n"
-      "D,E,F\n"
+      "D,E;F,G\n"
       "H,I,J\n"
       "\n"
       ;
 
     i++;
     printf("TEST %i in '%s:%i': parse CSV text and build tree = ", i, __FILE__, __LINE__);
+
+    if ((pndPie = xmlNewNode(NULL, BAD_CAST NAME_PIE_PIE)) == NULL) {
+      printf("Error xmlNewNode()\n");
+    }
+    else if (ParsePlainBuffer(pndPie, pucContent, RMODE_TABLE) == NULL) {
+      printf("Error 1 ParsePlainBuffer()\n");
+    }
+    else if (domNumberOfChild(pndPie, BAD_CAST NAME_PIE_BLOCK) != 1 || domNumberOfChild(pndPie->children, BAD_CAST NAME_PIE_TABLE) != 1) {
+      printf("Error 2 ParsePlainBuffer()\n");
+    }
+    else {
+      n_ok++;
+      printf("OK\n");
+    }
+    //domPutNodeString(stderr, BAD_CAST "split result", pndPie);
+    xmlFreeNode(pndPie);
+  }
+
+
+  if (RUNTEST) {
+    xmlNodePtr pndPie;
+    xmlChar *pucContent = BAD_CAST
+      "sep=;\n"
+      "* Test 2\n"
+      "A;B;C\n"
+      "D;E&F&G;X;YY;ZZZ\n"
+      "D;E<F>G\n\n"
+      "Tag;@ttt;#yyy\n"
+      "Date;2025-01-01;End\n"
+      "H;I;J\n"
+      "\n"
+      "; X & Y > Z\n"
+      "\n"
+      ;
+
+    i++;
+    printf("TEST %i in '%s:%i': parse more complex CSV text and build tree = ", i, __FILE__, __LINE__);
 
     if ((pndPie = xmlNewNode(NULL, BAD_CAST NAME_PIE_PIE)) == NULL) {
       printf("Error xmlNewNode()\n");

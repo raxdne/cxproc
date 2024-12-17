@@ -326,6 +326,8 @@ StringDecodeNumericCharsNew(xmlChar *pucArg)
 /*! \return pointer pucArg, all '&', '<', '>' characters replaced by valid XML entity
 
 simplified replacement for xmlEncodeEntitiesReentrant() for basic entities only
+
+\todo replace by use of xmlText();
 */
 xmlChar*
 StringEncodeXmlDefaultEntitiesNew(xmlChar* pucArg)
