@@ -159,10 +159,16 @@ extern size_t
 dt_parse_iso_recurrence(const char *str, size_t len, int* deltad);
 
 extern size_t
-dt_parse_iso_period(const char* str, size_t len, int* yp, int* mp, int* dp, int* wp, int* hp, int* mip, int* sp);
+dt_parse_iso_offset(const char *str, size_t len, double *yp, double *mp, double *dp, double *wp, double *hp, double *mip, double *sp);
+
+extern size_t
+dt_parse_iso_period(const char* str, size_t len, double* yp, double* mp, double* dp, double* wp, double* hp, double* mip, double* sp);
 
 extern size_t
 dt_parse_iso_date_time_zone(const char* str, size_t len, dt_t *dtp, int *sp);
+
+extern size_t
+dt_parse_iso_hours_decimal(const char *str, size_t len, int *sod);
 
 extern int
 ishashtag(xmlChar* pucArg, int* piArg);

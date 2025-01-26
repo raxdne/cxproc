@@ -21,11 +21,17 @@
 
 #include <math.h>
 #include <inttypes.h>
+#include <float.h>
+#include <limits.h>
+
 #include <libxml/parser.h>
 #include <libxml/parserInternals.h>
 
 #include "basics.h"
 #include "utils.h"
+
+static double
+dt_parse_iso_strtod(const char *str, size_t len, char **str1);
 
 static int
 localtime_offset(void);
@@ -2241,6 +2247,7 @@ isiso8601(xmlChar c)
     case 'T':
     case 'H':
     case 'P':
+    //case 'O': /* non-standard for Date/Time Offset */
     case 'R':
     case 'S':
     case 'W':
@@ -2369,6 +2376,77 @@ dt_parse_iso_recurrence(const char *str, size_t len, int* deltad) {
 } /* end of dt_parse_iso_recurrence() */
 
 
+/*! \return a double float value for str (decimal separators '.' and ',')
+*/
+double
+dt_parse_iso_strtod(const char *str, size_t len, char **str1)
+{
+  double dResult = 0.0;
+
+  if (str != NULL && *str != '\0' && len > 0) {
+    char *pcI = str;
+    char *pcII;
+
+    if (*pcI == 'T') {
+      pcI++;
+    }
+
+    dResult = strtod(pcI, &pcI);
+    if ((pcI != NULL && pcI - str < len) && *pcI == ',') {
+      double divisor;
+
+      for (pcI++, divisor = 10.0; (pcI - str) < len && isdigit(*pcI); pcI++, divisor *= 10.0) {
+	 dResult += ((double)(*pcI - '0')) / divisor; 
+	}
+    }
+
+    if (str1) {
+      *str1 = pcI;
+    }
+  }
+  return dResult;
+}
+
+/*
+ *  Basic
+ *  T12
+ *  T12.5
+ *  T12,5
+ *
+ *  The time designator [T] may be omitted.
+ */
+
+size_t
+dt_parse_iso_hours_decimal(const char *str, size_t len, int *sod)
+{
+
+  if (str) {
+    char *estr;
+    double dT;
+
+    dT = dt_parse_iso_strtod(str, len, &estr);
+    if (*estr == ':') {
+      /* not a decimal value */
+    }
+    else if (dT < DBL_EPSILON || dT > 24.0f - DBL_EPSILON) {
+      /* decimal value out of range */
+    }
+    else {
+      size_t n;
+
+      n = (estr - str);
+      if (n > 0) {
+	if (sod != NULL) {
+	  *sod = (int)(dT * 3600.0f);
+	}
+	return n;
+      }
+    }
+  }
+  return 0;
+}
+
+
 /*! parses a combined "YYYY-MM-DDTHH:MM:SS+hh:mm"
  */
 size_t
@@ -2386,7 +2464,7 @@ dt_parse_iso_date_time_zone(const char* str, size_t len, dt_t *dtp, int *sp) {
 	int s;
 
 	n++;
-	if ((j = dt_parse_iso_time(&p[n], len - n, &s, NULL)) > 3 && s > -1) {
+	if (((j = dt_parse_iso_hours_decimal(&p[n], len - n, &s)) > 1 || (j = dt_parse_iso_time(&p[n], len - n, &s, NULL)) > 3) && s > -1) {
 	  int t = s;
 	  int m = 0;
 	  int o = 0;
@@ -2444,29 +2522,75 @@ dt_parse_iso_date_time_zone(const char* str, size_t len, dt_t *dtp, int *sp) {
 
 
 /*
+ *  "O3Y6M4D" Calendar date offset  (non-conformant to ISO 8601 !!)
+ * 
+ */
+size_t
+dt_parse_iso_offset(const char *str, size_t len, double *yp, double *mp, double *dp, double *wp, double *hp, double *mip, double *sp)
+{
+  size_t n = 0;
+
+  if (str != NULL && *str == 'O' && len > 0) {
+    n = dt_parse_iso_period(str, len, yp, mp, dp, wp, hp, mip, sp);
+  }
+
+  return n;
+} /* end of dt_parse_iso_offset() */
+
+
+/*
  *  "P3Y6M4DT12H30M5S" Calendar date period  (ISO 8601)
  * 
  * \bug floating values not used
  */
 size_t
-dt_parse_iso_period(const char* str, size_t len, int* yp, int* mp, int* dp, int* wp, int* hp, int* mip, int* sp) {
+dt_parse_iso_period(const char* str, size_t len, double* yp, double* mp, double* dp, double* wp, double* hp, double* mip, double* sp)
+{
   size_t n = 0;
 
-  if (str != NULL && *str == 'P' && len > 0) {
-    int y, m, d, i, w, h, mi, s;
+  if (str != NULL && ((*str == 'P' || *str == 'O') && len > 0)) {
+    double y, m, d, w, h, mi, s;
+    double i;
     char* p;
     bool v, t;
 
-    for (p = (char*)str + 1, v = true, t = false, y = m = d = w = h = mi = s = 0;
-      v && (n = p - str) < len && (v = (i = strtol(p, &p, 10)) > -1);
-      p++) {
+    for (p = (char *)str + 1, v = (*p != '\0'), t = FALSE, i = 0.0f, y = m = d = w = h = mi = s = 0.0f; *p != '\0' && v; p++) {
+      char *p1;
+
+      if ((n = p - str) < len) {
+      }
+      else {
+	break;
+      }
+
+      if (*p == 'T') {
+	if (t) {
+	  v = FALSE; /* redundant 'T' */
+	  n = 0;
+	  break;
+	}
+	else {
+	  t = true;
+	  continue;
+	}
+      }
+
+      i = dt_parse_iso_strtod(p, len - n, &p1);
 
       /*!\todo check order of Y M D */
 
-      if (i < 0) {
+      if (p1 == p) {
 	break;
       }
-      else if (t) { 	/*! time parsing only */
+      p = p1;
+      
+      if (abs(i) < DBL_EPSILON) {
+	continue; /* value is zero */
+      }
+
+      if (t) {
+	/*! time parsing */
+
 	if (*p == 'H') {
 	  if (h < 1) {
 	    h = i;
@@ -2493,12 +2617,9 @@ dt_parse_iso_period(const char* str, size_t len, int* yp, int* mp, int* dp, int*
 	}
 	else {
 	  /* end of period string */
+	    v = false;
 	  break;
 	}
-      }
-      else if (*p == 'T') {
-	/*! time parsing starts */
-	t = true;
       }
       else { /* date parsing only */
 	if (*p == 'W') {
@@ -2535,6 +2656,7 @@ dt_parse_iso_period(const char* str, size_t len, int* yp, int* mp, int* dp, int*
 	}
 	else {
 	  /* end of period string */
+	    v = false;
 	  break;
 	}
       }
@@ -2555,6 +2677,7 @@ dt_parse_iso_period(const char* str, size_t len, int* yp, int* mp, int* dp, int*
 	*mip = mi;
       if (sp)
 	*sp = s;
+      n = p - str;
     }
     else {
       n = 0;

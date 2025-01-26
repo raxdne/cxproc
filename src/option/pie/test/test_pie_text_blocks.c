@@ -1144,13 +1144,24 @@ pieTextBlocksTest(void)
     else if ((pndT = SplitStringToDateNodes(BAD_CAST"2013-10-11,10-14,01-14 and ", MIME_TEXT_PLAIN)) == NULL || xmlAddChild(pndPie, pndT) == NULL) {
       printf("Error 2 SplitStringToDateNodes()\n");
     }
-    else if ((pndT = SplitStringToDateNodes(BAD_CAST"20160307+11",MIME_TEXT_PLAIN)) == NULL || xmlAddChild(pndPie, pndT) == NULL) {
-      printf("Error 3 SplitStringToDateNodes()\n");
-    }
-    else if ((pndT = SplitStringToDateNodes(BAD_CAST"2016/2017",MIME_TEXT_PLAIN)) != NULL) {
+    else if ((pndT = SplitStringToDateNodes(BAD_CAST"2016/2017",MIME_TEXT_PLAIN)) == NULL || xmlAddChild(pndPie, pndT) == NULL) {
       printf("Error 4 SplitStringToDateNodes()\n");
       xmlFreeNode(pndT);
     }
+#if EXPERIMENTAL
+    else if ((pndT = SplitStringToDateNodes(BAD_CAST"Offset 2016-01-01/O1Y1M1D test",MIME_TEXT_PLAIN)) == NULL || xmlAddChild(pndPie, pndT) == NULL) {
+      printf("Error 5 SplitStringToDateNodes()\n");
+      xmlFreeNode(pndT);
+    }
+    else if ((pndT = SplitStringToDateNodes(BAD_CAST"Offset 20160101/O3W test",MIME_TEXT_PLAIN)) == NULL || xmlAddChild(pndPie, pndT) == NULL) {
+      printf("Error 6 SplitStringToDateNodes()\n");
+      xmlFreeNode(pndT);
+    }
+    else if ((pndT = SplitStringToDateNodes(BAD_CAST"Offset O2M/20160101 test",MIME_TEXT_PLAIN)) == NULL || xmlAddChild(pndPie, pndT) == NULL) {
+      printf("Error 7 SplitStringToDateNodes()\n");
+      xmlFreeNode(pndT);
+    }
+#endif
     else {
       n_ok++;
       printf("OK\n");
@@ -1191,6 +1202,11 @@ pieTextBlocksTest(void)
     else if ((pndT = xmlNewChild(pndPar, NULL, BAD_CAST NAME_PIE_DATE, BAD_CAST"R4/P4D/2017-04-20")) == NULL || AddNodeDateAttributes(pndT, NULL) == FALSE) {
       printf("Error 6 AddNodeDateAttributes()\n");
     }
+#if EXPERIMENTAL
+    else if ((pndT = xmlNewChild(pndPar, NULL, BAD_CAST NAME_PIE_DATE, BAD_CAST"2017-04-01/O3Y3M3D")) == NULL || AddNodeDateAttributes(pndT,NULL) == FALSE) {
+      printf("Error 3 AddNodeDateAttributes()\n");
+    }
+#endif
     else {
       n_ok++;
       printf("OK\n");

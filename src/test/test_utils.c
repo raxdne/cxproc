@@ -712,10 +712,77 @@ utilsTest(void)
     }
   }
 
+  /* ISO 8601 Decimal values */
+  
+  if (RUNTEST) {
+    char *s;
+    
+    i++;
+    printf("TEST %i in '%s:%i': ",i,__FILE__,__LINE__);
+
+    if (dt_parse_iso_strtod(NULL, 20, NULL) != 0) {
+      printf("ERROR 1 dt_parse_iso_strtod()\n");
+    }
+    else if (abs(dt_parse_iso_strtod("T10 ", 4, &s) - 10.0) > DBL_EPSILON) {
+      printf("ERROR 2 dt_parse_iso_strtod()\n");
+    }
+    else if (abs(dt_parse_iso_strtod("0,25Z ", 5, &s) - 0.25) > DBL_EPSILON) {
+      printf("ERROR 2 dt_parse_iso_strtod()\n");
+    }
+    else if (abs(dt_parse_iso_strtod("T12.75", 6, &s) - 12.75) > DBL_EPSILON) {
+      printf("ERROR 2 dt_parse_iso_strtod()\n");
+    }
+    else if (abs(dt_parse_iso_strtod("T12:15:00", 9, &s) - 12.0) > DBL_EPSILON) {
+      printf("ERROR 2 dt_parse_iso_strtod()\n");
+    }
+    else {
+      n_ok++;
+      printf("OK\n");
+    }
+  }
+
+ /* ISO 8601 Decimal hours */
+  
+  if (RUNTEST) {
+    int s;
+    
+    i++;
+    printf("TEST %i in '%s:%i': ",i,__FILE__,__LINE__);
+
+    if (dt_parse_iso_hours_decimal(NULL, 20, NULL) != 0) {
+      printf("ERROR 1 dt_parse_iso_hours_decimal()\n");
+    }
+    else if (dt_parse_iso_hours_decimal("T10 ", 4, &s) != 3) {
+      printf("ERROR 2 dt_parse_iso_hours_decimal()\n");
+    }
+    else if (s != 36000) {
+      printf("ERROR 4 dt_parse_iso_hours_decimal()\n");
+    }
+    else if (dt_parse_iso_hours_decimal("0,25Z", 4, &s) != 4) {
+      printf("ERROR 5 dt_parse_iso_hours_decimal()\n");
+    }
+    else if (s != 900) {
+      printf("ERROR 6 dt_parse_iso_hours_decimal()\n");
+    }
+    else if (dt_parse_iso_hours_decimal("T12.75", 5, &s) != 6) {
+      printf("ERROR 7 dt_parse_iso_hours_decimal()\n");
+    }
+    else if (s != 45900) {
+      printf("ERROR 8 dt_parse_iso_hours_decimal()\n");
+    }
+    else if (dt_parse_iso_hours_decimal("T12:15", 5, &s) != 0) {
+      printf("ERROR 7 dt_parse_iso_hours_decimal()\n");
+    }
+    else {
+      n_ok++;
+      printf("OK\n");
+    }
+  }
+
   /* ISO 8601 Durations */
   
   if (RUNTEST) {
-    int y, m, d, w, h, mi, s;
+    double y, m, d, w, h, mi, s;
     
     i++;
     printf("TEST %i in '%s:%i': ",i,__FILE__,__LINE__);
@@ -723,35 +790,44 @@ utilsTest(void)
     if (dt_parse_iso_period(NULL, 20, NULL, NULL, NULL, NULL, NULL, NULL, NULL) != 0) {
       printf("ERROR 1 dt_parse_iso_period()\n");
     }
-    else if (dt_parse_iso_period("P1YM-4DT", 20, &y, &m, &d, NULL, NULL, NULL, NULL) != 0) {
+    else if (dt_parse_iso_period("", 2, &y, &m, &d, &w, &h, &mi, &s) != 0) {
       printf("ERROR 2 dt_parse_iso_period()\n");
+    }
+    else if (dt_parse_iso_period("P", 2, &y, &m, &d, &w, &h, &mi, &s) != 0) {
+      printf("ERROR 2 dt_parse_iso_period()\n");
+    }
+    else if (y > DBL_EPSILON || m > DBL_EPSILON || d > DBL_EPSILON || h > DBL_EPSILON || mi > DBL_EPSILON || s > DBL_EPSILON) {
+      printf("ERROR 6 dt_parse_iso_period()\n");
+    }
+    else if (dt_parse_iso_period("P1Y2M-4DT", 20, &y, &m, &d, NULL, NULL, NULL, NULL) != 9) {
+      printf("ERROR 2 dt_parse_iso_period()\n");
+    }
+    else if (abs(y - 1.0f) > DBL_EPSILON || abs(m - 2.0f) > DBL_EPSILON || abs(d + 4.0f) > DBL_EPSILON || h > DBL_EPSILON || mi > DBL_EPSILON || s > DBL_EPSILON) {
+      printf("ERROR 6 dt_parse_iso_period()\n");
     }
     else if (dt_parse_iso_period("P3Y6M4DT12H30M5S", BUFFER_LENGTH, &y, &m, &d, NULL, &h, &mi, &s) != 16) {
       printf("ERROR 3 dt_parse_iso_period()\n");
     }
-    else if (y != 3 || m != 6 || d != 4 || h != 12 || mi != 30 || s != 5) {
+    else if (abs(y - 3.0f) > DBL_EPSILON || abs(m - 6.0f) > DBL_EPSILON || abs(d - 4.0f) > DBL_EPSILON || abs(h - 12.0f) > DBL_EPSILON || abs(mi - 30.0f) > DBL_EPSILON || abs(s - 5.0f) > DBL_EPSILON) {
       printf("ERROR 4 dt_parse_iso_period()\n");
     }
     else if (dt_parse_iso_period("PT30M", BUFFER_LENGTH, &y, &m, &d, NULL, &h, &mi, &s) != 5) {
       printf("ERROR 5 dt_parse_iso_period()\n");
     }
-    else if (y != 0 || m != 0 || d != 0 || h != 0 || mi != 30 || s != 0) {
+    else if (y > DBL_EPSILON || m > DBL_EPSILON || d > DBL_EPSILON || h > DBL_EPSILON || abs(mi - 30.0f) > DBL_EPSILON || s > DBL_EPSILON) {
       printf("ERROR 6 dt_parse_iso_period()\n");
     }
     else if (dt_parse_iso_period("P7Y", BUFFER_LENGTH, &y, &m, &d, NULL, &h, &mi, &s) != 3) {
       printf("ERROR 7 dt_parse_iso_period()\n");
     }
-    else if (y != 7 || m != 0 || d != 0 || h != 0 || mi != 0 || s != 0) {
-      printf("ERROR 8 dt_parse_iso_period()\n");
+    else if (abs(y - 7.0f) > DBL_EPSILON || m > DBL_EPSILON || d > DBL_EPSILON || h > DBL_EPSILON || mi > DBL_EPSILON || s > DBL_EPSILON) {
+      printf("ERROR 6 dt_parse_iso_period()\n");
     }
-    else if (dt_parse_iso_period("P2W", BUFFER_LENGTH, &y, &m, &d, &w, &h, &mi, &s) != 3) {
+    else if (dt_parse_iso_period("P-2W", BUFFER_LENGTH, &y, &m, &d, &w, &h, &mi, &s) != 4) {
       printf("ERROR 9 dt_parse_iso_period()\n");
     }
-    else if (w != 2 || m != 0 || d != 0 || h != 0 || mi != 0 || s != 0) {
-      printf("ERROR 10 dt_parse_iso_period()\n");
-    }
-    else if (dt_parse_iso_period("P", BUFFER_LENGTH, &y, &m, &d, &w, &h, &mi, &s) != 1) {
-      printf("ERROR 11 dt_parse_iso_period()\n");
+    else if (y > DBL_EPSILON || m > DBL_EPSILON || d > DBL_EPSILON || abs(w + 2.0f) > DBL_EPSILON || h > DBL_EPSILON || mi > DBL_EPSILON || s > DBL_EPSILON) {
+      printf("ERROR 6 dt_parse_iso_period()\n");
     }
     else {
       n_ok++;

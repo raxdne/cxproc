@@ -405,7 +405,7 @@ ScanCalendarElementDate(ceElementPtr pceArgResult)
       
       if (isdigit(pucT[0]) && isdigit(pucT[1]) && isdigit(pucT[2]) && isdigit(pucT[3])
 	&& isdigit(pucT[4]) && isdigit(pucT[5]) && isdigit(pucT[6]) && isdigit(pucT[7])
-	&& isdigit(pucT[8]) && isdigit(pucT[9])) {
+	&& isdigit(pucT[8]) && isdigit(pucT[9]) && ! isdigit(pucT[9])) {
 
 	/* system time "1311186519" */
 	unsigned long iT;
@@ -428,12 +428,14 @@ ScanCalendarElementDate(ceElementPtr pceArgResult)
       else {
 	size_t j;
 	size_t n = 0;
-	int y, m, d, w, r, h, mi, s, ss;
+	int r;
+	double y, m, d, w, h, mi, s, ss;
 
 	if ((j = dt_parse_iso_recurrence((const char*)pucT, xmlStrlen(pucT), &r)) > 0) {
 	  /* recurrence/ */
 
 	  n += j;
+	  pceArgResult->iRecurrence = r;
 
 	  if (pucT[n] == '/') {
 	    n++;
@@ -445,7 +447,7 @@ ScanCalendarElementDate(ceElementPtr pceArgResult)
 	      if (pucT[n] == '/') { /* */
 		n++;
 
-		if ((j = dt_parse_iso_period((const char*)&pucT[n], xmlStrlen(&pucT[n]), &y, &m, &d, &w, &h, &mi, &s)) > 0) {
+		if ((j = dt_parse_iso_period((const char *)&pucT[n], xmlStrlen(&pucT[n]), &y, &m, &d, &w, &h, &mi, &s)) > 0) {
 		  /* recurrence/date/period */
 
 		  pceArgResult->period.y = y;
@@ -459,14 +461,14 @@ ScanCalendarElementDate(ceElementPtr pceArgResult)
 
 		  n += j;
 		}
-		else if ((j = dt_parse_iso_date_time_zone((const char*)&pucT[n], xmlStrlen(&pucT[n]), &pceArgResult->dt1.dt, &pceArgResult->dt1.iSec)) > 3) {
+		else if ((j = dt_parse_iso_date_time_zone((const char *)&pucT[n], xmlStrlen(&pucT[n]), &pceArgResult->dt1.dt, &pceArgResult->dt1.iSec)) > 3) {
 		  /* recurrence/date/date */
 		  n += j;
 
 		  if (pucT[n] == '/') { /* */
 		    n++;
 
-		    if ((j = dt_parse_iso_period((const char*)&pucT[n], xmlStrlen(&pucT[n]), &y, &m, &d, &w, &h, &mi, &s)) > 0) {
+		    if ((j = dt_parse_iso_period((const char *)&pucT[n], xmlStrlen(&pucT[n]), &y, &m, &d, &w, &h, &mi, &s)) > 0) {
 		      /* recurrence/date/date/period */
 
 		      pceArgResult->period.y = y;
@@ -484,6 +486,9 @@ ScanCalendarElementDate(ceElementPtr pceArgResult)
 		      n = 0;
 		    }
 		  }
+		  else {
+		    n = 0;
+		  }
 		}
 		else {
 		  n = 0;
@@ -497,41 +502,116 @@ ScanCalendarElementDate(ceElementPtr pceArgResult)
 	    else if ((j = dt_parse_iso_period((const char*)&pucT[n], xmlStrlen(&pucT[n]), &y, &m, &d, &w, &h, &mi, &s)) > 0) {
 	      /* recurrence/period */
 
-	      pceArgResult->period.y = y;
-	      pceArgResult->period.m = m;
-	      pceArgResult->period.d = d;
-	      pceArgResult->period.w = w;
-	      pceArgResult->period.hour = h;
-	      pceArgResult->period.minute = mi;
-	      pceArgResult->period.second = s;
-	      pceArgResult->iRecurrence = r;
-
 	      n += j;
 
 	      if (pucT[n] == '/') { /* */
 		n++;
 
-		if ((j = dt_parse_iso_date_time_zone((const char*)&pucT[n], xmlStrlen(&pucT[n]), &pceArgResult->dt1.dt, &pceArgResult->dt1.iSec)) > 3) {
-		  /* recurrence/period/date */
+		if ((j = dt_parse_iso_date_time_zone((const char *)&pucT[n], xmlStrlen(&pucT[n]), &pceArgResult->dt1.dt, &pceArgResult->dt1.iSec)) > 3) {
 		  n += j;
 
+		  /* recurrence/period/date */
+		  pceArgResult->dt0.dt = pceArgResult->dt1.dt;
+		  if (w != 0) {
+		    /* week-period/date */
+		    pceArgResult->dt0.dt -= w * 7 - 1;
+		  }
+		  else {
+		    pceArgResult->dt0.dt = dt_add_years(pceArgResult->dt0.dt, -y, DT_EXCESS);
+		    pceArgResult->dt0.dt = dt_add_months(pceArgResult->dt0.dt, -m, DT_EXCESS);
+		    if (d > 1) {
+		      pceArgResult->dt0.dt -= d - 1;
+		    }
+		  }
+
+		  ss = h * 3600 + mi * 60 + s;
+		  if (ss > 0) {
+		    pceArgResult->dt0.dt -= ss / (24 * 60 * 60); /* time in previous day */
+		    pceArgResult->dt0.iSec = pceArgResult->dt1.iSec - ((int)ss % (24 * 60 * 60));
+		    assert(pceArgResult->dt0.iSec > 0);
+		  }
+
+		  if (pucT[n] == '/') { /* */
+		    n++;
+
+		    if ((j = dt_parse_iso_period((const char *)&pucT[n], xmlStrlen(&pucT[n]), &y, &m, &d, &w, &h, &mi, &s)) > 0) {
+		      /* recurrence/period/date/period */
+
+		      pceArgResult->period.y = y;
+		      pceArgResult->period.m = m;
+		      pceArgResult->period.d = d;
+		      pceArgResult->period.w = w;
+		      pceArgResult->period.hour = h;
+		      pceArgResult->period.minute = mi;
+		      pceArgResult->period.second = s;
+
+		      n += j;
+		    }
+		    else {
+		      n = 0;
+		    }
+		  }
+		  else {
+		    n = 0;
+		  }
 		}
 		else {
+		  /* no interval */
 		  n = 0;
 		}
 	      }
 	      else {
-		/* no interval */
 		n = 0;
 	      }
+	    }
+	    else {
+	      n = 0;
+	    }
+	  }
+	}
+#if 0
+	else if ((j = dt_parse_iso_offset((const char*)pucT, xmlStrlen(pucT), &y, &m, &d, &w, &h, &mi, &s)) > 0) {
+	  /* prefix offset/ */
+
+	  n += j;
+
+	  if (pucT[n] == '/') {
+	    n++;
+
+	    if ((j = dt_parse_iso_date_time_zone((const char*)&pucT[n], xmlStrlen(&pucT[n]), &pceArgResult->dt0.dt, &pceArgResult->dt0.iSec)) > 3) {
+
+	      /* offset/date */
+	      if (w != 0) {
+		pceArgResult->dt0.dt -= w * 7;
+	      }
+	      else {
+		pceArgResult->dt0.dt = dt_add_years(pceArgResult->dt0.dt, -y, DT_EXCESS);
+		pceArgResult->dt0.dt = dt_add_months(pceArgResult->dt0.dt, -m, DT_EXCESS);
+		if (d > 0) {
+		  pceArgResult->dt0.dt -= d;
+		}
+	      }
+#if 0
+	      ss = h * 3600 + mi * 60 + s;
+	      if (ss > 0) {
+		pceArgResult->dt0.dt -= ss / (24 * 60 * 60); /* time in previous day */
+		pceArgResult->dt0.iSec = pceArgResult->dt1.iSec - (ss % (24 * 60 * 60));
+		assert(pceArgResult->dt0.iSec > 0);
+	      }
+#endif
+	      n += j;
+	    }
+	    else {
+	      n = 0;
 	    }
 	  }
 	  else {
 	    n = 0;
 	  }
 	}
+#endif
 	else if ((j = dt_parse_iso_period((const char*)pucT, xmlStrlen(pucT), &y, &m, &d, &w, &h, &mi, &s)) > 0) {
-	  /* period/ */
+	  /* prefix period/ */
 
 	  n += j;
 
@@ -544,23 +624,37 @@ ScanCalendarElementDate(ceElementPtr pceArgResult)
 	      pceArgResult->dt0.dt = pceArgResult->dt1.dt;
 	      if (w != 0) {
 		/* week-period/date */
-		pceArgResult->dt0.dt -= w * 7 - 1;
+		pceArgResult->dt0.dt -= (int)w * 7 - 1;
 	      }
 	      else {
-		pceArgResult->dt0.dt = dt_add_years(pceArgResult->dt0.dt, -y, DT_EXCESS);
-		pceArgResult->dt0.dt = dt_add_months(pceArgResult->dt0.dt, -m, DT_EXCESS);
+		pceArgResult->dt0.dt = dt_add_years(pceArgResult->dt0.dt, - (int)y, DT_EXCESS);
+		pceArgResult->dt0.dt = dt_add_months(pceArgResult->dt0.dt, - (int)m, DT_EXCESS);
 		if (d > 1) {
-		  pceArgResult->dt0.dt -= d - 1;
+		  pceArgResult->dt0.dt -= (int)d - 1;
 		}
 	      }
 
 	      ss = h * 3600 + mi * 60 + s;
 	      if (ss > 0) {
 		pceArgResult->dt0.dt -= ss / (24 * 60 * 60); /* time in previous day */
-		pceArgResult->dt0.iSec = pceArgResult->dt1.iSec - (ss % (24 * 60 * 60));
+		pceArgResult->dt0.iSec = pceArgResult->dt1.iSec - ((int)ss % (24 * 60 * 60));
 		assert(pceArgResult->dt0.iSec > 0);
 	      }
 	      n += j;
+	    }
+	    else if (isdigit(pucT[n]) && isdigit(pucT[n + 1]) && isdigit(pucT[n + 2]) && isdigit(pucT[n + 3]) && !isiso8601(pucT[n + 4])) {
+	      /* ISO 8601 P/YYYY */
+	      int z;
+
+	      z = 1000 * (pucT[n] - '0') + 100 * (pucT[n + 1] - '0') + 10 * (pucT[n + 2] - '0') + (pucT[n + 3] - '0');
+	      if (z > -1 && z < 2999) {
+		pceArgResult->dt0.dt = dt_add_years(dt_from_yd(z+1, 1), - (int)y, DT_EXCESS);
+		pceArgResult->dt1.dt = dt_from_yd(z+1, 0);
+		n += 5;
+	      }
+	      else {
+		n = 0;
+	      }
 	    }
 	    else {
 	      n = 0;
@@ -577,8 +671,36 @@ ScanCalendarElementDate(ceElementPtr pceArgResult)
 	  if (pucT[n] == '/') { /* */
 	    n++;
 
-	    if ((j = dt_parse_iso_period((const char*)&pucT[n], xmlStrlen(&pucT[n]), &y, &m, &d, &w, &h, &mi, &s)) > 0) {
-	      /* date/period */
+#if 0
+	    if ((j = dt_parse_iso_offset((const char *)&pucT[n], xmlStrlen(&pucT[n]), &y, &m, &d, &w, &h, &mi, &s)) > 2) {
+	      /* postfix /offset */
+
+	      if (w != 0) {
+		/* week-period/date */
+		pceArgResult->dt0.dt += w * 7;
+	      }
+	      else {
+		pceArgResult->dt0.dt = dt_add_years(pceArgResult->dt0.dt, y, DT_EXCESS);
+		pceArgResult->dt0.dt = dt_add_months(pceArgResult->dt0.dt, m, DT_EXCESS);
+		if (d > 0) {
+		  pceArgResult->dt0.dt += d;
+		}
+	      }
+
+#if 0
+	      ss = h * 3600 + mi * 60 + s;
+	      if (ss > 0) {
+		pceArgResult->dt0.dt += ss / (24 * 60 * 60); /* time in previous day */
+		pceArgResult->dt0.iSec = pceArgResult->dt1.iSec + (ss % (24 * 60 * 60));
+		assert(pceArgResult->dt0.iSec > 0);
+	      }
+#endif
+	      n += j;
+	    }
+	  else
+#endif
+	    if ((j = dt_parse_iso_period((const char *)&pucT[n], xmlStrlen(&pucT[n]), &y, &m, &d, &w, &h, &mi, &s)) > 0) {
+	      /* postfix /period */
 	      pceArgResult->dt1.dt = pceArgResult->dt0.dt;
 	      if (w != 0) {
 		/* week-period */
@@ -595,8 +717,8 @@ ScanCalendarElementDate(ceElementPtr pceArgResult)
 	      ss = h * 3600 + mi * 60 + s;
 	      if (ss > 0) {
 		pceArgResult->dt1.dt += ss / (24 * 60 * 60); /* time in next day */
-		pceArgResult->dt1.iSec = pceArgResult->dt0.iSec + (ss % (24 * 60 * 60));
-		assert(pceArgResult->dt1.iSec < (24 * 60 * 60));
+		pceArgResult->dt1.iSec = pceArgResult->dt0.iSec + ((int)ss % (24 * 60 * 60));
+		//assert(pceArgResult->dt1.iSec < (24 * 60 * 60));
 	      }
 	      n += j;
 	    }
@@ -605,38 +727,52 @@ ScanCalendarElementDate(ceElementPtr pceArgResult)
 	      n += j;
 	    }
 	    else {
-	      n = 0;
+	      // n = 0; /* keep valid values */
 	    }
 	  }
 	  else {
-	    /* no interval */
+	    /* no interval, simple <date>T<time> */
 	  }
 
 	}
-	else if (isdigit(pucT[n]) && isdigit(pucT[n+1]) && isdigit(pucT[n+2]) && isdigit(pucT[n+3])) {
+	else if (isdigit(pucT[n]) && isdigit(pucT[n + 1]) && isdigit(pucT[n + 2]) && isdigit(pucT[n + 3])) {
 
-	  y = 1000 * (pucT[n] - '0') + 100 * (pucT[n+1] - '0') + 10 * (pucT[n+2] - '0') + (pucT[n+3] - '0');
-
+	  y = 1000 * (pucT[n] - '0') + 100 * (pucT[n + 1] - '0') + 10 * (pucT[n + 2] - '0') + (pucT[n + 3] - '0');
 	  assert(y > -1 && y < 2999);
 
 	  n += 4;
+	  if (pucT[n] == '/') {
+	    double y1;
+	    n++;
 
-	  /*! implicit intervals (whole year, month, week) */
+	    if (isdigit(pucT[n]) && isdigit(pucT[n + 1]) && isdigit(pucT[n + 2]) && isdigit(pucT[n + 3]) && !isiso8601(pucT[n + 4])) {
+	      /* ISO 8601 YYYY/YYYY */
+	      int z;
 
-	  if (pucT[n] == '/' && isdigit(pucT[n + 1]) && isdigit(pucT[n + 2]) && isdigit(pucT[n + 3]) && isdigit(pucT[n + 4]) && !isiso8601(pucT[n + 5])) {
-	    /* ISO 8601 YYYY/YYYY */
-	    int z;
+	      z = 1000 * (pucT[n] - '0') + 100 * (pucT[n + 1] - '0') + 10 * (pucT[n + 2] - '0') + (pucT[n + 3] - '0');
+	      if (z > -1 && z < 2999) {
+		pceArgResult->dt0.dt = dt_from_yd(y, 1);
+		pceArgResult->dt1.dt = dt_from_yd(z+1, 0);
+		n += 5;
+	      }
+	      else {
+		n = 0;
+	      }
+	    }
+	    else if ((j = dt_parse_iso_period((const char *)&pucT[n], xmlStrlen(BAD_CAST &pucT[n]), &y1, NULL, NULL, NULL, NULL, NULL, NULL)) > 0) {
+	      /* YYYY/P */
 
-	    z = 1000 * (pucT[n + 1] - '0') + 100 * (pucT[n + 2] - '0') + 10 * (pucT[n + 3] - '0') + (pucT[n + 4] - '0');
-	    if (z > -1 && z < 2999) {
+	      n += j;
+
 	      pceArgResult->dt0.dt = dt_from_yd(y, 1);
-	      pceArgResult->dt1.dt = dt_from_yd(z+1, 0);
-	      n += 5;
+	      pceArgResult->dt1.dt = dt_from_yd(y + (int)floor(y1), 0);
 	    }
 	    else {
-	      n = 0;
+	      //n = 0;
 	    }
 	  }
+	  /*! implicit intervals (whole year, month, week)
+	   */
 	  else if (pucT[n] == '-' && isdigit(pucT[n + 1]) && isdigit(pucT[n + 2]) && !isdigit(pucT[n + 3])) {
 	    /* ISO 8601 YYYY-MM */
 	    m = 10 * (pucT[n + 1] - '0') + (pucT[n + 2] - '0');
@@ -656,6 +792,18 @@ ScanCalendarElementDate(ceElementPtr pceArgResult)
 	      n += 2;
 	      pceArgResult->dt0.dt = dt_from_ymd(y, m, 1);
 	      pceArgResult->dt1.dt = dt_end_of_month(pceArgResult->dt0.dt, 0);
+	    }
+	    else {
+	      n = 0;
+	    }
+	  }
+	  else if (pucT[n] == 'W' && isdigit(pucT[n + 1]) && isdigit(pucT[n + 2]) && !isdigit(pucT[n + 3])) {
+	    /* ISO 8601 YYYYWnn */
+	    w = 10 * (pucT[n + 1] - '0') + (pucT[n + 2] - '0');
+	    if (w > -1 && w < 54) {
+	      n += 4;
+	      pceArgResult->dt0.dt = dt_from_ywd(y, w, 1);
+	      pceArgResult->dt1.dt = dt_end_of_week(pceArgResult->dt0.dt, DT_MON);
 	    }
 	    else {
 	      n = 0;
@@ -724,7 +872,6 @@ BOOL_T
 AddNodeDateAttributes(xmlNodePtr pndArg, ceElementPtr pceArg)
 {
   BOOL_T fResult = FALSE;
-
 
   if (pndArg) {
 
@@ -904,6 +1051,15 @@ AddNodeDateAttributes(xmlNodePtr pndArg, ceElementPtr pceArg)
 	  }
 
 	  fResult = TRUE;
+	}
+	else {
+	  /* invalid date string, replace node by its text children */
+	  xmlNodePtr pndTT = pndArg;
+	  xmlNodePtr pndT = pndTT->children;
+
+	  xmlUnlinkNode(pndT);
+	  xmlReplaceNode(pndTT,pndT);
+	  xmlFreeNode(pndTT);
 	}
 	CalendarElementFree(pceT);
       }
