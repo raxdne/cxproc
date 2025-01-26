@@ -80,6 +80,8 @@ AddNameSpaces(xmlNodePtr pndPie)
 
 /*! \return enum value according to attribute "verbosity" of pndArgFile
 
+\todo update documentation
+
 - "0" -- directory elements only
 
 - "1" -- directory elements and file elements (default)
@@ -115,20 +117,22 @@ dirMapInfoVerbosity(xmlNodePtr pndArgFile, cxpContextPtr pccArg)
   }
 #endif
   else if (xmlStrEqual(pucAttrVerbosity, BAD_CAST "5")) {
-    iResult = RN_INFO_MAX;
+    iResult = RN_OUT_MAX;
   }
   else if (xmlStrEqual(pucAttrVerbosity, BAD_CAST "4")) {
-    iResult |=  RN_INFO_INFO | RN_INFO_STRUCT | RN_INFO_XML | RN_INFO_OWNER | RN_INFO_CONTENT;
+    iResult = RN_OUT_NAME | RN_OUT_ATTR | RN_OUT_SIZE | RN_OUT_TIME | RN_OUT_TYPE | RN_OUT_OWNER | RN_OUT_PATH | RN_OUT_XML | RN_OUT_STRUCT | RN_OUT_CONTENT;
   }
   else if (xmlStrEqual(pucAttrVerbosity, BAD_CAST "3")) {
-    iResult |=  RN_INFO_INFO | RN_INFO_STRUCT | RN_INFO_XML | RN_INFO_INDEX;
+    iResult = RN_OUT_NAME | RN_OUT_ATTR | RN_OUT_SIZE | RN_OUT_TIME | RN_OUT_TYPE | RN_OUT_OWNER | RN_OUT_PATH | RN_OUT_XML;
   }
   else if (xmlStrEqual(pucAttrVerbosity, BAD_CAST "2")) {
-    iResult |= RN_INFO_INFO | RN_INFO_STRUCT;
+    iResult = RN_OUT_NAME | RN_OUT_ATTR | RN_OUT_SIZE | RN_OUT_TIME | RN_OUT_TYPE | RN_OUT_OWNER | RN_OUT_PATH;
   }
   else {
     /* keep default */
+    iResult = RN_OUT_NAME | RN_OUT_ATTR | RN_OUT_SIZE | RN_OUT_TIME | RN_OUT_TYPE | RN_OUT_PATH;
   }
+  //iResult = RN_OUT_MAX;
 
   cxpCtxtLogPrint(pccArg,2,"Using '%s' verbosity '%i'", pndArgFile->name, iResult);
 
