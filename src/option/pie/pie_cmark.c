@@ -180,7 +180,6 @@ cmarkTreeToDOM(xmlNodePtr pndArgBlock, xmlNodePtr pndArg, cmark_node* pcmnArg)
     /* Block */
     else if (pcmnArg->type == CMARK_NODE_DOCUMENT) {
       pndResult = xmlNewChild(pndArg, NULL, BAD_CAST NAME_PIE_BLOCK, NULL);
-      SetTypeAttr(pndResult, RMODE_MD);
       for (pndT = pndResult,  pcmnIter = pcmnArg->first_child; pcmnIter; pcmnIter = pcmnIter->next) {
 	pndT = cmarkTreeToDOM(pndResult, pndT, pcmnIter);
       }
@@ -298,6 +297,21 @@ cmarkTreeToDOM(xmlNodePtr pndArgBlock, xmlNodePtr pndArg, cmark_node* pcmnArg)
 	if ((pucTT = BAD_CAST xmlStrchr(pcmnArg->first_child->data, ',')) != NULL && pucTT++) {
 	  xmlNewChild(pndImage, NULL, BAD_CAST NAME_BASE64, pucTT);
 	}
+      }
+      else if (pcmnArg->first_child != NULL && pcmnArg->first_child == pcmnArg->last_child && pcmnArg->first_child->data != NULL &&
+	       StringBeginsWith(pcmnArg->first_child->data, "ORIGIN: ")) {
+	/*!\bug when nested imports with multiple "ORIGIN:" without "END:" markup */
+#if 0
+	pndArg = xmlNewChild(pndArg, NULL, BAD_CAST NAME_PIE_BLOCK, NULL);
+	xmlSetProp(pndArg, BAD_CAST "context", BAD_CAST pcmnArg->first_child->data + strlen("ORIGIN: "));
+#else
+	for (pndT = pndArg; pndT != NULL; pndT = pndT->parent) {
+	  if (IS_NODE_PIE_BLOCK(pndT)) {
+	    xmlSetProp(pndT, BAD_CAST "context", BAD_CAST pcmnArg->first_child->data + strlen("ORIGIN: "));
+	    break;
+	  }
+	}
+#endif
       }
       else {
         pndT = xmlNewChild(pndArg, NULL, BAD_CAST NAME_PIE_PAR, NULL);

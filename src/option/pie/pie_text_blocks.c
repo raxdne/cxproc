@@ -111,6 +111,7 @@
   #define RE_TASK "^(TODO|DONE|REQ|BUG|TARGET|TEST)[: \\t]+"
 #else
   #define RE_TASK "^(TODO|DONE|REQ|BUG|TARGET|TEST)(:[ \\t]*)"
+  /*!\todo add agile (EPIC|US|UC|FEATURE) */
 #endif
 
 
@@ -590,7 +591,6 @@ ParsePlainBuffer(xmlNodePtr pndArgTop, xmlChar* pucArg, rmode_t eArgMode)
       else { /* there is nor parent element, return new block element */
 	pndBlock = xmlNewNode(NULL, BAD_CAST NAME_PIE_BLOCK);
       }
-      SetTypeAttr(pndBlock, eArgMode);
 
       if ((ppeT = pieElementNew(pucArg, eArgMode))) {
 	/*\todo iMax = domGetPropValuePtr(pndArgImport, BAD_CAST "max"); */
@@ -696,6 +696,7 @@ ParsePlainBuffer(xmlNodePtr pndArgTop, xmlChar* pucArg, rmode_t eArgMode)
       pndResult = pndBlock;
     }
   }
+  SetTypeAttr(pndResult, eArgMode);
 
   return pndResult;
 } /* end of ParsePlainBuffer() */
