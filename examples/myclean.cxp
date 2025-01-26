@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <cxp:make xmlns:cxp="http://www.tenbusch.info/cxproc" log="2" dir="pwd">
-  <cxp:description>
+  <cxp:description>MyClean 2002..2025 A. Tenbusch
 
  Move temporary files into a trash directory named by current date.
 
@@ -8,22 +8,26 @@
   <cxp:subst string="%TEMP%" env="LOCALAPPDATA" default="/tmp"/>
   <cxp:subst string="%PREFIX%" env="HOME" default="%TEMP%"/>
   <cxp:subst string="%TRASH%" now="%PREFIX%/Trash/%Y%m%d-%H%M%S/"/>
-  <cxp:subst string="%SOURCE%" argv="2" dir="dialog" default="."/>
+  <cxp:subst string="%SOURCE%" argv="2" default="."/> <!-- dir="dialog" -->
   <cxp:system message="Search for temporary files in '%SOURCE%' ..."/>
-  <cxp:xml eval="yes">
+  <cxp:plain name="-">
     <cxp:xml>
       <cxp:dir verbosity="1" depth="9" hidden="no" imatch="(\.bak|\~)$">
         <cxp:dir name="%SOURCE%"/>
       </cxp:dir>
     </cxp:xml>
     <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.0">
-      <xsl:output method="xml"/>
+      <xsl:output method="text"/>
       <xsl:variable name="str_trash_path">%TRASH%</xsl:variable>
+      
       <xsl:template match="/pie">
         <cxp:make log="1">
           <xsl:apply-templates />
+      <xsl:text>echo &quot;pipe this output to a shell&quot;
+</xsl:text>
         </cxp:make>
       </xsl:template>
+
       <xsl:template match="dir">
         <xsl:choose>
           <xsl:when test="@error">
@@ -40,6 +44,7 @@
           </xsl:otherwise>
         </xsl:choose>
       </xsl:template>
+      
       <xsl:template match="file">
         <!--  -->
         <xsl:choose>
@@ -53,19 +58,23 @@
                 <xsl:if test="@prefix">
                   <xsl:value-of select="concat(translate(@prefix,'\','/'),'/')"/>
                 </xsl:if>
-                <xsl:value-of select="concat(translate(@name,'\','/'),'/')"/>
+                <xsl:value-of select="concat(@name,'/')"/>
               </xsl:for-each>
-              <xsl:value-of select="@name"/>
             </xsl:variable>
-            <cxp:system message="{concat('',$str_path)}"/>
-            <cxp:copy from="{concat('',$str_path)}" to="{concat($str_trash_path,$str_path)}" delete="yes"/>
+	    <xsl:value-of select="concat('mkdir -p &quot;',$str_trash_path,$str_path,'&quot;')"/>
+	    <xsl:text>
+</xsl:text>
+	    <xsl:value-of select="concat('mv &quot;',$str_path,'/',@name,'&quot; &quot;',$str_trash_path,$str_path,'/',@name,'&quot;')"/>
+	    <xsl:text>
+</xsl:text>
           </xsl:otherwise>
         </xsl:choose>
       </xsl:template>
+
       <xsl:template match="*">
 	<!-- ignore other elements -->
       </xsl:template>
+      
     </xsl:stylesheet>
-  </cxp:xml>
-  <cxp:system pause="yes" message="Press any key to finish!"/>
+  </cxp:plain>
 </cxp:make>
