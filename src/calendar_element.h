@@ -55,6 +55,7 @@ struct ceElement {
   xmlChar *pucColId; /*!< pointer to column id of Date anchor */
   xmlChar *pucId; /*!< pointer to ID string */
   xmlChar *pucDate; /*!< pointer to single date string */
+  xmlChar *pucIntern; /*!< pointer to simplified internal date string */
   xmlChar *pucSep; /*!< pointer to iteration separator string */
 
   iso8601DateType dt0; /*!< day index of Interval Begin Date */ 

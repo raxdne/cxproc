@@ -177,7 +177,7 @@ extern BOOL_T
 isiso8601(xmlChar c);
 
 extern xmlChar*
-StringConcatNextDate(xmlChar* pucArgGcal);
+_StringConcatNextDate(xmlChar* pucArgGcal);
 
 #ifdef TESTCODE
 extern int

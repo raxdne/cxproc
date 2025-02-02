@@ -31,7 +31,7 @@
 #include "utils.h"
 
 static double
-dt_parse_iso_strtod(const char *str, size_t len, char **str1);
+_dt_parse_iso_strtod(const char *str, size_t len, char **str1);
 
 static int
 localtime_offset(void);
@@ -2227,6 +2227,8 @@ ishashtag(xmlChar* pucArg, int* piArg)
 
 /*! \return true if c is a valid char for a date string according to ISO 8601
 
+\todo time zone identificators?
+
 \bug handle STR_UTF8_MINUS "\xE2\x88\x92" 
 */
 BOOL_T
@@ -2238,6 +2240,8 @@ isiso8601(xmlChar c)
   else {
     switch (c) {
     case ':':
+    //case ',': /* ignoring this decimal separator to avoid confusion with lists of dates */
+    case '.':
     case '+':
     case '-':
     case '/':
@@ -2265,9 +2269,10 @@ isiso8601(xmlChar c)
 
   \param pucArgGcal pointer to comma separated list of date strings
   \return pointer to a the modified pucGcal or NULL if no date string follows,
+  \deprecated due to legacy syntax
 */
 xmlChar*
-StringConcatNextDate(xmlChar* pucArgGcal)
+_StringConcatNextDate(xmlChar* pucArgGcal)
 {
   xmlChar* pucE;
   xmlChar* pucB;		/* begin of next string */
@@ -2326,7 +2331,7 @@ StringConcatNextDate(xmlChar* pucArgGcal)
   }
   return NULL;
 }
-/* end of StringConcatNextDate() */
+/* end of _StringConcatNextDate() */
 
 
 /*
@@ -2377,9 +2382,10 @@ dt_parse_iso_recurrence(const char *str, size_t len, int* deltad) {
 
 
 /*! \return a double float value for str (decimal separators '.' and ',')
+\deprecated
 */
 double
-dt_parse_iso_strtod(const char *str, size_t len, char **str1)
+_dt_parse_iso_strtod(const char *str, size_t len, char **str1)
 {
   double dResult = 0.0;
 
@@ -2392,6 +2398,7 @@ dt_parse_iso_strtod(const char *str, size_t len, char **str1)
     }
 
     dResult = strtod(pcI, &pcI);
+#if 0
     if ((pcI != NULL && pcI - str < len) && *pcI == ',') {
       double divisor;
 
@@ -2399,6 +2406,7 @@ dt_parse_iso_strtod(const char *str, size_t len, char **str1)
 	 dResult += ((double)(*pcI - '0')) / divisor; 
 	}
     }
+#endif
 
     if (str1) {
       *str1 = pcI;
@@ -2424,7 +2432,7 @@ dt_parse_iso_hours_decimal(const char *str, size_t len, int *sod)
     char *estr;
     double dT;
 
-    dT = dt_parse_iso_strtod(str, len, &estr);
+    dT = strtod(str, &estr);
     if (*estr == ':') {
       /* not a decimal value */
     }
@@ -2460,6 +2468,7 @@ dt_parse_iso_date_time_zone(const char* str, size_t len, dt_t *dtp, int *sp) {
     if ((j = dt_parse_iso_date(&p[n], len, dtp)) > 3) {
       n += j;
 
+#ifdef USE_ISO_TIME
       if (p[n] == 'T') {
 	int s;
 
@@ -2514,6 +2523,7 @@ dt_parse_iso_date_time_zone(const char* str, size_t len, dt_t *dtp, int *sp) {
 	  }
 	}
       }
+#endif
     }
   }
 
@@ -2541,7 +2551,7 @@ dt_parse_iso_offset(const char *str, size_t len, double *yp, double *mp, double 
 /*
  *  "P3Y6M4DT12H30M5S" Calendar date period  (ISO 8601)
  * 
- * \bug floating values not used
+ * \bug floating values to be handled
  */
 size_t
 dt_parse_iso_period(const char* str, size_t len, double* yp, double* mp, double* dp, double* wp, double* hp, double* mip, double* sp)
@@ -2575,7 +2585,7 @@ dt_parse_iso_period(const char* str, size_t len, double* yp, double* mp, double*
 	}
       }
 
-      i = dt_parse_iso_strtod(p, len - n, &p1);
+      i = strtod(p, &p1);
 
       /*!\todo check order of Y M D */
 
@@ -2584,11 +2594,12 @@ dt_parse_iso_period(const char* str, size_t len, double* yp, double* mp, double*
       }
       p = p1;
       
-      if (abs(i) < DBL_EPSILON) {
+      if (fabs(i) < DBL_EPSILON) {
 	continue; /* value is zero */
       }
 
       if (t) {
+#ifdef USE_ISO_TIME
 	/*! time parsing */
 
 	if (*p == 'H') {
@@ -2620,10 +2631,11 @@ dt_parse_iso_period(const char* str, size_t len, double* yp, double* mp, double*
 	    v = false;
 	  break;
 	}
+#endif
       }
       else { /* date parsing only */
 	if (*p == 'W') {
-	  if (w < 1 && y < 1 && m < 1 && d < 1) {
+	  if (w < 1 && d < 1) {
 	    w = i;
 	  }
 	  else {
@@ -2671,12 +2683,14 @@ dt_parse_iso_period(const char* str, size_t len, double* yp, double* mp, double*
 	*dp = d;
       if (wp)
 	*wp = w;
+#ifdef USE_ISO_TIME
       if (hp)
 	*hp = h;
       if (mip)
 	*mip = mi;
       if (sp)
 	*sp = s;
+#endif
       n = p - str;
     }
     else {

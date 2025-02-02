@@ -1368,8 +1368,8 @@ pieTextBlocksTest(void)
       || (pndT = RecognizeIncludes(pndP)) != NULL) {
       printf("Error 2 RecognizeIncludes()\n");
     }
-    else if ((pndT = pndPie->children) != NULL && IS_NODE_PIE_INCLUDE(pndT) == FALSE
-      || xmlStrEqual(domGetPropValuePtr(pndT, BAD_CAST"name"), BAD_CAST"abc.txt") == FALSE) {
+    else if ((pndT = pndPie->children) != NULL && (IS_NODE_PIE_INCLUDE(pndT) == FALSE
+      || xmlStrEqual(domGetPropValuePtr(pndT, BAD_CAST"name"), BAD_CAST"abc.txt") == FALSE)) {
       printf("Error 3 RecognizeIncludes()\n");
     }
     else {
@@ -1400,8 +1400,8 @@ pieTextBlocksTest(void)
       || (pndT = RecognizeImports(pndP)) != NULL) {
       printf("Error 2 RecognizeImports()\n");
     }
-    else if ((pndT = pndPie->children) != NULL && IS_NODE_PIE_IMPORT(pndT) == FALSE
-      || xmlStrEqual(domGetPropValuePtr(pndT, BAD_CAST"name"), BAD_CAST"abc.txt") == FALSE) {
+    else if ((pndT = pndPie->children) != NULL && (IS_NODE_PIE_IMPORT(pndT) == FALSE
+      || xmlStrEqual(domGetPropValuePtr(pndT, BAD_CAST"name"), BAD_CAST"abc.txt") == FALSE)) {
       printf("Error 3 RecognizeImports()\n");
     }
     else {

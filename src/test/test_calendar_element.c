@@ -147,7 +147,7 @@ ceTest(void)
     if ((pceT = CalendarElementNew(BAD_CAST"2009-W3-3")) == NULL) {
       printf("ERROR\n");
     }
-    else if (ScanCalendarElementDate(pceT) == TRUE) {
+    else if (ScanCalendarElementDate(pceT) == FALSE) {
       printf("ERROR\n");
     }
     else if (CalendarElementUpdate(pceT, BAD_CAST"2009-W03-3") == NULL) {
@@ -208,7 +208,7 @@ ceTest(void)
     if ((pceT = CalendarElementNew(BAD_CAST"2009-")) == NULL) {
       printf("ERROR\n");
     }
-    else if (ScanCalendarElementDate(pceT) == TRUE) {
+    else if (ScanCalendarElementDate(pceT) == FALSE) {
       printf("ERROR\n");
     }
     else if (CalendarElementUpdate(pceT, BAD_CAST"2009-099") == NULL) {
@@ -451,6 +451,42 @@ ceTest(void)
       printf("ERROR\n");
     }
     else if (CalendarElementUpdate(pceT, BAD_CAST"20110703/20110711") == NULL) {
+      printf("ERROR CalendarElementUpdate()\n");
+    }
+    else if (ScanCalendarElementDate(pceT) == FALSE) {
+      printf("ERROR\n");
+    }
+    else if (pceT->dt0.dt != dt_from_ymd(2011, 7, 3) || pceT->dt1.dt != dt_from_ymd(2011, 7, 11)) {
+      printf("ERROR\n");
+    }
+    else if (CalendarElementUpdate(pceT, BAD_CAST"P0.5Y/2011-03") == NULL) {
+      printf("ERROR CalendarElementUpdate()\n");
+    }
+    else if (ScanCalendarElementDate(pceT) == FALSE) {
+      printf("ERROR\n");
+    }
+    else if (pceT->dt0.dt != dt_from_ymd(2011, 7, 3) || pceT->dt1.dt != dt_from_ymd(2011, 7, 11)) {
+      printf("ERROR\n");
+    }
+    else if (CalendarElementUpdate(pceT, BAD_CAST"2011-W03/P5W") == NULL) {
+      printf("ERROR CalendarElementUpdate()\n");
+    }
+    else if (ScanCalendarElementDate(pceT) == FALSE) {
+      printf("ERROR\n");
+    }
+    else if (pceT->dt0.dt != dt_from_ymd(2011, 7, 3) || pceT->dt1.dt != dt_from_ymd(2011, 7, 11)) {
+      printf("ERROR\n");
+    }
+    else if (CalendarElementUpdate(pceT, BAD_CAST"P3W/2020-W10") == NULL) {
+      printf("ERROR CalendarElementUpdate()\n");
+    }
+    else if (ScanCalendarElementDate(pceT) == FALSE) {
+      printf("ERROR\n");
+    }
+    else if (pceT->dt0.dt != dt_from_ymd(2011, 7, 3) || pceT->dt1.dt != dt_from_ymd(2011, 7, 11)) {
+      printf("ERROR\n");
+    }
+    else if (CalendarElementUpdate(pceT, BAD_CAST"2011-W03/2011-W07") == NULL) {
       printf("ERROR CalendarElementUpdate()\n");
     }
     else if (ScanCalendarElementDate(pceT) == FALSE) {

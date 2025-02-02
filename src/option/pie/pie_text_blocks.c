@@ -62,13 +62,13 @@
       https://ijmacd.github.io/rfc3339-iso8601/
 */
 
-#define RE_DATE_YEAR   "[12][90][0-9][0-9]"
-#define RE_DATE_MONTH  "[01][0-9]"
-#define RE_DATE_DAY_OF_MONTH    "[0123][0-9]"
-#define RE_DATE_ORD      "[0-9]{3}"
-#define RE_DATE_WEEK     "W[0-5][0-9]"
-#define RE_DATE_DAY_OF_WEEK  "[1-7]"
-//#define RE_DATE_QUATER  "-W[0-5]*[0-9](-[1-7])*"
+#define RE_DATE_YEAR          "[12][90][0-9][0-9]"
+#define RE_DATE_MONTH         "[01][0-9]"
+#define RE_DATE_DAY_OF_MONTH  "[0123][0-9]"
+#define RE_DATE_ORD           "[0-9]{3}"
+#define RE_DATE_WEEK          "W[0-5][0-9]"
+#define RE_DATE_DAY_OF_WEEK   "[1-7]"
+//#define RE_DATE_QUATER  "-Q[0-5]*[0-9](-[1-7])*"
 
 #define RE_ISO_DAY \
      "(" RE_DATE_YEAR "-" RE_DATE_MONTH "-" RE_DATE_DAY_OF_MONTH "|"  RE_DATE_YEAR RE_DATE_MONTH RE_DATE_DAY_OF_MONTH \
@@ -76,9 +76,14 @@
      "|" RE_DATE_YEAR "-" RE_DATE_ORD "|" RE_DATE_YEAR RE_DATE_ORD \
      ")"
 
-#define RE_ISO_TIME     "T[012]*[0-9](:*[0-5][0-9]){0,2}([\\,\\.][0-9]{1,10})*" "(((\\+|\\-|" STR_UTF8_MINUS ")[0-9]{1,2}([:\\,\\.]*[0-9]{1,2})*)" "|" "[A-Z]{3}" "|" "Z" ")*"
-
-#define RE_ISO_DAY_TIME  RE_ISO_DAY "(" RE_ISO_TIME ")*"
+#ifdef USE_ISO_TIME
+  #define RE_ISO_TIME     "T[012]*[0-9](:*[0-5][0-9]){0,2}([\\.][0-9]{1,10})*" "(((\\+|\\-|" STR_UTF8_MINUS ")[0-9]{1,2}([:\\.]*[0-9]{1,2})*)" "|" "[A-Z]{3}" "|" "Z" ")*"
+  #define RE_ISO_DAY_TIME  RE_ISO_DAY "(" RE_ISO_TIME ")*"
+  #define RE_ISO_PERIOD    "P([0-9\\.]+[YMDW])*" "(T([0-9\\.]+[HMS])*)*"
+#else
+  #define RE_ISO_DAY_TIME  RE_ISO_DAY
+  #define RE_ISO_PERIOD    "P([0-9\\.]+[YMDW])*"
+#endif
 
 #define RE_ISO_WEEK RE_DATE_YEAR "-*" RE_DATE_WEEK
      
@@ -86,30 +91,12 @@
 
 #define RE_ISO_YEAR RE_DATE_YEAR
 
-// without time suffix
-
 #define RE_ISO_RECURRENCE   "R[0-9]{0,2}"
 
-#define RE_ISO_PERIOD   "P((([0-9\\.\\,]+Y)*([0-9\\.\\,]+M)*([0-9\\.\\,]+D)*)*(T(([0-9\\.\\,]+H)*([0-9\\.\\,]+M)*([0-9\\.\\,]+S)*))*|[0-9]+W)"
-
-#define RE_ISO_8601__ \
-  "(" RE_ISO_DAY_TIME ")" \
-  "|"									\
-  "(" RE_ISO_DAY ")" \
-  "|"									\
-  "(" RE_ISO_WEEK ")" \
-  "|"									\
-  "(" RE_ISO_MONTH ")" \
-  "|"									\
-  "(" RE_ISO_YEAR ")"
-
+/*!\todo define simple sub-set of ISO 8601 (no recurrence ...) */
 
 #define RE_ISO_8601 \
-  "(" RE_ISO_RECURRENCE "/)(" RE_ISO_DAY_TIME ")/(" RE_ISO_DAY_TIME ")/(" RE_ISO_PERIOD ")" \
-  "|"									\
   "(" RE_ISO_RECURRENCE "/)(" RE_ISO_DAY_TIME ")/(" RE_ISO_PERIOD ")" \
-  "|"									\
-  "(" RE_ISO_RECURRENCE "/)(" RE_ISO_PERIOD ")/(" RE_ISO_DAY_TIME ")" \
   "|"									\
   \
   "(" RE_ISO_PERIOD ")/(" RE_ISO_DAY_TIME ")" \
@@ -151,7 +138,7 @@
   "(" RE_ISO_YEAR ")"
 #endif
 
-#ifdef EXPERIMENTAL
+#if 0
 
 #define RE_ISO_OFFSET   "O(([0-9\\.\\,]+Y)*([0-9\\.\\,]+M)*([0-9\\.\\,]+D)*|[0-9\\.\\,]+W)+"
 
@@ -167,19 +154,25 @@
 //#define RE_DATE_GERMAN RE_DATE_DAY_OF_MONTH "\\." RE_DATE_MONTH "\\." RE_DATE_YEAR
 
 #define RE_DATE_EXTENSION \
-  "(" RE_DATE_YEAR ")/(" RE_DATE_YEAR ")" \
+  "(" RE_ISO_RECURRENCE "/)(" RE_ISO_PERIOD ")/(" RE_ISO_DAY_TIME ")/(" RE_ISO_PERIOD ")" \
   "|"									\
-  "(" RE_DATE_YEAR RE_DATE_MONTH RE_DATE_DAY_OF_MONTH "(," RE_DATE_MONTH RE_DATE_DAY_OF_MONTH "|," RE_DATE_DAY_OF_MONTH ")+" ")" \
+  "(" RE_ISO_RECURRENCE "/)(" RE_ISO_DAY_TIME ")/(" RE_ISO_DAY_TIME ")/(" RE_ISO_PERIOD ")" \
+  "|"									\
+  "(" RE_ISO_RECURRENCE ")/(" RE_ISO_DAY_TIME "/)(" RE_ISO_PERIOD ")/(" RE_ISO_PERIOD ")" \
+  "|"									\
+  "(" RE_ISO_RECURRENCE "/)(" RE_ISO_PERIOD ")/(" RE_ISO_DAY_TIME ")" \
+  "|"									\
+  "(" RE_DATE_YEAR ")/(" RE_DATE_YEAR ")" \
   "|"									\
   "(" RE_ISO_DAY "|" RE_DATE_ORD "|" RE_ISO_WEEK ")/(" RE_ISO_OFFSET ")" \
   "|"									\
-  "(" RE_ISO_OFFSET ")/(" RE_ISO_DATE "|" RE_DATE_ORD "|" RE_ISO0_WEEK ")"
+  "(" RE_ISO_OFFSET ")/(" RE_ISO_DAY "|" RE_DATE_ORD "|" RE_ISO_WEEK ")"
 
-#define RE_DATE ("\\b("	RE_ISO_8601 ")\\b")
-// "|" RE_DATE_EXTENSION
+#define RE_DATE ("\\b("	RE_ISO_8601 "|" RE_DATE_EXTENSION ")\\b")
+
 #else
 
-#define RE_DATE ("\\b(" RE_ISO_8601 ")\\b")
+#define RE_DATE ("\\b(" RE_ISO_8601 ")")
 
 #endif
 
@@ -2256,7 +2249,7 @@ SplitStringToDateNodes(const xmlChar *pucArg, RN_MIME_TYPE eMimeTypeArg)
 	    xmlFree(pucT);
 	  }
 
-	  do {
+	  //do {
 	    /*! separate the list of dates if required (ISO compact dates only, neither extended nor time) */
 	    xmlChar* pucSep = NULL;
 	    xmlChar* pucD;
@@ -2290,7 +2283,7 @@ SplitStringToDateNodes(const xmlChar *pucArg, RN_MIME_TYPE eMimeTypeArg)
 	    }
 	    else {
 	    }
-	  } while (StringConcatNextDate(pucDate) != NULL);
+	  //} while (_StringConcatNextDate(pucDate) != NULL);
 	}
 
 	
@@ -2347,7 +2340,7 @@ pieRemoveInvalidsFromTree(xmlNodePtr pndArg)
   if (IS_ENODE(pndArg)) {
     xmlChar *pucV;
     
-    if ((pucV = domGetPropValuePtr(pndArg,BAD_CAST"state")) != NULL && xmlStrEqual(pucV,BAD_CAST"rejected")
+    if (((pucV = domGetPropValuePtr(pndArg,BAD_CAST"state")) != NULL && xmlStrEqual(pucV,BAD_CAST"rejected"))
 	|| domGetPropValuePtr(pndArg,BAD_CAST"hidden") != NULL
 	|| IS_VALID_NODE(pndArg) == FALSE) {
       xmlNodePtr pndRelease = pndArg;

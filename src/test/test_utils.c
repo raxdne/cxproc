@@ -621,20 +621,20 @@ utilsTest(void)
     }
   }
 
-
+#if 0
   if (RUNTEST) {
     i++;
     printf("TEST %i in '%s:%i': ", i, __FILE__, __LINE__);
 
     xmlStrPrintf(buffer, BUFFER_LENGTH, "20091011,17,1122,33");
 
-    if (StringConcatNextDate(buffer) == NULL || xmlStrEqual(buffer, BAD_CAST"20091017,1122,33") == FALSE) {
+    if (_StringConcatNextDate(buffer) == NULL || xmlStrEqual(buffer, BAD_CAST"20091017,1122,33") == FALSE) {
       printf("ERROR\n");
     }
-    else if (StringConcatNextDate(buffer) == NULL || xmlStrEqual(buffer, BAD_CAST"20091122,33") == FALSE) {
+    else if (_StringConcatNextDate(buffer) == NULL || xmlStrEqual(buffer, BAD_CAST"20091122,33") == FALSE) {
       printf("ERROR\n");
     }
-    else if (StringConcatNextDate(buffer) == NULL || xmlStrEqual(buffer, BAD_CAST"20091133") == FALSE) {
+    else if (_StringConcatNextDate(buffer) == NULL || xmlStrEqual(buffer, BAD_CAST"20091133") == FALSE) {
       printf("ERROR\n");
     }
     else {
@@ -649,7 +649,7 @@ utilsTest(void)
 
     xmlStrPrintf(buffer, BUFFER_LENGTH, "20091011,20101011");
 
-    if (xmlStrEqual(StringConcatNextDate(buffer), BAD_CAST"20101011") == FALSE) {
+    if (xmlStrEqual(_StringConcatNextDate(buffer), BAD_CAST"20101011") == FALSE) {
       printf("ERROR\n");
     }
     else {
@@ -664,13 +664,13 @@ utilsTest(void)
 
     xmlStrPrintf(buffer, BUFFER_LENGTH, "20121015,20130613,0701,05");
 
-    if (xmlStrEqual(StringConcatNextDate(buffer), BAD_CAST"20130613,0701,05") == FALSE) {
+    if (xmlStrEqual(_StringConcatNextDate(buffer), BAD_CAST"20130613,0701,05") == FALSE) {
       printf("ERROR\n");
     }
-    else if (xmlStrEqual(StringConcatNextDate(buffer), BAD_CAST"20130701,05") == FALSE) {
+    else if (xmlStrEqual(_StringConcatNextDate(buffer), BAD_CAST"20130701,05") == FALSE) {
       printf("ERROR\n");
     }
-    else if (xmlStrEqual(StringConcatNextDate(buffer), BAD_CAST"20130705") == FALSE) {
+    else if (xmlStrEqual(_StringConcatNextDate(buffer), BAD_CAST"20130705") == FALSE) {
       printf("ERROR\n");
     }
     else {
@@ -685,7 +685,7 @@ utilsTest(void)
 
     xmlStrPrintf(buffer, BUFFER_LENGTH, "20121208,201306");
 
-    if (StringConcatNextDate(buffer) != NULL) {
+    if (_StringConcatNextDate(buffer) != NULL) {
       printf("ERROR\n");
     }
     else {
@@ -700,10 +700,10 @@ utilsTest(void)
 
     xmlStrPrintf(buffer, BUFFER_LENGTH, "20091011,1112,");
 
-    if (xmlStrEqual(StringConcatNextDate(buffer), BAD_CAST"20091112,") == FALSE) {
+    if (xmlStrEqual(_StringConcatNextDate(buffer), BAD_CAST"20091112,") == FALSE) {
       printf("ERROR\n");
     }
-    else if (StringConcatNextDate(buffer) != NULL) {
+    else if (_StringConcatNextDate(buffer) != NULL) {
       printf("ERROR\n");
     }
     else {
@@ -711,6 +711,8 @@ utilsTest(void)
       printf("OK\n");
     }
   }
+#endif
+
 
   /* ISO 8601 Decimal values */
   
@@ -720,20 +722,20 @@ utilsTest(void)
     i++;
     printf("TEST %i in '%s:%i': ",i,__FILE__,__LINE__);
 
-    if (dt_parse_iso_strtod(NULL, 20, NULL) != 0) {
-      printf("ERROR 1 dt_parse_iso_strtod()\n");
+    if (_dt_parse_iso_strtod(NULL, 20, NULL) != 0) {
+      printf("ERROR 1 _dt_parse_iso_strtod()\n");
     }
-    else if (abs(dt_parse_iso_strtod("T10 ", 4, &s) - 10.0) > DBL_EPSILON) {
-      printf("ERROR 2 dt_parse_iso_strtod()\n");
+    else if (fabs(_dt_parse_iso_strtod("T10 ", 4, &s) - 10.0) > DBL_EPSILON) {
+      printf("ERROR 2 _dt_parse_iso_strtod()\n");
     }
-    else if (abs(dt_parse_iso_strtod("0,25Z ", 5, &s) - 0.25) > DBL_EPSILON) {
-      printf("ERROR 2 dt_parse_iso_strtod()\n");
+    else if (fabs(_dt_parse_iso_strtod("0.25Z ", 5, &s) - 0.25) > DBL_EPSILON) {
+      printf("ERROR 2 _dt_parse_iso_strtod()\n");
     }
-    else if (abs(dt_parse_iso_strtod("T12.75", 6, &s) - 12.75) > DBL_EPSILON) {
-      printf("ERROR 2 dt_parse_iso_strtod()\n");
+    else if (fabs(_dt_parse_iso_strtod("T12.75", 6, &s) - 12.75) > DBL_EPSILON) {
+      printf("ERROR 2 _dt_parse_iso_strtod()\n");
     }
-    else if (abs(dt_parse_iso_strtod("T12:15:00", 9, &s) - 12.0) > DBL_EPSILON) {
-      printf("ERROR 2 dt_parse_iso_strtod()\n");
+    else if (fabs(_dt_parse_iso_strtod("T12:15:00", 9, &s) - 12.0) > DBL_EPSILON) {
+      printf("ERROR 2 _dt_parse_iso_strtod()\n");
     }
     else {
       n_ok++;
@@ -758,7 +760,7 @@ utilsTest(void)
     else if (s != 36000) {
       printf("ERROR 4 dt_parse_iso_hours_decimal()\n");
     }
-    else if (dt_parse_iso_hours_decimal("0,25Z", 4, &s) != 4) {
+    else if (dt_parse_iso_hours_decimal("0.25Z", 4, &s) != 4) {
       printf("ERROR 5 dt_parse_iso_hours_decimal()\n");
     }
     else if (s != 900) {
@@ -802,31 +804,31 @@ utilsTest(void)
     else if (dt_parse_iso_period("P1Y2M-4DT", 20, &y, &m, &d, NULL, NULL, NULL, NULL) != 9) {
       printf("ERROR 2 dt_parse_iso_period()\n");
     }
-    else if (abs(y - 1.0f) > DBL_EPSILON || abs(m - 2.0f) > DBL_EPSILON || abs(d + 4.0f) > DBL_EPSILON || h > DBL_EPSILON || mi > DBL_EPSILON || s > DBL_EPSILON) {
+    else if (fabs(y - 1.0f) > DBL_EPSILON || fabs(m - 2.0f) > DBL_EPSILON || fabs(d + 4.0f) > DBL_EPSILON || h > DBL_EPSILON || mi > DBL_EPSILON || s > DBL_EPSILON) {
       printf("ERROR 6 dt_parse_iso_period()\n");
     }
     else if (dt_parse_iso_period("P3Y6M4DT12H30M5S", BUFFER_LENGTH, &y, &m, &d, NULL, &h, &mi, &s) != 16) {
       printf("ERROR 3 dt_parse_iso_period()\n");
     }
-    else if (abs(y - 3.0f) > DBL_EPSILON || abs(m - 6.0f) > DBL_EPSILON || abs(d - 4.0f) > DBL_EPSILON || abs(h - 12.0f) > DBL_EPSILON || abs(mi - 30.0f) > DBL_EPSILON || abs(s - 5.0f) > DBL_EPSILON) {
+    else if (fabs(y - 3.0f) > DBL_EPSILON || fabs(m - 6.0f) > DBL_EPSILON || fabs(d - 4.0f) > DBL_EPSILON || fabs(h - 12.0f) > DBL_EPSILON || fabs(mi - 30.0f) > DBL_EPSILON || fabs(s - 5.0f) > DBL_EPSILON) {
       printf("ERROR 4 dt_parse_iso_period()\n");
     }
     else if (dt_parse_iso_period("PT30M", BUFFER_LENGTH, &y, &m, &d, NULL, &h, &mi, &s) != 5) {
       printf("ERROR 5 dt_parse_iso_period()\n");
     }
-    else if (y > DBL_EPSILON || m > DBL_EPSILON || d > DBL_EPSILON || h > DBL_EPSILON || abs(mi - 30.0f) > DBL_EPSILON || s > DBL_EPSILON) {
+    else if (y > DBL_EPSILON || m > DBL_EPSILON || d > DBL_EPSILON || h > DBL_EPSILON || fabs(mi - 30.0f) > DBL_EPSILON || s > DBL_EPSILON) {
       printf("ERROR 6 dt_parse_iso_period()\n");
     }
     else if (dt_parse_iso_period("P7Y", BUFFER_LENGTH, &y, &m, &d, NULL, &h, &mi, &s) != 3) {
       printf("ERROR 7 dt_parse_iso_period()\n");
     }
-    else if (abs(y - 7.0f) > DBL_EPSILON || m > DBL_EPSILON || d > DBL_EPSILON || h > DBL_EPSILON || mi > DBL_EPSILON || s > DBL_EPSILON) {
+    else if (fabs(y - 7.0f) > DBL_EPSILON || m > DBL_EPSILON || d > DBL_EPSILON || h > DBL_EPSILON || mi > DBL_EPSILON || s > DBL_EPSILON) {
       printf("ERROR 6 dt_parse_iso_period()\n");
     }
     else if (dt_parse_iso_period("P-2W", BUFFER_LENGTH, &y, &m, &d, &w, &h, &mi, &s) != 4) {
       printf("ERROR 9 dt_parse_iso_period()\n");
     }
-    else if (y > DBL_EPSILON || m > DBL_EPSILON || d > DBL_EPSILON || abs(w + 2.0f) > DBL_EPSILON || h > DBL_EPSILON || mi > DBL_EPSILON || s > DBL_EPSILON) {
+    else if (y > DBL_EPSILON || m > DBL_EPSILON || d > DBL_EPSILON || fabs(w + 2.0f) > DBL_EPSILON || h > DBL_EPSILON || mi > DBL_EPSILON || s > DBL_EPSILON) {
       printf("ERROR 6 dt_parse_iso_period()\n");
     }
     else {
