@@ -424,8 +424,10 @@ FormatCalendarElementDateStr(ceElementPtr pceArg)
 
   check "doc/ISO 8601.mm"
 
+\todo reorder if's, starting with YYYY
+
 \param pceArgResult
-\return NULL in case of error, else pointer to xmlChar after date expression string
+\return false in case of error
  */
 BOOL_T
 ScanCalendarElementDate(ceElementPtr pceArgResult)
@@ -444,8 +446,8 @@ ScanCalendarElementDate(ceElementPtr pceArgResult)
       size_t n = 0;
       int r;
       int ss;
-      int iYear, iMonth, iWeek, iDay, iHour, iMinute, iSecond;
-      int iYear1, iMonth1, iWeek1, iDay1, iHour1, iMinute1, iSecond1;
+      int iYear, iMonth, iWeek, iQuarter, iDay, iHour, iMinute, iSecond;
+      int iYear1, iMonth1, iWeek1, iQuarter1, iDay1, iHour1, iMinute1, iSecond1;
       double dYear, dMonth, dDay, dWeek, dHour, dMinute, dSecond;
       
       if (isdigit(pucT[0]) && isdigit(pucT[1]) && isdigit(pucT[2]) && isdigit(pucT[3])
@@ -455,21 +457,51 @@ ScanCalendarElementDate(ceElementPtr pceArgResult)
 	/* system time "1311186519" */
 	unsigned long iT;
 	time_t tT;
+	struct tm *tm_struct;
 
 	pucT = xmlStrndup(pucT, 10);
-	iT = strtoul((const char*)pucT, NULL, 10);
+        /* ignoring millisecs */
+	iT = strtoul((const char *)pucT, NULL, 10);
 	xmlFree(pucT);
 
 	tT = (time_t)iT;
-	pceArgResult->dt0.dt = dt_from_struct_tm(localtime((const time_t*)(&tT)));
-	pceArgResult->dt1.dt = pceArgResult->dt0.dt;
-#if 0
-	for (n=10; isdigit(pceArgResult->pucSep[n]); n++) {
-	  /* skip chars of millisecs */
-	}
+	tm_struct = localtime((const time_t *)(&tT));
+
+	pceArgResult->dt0.dt = dt_from_struct_tm(tm_struct);
+#ifdef USE_ISO_TIME
+	pceArgResult->dt0.iSec = tm_struct->tm_hour * 3600 + tm_struct->tm_min * 60 + tm_struct->tm_sec;
 #endif
 	n += 10;
-	fResult = TRUE;
+      }
+      else if (isdigit(pucT[0]) && isdigit(pucT[1]) && pucT[2] == '.'
+       && isdigit(pucT[3]) && isdigit(pucT[4]) && pucT[5] == '.'
+       && isdigit(pucT[6]) && isdigit(pucT[7]) && isdigit(pucT[8]) && isdigit(pucT[9]) && ! isdigit(pucT[10])) {
+
+	/* german date format 'DD.MM.YYYY' */
+
+	iDay = 10 * (pucT[n] - '0') + (pucT[n + 1] - '0');
+	if (iDay > 0 && iDay < 32) {
+	  n += 3;
+	  iMonth = 10 * (pucT[n] - '0') + (pucT[n + 1] - '0');
+	  if (iMonth > 0 && iMonth < 13) {
+	    n += 3;
+	    iYear = 1000 * (pucT[n] - '0') + 100 * (pucT[n + 1] - '0') + 10 * (pucT[n + 2] - '0') + (pucT[n + 3] - '0');
+	    if (iYear > -1 && iYear < 2999) {
+	      n += 4;
+	      pceArgResult->dt0.dt = dt_from_ymd(iYear, iMonth, iDay);
+	      /* neither period nor recurrance */
+	    }
+	    else {
+	      n = 0;
+	    }
+	  }
+	  else {
+	    n = 0;
+	  }
+	}
+	else {
+	  n = 0;
+	}
       }
       else if ((j = dt_parse_iso_recurrence((const char *)pucT, xmlStrlen(pucT), &r)) > 0) {
 	/* recurrence/ */
@@ -885,6 +917,51 @@ ScanCalendarElementDate(ceElementPtr pceArgResult)
 	      else {
 		pceArgResult->dt0.dt = dt_from_ywd(iYear, iWeek, 1);
 		pceArgResult->dt1.dt = dt_end_of_week(pceArgResult->dt0.dt, DT_MON);
+	      }
+	    }
+	    else {
+	      n = 0;
+	    }
+	  }
+	  else if (pucT[n] == 'Q' && isdigit(pucT[n + 1]) && !isdigit(pucT[n + 2])) {
+	    /* ISO 8601 YYYYQn */
+	    iQuarter = (pucT[n + 1] - '0');
+	    if (iQuarter > 0 && iQuarter < 5) {
+	      n += 2;
+
+	      if (pucT[n] == '/') {
+		n++;
+		/* YYYYQn/ */
+
+		if (isdigit(pucT[n]) && isdigit(pucT[n + 1]) && isdigit(pucT[n + 2]) && isdigit(pucT[n + 3]) && pucT[n + 4] == 'Q' &&
+			 isdigit(pucT[n + 5]) && !isdigit(pucT[n + 6])) {
+		  /* YYYYQn/YYYYQm */
+
+		  iYear1 = 1000 * (pucT[n] - '0') + 100 * (pucT[n + 1] - '0') + 10 * (pucT[n + 2] - '0') + (pucT[n + 3] - '0');
+		  if (iYear1 > -1 && iYear1 < 2999) {
+		    n += 4;
+
+		    iQuarter1 = (pucT[n + 1] - '0');
+		    if (iQuarter1 > 0 && iQuarter1 < 5) {
+		      n += 2;
+		      pceArgResult->dt0.dt = dt_from_ymd(iYear, ((iQuarter - 1) * 3) + 1, 1);
+		      pceArgResult->dt1.dt = dt_from_ymd(iYear1, (iQuarter1 * 3) + 1, 0);
+		    }
+		    else {
+		      n = 0;
+		    }
+		  }
+		  else {
+		    n = 0;
+		  }
+		}
+		else {
+		  n = 0;
+		}
+	      }
+	      else {
+		pceArgResult->dt0.dt = dt_from_ymd(iYear, ((iQuarter - 1) * 3) + 1, 1);
+		pceArgResult->dt1.dt = dt_from_ymd(iYear, (iQuarter * 3) + 1, 0);
 	      }
 	    }
 	    else {

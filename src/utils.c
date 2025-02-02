@@ -2247,6 +2247,7 @@ isiso8601(xmlChar c)
     case '/':
     case 'Y':
     case 'M':
+    case 'Q':
     case 'D':
     case 'T':
     case 'H':

@@ -56,19 +56,20 @@
 
 /*
 */
-#define RE_SCRIPT "SCRIPT=\\\"([^\\\"]+)\\\""
+#define RE_SCRIPT "\\bSCRIPT=\\\"([^\\\"]+)\\\""
 
 /*! s https://en.wikipedia.org/wiki/ISO_8601
       https://ijmacd.github.io/rfc3339-iso8601/
 */
 
-#define RE_DATE_YEAR          "[12][90][0-9][0-9]"
+#define RE_DATE_YEAR          "[12][09][0-9][0-9]"
 #define RE_DATE_MONTH         "[01][0-9]"
+#define RE_DATE_QUATER        "-Q[1-4]"
 #define RE_DATE_DAY_OF_MONTH  "[0123][0-9]"
 #define RE_DATE_ORD           "[0-9]{3}"
 #define RE_DATE_WEEK          "W[0-5][0-9]"
 #define RE_DATE_DAY_OF_WEEK   "[1-7]"
-//#define RE_DATE_QUATER  "-Q[0-5]*[0-9](-[1-7])*"
+#define RE_DATE_UNIX          "[0-9]{10}"
 
 #define RE_ISO_DAY \
      "(" RE_DATE_YEAR "-" RE_DATE_MONTH "-" RE_DATE_DAY_OF_MONTH "|"  RE_DATE_YEAR RE_DATE_MONTH RE_DATE_DAY_OF_MONTH \
@@ -90,6 +91,8 @@
 #define RE_ISO_MONTH RE_DATE_YEAR "-*" RE_DATE_MONTH
 
 #define RE_ISO_YEAR RE_DATE_YEAR
+
+#define RE_ISO_QUATER RE_DATE_YEAR RE_DATE_QUATER
 
 #define RE_ISO_RECURRENCE   "R[0-9]{0,2}"
 
@@ -118,6 +121,11 @@
   "(" RE_ISO_MONTH ")/(" RE_ISO_PERIOD ")" \
   "|"									\
   "(" RE_ISO_PERIOD ")/(" RE_ISO_MONTH ")" \
+  "|"									\
+  \
+  "(" RE_ISO_QUATER ")/(" RE_ISO_QUATER ")" \
+  "|"									\
+  "(" RE_ISO_QUATER ")" \
   "|"									\
   \
   "(" RE_ISO_YEAR ")/(" RE_ISO_YEAR ")" \
@@ -151,7 +159,7 @@
 
 // every last day of a month
 
-//#define RE_DATE_GERMAN RE_DATE_DAY_OF_MONTH "\\." RE_DATE_MONTH "\\." RE_DATE_YEAR
+#define RE_DATE_GERMAN RE_DATE_DAY_OF_MONTH "\\." RE_DATE_MONTH "\\." RE_DATE_YEAR
 
 #define RE_DATE_EXTENSION \
   "(" RE_ISO_RECURRENCE "/)(" RE_ISO_PERIOD ")/(" RE_ISO_DAY_TIME ")/(" RE_ISO_PERIOD ")" \
@@ -162,13 +170,11 @@
   "|"									\
   "(" RE_ISO_RECURRENCE "/)(" RE_ISO_PERIOD ")/(" RE_ISO_DAY_TIME ")" \
   "|"									\
-  "(" RE_DATE_YEAR ")/(" RE_DATE_YEAR ")" \
-  "|"									\
   "(" RE_ISO_DAY "|" RE_DATE_ORD "|" RE_ISO_WEEK ")/(" RE_ISO_OFFSET ")" \
   "|"									\
   "(" RE_ISO_OFFSET ")/(" RE_ISO_DAY "|" RE_DATE_ORD "|" RE_ISO_WEEK ")"
 
-#define RE_DATE ("\\b("	RE_ISO_8601 "|" RE_DATE_EXTENSION ")\\b")
+#define RE_DATE ("\\b("	RE_ISO_8601 "|" RE_DATE_EXTENSION "|" RE_DATE_GERMAN "|" RE_DATE_UNIX ")\\b")
 
 #else
 

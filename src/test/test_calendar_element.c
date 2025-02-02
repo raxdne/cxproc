@@ -441,6 +441,15 @@ ceTest(void)
     else if (pceT->dt0.dt != dt_from_ymd(2011, 1, 1) || pceT->dt1.dt != dt_from_ymd(2013, 12, 31)) {
       printf("ERROR\n");
     }
+    else if (CalendarElementUpdate(pceT, BAD_CAST"2010-Q2/2010-Q3") == NULL) {
+      printf("ERROR CalendarElementUpdate()\n");
+    }
+    else if (ScanCalendarElementDate(pceT) == FALSE) {
+      printf("ERROR\n");
+    }
+    else if (pceT->dt0.dt != dt_from_ymd(2010, 4, 1) || pceT->dt1.dt != dt_from_ymd(2010, 9, 30)) {
+      printf("ERROR\n");
+    }
     else if (CalendarElementUpdate(pceT, BAD_CAST"P3Y1D/2011") == NULL) {
       printf("ERROR CalendarElementUpdate()\n");
     }
