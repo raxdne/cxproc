@@ -648,10 +648,10 @@ ImportNodeCxp(xmlNodePtr pndArgImport, cxpContextPtr pccArg)
 	    xmlUnlinkNode(pndPieProcRoot);
 	    xmlNodeSetName(pndPieProcRoot, BAD_CAST NAME_PIE_BLOCK);
 	    xmlSetNs(pndPieProcRoot,NULL);
-	    ProcessImportOptions(pndPieProcRoot,pndPieRoot, pccArg); /* detect urls, substs etc. */
 	    RecognizeIncludes(pndPieProcRoot);
 	    TraverseIncludeNodes(pndPieProcRoot, pccArg);
 	    RecognizeImports(pndPieProcRoot);
+	    ProcessImportOptions(pndPieProcRoot,pndPieRoot, pccArg); /* detect urls, substs etc. */
 	    xmlReplaceNode(pndArgImport, pndPieProcRoot);
 	    xmlFreeNode(pndArgImport);
 	    TraverseImportNodes(pndPieProcRoot, pccArg); /* parse result recursively */
@@ -684,11 +684,11 @@ ImportNodeCxp(xmlNodePtr pndArgImport, cxpContextPtr pccArg)
       //xmlSetProp(pndArgImport, BAD_CAST "context", resNodeGetURI(prnInput));
 
       if (ParsePlainBuffer(pndArgImport, pucContent, eParseMode) != NULL) {
-	ProcessImportOptions(pndArgImport,pndChild, pccArg); /* detect urls, substs etc. */
 	RecognizeIncludes(pndArgImport);
 	TraverseIncludeNodes(pndArgImport, pccArg);
 	ProcessPieNodeOptions(pndArgImport, pndChild, pccArg); /* build sub-structures for task, fig etc. */
 	RecognizeImports(pndArgImport);
+	ProcessImportOptions(pndArgImport,pndChild, pccArg); /* detect urls, substs etc. */
 	TraverseImportNodes(pndArgImport, pccArg); /* parse result recursively */
       }
       else {
@@ -897,12 +897,12 @@ ImportNodeFile(xmlNodePtr pndArgImport, cxpContextPtr pccArg)
 	  }
 
 	  if (ParsePlainBuffer(pndArgImport, pucContent, m)) {
-	    ProcessImportOptions(pndArgImport, pndArgImport, pccArg); /* detect urls, substs etc. */
 	    RecognizeIncludes(pndArgImport);
 	    TraverseIncludeNodes(pndArgImport, pccInput);
 	    //ProcessPieNodeOptions(pndArgImport, pndArgImport, pccArg);
 	    RecognizeScripts(pndArgImport);
 	    RecognizeImports(pndArgImport);
+	    ProcessImportOptions(pndArgImport, pndArgImport, pccArg); /* detect urls, substs etc. */
 	    TraverseImportNodes(pndArgImport, pccInput); /* parse result recursively */
 	  }
 	  else {
@@ -960,11 +960,11 @@ ImportNodeFile(xmlNodePtr pndArgImport, cxpContextPtr pccArg)
 	    xmlAddChildList(pndArgImport, pndT);
 	  }
 	  xmlFreeDoc(pdocPie);
-	  ProcessImportOptions(pndArgImport,pndArgImport,pccArg); /* detect urls, substs etc. */
 	  RecognizeIncludes(pndArgImport);
 	  TraverseIncludeNodes(pndArgImport, pccInput);
 	  ProcessPieNodeOptions(pndArgImport, pndArgImport, pccArg); /* build sub-structures for task, fig etc. */
 	  RecognizeImports(pndArgImport);
+	  ProcessImportOptions(pndArgImport,pndArgImport,pccArg); /* detect urls, substs etc. */
 	  TraverseImportNodes(pndArgImport, pccInput); /* parse result recursively */
 	}
 	else {
@@ -1036,11 +1036,11 @@ ImportNodeContent(xmlNodePtr pndArgImport, cxpContextPtr pccArg)
     if (IS_NODE_STRUCT(pndArgImport->parent)) {
       /* resulting tree must be inserted */
       if (ParsePlainBuffer(pndArgImport, pucContent, GetModeByAttr(pndArgImport))) {
-	ProcessImportOptions(pndArgImport, pndArgImport, pccArg); /* detect urls, substs etc. */
 	RecognizeIncludes(pndArgImport);
 	TraverseIncludeNodes(pndArgImport, pccArg);
 	ProcessPieNodeOptions(pndArgImport, pndArgImport, pccArg); /* build sub-structures for task, fig etc. */
 	RecognizeImports(pndArgImport);
+	ProcessImportOptions(pndArgImport, pndArgImport, pccArg); /* detect urls, substs etc. */
 	TraverseImportNodes(pndArgImport, pccArg); /* parse result recursively */
       }
       else {
