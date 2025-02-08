@@ -461,7 +461,7 @@ zipDocumentRead(resNodePtr prnArgZip, int iArgOptions)
 	  resNodeResetMimeType(prnInZip);
 	}
 
-	if (IS_OPTION_CONTENT(iArgOptions) && (IS_OPTION_XML(iArgOptions) && resMimeIsXml(resNodeGetMimeType(prnInZip)) == FALSE)) {
+	if (IS_OPTION_CONTENT(iArgOptions) == FALSE) {
 	  PrintFormatLog(3, "skip content zip[%i] '%s'", i, sb.name);
 	}
 	else if (sb.size > 1e7 || sum > 1e8) {
