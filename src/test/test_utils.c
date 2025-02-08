@@ -772,6 +772,9 @@ utilsTest(void)
     else if (s != 45900) {
       printf("ERROR 8 dt_parse_iso_hours_decimal()\n");
     }
+    else if (dt_parse_iso_hours_decimal("0,25Z", 4, &s) != 0) {
+      printf("ERROR 5 dt_parse_iso_hours_decimal()\n");
+    }
     else if (dt_parse_iso_hours_decimal("T12:15", 5, &s) != 0) {
       printf("ERROR 7 dt_parse_iso_hours_decimal()\n");
     }
@@ -810,8 +813,12 @@ utilsTest(void)
     else if (dt_parse_iso_period("P3Y6M4DT12H30M5S", BUFFER_LENGTH, &y, &m, &d, NULL, &h, &mi, &s) != 16) {
       printf("ERROR 3 dt_parse_iso_period()\n");
     }
-    else if (fabs(y - 3.0f) > DBL_EPSILON || fabs(m - 6.0f) > DBL_EPSILON || fabs(d - 4.0f) > DBL_EPSILON || fabs(h - 12.0f) > DBL_EPSILON || fabs(mi - 30.0f) > DBL_EPSILON || fabs(s - 5.0f) > DBL_EPSILON) {
+    else if (fabs(y - 3.0f) > DBL_EPSILON || fabs(m - 6.0f) > DBL_EPSILON || fabs(d - 4.0f) > DBL_EPSILON) {
       printf("ERROR 4 dt_parse_iso_period()\n");
+    }
+#ifdef USE_ISO_TIME
+    else if (fabs(h - 12.0f) > DBL_EPSILON || fabs(mi - 30.0f) > DBL_EPSILON || fabs(s - 5.0f) > DBL_EPSILON) {
+      printf("ERROR 4b dt_parse_iso_period()\n");
     }
     else if (dt_parse_iso_period("PT30M", BUFFER_LENGTH, &y, &m, &d, NULL, &h, &mi, &s) != 5) {
       printf("ERROR 5 dt_parse_iso_period()\n");
@@ -819,6 +826,7 @@ utilsTest(void)
     else if (y > DBL_EPSILON || m > DBL_EPSILON || d > DBL_EPSILON || h > DBL_EPSILON || fabs(mi - 30.0f) > DBL_EPSILON || s > DBL_EPSILON) {
       printf("ERROR 6 dt_parse_iso_period()\n");
     }
+#endif
     else if (dt_parse_iso_period("P7Y", BUFFER_LENGTH, &y, &m, &d, NULL, &h, &mi, &s) != 3) {
       printf("ERROR 7 dt_parse_iso_period()\n");
     }
@@ -874,6 +882,7 @@ utilsTest(void)
   }
 
 
+#ifdef USE_ISO_TIME
   /* ISO 8601 combined 
   
   https://en.wikipedia.org/wiki/Time_zone#List_of_UTC_offsets
@@ -915,6 +924,7 @@ utilsTest(void)
       printf("OK\n");
     }
   }
+#endif
 
 
   if (RUNTEST) {

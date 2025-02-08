@@ -2420,7 +2420,6 @@ _dt_parse_iso_strtod(const char *str, size_t len, char **str1)
  *  Basic
  *  T12
  *  T12.5
- *  T12,5
  *
  *  The time designator [T] may be omitted.
  */
@@ -2428,13 +2427,17 @@ _dt_parse_iso_strtod(const char *str, size_t len, char **str1)
 size_t
 dt_parse_iso_hours_decimal(const char *str, size_t len, int *sod)
 {
+  if (str != NULL && *str != '\0' && len > 0) {
+   double dT = 0.0;
+   char *pcI = str;
+    char *pcII;
 
-  if (str) {
-    char *estr;
-    double dT;
+    if (*pcI == 'T') {
+      pcI++;
+    }
 
-    dT = strtod(str, &estr);
-    if (*estr == ':') {
+    dT = strtod(pcI, &pcII);
+    if (*pcII == ':') {
       /* not a decimal value */
     }
     else if (dT < DBL_EPSILON || dT > 24.0f - DBL_EPSILON) {
@@ -2443,7 +2446,7 @@ dt_parse_iso_hours_decimal(const char *str, size_t len, int *sod)
     else {
       size_t n;
 
-      n = (estr - str);
+      n = (pcII - str);
       if (n > 0) {
 	if (sod != NULL) {
 	  *sod = (int)(dT * 3600.0f);
@@ -2469,7 +2472,6 @@ dt_parse_iso_date_time_zone(const char* str, size_t len, dt_t *dtp, int *sp) {
     if ((j = dt_parse_iso_date(&p[n], len, dtp)) > 3) {
       n += j;
 
-#ifdef USE_ISO_TIME
       if (p[n] == 'T') {
 	int s;
 
@@ -2509,6 +2511,7 @@ dt_parse_iso_date_time_zone(const char* str, size_t len, dt_t *dtp, int *sp) {
 	    o = localtime_offset();
 	  }
 	  
+#ifdef USE_ISO_TIME
 	  t -= o;
 
 	  if (t < 0) {
@@ -2522,9 +2525,9 @@ dt_parse_iso_date_time_zone(const char* str, size_t len, dt_t *dtp, int *sp) {
 	  else {
 	    *sp = t;
 	  }
+#endif
 	}
       }
-#endif
     }
   }
 
@@ -2565,7 +2568,7 @@ dt_parse_iso_period(const char* str, size_t len, double* yp, double* mp, double*
     char* p;
     bool v, t;
 
-    for (p = (char *)str + 1, v = (*p != '\0'), t = FALSE, i = 0.0f, y = m = d = w = h = mi = s = 0.0f; *p != '\0' && v; p++) {
+    for (p = (char *)str + 1, v = (*p != '\0'), t = FALSE, y = m = d = w = h = mi = s = 0.0f; *p != '\0' && v; p++) {
       char *p1;
 
       if ((n = p - str) < len) {
@@ -2600,11 +2603,10 @@ dt_parse_iso_period(const char* str, size_t len, double* yp, double* mp, double*
       }
 
       if (t) {
-#ifdef USE_ISO_TIME
 	/*! time parsing */
 
 	if (*p == 'H') {
-	  if (h < 1) {
+	  if (fabs(h) < DBL_EPSILON) {
 	    h = i;
 	  }
 	  else {
@@ -2612,7 +2614,7 @@ dt_parse_iso_period(const char* str, size_t len, double* yp, double* mp, double*
 	  }
 	}
 	else if (*p == 'M') {
-	  if (mi < 1) {
+	  if (fabs(mi) < DBL_EPSILON) {
 	    mi = i;
 	  }
 	  else {
@@ -2620,7 +2622,7 @@ dt_parse_iso_period(const char* str, size_t len, double* yp, double* mp, double*
 	  }
 	}
 	else if (*p == 'S') {
-	  if (s < 1) {
+	  if (fabs(s) < DBL_EPSILON) {
 	    s = i;
 	  }
 	  else {
@@ -2632,11 +2634,10 @@ dt_parse_iso_period(const char* str, size_t len, double* yp, double* mp, double*
 	    v = false;
 	  break;
 	}
-#endif
       }
       else { /* date parsing only */
 	if (*p == 'W') {
-	  if (w < 1 && d < 1) {
+	  if (fabs(w) < DBL_EPSILON) {
 	    w = i;
 	  }
 	  else {
@@ -2644,7 +2645,7 @@ dt_parse_iso_period(const char* str, size_t len, double* yp, double* mp, double*
 	  }
 	}
 	else if (*p == 'Y') {
-	  if (y < 1 && m < 1 && d < 1) {
+	  if (fabs(y) < DBL_EPSILON) {
 	    y = i;
 	  }
 	  else {
@@ -2652,7 +2653,7 @@ dt_parse_iso_period(const char* str, size_t len, double* yp, double* mp, double*
 	  }
 	}
 	else if (*p == 'M') {
-	  if (m < 1 && d < 1) {
+	  if (fabs(m) < DBL_EPSILON) {
 	    m = i;
 	  }
 	  else {
@@ -2660,7 +2661,7 @@ dt_parse_iso_period(const char* str, size_t len, double* yp, double* mp, double*
 	  }
 	}
 	else if (*p == 'D') {
-	  if (d < 1) {
+	  if (fabs(d) < DBL_EPSILON) {
 	    d = i;
 	  }
 	  else {
@@ -2669,7 +2670,7 @@ dt_parse_iso_period(const char* str, size_t len, double* yp, double* mp, double*
 	}
 	else {
 	  /* end of period string */
-	    v = false;
+	  v = false;
 	  break;
 	}
       }

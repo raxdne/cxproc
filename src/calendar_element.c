@@ -226,6 +226,10 @@ CalendarElementReset(ceElementPtr pceArg)
       pceArg->pucIntern = NULL;
     }
     
+    if (pceArg->pucFormatted) {
+      xmlFree(pceArg->pucFormatted);
+      pceArg->pucFormatted = NULL;
+    }
     //memset(pceArg, 0, sizeof(ceElementType));
 
     pceArg->dt0.dt = 0;
@@ -292,7 +296,9 @@ PrintCalendarElement(ceElementPtr pceArg)
     PrintFormatLog(1, "Calendar element: %s/%s=%s, begin=%lu, end=%lu, repeat=%.1f",
       pceArg->pndEntry->parent->name,
       pceArg->pndEntry->name,
+      pceArg->pucIntern,
       pceArg->pucDate,
+      pceArg->pucFormatted,
       pceArg->dt0.dt,
       pceArg->dt1.dt,
       pceArg->iRecurrence);
@@ -316,7 +322,7 @@ SplitCalendarElementRecurrences(ceElementPtr pceArg)
 {
   ceElementPtr pceResult = NULL;
 
-  if (pceArg != NULL && pceArg->pNext == NULL && pceArg->iRecurrence > 0) {
+  if (pceArg != NULL && pceArg->pNext == NULL && (pceArg->dt0.dt > 0 || pceArg->dt1.dt > 0) && pceArg->iRecurrence > 0) {
     int o = 0;
     ceElementPtr pceI;
 
@@ -388,32 +394,40 @@ SplitCalendarElementRecurrences(ceElementPtr pceArg)
 xmlChar*
 FormatCalendarElementDateStr(ceElementPtr pceArg)
 {
-  xmlChar* pucResult = NULL;
+  xmlChar *pucResult = NULL;
 
   if (pceArg) {
+    int l = 0;
     xmlChar mpucT[BUFFER_LENGTH];
 
-    if (pceArg->dt0.iSec > 0) {
-      xmlStrPrintf(mpucT, BUFFER_LENGTH, "%04i-%02i-%02iT%02i:%02i:%02iZ",
-		   dt_year(pceArg->dt0.dt),
-		   dt_month(pceArg->dt0.dt),
-		   dt_dom(pceArg->dt0.dt),
-		   pceArg->dt0.iSec / 3600,
-		   (pceArg->dt0.iSec % 3600) / 60,
-		   pceArg->dt0.iSec % 60);
+    xmlFree(pceArg->pucFormatted);
+
+    if (pceArg->dt0.dt > 0) {
+      if (pceArg->dt0.iSec > 0) {
+	l = xmlStrPrintf(mpucT, BUFFER_LENGTH, "%04i-%02i-%02iT%02i:%02i:%02iZ", dt_year(pceArg->dt0.dt), dt_month(pceArg->dt0.dt), dt_dom(pceArg->dt0.dt),
+			 pceArg->dt0.iSec / 3600, (pceArg->dt0.iSec % 3600) / 60, pceArg->dt0.iSec % 60);
+      }
+      else {
+	l = xmlStrPrintf(mpucT, BUFFER_LENGTH, "%04i-%02i-%02i", dt_year(pceArg->dt0.dt), dt_month(pceArg->dt0.dt), dt_dom(pceArg->dt0.dt));
+      }
     }
-    else {
-      xmlStrPrintf(mpucT, BUFFER_LENGTH, "%04i-%02i-%02i",
-		   dt_year(pceArg->dt0.dt),
-		   dt_month(pceArg->dt0.dt),
-		   dt_dom(pceArg->dt0.dt));
+
+    if (pceArg->dt1.dt > 0) {
+      mpucT[l++] = '/';
+
+      if (pceArg->dt1.iSec > 0) {
+	xmlStrPrintf(&mpucT[l], BUFFER_LENGTH - l, "%04i-%02i-%02iT%02i:%02i:%02iZ", dt_year(pceArg->dt1.dt), dt_month(pceArg->dt1.dt), dt_dom(pceArg->dt1.dt),
+		     pceArg->dt1.iSec / 3600, (pceArg->dt1.iSec % 3600) / 60, pceArg->dt1.iSec % 60);
+      }
+      else {
+	xmlStrPrintf(&mpucT[l], BUFFER_LENGTH - l, "%04i-%02i-%02i", dt_year(pceArg->dt1.dt), dt_month(pceArg->dt1.dt), dt_dom(pceArg->dt1.dt));
+      }
     }
-    pucResult = xmlStrdup(mpucT);
+    pucResult = pceArg->pucFormatted = xmlStrdup(mpucT);
   }
 
   return pucResult;
 } /* end of FormatCalendarElementDateStr() */
-
 
 
 /*! Scans 'pceArgResult' for a datum description and write the results to
@@ -589,7 +603,7 @@ ScanCalendarElementDate(ceElementPtr pceArgResult)
 
 		if (fabs(dWeek) > DBL_EPSILON) {
 		  /* week-period */
-		  pceArgResult->dt0.dt = pceArgResult->dt1.dt - (int)(dWeek * 7.0f) - 1;
+		  pceArgResult->dt0.dt = pceArgResult->dt1.dt - (int)(dWeek * 7.0f - 1.0f);
 		}
 		else {
 		  pceArgResult->dt0.dt = dt_add_months(pceArgResult->dt1.dt, -(int)(dYear * 12.0f + dMonth), DT_EXCESS) - 1;
@@ -662,14 +676,14 @@ ScanCalendarElementDate(ceElementPtr pceArgResult)
 
 	    if (fabs(dWeek) > DBL_EPSILON) {
 	      /* week-period */
-	      pceArgResult->dt0.dt = pceArgResult->dt1.dt - (int)(dWeek * 7.0f) - 1;
+	      pceArgResult->dt0.dt = pceArgResult->dt1.dt - (int)(dWeek * 7.0f - 1.0f);
 	    }
 	    else {
 	      pceArgResult->dt0.dt = dt_add_months(pceArgResult->dt1.dt, - (int)(dYear * 12.0f + dMonth), DT_EXCESS) - 1;
 	    }
 
 	    if (fabs(dDay) > DBL_EPSILON) {
-	      pceArgResult->dt0.dt -= (int)(dDay)-1;
+	      pceArgResult->dt0.dt -= (int)(dDay);
 	    }
 
 #ifdef USE_ISO_TIME
@@ -694,9 +708,17 @@ ScanCalendarElementDate(ceElementPtr pceArgResult)
 	      if (iWeek > -1 && iWeek < 54) {
 		n += 3;
 
-		pceArgResult->dt1.dt = dt_from_ywd(iYear, iWeek, 7);
- 		pceArgResult->dt0.dt = dt_add_months(pceArgResult->dt1.dt, - (int)(dYear * 12.0f + dMonth), DT_EXCESS) - 1;
-		pceArgResult->dt0.dt -= (int)(dWeek * 7.0f + dDay - 1);
+		pceArgResult->dt1.dt = dt_from_ywd(iYear, iWeek + 1, 1);
+
+		if (fabs(dWeek) > DBL_EPSILON) {
+		  /* week-period */
+		  pceArgResult->dt0.dt = pceArgResult->dt1.dt - (int)(dWeek * 7.0f);
+		}
+		else if (fabs(dYear) > DBL_EPSILON || fabs(dMonth) > DBL_EPSILON) {
+		  pceArgResult->dt0.dt = dt_add_months(pceArgResult->dt1.dt, -(int)(dYear * 12.0f + dMonth), DT_EXCESS);
+		}
+
+		pceArgResult->dt1.dt--;
 	      }
 	      else {
 		n = 0;
@@ -715,8 +737,14 @@ ScanCalendarElementDate(ceElementPtr pceArgResult)
 	      iMonth = 10 * (pucT[n] - '0') + (pucT[n + 1] - '0');
 	      if (iMonth > 0 && iMonth < 13) {
 		n += 3;
-		pceArgResult->dt1.dt = dt_from_ymd(iYear, iMonth + 1, 0);
- 		pceArgResult->dt0.dt = dt_add_months(pceArgResult->dt1.dt, - (int)(dYear * 12.0f + dMonth), DT_EXCESS) - 1;
+
+		pceArgResult->dt1.dt = dt_from_ymd(iYear, iMonth + 1, 1);
+
+		if (fabs(dYear) > DBL_EPSILON || fabs(dMonth) > DBL_EPSILON) {
+ 		  pceArgResult->dt0.dt = dt_add_months(pceArgResult->dt1.dt, - (int)(dYear * 12.0f + dMonth), DT_EXCESS);
+		}
+
+		pceArgResult->dt1.dt--;
 	      }
 	      else {
 		n = 0;
@@ -730,8 +758,11 @@ ScanCalendarElementDate(ceElementPtr pceArgResult)
 	    /* ISO 8601 P/YYYY */
 	    iYear = 1000 * (pucT[n] - '0') + 100 * (pucT[n + 1] - '0') + 10 * (pucT[n + 2] - '0') + (pucT[n + 3] - '0');
 	    if (iYear > -1 && iYear < 2999) {
-	      pceArgResult->dt1.dt = dt_from_yd(iYear + 1, 0);
-	      pceArgResult->dt0.dt = dt_add_months(pceArgResult->dt1.dt, - (int)(dYear * 12.0f + dMonth), DT_EXCESS) - 1;
+	      pceArgResult->dt1.dt = dt_from_yd(iYear + 1, 1);
+	      if (fabs(dYear) > DBL_EPSILON || fabs(dMonth) > DBL_EPSILON) {
+		pceArgResult->dt0.dt = dt_add_months(pceArgResult->dt1.dt, -(int)(dYear * 12.0f + dMonth), DT_EXCESS);
+	      }
+	      pceArgResult->dt1.dt--;
 	      n += 5;
 	    }
 	    else {
@@ -757,14 +788,14 @@ ScanCalendarElementDate(ceElementPtr pceArgResult)
 	    /* date/period */
 	    if (fabs(dWeek) > DBL_EPSILON) {
 	      /* week-period */
-	      pceArgResult->dt1.dt = pceArgResult->dt0.dt + (int)(dWeek * 7.0f) - 1;
+	      pceArgResult->dt1.dt = pceArgResult->dt0.dt + (int)(dWeek * 7.0f + dDay) - 1;
 	    }
-	    else {
+	    else if (fabs(dYear) > DBL_EPSILON || fabs(dMonth) > DBL_EPSILON) {
 	      pceArgResult->dt1.dt = dt_add_months(pceArgResult->dt0.dt, (int)(dYear * 12.0f + dMonth), DT_EXCESS) - 1;
+	      pceArgResult->dt1.dt += (int)(dWeek * 7.0f + dDay);
 	    }
-
-	    if (fabs(dDay) > DBL_EPSILON) {
-	      pceArgResult->dt1.dt += (int)(dDay)-1;
+	    else if (fabs(dDay) > DBL_EPSILON) {
+	      pceArgResult->dt1.dt = pceArgResult->dt0.dt + (int)(dDay) - 1;
 	    }
 
 #ifdef USE_ISO_TIME
@@ -814,7 +845,9 @@ ScanCalendarElementDate(ceElementPtr pceArgResult)
 	      n += j;
 
 	      pceArgResult->dt0.dt = dt_from_yd(iYear, 1);
-	      pceArgResult->dt1.dt = dt_add_months(pceArgResult->dt0.dt, (int)(dYear * 12.0f + dMonth), DT_EXCESS) - 1;
+	      if (fabs(dYear) > DBL_EPSILON || fabs(dMonth) > DBL_EPSILON) {
+		pceArgResult->dt1.dt = dt_add_months(pceArgResult->dt0.dt, (int)(dYear * 12.0f + dMonth), DT_EXCESS) - 1;
+	      }
 	    }
 	    else {
 	      // n = 0;

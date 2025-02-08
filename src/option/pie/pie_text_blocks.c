@@ -60,6 +60,7 @@
 
 /*! s https://en.wikipedia.org/wiki/ISO_8601
       https://ijmacd.github.io/rfc3339-iso8601/
+      https://rgxdb.com/r/MD2234J
 */
 
 #define RE_DATE_YEAR          "[12][09][0-9][0-9]"
@@ -80,10 +81,10 @@
 #ifdef USE_ISO_TIME
   #define RE_ISO_TIME     "T[012]*[0-9](:*[0-5][0-9]){0,2}([\\.][0-9]{1,10})*" "(((\\+|\\-|" STR_UTF8_MINUS ")[0-9]{1,2}([:\\.]*[0-9]{1,2})*)" "|" "[A-Z]{3}" "|" "Z" ")*"
   #define RE_ISO_DAY_TIME  RE_ISO_DAY "(" RE_ISO_TIME ")*"
-  #define RE_ISO_PERIOD    "P([0-9\\.]+[YMDW])*" "(T([0-9\\.]+[HMS])*)*"
+  #define RE_ISO_PERIOD    "P(-*[0-9\\.]+[YMDW])*" "(T([0-9\\.]+[HMS])*)*"
 #else
   #define RE_ISO_DAY_TIME  RE_ISO_DAY
-  #define RE_ISO_PERIOD    "P([0-9\\.]+[YMDW])*"
+  #define RE_ISO_PERIOD    "P(-*[0-9\\.]+[YMDW])*"
 #endif
 
 #define RE_ISO_WEEK RE_DATE_YEAR "-*" RE_DATE_WEEK

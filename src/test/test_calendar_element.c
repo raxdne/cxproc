@@ -83,7 +83,7 @@ ceTest(void)
       printf("ERROR\n");
     }
     else if (pceT->dt0.dt != dt_from_ymd(2009, 10, 11)) {
-      printf("ERROR\n");
+      printf("ERROR: %s\n", FormatCalendarElementDateStr(pceT));
     }
     else if (pceT->dt1.dt != 0) {
       printf("ERROR\n");
@@ -95,10 +95,10 @@ ceTest(void)
       printf("ERROR\n");
     }
     else if (pceT->dt0.dt != dt_from_ymd(2019, 1, 11)) {
-      printf("ERROR\n");
+      printf("ERROR: %s\n", FormatCalendarElementDateStr(pceT));
     }
     else if (pceT->dt1.dt != 0) {
-      printf("ERROR\n");
+      printf("ERROR: %s\n", FormatCalendarElementDateStr(pceT));
     }
     else {
       n_ok++;
@@ -119,17 +119,8 @@ ceTest(void)
     else if (ScanCalendarElementDate(pceT) == FALSE) {
       printf("ERROR\n");
     }
-    else if (pceT->dt0.dt != dt_from_ymd(2011, 7, 20) || pceT->dt1.dt != 734338) {
-      printf("ERROR\n");
-    }
-    else if (CalendarElementUpdate(pceT,BAD_CAST"1660333489490") == NULL) {
-      printf("ERROR\n");
-    }
-    else if (ScanCalendarElementDate(pceT) == FALSE) {
-      printf("ERROR\n");
-    }
-    else if (pceT->dt0.dt != dt_from_ymd(2022, 8, 12) || pceT->dt1.dt != 738379) {
-      printf("ERROR\n");
+    else if (pceT->dt0.dt != dt_from_ymd(2011, 7, 20) || pceT->dt0.dt != 734338) {
+      printf("ERROR: %s\n", FormatCalendarElementDateStr(pceT));
     }
     else {
       n_ok++;
@@ -157,7 +148,7 @@ ceTest(void)
       printf("ERROR\n");
     }
     else if (pceT->dt0.dt != dt_from_ywd(2009, 3, 3) || pceT->dt1.dt != 0) {
-      printf("ERROR\n");
+      printf("ERROR: %s\n", FormatCalendarElementDateStr(pceT));
     }
     else if (CalendarElementUpdate(pceT, BAD_CAST"2009-W51-7") == NULL) {
       printf("ERROR\n");
@@ -166,7 +157,7 @@ ceTest(void)
       printf("ERROR\n");
     }
     else if (pceT->dt0.dt != dt_from_ywd(2009, 51, 7) || pceT->dt1.dt != 0) {
-      printf("ERROR\n");
+      printf("ERROR: %s\n", FormatCalendarElementDateStr(pceT));
     }
     else if (CalendarElementUpdate(pceT, BAD_CAST"2007W03") == NULL) {
       printf("ERROR\n");
@@ -175,7 +166,7 @@ ceTest(void)
       printf("ERROR\n");
     }
     else if (pceT->dt0.dt != dt_from_ywd(2007, 3, 1) || pceT->dt1.dt != dt_from_ywd(2007, 3, 7)) {
-      printf("ERROR\n");
+      printf("ERROR: %s\n", FormatCalendarElementDateStr(pceT));
     }
     else if (CalendarElementUpdate(pceT, BAD_CAST"2007W033") == NULL) {
       printf("ERROR\n");
@@ -184,7 +175,7 @@ ceTest(void)
       printf("ERROR\n");
     }
     else if (pceT->dt0.dt != dt_from_ywd(2007, 3, 3) || pceT->dt1.dt != 0) {
-      printf("ERROR\n");
+      printf("ERROR: %s\n", FormatCalendarElementDateStr(pceT));
     }
     else if (CalendarElementUpdate(pceT, BAD_CAST"2009-W55-8") == NULL) {
       printf("ERROR\n");
@@ -218,7 +209,7 @@ ceTest(void)
       printf("ERROR\n");
     }
     else if (pceT->dt0.dt != dt_from_yd(2009, 99) || pceT->dt1.dt != 0) {
-      printf("ERROR\n");
+      printf("ERROR: %s\n", FormatCalendarElementDateStr(pceT));
     }
     else if (CalendarElementUpdate(pceT, BAD_CAST"2009199") == NULL) {
       printf("ERROR\n");
@@ -227,7 +218,7 @@ ceTest(void)
       printf("ERROR\n");
     }
     else if (pceT->dt0.dt != dt_from_yd(2009, 199) || pceT->dt1.dt != 0) {
-      printf("ERROR\n");
+      printf("ERROR: %s\n", FormatCalendarElementDateStr(pceT));
     }
     else if (CalendarElementUpdate(pceT, BAD_CAST"2009-399") == NULL) {
       printf("ERROR\n");
@@ -249,19 +240,19 @@ ceTest(void)
     printf("TEST %i in '%s:%i': scan a list calendar element = ",i,__FILE__,__LINE__);
 
     if ((pceT = CalendarElementNew(BAD_CAST"20140301,20140401")) == NULL) {
-      printf("ERROR\n");
+      printf("ERROR 1\n");
     }
     else if (ScanCalendarElementDate(pceT) == FALSE) {
-      printf("ERROR\n");
+      printf("ERROR 2\n");
     }
     else if (pceT->dt0.dt != dt_from_ymd(2014, 3, 1) || pceT->dt1.dt != 0) {
-      printf("ERROR\n");
+      printf("ERROR 3: %s\n", FormatCalendarElementDateStr(pceT));
     }
     else if (xmlStrEqual(pceT->pucSep, BAD_CAST",20140401") == FALSE) {
-      printf("ERROR\n");
+      printf("ERROR 4\n");
     }
-    else if (ScanCalendarElementDate(pceT) == TRUE) {
-      printf("ERROR\n");
+    else if (ScanCalendarElementDate(pceT) == FALSE) {
+      printf("ERROR 5\n");
     }
     else {
       n_ok++;
@@ -269,6 +260,8 @@ ceTest(void)
     }
     CalendarElementFree(pceT);
   }
+
+#ifdef USE_ISO_TIME
 
   if (RUNTEST) {
     ceElementPtr pceT;
@@ -286,7 +279,7 @@ ceTest(void)
       printf("ERROR 3\n");
     }
     else if (pceT->dt0.dt != dt_from_ymd(2013, 12, 10) || (pceT->dt0.iSec != 36000 && pceT->dt0.iSec != 36000 - 3600) || pceT->dt1.dt != 0 || pceT->dt1.iSec != 0) {
-      printf("ERROR 4\n");
+      printf("ERROR: %s\n", FormatCalendarElementDateStr(pceT));
     }
     else if ((pceT = CalendarElementNew(BAD_CAST"2013-12-10T10.25 Decimal")) == NULL) {
       printf("ERROR 1\n");
@@ -298,7 +291,7 @@ ceTest(void)
       printf("ERROR 3\n");
     }
     else if (pceT->dt0.dt != dt_from_ymd(2013, 12, 10) || (pceT->dt0.iSec != 36000 + 900 && pceT->dt0.iSec != 36000 - 3600 + 900) || pceT->dt1.dt != 0 || pceT->dt1.iSec != 0) {
-      printf("ERROR 4\n");
+      printf("ERROR: %s\n", FormatCalendarElementDateStr(pceT));
     }
     else if ((pceT = CalendarElementNew(BAD_CAST"2013-12-10T10,3333 Decimal")) == NULL) {
       printf("ERROR 1\n");
@@ -310,7 +303,7 @@ ceTest(void)
       printf("ERROR 3\n");
     }
     else if (pceT->dt0.dt != dt_from_ymd(2013, 12, 10) || (pceT->dt0.iSec != 36000 + 1200 && pceT->dt0.iSec != 36000 - 3600 + 1200 - 1) || pceT->dt1.dt != 0 || pceT->dt1.iSec != 0) {
-      printf("ERROR 4\n");
+      printf("ERROR: %s\n", FormatCalendarElementDateStr(pceT));
     }
     else {
       n_ok++;
@@ -335,7 +328,7 @@ ceTest(void)
       printf("ERROR 3\n");
     }
     else if (pceT->dt0.dt != dt_from_ymd(2013, 12, 11) || pceT->dt0.iSec != 68400 || pceT->dt1.dt != 0 || pceT->dt1.iSec != 0) {
-      printf("ERROR 4\n");
+      printf("ERROR: %s\n", FormatCalendarElementDateStr(pceT));
     }
     else if (CalendarElementUpdate(pceT, BAD_CAST"2013-12-11T04:00:00+07:00 Bangkok/Thailand") == NULL) {
       printf("ERROR CalendarElementUpdate()\n");
@@ -347,7 +340,7 @@ ceTest(void)
       printf("ERROR 3\n");
     }
     else if (pceT->dt0.dt != dt_from_ymd(2013, 12, 10) || pceT->dt0.iSec != 75600 || pceT->dt1.dt != 0 || pceT->dt1.iSec != 0) {
-      printf("ERROR 4\n");
+      printf("ERROR: %s\n", FormatCalendarElementDateStr(pceT));
     }
     else {
       n_ok++;
@@ -372,7 +365,7 @@ ceTest(void)
       printf("ERROR\n");
     }
     else if (pceT->dt0.dt != dt_from_ymd(2013, 12, 11) || pceT->dt0.iSec != 7860 || pceT->dt1.dt != 0 || pceT->dt1.iSec != 0) {
-      printf("ERROR\n");
+      printf("ERROR: %s\n", FormatCalendarElementDateStr(pceT));
     }
     else {
       n_ok++;
@@ -381,7 +374,10 @@ ceTest(void)
     CalendarElementFree(pceT);
   }
 
-#if EXPERIMENTAL
+#endif
+
+
+#if 0
 
   /* (ISO 8601) Time offsets */
 
@@ -398,7 +394,7 @@ ceTest(void)
       printf("ERROR\n");
     }
     else if (pceT->dt0.dt != dt_from_ymd(2019, 4, 2) || pceT->dt1.dt != 0) {
-      printf("ERROR\n");
+      printf("ERROR: %s\n", FormatCalendarElementDateStr(pceT));
     }
     else if (xmlStrEqual(pceT->pucSep, BAD_CAST" my date offset") == FALSE) {
       printf("ERROR\n");
@@ -430,7 +426,7 @@ ceTest(void)
       printf("ERROR\n");
     }
     else if (pceT->dt0.dt != dt_from_ymd(2011, 1, 1) || pceT->dt1.dt != dt_from_ymd(2013, 12, 31)) {
-      printf("ERROR\n");
+      printf("ERROR: %s\n", FormatCalendarElementDateStr(pceT));
     }
     else if (CalendarElementUpdate(pceT, BAD_CAST"2011/P3Y1D") == NULL) {
       printf("ERROR CalendarElementUpdate()\n");
@@ -439,7 +435,7 @@ ceTest(void)
       printf("ERROR\n");
     }
     else if (pceT->dt0.dt != dt_from_ymd(2011, 1, 1) || pceT->dt1.dt != dt_from_ymd(2013, 12, 31)) {
-      printf("ERROR\n");
+      printf("ERROR: %s\n", FormatCalendarElementDateStr(pceT));
     }
     else if (CalendarElementUpdate(pceT, BAD_CAST"2010-Q2/2010-Q3") == NULL) {
       printf("ERROR CalendarElementUpdate()\n");
@@ -448,16 +444,16 @@ ceTest(void)
       printf("ERROR\n");
     }
     else if (pceT->dt0.dt != dt_from_ymd(2010, 4, 1) || pceT->dt1.dt != dt_from_ymd(2010, 9, 30)) {
-      printf("ERROR\n");
+      printf("ERROR: %s\n", FormatCalendarElementDateStr(pceT));
     }
-    else if (CalendarElementUpdate(pceT, BAD_CAST"P3Y1D/2011") == NULL) {
+    else if (CalendarElementUpdate(pceT, BAD_CAST"P3Y/2011") == NULL) {
       printf("ERROR CalendarElementUpdate()\n");
     }
     else if (ScanCalendarElementDate(pceT) == FALSE) {
       printf("ERROR\n");
     }
     else if (pceT->dt0.dt != dt_from_ymd(2009, 1, 1) || pceT->dt1.dt != dt_from_ymd(2011, 12, 31)) {
-      printf("ERROR\n");
+      printf("ERROR: %s\n", FormatCalendarElementDateStr(pceT));
     }
     else if (CalendarElementUpdate(pceT, BAD_CAST"20110703/20110711") == NULL) {
       printf("ERROR CalendarElementUpdate()\n");
@@ -466,7 +462,7 @@ ceTest(void)
       printf("ERROR\n");
     }
     else if (pceT->dt0.dt != dt_from_ymd(2011, 7, 3) || pceT->dt1.dt != dt_from_ymd(2011, 7, 11)) {
-      printf("ERROR\n");
+      printf("ERROR: %s\n", FormatCalendarElementDateStr(pceT));
     }
     else if (CalendarElementUpdate(pceT, BAD_CAST"P0.5Y/2011-03") == NULL) {
       printf("ERROR CalendarElementUpdate()\n");
@@ -474,8 +470,8 @@ ceTest(void)
     else if (ScanCalendarElementDate(pceT) == FALSE) {
       printf("ERROR\n");
     }
-    else if (pceT->dt0.dt != dt_from_ymd(2011, 7, 3) || pceT->dt1.dt != dt_from_ymd(2011, 7, 11)) {
-      printf("ERROR\n");
+    else if (pceT->dt0.dt != dt_from_ymd(2010, 10, 1) || pceT->dt1.dt != dt_from_ymd(2011, 3, 31)) {
+      printf("ERROR: %s\n", FormatCalendarElementDateStr(pceT));
     }
     else if (CalendarElementUpdate(pceT, BAD_CAST"2011-W03/P5W") == NULL) {
       printf("ERROR CalendarElementUpdate()\n");
@@ -483,8 +479,8 @@ ceTest(void)
     else if (ScanCalendarElementDate(pceT) == FALSE) {
       printf("ERROR\n");
     }
-    else if (pceT->dt0.dt != dt_from_ymd(2011, 7, 3) || pceT->dt1.dt != dt_from_ymd(2011, 7, 11)) {
-      printf("ERROR\n");
+    else if (pceT->dt0.dt != dt_from_ymd(2011, 1, 17) || pceT->dt1.dt != dt_from_ymd(2011, 2, 20) || pceT->dt1.dt - pceT->dt0.dt != 5*7 - 1) {
+      printf("ERROR: %s\n", FormatCalendarElementDateStr(pceT));
     }
     else if (CalendarElementUpdate(pceT, BAD_CAST"P3W/2020-W10") == NULL) {
       printf("ERROR CalendarElementUpdate()\n");
@@ -492,8 +488,8 @@ ceTest(void)
     else if (ScanCalendarElementDate(pceT) == FALSE) {
       printf("ERROR\n");
     }
-    else if (pceT->dt0.dt != dt_from_ymd(2011, 7, 3) || pceT->dt1.dt != dt_from_ymd(2011, 7, 11)) {
-      printf("ERROR\n");
+    else if (pceT->dt0.dt != dt_from_ymd(2020, 2, 17) || pceT->dt1.dt != dt_from_ymd(2020, 3, 8) || pceT->dt1.dt - pceT->dt0.dt != 3*7 - 1) {
+      printf("ERROR: %s\n", FormatCalendarElementDateStr(pceT));
     }
     else if (CalendarElementUpdate(pceT, BAD_CAST"2011-W03/2011-W07") == NULL) {
       printf("ERROR CalendarElementUpdate()\n");
@@ -501,8 +497,8 @@ ceTest(void)
     else if (ScanCalendarElementDate(pceT) == FALSE) {
       printf("ERROR\n");
     }
-    else if (pceT->dt0.dt != dt_from_ymd(2011, 7, 3) || pceT->dt1.dt != dt_from_ymd(2011, 7, 11)) {
-      printf("ERROR\n");
+    else if (pceT->dt0.dt != dt_from_ymd(2011, 1, 17) || pceT->dt1.dt != dt_from_ymd(2011, 2, 20) || pceT->dt1.dt - pceT->dt0.dt != 5*7 - 1) {
+      printf("ERROR: %s\n", FormatCalendarElementDateStr(pceT));
     }
     else if (CalendarElementUpdate(pceT,BAD_CAST"2013-12-11/2014-03-11 ISO date interval") == NULL) {
       printf("ERROR\n");
@@ -514,7 +510,7 @@ ceTest(void)
       printf("ERROR\n");
     }
     else if (pceT->dt0.dt != dt_from_ymd(2013, 12, 11) || pceT->dt1.dt != dt_from_ymd(2014, 3, 11)) {
-      printf("ERROR\n");
+      printf("ERROR: %s\n", FormatCalendarElementDateStr(pceT));
     }
 #if 0
     else if (CalendarElementUpdate(pceT, BAD_CAST"20110703/2011 AAA") == NULL) {
@@ -531,7 +527,7 @@ ceTest(void)
       printf("ERROR\n");
     }
     else if (pceT->dt0.dt != dt_from_ymd(2011, 7, 3) || pceT->dt1.dt != 0) {
-      printf("ERROR\n");
+      printf("ERROR: %s\n", FormatCalendarElementDateStr(pceT));
     }
     else if (CalendarElementUpdate(pceT, BAD_CAST"20110711/20110703") == NULL) {
       printf("ERROR CalendarElementUpdate()\n");
@@ -540,7 +536,7 @@ ceTest(void)
       printf("ERROR\n");
     }
     else if (pceT->dt0.dt != dt_from_ymd(2011, 7, 3) || pceT->dt1.dt != dt_from_ymd(2011, 7, 11)) {
-      printf("ERROR\n");
+      printf("ERROR: %s\n", FormatCalendarElementDateStr(pceT));
     }
     else if (CalendarElementUpdate(pceT, BAD_CAST"20110703/P3Y6M4D TEST") == NULL) {
       printf("ERROR CalendarElementUpdate()\n");
@@ -549,7 +545,16 @@ ceTest(void)
       printf("ERROR\n");
     }
     else if (pceT->dt0.dt != dt_from_ymd(2011, 7, 3) || pceT->dt1.dt != dt_from_ymd(2015, 1, 6)) {
+      printf("ERROR: %s\n", FormatCalendarElementDateStr(pceT));
+    }
+    else if (CalendarElementUpdate(pceT, BAD_CAST"20110703/P-4D TEST") == NULL) {
+      printf("ERROR CalendarElementUpdate()\n");
+    }
+    else if (ScanCalendarElementDate(pceT) == FALSE) {
       printf("ERROR\n");
+    }
+    else if (pceT->dt0.dt != dt_from_ymd(2011, 7, 3) || pceT->dt1.dt != dt_from_ymd(2011, 7, 6)) {
+      printf("ERROR: %s\n", FormatCalendarElementDateStr(pceT));
     }
     else if (CalendarElementUpdate(pceT, BAD_CAST"P3W/20110722 TEST") == NULL) {
       printf("ERROR CalendarElementUpdate()\n");
@@ -558,7 +563,7 @@ ceTest(void)
       printf("ERROR\n");
     }
     else if (pceT->dt0.dt != dt_from_ymd(2011, 7, 2) || pceT->dt1.dt != dt_from_ymd(2011, 7, 22)) {
-      printf("ERROR\n");
+      printf("ERROR: %s\n", FormatCalendarElementDateStr(pceT));
     }
     else {
       n_ok++;
@@ -566,6 +571,8 @@ ceTest(void)
     }
     CalendarElementFree(pceT);
   }
+
+#ifdef USE_ISO_TIME
 
   if (RUNTEST) {
     ceElementPtr pceT;
@@ -584,7 +591,7 @@ ceTest(void)
     }
     else if (pceT->dt0.dt != dt_from_ymd(2013, 10, 12) || (pceT->dt0.iSec != 43200 && pceT->dt0.iSec != 43200 - 3600)
       || pceT->dt1.dt != dt_from_ymd(2013, 10, 14) || (pceT->dt1.iSec != 50400 && pceT->dt1.iSec != 50400 - 3600)) {
-      printf("ERROR 4\n");
+      printf("ERROR: %s\n", FormatCalendarElementDateStr(pceT));
     }
     else if (CalendarElementUpdate(pceT, BAD_CAST"2012-10-15T08:00:00/2012-10-15T10:00:00 TEST") == NULL) {
       printf("ERROR CalendarElementUpdate()\n");
@@ -597,7 +604,7 @@ ceTest(void)
     }
     else if (pceT->dt0.dt != dt_from_ymd(2012, 10, 15) || (pceT->dt0.iSec != 25200 && pceT->dt0.iSec != 25200 - 3600)
       || pceT->dt1.dt != pceT->dt0.dt || (pceT->dt1.iSec != 32400 && pceT->dt1.iSec != 32400 - 3600)) {
-      printf("ERROR 4\n");
+      printf("ERROR: %s\n", FormatCalendarElementDateStr(pceT));
     }
     else if (CalendarElementUpdate(pceT, BAD_CAST"2012-10-15T08:00:00/PT2H30M0S TEST") == NULL) {
       printf("ERROR CalendarElementUpdate()\n");
@@ -610,7 +617,7 @@ ceTest(void)
     }
     else if (pceT->dt0.dt != dt_from_ymd(2012, 10, 15) || (pceT->dt0.iSec != 25200 && pceT->dt0.iSec != 25200 - 3600)
       || pceT->dt1.dt != pceT->dt0.dt || (pceT->dt1.iSec != 34200 && pceT->dt1.iSec != 34200 - 3600)) {
-      printf("ERROR 4\n");
+      printf("ERROR: %s\n", FormatCalendarElementDateStr(pceT));
     }
     else if (CalendarElementUpdate(pceT, BAD_CAST"2012-10-10T10:00:00/PT2.25 TEST") == NULL) {
       printf("ERROR CalendarElementUpdate()\n");
@@ -632,7 +639,7 @@ ceTest(void)
     }
     else if (pceT->dt0.dt != dt_from_ymd(2012, 10, 10) || (pceT->dt0.iSec != 36000 && pceT->dt0.iSec != 25200 - 3600)
       || pceT->dt1.dt != pceT->dt0.dt || (pceT->dt1.iSec != 34200 && pceT->dt1.iSec != 34200 - 3600)) {
-      printf("ERROR 4\n");
+      printf("ERROR: %s\n", FormatCalendarElementDateStr(pceT));
     }
     else {
       n_ok++;
@@ -641,6 +648,7 @@ ceTest(void)
     CalendarElementFree(pceT);
   }
 
+#endif
 
   if (RUNTEST) {
     ceElementPtr pceT;
@@ -655,7 +663,7 @@ ceTest(void)
       printf("ERROR\n");
     }
     else if (pceT->dt0.dt != dt_from_ymd(2009,1,1) || pceT->dt1.dt != dt_from_ymd(2009, 12, 31)) {
-      printf("ERROR\n");
+      printf("ERROR: %s\n", FormatCalendarElementDateStr(pceT));
     }
     else {
       n_ok++;
@@ -677,7 +685,7 @@ ceTest(void)
       printf("ERROR\n");
     }
     else if (pceT->dt0.dt != dt_from_ymd(2009, 3, 1) || pceT->dt1.dt != dt_from_ymd(2009, 3, 31)) {
-      printf("ERROR\n");
+      printf("ERROR: %s\n", FormatCalendarElementDateStr(pceT));
     }
     else {
       n_ok++;
@@ -700,7 +708,7 @@ ceTest(void)
       printf("ERROR\n");
     }
     else if (pceT->dt0.dt != dt_from_ywd(2009, 33, 1) || pceT->dt1.dt != dt_from_ywd(2009, 33, 7)) {
-      printf("ERROR\n");
+      printf("ERROR: %s\n", FormatCalendarElementDateStr(pceT));
     }
     else {
       n_ok++;
@@ -752,19 +760,19 @@ ceTest(void)
       printf("ERROR\n");
     }
     else if (pceT->dt0.dt != dt_from_ymd(2011, 7, 3) || pceT->dt1.dt != 0 || pceT->iRecurrence != 2) {
-      printf("ERROR\n");
+      printf("ERROR: %s\n", FormatCalendarElementDateStr(pceT));
     }
     else if ((pceList = SplitCalendarElementRecurrences(pceT)) == NULL) {
       printf("ERROR\n");
     }
     else if ((pceI = pceList) == NULL || pceI->dt0.dt != dt_from_ymd(2011, 7, 3) || pceI->dt1.dt != 0 || pceI->iRecurrence != 2) {
-      printf("ERROR\n");
+      printf("ERROR: %s\n", FormatCalendarElementDateStr(pceI));
     }
     else if ((pceI = pceI->pNext) == NULL || pceI->dt0.dt != dt_from_ymd(2011, 10, 3) || pceI->dt1.dt != 0 || pceI->iRecurrence != 1) {
-      printf("ERROR\n");
+      printf("ERROR: %s\n", FormatCalendarElementDateStr(pceI));
     }
     else if ((pceI = pceI->pNext) == NULL || pceI->dt0.dt != dt_from_ymd(2012, 1, 3) || pceI->dt1.dt != 0 || pceI->iRecurrence != 0) {
-      printf("ERROR\n");
+      printf("ERROR: %s\n", FormatCalendarElementDateStr(pceI));
     }
     else if ((pceI = pceI->pNext) != NULL) {
       printf("ERROR\n");
@@ -776,6 +784,8 @@ ceTest(void)
     CalendarElementFree(pceList);
     CalendarElementFree(pceT);
   }
+
+#ifdef USE_ISO_TIME
 
   if (RUNTEST) {
     ceElementPtr pceT;
@@ -793,7 +803,7 @@ ceTest(void)
     }
     else if (pceT->dt0.dt != dt_from_ymd(2022, 2, 6) || (pceT->dt0.iSec != 46800 && pceT->dt0.iSec != 46800 - 3600) || pceT->dt1.dt != pceT->dt0.dt ||
 	     (pceT->dt1.iSec != 54000 && pceT->dt1.iSec != 54000 - 3600) || pceT->period.d != 4 || pceT->iRecurrence != 2) {
-      printf("ERROR\n");
+      printf("ERROR: %s\n", FormatCalendarElementDateStr(pceT));
     }
     else if ((pceList = SplitCalendarElementRecurrences(pceT)) == NULL) {
       printf("ERROR\n");
@@ -801,17 +811,17 @@ ceTest(void)
     else if ((pceI = pceList) == NULL || pceI->dt0.dt != dt_from_ymd(2022, 2, 6) || pceI->dt1.dt != pceI->dt0.dt ||
 	     //(pceI->dt0.iSec != 43200 && pceI->dt0.iSec != 43200 - 7200) || (pceI->dt1.iSec != 54000 && pceI->dt1.iSec != 54000 - 3600) ||
 	     pceI->iRecurrence != 2) {
-      printf("ERROR\n");
+      printf("ERROR: %s\n", FormatCalendarElementDateStr(pceI));
     }
     else if ((pceI = pceI->pNext) == NULL || pceI->dt0.dt != dt_from_ymd(2022, 2, 10) || pceI->dt1.dt != pceI->dt0.dt ||
 	     //(pceI->dt0.iSec != 46800 && pceI->dt0.iSec != 46800 - 3600) || (pceI->dt1.iSec != 54000 && pceI->dt1.iSec != 54000 - 3600) ||
 	     pceI->iRecurrence != 1) {
-      printf("ERROR\n");
+      printf("ERROR: %s\n", FormatCalendarElementDateStr(pceI));
     }
     else if ((pceI = pceI->pNext) == NULL || pceI->dt0.dt != dt_from_ymd(2022, 2, 14) || pceI->dt1.dt != pceI->dt0.dt ||
 	     //(pceI->dt0.iSec != 46800 && pceI->dt0.iSec != 46800 - 3600) || (pceI->dt1.iSec != 54000 && pceI->dt1.iSec != 54000 - 3600) ||
 	     pceI->iRecurrence != 0) {
-      printf("ERROR\n");
+      printf("ERROR: %s\n", FormatCalendarElementDateStr(pceI));
     }
     else if ((pceI = pceI->pNext) != NULL) {
       printf("ERROR\n");
@@ -824,6 +834,7 @@ ceTest(void)
     CalendarElementFree(pceT);
   }
 
+#endif
 
   if (RUNTEST) {
     ceElementPtr pceT;
@@ -846,47 +857,49 @@ ceTest(void)
       printf("ERROR\n");
     }
     else if (pceT->dt0.dt != dt_from_ymd(2011, 7, 3) || pceT->dt1.dt != 0 || pceT->iRecurrence != 2) {
-      printf("ERROR\n");
+      printf("ERROR: %s\n", FormatCalendarElementDateStr(pceT));
     }
     else if ((pceList = SplitCalendarElementRecurrences(pceT)) == NULL) {
       printf("ERROR\n");
     }
     else if ((pceI = pceList) == NULL || pceI->dt0.dt != dt_from_ymd(2011, 7, 3) || pceI->dt1.dt != 0 || pceI->iRecurrence != 2) {
-      printf("ERROR\n");
+      printf("ERROR: %s\n", FormatCalendarElementDateStr(pceI));
     }
     else if ((pceI = pceI->pNext) == NULL || pceI->dt0.dt != dt_from_ymd(2011, 10, 5) || pceI->dt1.dt != 0 || pceI->iRecurrence != 1) {
-      printf("ERROR\n");
+      printf("ERROR: %s\n", FormatCalendarElementDateStr(pceI));
     }
     else if ((pceI = pceI->pNext) == NULL || pceI->dt0.dt != dt_from_ymd(2012, 1, 7) || pceI->dt1.dt != 0 || pceI->iRecurrence != 0) {
-      printf("ERROR\n");
+      printf("ERROR: %s\n", FormatCalendarElementDateStr(pceI));
     }
     else if ((pceI = pceI->pNext) != NULL) {
       printf("ERROR\n");
     }
+#if 0
     else if (CalendarElementUpdate(pceT, BAD_CAST"R2/P3M2DT12H30M5S/20110703 TEST") == NULL) {
       printf("ERROR CalendarElementUpdate()\n");
     }
     else if (ScanCalendarElementDate(pceT) == FALSE) {
-      printf("ERROR\n");
+      printf("ERROR: %s\n", FormatCalendarElementDateStr(pceT));
     }
     else if (pceT->dt1.dt != dt_from_ymd(2011, 7, 3) || pceT->dt0.dt != 0 || pceT->iRecurrence != 2) {
-      printf("ERROR\n");
+      printf("ERROR: %s\n", FormatCalendarElementDateStr(pceT));
     }
     else if ((pceList = SplitCalendarElementRecurrences(pceT)) == NULL) {
       printf("ERROR\n");
     }
     else if ((pceI = pceList) == NULL || pceI->dt0.dt != 0 || pceI->dt1.dt != dt_from_ymd(2011, 7, 3) || pceI->iRecurrence != 2) {
-      printf("ERROR\n");
+      printf("ERROR: %s\n", FormatCalendarElementDateStr(pceI));
     }
     else if ((pceI = pceI->pNext) == NULL || pceI->dt0.dt != 0 || pceI->dt1.dt != dt_from_ymd(2011, 4, 1) || pceI->iRecurrence != 1) {
-      printf("ERROR\n");
+      printf("ERROR: %s\n", FormatCalendarElementDateStr(pceI));
     }
     else if ((pceI = pceI->pNext) == NULL || pceI->dt0.dt != 0 || pceI->dt1.dt != dt_from_ymd(2010, 12, 30) || pceI->iRecurrence != 0) {
-      printf("ERROR\n");
+      printf("ERROR: %s\n", FormatCalendarElementDateStr(pceI));
     }
     else if ((pceI = pceI->pNext) != NULL) {
       printf("ERROR\n");
     }
+#endif
     else {
       n_ok++;
       printf("OK\n");

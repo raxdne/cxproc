@@ -58,6 +58,8 @@ struct ceElement {
   xmlChar *pucIntern; /*!< pointer to simplified internal date string */
   xmlChar *pucSep; /*!< pointer to iteration separator string */
 
+  xmlChar *pucFormatted; /*!< pointer to formatted string */
+
   iso8601DateType dt0; /*!< day index of Interval Begin Date */ 
   iso8601DateType dt1; /*!< day index of Interval End Date */
 
