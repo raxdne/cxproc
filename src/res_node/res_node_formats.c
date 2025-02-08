@@ -128,7 +128,7 @@ resNodeContentToDOM(xmlNodePtr pndArg, resNodePtr prnArg)
 	else {
 	  xmlChar *pucContent;
 
-	  pucContent = BAD_CAST resNodeGetContentPtr(prnArg);
+	  pucContent = BAD_CAST resNodeGetContent(prnArg,1024);
 	  if (STR_IS_NOT_EMPTY(pucContent)) {
 
 	    pndPie = xmlNewNode(NULL, NAME_PIE);
@@ -733,7 +733,7 @@ resNodeToDOM(resNodePtr prnArg, int iArgOptions)
       /*! add link target content */
       resNodeContentToDOM(pndT, prnArg);
     }
-    else if (IS_OUT_CONTENT(iArgOptions) && (resNodeIsShortcut(prnArg) || resNodeGetMimeType(prnArg) == MIME_APPLICATION_CXP_XML)) {
+    else if (IS_OUT_PATH(iArgOptions) && (resNodeIsShortcut(prnArg) || resNodeGetMimeType(prnArg) == MIME_APPLICATION_CXP_XML)) {
       /*! required for shortcuts, titles and icons */
       resNodeContentToDOM(pndT, prnArg);
     }

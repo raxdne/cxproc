@@ -78,7 +78,7 @@
 
 #define NAME_CONFIG_INDEX ".index.cxp"
 
-#define NAME_FILE_SHORTCUTS "shortcuts.pie"
+#define NAME_FILE_SHORTCUTS "shortcuts"
 
 /*! option bits for duplicating of resource nodes
  */

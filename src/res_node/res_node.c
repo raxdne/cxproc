@@ -2580,9 +2580,11 @@ BOOL_T
 resNodeIsShortcut(resNodePtr prnArg)
 {
   BOOL_T fResult = FALSE;
+  xmlChar *pucT;
 
-  if (resNodeIsFile(prnArg)) {
-    fResult = resPathIsEquivalent(resNodeGetNameBase(prnArg), BAD_CAST NAME_FILE_SHORTCUTS);
+  if (resNodeIsFile(prnArg) && (pucT = resNodeGetNameBase(prnArg)) != NULL && xmlStrlen(pucT) > 0) {
+    fResult = resPathIsEquivalent(pucT, BAD_CAST NAME_FILE_SHORTCUTS ".pie") || resPathIsEquivalent(pucT, BAD_CAST NAME_FILE_SHORTCUTS ".md") ||
+	      resPathIsEquivalent(pucT, BAD_CAST NAME_FILE_SHORTCUTS ".txt") || resPathIsEquivalent(pucT, BAD_CAST NAME_FILE_SHORTCUTS ".html");
   }
   return fResult;
 } /* end of resNodeIsShortcut() */

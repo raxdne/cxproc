@@ -14,6 +14,10 @@ REQ: Emacs macro `clipboard-to-base64` via shell
 
 ## v2.0 #v20
 
+REQ: shortcut file in Markdown format `shortcuts.md` ✔
+
+REQ: shortcut file in HTML format `shortcuts.html` ✔
+
 TODO: add build target `cxproc-test` only if `CXPROC_TESTS` is true ✔
 
 REQ: domSetPropFlag()
