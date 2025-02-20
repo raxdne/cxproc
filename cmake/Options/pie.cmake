@@ -6,6 +6,7 @@
 
 IF (CXPROC_PCRE2)
   OPTION(CXPROC_PIE "Include PIE code" ON)
+  #add_compile_definitions(USE_ISO_TIME)
   IF (LIBCMARK_LIBRARY)
     OPTION(CXPROC_MARKDOWN "Compile MARKDOWN code" ON)
   ELSE ()

@@ -123,6 +123,11 @@ pieTextInfo(xmlNodePtr pndParent)
   xmlNewTextChild(pndT, NULL, BAD_CAST "high", BAD_CAST STR_PIE_IMPACT_HIGH);
   xmlNewTextChild(pndT, NULL, BAD_CAST "medium", BAD_CAST STR_PIE_IMPACT_MEDIUM);
   xmlNewTextChild(pndT, NULL, BAD_CAST "hidden", BAD_CAST STR_PIE_HIDDEN);
+  xmlNewTextChild(pndT, NULL, BAD_CAST "date", BAD_CAST RE_DATE);
+  xmlNewTextChild(pndT, NULL, BAD_CAST "fig", BAD_CAST RE_FIG);
+  xmlNewTextChild(pndT, NULL, BAD_CAST "script", BAD_CAST RE_SCRIPT);
+  xmlNewTextChild(pndT, NULL, BAD_CAST "inline", BAD_CAST RE_INLINE);
+  xmlNewTextChild(pndT, NULL, BAD_CAST "task", BAD_CAST RE_TASK);
 
   return pndParent;
 } /* end of pieTextInfo() */
