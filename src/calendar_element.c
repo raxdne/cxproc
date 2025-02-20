@@ -797,6 +797,9 @@ ScanCalendarElementDate(ceElementPtr pceArgResult)
 	    else if (fabs(dDay) > DBL_EPSILON) {
 	      pceArgResult->dt1.dt = pceArgResult->dt0.dt + (int)(dDay) - 1;
 	    }
+	    else {
+	      pceArgResult->dt1.dt = pceArgResult->dt0.dt;
+	    }
 
 #ifdef USE_ISO_TIME
 	    ss = (int)(dHour * 3600.0f + dMinute * 60.0f + dSecond);
