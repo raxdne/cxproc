@@ -1042,6 +1042,11 @@ resNodeToCSV(resNodePtr prnArg, int iArgOptions)
     case rn_type_file_in_archive:
     case rn_type_symlink:
 
+      if (IS_OUT_STRUCT(iArgOptions) == FALSE && resNodeGetType(prnArg) != rn_type_dir) {
+	/* ignoring all but directories */
+	break;
+      }
+
       if (IS_OUT_ATTR(iArgOptions)) { /* file system attributes */
 	xmlStrPrintf(mucT, BUFFER_LENGTH, "\"%c%c%c%c%c\"" CSV_SEP_STR,
 		     (resNodeIsDir(prnArg)    ? 'd'
@@ -1053,8 +1058,13 @@ resNodeToCSV(resNodePtr prnArg, int iArgOptions)
       }
 
       if (IS_OUT_SIZE(iArgOptions)) { /* size + child */
-	xmlStrPrintf(mucT, BUFFER_LENGTH, "%lu" CSV_SEP_STR "%lu" CSV_SEP_STR "%lu" CSV_SEP_STR, resNodeGetSize(prnArg), resNodeGetRecursiveSize(prnArg),
-		     resNodeGetCountChilds(prnArg));
+	if (resNodeGetCountChilds(prnArg) > 0) {
+	  xmlStrPrintf(mucT, BUFFER_LENGTH, "%lu" CSV_SEP_STR "%lu" CSV_SEP_STR "%lu" CSV_SEP_STR, resNodeGetSize(prnArg), resNodeGetRecursiveSize(prnArg),
+		       resNodeGetCountChilds(prnArg));
+	}
+	else {
+	  xmlStrPrintf(mucT, BUFFER_LENGTH, "%lu" CSV_SEP_STR "" CSV_SEP_STR "" CSV_SEP_STR, resNodeGetSize(prnArg));
+	}
 	pucResult = xmlStrcat(pucResult, mucT);
       }
 

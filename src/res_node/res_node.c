@@ -3188,6 +3188,7 @@ resNodeAddDetails(resNodePtr prnArg, int iArgOptions)
 
   if (prnArg != NULL) {
     prnArg->iDetails |= iArgOptions;
+    time(&(prnArg->tAtime));
     fResult = TRUE;
   }
   return fResult;
@@ -3813,12 +3814,8 @@ resNodeGetMtimeDiff(resNodePtr prnArg)
 {
   long liResult = -1;
 
-  if (resNodeGetMtime(prnArg) != -1) {
-    time_t nowTime;
-
-    time(&nowTime); /*!\todo optimize */
-
-    liResult = nowTime - resNodeGetMtime(prnArg);
+  if (resNodeGetMtime(prnArg) != -1 && prnArg->tAtime > 0) {
+    liResult = prnArg->tAtime - prnArg->tMtime;
   }
   return liResult;
 } /* end of resNodeGetMtimeDiff() */
