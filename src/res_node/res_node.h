@@ -301,6 +301,8 @@ struct _resNode {
 
   size_t liChilds;			/*! number of childs */
 
+  time_t tAtime;            /*! access time value of context */
+
   time_t tMtime;            /*! modification time value of context */
   xmlChar *pucMtime;        /*! UTF-8 encoded entry mtime string */
 

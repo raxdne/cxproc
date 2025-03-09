@@ -60,12 +60,12 @@ main(int argc, char *argv[], char *envp[])
   }
   else {
     int i = 1;
-    int iArgOptions = RN_OUT_MAX;
+    int iArgOptions = (RN_OUT_NAME | RN_OUT_ATTR | RN_OUT_SIZE | RN_OUT_TIME | RN_OUT_TYPE | RN_OUT_OWNER | RN_OUT_PATH);
     xmlChar *pucT = NULL;
     resNodePtr prnI;
 
     if (argc > 1 && strcmp(argv[1], "-f") == 0) {
-      //iArgOptions |= RN_OUT_OWNER; /* output of file detail information */
+      iArgOptions |= RN_OUT_STRUCT; /* output of file detail information */
       i++;
     }
 
