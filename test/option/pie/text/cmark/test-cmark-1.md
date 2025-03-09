@@ -1,5 +1,13 @@
 
-# HTML Test
+# CommonMark
+
+## Regular Block
+
+```
+pre-formatted Block
+```
+
+## HTML Block
 
 This is a test for embedded HTML
 
@@ -27,3 +35,23 @@ This is a test for embedded HTML
 </table>
 
 plain text again
+
+## CSV Blocks
+
+```csv
+* Table DEMO
+
+ABC;DEF;HIJ
+KLM;NOP
+QRS
+
+```
+
+## Script Blocks
+
+```script
+
+var s = 22+11;
+
+4*s
+```

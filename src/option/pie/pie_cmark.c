@@ -214,72 +214,35 @@ cmarkTreeToDOM(xmlNodePtr pndArgBlock, xmlNodePtr pndArg, cmark_node* pcmnArg)
       }
     }
     else if (pcmnArg->type == CMARK_NODE_CODE_BLOCK) {
-      pucT = StringEncodeXmlDefaultEntitiesNew(BAD_CAST pcmnArg->data);
-      pndT = xmlNewChild(pndArg, NULL, BAD_CAST NAME_PIE_PRE, pucT);
+      pucT = StringEncodeXmlDefaultEntitiesNew(pcmnArg->data);
+      if (xmlStrEqual(BAD_CAST pcmnArg->as.code.info, NAME_PIE_CSV)) {
+	pndT = xmlNewChild(pndArg, NULL, BAD_CAST NAME_PIE_IMPORT, pucT);
+	xmlSetProp(pndT, BAD_CAST "type", BAD_CAST NAME_PIE_CSV);
+      }
+      else if (xmlStrEqual(BAD_CAST pcmnArg->as.code.info, NAME_PIE_SCRIPT)) {
+	pndT = xmlNewChild(pndArg, NULL, BAD_CAST NAME_PIE_IMPORT, pucT);
+	xmlSetProp(pndT, BAD_CAST "type", BAD_CAST NAME_PIE_SCRIPT);
+      }
+      else {
+	pndT = xmlNewChild(pndArg, NULL, BAD_CAST NAME_PIE_PRE, pucT);
+      }      
       xmlFree(pucT);
     }
     else if (pcmnArg->type == CMARK_NODE_HTML_BLOCK) {
       xmlNodePtr pndNew = NULL;
+      xmlDocPtr pdocHtml;
 
-      /*!\bug block is interrupted by empty lines */
-
-      if (StringBeginsWith((char *)pcmnArg->data, "<" NAME_PIE_CSV ">")) {
-	xmlChar *puc0;
-	xmlChar *puc1 = NULL;
-
-	pndNew = xmlNewChild(pndArg, NULL, BAD_CAST NAME_PIE_IMPORT, NULL);
-	xmlSetProp(pndNew, BAD_CAST "type", BAD_CAST NAME_PIE_CSV);
-	
-	if ((puc0 = BAD_CAST xmlStrstr(BAD_CAST pcmnArg->data, BAD_CAST "<" NAME_PIE_CSV ">")) != NULL) {
-	  puc0 += xmlStrlen(BAD_CAST "<" NAME_PIE_CSV ">");
-	  while (isspace(*puc0)) { puc0++; }
-	  if ((puc1 = BAD_CAST xmlStrstr(BAD_CAST pcmnArg->data, BAD_CAST "</" NAME_PIE_CSV ">")) != NULL) {
-	    xmlChar *pucContent;
-
-	    if (puc1 > puc0 && (pucContent = xmlStrndup(puc0, (int)(puc1 - puc0))) != NULL) {
-	      xmlAddChild(pndNew, xmlNewText(pucContent));
-	      xmlFree(pucContent);
-	    }
-	  }
-	}
-      }
-      else if (StringBeginsWith((char *)pcmnArg->data, "<" NAME_PIE_SCRIPT ">")) {
-	xmlChar *puc0;
-	xmlChar *puc1 = NULL;
-
-	pndNew = xmlNewChild(pndArg, NULL, BAD_CAST NAME_PIE_IMPORT, NULL);
-	xmlSetProp(pndNew, BAD_CAST "type", BAD_CAST NAME_PIE_SCRIPT);
-	
-	if ((puc0 = BAD_CAST xmlStrstr(BAD_CAST pcmnArg->data, BAD_CAST "<" NAME_PIE_SCRIPT ">")) != NULL) {
-	  puc0 += xmlStrlen(BAD_CAST "<" NAME_PIE_SCRIPT ">");
-	  if ((puc1 = BAD_CAST xmlStrstr(BAD_CAST pcmnArg->data, BAD_CAST "</" NAME_PIE_SCRIPT ">")) != NULL) {
-	    xmlChar *pucContent;
-
-	    if (puc1 > puc0 && (pucContent = xmlStrndup(puc0, (int)(puc1 - puc0))) != NULL) {
-	      pucT = StringEncodeXmlDefaultEntitiesNew(pucContent);
-	      xmlNodeSetContent(pndNew, pucT);
-	      //xmlAddChild(pndArg, xmlNewComment(pucT));
-	      xmlFree(pucT);
-	      xmlFree(pucContent);
-	    }
-	  }
-	}
+      pdocHtml = xmlParseMemory((const char *)pcmnArg->data, xmlStrlen(BAD_CAST pcmnArg->data)); /* XHTML only */
+      if ((pndNew = xmlDocGetRootElement(pdocHtml)) != NULL && IS_NODE_PIE_HTML(pndNew) && pndNew->children != NULL) {
+	xmlUnlinkNode(pndNew);
+	xmlNodeSetName(pndNew, BAD_CAST "block");
+	xmlSetProp(pndNew, BAD_CAST "type", BAD_CAST "text/html");
+	xmlAddChild(pndArg, pndNew);
       }
       else {
-	xmlDocPtr pdocHtml;
-
-	pdocHtml = xmlParseMemory((const char *)pcmnArg->data, xmlStrlen(BAD_CAST pcmnArg->data)); /* XHTML only */
-	if ((pndNew = xmlDocGetRootElement(pdocHtml)) != NULL && IS_NODE_PIE_HTML(pndNew) && pndNew->children != NULL) {
-	  xmlUnlinkNode(pndNew);
-	  xmlNodeSetName(pndNew, BAD_CAST"block");
-	  xmlSetProp(pndNew, BAD_CAST "type", BAD_CAST"text/html");
-	  xmlAddChild(pndArg, pndNew);
-	}
-	else {
-	  xmlAddChild(pndArg, xmlNewComment(BAD_CAST"HTML parser error"));
-	}
-	xmlFreeDoc(pdocHtml);
+	xmlAddChild(pndArg, xmlNewComment(BAD_CAST "HTML parser error"));
       }
+      xmlFreeDoc(pdocHtml);
     }
     else if (pcmnArg->type == CMARK_NODE_CUSTOM_BLOCK) {
       xmlAddChild(pndArg, xmlNewComment(BAD_CAST"CMARK_NODE_CUSTOM_BLOCK"));
