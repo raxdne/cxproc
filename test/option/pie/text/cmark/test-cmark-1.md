@@ -17,6 +17,8 @@ This is a test for embedded HTML
 <li>HIJ</li>
 </ol>
 
+<hr/>
+
 <p>Table</p>
 
 <table>
@@ -47,6 +49,27 @@ QRS
 
 ```
 
+## CXP Blocks (not permitted yet)
+
+```cxp
+<cxp:info/>
+```
+
+## Line Blocks
+
+```line
+DEMO
+ABC;
+DEF;
+
+HIJ
+KLM;
+
+NOP
+QRS
+
+```
+
 ## Script Blocks
 
 ```script
@@ -54,4 +77,12 @@ QRS
 var s = 22+11;
 
 4*s
+```
+
+## Skip Block
+
+``` skip 
+
+!!!TO BE SKIPPED!!!
+
 ```

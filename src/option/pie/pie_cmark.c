@@ -214,30 +214,40 @@ cmarkTreeToDOM(xmlNodePtr pndArgBlock, xmlNodePtr pndArg, cmark_node* pcmnArg)
       }
     }
     else if (pcmnArg->type == CMARK_NODE_CODE_BLOCK) {
-      pucT = StringEncodeXmlDefaultEntitiesNew(pcmnArg->data);
-      if (xmlStrEqual(BAD_CAST pcmnArg->as.code.info, NAME_PIE_CSV)) {
-	pndT = xmlNewChild(pndArg, NULL, BAD_CAST NAME_PIE_IMPORT, pucT);
-	xmlSetProp(pndT, BAD_CAST "type", BAD_CAST NAME_PIE_CSV);
-      }
-      else if (xmlStrEqual(BAD_CAST pcmnArg->as.code.info, NAME_PIE_SCRIPT)) {
-	pndT = xmlNewChild(pndArg, NULL, BAD_CAST NAME_PIE_IMPORT, pucT);
-	xmlSetProp(pndT, BAD_CAST "type", BAD_CAST NAME_PIE_SCRIPT);
+      if (xmlStrEqual(BAD_CAST pcmnArg->as.code.info, BAD_CAST "skip")) {
+	/* ignoring this block */
       }
       else {
-	pndT = xmlNewChild(pndArg, NULL, BAD_CAST NAME_PIE_PRE, pucT);
-      }      
-      xmlFree(pucT);
+	pucT = StringEncodeXmlDefaultEntitiesNew(pcmnArg->data);
+	if (xmlStrEqual(BAD_CAST pcmnArg->as.code.info, NAME_PIE_CSV)) {
+	  pndT = xmlNewChild(pndArg, NULL, BAD_CAST NAME_PIE_IMPORT, pucT);
+	  xmlSetProp(pndT, BAD_CAST "type", BAD_CAST NAME_PIE_CSV);
+	}
+	else if (xmlStrEqual(BAD_CAST pcmnArg->as.code.info, NAME_PIE_SCRIPT)) {
+	  pndT = xmlNewChild(pndArg, NULL, BAD_CAST NAME_PIE_IMPORT, pucT);
+	  xmlSetProp(pndT, BAD_CAST "type", BAD_CAST NAME_PIE_SCRIPT);
+	}
+	else if (xmlStrEqual(BAD_CAST pcmnArg->as.code.info, BAD_CAST "line")) {
+	  pndT = xmlNewChild(pndArg, NULL, BAD_CAST NAME_PIE_IMPORT, pucT);
+	  xmlSetProp(pndT, BAD_CAST "type", BAD_CAST "line");
+	}
+	else {
+	  pndT = xmlNewChild(pndArg, NULL, BAD_CAST NAME_PIE_PRE, pucT);
+	}
+	xmlFree(pucT);
+      }
     }
     else if (pcmnArg->type == CMARK_NODE_HTML_BLOCK) {
       xmlNodePtr pndNew = NULL;
       xmlDocPtr pdocHtml;
 
       pdocHtml = xmlParseMemory((const char *)pcmnArg->data, xmlStrlen(BAD_CAST pcmnArg->data)); /* XHTML only */
-      if ((pndNew = xmlDocGetRootElement(pdocHtml)) != NULL && IS_NODE_PIE_HTML(pndNew) && pndNew->children != NULL) {
+      if ((pndNew = xmlDocGetRootElement(pdocHtml)) != NULL) {
 	xmlUnlinkNode(pndNew);
-	xmlNodeSetName(pndNew, BAD_CAST "block");
-	xmlSetProp(pndNew, BAD_CAST "type", BAD_CAST "text/html");
-	xmlAddChild(pndArg, pndNew);
+	pndT = xmlNewChild(pndArg, NULL, BAD_CAST "block", NULL);
+	xmlSetProp(pndT, BAD_CAST "type", BAD_CAST "text/html");
+	xmlAddChild(pndT, pndNew);
+	xmlAddChild(pndArg, pndT);
       }
       else {
 	xmlAddChild(pndArg, xmlNewComment(BAD_CAST "HTML parser error"));
