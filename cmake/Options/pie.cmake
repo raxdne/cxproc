@@ -24,6 +24,8 @@ ENDIF ()
 
 IF (CXPROC_PIE)
 
+  add_compile_definitions(USE_ISO_TIME)
+
   target_sources(filex PUBLIC 
     ${CXPROC_SRC_DIR}/option/ics/ics.c
     ${CXPROC_SRC_DIR}/option/ics/ics.h

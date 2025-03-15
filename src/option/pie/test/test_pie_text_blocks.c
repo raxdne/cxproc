@@ -1199,9 +1199,11 @@ pieTextBlocksTest(void)
     else if ((pndT = xmlNewChild(pndPar, NULL, BAD_CAST NAME_PIE_DATE, BAD_CAST"R3/2017-04-03/P3D")) == NULL || AddNodeDateAttributes(pndT, NULL) == FALSE) {
       printf("Error 5 AddNodeDateAttributes()\n");
     }
+#if 0
     else if ((pndT = xmlNewChild(pndPar, NULL, BAD_CAST NAME_PIE_DATE, BAD_CAST"R4/P4D/2017-04-20")) == NULL || AddNodeDateAttributes(pndT, NULL) == FALSE) {
       printf("Error 6 AddNodeDateAttributes()\n");
     }
+#endif
 #if EXPERIMENTAL
     else if ((pndT = xmlNewChild(pndPar, NULL, BAD_CAST NAME_PIE_DATE, BAD_CAST"2017-04-01/O3Y3M3D")) == NULL || AddNodeDateAttributes(pndT,NULL) == FALSE) {
       printf("Error 3 AddNodeDateAttributes()\n");

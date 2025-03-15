@@ -214,16 +214,16 @@ cmarkTreeToDOM(xmlNodePtr pndArgBlock, xmlNodePtr pndArg, cmark_node* pcmnArg)
       }
     }
     else if (pcmnArg->type == CMARK_NODE_CODE_BLOCK) {
-      if (xmlStrEqual(BAD_CAST pcmnArg->as.code.info, BAD_CAST "skip")) {
+      if (xmlStrEqual(BAD_CAST pcmnArg->as.code.info, BAD_CAST NAME_PIE_SKIP)) {
 	/* ignoring this block */
       }
       else {
 	pucT = StringEncodeXmlDefaultEntitiesNew(pcmnArg->data);
-	if (xmlStrEqual(BAD_CAST pcmnArg->as.code.info, NAME_PIE_CSV)) {
+	if (xmlStrEqual(BAD_CAST pcmnArg->as.code.info, BAD_CAST NAME_PIE_CSV)) {
 	  pndT = xmlNewChild(pndArg, NULL, BAD_CAST NAME_PIE_IMPORT, pucT);
 	  xmlSetProp(pndT, BAD_CAST "type", BAD_CAST NAME_PIE_CSV);
 	}
-	else if (xmlStrEqual(BAD_CAST pcmnArg->as.code.info, NAME_PIE_SCRIPT)) {
+	else if (xmlStrEqual(BAD_CAST pcmnArg->as.code.info, BAD_CAST NAME_PIE_SCRIPT)) {
 	  pndT = xmlNewChild(pndArg, NULL, BAD_CAST NAME_PIE_IMPORT, pucT);
 	  xmlSetProp(pndT, BAD_CAST "type", BAD_CAST NAME_PIE_SCRIPT);
 	}
@@ -272,7 +272,7 @@ cmarkTreeToDOM(xmlNodePtr pndArgBlock, xmlNodePtr pndArg, cmark_node* pcmnArg)
 	}
       }
       else if (pcmnArg->first_child != NULL && pcmnArg->first_child == pcmnArg->last_child && pcmnArg->first_child->data != NULL &&
-	       StringBeginsWith(pcmnArg->first_child->data, "ORIGIN: ")) {
+	       StringBeginsWith((char *)pcmnArg->first_child->data, "ORIGIN: ")) {
 	/*!\bug when nested imports with multiple "ORIGIN:" without "END:" markup */
 #if 0
 	pndArg = xmlNewChild(pndArg, NULL, BAD_CAST NAME_PIE_BLOCK, NULL);

@@ -81,7 +81,7 @@
 #define RE_DATE_ORD           "[0-9]{3}"
 #define RE_DATE_WEEK          "W[0-5][0-9]"
 #define RE_DATE_DAY_OF_WEEK   "[1-7]"
-#define RE_DATE_UNIX          "[0-9]{10}"
+#define RE_DATE_UNIX          "[0-9]{10}(\\.[0-9]{0,3})*"
 
 #define RE_ISO_DAY \
      "(" RE_DATE_YEAR "-" RE_DATE_MONTH "-" RE_DATE_DAY_OF_MONTH "|"  RE_DATE_YEAR RE_DATE_MONTH RE_DATE_DAY_OF_MONTH \
