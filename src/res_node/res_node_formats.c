@@ -1351,6 +1351,7 @@ resNodeDatabaseSchemaStr(int iArgOptions)
 			BAD_CAST "CREATE TABLE IF NOT EXISTS 'queries' (query text);\n"
 				 "\n"
 				 "INSERT INTO 'queries' VALUES (\"SELECT * FROM meta;\");\n"
+				 "INSERT INTO 'queries' VALUES (\"SELECT * FROM directory WHERE name LIKE '%%n%%';\");\n"
 				 "INSERT INTO 'queries' VALUES (\"SELECT DISTINCT name FROM directory;\");\n"
 				 "INSERT INTO 'queries' VALUES (\"SELECT sum(size)/(1024*1024*1024) AS GB FROM directory;\");\n"
 				 "INSERT INTO 'queries' VALUES (\"SELECT sum(size)/1024 AS KBytes, path FROM directory WHERE path in (SELECT DISTINCT path "

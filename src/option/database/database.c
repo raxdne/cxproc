@@ -61,6 +61,9 @@ dbGetColDeclarationsToNode(xmlNodePtr pndArgParent, sqlite3_stmt *pStmt);
 static BOOL_T
 dbGetEntriesToNode(xmlNodePtr pndArgParent, sqlite3_stmt *pStmt);
 
+static BOOL_T
+dbGetErrorsToNode(xmlNodePtr pndArgParent, sqlite3 *pdbArg);
+
 
 /*! \return a checked string of the next SQL statement
 */
@@ -154,6 +157,24 @@ dbGetColDeclarationsToNode(xmlNodePtr pndArgParent, sqlite3_stmt *pStmt)
 \todo error handling
 */
 BOOL_T
+dbGetErrorsToNode(xmlNodePtr pndArgParent, sqlite3 *pdbArg)
+{
+  xmlChar *pucMessage;
+
+  pucMessage = BAD_CAST sqlite3_errmsg(pdbArg);
+  if (STR_IS_NOT_EMPTY(pucMessage)) {
+    xmlNewChild(pndArgParent, NULL, BAD_CAST "error", pucMessage);
+  }
+
+  return TRUE;
+}
+/* end of dbGetErrorsToNode() */
+
+/*! adds the column declarations of table 'pucArgName' at database 'pdbArg' as child to 'pndArgParent'
+
+\todo error handling
+*/
+BOOL_T
 dbGetEntriesToNode(xmlNodePtr pndArgParent, sqlite3_stmt *pStmt)
 {
   int ncols;
@@ -237,6 +258,7 @@ dbProcessQueryToNode(xmlNodePtr pndArgParent, resNodePtr prnArgDb, xmlChar *pucA
     }
     else {
       PrintFormatLog(1,"SQL error");
+      dbGetErrorsToNode(pndResult,(sqlite3 *)resNodeGetHandleIO(prnArgDb));
     }
 
     sqlite3_finalize(pStmt);
