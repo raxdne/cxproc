@@ -185,12 +185,13 @@ dbGetEntriesToNode(xmlNodePtr pndArgParent, sqlite3_stmt *pStmt)
   for (iRow=0; iRow < 10e6; iRow++) {
     int iCodeState;
     xmlChar mucT[BUFFER_LENGTH];
-    xmlNodePtr pndRow = xmlNewChild(pndArgParent, NULL, BAD_CAST"entry", NULL);
 
-    iCodeState = sqlite3_step (pStmt);
+    iCodeState = sqlite3_step(pStmt);
     if (iCodeState == SQLITE_ROW) {
-      PrintFormatLog(4,"Append query result entry '%i'",iRow);
-      xmlStrPrintf(mucT,BUFFER_LENGTH-1,"%i",iRow);
+      xmlNodePtr pndRow = xmlNewChild(pndArgParent, NULL, BAD_CAST "entry", NULL);
+
+      PrintFormatLog(4, "Append query result entry '%i'", iRow);
+      xmlStrPrintf(mucT, BUFFER_LENGTH - 1, "%i", iRow);
       xmlSetProp(pndRow, BAD_CAST "nr", mucT);
       for (iCol=0; iCol<ncols; iCol++) {
 	const xmlChar *pucT = sqlite3_column_text(pStmt,iCol);

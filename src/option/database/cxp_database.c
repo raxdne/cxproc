@@ -119,6 +119,23 @@ dbProcessDbNodeToDoc(xmlNodePtr pndArgDb, cxpContextPtr pccArg)
     }
     resNodeFree(prnDb);
   }
+  else {
+    /*! create error DOM
+     */
+    xmlNodePtr pndT;
+    xmlNodePtr pndSql;
+
+    pdocResult = xmlNewDoc(BAD_CAST "1.0");
+    pndSql = xmlNewDocNode(pdocResult, NULL, BAD_CAST "sql", NULL);
+    xmlDocSetRootElement(pdocResult, pndSql);
+
+    pndT = xmlNewChild(pndSql, NULL, NAME_META, NULL);
+    /* Get the current time. */
+    domSetPropEat(pndT, BAD_CAST "ctime", GetNowFormatStr(BAD_CAST "%s"));
+    domSetPropEat(pndT, BAD_CAST "ctime2", GetDateIsoString(0));
+    xmlAddChild(pndT,xmlCopyNode(pndArgDb,1));
+    xmlNewChild(pndSql, NULL, BAD_CAST"error", BAD_CAST "no database found");
+  }
 
   return pdocResult;
 }
@@ -442,7 +459,7 @@ dbResNodeDatabaseOpenNew(xmlNodePtr pndArg, cxpContextPtr pccArg)
     detect the necessary connection informations
   */
   pucNameDb = domGetPropValuePtr(pndArg, BAD_CAST "name");
-  fWrite = domGetPropFlag(pndArg, BAD_CAST"write", TRUE);
+  fWrite = domGetPropFlag(pndArg, BAD_CAST"write", FALSE);
   fAppend = domGetPropFlag(pndArg, BAD_CAST"append", fWrite);
 
   if (STR_IS_EMPTY(pucNameDb) || resPathIsInMemory(pucNameDb)) {
@@ -458,8 +475,11 @@ dbResNodeDatabaseOpenNew(xmlNodePtr pndArg, cxpContextPtr pccArg)
     /*! create new db or append to an existing db according to attribute "append" */
     resNodeSetMimeType(prnResult, MIME_APPLICATION_X_SQLITE3);
     assert(resNodeIsDatabase(prnResult));
-    
-    resNodeOpen(prnResult, (fWrite ? (fAppend ? "wd+" : "wd") : "rd"));
+
+    if (resNodeOpen(prnResult, (fWrite ? (fAppend ? "wd+" : "wd") : "rd")) == FALSE) {
+      resNodeFree(prnResult);
+      prnResult = NULL;
+    }
   }
   return prnResult;
 } /* end of dbResNodeDatabaseOpenNew() */
@@ -632,7 +652,10 @@ dbProcessDbSourceNode(xmlNodePtr pndArg, cxpContextPtr pccArg)
   if (IS_VALID_NODE(pndArg)) {
     
     prnDb = dbResNodeDatabaseOpenNew(pndArg,pccArg);
-    if (resNodeIsWriteable(prnDb)) {
+    if (prnDb == NULL) {
+      cxpCtxtLogPrint(pccArg, 1, "no database found");
+    }
+    else if (resNodeIsWriteable(prnDb)) {
       xmlChar *pucQuery = NULL;
       xmlNodePtr pndChild = NULL;
 
