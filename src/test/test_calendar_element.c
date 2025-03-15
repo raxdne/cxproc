@@ -269,7 +269,7 @@ ceTest(void)
     i++;
     printf("TEST %i in '%s:%i': scan a calendar element (decimal clock) = ", i, __FILE__, __LINE__);
 
-    if ((pceT = CalendarElementNew(BAD_CAST"2013-12-10T10 Decimal")) == NULL) {
+    if ((pceT = CalendarElementNew(BAD_CAST"20131210T1 Decimal")) == NULL) {
       printf("ERROR 1\n");
     }
     else if (ScanCalendarElementDate(pceT) == FALSE) {
@@ -278,7 +278,7 @@ ceTest(void)
     else if (xmlStrEqual(pceT->pucSep, BAD_CAST" Decimal") == FALSE) {
       printf("ERROR 3\n");
     }
-    else if (pceT->dt0.dt != dt_from_ymd(2013, 12, 10) || (pceT->dt0.iSec != 36000 && pceT->dt0.iSec != 36000 - 3600) || pceT->dt1.dt != 0 || pceT->dt1.iSec != 0) {
+    else if (pceT->dt0.dt != dt_from_ymd(2013, 12, 10) || (pceT->dt0.iSec != 3600 && pceT->dt0.iSec != 3600 - 3600) || pceT->dt1.dt != 0 || pceT->dt1.iSec != 0) {
       printf("ERROR: %s\n", FormatCalendarElementDateStr(pceT));
     }
     else if ((pceT = CalendarElementNew(BAD_CAST"2013-12-10T10.25 Decimal")) == NULL) {

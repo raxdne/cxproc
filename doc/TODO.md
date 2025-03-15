@@ -28,7 +28,7 @@ BUG: XPath for ZIP Documents
 REQ: embedd non-image data in ZIP Documents into txt/md/pie
 - download with content-type and name
 
-BUG: dir2csv output + verbosity
+BUG: dir2csv output + verbosity ✔
 
 REQ: dir2csv LoD ++
 1) directories

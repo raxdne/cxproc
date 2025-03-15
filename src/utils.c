@@ -2476,7 +2476,7 @@ dt_parse_iso_date_time_zone(const char* str, size_t len, dt_t *dtp, int *sp) {
 	int s;
 
 	n++;
-	if (((j = dt_parse_iso_hours_decimal(&p[n], len - n, &s)) > 1 || (j = dt_parse_iso_time(&p[n], len - n, &s, NULL)) > 3) && s > -1) {
+	if (((j = dt_parse_iso_hours_decimal(&p[n], len - n, &s)) > 0 || (j = dt_parse_iso_time(&p[n], len - n, &s, NULL)) > 3) && s > -1) {
 	  int t = s;
 	  int m = 0;
 	  int o = 0;
