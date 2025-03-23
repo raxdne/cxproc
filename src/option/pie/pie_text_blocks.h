@@ -90,12 +90,12 @@
      ")"
 
 #ifdef USE_ISO_TIME
-  #define RE_ISO_TIME     "T[012]*[0-9](:*[0-5][0-9]){0,2}([\\.][0-9]{1,10})*" "(((\\+|\\-|" STR_UTF8_MINUS ")[0-9]{1,2}([:\\.]*[0-9]{1,2})*)" "|" "[A-Z]{3}" "|" "Z" ")*"
+  #define RE_ISO_TIME      "T[012]*[0-9](:*[0-5][0-9]){0,2}([\\.][0-9]{1,10})*" "(((\\+|\\-|" STR_UTF8_MINUS ")[0-9]{1,2}([:\\.]*[0-9]{1,2})*)" "|" "[A-Z]{3}" "|" "Z" ")*"
   #define RE_ISO_DAY_TIME  RE_ISO_DAY "(" RE_ISO_TIME ")*"
-  #define RE_ISO_PERIOD    "P(-*[0-9\\.]+[YMDW])*" "(T([0-9\\.]+[HMS])*)*"
+  #define RE_ISO_PERIOD    "[PO](-*[0-9\\.]+[YMDW])*" "(T(-*[0-9\\.]+[HMS]))*"
 #else
   #define RE_ISO_DAY_TIME  RE_ISO_DAY
-  #define RE_ISO_PERIOD    "P(-*[0-9\\.]+[YMDW])*"
+  #define RE_ISO_PERIOD    "[PO](-*[0-9\\.]+[YMDW])+"
 #endif
 
 #define RE_ISO_WEEK RE_DATE_YEAR "-*" RE_DATE_WEEK
@@ -159,10 +159,6 @@
 #endif
 
 #if 0
-
-#define RE_ISO_OFFSET   "O(([0-9\\.\\,]+Y)*([0-9\\.\\,]+M)*([0-9\\.\\,]+D)*|[0-9\\.\\,]+W)+"
-
-/*!\todo decimal offset values */
 
 // 2024-WEA-7 - Sunday of Easter week 2024
 //#define RE_DATE_EASTER "\\@e([\\-+][0-9]+)*"

@@ -377,9 +377,9 @@ ceTest(void)
 #endif
 
 
-#if 0
+#if 1
 
-  /* (ISO 8601) Time offsets */
+  /* (ISO 8601) Date offsets */
 
   if (RUNTEST) {
     ceElementPtr pceT;
@@ -398,6 +398,15 @@ ceTest(void)
     }
     else if (xmlStrEqual(pceT->pucSep, BAD_CAST" my date offset") == FALSE) {
       printf("ERROR\n");
+    }
+    else if (CalendarElementUpdate(pceT, BAD_CAST "O1Y1M1D/2018-03-01 my date offset") == NULL) {
+      printf("ERROR CalendarElementUpdate()\n");
+    }
+    else if (ScanCalendarElementDate(pceT) == FALSE) {
+      printf("ERROR\n");
+    }
+    else if (pceT->dt0.dt != dt_from_ymd(2017, 1, 31) || pceT->dt1.dt != 0) {
+      printf("ERROR: %s\n", FormatCalendarElementDateStr(pceT));
     }
     else {
       n_ok++;
