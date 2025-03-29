@@ -21,6 +21,7 @@
 
 #include <math.h>
 #include <inttypes.h>
+#include <ctype.h>
 #include <float.h>
 #include <limits.h>
 
@@ -2459,15 +2460,96 @@ dt_parse_iso_hours_decimal(const char *str, size_t len, int *sod)
 }
 
 
+/*! parses a UNIX epoch value
+ */
+size_t
+dt_parse_unix(const char *str, size_t len, dt_t *dtp, int *sp)
+{
+  size_t n = 0;
+  char *pucT = (char *)str;
+
+  if (str != NULL && len > 0 && isdigit(pucT[0]) && isdigit(pucT[1]) && isdigit(pucT[2]) && isdigit(pucT[3]) && isdigit(pucT[4]) && isdigit(pucT[5]) &&
+      isdigit(pucT[6]) && isdigit(pucT[7]) && isdigit(pucT[8]) && isdigit(pucT[9]) && !isdigit(pucT[10])) {
+
+    unsigned long iT;
+
+    /* ignoring millisecs */
+    iT = strtoul((const char *)pucT, &pucT, 10);
+    n = (pucT - str);
+
+    if (iT > 1e5 && n == 10) {
+      time_t tT;
+      struct tm *tm_struct;
+
+      tT = (time_t)iT;
+      tm_struct = localtime((const time_t *)(&tT));
+
+      if (dtp != NULL) {
+	*dtp = dt_from_struct_tm(tm_struct);
+#ifdef USE_ISO_TIME
+	if (sp != NULL) {
+	  *sp = tm_struct->tm_hour * 3600 + tm_struct->tm_min * 60 + tm_struct->tm_sec;
+	}
+#endif
+      }
+    }
+    else {
+      n = 0;
+    }
+  }
+  return n;
+}
+
+
+/*! parses a usual German Date "D.M.YYYY"
+ */
+size_t
+dt_parse_german_date(const char *str, size_t len, dt_t *dtp)
+{
+  size_t n = 0;
+
+  if (str != NULL && len > 0) {
+    char *pucT = (char *)str;
+    int iYear, iMonth, iDay;
+
+    iDay = (int)strtol(pucT, &pucT, 10);
+    if (*pucT == '.' && iDay > 0 && iDay < 32) {
+      iMonth = (int)strtol(++pucT, &pucT, 10);
+      if (*pucT == '.' && iMonth > 0 && iMonth < 13) {
+	iYear = (int)strtol(++pucT, &pucT, 10);
+	n = (pucT - str);
+	if (n <= len && iYear > 0 && dtp != NULL) {
+	  if (iYear < 50) {
+	    *dtp = dt_from_ymd(iYear + 2000, iMonth, iDay);
+	  }
+	  else if (iYear < 100) {
+	    *dtp = dt_from_ymd(iYear + 1900, iMonth, iDay);
+	  }
+	  else if (iYear < 3000) {
+	    *dtp = dt_from_ymd(iYear, iMonth, iDay);
+	  }
+	  else {
+	    n = 0;
+	  }
+	  /* neither period nor recurrance */
+	}
+      }
+    }
+  }
+  return n;
+}
+
+
 /*! parses a combined "YYYY-MM-DDTHH:MM:SS+hh:mm"
  */
 size_t
-dt_parse_iso_date_time_zone(const char* str, size_t len, dt_t *dtp, int *sp) {
+dt_parse_iso_date_time_zone(const char *str, size_t len, dt_t *dtp, int *sp)
+{
   size_t n = 0;
 
   if (str != NULL && len > 0) {
     size_t j;
-    char* p = (char *)str;
+    char *p = (char *)str;
 
     if ((j = dt_parse_iso_date(&p[n], len, dtp)) > 3) {
       n += j;
@@ -2480,7 +2562,7 @@ dt_parse_iso_date_time_zone(const char* str, size_t len, dt_t *dtp, int *sp) {
 	  int t = s;
 	  int m = 0;
 	  int o = 0;
-	  dt_zone_t* pz;
+	  dt_zone_t *pz;
 
 	  n += j;
 
@@ -2494,7 +2576,7 @@ dt_parse_iso_date_time_zone(const char* str, size_t len, dt_t *dtp, int *sp) {
 	    o = (5 * 60 + 30) * 60;
 	    n += 3;
 	  }
-	  else if ((j = dt_zone_lookup(&p[n], len - n, (const dt_zone_t**)&pz))) {
+	  else if ((j = dt_zone_lookup(&p[n], len - n, (const dt_zone_t **)&pz))) {
 	    if (j > 0 && j < 4 && pz->offset > -12 * 60 && pz->offset < 14 * 60) {
 	      o = pz->offset * 60;
 	    }
@@ -2510,7 +2592,7 @@ dt_parse_iso_date_time_zone(const char* str, size_t len, dt_t *dtp, int *sp) {
 	    /* default local time zone */
 	    o = localtime_offset();
 	  }
-	  
+
 #ifdef USE_ISO_TIME
 	  t -= o;
 

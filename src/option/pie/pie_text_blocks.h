@@ -82,6 +82,8 @@
 #define RE_DATE_WEEK          "W[0-5][0-9]"
 #define RE_DATE_DAY_OF_WEEK   "[1-7]"
 #define RE_DATE_UNIX          "[0-9]{10}(\\.[0-9]{0,3})*"
+#define RE_DATE_GERMAN        "[0123]*[0-9]" "\\." "[01]*[0-9]" "\\." "[0-9]{2,4}"
+
 
 #define RE_ISO_DAY \
      "(" RE_DATE_YEAR "-" RE_DATE_MONTH "-" RE_DATE_DAY_OF_MONTH "|"  RE_DATE_YEAR RE_DATE_MONTH RE_DATE_DAY_OF_MONTH \
@@ -167,8 +169,6 @@
 
 // every last day of a month
 
-#define RE_DATE_GERMAN RE_DATE_DAY_OF_MONTH "\\." RE_DATE_MONTH "\\." RE_DATE_YEAR
-
 #define RE_DATE_EXTENSION \
   "(" RE_ISO_RECURRENCE "/)(" RE_ISO_PERIOD ")/(" RE_ISO_DAY_TIME ")/(" RE_ISO_PERIOD ")" \
   "|"									\
@@ -186,7 +186,7 @@
 
 #else
 
-#define RE_DATE ("\\b(" RE_ISO_8601 ")")
+#define RE_DATE ("\\b(" RE_ISO_8601 "|" RE_DATE_GERMAN "|" RE_DATE_UNIX ")")
 
 #endif
 

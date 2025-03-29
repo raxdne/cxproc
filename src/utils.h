@@ -170,6 +170,12 @@ dt_parse_iso_date_time_zone(const char* str, size_t len, dt_t *dtp, int *sp);
 extern size_t
 dt_parse_iso_hours_decimal(const char *str, size_t len, int *sod);
 
+extern size_t
+dt_parse_unix(const char *str, size_t len, dt_t *dtp, int *sp);
+
+extern size_t
+dt_parse_german_date(const char *str, size_t len, dt_t *dtp);
+
 extern int
 ishashtag(xmlChar* pucArg, int* piArg);
 

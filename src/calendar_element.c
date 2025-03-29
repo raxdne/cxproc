@@ -464,58 +464,11 @@ ScanCalendarElementDate(ceElementPtr pceArgResult)
       int iYear1, iMonth1, iWeek1, iQuarter1, iDay1, iHour1, iMinute1, iSecond1;
       double dYear, dMonth, dDay, dWeek, dHour, dMinute, dSecond;
       
-      if (isdigit(pucT[0]) && isdigit(pucT[1]) && isdigit(pucT[2]) && isdigit(pucT[3])
-	&& isdigit(pucT[4]) && isdigit(pucT[5]) && isdigit(pucT[6]) && isdigit(pucT[7])
-	&& isdigit(pucT[8]) && isdigit(pucT[9]) && ! isdigit(pucT[10])) {
-
-	/* system time "1311186519" */
-	unsigned long iT;
-	time_t tT;
-	struct tm *tm_struct;
-
-	pucT = xmlStrndup(pucT, 10);
-        /* ignoring millisecs */
-	iT = strtoul((const char *)pucT, NULL, 10);
-	xmlFree(pucT);
-
-	tT = (time_t)iT;
-	tm_struct = localtime((const time_t *)(&tT));
-
-	pceArgResult->dt0.dt = dt_from_struct_tm(tm_struct);
-#ifdef USE_ISO_TIME
-	pceArgResult->dt0.iSec = tm_struct->tm_hour * 3600 + tm_struct->tm_min * 60 + tm_struct->tm_sec;
-#endif
-	n += 10;
+      if ((j = dt_parse_unix((const char *)pucT, xmlStrlen(pucT), &pceArgResult->dt0.dt, &pceArgResult->dt0.iSec)) == 10) {
+	n += j;
       }
-      else if (isdigit(pucT[0]) && isdigit(pucT[1]) && pucT[2] == '.'
-       && isdigit(pucT[3]) && isdigit(pucT[4]) && pucT[5] == '.'
-       && isdigit(pucT[6]) && isdigit(pucT[7]) && isdigit(pucT[8]) && isdigit(pucT[9]) && ! isdigit(pucT[10])) {
-
-	/* german date format 'DD.MM.YYYY' */
-
-	iDay = 10 * (pucT[n] - '0') + (pucT[n + 1] - '0');
-	if (iDay > 0 && iDay < 32) {
-	  n += 3;
-	  iMonth = 10 * (pucT[n] - '0') + (pucT[n + 1] - '0');
-	  if (iMonth > 0 && iMonth < 13) {
-	    n += 3;
-	    iYear = 1000 * (pucT[n] - '0') + 100 * (pucT[n + 1] - '0') + 10 * (pucT[n + 2] - '0') + (pucT[n + 3] - '0');
-	    if (iYear > -1 && iYear < 2999) {
-	      n += 4;
-	      pceArgResult->dt0.dt = dt_from_ymd(iYear, iMonth, iDay);
-	      /* neither period nor recurrance */
-	    }
-	    else {
-	      n = 0;
-	    }
-	  }
-	  else {
-	    n = 0;
-	  }
-	}
-	else {
-	  n = 0;
-	}
+      else  if ((j = dt_parse_german_date((const char *)pucT, xmlStrlen(pucT), &pceArgResult->dt0.dt)) > 5) {
+	n += j;
       }
       else if ((j = dt_parse_iso_recurrence((const char *)pucT, xmlStrlen(pucT), &r)) > 0) {
 	/* recurrence/ */

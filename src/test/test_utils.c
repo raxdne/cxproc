@@ -926,6 +926,47 @@ utilsTest(void)
   }
 #endif
 
+  if (RUNTEST) {
+    dt_t dt;
+
+    i++;
+    printf("TEST %i in '%s:%i': German Date Formats", i, __FILE__, __LINE__);
+
+    if (dt_parse_german_date(NULL, 20, NULL) != 0) {
+      printf("ERROR 1 dt_parse_german_date()\n");
+    }
+    else if (dt_parse_german_date("15.10.2012", 40, &dt) != 10 || dt != dt_from_ymd(2012, 10, 15)) {
+      printf("ERROR 2 dt_parse_german_date()\n");
+    }
+    else if (dt_parse_german_date("1.2.98", 40, &dt) != 6 || dt != dt_from_ymd(1998, 2, 1)) {
+      printf("ERROR 3 dt_parse_german_date()\n");
+    }
+    else {
+      n_ok++;
+      printf("OK\n");
+    }
+  }
+
+  if (RUNTEST) {
+    dt_t dt;
+
+    i++;
+    printf("TEST %i in '%s:%i': UNIX Epoch Format", i, __FILE__, __LINE__);
+
+    if (dt_parse_unix(NULL, 20, NULL, NULL) != 0) {
+      printf("ERROR 1 dt_parse_unix()\n");
+    }
+    else if (dt_parse_unix("1300000000", 40, &dt, NULL) != 10 || dt != dt_from_ymd(2011, 3, 13)) {
+      printf("ERROR 2 dt_parse_unix()\n");
+    }
+    else if (dt_parse_unix("1234567890123", 40, &dt, NULL) != 0) {
+      printf("ERROR 3 dt_parse_unix()\n");
+    }
+    else {
+      n_ok++;
+      printf("OK\n");
+    }
+  }
 
   if (RUNTEST) {
 
