@@ -24,7 +24,14 @@ ENDIF ()
 
 IF (CXPROC_PIE)
 
+  # if time representations according to ISO 8601 are required
   add_compile_definitions(USE_ISO_TIME)
+
+  # if date representations extending ISO 8601 are required (e.g. O - Offset)
+  add_compile_definitions(USE_ISO_EXTENSION)
+
+  # if alternative date/time representations are required
+  #add_compile_definitions(USE_ALT_DATETIME)
 
   target_sources(filex PUBLIC 
     ${CXPROC_SRC_DIR}/option/ics/ics.c

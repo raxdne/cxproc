@@ -100,26 +100,29 @@ ceTest(void)
     else if (pceT->dt1.dt != 0) {
       printf("ERROR: %s\n", FormatCalendarElementDateStr(pceT));
     }
-    else if (CalendarElementUpdate(pceT,BAD_CAST"11.1.19") == NULL) {
-	printf("ERROR\n");
-      }
-      else if (ScanCalendarElementDate(pceT) == FALSE) {
-	printf("ERROR\n");
-      }
-      else if (pceT->dt0.dt != dt_from_ymd(2019, 1, 11)) {
-	printf("ERROR: %s\n", FormatCalendarElementDateStr(pceT));
-      }
-      else if (pceT->dt1.dt != 0) {
-	printf("ERROR: %s\n", FormatCalendarElementDateStr(pceT));
-      }
-      else {
+#ifdef USE_ALT_DATETIME
+    else if (CalendarElementUpdate(pceT, BAD_CAST "11.1.19") == NULL) {
+      printf("ERROR\n");
+    }
+    else if (ScanCalendarElementDate(pceT) == FALSE) {
+      printf("ERROR\n");
+    }
+    else if (pceT->dt0.dt != dt_from_ymd(2019, 1, 11)) {
+      printf("ERROR: %s\n", FormatCalendarElementDateStr(pceT));
+    }
+    else if (pceT->dt1.dt != 0) {
+      printf("ERROR: %s\n", FormatCalendarElementDateStr(pceT));
+    }
+#endif
+    else {
       n_ok++;
       printf("OK\n");
     }
     CalendarElementFree(pceT);
   }
 
-  if (RUNTEST) {
+#ifdef USE_ALT_DATETIME
+    if (RUNTEST) {
     ceElementPtr pceT;
 
     i++;
@@ -140,6 +143,8 @@ ceTest(void)
     }
     CalendarElementFree(pceT);
   }
+#endif
+
 
   if (RUNTEST) {
     ceElementPtr pceT;

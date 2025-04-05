@@ -463,14 +463,17 @@ ScanCalendarElementDate(ceElementPtr pceArgResult)
       int iYear, iMonth, iWeek, iQuarter, iDay, iHour, iMinute, iSecond;
       int iYear1, iMonth1, iWeek1, iQuarter1, iDay1, iHour1, iMinute1, iSecond1;
       double dYear, dMonth, dDay, dWeek, dHour, dMinute, dSecond;
-      
+
+#ifdef USE_ALT_DATETIME
       if ((j = dt_parse_unix((const char *)pucT, xmlStrlen(pucT), &pceArgResult->dt0.dt, &pceArgResult->dt0.iSec)) == 10) {
 	n += j;
       }
       else  if ((j = dt_parse_german_date((const char *)pucT, xmlStrlen(pucT), &pceArgResult->dt0.dt)) > 5) {
 	n += j;
       }
-      else if ((j = dt_parse_iso_recurrence((const char *)pucT, xmlStrlen(pucT), &r)) > 0) {
+      else 
+#endif
+      if ((j = dt_parse_iso_recurrence((const char *)pucT, xmlStrlen(pucT), &r)) > 0) {
 	/* recurrence/ */
 
 	n += j;

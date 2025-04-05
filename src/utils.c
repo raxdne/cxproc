@@ -2460,6 +2460,8 @@ dt_parse_iso_hours_decimal(const char *str, size_t len, int *sod)
 }
 
 
+#ifdef USE_ALT_DATETIME
+
 /*! parses a UNIX epoch value
  */
 size_t
@@ -2538,6 +2540,8 @@ dt_parse_german_date(const char *str, size_t len, dt_t *dtp)
   }
   return n;
 }
+
+#endif
 
 
 /*! parses a combined "YYYY-MM-DDTHH:MM:SS+hh:mm"

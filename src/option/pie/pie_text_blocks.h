@@ -94,10 +94,18 @@
 #ifdef USE_ISO_TIME
   #define RE_ISO_TIME      "T[012]*[0-9](:*[0-5][0-9]){0,2}([\\.][0-9]{1,10})*" "(((\\+|\\-|" STR_UTF8_MINUS ")[0-9]{1,2}([:\\.]*[0-9]{1,2})*)" "|" "[A-Z]{3}" "|" "Z" ")*"
   #define RE_ISO_DAY_TIME  RE_ISO_DAY "(" RE_ISO_TIME ")*"
-  #define RE_ISO_PERIOD    "[PO](-*[0-9\\.]+[YMDW])*" "(T(-*[0-9\\.]+[HMS]))*"
+  #ifdef USE_ISO_EXTENSION
+    #define RE_ISO_PERIOD    "P(-*[0-9\\.]+[YMDW])*" "(T(-*[0-9\\.]+[HMS]))*"
+  #else
+    #define RE_ISO_PERIOD    "[PO](-*[0-9\\.]+[YMDW])*" "(T(-*[0-9\\.]+[HMS]))*"
+  #endif
 #else
   #define RE_ISO_DAY_TIME  RE_ISO_DAY
-  #define RE_ISO_PERIOD    "[PO](-*[0-9\\.]+[YMDW])+"
+  #ifdef USE_ISO_EXTENSION
+    #define RE_ISO_PERIOD    "[PO](-*[0-9\\.]+[YMDW])+"
+  #else
+    #define RE_ISO_PERIOD    "P(-*[0-9\\.]+[YMDW])+"
+  #endif
 #endif
 
 #define RE_ISO_WEEK RE_DATE_YEAR "-*" RE_DATE_WEEK
@@ -155,12 +163,8 @@
   "|"									\
   "(" RE_ISO_MONTH ")" \
 
-#if 0
-  "|"									\
-  "(" RE_ISO_YEAR ")"
-#endif
 
-#if 0
+#ifdef USE_ALT_DATETIME
 
 // 2024-WEA-7 - Sunday of Easter week 2024
 //#define RE_DATE_EASTER "\\@e([\\-+][0-9]+)*"
@@ -177,16 +181,13 @@
   "(" RE_ISO_RECURRENCE ")/(" RE_ISO_DAY_TIME "/)(" RE_ISO_PERIOD ")/(" RE_ISO_PERIOD ")" \
   "|"									\
   "(" RE_ISO_RECURRENCE "/)(" RE_ISO_PERIOD ")/(" RE_ISO_DAY_TIME ")" \
-  "|"									\
-  "(" RE_ISO_DAY "|" RE_DATE_ORD "|" RE_ISO_WEEK ")/(" RE_ISO_OFFSET ")" \
-  "|"									\
-  "(" RE_ISO_OFFSET ")/(" RE_ISO_DAY "|" RE_DATE_ORD "|" RE_ISO_WEEK ")"
 
-#define RE_DATE ("\\b("	RE_ISO_8601 "|" RE_DATE_EXTENSION "|" RE_DATE_GERMAN "|" RE_DATE_UNIX ")\\b")
+
+#define RE_DATE ("\\b("	RE_ISO_8601 "|" RE_DATE_EXTENSION "|" RE_DATE_GERMAN "|" RE_DATE_UNIX "|" RE_ISO_YEAR ")\\b")
 
 #else
 
-#define RE_DATE ("\\b(" RE_ISO_8601 "|" RE_DATE_GERMAN "|" RE_DATE_UNIX ")")
+#define RE_DATE ("\\b(" RE_ISO_8601 ")")
 
 #endif
 

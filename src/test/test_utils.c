@@ -926,6 +926,8 @@ utilsTest(void)
   }
 #endif
 
+
+#ifdef USE_ALT_DATETIME
   if (RUNTEST) {
     dt_t dt;
 
@@ -967,6 +969,8 @@ utilsTest(void)
       printf("OK\n");
     }
   }
+#endif
+
 
   if (RUNTEST) {
 
