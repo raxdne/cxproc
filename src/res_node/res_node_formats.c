@@ -410,6 +410,7 @@ resNodeContentToDOM(xmlNodePtr pndArg, resNodePtr prnArg)
     case MIME_IMAGE_JPEG:
     case MIME_IMAGE_PNG:
     case MIME_IMAGE_TIFF:
+    case MIME_IMAGE_AVIF:
     {
       /* get image information details via ImageMagick */
       imgParseFile(pndArg, prnArg);

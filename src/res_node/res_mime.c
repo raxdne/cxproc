@@ -136,6 +136,7 @@ static const char* resMimeTypeStr[] = {
   /* MIME_IMAGE_PNG */ "image/png",
   /* MIME_IMAGE_SVG_XML */ "image/svg+xml",
   /* MIME_IMAGE_TIFF */ "image/tiff",
+  /* MIME_IMAGE_AVIF */ "image/avif",
   /* MIME_IMAGE_WMF */ "image/x-wmf",
   /* MIME_IMAGE_X_CANON_CRW */ "image/x-canon-crw",
   /* MIME_IMAGE_X_PANASONIC_RAW */ "image/x-panasonic-raw",
@@ -264,6 +265,7 @@ resMimeIsPicture(int iMimeType)
 	  || iMimeType == MIME_IMAGE_PNG
 	  || iMimeType == MIME_IMAGE_SVG_XML
 	  || iMimeType == MIME_IMAGE_TIFF
+	  || iMimeType == MIME_IMAGE_AVIF
 	  || iMimeType == MIME_IMAGE_WMF
 	  || iMimeType == MIME_IMAGE_X_CANON_CRW
 	  || iMimeType == MIME_IMAGE_X_PANASONIC_RAW
@@ -575,6 +577,9 @@ resMimeGetTypeFromExt(const xmlChar *pucArg)
   }
   else if (xmlStrcasecmp(pucArg, BAD_CAST"tif") == 0 || xmlStrcasecmp(pucArg, BAD_CAST"tiff") == 0) {
     eMimeTypeResult = MIME_IMAGE_TIFF;
+  }
+  else if (xmlStrcasecmp(pucArg, BAD_CAST"avif") == 0) {
+    eMimeTypeResult = MIME_IMAGE_AVIF;
   }
   else if (xmlStrcasecmp(pucArg, BAD_CAST"crw") == 0 || xmlStrcasecmp(pucArg, BAD_CAST"cr2") == 0) {
     eMimeTypeResult = MIME_IMAGE_X_CANON_CRW;
