@@ -231,6 +231,10 @@ cmarkTreeToDOM(xmlNodePtr pndArgBlock, xmlNodePtr pndArg, cmark_node* pcmnArg)
 	  pndT = xmlNewChild(pndArg, NULL, BAD_CAST NAME_PIE_IMPORT, pucT);
 	  xmlSetProp(pndT, BAD_CAST "type", BAD_CAST "line");
 	}
+	else if (xmlStrEqual(BAD_CAST pcmnArg->as.code.info, BAD_CAST "latex")) {
+	  pndT = xmlNewChild(pndArg, NULL, BAD_CAST NAME_PIE_BLOCK, pucT);
+	  xmlSetProp(pndT, BAD_CAST "type", BAD_CAST "text/latex");
+	}
 	else {
 	  pndT = xmlNewChild(pndArg, NULL, BAD_CAST NAME_PIE_PRE, pucT);
 	}
