@@ -1,0 +1,207 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cxp:make xmlns:cxp="http://www.tenbusch.info/cxproc">
+  <cxp:subst string="%CGIPATH%" cgi="path" argv="2" default=""/>
+  <cxp:subst string="%CGIURLPATH%" cgi="path" argv="2" default="" escaping="yes"/>
+  <cxp:xhtml name="-">
+    <html>
+      <head>
+	<title>Audio: %CGIPATH%</title>
+	<style type="text/css">
+	  ul {
+	  list-style: none
+	  }
+li {
+  margin: 10px 0;
+  }
+
+.btn {
+  border: 3px solid black;
+  border-radius: 12px;
+  background-color: white;
+  color: black;
+  padding: 12px;
+  font-size: 36px;
+  cursor: pointer;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+}
+
+/* Green */
+.navigation {
+  border-color: #04AA6D;
+  color: green;
+}
+
+.navigation:hover {
+  background-color: #04AA6D;
+  color: white;
+}
+
+/* Blue */
+.file {
+  border-color: #2196F3;
+  color: dodgerblue
+}
+
+.file:hover {
+  background: #2196F3;
+  color: white;
+}
+
+/* Orange */
+.playlist {
+  border-color: #ff9800;
+  color: orange;
+}
+
+.playlist:hover {
+  background: #ff9800;
+  color: white;
+}
+
+/* Gray */
+.default {
+  border-color: #e7e7e7;
+  color: black;
+}
+
+.default:hover {
+  background: #e7e7e7;
+}
+      </style>
+      </head>
+      <body>
+        <cxp:xhtml>
+
+	  <cxp:xml>
+            <cxp:dir depth="2" verbosity="3" urlencode="yes">
+              <cxp:dir name="%CGIPATH%"/>
+            </cxp:dir>
+          </cxp:xml>
+	  
+          <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.0">
+            <xsl:output method="html" encoding="UTF-8"/>
+            <xsl:variable name="str_path_top" select="'%CGIURLPATH%'"/>
+
+            <xsl:template match="pie">
+	      <xsl:for-each select="dir[1]">
+		<xsl:element name="ul">
+                  <xsl:element name="li">
+		    <xsl:element name="a">
+		      <xsl:attribute name="class">btn navigation</xsl:attribute>
+		      <xsl:choose>
+			<xsl:when test="@prefix">
+			  <xsl:attribute name="href">
+                            <xsl:value-of select="concat('?path=',$str_path_top,'/..','&amp;','cxp=DirAudio','&amp;','title=',@name)"/>
+			  </xsl:attribute>
+			  <xsl:value-of select="@prefix"/>
+			</xsl:when>
+			<xsl:otherwise>
+			  <xsl:attribute name="href">
+                            <xsl:value-of select="concat('?path=','&amp;','cxp=DirAudio')"/>
+			  </xsl:attribute>
+			  <xsl:value-of select="'/'"/>
+			</xsl:otherwise>
+		      </xsl:choose>
+		    </xsl:element>
+		  </xsl:element>
+		  <xsl:element name="ul">
+                    <xsl:element name="li">
+                      <xsl:element name="a">
+			<xsl:attribute name="class">btn navigation</xsl:attribute>
+			<xsl:attribute name="href">
+                          <xsl:value-of select="concat('?path=',$str_path_top,'&amp;','cxp=DirAudio','&amp;','title=',@name)"/>
+			</xsl:attribute>
+			<xsl:value-of select="@name"/>
+                      </xsl:element>
+		      <xsl:text> </xsl:text>
+                      <xsl:element name="a">
+			<xsl:attribute name="class">btn playlist</xsl:attribute>
+			<xsl:attribute name="href">
+                          <xsl:value-of select="concat('?path=',$str_path_top,'&amp;','cxp=PlayList','&amp;','title=',@name)"/>
+			</xsl:attribute>
+			<xsl:text>🎵</xsl:text>
+                      </xsl:element>
+                    </xsl:element>
+		    <xsl:element name="ul">
+		      <xsl:for-each select="*">
+			<xsl:sort order="ascending" data-type="text" case-order="lower-first" select="name()"/>
+			<xsl:sort order="ascending" data-type="text" case-order="lower-first" select="@name"/>
+
+			<xsl:variable name="str_path">
+			  <xsl:choose>
+			    <xsl:when test="$str_path_top = ''">
+			      <xsl:value-of select="@urlname"/>
+			    </xsl:when>
+			    <xsl:otherwise>
+			      <xsl:value-of select="concat($str_path_top,'/',@urlname)"/>
+			    </xsl:otherwise>
+			  </xsl:choose>
+			</xsl:variable>
+
+			<xsl:variable name="str_display">
+			  <xsl:choose>
+			    <xsl:when test="info/title">
+			      <xsl:value-of select="substring(concat(info/artist,' - ',info/album,' - ',info/title),1,80)"/>
+			    </xsl:when>
+			    <xsl:otherwise>
+			      <xsl:value-of select="substring(@name,1,80)"/>
+			    </xsl:otherwise>
+			  </xsl:choose>
+			</xsl:variable>
+
+			<xsl:choose>
+			  <xsl:when test="@hidden = 'yes' or starts-with(@name,'_')"/>
+			  <xsl:when test="@read='no' or @error"/>
+			  <xsl:when test="@name = '' or @name = 'tmp' or @name = 'temp' or @name = 'Temp'"/>
+			  <xsl:when test="self::file[not(@size) or @size &lt; 100]"/>
+			  <xsl:when test="self::dir[@execute='no']"/>
+			  <xsl:when test="self::dir[child::dir or child::file[contains(@type,'audio')]]">
+			    <xsl:element name="li">
+			      <xsl:element name="a">
+				<xsl:attribute name="class">btn navigation</xsl:attribute>
+				<xsl:attribute name="href">
+				  <xsl:value-of select="concat('?path=',$str_path,'&amp;','cxp=DirAudio','&amp;','title=',@name)"/>
+				</xsl:attribute>
+				<xsl:value-of select="$str_display"/>
+			      </xsl:element>
+			      <xsl:text>  </xsl:text>
+			      <xsl:element name="a">
+				<xsl:attribute name="class">btn playlist</xsl:attribute>
+				<xsl:attribute name="href">
+				  <xsl:value-of select="concat('?path=',$str_path,'&amp;','cxp=PlayList','&amp;','title=',@name)"/>
+				</xsl:attribute>
+				<xsl:text>🎵</xsl:text>
+			      </xsl:element>
+			    </xsl:element>
+			  </xsl:when>
+			  <xsl:when test="self::file[contains(@type,'audio')]">
+			    <xsl:element name="li">
+			      <xsl:element name="a">
+				<xsl:attribute name="class">btn file</xsl:attribute>
+				<xsl:attribute name="href">
+				  <xsl:value-of select="concat('/',$str_path)"/>
+				</xsl:attribute>
+				<xsl:value-of select="concat('🎵 ',$str_display)"/>
+			      </xsl:element>
+			    </xsl:element>
+			  </xsl:when>
+			  <xsl:otherwise>
+			    <!-- empty sub directories without links -->
+			  </xsl:otherwise>
+			</xsl:choose>
+
+		      </xsl:for-each>
+		    </xsl:element>
+		  </xsl:element>
+		</xsl:element>
+	      </xsl:for-each>
+            </xsl:template>
+
+          </xsl:stylesheet>
+        </cxp:xhtml>
+      </body>
+    </html>
+  </cxp:xhtml>
+</cxp:make>
