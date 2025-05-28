@@ -329,9 +329,11 @@ cmarkTreeToDOM(xmlNodePtr pndArgBlock, xmlNodePtr pndArg, cmark_node* pcmnArg)
       cmarkTreeToDOM(pndArg, pndArg, pcmnArg->first_child);
     }
     else if (pcmnArg->type == CMARK_NODE_SOFTBREAK) {
+      xmlAddChild(pndArg, xmlNewText(BAD_CAST " ")); /* concatenation of two text lines */
       cmarkTreeToDOM(pndArg, pndArg, pcmnArg->first_child);
     }
     else if (pcmnArg->type == CMARK_NODE_LINEBREAK) {
+      xmlAddChild(pndArg, xmlNewText(BAD_CAST " ")); /* concatenation of two text lines */
       cmarkTreeToDOM(pndArg, pndArg, pcmnArg->first_child);
     }
     else if (pcmnArg->type == CMARK_NODE_CODE) {
