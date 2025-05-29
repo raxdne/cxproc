@@ -79,7 +79,7 @@
 #define RE_DATE_QUATER        "-Q[1-4]"
 #define RE_DATE_DAY_OF_MONTH  "[0123][0-9]"
 #define RE_DATE_ORD           "[0-9]{3}"
-#define RE_DATE_WEEK          "W[0-5][0-9]"
+#define RE_DATE_WEEK          "W[0-5E][0-9A]"
 #define RE_DATE_DAY_OF_WEEK   "[1-7]"
 #define RE_DATE_UNIX          "[0-9]{10}(\\.[0-9]{0,3})*"
 #define RE_DATE_GERMAN        "[0123]*[0-9]" "\\." "[01]*[0-9]" "\\." "[0-9]{2,4}"

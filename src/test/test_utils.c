@@ -882,6 +882,28 @@ utilsTest(void)
   }
 
 
+  if (RUNTEST) {
+    dt_t dt;
+
+    i++;
+    printf("TEST %i in '%s:%i': ", i, __FILE__, __LINE__);
+
+    if (dt_parse_easter_date(NULL, 20, NULL) != 0) {
+      printf("ERROR 1 dt_parse_easter_date()\n");
+    }
+    else if (dt_parse_easter_date("2022WEA5", 4, &dt) != 0) {
+      printf("ERROR 2 dt_parse_easter_date()\n");
+    }
+    else if (dt_parse_easter_date("2012-WEA-5", 40, &dt) != 10 || dt != 734599) {
+      printf("ERROR 2 dt_parse_easter_date()\n");
+    }
+    else {
+      n_ok++;
+      printf("OK\n");
+    }
+  }
+
+
 #ifdef USE_ISO_TIME
   /* ISO 8601 combined 
   

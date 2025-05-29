@@ -34,6 +34,9 @@
 static double
 _dt_parse_iso_strtod(const char *str, size_t len, char **str1);
 
+static size_t
+dt_parse_easter_date(const char *str, size_t len, dt_t *dtp);
+
 static int
 localtime_offset(void);
 
@@ -2544,6 +2547,62 @@ dt_parse_german_date(const char *str, size_t len, dt_t *dtp)
 #endif
 
 
+/*
+ *  Basic      Extended
+ *  2012WEA7   2012-WEA-7   Easter date
+ * 
+ */
+size_t
+dt_parse_easter_date(const char *str, size_t len, dt_t *dtp)
+{
+  char *p;
+  int y, d;
+  size_t n = 0;
+
+  if (str != NULL && len > 7) {
+    y = (int)strtol(str, &p, 10);
+
+    if (y < 1900 || y > 2999) {
+      return 0;
+    }
+
+    if (*p == '-') {
+      p++;
+    }
+
+    if (p[0] == 'W' && p[1] == 'E' && p[2] == 'A') {
+      p += 3;
+    }
+    else {
+      return 0;
+    }
+
+    if (*p == '-') {
+      p++;
+    }
+
+    if (isdigit(*p) && (d = *p - '0') < 8) {
+      assert(d > 0);
+      p++;
+    }
+    else {
+      return 0;
+    }
+
+    n = p - str;
+    if (n > len) {
+      return 0;
+    }
+
+    if (dtp) {
+      *dtp = dt_from_easter(y, DT_WESTERN) - (7 - d);
+    }
+  }
+
+  return n;
+}
+
+
 /*! parses a combined "YYYY-MM-DDTHH:MM:SS+hh:mm"
  */
 size_t
@@ -2555,7 +2614,7 @@ dt_parse_iso_date_time_zone(const char *str, size_t len, dt_t *dtp, int *sp)
     size_t j;
     char *p = (char *)str;
 
-    if ((j = dt_parse_iso_date(&p[n], len, dtp)) > 3) {
+    if ((j = dt_parse_easter_date(p, len, dtp)) > 7 || (j = dt_parse_iso_date(p, len, dtp)) > 3) {
       n += j;
 
       if (p[n] == 'T') {

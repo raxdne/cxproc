@@ -194,6 +194,15 @@ ceTest(void)
     else if (pceT->dt0.dt != dt_from_ywd(2007, 3, 3) || pceT->dt1.dt != 0) {
       printf("ERROR: %s\n", FormatCalendarElementDateStr(pceT));
     }
+    else if (CalendarElementUpdate(pceT, BAD_CAST"2022WEA5") == NULL) {
+      printf("ERROR\n");
+    }
+    else if (ScanCalendarElementDate(pceT) == FALSE) {
+      printf("ERROR\n");
+    }
+    else if (pceT->dt0.dt != dt_from_ymd(2022, 4, 15)) {
+      printf("ERROR: %s\n", FormatCalendarElementDateStr(pceT));
+    }
     else if (CalendarElementUpdate(pceT, BAD_CAST"2009-W55-8") == NULL) {
       printf("ERROR\n");
     }
