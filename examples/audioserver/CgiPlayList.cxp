@@ -5,7 +5,7 @@
   <cxp:subst string="%CGIPATH%" cgi="path" />
   <cxp:subst string="%CGITITLE%" cgi="title" default="cxproc"/>
   <cxp:system message="Playlist in '%CGIPATH%'" />
-  <cxp:plain name='-' type='audio/x-mpegurl' disposition='attachement; filename="%CGITITLE%.m3u8"'>
+  <cxp:plain name='-' type='audio/x-mpegurl' disposition='attachement; filename="%CGITITLE%.m3u"'>
     <!--  -->
     <cxp:xml>
       <cxp:dir name="%CGIPATH%" urlencode="yes" index="read" depth="10" verbosity="4" imatch="\.(mp3|ogg|wav)$" />

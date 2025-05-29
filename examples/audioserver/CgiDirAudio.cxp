@@ -146,7 +146,7 @@ li {
 			      <xsl:value-of select="substring(concat(info/artist,' - ',info/album,' - ',info/title),1,80)"/>
 			    </xsl:when>
 			    <xsl:otherwise>
-			      <xsl:value-of select="substring(@name,1,80)"/>
+			      <xsl:value-of select="translate(substring(@name,1,80),'_',' ')"/>
 			    </xsl:otherwise>
 			  </xsl:choose>
 			</xsl:variable>
