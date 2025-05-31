@@ -247,6 +247,7 @@ CalendarElementReset(ceElementPtr pceArg)
     pceArg->period.second = 0;
 
     pceArg->iRecurrence = 0;
+    pceArg->iRecurrenceIndex = 0;
   }
   return pceArg;
 } /* End of CalendarElementReset() */
@@ -323,6 +324,7 @@ SplitCalendarElementRecurrences(ceElementPtr pceArg)
   ceElementPtr pceResult = NULL;
 
   if (pceArg != NULL && pceArg->pNext == NULL && (pceArg->dt0.dt > 0 || pceArg->dt1.dt > 0) && pceArg->iRecurrence > 0) {
+    int i;
     int o = 0;
     ceElementPtr pceI;
 
@@ -332,8 +334,9 @@ SplitCalendarElementRecurrences(ceElementPtr pceArg)
       o = (pceResult->dt1.dt - pceResult->dt0.dt);
     }
 
-    for (pceI = CalendarElementDup(pceResult); pceI != NULL && pceI->iRecurrence > 0; pceI = CalendarElementDup(pceI)) {
+    for (i=1, pceI = CalendarElementDup(pceResult); pceI != NULL && pceI->iRecurrence > 0; i++, pceI = CalendarElementDup(pceI)) {
 
+      pceI->iRecurrenceIndex = i;
       pceI->iRecurrence--; /* this calendar element is resulting from a recurrence */
 
       /*!\bug time value is ignored */
@@ -1138,6 +1141,11 @@ AddNodeDateAttributes(xmlNodePtr pndArg, ceElementPtr pceArg)
 	iso8601DateType *pdti; /* */
 
 	pdti = (pceArg->dt1.dt > 0) ? &pceArg->dt1 : &pceArg->dt0;
+
+	if (pceArg->iRecurrenceIndex > 0) {
+	  xmlStrPrintf(mpucT, BUFFER_LENGTH, "%i", pceArg->iRecurrenceIndex);
+	  xmlSetProp(pndArg, BAD_CAST "i", mpucT);
+	}
 
 	xmlStrPrintf(mpucT, BUFFER_LENGTH, "%04i-%02i-%02i",
 	  dt_year(pdti->dt), dt_month(pdti->dt), dt_dom(pdti->dt));

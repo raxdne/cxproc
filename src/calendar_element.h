@@ -66,6 +66,7 @@ struct ceElement {
   iso8601PeriodType period;
 
   int iRecurrence;	/*! recurrences */
+  int iRecurrenceIndex;	/*! index of recurrence */
 
   struct ceElement *pNext;
 } ;

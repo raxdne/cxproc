@@ -2369,7 +2369,7 @@ dt_parse_iso_recurrence(const char *str, size_t len, int* deltad) {
 	}
 	n = p - str;
       }
-      else if (d > 0 && d < ISO_RECURRENCE_MAX) {
+      else if (d > 0 && d < ISO_RECURRENCE_MAX + 1) {
 	if (deltad) {
 	  *deltad = d;
 	}

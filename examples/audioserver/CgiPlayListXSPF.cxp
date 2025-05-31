@@ -1,0 +1,55 @@
+<?xml version="1.0"?>
+<cxp:make xmlns:cxp="http://www.tenbusch.info/cxproc" log="2">
+  <cxp:subst string="%SERVER_NAME%" env="HTTP_HOST" default="localhost"/>
+  <cxp:subst string="%DOCDIR%" env="CXP_ROOT"/>
+  <cxp:subst string="%CGIPATH%" cgi="path"/>
+  <cxp:subst string="%CGITITLE%" cgi="title" default="cxproc"/>
+  <cxp:system message="XSPF Playlist in '%CGIPATH%'"/>
+  <cxp:xml name="-" type="application/xspf+xml" disposition="attachement;filename=%CGITITLE%.xspf">
+    <!--  -->
+    <cxp:xml>
+      <cxp:dir name="%CGIPATH%" urlencode="yes" index="read" depth="100" verbosity="4" imatch="\.(mp3|ogg|wav)$"/>
+    </cxp:xml>
+    <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.0">
+      <xsl:output method="xml" encoding="UTF-8"/>
+      <!-- s. http://www.xspf.org/ -->
+      <xsl:template match="/">
+        <playlist xmlns="http://xspf.org/ns/0/" version="1">
+	  <title>%CGIPATH%</title>
+          <trackList>
+            <xsl:for-each select="//file[@size &gt; 0]">
+              <xsl:sort order="ascending" data-type="text" case-order="lower-first" select="info/artist"/>
+              <xsl:sort order="ascending" data-type="text" case-order="lower-first" select="parent::dir/@name"/>
+              <xsl:sort order="ascending" data-type="number" select="info/track"/>
+              <xsl:sort order="ascending" data-type="number" select="@t"/>
+              <xsl:sort order="ascending" data-type="text" case-order="lower-first" select="info/title"/>
+              <xsl:sort order="ascending" data-type="text" case-order="lower-first" select="@name"/>
+              <!-- -->
+              <track>
+                <location>
+                  <xsl:value-of select="concat('http://','%SERVER_NAME%')"/>
+                  <xsl:for-each select="ancestor::dir">
+                    <xsl:if test="@urlprefix">
+                      <xsl:value-of select="concat('/',@urlprefix)"/>
+                    </xsl:if>
+                    <xsl:value-of select="concat('/',@urlname)"/>
+                  </xsl:for-each>
+                  <xsl:value-of select="concat('/',@urlname)"/>
+                </location>
+                <xsl:for-each select="info">
+                  <xsl:if test="artist">
+		    <xsl:element name="creator">
+                      <xsl:value-of select="artist"/>
+		    </xsl:element>
+                  </xsl:if>
+                  <xsl:copy-of select="title"/>
+                  <xsl:copy-of select="album"/>
+                </xsl:for-each>
+              </track>
+            </xsl:for-each>
+          </trackList>
+        </playlist>
+      </xsl:template>
+    </xsl:stylesheet>
+  </cxp:xml>
+</cxp:make>
