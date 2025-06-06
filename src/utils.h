@@ -155,6 +155,12 @@ GetNowFormatStr(xmlChar *pucArgFormat);
 extern xmlChar *
 GetDateIsoString(time_t ArgTime);
 
+extern dt_t
+dt_today_date(void);
+
+extern size_t
+dt_parse_eternal_date(const char *str, size_t len, dt_t *dtp);
+
 extern size_t
 dt_parse_iso_recurrence(const char *str, size_t len, int* deltad);
 

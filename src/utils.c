@@ -43,6 +43,8 @@ localtime_offset(void);
 /*! internal level for debug messages */
 static int level_set = -1;
 
+static dt_today = 0;
+
 /*! set the internal debug level
 
 0 - no log messages at all, error messages only
@@ -2547,6 +2549,36 @@ dt_parse_german_date(const char *str, size_t len, dt_t *dtp)
 #endif
 
 
+/*! parses an eternal date starting with "0000"
+ */
+size_t
+dt_parse_eternal_date(const char *str, size_t len, dt_t *dtp)
+{
+  size_t n = 0;
+
+  if (str != NULL && len > 7 && str[0] == '0' && str[1] == '0' && str[2] == '0' && str[3] == '0') {
+    int y;
+    char *pcT;
+
+    pcT = strndup(str, len);
+    y = dt_year(dt_today_date());
+
+    pcT[0] = (char)('0' + (y / 1000));
+    pcT[1] = (char)('0' + (y % 1000 / 100));
+    pcT[2] = (char)('0' + (y % 100 / 10));
+    pcT[3] = (char)('0' + (y % 10));
+
+    if ((n = dt_parse_easter_date(pcT, len, dtp)) > 7 || (n = dt_parse_iso_date(pcT, len, dtp)) > 3) {
+	/* valid date */
+    }
+    else {
+	n = 0;
+    }
+  }
+  return n;
+} /* end of dt_parse_eternal_date() */
+
+
 /*
  *  Basic      Extended
  *  2012WEA7   2012-WEA-7   Easter date
@@ -2600,7 +2632,7 @@ dt_parse_easter_date(const char *str, size_t len, dt_t *dtp)
   }
 
   return n;
-}
+} /* end of dt_parse_easter_date() */
 
 
 /*! parses a combined "YYYY-MM-DDTHH:MM:SS+hh:mm"
@@ -2614,7 +2646,7 @@ dt_parse_iso_date_time_zone(const char *str, size_t len, dt_t *dtp, int *sp)
     size_t j;
     char *p = (char *)str;
 
-    if ((j = dt_parse_easter_date(p, len, dtp)) > 7 || (j = dt_parse_iso_date(p, len, dtp)) > 3) {
+    if ((j = dt_parse_eternal_date(p, len, dtp)) > 7 || (j = dt_parse_easter_date(p, len, dtp)) > 7 || (j = dt_parse_iso_date(p, len, dtp)) > 3) {
       n += j;
 
       if (p[n] == 'T') {
@@ -2847,6 +2879,20 @@ dt_parse_iso_period(const char* str, size_t len, double* yp, double* mp, double*
 
   return n;
 } /* end of dt_parse_iso_period() */
+
+
+/*! */
+dt_t
+dt_today_date(void)
+{
+  if (dt_today < 1) {
+    time_t nowTime;
+
+    time(&nowTime);
+    dt_today = dt_from_struct_tm(localtime(&nowTime));
+  }
+  return dt_today;
+} /* end of dt_today_date() */
 
 
 /* https://stackoverflow.com/questions/13804095/get-the-time-zone-gmt-offset-in-c 

@@ -48,7 +48,7 @@ static time_t system_zeit = (time_t)0;
 
 static struct tm timeNow;
 
-dt_t dtToday = 0;
+dt_t dtToday = 0; /* might be manipulated by CXP_DATE etc */
 
 
 static ceElementPtr
@@ -1077,13 +1077,11 @@ AddNodeDateAttributes(xmlNodePtr pndArg, ceElementPtr pceArg)
 
     if (pceArg) {
       xmlChar mpucT[BUFFER_LENGTH];
-      time_t t;
       dt_t iDayToday;
       dt_t iDayEnd;
       long int iDayDiff = 0;
 
-      time(&t); /*!\todo reduce number of calls of time()/localtime() */
-      iDayToday = dt_from_struct_tm(localtime(&t));
+      iDayToday = GetToday();
 
       if ((pceArg->dt0.dt > 0 && pceArg->dt1.dt > pceArg->dt0.dt) || (pceArg->dt0.iSec > 0 && pceArg->dt1.iSec > 0)) {
 	/* an interval with begin and end */
@@ -1375,8 +1373,7 @@ UpdateToday(xmlChar *pucArgToday)
   }
   else {
     PrintFormatLog(4,"Use system time as today");
-    memcpy(&timeNow,localtime(&system_zeit),sizeof(struct tm));
-    dtToday = dt_from_struct_tm(localtime(&system_zeit));
+    dtToday = dt_today_date();
   }
 
   return dtToday;

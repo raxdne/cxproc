@@ -946,6 +946,29 @@ utilsTest(void)
       printf("OK\n");
     }
   }
+
+
+  if (RUNTEST) {
+    int y, m, d;
+    dt_t dt;
+
+    i++;
+    printf("TEST %i in '%s:%i': ", i, __FILE__, __LINE__);
+
+    if (dt_parse_eternal_date("0000-10-15", 40, &dt) != 10) {
+      printf("ERROR 1 dt_parse_eternal_date()\n");
+    }
+    else if (dt_parse_eternal_date("0000-WEA-7", 40, &dt) != 10) {
+      printf("ERROR 2 dt_parse_eternal_date()\n");
+    }
+    else if (dt_parse_eternal_date("0000-WEA-7/O1D", 40, &dt) != 10) {
+      printf("ERROR 3 dt_parse_eternal_date()\n");
+    }
+    else {
+      n_ok++;
+      printf("OK\n");
+    }
+  }
 #endif
 
 

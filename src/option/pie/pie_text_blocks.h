@@ -74,7 +74,7 @@
       https://rgxdb.com/r/MD2234J
 */
 
-#define RE_DATE_YEAR          "[12][09][0-9][0-9]"
+#define RE_DATE_YEAR          "([0-9]{4}|[12][09][0-9][0-9])"
 #define RE_DATE_MONTH         "[01][0-9]"
 #define RE_DATE_QUATER        "-Q[1-4]"
 #define RE_DATE_DAY_OF_MONTH  "[0123][0-9]"
