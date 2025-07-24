@@ -21,7 +21,6 @@
 
 #include <math.h>
 #include <inttypes.h>
-#include <ctype.h>
 #include <float.h>
 #include <limits.h>
 
@@ -2560,19 +2559,23 @@ dt_parse_eternal_date(const char *str, size_t len, dt_t *dtp)
     int y;
     char *pcT;
 
-    pcT = strndup(str, len);
-    y = dt_year(dt_today_date());
+    pcT = malloc(len + 1);
+    if (pcT != NULL) {
+      strncpy(pcT, str, len);
+      y = dt_year(dt_today_date());
 
-    pcT[0] = (char)('0' + (y / 1000));
-    pcT[1] = (char)('0' + (y % 1000 / 100));
-    pcT[2] = (char)('0' + (y % 100 / 10));
-    pcT[3] = (char)('0' + (y % 10));
+      pcT[0] = (char)('0' + (y / 1000));
+      pcT[1] = (char)('0' + (y % 1000 / 100));
+      pcT[2] = (char)('0' + (y % 100 / 10));
+      pcT[3] = (char)('0' + (y % 10));
 
-    if ((n = dt_parse_easter_date(pcT, len, dtp)) > 7 || (n = dt_parse_iso_date(pcT, len, dtp)) > 3) {
+      if ((n = dt_parse_easter_date(pcT, len, dtp)) > 7 || (n = dt_parse_iso_date(pcT, len, dtp)) > 3) {
 	/* valid date */
-    }
-    else {
+      }
+      else {
 	n = 0;
+      }
+      free(pcT);
     }
   }
   return n;
