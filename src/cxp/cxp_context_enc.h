@@ -131,6 +131,12 @@ cxpCtxtCgiGetValue(cxpContextPtr pccArg, index_t iIndex);
 extern xmlChar*
 cxpCtxtCgiGetValueByName(cxpContextPtr pccArg, xmlChar *pucArgName);
 
+extern xmlChar*
+cxpCtxtCgiGetNameByValue(cxpContextPtr pccArg, xmlChar *pucArgValue);
+
+extern BOOL_T
+cxpCtxtCgiHasName(cxpContextPtr pccArg, xmlChar *pucArgName);
+
 
 extern void
 cxpCtxtEncFree(cxpContextPtr pccArg);

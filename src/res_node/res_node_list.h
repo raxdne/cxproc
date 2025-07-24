@@ -34,6 +34,8 @@
 
 #define RN_FIND_REGEXP	  (32)
 
+#define RN_FIND_IN_TEMP	  (64)
+
 #define RN_FIND_ALL        (RN_FIND_FILE | RN_FIND_DIR | RN_FIND_IN_SUBDIR | RN_FIND_IN_ARCHIVE | RN_FIND_NEXT)
 
 extern BOOL_T

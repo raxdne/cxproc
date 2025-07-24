@@ -171,6 +171,9 @@ extern xmlChar *
 resPathGetPathOfArchiveStr(xmlChar *pucArg);
 
 extern BOOL_T
+resPathIsTemp(xmlChar *pucArg);
+
+extern BOOL_T
 resPathIsRelative(xmlChar *pucArg);
 
 extern BOOL_T

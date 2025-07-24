@@ -74,7 +74,7 @@
 
 ;; (autoload 'cflow-mode "cflow-mode")
 
-;(load (concat (file-name-directory (buffer-file-name)) "../contrib/pie/elisp/pie.el"))
+(load (concat "~/cxproc-build/x86_64-gnu-linux/www/html/" "pie/misc/pie.el"))
 
 ; (setenv "LD_RUN_PATH" (concat (getenv "HOME") "/target/lib"))
 ; (setenv "LD_RUN_PATH" "/usr/lib/debug/usr/lib:/usr/lib:/lib")

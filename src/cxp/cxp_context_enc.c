@@ -1410,6 +1410,63 @@ cxpCtxtCgiGetValueByName(cxpContextPtr pccArg, xmlChar *pucArgName)
 } /* end of cxpCtxtCgiGetValueByName() */
 
 
+/*! cxp Ctxt Cgi Get ValueByName
+
+\param pccArg -- pointer to context
+\param *pucArgName -- name of CGI variable
+\return pointer to string value of CGI parameter with name 'pucArgName' or NULL in case of error
+*/
+xmlChar*
+cxpCtxtCgiGetNameByValue(cxpContextPtr pccArg, xmlChar *pucArgValue)
+{
+  xmlChar* pucResult = NULL;
+  index_t i;
+  xmlChar* pucT;
+
+  for (i = 0; (pucT = cxpCtxtCgiGetValue(pccArg, i)); i++) {
+    if (xmlStrEqual(pucT, pucArgValue)) {
+      pucResult = cxpCtxtCgiGetName(pccArg, i);
+      xmlFree(pucT);
+      break;
+    }
+    xmlFree(pucT);
+  }
+
+  if (pucResult) {
+#ifdef DEBUG
+    cxpCtxtLogPrint(pccArg, 4, "cgi[%s]='%s'", pucResult, pucArgValue);
+#endif
+  }
+  else {
+    cxpCtxtLogPrint(pccArg, 2, "No valid named cgi for '%s'", pucArgValue);
+  }
+  return pucResult;
+} /* end of cxpCtxtCgiGetNameByValue() */
+
+
+/*! cxp Ctxt Cgi Get ValueByName
+
+\param pccArg -- pointer to context
+\param *pucArgName -- name of CGI variable
+\return pointer to string value of CGI parameter with name 'pucArgName' or NULL in case of error
+*/
+BOOL_T
+cxpCtxtCgiHasName(cxpContextPtr pccArg, xmlChar *pucArgName)
+{
+  BOOL_T fResult = FALSE;
+  index_t i;
+  xmlChar* pucT;
+
+  for (i = 0; (pucT = cxpCtxtCgiGetName(pccArg, i)) != NULL && fResult == FALSE; i++) {
+    if (xmlStrEqual(pucT, pucArgName)) {
+      fResult = TRUE;
+    }
+    xmlFree(pucT);
+  }
+  return fResult;
+} /* end of cxpCtxtCgiHasName() */
+
+
 /* cleanup for libiconv 
  */
 void

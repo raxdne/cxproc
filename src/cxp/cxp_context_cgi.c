@@ -216,11 +216,12 @@ cxpCtxtCgiParse(cxpContextPtr pccArg)
     }
     resNodeFree(prnPathTranslated);
   }
-  else if ((pucCgiRedir = cxpCtxtCgiGetValueByName(pccArg, BAD_CAST"redir")) != NULL) {
+  else if ((pucCgiRedir = cxpCtxtCgiGetValueByName(pccArg, BAD_CAST "redir")) != NULL) {
     /*!
       search for this file name in CXP_ROOT using 'pucCgiRedir' as regexp and redirect client to this URI
     */
     resNodePtr prnTest = NULL;
+    xmlChar *pucRedir = NULL;
 
     xmlStrPrintf(mpucNameFile, BUFFER_LENGTH, "Location: \"%s\" not found\r\n\r\n", (char *)pucCgiRedir);
     pndPlain = xmlNewChild(pndMake, NULL, NAME_PLAIN, mpucNameFile);
@@ -228,12 +229,11 @@ cxpCtxtCgiParse(cxpContextPtr pccArg)
     xmlSetProp(pndPlain, BAD_CAST "status", BAD_CAST "404 Not Found"); /* default status */
 
     while ((prnTest = resNodeListFindPath(cxpCtxtRootGet(pccArg), pucCgiRedir, (RN_FIND_FILE | RN_FIND_IN_SUBDIR | RN_FIND_REGEXP))) != NULL) {
-      xmlChar *pucRedir = NULL;
 
-      if (cxpCtxtAccessIsPermitted(pccArg,prnTest) == FALSE) {
+      if (cxpCtxtAccessIsPermitted(pccArg, prnTest) == FALSE || resNodeIsReadable(prnTest) == FALSE) {
 	// access error, continue
       }
-      else if ((pucRedir = resNodeGetNameRelative(cxpCtxtLocationGet(pccArg),prnTest)) != NULL && STR_IS_NOT_EMPTY(pucRedir)) {
+      else if ((pucRedir = resNodeGetNameRelative(cxpCtxtLocationGet(pccArg), prnTest)) != NULL && STR_IS_NOT_EMPTY(pucRedir)) {
 	xmlStrPrintf(mpucNameFile, BUFFER_LENGTH, "Location: /%s\r\n\r\n", (char *)pucRedir);
 	xmlNodeSetContent(pndPlain, mpucNameFile);
 	xmlSetProp(pndPlain, BAD_CAST "status", BAD_CAST "302 Found");
@@ -241,9 +241,53 @@ cxpCtxtCgiParse(cxpContextPtr pccArg)
       }
       xmlFree(pucRedir);
     }
+
+#ifdef EXPERIMENTAL
+    if (STR_IS_NOT_EMPTY(pucRedir) && cxpCtxtCgiGetCount(pccArg) > 1) {
+      /*!
+	concat a new URL and redirect client to this URL
+      */
+
+      /*! update CGI arguments for a redirection */
+      int i;
+      xmlChar *pucUrlNew = NULL;
+      xmlChar *pucCgiName = NULL;
+      xmlChar *pucCgiValue = NULL;
+
+      /*! CGI arguments */
+      for (i = 0; (pucCgiName = cxpCtxtCgiGetName(pccArg, i)); i++) {
+
+	if (i > 0) {
+	  pucUrlNew = xmlStrcat(pucUrlNew, BAD_CAST "&amp;");
+	}
+
+	pucCgiValue = cxpCtxtCgiGetValue(pccArg, i);
+	if (STR_IS_NOT_EMPTY(pucCgiValue) && xmlStrEqual(BAD_CAST "redir", pucCgiName)) {
+	  /* */
+	  pucUrlNew = xmlStrcat(pucUrlNew, BAD_CAST "path");
+	  pucUrlNew = xmlStrcat(pucUrlNew, BAD_CAST "=");
+	  pucUrlNew = xmlStrcat(pucUrlNew, pucRedir);
+	}
+	else {
+	  pucUrlNew = xmlStrcat(pucUrlNew, pucCgiName);
+	  pucUrlNew = xmlStrcat(pucUrlNew, BAD_CAST "=");
+	  pucUrlNew = xmlStrcat(pucUrlNew, pucCgiValue);
+	}
+      }
+      xmlStrPrintf(mpucNameFile, BUFFER_LENGTH, "Location: ?%s\r\n\r\n", (char *)pucUrlNew);
+      xmlNodeSetContent(pndPlain, (const xmlChar *)mpucNameFile);
+      xmlSetProp(pndPlain, BAD_CAST "status", BAD_CAST "302 Found");
+      xmlFree(pucUrlNew);
+    }
+    else {
+      xmlFree(pucRedir);
+    }
+#else
+    xmlFree(pucRedir);
+#endif
     resNodeFree(prnTest);
   }
-  else if ((pucCgiPath = cxpCtxtCgiGetValueByName(pccArg, BAD_CAST"spath")) != NULL) {
+  else if ((pucCgiPath = cxpCtxtCgiGetValueByName(pccArg, BAD_CAST "spath")) != NULL) {
     /*!
       search for this file name in CXP_PATH
     */
@@ -349,7 +393,7 @@ cxpCtxtCgiParse(cxpContextPtr pccArg)
       resNodePtr prnTest = NULL;
 
       if ((prnTest = resNodeRootNew(cxpCtxtRootGet(pccArg), pucCgiPath)) == NULL || resNodeIsReadable(prnTest) == FALSE) {
-	prnTest = resNodeListFindPath(cxpCtxtRootGet(pccArg), pucCgiPath, (RN_FIND_FILE | RN_FIND_IN_SUBDIR | RN_FIND_REGEXP));
+	//prnTest = resNodeListFindPath(cxpCtxtRootGet(pccArg), pucCgiPath, (RN_FIND_FILE | RN_FIND_IN_SUBDIR | RN_FIND_REGEXP));
       }
 
       if (resNodeReadStatus(prnTest) && resNodeIsDir(prnTest)) {

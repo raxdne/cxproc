@@ -382,6 +382,11 @@ resNodeListFindPath(resNodePtr prnArg, xmlChar *pucArgPath, int iArgOptions)
       }
       xmlFree(pucTT);
     }
+#ifdef EXPERIMENTAL
+    else if ((iArgOptions & RN_FIND_IN_TEMP) == 0 && resPathIsTemp(resNodeGetNameNormalized(prnArg))) {
+      /* ignore this node and its childs */
+    }
+#endif
     else if (resNodeIsHidden(prnArg)) {
       /* ignore this node and its childs */
     }
