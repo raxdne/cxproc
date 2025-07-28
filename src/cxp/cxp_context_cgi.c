@@ -228,7 +228,7 @@ cxpCtxtCgiParse(cxpContextPtr pccArg)
     xmlSetProp(pndPlain, BAD_CAST "name", BAD_CAST "-");
     xmlSetProp(pndPlain, BAD_CAST "status", BAD_CAST "404 Not Found"); /* default status */
 
-    while ((prnTest = resNodeListFindPath(cxpCtxtRootGet(pccArg), pucCgiRedir, (RN_FIND_FILE | RN_FIND_IN_SUBDIR | RN_FIND_REGEXP))) != NULL) {
+    while ((prnTest = resNodeListFindPath(cxpCtxtRootGet(pccArg), pucCgiRedir, (RN_FIND_FILE | RN_FIND_IN_SUBDIR))) != NULL) {
 
       if (cxpCtxtAccessIsPermitted(pccArg, prnTest) == FALSE || resNodeIsReadable(prnTest) == FALSE) {
 	// access error, continue
@@ -263,7 +263,7 @@ cxpCtxtCgiParse(cxpContextPtr pccArg)
 
 	pucCgiValue = cxpCtxtCgiGetValue(pccArg, i);
 	if (STR_IS_NOT_EMPTY(pucCgiValue) && xmlStrEqual(BAD_CAST "redir", pucCgiName)) {
-	  /* */
+	  /* map 'redir' to 'path' */
 	  pucUrlNew = xmlStrcat(pucUrlNew, BAD_CAST "path");
 	  pucUrlNew = xmlStrcat(pucUrlNew, BAD_CAST "=");
 	  pucUrlNew = xmlStrcat(pucUrlNew, pucRedir);
@@ -280,7 +280,7 @@ cxpCtxtCgiParse(cxpContextPtr pccArg)
       xmlFree(pucUrlNew);
     }
     else {
-      xmlFree(pucRedir);
+      //xmlFree(pucRedir);
     }
 #else
     xmlFree(pucRedir);
@@ -393,7 +393,7 @@ cxpCtxtCgiParse(cxpContextPtr pccArg)
       resNodePtr prnTest = NULL;
 
       if ((prnTest = resNodeRootNew(cxpCtxtRootGet(pccArg), pucCgiPath)) == NULL || resNodeIsReadable(prnTest) == FALSE) {
-	//prnTest = resNodeListFindPath(cxpCtxtRootGet(pccArg), pucCgiPath, (RN_FIND_FILE | RN_FIND_IN_SUBDIR | RN_FIND_REGEXP));
+	prnTest = resNodeListFindPath(cxpCtxtRootGet(pccArg), pucCgiPath, (RN_FIND_FILE | RN_FIND_IN_SUBDIR | RN_FIND_REGEXP));
       }
 
       if (resNodeReadStatus(prnTest) && resNodeIsDir(prnTest)) {
