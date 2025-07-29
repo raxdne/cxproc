@@ -63,6 +63,8 @@ SET(HINT_DIR_INCLUDE "${CXPROC_PREFIX}/include/")
 #set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG ${PROJECT_BINARY_DIR}/debug)
 #set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_BINARY_DIR}/release)
 
+string(TIMESTAMP TODAY "%Y-%m-%d")
+
 # https://www.mattkeeter.com/blog/2018-01-06-versioning/
 
 execute_process(COMMAND git describe --tags --long
@@ -583,7 +585,8 @@ add_compile_definitions(CXP_VERSION_REVISION=0)
 add_compile_definitions(CXP_REVISION_STR="0")
 add_compile_definitions(CXP_VERSION_BUILD=0000)
 add_compile_definitions(CXP_VERSION_BUILD_STR="0000")
-add_compile_definitions(CXP_VER_COPYRIGHT_STR="\(C\) 2006..2024 by Alexander Tenbusch")
+add_compile_definitions(CXP_VER_COPYRIGHT_STR="\(C\) 2006..2025 by Alexander Tenbusch")
+add_compile_definitions(CXP_TIMESTAMP_STR="${TODAY}")
 
 IF(MSVC)
   SET(CMAKE_C_FLAGS "/TC /std:c17 /permissive- /fp:fast /MT /Gm- /MP /GS /GR- /Gd /analyze- /J /errorreport:prompt -D_REENTRANT -DDEF_MEM_LEVEL=8 -D_CRT_NONSTDC_NO_DEPRECATE -D_CRT_SECURE_NO_DEPRECATE -D_CRT_SECURE_NO_WARNINGS -DWIN32_LEAN_AND_MEAN")

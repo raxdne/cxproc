@@ -3,9 +3,9 @@
 
 #ifndef CXP_TIMESTAMP_BUILD
   #ifndef __DATE__
-    #define CXP_TIMESTAMP_BUILD "0000-00-00 00:00:00"
+    #define CXP_TIMESTAMP_BUILD "0000-00-00"
   #else
-    #define CXP_TIMESTAMP_BUILD __DATE__ " " __TIME__
+    #define CXP_TIMESTAMP_BUILD CXP_TIMESTAMP_STR
   #endif
 #endif
 

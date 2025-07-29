@@ -3139,6 +3139,7 @@ cxpInfoProgram(xmlNodePtr pndArg, cxpContextPtr pccArg)
 
     xmlSetProp(pndOption, BAD_CAST "date", BAD_CAST CXP_TIMESTAMP_BUILD);
 
+#if 0
     xmlSetProp(pndOption, BAD_CAST "lang",
 #ifdef __cplusplus
 	       BAD_CAST"C++"
@@ -3146,6 +3147,7 @@ cxpInfoProgram(xmlNodePtr pndArg, cxpContextPtr pccArg)
 	       BAD_CAST"C"
 #endif
 	       );
+#endif
 
     xmlSetProp(pndOption, BAD_CAST "legacy",
 #ifdef LEGACY
