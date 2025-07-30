@@ -63,7 +63,7 @@ SET(HINT_DIR_INCLUDE "${CXPROC_PREFIX}/include/")
 #set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG ${PROJECT_BINARY_DIR}/debug)
 #set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_BINARY_DIR}/release)
 
-string(TIMESTAMP TODAY "%Y-%m-%d")
+string(TIMESTAMP TODAY "%Y%m%d")
 
 # https://www.mattkeeter.com/blog/2018-01-06-versioning/
 
