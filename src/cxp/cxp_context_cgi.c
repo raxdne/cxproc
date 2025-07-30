@@ -257,7 +257,11 @@ cxpCtxtCgiParse(cxpContextPtr pccArg)
 	      /* map 'redir' to 'path' */
 	      pucUrlNew = xmlStrcat(pucUrlNew, BAD_CAST "path");
 	      pucUrlNew = xmlStrcat(pucUrlNew, BAD_CAST "=");
+	      pucRedir = xmlStrdup(pucRedir);
+	      resPathChangeToSlashes(pucRedir);
 	      pucUrlNew = xmlStrcat(pucUrlNew, pucRedir);
+	      xmlFree(pucRedir);
+	      pucRedir = NULL;
 	    }
 	    else {
 	      pucUrlNew = xmlStrcat(pucUrlNew, pucCgiName);
