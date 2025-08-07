@@ -52,6 +52,9 @@ TraverseIncludeNodes(xmlNodePtr pndArg, cxpContextPtr pccArg);
 static void
 TraverseImportNodes(xmlNodePtr pndArg, cxpContextPtr pccArg);
 
+static void
+TraverseDateNodes(xmlNodePtr pndArg, cxpContextPtr pccArg);
+
 static BOOL_T
 ProcessPieDoc(xmlNodePtr pndArgResult, xmlDocPtr pdocArgPie, cxpContextPtr pccArg);
 
@@ -1410,6 +1413,46 @@ TraverseImportNodes(xmlNodePtr pndArg, cxpContextPtr pccArg)
 /* end of TraverseImportNodes() */
 
 
+/*! traverse DOM of pndArg searching for date nodes
+
+\param pndArg node to test for date, else traversing childs
+\param pccArg the processing context
+*/
+void
+TraverseDateNodes(xmlNodePtr pndArg, cxpContextPtr pccArg)
+{
+  if (IS_VALID_NODE(pndArg) == FALSE) {
+    /* ignore NULL and invalid elements */
+  }
+  else if (IS_NODE_PIE_PRE(pndArg)
+#ifdef HAVE_PETRINET
+	   || IS_NODE_PKG2_STATE(pndArg) || IS_NODE_PKG2_TRANSITION(pndArg) || IS_NODE_PKG2_REQUIREMENT(pndArg)
+#endif
+  ) {
+    /* skip */
+  }
+  else if (IS_NODE_PIE_DATE(pndArg)) {
+#ifdef PIE_STANDALONE
+#else
+    AddNodeDateAttributes(pndArg, NULL);
+#endif
+  }
+  else {
+    /*
+    recursion for all child nodes
+    */
+    xmlNodePtr pndArgChildren;
+
+    for (pndArgChildren = pndArg->children; pndArgChildren;) {
+      xmlNodePtr pndNext;
+      pndNext = pndArgChildren->next;
+      TraverseDateNodes(pndArgChildren, pccArg);
+      pndArgChildren = pndNext;
+    }
+  }
+} /* end of TraverseDateNodes() */
+
+
 /*! process the import node pndArgImport attributes in context of pccArg
 
 \param pndArgImport node for import, else traversing childs
@@ -1449,7 +1492,14 @@ ProcessImportOptions(xmlNodePtr pndArgPie, xmlNodePtr pndArgImport, cxpContextPt
 
     RecognizeSymbols(pndArgPie, GetPieNodeLang(pndArgPie, pccArg));
 
-    RecognizeDates(pndArgPie,MIME_TEXT_PLAIN);
+    if (domGetPropFlag(pndArgImport, BAD_CAST "date", TRUE)) {
+      cxpCtxtLogPrint(pccArg, 2, "Recognize dates");
+      RecognizeDates(pndArgPie,MIME_TEXT_PLAIN);
+      TraverseDateNodes(pndArgPie,pccArg);
+    }
+    else {
+      cxpCtxtLogPrint(pccArg, 3, "Ignoring dates");
+    }
 
     /*! \todo global cite recognition in scientific text */
   }

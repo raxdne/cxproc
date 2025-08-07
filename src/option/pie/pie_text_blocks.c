@@ -2098,44 +2098,34 @@ SplitStringToDateNodes(const xmlChar *pucArg, RN_MIME_TYPE eMimeTypeArg)
 	    xmlFree(pucT);
 	  }
 
-	  //do {
-	    /*! separate the list of dates if required (ISO compact dates only, neither extended nor time) */
-	    xmlChar* pucSep = NULL;
-	    xmlChar* pucD;
+	  /*! separate the list of dates if required (ISO compact dates only, neither extended nor time) */
+	  xmlChar *pucSep = NULL;
+	  xmlChar *pucD;
 
-	    for (pucSep = pucDate; !isend(*pucSep); pucSep++) {
-	      if (*pucSep == (xmlChar)',') {
-		/* next list separator found */
-		break;
-	      }
-	      else if (isdigit(*pucSep)) {
-		/* OK */
-	      }
-	      else {
-		pucSep = pucDate;
-		break;
-	      }
+	  for (pucSep = pucDate; !isend(*pucSep); pucSep++) {
+	    if (*pucSep == (xmlChar)',') {
+	      /* next list separator found */
+	      break;
 	    }
-
-	    if (((pucSep > pucDate && !isend(*pucSep)) && (pucD = xmlStrndup(pucDate, (int)(pucSep - pucDate))))
-	      || (pucD = xmlStrdup(pucDate))) {
-
-	      pndIn = xmlNewTextChild(pndResult, NULL, BAD_CAST NAME_PIE_DATE, pucD);
-#ifdef PIE_STANDALONE
-#else
-	      AddNodeDateAttributes(pndIn,NULL);
-#endif
-	      if (pucSep > pucDate && !isend(*pucSep)) {
-		xmlAddChild(pndResult, xmlNewText(BAD_CAST","));
-	      }
-	      xmlFree(pucD);
+	    else if (isdigit(*pucSep)) {
+	      /* OK */
 	    }
 	    else {
+	      pucSep = pucDate;
+	      break;
 	    }
-	  //} while (_StringConcatNextDate(pucDate) != NULL);
+	  }
+
+	  if (((pucSep > pucDate && !isend(*pucSep)) && (pucD = xmlStrndup(pucDate, (int)(pucSep - pucDate)))) || (pucD = xmlStrdup(pucDate))) {
+
+	    pndIn = xmlNewTextChild(pndResult, NULL, BAD_CAST NAME_PIE_DATE, pucD);
+	    if (pucSep > pucDate && !isend(*pucSep)) {
+	      xmlAddChild(pndResult, xmlNewText(BAD_CAST ","));
+	    }
+	    xmlFree(pucD);
+	  }
 	}
 
-	
 	if (pndIn != NULL && ducOrigin > ovector[1]) {
 	  /* the content ends with text, recursion */
 
