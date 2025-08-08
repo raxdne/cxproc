@@ -21,6 +21,9 @@
 extern BOOL_T
 icsParse(xmlNodePtr pndArg, resNodePtr prnArg);
 
+extern BOOL_T
+icsParseString(xmlNodePtr pndArg, xmlChar *pucArgContent);
+
 #ifdef TESTCODE
 #include <pie/pie_dtd.h>
 

@@ -24,6 +24,9 @@
    http://www.rfc-editor.org/rfc/rfc5545.txt
    s. Draft http://www.rfc-editor.org/rfc/rfc6321.txt
 
+   https://en.wikipedia.org/wiki/ICalendar#/media/File:ICalendarSpecification.png
+   https://en.wikipedia.org/wiki/XCal
+
  */
 
 
@@ -43,25 +46,19 @@
 static BOOL_T fExtensions = TRUE; /*! flag to include 'X-' elements in DOM */
 
 static BOOL_T
-RemoveLineBreaks(char *pchArg, int iArgLength);
-
-static size_t
-getLineLength(char *pchArg);
-
-static char *
-getNextLine(char *pchArg);
-
-static char *
-getBlockType(char *pchArgTarget, char *pchArgBlockBegin, int iArgLength);
-
-static char *
-getBlockEnd(char *pchArgBlockBegin, int iArgLength);
+detectNextBlock(const char *pcArg, const int i0, const int i1, int *piArgOuterBegin, int *piArgInnerBegin, int *piArgInnerEnd, int *piArgOuterEnd);
 
 static BOOL_T
-addLine(xmlNodePtr pndArg, char *pchArg);
+detectNextLine(const char *pcArg, const int i0, const int i1, int *piArgNameBegin, int *piArgNameEnd, int *piArgValueBegin, int *piArgValueEnd);
 
-static char *
-getNextBlock(xmlNodePtr pndArg, char *pchArg, int iArgLength);
+static BOOL_T
+icsParseComponent(xmlNodePtr pndArg, xmlChar *pucArgContent, const int d0, const int d1);
+
+static BOOL_T
+icsParseProperty(xmlNodePtr pndArg, const char *pchArg, const int i0, const int i1);
+
+static BOOL_T
+RemoveLineBreaks(char *pchArg, int iArgLength);
 
 
 /*! removes the linebreaks at long lines
@@ -98,96 +95,14 @@ RemoveLineBreaks(char *pchArg, int iArgLength)
 /* end of RemoveLineBreaks() */
 
 
-/*! \return the number of chars before '\n'
-*/
-size_t
-getLineLength(char *pchArg)
-{
-  char *pchT;
-
-  for (pchT=pchArg; *pchT != '\0' && *pchT != '\n' && *pchT != '\r'; pchT++) {}
-
-  return (size_t)(pchT - pchArg);
-} /* end of getLineLength() */
-
-
-/*! 
-*/
-char *
-getNextLine(char *pchArg)
-{
-  char *pchT;
-  char *pchResult = NULL;
-  size_t l;
-
-  for (pchT=pchArg; *pchT == '\n' || *pchT == '\r'; pchT++) {} /* skip leading linebreaks */
-
-  l = getLineLength(pchT);
-  if (l > 0) {
-    for (pchResult=pchT + l; *pchResult == '\n' || *pchResult == '\r'; pchResult++) {}
-  }
-
-  return pchResult;
-}
-/* end of getNextLine() */
-
-
-/*! 
-*/
-char *
-getBlockType(char *pchArgTarget, char *pchArgBlockBegin, int iArgLength)
-{
-  char *pchT;
-  int i;
-
-  if (   pchArgBlockBegin[0]=='B'
-      && pchArgBlockBegin[1]=='E'
-      && pchArgBlockBegin[2]=='G'
-      && pchArgBlockBegin[3]=='I'
-      && pchArgBlockBegin[4]=='N'
-      && pchArgBlockBegin[5]==':') {
-    pchT = pchArgBlockBegin + 6;
-  }
-  else {
-    pchT = pchArgBlockBegin;
-  }
-
-  for (i=0; i < iArgLength && isalpha(pchT[i]); i++) {
-    pchArgTarget[i] = pchT[i];
-  }
-  pchArgTarget[i] = '\0';
-
-  return pchArgTarget;
-}
-/* end of getBlockType() */
-
-
-/*! 
-*/
-char *
-getBlockEnd(char *pchArgBlockBegin, int iArgLength)
-{
-  char mchBlockEndNeedle[1024];
-
-  mchBlockEndNeedle[0] = 'E';
-  mchBlockEndNeedle[1] = 'N';
-  mchBlockEndNeedle[2] = 'D';
-  mchBlockEndNeedle[3] = ':';
-
-  getBlockType(&mchBlockEndNeedle[4],pchArgBlockBegin,iArgLength);
-
-  return (char *)Strnstr(BAD_CAST pchArgBlockBegin,iArgLength,BAD_CAST mchBlockEndNeedle);
-}
-/* end of getBlockEnd() */
-
-
 /*! 
 * \todo process numeric encoded entities?
 */
 BOOL_T
-addLine(xmlNodePtr pndArg, char *pchArg)
+icsParseProperty(xmlNodePtr pndArg, const char *pchArgT, const int i0, const int i1)
 {
-  size_t l = getLineLength(pchArg);
+  char *pchArg = &pchArgT[i0];
+  size_t l = i1 - i0;
   char* pchSep = (char*)Strnstr(BAD_CAST pchArg, (int)l, BAD_CAST ":");
 
   if (pchSep > pchArg) {
@@ -231,7 +146,7 @@ addLine(xmlNodePtr pndArg, char *pchArg)
 	    xmlChar *pucNameElementParam = xmlStrndup(BAD_CAST pchParameterBegin, (int)(pchSep - pchParameterBegin));
 	    StringToLower((char *)pucNameElementParam);
 
-	    xmlNewChild(pndParameter,NULL,pucNameElementParam,pucText);	  
+	    xmlNewChild(xmlNewChild(pndParameter,NULL,pucNameElementParam,NULL),NULL,BAD_CAST"text",pucText);	  
 	    xmlFree(pucNameElementParam);
 	    xmlFree(pucText);
 	    pchParameterBegin = pchT + 1;
@@ -308,93 +223,7 @@ addLine(xmlNodePtr pndArg, char *pchArg)
 
   return TRUE;
 }
-/* end of addLine() */
-
-/*! \return a pointer to the begin of first next block
- */
-char *
-getNextBlock(xmlNodePtr pndArg, char *pchArg, int iArgLength)
-{
-  char *pchBlockBegin = NULL;
-
-  if (iArgLength > 10) {
-    int i;
-    char *pchBlockEnd;
-    int iSearchLength = iArgLength;
-
-    /*
-    all block siblings
-    */
-    for (i = 0, pchBlockBegin = pchArg; (pchBlockBegin = (char *)Strnstr(BAD_CAST pchBlockBegin, iSearchLength, BAD_CAST "BEGIN:"));
-	 i++, pchBlockBegin = pchBlockEnd) {
-      char *pchBlockContent;
-
-      pchBlockContent = pchBlockBegin + getLineLength(pchBlockBegin);
-      while (*pchBlockContent == '\n' || *pchBlockContent == '\r') { pchBlockContent++; /* skip leading linebreaks */ }
-
-      iSearchLength = iArgLength - (pchBlockBegin - pchArg);
-
-      pchBlockEnd = getBlockEnd(pchBlockBegin, iSearchLength);
-      if (pchBlockEnd) {
-	int iBlockLength = (int)(pchBlockEnd - pchBlockContent); /* set "return" value */
-	if (iBlockLength > 0) {
-	  char *pchLineNext;
-	  int ciDepth;
-	  size_t iLengthName = getLineLength(pchBlockEnd) - 4;
-	  xmlChar *pucName;
-	  xmlNodePtr pndNew;
-	  xmlNodePtr pndProperties;
-	  xmlNodePtr pndComponents;
-
-	  pucName = xmlStrndup(BAD_CAST(pchBlockEnd + 4), (int)iLengthName);
-	  StringToLower((char *)pucName);
-	  PrintFormatLog(3, "* Block %i Element %s %i Byte", i, pucName, iBlockLength);
-	  pndNew = xmlNewChild(pndArg, NULL, pucName, NULL);
-	  xmlFree(pucName);
-
-#if 0
-{
-	  xmlChar *pucTT;
-	  pucTT = xmlStrndup(pchBlockContent,iBlockLength);
-	  fprintf(stderr,pucTT);
-	  fprintf(stderr,"\n\n");
-	  xmlFree(pucTT);
-}
-#endif
-
-#if 1
-	  /*
-	    all lines of current block
-	  */
-	  pndProperties = xmlNewChild(pndNew, NULL, BAD_CAST "properties", NULL);
-	  for (ciDepth = 0, pchLineNext = pchBlockContent; pchLineNext != NULL && pchLineNext < pchBlockEnd; (pchLineNext = getNextLine(pchLineNext))) {
-	    if (pchLineNext[0] == 'B' && pchLineNext[1] == 'E' && pchLineNext[2] == 'G' && pchLineNext[3] == 'I' && pchLineNext[4] == 'N' &&
-		pchLineNext[5] == ':') {
-	      ciDepth++;
-	    }
-	    else if (pchLineNext[0] == 'E' && pchLineNext[1] == 'N' && pchLineNext[2] == 'D' && pchLineNext[3] == ':') {
-	      ciDepth--;
-	    }
-	    else if (ciDepth == 0) {
-	      if (pchLineNext[0] == 'X' && pchLineNext[1] == '-' && fExtensions == FALSE) {
-		/* ignore */
-	      }
-	      else {
-		addLine(pndProperties, pchLineNext);
-	      }
-	    }
-	  }
-#endif
-	  /* all block childs */
-	  pndComponents = xmlNewChild(pndNew, NULL, BAD_CAST "components", NULL);
-	  getNextBlock(pndComponents, pchBlockContent, iBlockLength);
-	}
-      }
-    }
-  }
-  return pchBlockBegin;
-}
-/* end of getNextBlock() */
+/* end of icsParseProperty() */
 
 
 /*! parse an iCal formatted buffer
@@ -414,11 +243,7 @@ icsParse(xmlNodePtr pndArg, resNodePtr prnArg)
       int l = xmlStrlen(pucContent);
 
       if (RemoveLineBreaks((char *)pucContent,l)) {
-	xmlNodePtr pndICalendar;
-	int i = xmlStrlen(pucContent);
-	pndICalendar = xmlNewChild(pndArg,NULL,BAD_CAST "iCalendar",NULL); 
-	getNextBlock(pndICalendar,(char *)pucContent,i);
-	fResult = TRUE;
+	fResult = icsParseString(pndArg, pucContent);
       }
       xmlFree(pucContent);
     }
@@ -427,11 +252,184 @@ icsParse(xmlNodePtr pndArg, resNodePtr prnArg)
       xmlSetProp(pndArg, BAD_CAST "type", BAD_CAST "error/file");
     }
   }
-  
   return fResult;
 }
 /* end of icsParse() */
 
+
+/*! parse an iCal formatted buffer
+ */
+BOOL_T
+icsParseString(xmlNodePtr pndArg, xmlChar *pucArgContent)
+{
+  BOOL_T fResult = FALSE;
+
+  if (pndArg != NULL && STR_IS_NOT_EMPTY(pucArgContent)) {
+    xmlNodePtr pndICalendar;
+
+    pndICalendar = xmlNewChild(pndArg, NULL, BAD_CAST "icalendar", NULL);
+    fResult = icsParseComponent(pndICalendar, pucArgContent, 0, xmlStrlen(pucArgContent));
+  }
+  return fResult;
+} /* end of icsParseString() */
+
+
+/*! parse an iCal formatted buffer
+ */
+BOOL_T
+icsParseComponent(xmlNodePtr pndArg, xmlChar *pucArgContent, const int d0, const int d1)
+{
+  BOOL_T fResult = FALSE;
+
+  if (pndArg != NULL && STR_IS_NOT_EMPTY(pucArgContent)) {
+    xmlNodePtr pndProperties = NULL;
+    xmlNodePtr pndComponentChilds = NULL;
+
+    int i0, i1;
+    int j0, j1;
+    int k0, k1;
+
+    for (i0 = d0, i1 = d1, j0 = j1 = 0, k0 = k1 = 0; i0 < d1;) {
+      /* iteration */
+
+      if (detectNextBlock(pucArgContent, i0, i1, &j0, &k0, &k1, &j1)) {
+	xmlNodePtr pndComponent;
+	xmlChar *pucName;
+	xmlChar *pucContent;
+
+	pucName = xmlStrndup(&pucArgContent[j0 + 6], k0 - (j0 + 6));
+	StringToLower(pucName);
+
+	if (xmlStrEqual(pndArg->name, BAD_CAST "icalendar")) {
+	  /* top element */
+	  pndComponentChilds = xmlNewChild(pndArg, NULL, pucName, NULL);
+	  fResult = icsParseComponent(pndComponentChilds, pucArgContent, k0, k1);
+	}
+	else {
+	  if (pndComponentChilds == NULL) {
+	    pndComponentChilds = xmlNewChild(pndArg, NULL, BAD_CAST "components", NULL);
+	  }
+	  /* append all child components*/
+
+	  pndComponent = xmlNewChild(pndComponentChilds, NULL, pucName, NULL);
+	  fResult = icsParseComponent(pndComponent, pucArgContent, k0, k1);
+	}
+	xmlFree(pucName);
+
+	i0 = j1;
+	i1 = d1;
+      }
+      else if (detectNextLine(pucArgContent, i0, i1, &k0, &k1, &j0, &j1)) {
+	if (pndProperties == NULL) {
+	  pndProperties = xmlNewChild(pndArg, NULL, BAD_CAST "properties", NULL);
+	}
+	fResult = icsParseProperty(pndProperties, pucArgContent, k0, j1);
+	i0 = j1;
+	i1 = d1;
+      }
+      else if (j1 == i0) {
+	break;
+      }
+      else {
+	i0 = j1;
+      }
+    }
+  }
+  else {
+    PrintFormatLog(1, "Empty input");
+    xmlSetProp(pndArg, BAD_CAST "type", BAD_CAST "error/file");
+  }
+  return fResult;
+} /* end of icsParseComponent() */
+
+#define DETECT_COMPONENT(C) \
+      if (StringBeginsWith(pcBegin, BAD_CAST C)) { \
+	pcBegin += strlen(C); \
+	k0 = (int)(pcBegin - pcArg); \
+	if ((pcEnd = Strnstr(BAD_CAST pcBegin, i1 - (int)(pcBegin - pcArg), BAD_CAST "END:"C))) { \
+	  k1 = (int)(pcEnd - pcArg); \
+	  j1 = k1 + strlen("END:"C); \
+	} \
+	else {j1 = i1;} \
+      }
+
+/*! \return TRUE if an ICS block was detected
+ */
+BOOL_T
+detectNextBlock(const char *pcArg, const int i0, const int i1, int *piArgOuterBegin, int *piArgInnerBegin, int *piArgInnerEnd, int *piArgOuterEnd)
+{
+  BOOL_T fResult = FALSE;
+
+  if (STR_IS_NOT_EMPTY(pcArg) && i0 > -1 && i1 > i0 && piArgOuterBegin != NULL && piArgInnerBegin != NULL && piArgInnerEnd != NULL && piArgOuterEnd != NULL) {
+    char *pcBegin;
+    char *pcEnd;
+    int j0, j1;
+    int k0, k1;
+
+    for (j0 = i0; j0 < i1 && (pcArg[j0] == '\n' || pcArg[j0] == '\r' || pcArg[j0] == ' '); j0++);
+
+    if (StringBeginsWith(&pcArg[j0], BAD_CAST "BEGIN:")) {
+      pcBegin = &pcArg[j0 + 6];
+      PrintFormatLog(3, "ICS Block '%s'", pcBegin);
+
+      DETECT_COMPONENT("VCALENDAR")
+      else DETECT_COMPONENT("VEVENT") else DETECT_COMPONENT("DAYLIGHT") else DETECT_COMPONENT("STANDARD") else DETECT_COMPONENT("VALARM") else DETECT_COMPONENT(
+	  "VFREEBUSY") else DETECT_COMPONENT("VJOURNAL") else DETECT_COMPONENT("VTIMEZONE") else DETECT_COMPONENT("VTODO")
+
+      /*!\todo handle incomplete blocks ? */
+
+      if (j0 < k0 && j0 < k1 && j0 < j1 && k0 < k1 && k0 < j1 && k1 < j1) {
+	fResult = TRUE;
+	*piArgOuterBegin = j0;
+	*piArgInnerBegin = k0;
+	*piArgInnerEnd = k1;
+	*piArgOuterEnd = j1;
+      }
+    }
+    else {}
+  }
+  return fResult;
+} /* end of detectNextBlock() */
+
+/*! \return TRUE if an usable ICS block was detected
+ */
+BOOL_T
+detectNextLine(const char *pcArg, const int i0, const int i1, int *piArgNameBegin, int *piArgNameEnd, int *piArgValueBegin, int *piArgValueEnd)
+{
+  BOOL_T fResult = FALSE;
+
+  if (STR_IS_NOT_EMPTY(pcArg) && i0 > -1 && i1 > i0 && piArgNameBegin != NULL && piArgNameEnd != NULL && piArgValueBegin != NULL && piArgValueEnd != NULL) {
+    int n0, n1; /* name indexes */
+    int v0, v1; /* value indexes */
+
+    for (n0 = i0; n0 < i1 && (pcArg[n0] == '\n' || pcArg[n0] == '\r' || pcArg[n0] == ' '); n0++);
+
+    if (pcArg[n0 + 0] == 'B' && pcArg[n0 + 1] == 'E' && pcArg[n0 + 2] == 'G' && pcArg[n0 + 3] == 'I' && pcArg[n0 + 4] == 'N' && pcArg[n0 + 5] == ':') {
+      /* BEGIN: block */
+    }
+    else if (pcArg[n0 + 0] == 'E' && pcArg[n0 + 1] == 'N' && pcArg[n0 + 2] == 'D' && pcArg[n0 + 3] == ':') {
+      /* END: block */
+    }
+    else {
+      for (v0 = v1 = n1 = n0; v1 < i1 && pcArg[v1] != '\n' && pcArg[v1] != '\r' && pcArg[v1] != '\0'; v1++) {
+	if (pcArg[v1] == ':') {
+	  n1 = v1 - 1;
+	  v0 = v1 + 1;
+	}
+      }
+
+      *piArgNameBegin = n0;
+      *piArgValueEnd = v1;
+      if (n1 > n0 && v0 > n1 && v1 > v0) {
+	fResult = TRUE;
+	*piArgNameEnd = n1;
+	*piArgValueBegin = v0;
+      }
+      else {}
+    }
+  }
+  return fResult;
+} /* end of detectNextLine() */
 
 #ifdef TESTCODE
 #include "test/test_ics.c"
