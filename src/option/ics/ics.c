@@ -75,21 +75,21 @@ UnfoldLines(char *pchArg, int iArgLength)
 
     for (i = 0; i < iArgLength; i++) {
 
-      if (pchArg[i] == '\n' && (pchArg[i + 1] == '\t' || pchArg[i + 1] == ' ')) {
-	memmove((void *)(&pchArg[i]), (void *)(&pchArg[i + 2]), iArgLength - i - 1);
+      if ((iArgLength - i) > 1 && pchArg[i] == '\n' && (pchArg[i + 1] == '\t' || pchArg[i + 1] == ' ')) {
+	memmove((void *)(&pchArg[i]), (void *)(&pchArg[i + 2]), iArgLength - (i + 1));
 	i += 1;
       }
-      else if (pchArg[i] == '\r' && pchArg[i + 1] == '\n' && (pchArg[i + 2] == '\t' || pchArg[i + 2] == ' ')) {
-	memmove(&pchArg[i], &pchArg[i + 3], iArgLength - i - 2);
+      else if ((iArgLength - i) > 2 && pchArg[i] == '\r' && pchArg[i + 1] == '\n' && (pchArg[i + 2] == '\t' || pchArg[i + 2] == ' ')) {
+	memmove(&pchArg[i], &pchArg[i + 3], iArgLength - (i + 2));
 	i += 2;
       }
-      else if (pchArg[i] == '\\' && pchArg[i + 1] == 'n' && pchArg[i + 2] == '\n' && (pchArg[i + 3] == '\t' || pchArg[i + 3] == ' ')) {
+      else if ((iArgLength - i) > 3 && pchArg[i] == '\\' && pchArg[i + 1] == 'n' && pchArg[i + 2] == '\n' && (pchArg[i + 3] == '\t' || pchArg[i + 3] == ' ')) {
 	/* symbolic newline */
-	memmove(&pchArg[i+2], &pchArg[i + 4], iArgLength - i - 1);
+	memmove(&pchArg[i + 2], &pchArg[i + 4], iArgLength - (i + 3));
 	i += 2;
       }
-      else if ((pchArg[i] == '\t' || pchArg[i] == ' ') && pchArg[i + 1] == '\\' && pchArg[i+2] == '\n' && (pchArg[i + 3] == '\t' || pchArg[i + 3] == ' ')) {
-	memmove(&pchArg[i], &pchArg[i + 4], iArgLength - i - 3);
+      else if ((iArgLength - i) > 3 && (pchArg[i] == '\t' || pchArg[i] == ' ') && pchArg[i + 1] == '\\' && pchArg[i+2] == '\n' && (pchArg[i + 3] == '\t' || pchArg[i + 3] == ' ')) {
+	memmove(&pchArg[i], &pchArg[i + 4], iArgLength - (i + 3));
 	i += 3;
       }
     }
@@ -160,15 +160,11 @@ icsParseProperty(xmlNodePtr pndArg, const char *pchArg, const int i0, const int 
   size_t l = i1 - i0;
 
   if (pndArg != NULL && pchArg != NULL && l > 0) {
-    xmlChar *pucA;
-    xmlChar *pucB;
-    xmlChar *pucNameElement;
-    xmlChar *pucT;
-    xmlNodePtr pndElement;
-
     int i;
     int iS; /* index of separator */
     int iP; /* index of parameters */
+    xmlChar *pucA;
+    xmlNodePtr pndElement;
 
     pucA = xmlStrndup(BAD_CAST & pchArg[i0], l);
     if (UnfoldLines((char *)pucA, l)) {
@@ -185,6 +181,8 @@ icsParseProperty(xmlNodePtr pndArg, const char *pchArg, const int i0, const int 
       }
 
       if (iS > 0) {
+	xmlChar *pucNameElement;
+	xmlChar *pucValueElement;
 	pucNameElement = xmlStrndup(pucA, (iP > 0) ? iP : iS);
 	StringToLower((char *)pucNameElement);
 	pndElement = xmlNewChild(pndArg, NULL, pucNameElement, NULL);
@@ -193,19 +191,34 @@ icsParseProperty(xmlNodePtr pndArg, const char *pchArg, const int i0, const int 
 	  icsParseParameters(pndElement, BAD_CAST pucA, iP, iS);
 	}
 
-	if (xmlStrEqual(pucNameElement, BAD_CAST "dtstart") || xmlStrEqual(pucNameElement, BAD_CAST "dtend") || xmlStrEqual(pucNameElement, BAD_CAST "dtstamp") ||
-	    xmlStrEqual(pucNameElement, BAD_CAST "created") || xmlStrEqual(pucNameElement, BAD_CAST "last-modified") || xmlStrEqual(pucNameElement, BAD_CAST "due")) {
-	  xmlNewChild(pndElement, NULL, BAD_CAST "date-time", BAD_CAST & pucA[iS + 1]);
+	pucValueElement = xmlEncodeSpecialChars(pndArg->doc, BAD_CAST &pucA[iS + 1]);
+
+	if (xmlStrEqual(pucNameElement, BAD_CAST "dtstart") || xmlStrEqual(pucNameElement, BAD_CAST "dtend") ||
+	    xmlStrEqual(pucNameElement, BAD_CAST "dtstamp") || xmlStrEqual(pucNameElement, BAD_CAST "created") ||
+	    xmlStrEqual(pucNameElement, BAD_CAST "last-modified") || xmlStrEqual(pucNameElement, BAD_CAST "due")) {
+	  dt_t dt;
+
+	  xmlNewChild(pndElement, NULL, BAD_CAST "date-time", pucValueElement);
+	  if (xmlStrEqual(pucNameElement, BAD_CAST "dtend") && xmlStrlen(pucValueElement) == 8 &&
+	      dt_parse_iso_date((const char *)pucValueElement, 8, &dt) > 7) {
+	    xmlChar mpucT[10];
+
+	    dt--; /* add end of whole-day events as a dedicated attribute 'iso' */
+	    xmlStrPrintf(mpucT, 10, "%04i%02i%02i", dt_year(dt), dt_month(dt), dt_dom(dt));
+	    xmlSetProp(pndElement, BAD_CAST "iso", mpucT);
+	  }
 	}
 	else if (xmlStrEqual(pucNameElement, BAD_CAST "rrule")) {
-	  xmlNewChild(pndElement, NULL, BAD_CAST "recur", BAD_CAST & pucA[iS + 1]);
+	  xmlNewChild(pndElement, NULL, BAD_CAST "recur", pucValueElement);
 	}
 	else {
-	  xmlNewChild(pndElement, NULL, BAD_CAST "text", BAD_CAST & pucA[iS + 1]);
+	  xmlNewChild(pndElement, NULL, BAD_CAST "text", pucValueElement);
 	}
+	xmlFree(pucA);
+	xmlFree(pucValueElement);
+	xmlFree(pucNameElement);
       }
     }
-    xmlFree(pucNameElement);
   }
   return fResult;
 } /* end of icsParseProperty() */
@@ -351,7 +364,6 @@ detectNextBlock(const char *pcArg, const int i0, const int i1, int *piArgOuterBe
 
     if (StringBeginsWith(&pcArg[j0], BAD_CAST "BEGIN:")) {
       pcBegin = &pcArg[j0 + 6];
-      PrintFormatLog(3, "ICS Block '%s'", pcBegin);
 
       DETECT_COMPONENT("VCALENDAR")
       else DETECT_COMPONENT("VEVENT") else DETECT_COMPONENT("DAYLIGHT") else DETECT_COMPONENT("STANDARD") else DETECT_COMPONENT("VALARM") else DETECT_COMPONENT(
