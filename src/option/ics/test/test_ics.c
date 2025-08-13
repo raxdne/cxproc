@@ -31,6 +31,53 @@ icsTest(void)
   if (RUNTEST) {
 
     i++;
+    printf("TEST %i in '%s:%i': UnfoldLines() = ", i, __FILE__, __LINE__);
+
+    if (UnfoldLines(NULL, -1) == TRUE) { //
+      printf("Error 1 UnfoldLines()\n");
+    }
+    else if (UnfoldLines(NULL, 1e5) == TRUE) { //
+      printf("Error 2 UnfoldLines()\n");
+    }
+    else {
+      n_ok++;
+      printf("OK\n");
+    }
+  }
+
+ if (RUNTEST) {
+    int l;
+    int j0, j1;
+    int k0, k1;
+    int n0, n1;
+    int v0, v1;
+    char *pchT = strdup("DESCRIPTION:MIDWAY STADIUM\\n\n"
+"  Big time game. MUST see.\n"
+" Expected duration:2 hours\\n\n"
+		);
+
+    i++;
+    printf("TEST %i in '%s:%i': UnfoldLines() = ", i, __FILE__, __LINE__);
+
+    k0 = 0;
+    k1 = strlen(pchT);
+
+    if (detectNextLine(pchT, k0, k1, &n0, &n1, &v0, &v1) == FALSE || n1 != 10 || v0 != 12) {
+      printf("Error 1 detectNextLine()\n");
+    }
+    else if (UnfoldLines(pchT, v1) == FALSE) {
+      printf("Error 1 UnfoldLines()\n");
+    }
+    else {
+      n_ok++;
+      printf("OK\n");
+    }
+    free(pchT);
+  }
+
+  if (RUNTEST) {
+
+    i++;
     printf("TEST %i in '%s:%i': detectNextBlock() = ", i, __FILE__, __LINE__);
 
     if (detectNextBlock(NULL, 0, -1, NULL, NULL, NULL, NULL) == TRUE) {
@@ -45,91 +92,7 @@ icsTest(void)
     }
   }
 
-#if 1
- if (RUNTEST) {
-    char *pchT = "   \n\n AAA BBB;\n\nDTSTART:20250106\n\nAAA\n\nBEGIN:\nSUMMARY:My Test\n  ";
-    //char *pchT = "   VCALENDAR\n\nBBB;\nBEGIN:VCALENDAR\nAAA\nBBB\nBEGIN:VEVENT\nDTSTART:20250106\nDTEND:20250109\nSUMMARY:My Test\nEND:VEVENT\nEND:VCALENDAR\nAAA\nBEGIN:VCALENDAR\nAAA\nBBB\nBEGIN:VEVENT\nDTSTART:20250106\n\nEND:VEVENT";
-    int j0, j1;
-    int k0, k1;
-    int n0, n1;
-    int v0, v1;
-    int l;
-    int n;
-int y;
-
-    i++;
-    printf("TEST %i in '%s:%i': detectNextLine() as Iterator = ", i, __FILE__, __LINE__);
-
-    for (y = 0, k0 = 0, k1 = strlen(pchT), n = 0; n < 10; n++, k0 = v1) {
-      if (detectNextLine(pchT, k0, k1, &n0, &n1, &v0, &v1)) {
-	xmlChar *pucN;
-	xmlChar *pucV;
-
-	pucN = xmlStrndup(&pchT[n0], n1 - n0 + 1);
-	pucV = xmlStrndup(&pchT[v0], v1 - v0);
-	printf("%i '%s': '%s'\n", n, pucN, pucV);
-	y++;
-	xmlFree(pucV);
-	xmlFree(pucN);
-      }
-      else if (v1 == k0) {
-	break;
-      }
-      else {
-	printf("%i empty\n", n);
-      }
-    }
-
-    if (y != 3) {
-      printf("Error 2 detectNextLine()\n");
-    }
-    else {
-      n_ok++;
-      printf("OK\n");
-    }
-  }
-
- if (RUNTEST) {
-    char *pchT = "   \n\n AAA BBB;\n\nDTSTART:20250106\n\nAAA\n\nBEGIN:\nSUMMARY:My Test\n  ";
-    //char *pchT = "   VCALENDAR\n\nBBB;\nBEGIN:VCALENDAR\nAAA\nBBB\nBEGIN:VEVENT\nDTSTART:20250106\nDTEND:20250109\nSUMMARY:My Test\nEND:VEVENT\nEND:VCALENDAR\nAAA\nBEGIN:VCALENDAR\nAAA\nBBB\nBEGIN:VEVENT\nDTSTART:20250106\n\nEND:VEVENT";
-    int j0, j1;
-    int k0, k1;
-    int n0, n1;
-    int v0, v1;
-    int l;
-    int n;
-int y;
-
-    i++;
-    printf("TEST %i in '%s:%i': detectNextBlock() as Iterator = ", i, __FILE__, __LINE__);
-
-    for (y = 0, k0 = 0, k1 = strlen(pchT), n = 0; n < 10; n++, k0 = j1) {
-      if (detectNextBlock(pchT, k0, k1, &j0, &k0, &k1, &j1)) {
-	xmlChar *pucN;
-
-	pucN = xmlStrndup(&pchT[j0], j1 - k0 + 1);
-	printf("%i '%s'\n", n, pucN);
-	y++;
-	xmlFree(pucN);
-      }
-      else if (v1 == k0) {
-	break;
-      }
-      else {
-	printf("%i empty\n", n);
-      }
-    }
-
-    if (y != 3) {
-      printf("Error 2 detectNextLine()\n");
-    }
-    else {
-      n_ok++;
-      printf("OK\n");
-    }
-  }
-
-  if (RUNTEST) {
+  if (SKIPTEST) {
     char *pchT = "   \n\n AAA BBB;\n\nDTSTART:20250106\n\nAAA\nSUMMARY:My Test\n  ";
     int j0, j1;
     int k0, k1;
@@ -139,6 +102,8 @@ int y;
 
     i++;
     printf("TEST %i in '%s:%i': detectNextBlock() = ", i, __FILE__, __LINE__);
+
+    k1 = strlen(pchT);
 
     if (detectNextBlock(pchT, k0, k1, &j0, &k0, &k1, &j1) == TRUE) { //
       printf("Error 2 detectNextBlock()\n");
@@ -165,7 +130,7 @@ int y;
   }
 
   if (RUNTEST) {
-    char *pchT = "   \n\n BEGIN:VCALENDAR\nAAA BBB;\n\nBEGIN:VEVENT\nDTSTART:20250106\nDTEND:20250109\nSUMMARY:My Test\nEND:VEVENT\nEND:VCALENDAR\nAAA:BBB;";
+    char *pchT = "   \n\n BEGIN:VCALENDAR\nAAA BBB;\nX-PROP:AAA\n BBB\n\nBEGIN:VEVENT\nDTSTART:20250106\nDTEND:20250109\nSUMMARY:My Test\nEND:VEVENT\nEND:VCALENDAR\nAAA:BBB;";
     int j0, j1;
     int k0, k1;
     int n0, n1;
@@ -176,7 +141,7 @@ int y;
     printf("TEST %i in '%s:%i': detectNextBlock() = ", i, __FILE__, __LINE__);
 
     l = strlen(pchT);
-    if (detectNextBlock(pchT, 0, l, &j0, &k0, &k1, &j1) == FALSE || j0 != 6 || k0 != 21 || k1 != 104 || j1 != 117) { //
+    if (detectNextBlock(pchT, 0, l, &j0, &k0, &k1, &j1) == FALSE || j0 != 6 || k0 != 21 || k1 != 120 || j1 != 133) { //
       printf("Error 2 detectNextBlock()\n");
     }
     else if (detectNextLine(pchT, k0, k1, &n0, &n1, &v0, &v1) == TRUE) {
@@ -203,8 +168,49 @@ int y;
     }
   }
 
+ if (RUNTEST) {
+    char *pchT = "   BEGIN:VCALENDAR\nX-PROP:AAA\n BBB\nBEGIN:VEVENT\nDTSTART:20250106\nDTEND:20250109\nSUMMARY:My Test\nEND:VEVENT\nEND:VCALENDAR\nAAA:BBBB \\ CCC\n\nBEGIN:VCALENDAR\nAAA\nBBB\nBEGIN:VEVENT\nDTSTART:20250106\n\nEND:VEVENT\n\nEND:VCALENDAR";
+    int d0, d1;
+    int i0, i1;
+    int j0, j1;
+    int k0, k1;
+    int y;
+
+    i++;
+    printf("TEST %i in '%s:%i': detectNextBlock() as Iterator = ", i, __FILE__, __LINE__);
+
+    for (y = 0, i0 = 0, i1 = d1 = strlen(pchT), j0 = j1 = 0, k0 = k1 = 0; i0 < d1;) {
+      /* iteration */
+
+      if (detectNextBlock(pchT, i0, i1, &j0, &k0, &k1, &j1)) {
+	i0 = j1;
+	i1 = d1;
+	y++;
+      }
+      else if (detectNextLine(pchT, i0, i1, &k0, &k1, &j0, &j1)) {
+	i0 = j1;
+	i1 = d1;
+	y++;
+      }
+      else if (j1 == i0) {
+	break;
+      }
+      else {
+	i0 = j1;
+      }
+    }
+
+    if (y != 3) {
+      printf("Error 2 detectNextLine()\n");
+    }
+    else {
+      n_ok++;
+      printf("OK\n");
+    }
+  }
+
   if (RUNTEST) {
-    char *pchT = "   VCALENDAR\n\nBBB;\nBEGIN:VCALENDAR\nAAA\nBBB\nBEGIN:VEVENT\nDTSTART:20250106\nDTEND:20250109\nSUMMARY:My Test\nEND:VEVENT\nEND:VCALENDAR\nAAA\nBEGIN:VCALENDAR\nAAA\nBBB\nBEGIN:VEVENT\nDTSTART:20250106\n\nEND:VEVENT\nEND:VCALENDAR";
+    char *pchT = "  \t\nBEGIN:VCALENDAR\nAAA\nBBB\nBEGIN:VEVENT\nDTSTART:20250106\nDTEND:20250109\nSUMMARY:My Test\nEND:VEVENT\nEND:VCALENDAR\nAAA\nBEGIN:VCALENDAR\nAAA\nBBB\nBEGIN:VEVENT\nDTSTART:20250106\n\nEND:VEVENT\nEND:VCALENDAR";
     xmlDocPtr pdocResult = NULL;
     xmlNodePtr pndFile;
     
@@ -226,7 +232,7 @@ int y;
       n_ok++;
       printf("OK\n");
     }
-    domPutNodeString(stderr,"ICS",pndFile);
+    //domPutNodeString(stderr,"ICS",pndFile);
   }
 
 
@@ -243,7 +249,6 @@ int y;
       printf("OK\n");
     }
   }
-#endif
 
 
   if (RUNTEST) {
