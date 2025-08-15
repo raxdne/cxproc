@@ -183,6 +183,7 @@ icsParseProperty(xmlNodePtr pndArg, const char *pchArg, const int i0, const int 
       if (iS > 0) {
 	xmlChar *pucNameElement;
 	xmlChar *pucValueElement;
+
 	pucNameElement = xmlStrndup(pucA, (iP > 0) ? iP : iS);
 	StringToLower((char *)pucNameElement);
 	pndElement = xmlNewChild(pndArg, NULL, pucNameElement, NULL);
@@ -208,11 +209,31 @@ icsParseProperty(xmlNodePtr pndArg, const char *pchArg, const int i0, const int 
 	    xmlSetProp(pndElement, BAD_CAST "iso", mpucT);
 	  }
 	}
+	else if (xmlStrEqual(pucNameElement, BAD_CAST "version")) {
+	  xmlNewChild(pndElement, NULL, BAD_CAST "text", pucValueElement);
+	}
 	else if (xmlStrEqual(pucNameElement, BAD_CAST "rrule")) {
 	  xmlNewChild(pndElement, NULL, BAD_CAST "recur", pucValueElement);
 	}
 	else {
-	  xmlNewChild(pndElement, NULL, BAD_CAST "text", pucValueElement);
+	  char *e;
+	  long li;
+
+	  li = strtol((const char *)pucValueElement, &e, 10);
+	  if (e != NULL && *e == '\0') {
+	    xmlNewChild(pndElement, NULL, BAD_CAST "integer", pucValueElement);
+	  }
+	  else {
+	    double d;
+
+	    d = strtod((const char *)pucValueElement, &e);
+	    if (e != NULL && *e == '\0') {
+	      xmlNewChild(pndElement, NULL, BAD_CAST "float", pucValueElement);
+	    }
+	    else {
+	      xmlNewChild(pndElement, NULL, BAD_CAST "text", pucValueElement);
+	    }
+	  }
 	}
 	xmlFree(pucA);
 	xmlFree(pucValueElement);
