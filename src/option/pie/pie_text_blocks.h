@@ -187,7 +187,7 @@
 
 #else
 
-#define RE_DATE ("\\b(" RE_ISO_8601 ")")
+#define RE_DATE ("\\b(" RE_ISO_8601 ")\\b")
 
 #endif
 

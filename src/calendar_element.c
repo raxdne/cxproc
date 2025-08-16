@@ -382,6 +382,7 @@ SplitCalendarElementRecurrences(ceElementPtr pceArg)
 
       CalendarElementListAdd(pceResult, pceI);
     }
+    CalendarElementFree(pceI);
   }
 
   return pceResult;

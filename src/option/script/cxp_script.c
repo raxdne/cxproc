@@ -200,41 +200,41 @@ cxpScriptProcessNode(xmlNodePtr pndArg, cxpContextPtr pccArg)
 
       if ((pucScript = cxpCtxtCacheGetBuffer(pccArg, pucAttrFile)) != NULL) {
 	/* there is a cached Buffer */
-	pucScript = xmlStrdup(pucScript);
+	pucResult = cxpScriptProcessText(pucScript, pccArg);
       }
       else if ((prnFile = cxpResNodeResolveNew(pccArg, pndArg, NULL, CXP_O_READ)) != NULL) {
-        if (resNodeReadStatus(prnFile)) { /* this is a Javascript file (to read) */
-          cxpCtxtLogPrint(pccArg,2,"Reading Javascript file '%s'", resNodeGetNameNormalized(prnFile));
+	if (resNodeReadStatus(prnFile)) { /* this is a Javascript file (to read) */
+	  cxpCtxtLogPrint(pccArg, 2, "Reading Javascript file '%s'", resNodeGetNameNormalized(prnFile));
 
-          pucScript = plainGetContextTextEat(prnFile,1024);
+	  pucScript = resNodeGetContent(prnFile, 1024);
 
-          if (xmlStrlen(pucAttrNameCacheAs) > 0) {
+	  if (xmlStrlen(pucAttrNameCacheAs) > 0) {
 	    cxpCtxtCacheAppendBuffer(pccArg, pucScript, pucAttrNameCacheAs);
 	  }
 	  else if (fCache && xmlStrlen(resNodeGetNameNormalized(prnFile)) > 0) {
 	    cxpCtxtCacheAppendBuffer(pccArg, pucScript, resNodeGetNameNormalized(prnFile));
 	  }
-        }
-        else {
-          cxpCtxtLogPrint(pccArg,1,"Javascript source not readable '%s'", pucAttrFile);
-        }
-        resNodeFree(prnFile);
+	  pucResult = cxpScriptProcessText(pucScript, pccArg);
+	}
+	else {
+	  cxpCtxtLogPrint(pccArg, 1, "Javascript source not readable '%s'", pucAttrFile);
+	}
+	resNodeFree(prnFile);
       }
     }
-    else if ((pndChildPlain = domGetFirstChild(pndArg,NAME_PLAIN))) {
-      cxpCtxtLogPrint(pccArg,2, "Process Script code from plain");
-      pucScript = cxpProcessPlainNode(pndChildPlain,NULL);
+    else if ((pndChildPlain = domGetFirstChild(pndArg, NAME_PLAIN))) {
+      cxpCtxtLogPrint(pccArg, 2, "Process Script code from plain");
+      pucScript = cxpProcessPlainNode(pndChildPlain, NULL);
+      pucResult = cxpScriptProcessText(pucScript, pccArg);
+      xmlFree(pucScript);
     }
     else if ((pucContent = domNodeGetContentPtr(pndArg)) != NULL && xmlStrlen(pucContent) > 0) {
-      cxpCtxtLogPrint(pccArg,2, "Process Script code from text node");
-      pucScript = xmlStrdup(pucContent);
+      cxpCtxtLogPrint(pccArg, 2, "Process Script code from text node");
+      pucResult = cxpScriptProcessText(pucContent, pccArg);
     }
-
-    pucResult = cxpScriptProcessText(pucScript, pccArg);
 
     /*!\todo keep script code after eval as display attribute or title */
 
-    xmlFree(pucScript);
     xmlFree(pchFilenameFound);
     if (pccHere != pccArg) {
       cxpCtxtIncrExitCode(pccArg, cxpCtxtGetExitCode(pccHere));

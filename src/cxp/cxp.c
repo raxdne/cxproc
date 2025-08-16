@@ -495,6 +495,7 @@ cxpProcessXmlNodeEmbedded(xmlNodePtr pndArg, cxpContextPtr pccArg)
       pucT = cxpProcessPlainNode(pndArg, pccArg);
       if (STR_IS_NOT_EMPTY(pucT)) {
 	xmlReplaceNode(pndArg, xmlNewText(pucT));
+	xmlFreeNode(pndArg);
       }
       xmlFree(pucT);
     }
