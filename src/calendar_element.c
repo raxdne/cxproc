@@ -104,14 +104,20 @@ CalendarElementUpdate(ceElementPtr pceArg, xmlChar* pucArg)
     pceArg->pucIntern = BAD_CAST xmlMalloc(l + 1);
     if (pceArg->pucIntern) {
       int i, j, k;
+      BOOL_T fTime;
 
       for (i = 0; isspace(pucArg[i]); i++) {}
 
-      for (k = j = 0; (isiso8601(pucArg[i + j]) || isalnum(pucArg[i + j]) || pucArg[i + j] == 0xE2) && k < l; j++) {
+      for (fTime = FALSE, k = j = 0; (isiso8601(pucArg[i + j]) || isalnum(pucArg[i + j]) || pucArg[i + j] == 0xE2) && k < l; j++) {
 	switch (pucArg[i + j]) {
-	case '-':
 	case ':':
 	  /* ignoring chars */
+	  break;
+
+	case '-':
+	  if (fTime) { /* minus char is time zone offset now */
+	    pceArg->pucIntern[k++] = pucArg[i + j];
+	  }
 	  break;
 
 	case 0xE2:
@@ -121,6 +127,13 @@ CalendarElementUpdate(ceElementPtr pceArg, xmlChar* pucArg)
 	  }
 	  break;
 
+	case '/':
+	  fTime = FALSE; /* reset flag for next date/time */
+	  pceArg->pucIntern[k++] = pucArg[i + j];
+	  break;
+
+	case 'T':
+	  fTime = TRUE;
 	default:
 	  pceArg->pucIntern[k++] = pucArg[i + j];
 	}

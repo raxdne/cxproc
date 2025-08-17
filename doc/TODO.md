@@ -83,6 +83,8 @@ TODO: check usage of `ProcessImportOptions()` #v20 ++
 
 TODO: unify usage of `scriptProcessScriptNode()` `TraverseScriptNodes()` and add test code #v20 ✔
 
+TODO: refactor `vcf.c` using code from `ics.c` #v20
+
 ## Features
 
 REQ: provide checksums of files/base64 (sha256)

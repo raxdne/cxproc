@@ -2664,7 +2664,10 @@ dt_parse_iso_date_time_zone(const char *str, size_t len, dt_t *dtp, int *sp)
 
 	  n += j;
 
-	  if (StringBeginsWith(&p[n], "CST")) {
+	  if (StringBeginsWith(&p[n], "Z")) {
+	    n += 1;
+	  }
+	  else if (StringBeginsWith(&p[n], "CST")) {
 	    /* assumption "China Standard Time UTC+08:00" */
 	    o = 8 * 60 * 60;
 	    n += 3;
@@ -2687,7 +2690,7 @@ dt_parse_iso_date_time_zone(const char *str, size_t len, dt_t *dtp, int *sp)
 	    n += j;
 	  }
 	  else {
-	    /* default local time zone */
+	    /* assumption is local time zone */
 	    o = localtime_offset();
 	  }
 
