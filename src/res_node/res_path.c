@@ -599,7 +599,7 @@ resPathIsEquivalent(xmlChar *pucArgA, xmlChar *pucArgB)
 BOOL_T
 resPathIsTemp(xmlChar *pucArg)
 {
-  return (STR_IS_EMPTY(pucArg) || xmlStrcasestr(pucArg, BAD_CAST "/Backup/") != NULL || xmlStrcasestr(pucArg, BAD_CAST "/Cache/") != NULL ||
+  return (STR_IS_EMPTY(pucArg) || xmlStrcasestr(pucArg, BAD_CAST "/Backup/") != NULL ||
 	  xmlStrcasestr(pucArg, BAD_CAST "/Temp/") != NULL || xmlStrcasestr(pucArg, BAD_CAST "/Trash/") != NULL ||
 	  xmlStrcasestr(pucArg, BAD_CAST "/tmp/") != NULL || StringEndsWith((char *)pucArg, (const char *)"~") != NULL);
 }

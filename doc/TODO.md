@@ -156,6 +156,11 @@ REQ: handle timezone in date node
 
 REQ: HTML to UTF-8 Plain text Renderer `<cxp:plain><cxp:html name="abc.html"/></cxp:plain>` like "w3m -dump" ✘
 
+### csv
+
+BUG: handling of embedded CSV text #v20 ++
+- remove from plain text markup?
+
 ## Security
 
 TODO: clean `xmlStrPrintf.*- *1`
@@ -176,12 +181,16 @@ REQ: flags for permissions
 
 ## Profiling
 
+TODO: gprof and valgrind/cachegrind (KCachegrind) #v20
+
+## Memory Usage
+
 mem usage
 
 	valgrind --tool=massif ~/cxproc-build/x86_64-gnu-linux/bin/dir2csv -f ../x86_64-gnu-linux/ > ../t-301.csv
 	ms_print massif.out.660588 |less
 
-TODO: gprof and valgrind/cachegrind (KCachegrind) #v20
+BUG: fix memory issues detected by "test_memcheck" #v20 +++
 
 ## Building
 
