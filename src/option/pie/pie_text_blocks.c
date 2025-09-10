@@ -2930,11 +2930,17 @@ RecognizeInserts(xmlNodePtr pndArg, int iArgMode)
     else if (IS_VALID_NODE(pndArg) == FALSE || xmlHasProp(pndArg,BAD_CAST"hidden") != NULL) {
       /* skip */
     }
+    else if (IS_NODE_PIE_SCRIPT(pndArg)) {
+      /* <script> is a shortcut for <import type="script"> */
+      /*!\todo handling of eval="no" */
+      xmlNodeSetName(pndArg, BAD_CAST NAME_PIE_IMPORT);
+      xmlSetProp(pndArg, BAD_CAST "type", BAD_CAST "script");
+    }
     else if (IS_NODE_PIE_PAR(pndArg) && (pndImport = ImportNodeNew(pndArg, iArgMode)) != NULL) {
       xmlReplaceNode(pndArg, pndImport); /*! replace pndArg by pndImport */
       xmlFreeNode(pndArg);
     }
-    else if (IS_NODE_PIE_SECTION(pndArg) || IS_NODE_PIE_BLOCK(pndArg) || IS_NODE_PIE_PIE(pndArg)) {
+    else if (IS_NODE_PIE_PAR(pndArg) || IS_NODE_PIE_HEADER(pndArg) || IS_NODE_PIE_TASK(pndArg) || IS_NODE_PIE_TARGET(pndArg) || IS_NODE_PIE_LIST(pndArg) || IS_NODE_PIE_TABLE(pndArg) || IS_NODE_PIE_SECTION(pndArg) || IS_NODE_PIE_BLOCK(pndArg) || IS_NODE_PIE_PIE(pndArg)) {
       for (pndChild = pndArg->children; pndChild; pndChild = RecognizeInserts(pndChild,iArgMode));
     }
     else {

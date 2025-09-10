@@ -935,7 +935,6 @@ ImportNodeFile(xmlNodePtr pndArgImport, cxpContextPtr pccArg)
 	}
 
 	if (STR_IS_NOT_EMPTY(pucContent)) {
-	  xmlSetProp(pndArgImport, BAD_CAST "type", BAD_CAST "script");
 	  xmlNodeSetContent(pndArgImport, pucContent);
 	  ImportNodeContent(pndArgImport, pccInput);
 	}
@@ -1026,7 +1025,7 @@ ImportNodeContent(xmlNodePtr pndArgImport, cxpContextPtr pccArg)
 
     pucContent = cxpScriptProcessNode(pndArgImport, pccArg);
     xmlNodeSetName(pndArgImport, BAD_CAST NAME_PIE_BLOCK);
-    xmlNodeSetContent(pndArgImport, pucContent);
+    xmlNodeSetContent(pndArgImport, NULL);
 #else
     xmlNodeSetName(pndArgImport, IS_NODE_STRUCT(pndArgImport->parent) ? BAD_CAST NAME_PIE_PRE : BAD_CAST NAME_PIE_TT);
 #endif
@@ -1034,7 +1033,7 @@ ImportNodeContent(xmlNodePtr pndArgImport, cxpContextPtr pccArg)
   else {
     pucContent = domNodeEatContent(pndArgImport);
     xmlNodeSetName(pndArgImport, BAD_CAST NAME_PIE_BLOCK);
-    xmlNodeSetContent(pndArgImport, pucContent);
+    xmlNodeSetContent(pndArgImport, NULL);
   }
 
   if (STR_IS_NOT_EMPTY(pucContent)) {
@@ -1055,8 +1054,7 @@ ImportNodeContent(xmlNodePtr pndArgImport, cxpContextPtr pccArg)
     }
     else {
       /* insert import result as a simple text node */
-      xmlReplaceNode(pndArgImport, xmlNewText(pucContent));
-      xmlFreeNode(pndArgImport);
+      xmlNodeAddContent(pndArgImport, pucContent);
     }
   }
   else {
