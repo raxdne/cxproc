@@ -1428,8 +1428,10 @@ TraverseDateNodes(xmlNodePtr pndArg, cxpContextPtr pccArg)
   ) {
     /* skip */
   }
-  else if (IS_NODE_PIE_DATE(pndArg)) {
+  else if (IS_NODE_PIE_DATE(pndArg) && xmlHasProp(pndArg,BAD_CAST"iso") == NULL) {
+    /* avoid redundant child 'date' */
 #ifdef PIE_STANDALONE
+    /* no calendar element available */
 #else
     AddNodeDateAttributes(pndArg, NULL);
 #endif

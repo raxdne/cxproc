@@ -498,10 +498,13 @@ CalendarUpdate(cxpCalendarPtr pCalendarArg)
       if ((pndAdd = pieGetSelfAncestorNodeList(pceT->pndEntry,mucAdress))) {
 	xmlNodePtr pndCol;
 
-	if (cxpCalendarIndex(pceT->dt0.dt) > 0
-	  && pCalendarArg->mpndDay[cxpCalendarIndex(pceT->dt0.dt)] != NULL
-	  && cxpCalendarIndex(pceT->dt1.dt) > 0
-	  && pCalendarArg->mpndDay[cxpCalendarIndex(pceT->dt1.dt)] != NULL) {
+	if (pceT->dt0.dt == 0 || cxpCalendarIndex(pceT->dt0.dt) < 1 || cxpCalendarIndex(pceT->dt0.dt) >= CXP_CALENDAR_SIZE) {
+	  PrintFormatLog(1, "Ignoring invalid index '%i' '%s'", cxpCalendarIndex(pceT->dt0.dt), pndAdd->name);
+	  xmlFreeNode(pndAdd);
+	}
+	else if (pCalendarArg->mpndDay[cxpCalendarIndex(pceT->dt0.dt)] != NULL &&
+		 (cxpCalendarIndex(pceT->dt1.dt) > 0 && cxpCalendarIndex(pceT->dt1.dt) < CXP_CALENDAR_SIZE &&
+		  pCalendarArg->mpndDay[cxpCalendarIndex(pceT->dt1.dt)] != NULL)) {
 	  /* an interval is specified */
 	  dt_t dtI;
 
@@ -519,8 +522,7 @@ CalendarUpdate(cxpCalendarPtr pCalendarArg)
 	  }
 	  xmlFreeNode(pndAdd);
 	}
-	else if (cxpCalendarIndex(pceT->dt0.dt) > 0
-	  && pCalendarArg->mpndDay[cxpCalendarIndex(pceT->dt0.dt)] != NULL) {
+	else if (pCalendarArg->mpndDay[cxpCalendarIndex(pceT->dt0.dt)] != NULL) {
 	  /* an anchor is specified */
 
 	  assert(pCalendarArg->mpndDay[cxpCalendarIndex(pceT->dt0.dt)]);
@@ -727,7 +729,7 @@ RegisterAndParseDateNodes(cxpCalendarPtr pCalendarArg, xmlChar *pucArg)
 	result = domGetXPathNodeset(pCalendarArg->pdocCalendar, pucArg);
       }
       else {
-	result = domGetXPathNodeset(pCalendarArg->pdocCalendar, BAD_CAST"/calendar/col//*[name() = 'date' or @date or @mtime2 or @MODIFIED]");
+	result = domGetXPathNodeset(pCalendarArg->pdocCalendar, BAD_CAST"/calendar/col//*[name() = 'date' or @date or @mtime2]");
       }
 
       if (result) {
