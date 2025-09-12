@@ -30,9 +30,6 @@
 #include "basics.h"
 #include "utils.h"
 
-static double
-_dt_parse_iso_strtod(const char *str, size_t len, char **str1);
-
 static size_t
 dt_parse_easter_date(const char *str, size_t len, dt_t *dtp);
 
@@ -42,7 +39,7 @@ localtime_offset(void);
 /*! internal level for debug messages */
 static int level_set = -1;
 
-static dt_today = 0;
+static dt_t dt_today = 0;
 
 /*! set the internal debug level
 
@@ -2387,6 +2384,8 @@ dt_parse_iso_recurrence(const char *str, size_t len, int* deltad) {
 } /* end of dt_parse_iso_recurrence() */
 
 
+#if 0
+
 /*! \return a double float value for str (decimal separators '.' and ',')
 \deprecated
 */
@@ -2420,6 +2419,8 @@ _dt_parse_iso_strtod(const char *str, size_t len, char **str1)
   }
   return dResult;
 }
+
+#endif
 
 /*
  *  Basic
@@ -2559,7 +2560,7 @@ dt_parse_eternal_date(const char *str, size_t len, dt_t *dtp)
     int y;
     char *pcT;
 
-    pcT = malloc(len + 1);
+    pcT = (char*) malloc(len + 1);
     if (pcT != NULL) {
       strncpy(pcT, str, len);
       y = dt_year(dt_today_date());

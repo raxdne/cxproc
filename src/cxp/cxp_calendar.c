@@ -932,7 +932,7 @@ CalendarFree(cxpCalendarPtr pCalendarArg)
     xmlMemFree(pCalendarArg->pmiYear);
     xmlFreeDoc(pCalendarArg->pdocCalendar);
 #ifdef DEBUG
-    memset(pCalendarArg->mpndDay, 0, CXP_CALENDAR_SIZE);
+    memset(pCalendarArg->mpndDay, 0, CXP_CALENDAR_SIZE * sizeof(xmlNodePtr));
     memset(pCalendarArg,0,sizeof(cxpCalendar));
 #endif
     xmlFree(pCalendarArg);

@@ -317,7 +317,7 @@ cxpCtxtTest(cxpContextPtr pccArg)
     if ((pccT = cxpCtxtFromAttr(pccArg, pndMake)) == NULL) {
       printf("Error 1\n");
     }
-    else if (cxpCtxtProcessSetNodeCopy(pccT,pdocTest) == FALSE) {
+    else if (cxpCtxtProcessSetNodeCopy(pccT,pndMake) == FALSE) {
       printf("Error 4\n");
     }
     else if ((pucTTT = resPathCollapseStr(BAD_CAST BUILDPREFIX, FS_PATH_FULL)) == NULL) {

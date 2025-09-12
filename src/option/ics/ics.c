@@ -361,9 +361,9 @@ icsParseComponent(xmlNodePtr pndArg, xmlChar *pucArgContent, const int d0, const
       if (StringBeginsWith(pcBegin, BAD_CAST C)) { \
 	pcBegin += strlen(C); \
 	k0 = (int)(pcBegin - pcArg); \
-	if ((pcEnd = Strnstr(BAD_CAST pcBegin, i1 - (int)(pcBegin - pcArg), BAD_CAST "END:"C))) { \
+	if ((pcEnd = Strnstr(BAD_CAST pcBegin, i1 - (int)(pcBegin - pcArg), BAD_CAST "END:" C))) { \
 	  k1 = (int)(pcEnd - pcArg); \
-	  j1 = k1 + strlen("END:"C); \
+	  j1 = k1 + strlen("END:" C); \
 	} \
 	else {j1 = i1;} \
       }

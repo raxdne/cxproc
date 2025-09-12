@@ -711,7 +711,6 @@ utilsTest(void)
       printf("OK\n");
     }
   }
-#endif
 
 
   /* ISO 8601 Decimal values */
@@ -742,6 +741,8 @@ utilsTest(void)
       printf("OK\n");
     }
   }
+
+#endif
 
  /* ISO 8601 Decimal hours */
   
