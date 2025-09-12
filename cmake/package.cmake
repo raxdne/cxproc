@@ -12,7 +12,7 @@ INSTALL(TARGETS cxproc-cgi RUNTIME DESTINATION lib/cgi-bin)
 
 if (MSVC)
   set(CPACK_GENERATOR ZIP)
-  INSTALL(FILES ${CXPROC_PREFIX}/bin/sqlite3.exe ${CXPROC_PREFIX}/bin/cmark.exe ${CXPROC_PREFIX}/bin/xsltproc.exe ${CXPROC_PREFIX}/bin/xmllint.exe ${CXPROC_PREFIX}/bin/curl.exe DESTINATION bin)
+  INSTALL(FILES ${CXPROC_PREFIX}/tools/sqlite3.exe ${CXPROC_PREFIX}/tools/cmark/cmark.exe ${CXPROC_PREFIX}/tools/libxslt/xsltproc.exe ${CXPROC_PREFIX}/tools/libxml2/xmllint.exe ${CXPROC_PREFIX}/tools/curl/curl.exe DESTINATION bin)
   IF(NOT CXPROC_STATIC)
     file(GLOB DLL_DEPS ${CXPROC_PREFIX}/bin/*.dll)
     MESSAGE(STATUS "Dependencies: ${DLL_DEPS}")

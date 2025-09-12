@@ -341,7 +341,7 @@ IF(CXPROC_CHECK)
     #  /errorreport:prompt
     #  /showIncludes
   ELSE(MSVC)
-    target_compile_options(cpp-check PUBLIC -x c++ -std=c++17 -Wall -Wno-unused-function -Wno-unused-variable -Wno-unused-but-set-variable -fmax-errors=25 -funsigned-char)
+    target_compile_options(cpp-check PUBLIC -x c++ -Wno-unused-function -Wno-unused-variable -Wno-unused-but-set-variable -Wno-sign-compare -fmax-errors=25 -funsigned-char -fpermissive)
   ENDIF (MSVC)
 ENDIF (CXPROC_CHECK)
 

@@ -25,12 +25,13 @@ IF "%STATIC%" == "1" (
 )
 
 IF "1" == "1" (
+  REM check https://learn.microsoft.com/en-us/vcpkg/
   pushd C:\UserData\Develop\vcpkg
-  REM bootstrap-vcpkg.bat -win64 -disableMetrics
+  REM bootstrap-vcpkg.bat -disableMetrics
   REM git pull
   .\vcpkg integrate install
 
-  .\vcpkg --triplet %CXPARCH% --x-install-root=%CXPBASE%..\.. install curl zlib libzip liblzma libarchive pcre2 libxml2 libxslt libexif sqlite3 duktape cmark
+  .\vcpkg --triplet %CXPARCH% --x-install-root=%CXPBASE%..\.. --recurse install curl[tool] zlib libzip liblzma libarchive pcre2 libxml2[http,tools] libxslt[tools] libexif sqlite3[tool] duktape cmark[tools]
 
   REM imagemagick libgif libjpeg libpng libtiff
   

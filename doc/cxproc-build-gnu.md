@@ -110,6 +110,7 @@ Development environment
 	cd ~/cxproc-build/
 	# sudo dpkg --remove cmark libcmark0.29.0 libcmark-dev
 	git clone https://github.com/commonmark/cmark.git
+	# (cd ~/cxproc-build/cmark/ && git pull)
 	mkdir -p ~/cxproc-build/cmark/build
 	(cd ~/cxproc-build/cmark/build && cmake .. "-GUnix Makefiles" -DCMAKE_BUILD_TYPE=Release)
 	cmake --build ~/cxproc-build/cmark/build
