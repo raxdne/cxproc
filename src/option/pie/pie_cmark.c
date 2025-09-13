@@ -242,21 +242,37 @@ cmarkTreeToDOM(xmlNodePtr pndArgBlock, xmlNodePtr pndArg, cmark_node* pcmnArg)
       }
     }
     else if (pcmnArg->type == CMARK_NODE_HTML_BLOCK) {
-      xmlNodePtr pndNew = NULL;
-      xmlDocPtr pdocHtml;
+      if (StringBeginsWith((char *)pcmnArg->data, "<?")) {
+	xmlChar *pucT = xmlStrdup(BAD_CAST pcmnArg->data);
 
-      pdocHtml = xmlParseMemory((const char *)pcmnArg->data, xmlStrlen(BAD_CAST pcmnArg->data)); /* XHTML only */
-      if ((pndNew = xmlDocGetRootElement(pdocHtml)) != NULL) {
-	xmlUnlinkNode(pndNew);
-	pndT = xmlNewChild(pndArg, NULL, BAD_CAST "block", NULL);
-	xmlSetProp(pndT, BAD_CAST "type", BAD_CAST "text/html");
-	xmlAddChild(pndT, pndNew);
-	xmlAddChild(pndArg, pndT);
+	pndT = xmlNewChild(pndArg, NULL, BAD_CAST NAME_PIE_PAR, NULL);
+	if (StringRemovePairOfChars(pucT, '<', '>')) {
+	  /* attribute href not required if it's same like display value */
+	  pndT = xmlNewChild(pndT, NULL, BAD_CAST NAME_PIE_LINK, NULL);
+	  xmlAddChild(pndT, xmlNewText(pucT));
+	}
+	else {
+	  xmlAddChild(pndT, xmlNewText(pucT));
+	}
+	xmlFree(pucT);
       }
       else {
-	xmlAddChild(pndArg, xmlNewComment(BAD_CAST "HTML parser error"));
+	xmlNodePtr pndNew = NULL;
+	xmlDocPtr pdocHtml;
+
+	pdocHtml = xmlParseMemory((const char *)pcmnArg->data, xmlStrlen(BAD_CAST pcmnArg->data)); /* XHTML only */
+	if ((pndNew = xmlDocGetRootElement(pdocHtml)) != NULL) {
+	  xmlUnlinkNode(pndNew);
+	  pndT = xmlNewChild(pndArg, NULL, BAD_CAST "block", NULL);
+	  xmlSetProp(pndT, BAD_CAST "type", BAD_CAST "text/html");
+	  xmlAddChild(pndT, pndNew);
+	  xmlAddChild(pndArg, pndT);
+	}
+	else {
+	  xmlAddChild(pndArg, xmlNewComment(BAD_CAST "HTML parser error"));
+	}
+	xmlFreeDoc(pdocHtml);
       }
-      xmlFreeDoc(pdocHtml);
     }
     else if (pcmnArg->type == CMARK_NODE_CUSTOM_BLOCK) {
       xmlAddChild(pndArg, xmlNewComment(BAD_CAST"CMARK_NODE_CUSTOM_BLOCK"));

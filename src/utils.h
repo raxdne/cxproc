@@ -77,6 +77,9 @@ extern BOOL_T
 StringRemovePairQuotes(xmlChar *pucArg);
 
 extern BOOL_T
+StringRemovePairOfChars(xmlChar *pucArg, xmlChar ucArgA, xmlChar ucArgB);
+
+extern BOOL_T
 StringRemoveBackslashes(xmlChar* pucArg);
 
 extern xmlChar *

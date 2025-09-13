@@ -464,6 +464,56 @@ utilsTest(void)
     xmlChar *pucTestB = xmlStrdup(BAD_CAST"'''");
     xmlChar *pucTestC = xmlStrdup(BAD_CAST"'abCüöä'kKkk\"");
     xmlChar *pucTestD = xmlStrdup(BAD_CAST"'abCüöäkKkk'");
+    xmlChar *pucTestE = xmlStrdup(BAD_CAST"  <abCüöäkKkk> \t   ");
+    xmlChar *pucTestF = xmlStrdup(BAD_CAST"   <A>\n   ");
+
+    i++;
+    printf("TEST %i in '%s:%i':  = ", i, __FILE__, __LINE__);
+
+    if (StringRemovePairOfChars(NULL,'\0','\&') == TRUE) {
+      printf("ERROR 1\n");
+    }
+    else if (StringRemovePairOfChars(pucTest0,'\0','\&') == TRUE) {
+      printf("ERROR 2\n");
+    }
+    else if (StringRemovePairOfChars(pucTestA,'\'','\'') == FALSE || xmlStrlen(pucTestA) > 0) {
+      printf("ERROR 3\n");
+    }
+    else if (StringRemovePairOfChars(pucTestB,'\'','\'') == FALSE || xmlStrEqual(pucTestB, BAD_CAST"'") == FALSE) {
+      printf("ERROR 4\n");
+    }
+    else if (StringRemovePairOfChars(pucTestC,'\'','\'') == TRUE) {
+      printf("ERROR 5\n");
+    }
+    else if (StringRemovePairOfChars(pucTestD,'\'','\'') == FALSE || xmlStrEqual(pucTestD, BAD_CAST"abCüöäkKkk") == FALSE) {
+      printf("ERROR 6\n");
+    }
+    else if (StringRemovePairOfChars(pucTestE,'<','>') == TRUE || xmlStrEqual(pucTestE, BAD_CAST"abCüöäkKkk") == FALSE) {
+      printf("ERROR 7\n");
+    }
+    else if (StringRemovePairOfChars(pucTestF,'<','>') == TRUE || xmlStrlen(pucTestF) != 1) {
+      printf("ERROR 8\n");
+    }
+    else {
+      n_ok++;
+      printf("OK\n");
+    }
+    xmlFree(pucTestF);
+    xmlFree(pucTestE);
+    xmlFree(pucTestD);
+    xmlFree(pucTestC);
+    xmlFree(pucTestB);
+    xmlFree(pucTestA);
+    xmlFree(pucTest0);
+  }
+
+
+  if (RUNTEST) {
+    xmlChar *pucTest0 = xmlStrdup(BAD_CAST"");
+    xmlChar *pucTestA = xmlStrdup(BAD_CAST"''");
+    xmlChar *pucTestB = xmlStrdup(BAD_CAST"'''");
+    xmlChar *pucTestC = xmlStrdup(BAD_CAST"'abCüöä'kKkk\"");
+    xmlChar *pucTestD = xmlStrdup(BAD_CAST"'abCüöäkKkk'");
     xmlChar *pucTestE = xmlStrdup(BAD_CAST"  abCüöäkKkk \t   ");
     xmlChar *pucTestF = xmlStrdup(BAD_CAST"   A   ");
 
