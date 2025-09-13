@@ -517,7 +517,6 @@ cxpCtxtCgiParse(cxpContextPtr pccArg)
 	  pndXsl = xmlNewChild(pndOutput, NULL, NAME_XSL, NULL);
 	  xmlSetProp(pndXsl, BAD_CAST "name", resNodeGetNameNormalized(prnCgiXsl));
 
-#ifdef EXPERIMENTAL
 	  for (i = 0; i < cxpCtxtCgiGetCount(pccArg); i++) { /* append CGI params as variables to pndXsl */
 	    xmlChar *pucName;
 
@@ -542,7 +541,6 @@ cxpCtxtCgiParse(cxpContextPtr pccArg)
 	    }
 	    xmlFree(pucName);
 	  }
-#endif
 
 	  cxpCtxtCacheAppendDoc(pccArg, pdocXsl, resNodeGetNameNormalized(prnCgiXsl));
 	  xmlFreeDoc(pdocXsl);

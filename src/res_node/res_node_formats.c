@@ -114,12 +114,7 @@ resNodeContentToDOM(xmlNodePtr pndArg, resNodePtr prnArg)
 
 	  pdocResult = resNodeGetContentDoc(prnArg);
 	  if (pdocResult != NULL && (pndPie = xmlDocGetRootElement(pdocResult)) != NULL) {
-#ifdef EXPERIMENTAL
 	    domUnlinkNodeList(pndPie);
-#else
-	    /*!\todo optimization avoid copy of node list use domUnlinkNodeList(pndRootResult) */
-	    pndPie = xmlCopyNodeList(pndPie);
-#endif
 	  }
 	  else {
 	    xmlSetProp(pndArg, BAD_CAST "error", BAD_CAST "parse");

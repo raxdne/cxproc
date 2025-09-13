@@ -459,7 +459,12 @@ ENDIF (LIBLZMA_LIBRARIES)
 
 include(tests)
 
-include(archive)
+IF (CXPROC_EXPERIMENTAL)
+  include(archive)
+ELSE (CXPROC_EXPERIMENTAL)
+  UNSET(CXPROC_ARCHIVE CACHE)
+ENDIF (CXPROC_EXPERIMENTAL)
+
 include(audio)
 include(database)
 include(image)
@@ -568,7 +573,7 @@ IF (CXPROC_LEGACY)
   add_compile_definitions(LEGACY)
 ENDIF (CXPROC_LEGACY)
 
-SET(CXPROC_EXPERIMENTAL ON CACHE BOOL "Compile experimental code")
+SET(CXPROC_EXPERIMENTAL OFF CACHE BOOL "Compile experimental code")
 MARK_AS_ADVANCED(CXPROC_EXPERIMENTAL)
 IF (CXPROC_EXPERIMENTAL)
   add_compile_definitions(EXPERIMENTAL)
