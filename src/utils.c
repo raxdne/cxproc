@@ -2435,7 +2435,7 @@ dt_parse_iso_hours_decimal(const char *str, size_t len, int *sod)
 {
   if (str != NULL && *str != '\0' && len > 0) {
    double dT = 0.0;
-   char *pcI = str;
+   char *pcI = (char *)str;
     char *pcII;
 
     if (*pcI == 'T') {

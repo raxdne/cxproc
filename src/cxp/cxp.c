@@ -1036,7 +1036,7 @@ cxpProcessPlainNode(xmlNodePtr pndArg, cxpContextPtr pccArg)
 	pucResult = xmlStrdup(pucResult);
       }
       else if ((prnFile = cxpResNodeResolveNew(pccArg, pndArg, NULL, CXP_O_READ)) != NULL) {
-	pucResult = xmlStrndup(BAD_CAST resNodeGetContent(prnFile,1024),resNodeGetSize(prnFile));
+	pucResult = xmlStrndup(BAD_CAST resNodeGetContent(prnFile,1024),(int) resNodeGetSize(prnFile));
 	cxpCtxtCacheAppendResNodeEat(pccArg,prnFile);
       }
     }

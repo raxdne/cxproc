@@ -426,7 +426,8 @@ zipDocumentRead(resNodePtr prnArgZip, int iArgOptions)
     /* use existing buffer content */
   }
   else if (resNodeReadStatus(prnArgZip) && resNodeIsZipDocument(prnArgZip) && (resNodeIsOpen(prnArgZip) || zipFileOpen(prnArgZip, "r"))) {
-    int i, len;
+    int i;
+    zip_uint64_t len;
     zip_uint64_t sum;
 
     PrintFormatLog(4, "Begin of '%s'", resNodeGetNameNormalized(prnArgZip));
@@ -469,7 +470,7 @@ zipDocumentRead(resNodePtr prnArgZip, int iArgOptions)
 	  PrintFormatLog(3, "skip big zip[%i] '%s'", i, sb.name);
 	}
 	else if ((zf = zip_fopen_index((struct zip *)resNodeGetHandleIO(prnArgZip), i, 0)) != NULL) {
-	  long long size;
+	  zip_uint64_t size;
 	  char buf[BUFFER_LENGTH];
 
 	  PrintFormatLog(3, "zip[%i] of '%s'", i, sb.name);

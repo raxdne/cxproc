@@ -1136,7 +1136,7 @@ ProcessIncludeNode(xmlNodePtr pndArgInclude, cxpContextPtr pccArg)
     cxpContextPtr pccDoc = NULL;	      /*! process context for include (derived from DOM) */
     xmlChar *pucAttrName = NULL;
     xmlNodePtr pndT;
-    xmlDocPtr pdocT = NULL;
+    //xmlDocPtr pdocT = NULL;
 
     //pccHere = cxpCtxtFromAttr(pccArg, pndArgInclude);
     //pccDoc = cxpCtxtFromAttr(NULL, pndArgInclude);
@@ -1940,7 +1940,7 @@ RecognizeRegExps(xmlNodePtr pndArg, pcre2_code* preArg)
 {
   BOOL_T fResult = FALSE;
   xmlNodePtr pndIter;
-  int errornumber = 0;
+  //int errornumber = 0;
   size_t erroroffset;
 
   if (preArg == NULL) {
@@ -2116,7 +2116,7 @@ GetPositiveLookaheadRegExp(xmlChar *pucArg)
       if (pucArg[i]==' ' || pucArg[i]==',' || isend(pucArg[i])) {
 	xmlChar *pucT = NULL;
 	
-	pucT = xmlStrndup(&pucArg[j],i-j);
+	pucT = xmlStrndup(&pucArg[j], (int) (i-j));
 
 	if (pucLookahead) {
 	  pucLookahead = xmlStrcat(pucLookahead,BAD_CAST"(?=.*");

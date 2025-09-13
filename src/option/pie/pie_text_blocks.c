@@ -834,8 +834,8 @@ AddTableColumnNames(xmlNodePtr pndArg)
 	  k = 1;
 	}
 	else if (j < (26 * 27)) {
-	  mucT[0] = 'A' + j / 26 - 1;
-	  mucT[1] = 'A' + j % 26;
+	  mucT[0] = (xmlChar) ('A' + j / 26 - 1);
+	  mucT[1] = (xmlChar) ('A' + j % 26);
 	  k = 2;
 	}
 	else {}

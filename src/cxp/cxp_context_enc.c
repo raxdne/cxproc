@@ -849,14 +849,15 @@ cxpCtxtEnvSet(cxpContextPtr pccArg, xmlChar *pucArgName, xmlChar *pucArgValue)
       cxpCtxtEnvDup(pccArg,NULL);
     }
    
+    if (pccArg->ppcEnv != NULL) {
 #ifdef DEBUG
-    cxpCtxtLogPrint(pccArg, 2, " Append env[%s]='%s'", pucArgName, pucArgValue);
+      cxpCtxtLogPrint(pccArg, 2, " Append env[%s]='%s'", pucArgName, pucArgValue);
 #endif
-
-    xmlStrPrintf(BAD_CAST mucNew,BUFFER_LENGTH,"%s=%s",pucArgName,pucArgValue);
-    pccArg->ppcEnv[iResult] = mucNew;
-    pccArg->ppcEnv[iResult+1] = NULL;
-    pccArg->iCountEnv = iResult;
+      xmlStrPrintf(BAD_CAST mucNew, BUFFER_LENGTH, "%s=%s", pucArgName, pucArgValue);
+      pccArg->ppcEnv[iResult] = mucNew;
+      pccArg->ppcEnv[iResult + 1] = NULL;
+      pccArg->iCountEnv = iResult;
+    }
   }
 
   return iResult;

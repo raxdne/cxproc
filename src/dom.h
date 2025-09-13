@@ -34,7 +34,7 @@
 
 #define IS_NODE_INFO(NODE) (IS_NODE(NODE,NAME_INFO))
 
-#define IS_NODE__XSL(NODE,NAME) (NODE != NULL && NODE->type == XML_ELEMENT_NODE && NODE->ns != NULL && NODE->ns->prefix != NULL && xmlStrEqual(NODE->ns->prefix,BAD_CAST "xsl") && NODE->name != NULL && (NAME==NULL || xmlStrEqual(NODE->name,BAD_CAST NAME)))
+#define IS_NODE__XSL(NODE,NAME) (NODE != NULL && NODE->type == XML_ELEMENT_NODE && NODE->ns != NULL && NODE->ns->prefix != NULL && xmlStrEqual(NODE->ns->prefix,BAD_CAST "xsl") && NODE->name != NULL && xmlStrEqual(NODE->name,BAD_CAST NAME))
 
 #define IS_NODE_XSL_STYLESHEET(NODE) (IS_NODE__XSL(NODE,"stylesheet"))
 

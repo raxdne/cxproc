@@ -329,7 +329,7 @@ cxpCtxtSaveFileNode(cxpContextPtr pccArg,xmlNodePtr pndArg,xmlDocPtr pdocArgOutp
     if (STR_IS_NOT_EMPTY(pucAttrStatus)) {
       printf("Status: %s\r\n",pucAttrStatus);
       if (STR_IS_NOT_EMPTY(pucArgOutput)) {
-	puts(pucArgOutput);
+	puts((const char *)pucArgOutput);
       }
     }
     else {

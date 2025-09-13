@@ -422,7 +422,7 @@ pieElementHasNext(pieTextElementPtr ppeArg)
 	if ((puc1 = BAD_CAST xmlStrstr(puc0, BAD_CAST"#end_of_skip")) != NULL) {
 	  /* skip string between markups */
 
-	  if (Strnstr(puc0 + 1, (puc1 - puc0), BAD_CAST"#begin_of_skip") != NULL) {
+	  if (Strnstr(puc0 + 1, (const int)(puc1 - puc0), BAD_CAST"#begin_of_skip") != NULL) {
 	    PrintFormatLog(1, "Unbalanced markup: '#begin_of_skip'");
 	  }
 
@@ -448,7 +448,7 @@ pieElementHasNext(pieTextElementPtr ppeArg)
 	if ((puc1 = BAD_CAST xmlStrstr(puc0, BAD_CAST "</" NAME_PIE_SCRIPT ">")) != NULL) {
 	  /* copy string between markups */
 
-	  if (Strnstr(puc0 + 1, (puc1 - puc0), BAD_CAST "<" NAME_PIE_SCRIPT ">") != NULL) {
+	  if (Strnstr(puc0 + 1, (const int)(puc1 - puc0), BAD_CAST "<" NAME_PIE_SCRIPT ">") != NULL) {
 	    PrintFormatLog(1, "Unbalanced markup: '<" NAME_PIE_SCRIPT ">'");
 	  }
 
@@ -478,7 +478,7 @@ pieElementHasNext(pieTextElementPtr ppeArg)
 
 	  /*!\todo change markup to <pre> */
 
-	  if (Strnstr(puc0 + 1, (puc1 - puc0), BAD_CAST"#begin_of_pre") != NULL) {
+	  if (Strnstr(puc0 + 1, (const int)(puc1 - puc0), BAD_CAST"#begin_of_pre") != NULL) {
 	    PrintFormatLog(1, "Unbalanced markup: '#begin_of_pre'");
 	  }
 
@@ -510,7 +510,7 @@ pieElementHasNext(pieTextElementPtr ppeArg)
 	if ((puc1 = BAD_CAST xmlStrstr(puc0, BAD_CAST"</" NAME_PIE_SKIP ">")) != NULL) {
 	  /* skip string between markups */
 
-	  if (Strnstr(puc0 + 1, (puc1 - puc0), BAD_CAST"<" NAME_PIE_SKIP ">") != NULL) {
+	  if (Strnstr(puc0 + 1, (const int)(puc1 - puc0), BAD_CAST"<" NAME_PIE_SKIP ">") != NULL) {
 	    PrintFormatLog(1, "Unbalanced markup: '<" NAME_PIE_SKIP ">'");
 	  }
 
@@ -537,7 +537,7 @@ pieElementHasNext(pieTextElementPtr ppeArg)
 	  /* copy string between markups */
 	  index_t l;
 
-	  if (Strnstr(puc0 + 1, (puc1 - puc0), BAD_CAST"<" NAME_PIE_PRE ">") != NULL) {
+	  if (Strnstr(puc0 + 1, (const int)(puc1 - puc0), BAD_CAST"<" NAME_PIE_PRE ">") != NULL) {
 	    PrintFormatLog(1, "Unbalanced markup: '<" NAME_PIE_PRE ">'");
 	  }
 
@@ -568,7 +568,7 @@ pieElementHasNext(pieTextElementPtr ppeArg)
 	if ((puc1 = BAD_CAST xmlStrstr(puc0, BAD_CAST"</make>")) != NULL) {
 	  /* copy string between markups */
 
-	  if (Strnstr(puc0 + 1, (puc1 - puc0), BAD_CAST"<make>") != NULL) {
+	  if (Strnstr(puc0 + 1, (const int)(puc1 - puc0), BAD_CAST"<make>") != NULL) {
 	    PrintFormatLog(1, "Unbalanced markup: '<make>'");
 	  }
 
@@ -594,7 +594,7 @@ pieElementHasNext(pieTextElementPtr ppeArg)
 	if ((puc1 = BAD_CAST xmlStrstr(puc0, BAD_CAST"</html>")) != NULL) {
 	  /* copy string between markups */
 
-	  if (Strnstr(puc0 + 1, (puc1 - puc0), BAD_CAST"<html>") != NULL) {
+	  if (Strnstr(puc0 + 1, (const int)(puc1 - puc0), BAD_CAST"<html>") != NULL) {
 	    PrintFormatLog(1, "Unbalanced markup: '<html>'");
 	  }
 
@@ -645,7 +645,7 @@ pieElementHasNext(pieTextElementPtr ppeArg)
 	if ((puc1 = BAD_CAST xmlStrstr(puc0, BAD_CAST"</" NAME_PIE_CSV ">")) != NULL) {
 	  /* copy string between markups */
 
-	  if (Strnstr(puc0 + 1, (puc1 - puc0), BAD_CAST"<" NAME_PIE_CSV ">") != NULL) {
+	  if (Strnstr(puc0 + 1, (const int)(puc1 - puc0), BAD_CAST"<" NAME_PIE_CSV ">") != NULL) {
 	    PrintFormatLog(1, "Unbalanced markup: '<" NAME_PIE_CSV ">'");
 	  }
 

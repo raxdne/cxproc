@@ -3815,7 +3815,7 @@ resNodeGetMtimeDiff(resNodePtr prnArg)
   long liResult = -1;
 
   if (resNodeGetMtime(prnArg) != -1 && prnArg->tAtime > 0) {
-    liResult = prnArg->tAtime - prnArg->tMtime;
+    liResult = (long) (prnArg->tAtime - prnArg->tMtime);
   }
   return liResult;
 } /* end of resNodeGetMtimeDiff() */
@@ -3833,7 +3833,7 @@ resNodeIncrChilds(resNodePtr prnArg, size_t iArg)
     prnArg->liChilds += iArg;
     return prnArg->liChilds;
   }
-  return -1;
+  return (size_t) -1;
 } /* end of resNodeIncrChilds() */
 
 
@@ -3847,7 +3847,7 @@ resNodeGetCountChilds(resNodePtr prnArg)
   if (prnArg) {
     return prnArg->liChilds;
   }
-  return -1;
+  return (size_t) -1;
 } /* end of resNodeGetCountChilds() */
 
 

@@ -689,7 +689,7 @@ dbDumpContextToDoc(resNodePtr prnArgDb, int iOptions)
     //xmlAddChild(pndMeta,xmlCopyNode(pndMakeSql,1));
     
     /* Get the current time. */
-    if ((pucT = GetNowFormatStr("%T"))) {
+    if ((pucT = GetNowFormatStr(BAD_CAST "%T"))) {
       xmlSetProp(pndMeta, BAD_CAST "ctime", pucT);
       xmlFree(pucT);
     }

@@ -307,12 +307,12 @@ icsParseComponent(xmlNodePtr pndArg, xmlChar *pucArgContent, const int d0, const
     for (i0 = d0, i1 = d1, j0 = j1 = 0, k0 = k1 = 0; i0 < d1;) {
       /* iteration */
 
-      if (detectNextBlock(pucArgContent, i0, i1, &j0, &k0, &k1, &j1)) {
+      if (detectNextBlock((const char *)pucArgContent, i0, i1, &j0, &k0, &k1, &j1)) {
 	xmlNodePtr pndComponent;
 	xmlChar *pucName;
 
 	pucName = xmlStrndup(&pucArgContent[j0 + 6], k0 - (j0 + 6));
-	StringToLower(pucName);
+	StringToLower((char *)pucName);
 
 	if (xmlStrEqual(pndArg->name, BAD_CAST "icalendar")) {
 	  /* top element */
@@ -333,11 +333,11 @@ icsParseComponent(xmlNodePtr pndArg, xmlChar *pucArgContent, const int d0, const
 	i0 = j1;
 	i1 = d1;
       }
-      else if (detectNextLine(pucArgContent, i0, i1, &k0, &k1, &j0, &j1)) {
+      else if (detectNextLine((const char *)pucArgContent, i0, i1, &k0, &k1, &j0, &j1)) {
 	if (pndProperties == NULL) {
 	  pndProperties = xmlNewChild(pndArg, NULL, BAD_CAST "properties", NULL);
 	}
-	fResult = icsParseProperty(pndProperties, pucArgContent, k0, j1);
+	fResult = icsParseProperty(pndProperties, (const char *)pucArgContent, k0, j1);
 	i0 = j1;
 	i1 = d1;
       }
@@ -361,7 +361,7 @@ icsParseComponent(xmlNodePtr pndArg, xmlChar *pucArgContent, const int d0, const
       if (StringBeginsWith(pcBegin, BAD_CAST C)) { \
 	pcBegin += strlen(C); \
 	k0 = (int)(pcBegin - pcArg); \
-	if ((pcEnd = Strnstr(BAD_CAST pcBegin, i1 - (int)(pcBegin - pcArg), BAD_CAST "END:" C))) { \
+	if ((pcEnd = (char *) Strnstr(BAD_CAST pcBegin, i1 - (int)(pcBegin - pcArg), BAD_CAST "END:" C))) { \
 	  k1 = (int)(pcEnd - pcArg); \
 	  j1 = k1 + strlen("END:" C); \
 	} \
@@ -383,8 +383,8 @@ detectNextBlock(const char *pcArg, const int i0, const int i1, int *piArgOuterBe
 
     for (j0 = i0; j0 < i1 && (pcArg[j0] == '\n' || pcArg[j0] == '\r' || pcArg[j0] == ' ' || pcArg[j0] == '\t'); j0++);
 
-    if (StringBeginsWith(&pcArg[j0], BAD_CAST "BEGIN:")) {
-      pcBegin = &pcArg[j0 + 6];
+    if (StringBeginsWith((char *)&pcArg[j0], BAD_CAST "BEGIN:")) {
+      pcBegin = (char *)&pcArg[j0 + 6];
 
       DETECT_COMPONENT("VCALENDAR")
       else DETECT_COMPONENT("VEVENT") else DETECT_COMPONENT("DAYLIGHT") else DETECT_COMPONENT("STANDARD") else DETECT_COMPONENT("VALARM") else DETECT_COMPONENT(
