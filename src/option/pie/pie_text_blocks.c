@@ -2357,6 +2357,7 @@ StringDecodeCharMarkupNew(xmlChar *pucArg, lang_t eLangArg)
 	    iCode = 0x2190;
 	  }
 	}
+#ifdef LEGACY
 	else if ((pucArg[i + l] == (xmlChar)'<' && (++l)) 
 	|| (pucArg[i + l] == (xmlChar)'&' && pucArg[i + l + 1] == (xmlChar)'l' && pucArg[i + l + 2] == (xmlChar)'t' && pucArg[i + l + 3] == (xmlChar)';' && (l += 4))) {
 
@@ -2371,7 +2372,9 @@ StringDecodeCharMarkupNew(xmlChar *pucArg, lang_t eLangArg)
 	    iCode = 0x201D;
 	  }
 	}
+#endif
       }
+#ifdef LEGACY
       else if ((pucArg[i + l] == (xmlChar)'>' && (++l))
 	|| (pucArg[i + l] == (xmlChar)'&' && pucArg[i + l + 1] == (xmlChar)'g' && pucArg[i + l + 2] == (xmlChar)'t' && pucArg[i + l + 3] == (xmlChar)';' && (l += 4))) {
 
@@ -2390,6 +2393,7 @@ StringDecodeCharMarkupNew(xmlChar *pucArg, lang_t eLangArg)
 	  }
 	}
       }
+#endif
       else if (pucArg[i + l] == (xmlChar)'=' && (++l)) {
 
 	if ((pucArg[i + l] == (xmlChar)'>' && (++l))
