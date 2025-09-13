@@ -5,15 +5,13 @@ cmake_minimum_required(VERSION 3.10) # setting this is required
 
 project(cxproc)            # this sets the project name
 
-# https://stackoverflow.com/questions/24460486/cmake-build-type-is-not-being-used-in-cmakelists-txt
 set(CMAKE_CONFIGURATION_TYPES "Debug;Release;Profile" CACHE STRING "" FORCE) 
-# cmake --help-variable-list | grep Release
+set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Default build type: Release" FORCE)
 
 # for profiling s. https://stackoverflow.com/questions/26491948/how-to-use-gprof-with-cmake
 # or see test/main.sh and https://github.com/jrfonseca/gprof2dot
 # http://gernotklingler.com/blog/gprof-valgrind-gperftools-evaluation-tools-application-level-cpu-profiling-linux/
 #set(CMAKE_BUILD_TYPE RelWithDebInfow)
-#set(CMAKE_BUILD_TYPE Debug)
 
 # s. https://cmake.org/Wiki/CMake_Useful_Variables
 
@@ -27,7 +25,7 @@ SET(CMAKE_VERBOSE_MAKEFILE ON)
 # http://stackoverflow.com/questions/9453851/how-to-configure-eclipse-cdt-for-cmake
 #FIND_PACKAGE(EclipseCDT4)
 
-# (shell-command "(cmake --graphviz=cxproc.dot --build ../x86_64-gnu-linux/ && dot -T png -o cxproc.png cxproc.dot.cxproc)")
+# (cmake --graphviz=cxproc.dot -B ../x86_64-gnu-linux/build && dot -T png -o cxproc.png cxproc.dot.cxproc)
 
 # default value for Testing
 SET(CXPROC_HTTPPREFIX CACHE STRING "http://localhost:8183/")
