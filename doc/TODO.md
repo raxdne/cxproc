@@ -6,9 +6,6 @@ dir verbosity ✔
 pie move Archive etc (path)
 - save in Editor
 
-jacascript to download from HTML `<img src="data:image/png;base64,">` 
-- https://github.com/eligrey/FileSaver.js
-
 REQ: Emacs macro `clipboard-to-base64` via shell
 - Linux + Windows
 
@@ -27,6 +24,9 @@ BUG: XPath for ZIP Documents
 
 REQ: embedd non-image data in ZIP Documents into txt/md/pie
 - download with content-type and name
+
+REQ: jacascript to download image data from HTML `<img src="data:image/png;base64,">` 
+- https://github.com/eligrey/FileSaver.js
 
 BUG: dir2csv output + verbosity ✔
 
@@ -47,7 +47,7 @@ TODO: fix testing code #v20
 
 TODO: review code internal tags
 
-TODO: update Windows libraries and vcpkg ✔
+TODO: update Windows libraries and vcpkg 2025-09-13 ✔
 
 ## Documentation
 
@@ -181,16 +181,12 @@ REQ: flags for permissions
 
 ## Profiling
 
-TODO: gprof and valgrind/cachegrind (KCachegrind) #v20
-
-## Memory Usage
-
 mem usage
 
 	valgrind --tool=massif ~/cxproc-build/x86_64-gnu-linux/bin/dir2csv -f ../x86_64-gnu-linux/ > ../t-301.csv
 	ms_print massif.out.660588 |less
 
-BUG: fix memory issues detected by "test_memcheck" #v20 +++
+TODO: gprof and valgrind/cachegrind (KCachegrind) #v20
 
 ## Building
 
@@ -200,7 +196,7 @@ TODO: statically linked binaries for ARMv7, x64_linux, x64_windows (using `vcpkg
 
 TODO: provide a Flatpack #v20
 
-TODO: prepare as a package for `vcpkg` #v20
+TODO: prepare as a package for `vcpkg`
 
 TODO: detail information in binaries #v20
 
@@ -228,7 +224,6 @@ TODO: CMake packaging (deb, rpm, NSI) #v20
 TODO: JSON output from database, dir etc
 
 Javascript
-
 - Duktape
 - node.js + V8
 - REST based server

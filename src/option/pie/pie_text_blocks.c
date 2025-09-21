@@ -2860,11 +2860,12 @@ ImportNodeNew(xmlNodePtr pndArg, int iArgMode)
 {
   xmlNodePtr pndResult = NULL;
   xmlChar* pucC = NULL;
+  xmlChar* pucT = NULL;
 
   if (IS_NODE_PIE_PAR(pndArg) && IS_VALID_NODE(pndArg) && pndArg->children != NULL && pndArg->children == pndArg->last
     && xmlNodeIsText(pndArg->children) && (pucC = pndArg->children->content) != NULL
-    && ((iArgMode == 0 && (pucC = BAD_CAST xmlStrcasestr(pucC, BAD_CAST"#include")) != NULL && (pucC += xmlStrlen(BAD_CAST"#include")))
-      || ((pucC = BAD_CAST xmlStrcasestr(pucC, BAD_CAST"#import")) != NULL && (pucC += xmlStrlen(BAD_CAST"#import"))))
+    && ((iArgMode == 0 && (pucT = BAD_CAST xmlStrcasestr(pucC, BAD_CAST"#include")) == pucC && (pucC += xmlStrlen(BAD_CAST"#include")))
+      || ((pucT = BAD_CAST xmlStrcasestr(pucC, BAD_CAST"#import")) == pucC && (pucC += xmlStrlen(BAD_CAST"#import"))))
     && STR_IS_NOT_EMPTY(pucC)) {
 
     int i;
@@ -3350,6 +3351,10 @@ GetModeByAttr(xmlNodePtr pndArgImport)
 	PrintFormatLog(1, "Ext '%s'", pucAttrNameExt);
 	eResultMode = GetModeByExtension(pucAttrNameExt);
 	xmlFree(pucAttrNameExt);
+      }
+      else {
+	/* try to detect mode from ancestors */
+	eResultMode = GetModeByAttr(pndArgImport->parent);
       }
 #endif
     }
