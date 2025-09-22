@@ -84,7 +84,7 @@ zipFileOpen(resNodePtr prnArg, const char *pchArgMode)
       zip_error_t error;
 
       zip_error_init(&error);
-      if ((prnArg->handleIO = zip_open(resNodeGetNameNormalizedNative(prnArg), 0, &err)) == NULL) {
+      if ((prnArg->handleIO = zip_open(resNodeGetNameNormalized(prnArg), 0, &err)) == NULL) {
 	zip_error_init_with_code(&error, err);
 	resNodeSetError(prnArg, rn_error_open, "can't open zip archive `%s': %s\n", resNodeGetNameNormalizedNative(prnArg), zip_error_strerror(&error));
       }
