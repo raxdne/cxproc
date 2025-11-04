@@ -158,8 +158,12 @@ REQ: HTML to UTF-8 Plain text Renderer `<cxp:plain><cxp:html name="abc.html"/></
 
 ### csv
 
-BUG: handling of embedded CSV text #v20 ++
+BUG: handling of embedded CSV text #v20 ✔
 - remove from plain text markup?
+
+TEST: `<import sep=","`> ✔
+
+BUG: separators inside quoted strings ✔
 
 ## Security
 

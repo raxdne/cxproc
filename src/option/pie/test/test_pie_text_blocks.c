@@ -147,6 +147,41 @@ pieTextBlocksTest(void)
 
 
   if (RUNTEST) {
+    xmlChar *pucData = BAD_CAST "1,\"ABC\",\"D,,,,,F\",11";
+    xmlChar *pucResult;
+
+    pucResult = pucData;
+    i++;
+    printf("TEST %i in '%s:%i': find separators in string = ",i,__FILE__,__LINE__);
+
+    if (GetNextSeparatorPtr(NULL,",") != NULL) {
+      printf("Error finding separators\n");
+    }
+    else if ((pucResult = GetNextSeparatorPtr(pucResult,",")) == NULL) {
+      printf("Error finding separators\n");
+    }
+    else if (pucResult != &pucData[1]) {
+      printf("Error finding separators\n");
+    }
+    else if ((pucResult = GetNextSeparatorPtr(&pucResult[1],",")) == NULL) {
+      printf("Error finding separators\n");
+    }
+    else if (pucResult != &pucData[7]) {
+      printf("Error finding separators\n");
+    }
+    else if ((pucResult = GetNextSeparatorPtr(&pucResult[1],",")) == NULL) {
+      printf("Error finding separators\n");
+    }
+    else if (pucResult != &pucData[17]) {
+      printf("Error finding separators\n");
+    }
+    else {
+      n_ok++;
+      printf("OK\n");
+    }
+  }
+
+  if (RUNTEST) {
     xmlChar *pucResult;
     xmlChar *pucData = BAD_CAST "d:\\abc\\def\\ghi";
 

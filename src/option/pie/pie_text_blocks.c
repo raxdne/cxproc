@@ -587,9 +587,17 @@ ParsePlainBuffer(xmlNodePtr pndArgTop, xmlChar* pucArg, rmode_t eArgMode)
 		/* there is a table parent already */
 	      }
 	      else {
+		xmlChar *pucSep;
+
 		pndParent = xmlNewChild(pndParent, NULL, BAD_CAST NAME_PIE_SECTION, NULL);
 		xmlSetProp(pndParent, BAD_CAST "type", BAD_CAST "table");
-		xmlSetProp(pndParent, BAD_CAST "sep", (pieElementGetSepPtr(ppeT) ? pieElementGetSepPtr(ppeT) : BAD_CAST ";"));
+
+		if (((pucSep = pieElementGetSepPtr(ppeT)) != NULL || (pucSep = domGetPropValuePtr(pndArgTop, BAD_CAST "sep")) != NULL) && xmlStrlen(pucSep) > 0) {
+		  xmlSetProp(pndParent, BAD_CAST "sep", pucSep);
+		}
+		else {
+		  xmlSetProp(pndParent, BAD_CAST "sep", BAD_CAST ";"); /* default separator char */
+		}
 	      }
 	      xmlAddChild(pndParent, pndNew);
 	    }
@@ -681,6 +689,31 @@ StringGetEndOfHeaderMarker(xmlChar* pucArg)
 } /* end of StringGetEndOfHeaderMarker() */
 
 
+/*! \return pointer to next separator, else NULL
+ */
+xmlChar *
+GetNextSeparatorPtr(xmlChar *pucArg, xmlChar ucSep)
+{
+  xmlChar *pucResult = NULL;
+
+  if (pucArg != NULL) {
+    int i;
+    BOOL_T fInQuotes;
+
+    for (i = 0, fInQuotes = FALSE; pucArg[i] != '\0'; i++) {
+      if (pucArg[i] == '\"') { /*!\todo process single quotes too */
+	fInQuotes = !fInQuotes;
+      }
+      else if (pucArg[i] == ucSep && fInQuotes == FALSE) {
+	pucResult = &pucArg[i];
+	break;
+      }
+    }
+  }
+  return pucResult;
+} /* end of GetNextSeparatorPtr() */
+
+
 /*! \return TRUE if content string of pndArgParent is splitted into table data nodes using pucPatternSep, else FALSE
 
 \todo compile 'pucPatternSep' as a regexp if '/[;|]/'
@@ -712,7 +745,7 @@ SplitNodeToTableDataNodes(xmlNodePtr pndArgParent, xmlChar* pucPatternSep)
     for (pucBegin = pucSep = pndChild->content;;) {
       xmlNodePtr pndT;
 
-      if ((pucSep = BAD_CAST xmlStrstr(pucSep, pucPatternSep)) != NULL) {
+      if ((pucSep = GetNextSeparatorPtr(pucSep, pucPatternSep[0])) != NULL) {
 
 	if (fMix && StringEndsWithEntity(pucBegin, (int)(pucSep - pucBegin))) {
 	  /* its a XML entity like '&amp;' dont use this as separator */
