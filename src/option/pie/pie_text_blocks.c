@@ -754,6 +754,7 @@ SplitNodeToTableDataNodes(xmlNodePtr pndArgParent, xmlChar* pucPatternSep)
 
 	if ((pucCell = xmlStrndup(pucBegin, (int)(pucSep - pucBegin))) != NULL) {
 	  StringRemovePairQuotes(pucCell);
+	  StringRemoveDoubleDoubleQuotes(pucCell);
 	  if ((pucT = StringGetEndOfHeaderMarker(pucCell))) {
 	    pndT = xmlNewChild(pndArgParent, NULL, BAD_CAST NAME_PIE_TH, NULL);
 	    if (STR_IS_NOT_EMPTY(pucT)) {

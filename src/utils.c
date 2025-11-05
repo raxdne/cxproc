@@ -438,6 +438,31 @@ StringReplaceUmlauteNew(const xmlChar *pucArg)
 } /* end of StringReplaceUmlauteNew() */
 
 
+/*! removes all double apostrophs in pucArg
+
+\return TRUE if there is a pair of apostrophs in pucArg (and string is modified)
+*/
+BOOL_T
+StringRemoveDoubleDoubleQuotes(xmlChar *pucArg)
+{
+  BOOL_T fResult = FALSE;
+
+  if (STR_IS_NOT_EMPTY(pucArg)) {
+    int l;
+    xmlChar *pucI;
+
+    for (l = xmlStrlen(pucArg), pucI = pucArg; !isend(*pucI); pucI++, l--) {
+      if (pucI[0] == (xmlChar)'\"' && pucI[1] == (xmlChar)'\"') {
+	memmove(pucI, &pucI[1], l);
+	l--;
+	fResult = TRUE;
+      }
+    }
+  }
+  return fResult;
+} /* end of StringRemoveDoubleDoubleQuotes() */
+
+
 /*! removes all pair of apostrophs in pucArg
 
 \return TRUE if there is a pair of apostrophs in pucArg (and string is modified)
@@ -482,7 +507,7 @@ StringRemovePairQuotes(xmlChar *pucArg)
       /* there is no pair of quotes, but eliminate the leading and trailing spaces */
       if (pucA > pucArg) {
 	memmove(pucArg, pucA, pucB - pucA + 2);
-	pucArg[pucB - pucA + 1] = (xmlChar)'\0';
+	pucArg[pucB - pucA] = (xmlChar)'\0';
       }
       else {
 	/* terminate pucArg before trailing spaces */

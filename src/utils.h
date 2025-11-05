@@ -74,6 +74,9 @@ extern xmlChar *
 StringReplaceUmlauteNew(const xmlChar *pucArg);
 
 extern BOOL_T
+StringRemoveDoubleDoubleQuotes(xmlChar *pucArg);
+
+extern BOOL_T
 StringRemovePairQuotes(xmlChar *pucArg);
 
 extern BOOL_T
