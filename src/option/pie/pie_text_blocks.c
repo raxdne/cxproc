@@ -79,6 +79,12 @@ SplitStringToDateNodes(const xmlChar *pucArg, RN_MIME_TYPE eMimeTypeArg);
 static xmlNodePtr
 SplitStringToInlineNodes(const xmlChar *pucArg);
 
+static xmlChar
+AutoDetectSeparatorChar(xmlChar *pucArg);
+
+static xmlChar *
+GetNextSeparatorPtr(xmlChar *pucArg, xmlChar ucSep);
+
 static xmlNodePtr
 TaskNodeNew(xmlNodePtr pndArg);
 
@@ -588,16 +594,21 @@ ParsePlainBuffer(xmlNodePtr pndArgTop, xmlChar* pucArg, rmode_t eArgMode)
 	      }
 	      else {
 		xmlChar *pucSep;
+		xmlChar *pucTT;
 
 		pndParent = xmlNewChild(pndParent, NULL, BAD_CAST NAME_PIE_SECTION, NULL);
 		xmlSetProp(pndParent, BAD_CAST "type", BAD_CAST "table");
 
-		if (((pucSep = pieElementGetSepPtr(ppeT)) != NULL || (pucSep = domGetPropValuePtr(pndArgTop, BAD_CAST "sep")) != NULL) && xmlStrlen(pucSep) > 0) {
-		  xmlSetProp(pndParent, BAD_CAST "sep", pucSep);
+		pucSep = xmlStrdup(BAD_CAST " ");
+
+		if (((pucTT = domGetPropValuePtr(pndArgTop, BAD_CAST "sep")) != NULL) && xmlStrlen(pucTT) > 0) {
+		  pucSep[0] = pucTT[0];
 		}
 		else {
-		  xmlSetProp(pndParent, BAD_CAST "sep", BAD_CAST ";"); /* default separator char */
+		  pucSep[0] = AutoDetectSeparatorChar(pucArg);
 		}
+		xmlSetProp(pndParent, BAD_CAST "sep", pucSep);
+		xmlFree(pucSep);
 	      }
 	      xmlAddChild(pndParent, pndNew);
 	    }
@@ -688,6 +699,44 @@ StringGetEndOfHeaderMarker(xmlChar* pucArg)
   return pucResult;
 } /* end of StringGetEndOfHeaderMarker() */
 
+
+/*! \return pointer to detected separator, else DEFAULT_SEP_STR
+ */
+xmlChar
+AutoDetectSeparatorChar(xmlChar *pucArg)
+{
+  xmlChar ucResult = DEFAULT_SEP_STR[0];
+
+  if (pucArg != NULL) {
+
+    if (StringBeginsWith((char *)pucArg, "sep=")) {
+      if (isend(pucArg[4])) {
+	/* content too short */
+      }
+      else {
+	ucResult = pucArg[4];
+      }
+    }
+    else {
+      int i;
+      int n[256];
+
+      memset(n, 0, sizeof(n));
+      for (i = 0; i < 1e4 && pucArg[i] != '\0'; i++) { n[pucArg[i]]++; }
+
+      if (n['\t'] > n[';'] && n['\t'] > n[',']) {
+	ucResult = '\t';
+      }
+      else if (n[','] > n[';']) {
+	ucResult = ',';
+      }
+      else if (n[';'] > 0) {
+	ucResult = ';';
+      }
+    }
+  }
+  return ucResult;
+} /* end of AutoDetectSeparatorChar() */
 
 /*! \return pointer to next separator, else NULL
  */
@@ -849,7 +898,7 @@ AddTableColumnNames(xmlNodePtr pndArg)
     xmlNodePtr pndTableHeader;
     xmlNodePtr pndTableBody;
 
-    pndTableHeader = domGetFirstChild(pndArg, BAD_CAST "thead");
+    pndTableHeader = domGetFirstChild(pndArg, NAME_PIE_THEAD);
     if (pndTableHeader) {
       domUnlinkNodeList(pndTableHeader);
     }
@@ -857,8 +906,8 @@ AddTableColumnNames(xmlNodePtr pndArg)
       /* table header does not yet exist */
       int j;
 
-      pndTableHeader = xmlNewNode(NULL, BAD_CAST "thead");
-      pndT = xmlNewChild(pndTableHeader, NULL, BAD_CAST "tr", NULL);
+      pndTableHeader = xmlNewNode(NULL, NAME_PIE_THEAD);
+      pndT = xmlNewChild(pndTableHeader, NULL, NAME_PIE_TR, NULL);
       for (j = 0; j < i; j++) {
 	int k = 0;
 	xmlChar mucT[128];
@@ -874,16 +923,16 @@ AddTableColumnNames(xmlNodePtr pndArg)
 	}
 	else {}
 	mucT[k] = '\0';
-	xmlNewChild(pndT, NULL, BAD_CAST "th", mucT);
+	xmlNewChild(pndT, NULL, NAME_PIE_TH, mucT);
       }
     }
 
-    pndTableBody = domGetFirstChild(pndArg, BAD_CAST "tbody");
+    pndTableBody = domGetFirstChild(pndArg, NAME_PIE_TBODY);
     if (pndTableBody) {
       domUnlinkNodeList(pndTableBody);
     }
     else {
-      pndTableBody = xmlNewNode(NULL, BAD_CAST "tbody");
+      pndTableBody = xmlNewNode(NULL, NAME_PIE_TBODY);
       pndT = pndArg->children;
       domUnlinkNodeList(pndT);
       xmlAddChildList(pndTableBody, pndT);

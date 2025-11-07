@@ -87,6 +87,10 @@
 
 #define NAME_PIE_TABLE "table"
 
+#define NAME_PIE_THEAD "thead"
+
+#define NAME_PIE_TBODY "tbody"
+
 #define NAME_PIE_TR "tr"
 
 #define NAME_PIE_TH "th"
@@ -170,6 +174,10 @@
 #define IS_NODE_PIE_CSV(N) (IS_NODE(N,NAME_PIE_CSV))
 
 #define IS_NODE_PIE_TABLE(N) (IS_NODE(N,NAME_PIE_TABLE))
+
+#define IS_NODE_PIE_THEAD(N) (IS_NODE(N,NAME_PIE_THEAD))
+
+#define IS_NODE_PIE_TBODY(N) (IS_NODE(N,NAME_PIE_TBODY))
 
 #define IS_NODE_PIE_TR(N) (IS_NODE(N,NAME_PIE_TR))
 

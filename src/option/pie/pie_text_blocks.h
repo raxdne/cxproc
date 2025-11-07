@@ -36,6 +36,8 @@
 
 #define CXP_PIE_URL (BAD_CAST "http://www.tenbusch.info/pie")
 
+#define DEFAULT_SEP_STR (BAD_CAST ";")
+
 /*! \todo German Umlaute in UNC */
 /* s. "Regular Expressions Cookbook" by Jan Goyvaerts and Steven Levithan, Chapter "Validate Windows Paths"
    Published by O’Reilly Media, Inc.

@@ -148,7 +148,7 @@ pieElementSetSep(pieTextElementPtr ppeArg, xmlChar *pucArg)
 /* end of pieElementSetSep() */
 
 
-/*!
+/*!\deprecated
 */
 xmlChar *
 pieElementGetSepPtr(pieTextElementPtr ppeArg)
