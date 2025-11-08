@@ -88,8 +88,8 @@ output of plain text file
 #include <pie/pie_dtd.h>
 
 
-static BOOL_T
-scriptInit(cxpContextPtr pccArg);
+static duk_context *
+GetScriptContext(cxpContextPtr pccArg);
 
 static void
 scriptErrorMsg(void *udata, const char *msg);
@@ -122,26 +122,27 @@ xmlChar *
 cxpScriptProcessText(xmlChar *pucArg, cxpContextPtr pccArg)
 {
   xmlChar *pucResult = NULL;
+  duk_context *pContext = NULL;
 
-  if (STR_IS_NOT_EMPTY(pucArg) && scriptInit(pccArg)) {
+  if (STR_IS_NOT_EMPTY(pucArg) && (pContext = GetScriptContext(pccArg)) != NULL) {
     xmlChar *pucScriptDecoded;
 
     pucScriptDecoded = xmlStrdup(pucArg); /*!\bug decode XML entities to UTF-8 StringDecodeXmlDefaultEntitiesNew(pucScript) */
     cxpCtxtLogPrint(pccArg, 4, "Run Script code '%s'", pucScriptDecoded);
-    duk_push_global_object(pccArg->pDukContext);
-    duk_push_string(pccArg->pDukContext, (const char *)pucScriptDecoded);
-    if (duk_peval(pccArg->pDukContext) != 0) {
-      cxpCtxtLogPrint(pccArg, 1, "Script error: %s", duk_safe_to_string(pccArg->pDukContext, -1));
-      pucResult = xmlStrdup(BAD_CAST duk_safe_to_string(pccArg->pDukContext, -1));
+    duk_push_global_object(pContext);
+    duk_push_string(pContext, (const char *)pucScriptDecoded);
+    if (duk_peval(pContext) != 0) {
+      cxpCtxtLogPrint(pccArg, 1, "Script error: %s", duk_safe_to_string(pContext, -1));
+      pucResult = xmlStrdup(BAD_CAST duk_safe_to_string(pContext, -1));
     }
-    else if (duk_check_type(pccArg->pDukContext, -1, DUK_TYPE_NUMBER) || duk_check_type(pccArg->pDukContext, -1, DUK_TYPE_STRING)) {
-      pucResult = xmlStrdup(BAD_CAST duk_to_string(pccArg->pDukContext, -1));
+    else if (duk_check_type(pContext, -1, DUK_TYPE_NUMBER) || duk_check_type(pContext, -1, DUK_TYPE_STRING)) {
+      pucResult = xmlStrdup(BAD_CAST duk_to_string(pContext, -1));
     }
     else {
       cxpCtxtLogPrint(pccArg, 1, "Script: undefined result");
       pucResult = xmlStrdup(BAD_CAST "");
     }
-    duk_pop(pccArg->pDukContext); /* pop result/error */
+    duk_pop(pContext); /* pop result/error */
     xmlFree(pucScriptDecoded);
   }
   else {
@@ -167,7 +168,6 @@ cxpScriptProcessNode(xmlNodePtr pndArg, cxpContextPtr pccArg)
   xmlChar *pucContent;
   xmlChar *pucScript = NULL;
   xmlNodePtr pndChildPlain;
-  cxpContextPtr pccHere;
   xmlChar *pucAttrNameCacheAs;
 
 #ifdef DEBUG
@@ -189,8 +189,6 @@ cxpScriptProcessNode(xmlNodePtr pndArg, cxpContextPtr pccArg)
     pucAttrNameCacheAs = domGetPropValuePtr(pndArg,BAD_CAST "cacheas");
     fCache             = domGetPropFlag(pndArg,BAD_CAST "cache",  FALSE);
     //fSearch            = domGetPropFlag(pndArg,BAD_CAST "search",FALSE);
-
-    pccHere = cxpCtxtFromAttr(pccArg,pndArg);
 
     if (pucAttrFile != NULL && xmlStrlen(pucAttrFile) > 0) {
       /*
@@ -236,10 +234,6 @@ cxpScriptProcessNode(xmlNodePtr pndArg, cxpContextPtr pccArg)
     /*!\todo keep script code after eval as display attribute or title */
 
     xmlFree(pchFilenameFound);
-    if (pccHere != pccArg) {
-      cxpCtxtIncrExitCode(pccArg, cxpCtxtGetExitCode(pccHere));
-      //cxpCtxtFree(pccHere);
-    }
   }
   else {
     cxpCtxtLogPrint(pccArg,1, "This is not a Script node '%s'",pndArg->name);
@@ -271,29 +265,32 @@ cxpScriptInfo(xmlNodePtr pndParent, cxpContextPtr pccArg)
 /* end of cxpScriptInfo() */
 
 
-/*! initialize this script module
 
-\return TRUE if no script support at all or init successful
+/*! \return current, parent or ancestor pDukContext
  */
-BOOL_T
-scriptInit(cxpContextPtr pccArg)
+duk_context *
+GetScriptContext(cxpContextPtr pccArg)
 {
-  BOOL_T fResult = TRUE;
+  duk_context *pResult = NULL;
 
-  if (pccArg->pDukContext == NULL) {
+  if (pccArg->pDukContext) {
+    pResult = pccArg->pDukContext;
+  }
+  else if (pccArg->parent == NULL) {
     pccArg->pDukContext = duk_create_heap(NULL, NULL, NULL, NULL, scriptErrorMsg);
     if (pccArg->pDukContext) {
-      cxpCtxtLogPrint(pccArg,1,"New Duktape heap.");
+      cxpCtxtLogPrint(pccArg, 1, "New Duktape heap.");
+      pResult = pccArg->pDukContext;
     }
     else {
-      cxpCtxtLogPrint(pccArg,1,"Failed to create a Duktape heap.");
-      fResult = FALSE;
+      cxpCtxtLogPrint(pccArg, 1, "Failed to create a Duktape heap.");
     }
   }
-  return fResult;
-}
-/* end of scriptInit() */
-
+  else {
+    pResult = GetScriptContext(pccArg->parent);
+  }
+  return pResult;
+} /* end of GetScriptContext() */
 
 #ifdef TESTCODE
 #include "test/test_cxp_script.c"

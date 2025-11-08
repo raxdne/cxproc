@@ -936,6 +936,7 @@ ImportNodeFile(xmlNodePtr pndArgImport, cxpContextPtr pccArg)
 
 	if (STR_IS_NOT_EMPTY(pucContent)) {
 	  xmlNodeSetContent(pndArgImport, pucContent);
+	  xmlUnsetProp(pndArgImport, BAD_CAST "name");
 	  ImportNodeContent(pndArgImport, pccInput);
 	}
 	else {

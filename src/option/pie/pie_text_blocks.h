@@ -49,7 +49,7 @@
 #define RE_LINK_MD "!*\\[([^\\]]*)\\]\\(([^\\)]+)\\)"
 #define RE_LINK_MD_AUTO "(<|&lt;|\\xE2\\x80\\x99)([^<> \\t]+)(>|&gt;|\\xE2\\x80\\x98)"
 
-/*!\bug extend regexp to markdown
+/*!
 */
 #define RE_FIG "^[ \\t]*(FIG|ABB)[\\. \\t]+([^ \\t]+)[ \\t]*(.+)*$"
 

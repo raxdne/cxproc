@@ -632,6 +632,7 @@ ParsePlainBuffer(xmlNodePtr pndArgTop, xmlChar* pucArg, rmode_t eArgMode)
 	// CompressTable(pndParent);
 	AddTableCellsEmpty(pndParent);
 	AddTableColumnNames(pndParent);
+	RecognizeScripts(pndParent);
 	xmlUnsetProp(pndParent, BAD_CAST "sep");
 	xmlUnsetProp(pndParent, BAD_CAST "type");
       }
