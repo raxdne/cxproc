@@ -292,6 +292,9 @@ utilsTest(void)
     else if (StringEndsWith((char *)" AAA Abc def"," def") == NULL) {
       printf("ERROR 4\n");
     }
+    else if (StringEndsWith((char *)" AAA Abc def hij  \t\t\n  ","ij") == NULL) {
+      printf("ERROR 5\n");
+    }
     else {
       n_ok++;
       printf("OK\n");
@@ -488,10 +491,10 @@ utilsTest(void)
     else if (StringRemovePairOfChars(pucTestD,'\'','\'') == FALSE || xmlStrEqual(pucTestD, BAD_CAST"abCüöäkKkk") == FALSE) {
       printf("ERROR 6\n");
     }
-    else if (StringRemovePairOfChars(pucTestE,'<','>') == TRUE || xmlStrEqual(pucTestE, BAD_CAST"abCüöäkKkk") == FALSE) {
+    else if (StringRemovePairOfChars(pucTestE,'<','>') == FALSE || xmlStrEqual(pucTestE, BAD_CAST"abCüöäkKkk") == FALSE) {
       printf("ERROR 7\n");
     }
-    else if (StringRemovePairOfChars(pucTestF,'<','>') == TRUE || xmlStrlen(pucTestF) != 1) {
+    else if (StringRemovePairOfChars(pucTestF,'<','>') == FALSE || xmlStrlen(pucTestF) != 1) {
       printf("ERROR 8\n");
     }
     else {

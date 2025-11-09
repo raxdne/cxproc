@@ -235,7 +235,7 @@ StringBeginsWith(char *pchArgBegin, const char *pchArgNeedle)
 } /* end of StringBeginsWith() */
 
 
-/*! \return TRUE if all chars of pchArgNeedle are the end of pchArgEnd
+/*! \return TRUE if all chars of pchArgNeedle are the end of pchArgEnd, ignoring trailing space chars
 */
 char *
 StringEndsWith(char* pchArgEnd, const char* pchArgNeedle)
@@ -247,7 +247,9 @@ StringEndsWith(char* pchArgEnd, const char* pchArgNeedle)
 
     assert(pchArgEnd != pchArgNeedle);
 
-    for (i = (int)strlen(pchArgEnd), j = (int)strlen(pchArgNeedle); i > -1 && j > -1; i--, j--) {
+    for (i = (int)strlen(pchArgEnd) - 1; i > -1 && (isspace(pchArgEnd[i]) || isblank(pchArgEnd[i]) || islinebreak(pchArgEnd[i])); i--);
+
+    for (j = (int)strlen(pchArgNeedle) - 1; i > -1 && j > -1; i--, j--) {
       if (pchArgNeedle[j] == pchArgEnd[i]) {
 	if (j == 0) {
 	  pcResult = &pchArgEnd[i];
@@ -476,9 +478,9 @@ StringRemovePairQuotes(xmlChar *pucArg)
     xmlChar *pucA;
     xmlChar *pucB;
 
-    for (pucA = pucArg; isspace(*pucA); pucA++);
+    for (pucA = pucArg; isspace(*pucA) || isblank(*pucA) || islinebreak(*pucA); pucA++);
 
-    for (pucB = pucArg + xmlStrlen(pucArg) - 1; pucB > pucA && isspace(*pucB); pucB--) ;
+    for (pucB = pucArg + xmlStrlen(pucArg) - 1; pucB > pucA && (isspace(*pucB) || isblank(*pucB) || islinebreak(*pucB)); pucB--) ;
 
     if (isend(*pucA)) {
       /* only spaces, string is empty */
@@ -507,7 +509,7 @@ StringRemovePairQuotes(xmlChar *pucArg)
       /* there is no pair of quotes, but eliminate the leading and trailing spaces */
       if (pucA > pucArg) {
 	memmove(pucArg, pucA, pucB - pucA + 2);
-	pucArg[pucB - pucA] = (xmlChar)'\0';
+	pucArg[pucB - pucA + 1] = (xmlChar)'\0';
       }
       else {
 	/* terminate pucArg before trailing spaces */
@@ -532,9 +534,9 @@ StringRemovePairOfChars(xmlChar *pucArg, xmlChar ucArgA, xmlChar ucArgB)
     xmlChar *pucA;
     xmlChar *pucB;
 
-    for (pucA = pucArg; isspace(*pucA); pucA++);
+    for (pucA = pucArg; isspace(*pucA) || isblank(*pucA) || islinebreak(*pucA); pucA++);
 
-    for (pucB = pucArg + xmlStrlen(pucArg) - 1; pucB > pucA && isspace(*pucB); pucB--) ;
+    for (pucB = pucArg + xmlStrlen(pucArg) - 1; pucB > pucA && (isspace(*pucB) || isblank(*pucB) || islinebreak(*pucB)); pucB--) ;
 
     if (isend(*pucA)) {
       /* only spaces, string is empty */
