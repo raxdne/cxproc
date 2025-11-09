@@ -124,6 +124,9 @@ extern BOOL_T
 pieElementIsSubst(pieTextElementPtr ppeArg);
 
 extern BOOL_T
+pieElementIsValid(pieTextElementPtr ppeArg);
+
+extern BOOL_T
 pieElementIsHeader(pieTextElementPtr ppeArg);
 
 extern BOOL_T

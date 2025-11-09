@@ -909,6 +909,14 @@ AddTableColumnNames(xmlNodePtr pndArg)
 
       pndTableHeader = xmlNewNode(NULL, NAME_PIE_THEAD);
       pndT = xmlNewChild(pndTableHeader, NULL, NAME_PIE_TR, NULL);
+#if 1
+      for (j = 1; j < i; j++) {
+	xmlChar mucT[128];
+
+	xmlStrPrintf(mucT, sizeof(mucT), "%i", j);
+	xmlNewChild(pndT, NULL, NAME_PIE_TH, mucT);
+      }
+#else
       for (j = 0; j < i; j++) {
 	int k = 0;
 	xmlChar mucT[128];
@@ -926,6 +934,7 @@ AddTableColumnNames(xmlNodePtr pndArg)
 	mucT[k] = '\0';
 	xmlNewChild(pndT, NULL, NAME_PIE_TH, mucT);
       }
+#endif
     }
 
     pndTableBody = domGetFirstChild(pndArg, NAME_PIE_TBODY);
@@ -2949,8 +2958,8 @@ ImportNodeNew(xmlNodePtr pndArg, int iArgMode)
   if (IS_NODE_PIE_PAR(pndArg) && IS_VALID_NODE(pndArg) && pndArg->children != NULL && pndArg->children == pndArg->last
     && xmlNodeIsText(pndArg->children) && (pucC = pndArg->children->content) != NULL
     && ((iArgMode == 0 && (pucT = BAD_CAST xmlStrcasestr(pucC, BAD_CAST"#include")) == pucC && (pucC += xmlStrlen(BAD_CAST"#include")))
-      || ((pucT = BAD_CAST xmlStrcasestr(pucC, BAD_CAST"#import")) == pucC && (pucC += xmlStrlen(BAD_CAST"#import"))))
-    && STR_IS_NOT_EMPTY(pucC)) {
+      || (iArgMode == 1 && (pucT = BAD_CAST xmlStrcasestr(pucC, BAD_CAST"#import")) == pucC && (pucC += xmlStrlen(BAD_CAST"#import"))))
+    && xmlStrlen(pucC) > 3) {
 
     int i;
     int j;
@@ -2990,6 +2999,7 @@ ImportNodeNew(xmlNodePtr pndArg, int iArgMode)
     if (STR_IS_NOT_EMPTY(puc0)) {
       pndResult = xmlNewNode(NULL, ((iArgMode == 0) ? BAD_CAST NAME_PIE_INCLUDE : BAD_CAST NAME_PIE_IMPORT));
       xmlSetProp(pndResult, BAD_CAST"name", puc0);
+      xmlSetProp(pndResult, BAD_CAST"valid", BAD_CAST(IS_PIE_CANCEL(pucC) ? "no" : "yes"));
     }
     else {
       pndResult = xmlNewComment(BAD_CAST pucC);

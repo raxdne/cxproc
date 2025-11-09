@@ -180,6 +180,16 @@ pieElementGetMode(pieTextElementPtr ppeArg)
 /*!
 */
 BOOL_T
+pieElementIsValid(pieTextElementPtr ppeArg)
+{
+  return (ppeArg != NULL && ppeArg->fValid);
+}
+/* end of pieElementIsValid() */
+
+
+/*!
+*/
+BOOL_T
 pieElementIsHeader(pieTextElementPtr ppeArg)
 {
   return (ppeArg != NULL && ppeArg->eType == header);
@@ -1021,7 +1031,11 @@ pieElementToDOM(pieTextElementPtr ppeT)
 	if (ppeT->fDone) {
 	  xmlSetProp(pndResult, BAD_CAST "state", BAD_CAST"done");
 	}
-	
+
+	if (pieElementIsValid(ppeT) == FALSE) {
+	  xmlSetProp(pndResult, BAD_CAST "valid", BAD_CAST"no");
+	}
+
 	if (ppeT->iDepthHidden > 0) {
 	  xmlChar mpucHidden[BUFFER_LENGTH];
 

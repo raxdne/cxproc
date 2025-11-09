@@ -925,7 +925,7 @@ ImportNodeFile(xmlNodePtr pndArgImport, cxpContextPtr pccArg)
 	xmlFree(pucContent);
       }
       else if (resNodeGetNameNormalized(prnInput) != NULL &&
-	       (pucAttrType != NULL && (xmlStrEqual(pucAttrType, BAD_CAST "script") || iMimeType == MIME_APPLICATION_X_JAVASCRIPT))) {
+	       ((pucAttrType != NULL && xmlStrEqual(pucAttrType, BAD_CAST "script")) || iMimeType == MIME_APPLICATION_X_JAVASCRIPT)) {
 
 	cxpCtxtLogPrint(pccInput, 2, "Importing '%s' Javascript result as PIE '%s'", pucAttrType, resNodeGetNameNormalized(prnInput));
 
@@ -936,6 +936,7 @@ ImportNodeFile(xmlNodePtr pndArgImport, cxpContextPtr pccArg)
 
 	if (STR_IS_NOT_EMPTY(pucContent)) {
 	  xmlNodeSetContent(pndArgImport, pucContent);
+	  xmlSetProp(pndArgImport, BAD_CAST "type", BAD_CAST "script");
 	  xmlUnsetProp(pndArgImport, BAD_CAST "name");
 	  ImportNodeContent(pndArgImport, pccInput);
 	}
