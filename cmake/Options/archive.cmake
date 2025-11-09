@@ -7,8 +7,8 @@ FIND_PACKAGE( LibArchive )
 
 IF (LibArchive_LIBRARIES)
   OPTION(CXPROC_ARCHIVE "Enable support for linking cxproc with libarchive." OFF)
+  MARK_AS_ADVANCED(CXPROC_ARCHIVE)
 ENDIF (LibArchive_LIBRARIES)
-
 
 IF (CXPROC_ARCHIVE)
   INCLUDE_DIRECTORIES(${LibArchive_INCLUDE_DIR})
