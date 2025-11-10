@@ -826,7 +826,10 @@ SplitNodeToTableDataNodes(xmlNodePtr pndArgParent, xmlChar* pucPatternSep)
       else if ((pucCell = xmlStrdup(pucBegin)) != NULL) { /* no more separator */
 	/*!\bug StringEndsWithEntity() required */
 	StringRemovePairQuotes(pucCell);
-	if ((pucT = StringGetEndOfHeaderMarker(pucCell))) {
+	if (STR_IS_EMPTY(pucCell)) {
+	  /* ignoring trailing empty cell */
+	}
+	else if ((pucT = StringGetEndOfHeaderMarker(pucCell))) {
 	  pndT = xmlNewChild(pndArgParent, NULL, BAD_CAST NAME_PIE_TH, NULL);
 	  if (STR_IS_NOT_EMPTY(pucT)) {
 	    xmlAddChild(pndT, xmlNewText(pucT));
@@ -859,26 +862,30 @@ int
 GetTableColumns(xmlNodePtr pndArg)
 {
   int iResult = 0;
+  int c;
+  xmlNodePtr pndI;
 
-  if (IS_NODE_PIE_TABLE(pndArg)) {
-    xmlNodePtr pndArgRow;
-
-    for (pndArgRow=pndArg->children; pndArgRow; pndArgRow = pndArgRow->next) {
-
-      if (IS_NODE_PIE_TR(pndArgRow)) {
-	int c = 0;
-	xmlNodePtr pndCol;
-
-	for (pndCol=pndArgRow->children; pndCol; pndCol = pndCol->next) {
-	  if (IS_NODE_PIE_TH(pndCol) || IS_NODE_PIE_TD(pndCol)) {
-	    c++;
-	  }
+  if (IS_NODE_PIE_TABLE(pndArg) || IS_NODE_PIE_THEAD(pndArg) || IS_NODE_PIE_TBODY(pndArg)) {
+    for (pndI = pndArg->children; pndI != NULL; pndI = pndI->next) {
+      c = GetTableColumns(pndI);
+      if (c > iResult) {
+	iResult = c;
+      }
+    }
+  }
+  else if (IS_NODE_PIE_TR(pndArg)) {
+    for (c = 0, pndI = pndArg->children; pndI != NULL; pndI = pndI->next) {
+      if (IS_NODE_PIE_TH(pndI) || IS_NODE_PIE_TD(pndI)) {
+	if (pndI->next == NULL && xmlStrlen(domNodeGetContentPtr(pndI)) < 1) {
+	  /* last cell in row is empty */
 	}
-
-	if (c > iResult) {
-	  iResult = c;
+	else {
+	  c++;
 	}
       }
+    }
+    if (c > iResult) {
+      iResult = c;
     }
   }
   return iResult;
@@ -910,10 +917,10 @@ AddTableColumnNames(xmlNodePtr pndArg)
       pndTableHeader = xmlNewNode(NULL, NAME_PIE_THEAD);
       pndT = xmlNewChild(pndTableHeader, NULL, NAME_PIE_TR, NULL);
 #if 1
-      for (j = 1; j < i; j++) {
+      for (j = 0; j < i; j++) {
 	xmlChar mucT[128];
 
-	xmlStrPrintf(mucT, sizeof(mucT), "%i", j);
+	xmlStrPrintf(mucT, sizeof(mucT), "%i", j+1);
 	xmlNewChild(pndT, NULL, NAME_PIE_TH, mucT);
       }
 #else
@@ -2579,13 +2586,18 @@ RecognizeSymbols(xmlNodePtr pndArg, lang_t eLangArg)
 	xmlAttrPtr pAttr;
 
 	assert(pndArg->parent != NULL);
-	
-	if (StringBeginsWith((char *)pucTT, STR_PIE_HIDDEN)) {
-	  if (IS_NODE_PIE_IMPORT(pndArg->parent) && xmlStrEqual(domGetPropValuePtr(pndArg->parent,BAD_CAST "type"), BAD_CAST NAME_PIE_CSV)) {
-	    /* it's a column separator */
-	  }
-	  else {
-	    xmlSetProp(pndArg->parent,BAD_CAST"hidden",BAD_CAST"1");
+
+	if (IS_NODE_PIE_TH(pndArg->parent) || IS_NODE_PIE_TD(pndArg->parent)) {
+	  /* skip hidden in td and th */
+	}
+	else {
+	  if (StringBeginsWith((char *)pucTT, STR_PIE_HIDDEN)) {
+	    if (IS_NODE_PIE_IMPORT(pndArg->parent) && xmlStrEqual(domGetPropValuePtr(pndArg->parent, BAD_CAST "type"), BAD_CAST NAME_PIE_CSV)) {
+	      /* it's a column separator */
+	    }
+	    else {
+	      xmlSetProp(pndArg->parent, BAD_CAST "hidden", BAD_CAST "1");
+	    }
 	  }
 	}
 
