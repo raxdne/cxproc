@@ -156,6 +156,12 @@ extern void
 domUnsetNs(xmlNodePtr pndArg);
 
 extern BOOL_T
+domNodeTransformToText(xmlNodePtr pndArg, xmlChar *pucArgNew);
+
+extern BOOL_T
+domNodeTransformToPI(xmlNodePtr pndArg, xmlChar *pucArgNew);
+
+extern BOOL_T
 domNodesAreEqual(xmlNodePtr pndA, xmlNodePtr pndB);
 
 extern xmlNodePtr

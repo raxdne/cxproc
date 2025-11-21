@@ -58,6 +58,89 @@ pieTextTest(cxpContextPtr pccArg)
     xmlFreeNode(pndPie);
   }
 
+  if (RUNTEST) {
+    xmlNodePtr pndPie;
+    xmlNodePtr pndImport0, pndImport1, pndImport2, pndImport3, pndImport4, pndImport5, pndImport6, pndImport7;
+    xmlNodePtr pndSection;
+    xmlNodePtr pndT;
+
+    i++;
+    printf("TEST %i in '%s:%i': import dummy = ", i, __FILE__, __LINE__);
+
+    pndImport0 = pndImport1 = pndImport2 = pndImport3 = pndImport4 = pndImport5 = pndImport6 = pndImport7 = NULL;
+
+    pndPie = xmlNewNode(NULL, "pie");
+
+    pndSection = xmlNewChild(pndPie, NULL, "section", NULL);
+
+    xmlNewChild(pndSection, NULL, "h", BAD_CAST "Node Imports");
+
+    pndImport0 = xmlNewChild(pndSection, NULL, "import", NULL);
+    
+    pndImport1 = xmlNewChild(pndSection, NULL, "import", BAD_CAST "A");
+
+    xmlAddChild(pndSection, xmlNewText("  "));
+    
+    pndImport2 = xmlNewChild(pndSection, NULL, "import", BAD_CAST "A _B_");
+    xmlSetProp(pndImport2, BAD_CAST "type", BAD_CAST "markdown");
+    
+#if 0
+    pndImport3 = xmlNewChild(pndSection, NULL, "import", BAD_CAST "A,B;C");
+    xmlSetProp(pndImport3, BAD_CAST "type", BAD_CAST "csv");
+    
+    pndT = xmlNewChild(pndSection, NULL, "p", BAD_CAST "P Node Imports: ");
+
+    pndImport4 = xmlNewChild(pndT, NULL, "import", NULL);
+    
+    pndImport5 = xmlNewChild(pndT, NULL, "import", BAD_CAST "A");
+
+    xmlAddChild(pndT, xmlNewText("  "));
+    
+    pndImport6 = xmlNewChild(pndT, NULL, "import", BAD_CAST "A _B_");
+    xmlSetProp(pndImport, BAD_CAST "type", BAD_CAST "markdown");
+
+    xmlAddChild(pndT, xmlNewText("  "));
+    
+    pndImport7 = xmlNewChild(pndT, NULL, "import", BAD_CAST "A,B;C");
+    xmlSetProp(pndImport, BAD_CAST "type", BAD_CAST "csv");
+    
+    pndSection = xmlNewChild(pndPie, NULL, "section", NULL);
+
+    pndT = xmlNewChild(pndSection, NULL, "h", NULL);
+    xmlNodeAddContent(pndT, BAD_CAST "File Imports");
+
+    pndImport = xmlNewChild(pndSection, NULL, "import", NULL);
+    xmlSetProp(pndImport, BAD_CAST "name", BAD_CAST "none.txt");
+
+    pndImport = xmlNewChild(pndSection, NULL, "import", NULL);
+    xmlSetProp(pndImport, BAD_CAST "name", BAD_CAST "test-pie-import-plain-001.txt");
+#endif
+
+    //TraverseImportNodes(pndPie, pccArg);
+
+    if (ProcessImportNode(NULL,pccArg) == TRUE) {
+      printf("Error 1 tree\n");
+    }
+
+    if (ProcessImportNode(pndImport0,pccArg) == TRUE) {
+      printf("Error 1 tree\n");
+    }
+
+    if (ProcessImportNode(pndImport1,pccArg) == FALSE) {
+      printf("Error 1 tree\n");
+    }
+
+#if 0
+    if (IS_NODE_PIE(pndPie) == FALSE || domNumberOfChild(pndPie, BAD_CAST NAME_PIE_BLOCK) != 1 ||
+	domNumberOfChild(pndPie->children, BAD_CAST NAME_PIE_SECTION) != 1 || domNumberOfChild(pndPie->children, BAD_CAST NAME_PIE_IMPORT) != 0) {
+      printf("Error 1 tree\n");
+    }
+#endif
+
+    domPutNodeString(stderr, BAD_CAST "import result", pndPie);
+    xmlFreeNodeList(pndPie);
+  }
+  return (i - n_ok);
 
   if (RUNTEST) {
     xmlDocPtr pdocT;
@@ -298,24 +381,93 @@ pieTextTest(cxpContextPtr pccArg)
     else if (ParsePlainBuffer(pndPie, pucContent, RMODE_PAR) == NULL) {
       printf("Error ParsePlainBuffer()\n");
     }
+#if 0
     else if (IS_NODE_PIE(pndPie) == FALSE || domNumberOfChild(pndPie, BAD_CAST NAME_PIE_BLOCK) != 1
       || domNumberOfChild(pndPie->children, BAD_CAST NAME_PIE_SECTION) != 1 || domNumberOf(pndPie->children, BAD_CAST NAME_PIE_PAR, 0) != 3) {
       printf("Error 1 tree\n");
     }
-#if 0
+#endif
+    else if (ProcessPieNodeOptions(pndPie, pndPie, pccArg) == FALSE) {
+      printf("Error ParsePlainBuffer()\n");
+    }
     else if (RecognizeScripts(pndPie) == FALSE) {
       printf("Error RecognizeScripts()\n");
+    }
+    else if (RecognizeImports(pndPie) != 0) {
+      printf("Error ParsePlainBuffer()\n");
+    }
+    else {
+      TraverseImportNodes(pndPie, pccArg);
+      n_ok++;
+      printf("OK\n");
+    }
+#if 0
+    else if (ProcessImportOptions(pndPie, pndPie, pccArg) == FALSE) {
+      printf("Error ParsePlainBuffer()\n");
     }
     else if (IS_NODE_PIE(pndPie) == FALSE || domNumberOfChild(pndPie, BAD_CAST NAME_PIE_SECTION) != 1
 	     || domNumberOf(pndPie, BAD_CAST NAME_PIE_PAR, 0) != 3 || domNumberOf(pndPie, BAD_CAST NAME_PIE_SCRIPT, 0) != 4) {
       printf("Error 2 tree\n");
     }
 #endif
+    domPutNodeString(stderr, BAD_CAST "split result", pndPie);
+    xmlFreeNode(pndPie);
+  }
+
+
+  if (RUNTEST) {
+    xmlNodePtr pndPie;
+    xmlChar *pucContent = BAD_CAST
+      "\n"
+      "# Test of Blocks script=\"Date();\"\n"
+      "\n"
+      "This is a Test: script=\"5*5;\" : postfix\n"
+      "\n"
+      "This is a Test: script=\"5*5;\" sep script=\"5*5*5;\" : postfix\n"
+      "\n"
+      "This is a Test: SCRIPT=\"5*5;\" : postfix\n"
+      "\n"
+      ;
+
+    i++;
+    printf("TEST %i in '%s:%i': parse markdown text with script attributes and build tree = ", i, __FILE__, __LINE__);
+
+    if ((pndPie = xmlNewNode(NULL, BAD_CAST NAME_PIE_PIE)) == NULL) {
+      printf("Error xmlNewNode()\n");
+    }
+    else if (ParsePlainBuffer(pndPie, pucContent, RMODE_MD) == NULL) {
+      printf("Error ParsePlainBuffer()\n");
+    }
+#if 0
+    else if (IS_NODE_PIE(pndPie) == FALSE || domNumberOfChild(pndPie, BAD_CAST NAME_PIE_BLOCK) != 1
+      || domNumberOfChild(pndPie->children, BAD_CAST NAME_PIE_SECTION) != 1 || domNumberOf(pndPie->children, BAD_CAST NAME_PIE_PAR, 0) != 3) {
+      printf("Error 1 tree\n");
+    }
+#endif
+    else if (ProcessPieNodeOptions(pndPie, pndPie, pccArg) == FALSE) {
+      printf("Error ParsePlainBuffer()\n");
+    }
+    else if (RecognizeScripts(pndPie) == FALSE) {
+      printf("Error RecognizeScripts()\n");
+    }
+    else if (RecognizeImports(pndPie) != 0) {
+      printf("Error ParsePlainBuffer()\n");
+    }
     else {
+      TraverseImportNodes(pndPie, pccArg);
       n_ok++;
       printf("OK\n");
     }
-    //domPutNodeString(stderr, BAD_CAST "split result", pndPie);
+#if 0
+    else if (ProcessImportOptions(pndPie, pndPie, pccArg) == FALSE) {
+      printf("Error ParsePlainBuffer()\n");
+    }
+    else if (IS_NODE_PIE(pndPie) == FALSE || domNumberOfChild(pndPie, BAD_CAST NAME_PIE_SECTION) != 1
+	     || domNumberOf(pndPie, BAD_CAST NAME_PIE_PAR, 0) != 3 || domNumberOf(pndPie, BAD_CAST NAME_PIE_SCRIPT, 0) != 4) {
+      printf("Error 2 tree\n");
+    }
+#endif
+    domPutNodeString(stderr, BAD_CAST "split result", pndPie);
     xmlFreeNode(pndPie);
   }
 

@@ -328,6 +328,7 @@ main(int argc, char** argv, char** envp)
 	  iErrorCode += pieElementTest();
 	  iErrorCode += pieTextTagsTest();
 	  iErrorCode += pieTextBlocksTest();
+	  iErrorCode += pieTextCsvTest();
 	  iErrorCode += pieTextTest(pccT);
 #ifdef WITH_MARKDOWN
 	  iErrorCode += pieCmarkTest();

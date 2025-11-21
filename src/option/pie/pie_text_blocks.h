@@ -33,6 +33,7 @@
 #endif
 
 #include <pie/pie_text_tags.h>
+#include <pie/pie_csv.h>
 
 #define CXP_PIE_URL (BAD_CAST "http://www.tenbusch.info/pie")
 

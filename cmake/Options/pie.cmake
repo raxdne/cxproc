@@ -40,6 +40,8 @@ IF (CXPROC_PIE)
     ${CXPROC_SRC_DIR}/option/pie/pie_element.h
     ${CXPROC_SRC_DIR}/option/pie/pie_text_blocks.c
     ${CXPROC_SRC_DIR}/option/pie/pie_text_blocks.h
+    ${CXPROC_SRC_DIR}/option/pie/pie_csv.c
+    ${CXPROC_SRC_DIR}/option/pie/pie_csv.h
     ${CXPROC_SRC_DIR}/option/pie/pie_text_tags.c
     ${CXPROC_SRC_DIR}/option/pie/pie_text_tags.h
     ${CXPROC_SRC_DIR}/option/vcf/vcf.c
@@ -65,6 +67,8 @@ IF (CXPROC_PIE)
     ${CXPROC_SRC_DIR}/option/pie/pie_element.h
     ${CXPROC_SRC_DIR}/option/pie/pie_text_blocks.c
     ${CXPROC_SRC_DIR}/option/pie/pie_text_blocks.h
+    ${CXPROC_SRC_DIR}/option/pie/pie_csv.c
+    ${CXPROC_SRC_DIR}/option/pie/pie_csv.h
     ${CXPROC_SRC_DIR}/option/pie/pie_text.c
     ${CXPROC_SRC_DIR}/option/pie/pie_text.h ${CXPROC_SRC_DIR}/option/pie/pie_dtd.h
     ${CXPROC_SRC_DIR}/option/pie/pie_text_tags.c

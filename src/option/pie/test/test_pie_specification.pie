@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<pie>
+  <section>
+    <h>PIE Specification</h>
+    <section>
+      <h>Nodes</h>
+      <p>Par</p>
+      <list>
+	<p>A</p>
+	<p>B</p>
+	<p>C</p>
+      </list>
+      <task class="todo">
+	<h>Demo Task</h>
+	<p>details</p>
+      </task>
+      <table>
+	<thead>
+	  <tr><td colspan="2">Z</td></tr>
+	</thead>
+	<tbody>
+	  <tr><td>Y</td><td>X</td></tr>
+	</tbody>
+      </table>
+      <html>
+	<div><strong>STRONG</strong></div>
+      </html>
+    </section>
+    <section>
+      <h>Node Imports</h>
+      <import>A</import>
+      <import type="markdown">A _B_</import>
+      <import type="csv">A,B;C</import>
+      <p>calc: <import type="script">5*5</import></p>
+    </section>
+    <section>
+      <h>File Imports</h>
+      <import name="none.txt"/>
+      <import name="test-pie-import-plain-001.md"/>
+      <import name="test-pie-import-plain-001.csv"/>
+      <import name="test-pie-import-plain-001.js"/>
+    </section>
+    <section>
+      <h>File Includes</h>
+      <include name="test-pie-import-plain-001.pie"/>
+      <include name="test-pie-import-plain-001.html"/>
+      <include name="test-pie-import-plain-001.txt"/>
+      <import name="test-pie-import-plain-001.js"/>
+    </section>
+  </section>
+</pie>

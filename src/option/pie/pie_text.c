@@ -1034,7 +1034,8 @@ ImportNodeContent(xmlNodePtr pndArgImport, cxpContextPtr pccArg)
     }
 
     pucContent = cxpScriptProcessNode(pndArgImport, pccArg);
-    xmlNodeSetName(pndArgImport, BAD_CAST NAME_PIE_BLOCK);
+    //domNodeTransformToText(pndArgImport,NULL);
+    //xmlNodeSetName(pndArgImport, BAD_CAST NAME_PIE_BLOCK);
     xmlNodeSetContent(pndArgImport, NULL);
 #else
     xmlNodeSetName(pndArgImport, IS_NODE_STRUCT(pndArgImport->parent) ? BAD_CAST NAME_PIE_PRE : BAD_CAST NAME_PIE_TT);
@@ -1042,7 +1043,7 @@ ImportNodeContent(xmlNodePtr pndArgImport, cxpContextPtr pccArg)
   }
   else {
     pucContent = domNodeEatContent(pndArgImport);
-    xmlNodeSetName(pndArgImport, BAD_CAST NAME_PIE_BLOCK);
+    //xmlNodeSetName(pndArgImport, BAD_CAST NAME_PIE_BLOCK);
     xmlNodeSetContent(pndArgImport, NULL);
   }
 
@@ -1051,6 +1052,7 @@ ImportNodeContent(xmlNodePtr pndArgImport, cxpContextPtr pccArg)
     if (ParsePlainBuffer(pndArgImport, pucContent, GetModeByAttr(pndArgImport))) {
       RecognizeIncludes(pndArgImport);
       TraverseIncludeNodes(pndArgImport, pccArg);
+      RecognizeScripts(pndArgImport);
       ProcessPieNodeOptions(pndArgImport, pndArgImport, pccArg); /* build sub-structures for task, fig etc. */
       RecognizeImports(pndArgImport);
       ProcessImportOptions(pndArgImport, pndArgImport, pccArg); /* detect urls, substs etc. */
@@ -1061,7 +1063,7 @@ ImportNodeContent(xmlNodePtr pndArgImport, cxpContextPtr pccArg)
       }
       else {
 	/* insert import result as a simple text node */
-	xmlNodeSetName(pndArgImport->parent, BAD_CAST NAME_PIE_BLOCK);
+	//xmlNodeSetName(pndArgImport->parent, BAD_CAST NAME_PIE_BLOCK);
       }
     }
     else {
@@ -1475,7 +1477,7 @@ TraverseDateNodes(xmlNodePtr pndArg, cxpContextPtr pccArg)
 BOOL_T
 ProcessImportOptions(xmlNodePtr pndArgPie, xmlNodePtr pndArgImport, cxpContextPtr pccArg)
 {
-  BOOL_T fResult = FALSE;
+  BOOL_T fResult = TRUE;
 
 #ifdef DEBUG
   cxpCtxtLogPrint(pccArg, 3, "ProcessImportOptions(pndArgImport=%0x,pccArg=%0x)", pndArgImport, pccArg);
@@ -1529,7 +1531,7 @@ ProcessImportOptions(xmlNodePtr pndArgPie, xmlNodePtr pndArgImport, cxpContextPt
 BOOL_T
 ProcessPieNodeOptions(xmlNodePtr pndArgPie, xmlNodePtr pndArgImport, cxpContextPtr pccArg)
 {
-  BOOL_T fResult = FALSE;
+  BOOL_T fResult = TRUE;
 
 #ifdef DEBUG
   cxpCtxtLogPrint(pccArg, 3, "ProcessPieNodeOptions(pndArgImport=%0x,pccArg=%0x)", pndArgImport, pccArg);
@@ -1635,7 +1637,7 @@ ProcessImportNode(xmlNodePtr pndArgImport, cxpContextPtr pccArg)
 	fResult = ImportNodeContent(pndArgImport, (cxpCtxtLocationGet(pccDoc) ? pccDoc : pccHere));
       }
       else {
-	xmlAddChild(pndArgImport, xmlNewComment(BAD_CAST "unknown content type"));
+	domNodeTransformToPI(pndArgImport,BAD_CAST "unknown content type ");
       }
     }
 

@@ -1036,6 +1036,66 @@ domPutNodeGraphvizStringRecursive(FILE *out, xmlNodePtr pndArg, int iArgDepth)
 
 #endif
 
+/*! \return TRUE if two node with all childrens are equal
+\param pndA first candidate
+\param pndB second candidate
+*/
+BOOL_T
+domNodeTransformToText(xmlNodePtr pndArg, xmlChar *pucArgNew)
+{
+  BOOL_T fResult = FALSE;
+
+  switch (pndArg->type) {
+  case XML_ELEMENT_NODE:
+    xmlFreeNodeList(pndArg->children);
+    pndArg->children = NULL;
+    xmlFreeNodeList(pndArg->properties);
+    pndArg->properties = NULL;
+    // xmlNodeSetName(pndParent,NULL);
+    pndArg->name = NULL;
+    pndArg->type = XML_TEXT_NODE;
+    break;
+  case XML_TEXT_NODE:
+    break;
+  default:
+  }
+  fResult = (xmlIsBlankNode(pndArg) == 1);
+  if (fResult && pucArgNew != NULL) {
+    xmlNodeSetContent(pndArg, pucArgNew);
+  }
+  return fResult;
+} /* end of domNodeTransformToText() */
+
+
+/*! \return TRUE 
+\param pndA first candidate
+\param pndB second candidate
+*/
+BOOL_T
+domNodeTransformToPI(xmlNodePtr pndArg, xmlChar *pucArgNew)
+{
+  BOOL_T fResult = TRUE;
+
+  switch (pndArg->type) {
+  case XML_ELEMENT_NODE:
+    xmlFreeNodeList(pndArg->children);
+    pndArg->children = NULL;
+    xmlFreeNodeList(pndArg->properties);
+    pndArg->properties = NULL;
+    // xmlNodeSetName(pndParent,NULL);
+    pndArg->name = NULL;
+    pndArg->type = XML_PI_NODE;
+    break;
+  case XML_TEXT_NODE:
+    break;
+  default:
+  }
+  //fResult = (xmlIs(pndArg) == 1);
+  if (fResult && pucArgNew != NULL) {
+    xmlNodeSetContent(pndArg, pucArgNew);
+  }
+  return fResult;
+} /* end of domNodeTransformToPI() */
 
 
 /*! \return TRUE if two node with all childrens are equal
@@ -1133,7 +1193,7 @@ domReplaceNodeList(xmlNodePtr old, xmlNodePtr cur)
 #endif
 	return(old);
     }
-#if 0
+#if 1
     domUnlinkNodeList(cur);	/* unlink new node list from previous context */
 #else
     cur = xmlCopyNodeList(cur);

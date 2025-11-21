@@ -459,12 +459,27 @@ ParseMarkdownBuffer(xmlNodePtr pndArgTop, xmlChar* pucArg)
   xmlNodePtr pndResult = NULL;
 
   if (STR_IS_NOT_EMPTY(pucArg)) {
-    cmark_node* doc;
+    cmark_node *doc;
 
     if ((doc = cmark_parse_document((const char *)pucArg, strlen((const char *)pucArg), CMARK_OPT_DEFAULT)) != NULL) {
-      cmarkTreeToDOM(pndArgTop, pndArgTop, doc);
-      cmark_node_free(doc);
-      pndResult = pndArgTop;
+      if (xmlIsBlankNode(pndArgTop) == 1) {
+	xmlNodePtr pndBlock;
+	xmlNodePtr pndIter;
+
+	pndBlock = cmarkTreeToDOM(NULL, pndArgTop, doc);
+	cmark_node_free(doc);
+
+	for (pndIter=pndBlock; IS_NODE_PIE_BLOCK(pndIter); pndIter=pndIter->children);
+	domReplaceNodeList(pndArgTop, pndIter);
+	pndResult = pndIter;
+	xmlFreeNode(pndBlock);
+	//xmlFreeNode(pndArgTop);
+      }
+      else {
+	cmarkTreeToDOM(pndArgTop, pndArgTop, doc);
+	cmark_node_free(doc);
+	pndResult = pndArgTop;
+      }
     }
   }
   return pndResult;
