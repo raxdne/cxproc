@@ -217,7 +217,7 @@ extern xmlNodePtr
 RecognizeUrls(xmlNodePtr pndArg);
 
 extern xmlNodePtr
-ParsePlainBuffer(xmlNodePtr pndArgTop, xmlChar *pucArg, rmode_t eArgMode);
+ParsePlainBuffer(xmlNodePtr pndArgImport, xmlChar *pucArg, rmode_t eArgMode);
 
 extern xmlNodePtr
 SplitStringToScriptNode(const xmlChar *pucArg);
@@ -265,11 +265,8 @@ SplitStringToLinkNodes(const xmlChar *pucArg);
 extern xmlChar *
 TranslateUncToUrl(const xmlChar *pucArg);
 
-extern BOOL_T
-SplitNodeToTableDataNodes(xmlNodePtr pndArgParent, xmlChar *pucPatternSep);
-
 extern xmlNodePtr
-TransformToTable(xmlNodePtr pndArgParent, xmlNodePtr pndArg, xmlChar *pucPatternSep);
+TransformToTable(xmlNodePtr pndArg, xmlChar *pucPatternSep);
 
 extern xmlNodePtr
 FindElementNodeLast(xmlNodePtr pndArg);

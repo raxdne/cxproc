@@ -20,7 +20,7 @@
 */
 
 extern xmlNodePtr
-ParseMarkdownBuffer(xmlNodePtr pndArgTop, xmlChar* pucArg);
+ParseMarkdownBuffer(xmlNodePtr pndArgImport, xmlChar* pucArg);
 
 #ifdef TESTCODE
 extern int

@@ -59,6 +59,100 @@ pieTextTest(cxpContextPtr pccArg)
   }
 
   if (RUNTEST) {
+
+#include "test_pie_specification.c"
+
+    domPutDocString(stderr, BAD_CAST "pre import result", pdocResult);
+
+    i++;
+    printf("TEST %i in '%s:%i': import dummy = ", i, __FILE__, __LINE__);
+
+    if (ProcessImportNode(NULL, pccArg) == TRUE) {
+      printf("Error 1 tree\n");
+    }
+
+    if (ProcessImportNode(pnd3, pccArg) == TRUE) {
+      printf("Error 1 tree\n");
+    }
+
+    if (ProcessImportNode(pnd53, pccArg) == TRUE) {
+      printf("Error 1 tree\n");
+    }
+
+    if (ProcessImportNode(pnd54, pccArg) == FALSE) {
+      printf("Error 1 tree\n");
+    }
+
+    if (ProcessImportNode(pnd56, pccArg) == FALSE) {
+      printf("Error 1 tree\n");
+    }
+
+    if (ProcessImportNode(pnd58, pccArg) == FALSE) {
+      printf("Error 1 tree\n");
+    }
+
+    if (ProcessImportNode(pnd61, pccArg) == FALSE) {
+      printf("Error 1 tree\n");
+    }
+
+    if (ProcessImportNode(pnd62, pccArg) == FALSE) {
+      printf("Error 1 tree\n");
+    }
+
+    if (ProcessImportNode(pnd63, pccArg) == FALSE) {
+      printf("Error 1 tree\n");
+    }
+
+    if (ProcessImportNode(pnd64, pccArg) == FALSE) {
+      printf("Error 1 tree\n");
+    }
+
+    if (ProcessImportNode(pnd69, pccArg) == TRUE) {
+      printf("Error 1 tree\n");
+    }
+
+    if (ProcessImportNode(pnd70, pccArg) == FALSE) {
+      printf("Error 1 tree\n");
+    }
+
+    if (ProcessImportNode(pnd71, pccArg) == FALSE) {
+      printf("Error 1 tree\n");
+    }
+
+    if (ProcessImportNode(pnd72, pccArg) == FALSE) {
+      printf("Error 1 tree\n");
+    }
+
+    if (ProcessImportNode(pnd74, pccArg) == FALSE) {
+      printf("Error 1 tree\n");
+    }
+
+    if (ProcessImportNode(pnd79, pccArg) == FALSE) {
+      printf("Error 1 tree\n");
+    }
+
+    domPutDocString(stderr, BAD_CAST "post import result", pdocResult);
+    xmlFreeDoc(pdocResult);
+  }
+
+  if (RUNTEST) {
+
+#include "test_pie_specification.c"
+
+    //domPutDocString(stderr, BAD_CAST "pre import result", pdocResult);
+
+    i++;
+    printf("TEST %i in '%s:%i': import dummy = ", i, __FILE__, __LINE__);
+
+    TraverseImportNodes(xmlDocGetRootElement(pdocResult), pccArg);
+
+    domPutDocString(stderr, BAD_CAST "post import result", pdocResult);
+    xmlFreeDoc(pdocResult);
+  }
+
+  return (i - n_ok);
+
+  if (RUNTEST) {
     xmlNodePtr pndPie;
     xmlNodePtr pndImport0, pndImport1, pndImport2, pndImport3, pndImport4, pndImport5, pndImport6, pndImport7;
     xmlNodePtr pndSection;
@@ -140,7 +234,6 @@ pieTextTest(cxpContextPtr pccArg)
     domPutNodeString(stderr, BAD_CAST "import result", pndPie);
     xmlFreeNodeList(pndPie);
   }
-  return (i - n_ok);
 
   if (RUNTEST) {
     xmlDocPtr pdocT;

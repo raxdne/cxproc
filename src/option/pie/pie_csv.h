@@ -20,7 +20,7 @@
 */
 
 extern xmlNodePtr
-ParseCsvBuffer(xmlNodePtr pndArgTop, xmlChar *pucArg);
+ParseCsvBuffer(xmlNodePtr pndArgImport, xmlChar *pucArg);
 
 #ifdef TESTCODE
 extern int

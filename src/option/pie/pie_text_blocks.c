@@ -80,7 +80,7 @@ static xmlAttrPtr
 SetPropInherit(xmlNodePtr pndArg, const xmlChar *pucArgName, const xmlChar *pucArgValue);
 
 static xmlNodePtr
-ParseTextBuffer(xmlNodePtr pndArgTop, xmlChar* pucArg, rmode_t eArgMode);
+ParseTextBuffer(xmlNodePtr pndArgImport, xmlChar* pucArg, rmode_t eArgMode);
 
 static xmlNodePtr
 NodeIsSingleParagraph(xmlNodePtr pndArg);
@@ -485,77 +485,87 @@ NodeIsSingleParagraph(xmlNodePtr pndArg)
 
     for (pndIter = pndArg->children; IS_NODE_PIE_BLOCK(pndIter); pndIter = pndIter->children) ;
 
-    if (IS_NODE_PIE_PAR(pndIter) && pndIter->next == NULL) {
-	pndResult = pndIter->children;
+    if (IS_NODE_PIE_PAR(pndIter) && pndIter->next == NULL && pndIter->children == pndIter->last) {
+	//pndResult = pndIter->children;
+	pndResult = pndIter;
     }
   }
   return pndResult;
 } /* end of NodeIsSingleParagraph() */
 
 
-/*! Append the parsed plain text to the given pndArgTop
+/*! Append the parsed plain text to the given pndArgImport
 
-\param pndArgTop parent node to append import result nodes OR NULL if pndArgImport must be replaced by result
+\param pndArgImport parent node to append import result nodes OR NULL if pndArgImport must be replaced by result
 \param pucArg pointer to an UTF-8 encoded buffer (not XML-conformant!)
 
 \return pointer to result node "block" or NULL in case of errors
 */
 xmlNodePtr
-ParsePlainBuffer(xmlNodePtr pndArgTop, xmlChar *pucArg, rmode_t eArgMode)
+ParsePlainBuffer(xmlNodePtr pndArgImport, xmlChar *pucArg, rmode_t eArgMode)
 {
   xmlNodePtr pndResult = NULL;
 
   CompileRegExpDefaults();
 
-  if (STR_IS_NOT_EMPTY(pucArg)) {
+  if (IS_NODE_PIE_IMPORT(pndArgImport) && STR_IS_NOT_EMPTY(pucArg)) {
     xmlNodePtr pndBlock; /*! */
     xmlNodePtr pndT; /*! */
 
-    if (IS_NODE_PIE_IMPORT(pndArgTop) || IS_NODE_PIE_BLOCK(pndArgTop)) { /* block element exists already */
-      pndBlock = pndArgTop;
-    }
-    else if (IS_NODE_PIE_PIE(pndArgTop) || IS_NODE_PIE_SECTION(pndArgTop) || IS_NODE_PIE_TASK(pndArgTop)) { /* use as parent node for new block element */
-      pndBlock = xmlNewChild(pndArgTop, NULL, BAD_CAST NAME_PIE_BLOCK, NULL);
-    }
-    else { /* there is nor parent element, return new block element */
-      pndBlock = xmlNewNode(NULL, BAD_CAST NAME_PIE_BLOCK);
-    }
-
     if (eArgMode == RMODE_MD) {
 #ifdef WITH_MARKDOWN
-      pndResult = ParseMarkdownBuffer(pndBlock, pucArg);
+      pndResult = ParseMarkdownBuffer(pndArgImport, pucArg);
 #else
       pndResult = xmlNewComment(BAD_CAST "no Markdown support");
 #endif
     }
     else if (eArgMode == RMODE_TABLE) {
-      pndResult = ParseCsvBuffer(pndBlock, pucArg);
+      pndResult = ParseCsvBuffer(pndArgImport, pucArg);
     }
     else {
-      pndResult = ParseTextBuffer(pndBlock, pucArg, eArgMode);
+      pndResult = ParseTextBuffer(pndArgImport, pucArg, eArgMode);
     }
     SetTypeAttr(pndResult, eArgMode);
 
-    if (xmlIsBlankNode(pndArgTop) == 1) { /* "to be replaced" later */
-      if ((pndT = NodeIsSingleParagraph(pndBlock))) {
-	domUnlinkNodeList(pndT);
-	xmlAddNextSibling(pndArgTop, pndT);
-      }
+    if (pndResult == NULL) {
+      /* empty result */
     }
-    else {}
+    else if (IS_NODE_STRUCT(pndArgImport->parent)) { // "section/import" -> "section/block"
+      xmlNodePtr pndT = NULL;
+
+      //xmlNodeSetName(pndArgImport, pndResult->name);
+      xmlNodeSetName(pndArgImport, BAD_CAST NAME_PIE_BLOCK);
+      pndT = pndResult->children;
+      domUnlinkNodeList(pndT);
+      xmlAddChildList(pndArgImport, pndT);
+    }
+    else if ((pndT = NodeIsSingleParagraph(pndResult))) { // "p/import" -> "p/span"
+      domNodeTransformToNode(pndArgImport, pndT);
+      xmlNodeSetName(pndArgImport, BAD_CAST NAME_PIE_SPAN);
+    }
+    else { // "p/import/..." -> "p/span/..."
+      xmlNodePtr pndIter;
+
+      for (pndIter = pndResult; IS_NODE_PIE_BLOCK(pndIter); pndIter = pndIter->children);
+      pndT = pndIter->children;
+      domUnlinkNodeList(pndT);
+      xmlAddChildList(pndArgImport, pndT);
+      xmlNodeSetName(pndArgImport, BAD_CAST NAME_PIE_SPAN);
+    }
+    xmlFreeNode(pndResult);
   }
   return pndResult;
 } /* end of ParsePlainBuffer() */
 
-/*! Append the parsed plain text to the given pndArgTop
+/*! Append the parsed plain text to the given pndArgImport
 
-\param pndArgTop parent node to append import result nodes OR NULL if pndArgImport must be replaced by result
+\param pndArgImport parent node to append import result nodes OR NULL if pndArgImport must be replaced by result
 \param pucArg pointer to an UTF-8 encoded buffer (not XML-conformant!)
 
 \return pointer to result node "block" or NULL in case of errors
 */
 xmlNodePtr
-ParseTextBuffer(xmlNodePtr pndArgTop, xmlChar* pucArg, rmode_t eArgMode)
+ParseTextBuffer(xmlNodePtr pndArgImport, xmlChar* pucArg, rmode_t eArgMode)
 {
   index_t k;
   index_t iMax = -1;
@@ -574,10 +584,12 @@ ParseTextBuffer(xmlNodePtr pndArgTop, xmlChar* pucArg, rmode_t eArgMode)
 
   /*!\todo autodetection line or paragraph input */
 
+  pndResult = xmlNewNode(NULL,BAD_CAST NAME_PIE_BLOCK);
+
   /*!
   main loop for reading pie text elements and building of DOM
   */
-  for (k = 0, pndParent = pndArgTop; k < iMax && pieElementHasNext(ppeT); k++) {
+  for (k = 0, pndParent = pndResult; k < iMax && pieElementHasNext(ppeT); k++) {
     xmlNodePtr pndNew = NULL;
 
     if (pieElementIsQuote(ppeT)) {
@@ -604,26 +616,26 @@ ParseTextBuffer(xmlNodePtr pndArgTop, xmlChar* pucArg, rmode_t eArgMode)
       }
     }
     else if (ppeT->eType == html) {
-      if (pieElementGetStrlen(ppeT) > 6) {
-	xmlDocPtr pdocHtml;
+	if (pieElementGetStrlen(ppeT) > 6) {
+		xmlDocPtr pdocHtml;
 
-	pdocHtml = xmlParseMemory((const char *)pieElementGetBeginPtr(ppeT), pieElementGetStrlen(ppeT));
-	if ((pndNew = xmlDocGetRootElement(pdocHtml)) != NULL && IS_NODE_PIE_HTML(pndNew) && pndNew->children != NULL) {
-	  xmlUnlinkNode(pndNew);
-	  xmlNodeSetName(pndNew, BAD_CAST "block");
-	  xmlSetProp(pndNew, BAD_CAST "type", BAD_CAST "text/html");
+		pdocHtml = xmlParseMemory((const char *)pieElementGetBeginPtr(ppeT), pieElementGetStrlen(ppeT));
+		if ((pndNew = xmlDocGetRootElement(pdocHtml)) != NULL && IS_NODE_PIE_HTML(pndNew) && pndNew->children != NULL) {
+			xmlUnlinkNode(pndNew);
+			xmlNodeSetName(pndNew, BAD_CAST "block");
+			xmlSetProp(pndNew, BAD_CAST "type", BAD_CAST "text/html");
 	  xmlAddChild(pndParent, pndNew);
 	}
 	else {
-	  xmlAddChild(pndParent, xmlNewComment(BAD_CAST "HTML parser error"));
+		xmlAddChild(pndParent, xmlNewComment(BAD_CAST "HTML parser error"));
 	}
 	xmlFreeDoc(pdocHtml);
-      }
-    }
+}
+}
 #endif
     else if (pieElementIsMetaOrigin(ppeT)) {
       if ((pucT = pieElementGetBeginPtr(ppeT)) != NULL) {
-	xmlSetProp(pndArgTop, BAD_CAST "context", &pucT[8]);
+	xmlSetProp(pndResult, BAD_CAST "context", &pucT[8]);
       }
     }
     else {
@@ -633,26 +645,11 @@ ParseTextBuffer(xmlNodePtr pndArgTop, xmlChar* pucArg, rmode_t eArgMode)
 	xmlNodePtr pndList = NULL;
 
 	/* append to result DOM */
-	if (pieElementIsHeader(ppeT) && (pndParent = GetParentElement(ppeT, pndArgTop)) != NULL) {
+	if (pieElementIsHeader(ppeT) && (pndParent = GetParentElement(ppeT, pndResult)) != NULL) {
 	  pndParent = xmlAddChild(pndParent, pndNew);
 	}
 	else if (pieElementIsListItem(ppeT) && (pndList = GetParentElement(ppeT, pndParent)) != NULL) {
 	  xmlAddChild(pndList, pndNew);
-	}
-	else if (IS_NODE_PIE_IMPORT(pndParent)) {
-
-	  if (IS_NODE_STRUCT(pndParent->parent)) { // "section/import"
-	    xmlNodePtr pndT = NULL;
-
-	    xmlNodeSetName(pndParent, pndNew->name);
-	    pndT = pndNew->children;
-	    xmlUnlinkNode(pndT);
-	    xmlAddChild(pndParent, pndT);
-	    xmlFreeNode(pndNew);
-	  }
-	  else { // "p/import"
-	    domNodeTransformToText(pndParent, pndNew->children->content);
-	  }
 	}
 	else {
 	  xmlAddChild(pndParent, pndNew);
@@ -661,10 +658,8 @@ ParseTextBuffer(xmlNodePtr pndArgTop, xmlChar* pucArg, rmode_t eArgMode)
     }
   }
   xmlFree(pucText);
-  // domPutNodeString(stderr, BAD_CAST"", pndArgTop);
 
   pieElementFree(ppeT);
-  pndResult = pndArgTop;
 
   return pndResult;
 } /* end of ParseTextBuffer() */

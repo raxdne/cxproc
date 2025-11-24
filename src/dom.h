@@ -159,6 +159,9 @@ extern BOOL_T
 domNodeTransformToText(xmlNodePtr pndArg, xmlChar *pucArgNew);
 
 extern BOOL_T
+domNodeTransformToNode(xmlNodePtr pndArg, xmlNodePtr pndArgSrc);
+
+extern BOOL_T
 domNodeTransformToPI(xmlNodePtr pndArg, xmlChar *pucArgNew);
 
 extern BOOL_T

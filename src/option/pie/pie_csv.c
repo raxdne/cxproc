@@ -31,6 +31,12 @@
 #include <pie/pie_text_blocks.h>
 #include "utils.h"
 
+static xmlChar *
+StringGetEndOfLinePtr(xmlChar *pucArg);
+
+static BOOL_T
+SplitBufferToTableDataNodes(xmlNodePtr pndArgTableRow, xmlChar* pucArg0, xmlChar* pucArg1, xmlChar* pucPatternSep);
+
 static xmlChar
 AutoDetectSeparatorChar(xmlChar *pucArg);
 
@@ -44,98 +50,63 @@ static int
 AddTableColumnNames(xmlNodePtr pndArg);
 
 
-/*! Append the parsed plain text to the given pndArgTop
+/*! Append the parsed plain text to the given pndArgImport
 
-\param pndArgTop parent node to append import result nodes OR NULL if pndArgImport must be replaced by result
+\param pndArgImport parent node to append import result nodes OR NULL if pndArgImport must be replaced by result
 \param pucArg pointer to an UTF-8 encoded buffer (not XML-conformant!)
 
 \return pointer to result node "block" or NULL in case of errors
 */
 xmlNodePtr
-ParseCsvBuffer(xmlNodePtr pndArgTop, xmlChar *pucArg)
+ParseCsvBuffer(xmlNodePtr pndArgImport, xmlChar *pucArg)
 {
-  index_t k;
-  index_t iMax = -1;
-  pieTextElementPtr ppeT = NULL;
-  xmlNodePtr pndParent; /*! */
   xmlNodePtr pndResult = NULL;
+  xmlNodePtr pndTable;	/*! */
+  index_t k;
+  xmlChar *puc0;
+  xmlChar *puc1;
+  xmlChar *pucSep;
   xmlChar *pucT;
-  xmlChar *pucText = NULL;
+  xmlChar *pucTT;
 
-  if ((ppeT = pieElementNew(pucArg, RMODE_TABLE))) {
-    /*\todo iMax = domGetPropValuePtr(pndArgImport, BAD_CAST "max"); */
-    iMax = 512 * 1024;
+  if (STR_IS_NOT_EMPTY(pucArg)) {}
+  else {}
+
+  pndResult = xmlNewNode(NULL, BAD_CAST NAME_PIE_BLOCK);
+  xmlSetProp(pndResult, BAD_CAST "type", BAD_CAST "csv");
+
+  pndTable = xmlNewChild(pndResult, NULL, BAD_CAST NAME_PIE_TABLE, NULL);
+
+  pucSep = xmlStrdup(BAD_CAST " ");
+
+  if (((pucTT = domGetPropValuePtr(pndArgImport, BAD_CAST "sep")) != NULL) && xmlStrlen(pucTT) > 0) {
+    pucSep[0] = pucTT[0];
   }
+  else {
+    pucSep[0] = AutoDetectSeparatorChar(pucArg);
+  }
+  xmlSetProp(pndTable, BAD_CAST "sep", pucSep);
 
-  /*!
-  main loop for reading pie text elements and building of DOM
-  */
-  for (k = 0, pndParent = pndArgTop; k < iMax && pieElementHasNext(ppeT); k++) {
-    xmlNodePtr pndNew = NULL;
+  for (k = 0, puc0 = puc1 = pucArg; k < 1000; k++) {
+    xmlNodePtr pndTableRow; /*! */
 
-    pieElementParse(ppeT);
+    pndTableRow = xmlNewChild(pndTable, NULL, BAD_CAST NAME_PIE_TR, NULL);
+    puc1 = StringGetEndOfLinePtr(puc0);
+    SplitBufferToTableDataNodes(pndTableRow, puc0, puc1, pucSep);
 
-    if ((pndNew = pieElementToDOM(ppeT))) {
-      xmlNodePtr pndList = NULL;
-
-      /* append to result DOM */
-      if (IS_NODE_PIE_SECTION(pndParent) && xmlStrEqual(domGetPropValuePtr(pndParent, BAD_CAST "type"), BAD_CAST "table")) {
-	/* there is a table parent already */
-      }
-      else if (IS_NODE(pndParent, NULL) && IS_NODE_PIE_TD(pndParent->parent)) {
-	/* there is a table cell parent already */
-
-	xmlNodePtr pndT;
-
-	assert(pndParent->children == NULL);
-	/* remove 'pndParent' as empty block element */
-	pndT = pndParent->parent;
-	xmlUnlinkNode(pndParent);
-	xmlFree(pndParent);
-	pndParent = pndT;
-
-	if (pndNew->children == pndNew->last) {
-	  /* result is single node, remove 'pndNew' as empty block element */
-	  pndT = pndNew;
-	  pndNew = pndNew->children;
-	  xmlUnlinkNode(pndNew->children);
-	  xmlFree(pndT);
-	}
-      }
-      else {
-	xmlChar *pucSep;
-	xmlChar *pucTT;
-
-	pndParent = xmlNewChild(pndParent, NULL, BAD_CAST NAME_PIE_SECTION, NULL);
-	xmlSetProp(pndParent, BAD_CAST "type", BAD_CAST "table");
-
-	pucSep = xmlStrdup(BAD_CAST " ");
-
-	if (((pucTT = domGetPropValuePtr(pndArgTop, BAD_CAST "sep")) != NULL) && xmlStrlen(pucTT) > 0) {
-	  pucSep[0] = pucTT[0];
-	}
-	else {
-	  pucSep[0] = AutoDetectSeparatorChar(pucArg);
-	}
-	xmlSetProp(pndParent, BAD_CAST "sep", pucSep);
-	xmlFree(pucSep);
-      }
-      xmlAddChild(pndParent, pndNew);
+    if (puc1 == NULL) {
+      break;
     }
+    for (puc0 = puc1; islinebreak(*puc0); puc0++);
   }
-  xmlFree(pucText);
-  // domPutNodeString(stderr, BAD_CAST"", pndArgTop);
+  xmlFree(pucSep);
 
-  TransformToTable(pndArgTop, pndParent, domGetPropValuePtr(pndParent, BAD_CAST "sep"));
-  // CompressTable(pndParent);
-  AddTableCellsEmpty(pndParent);
-  AddTableColumnNames(pndParent);
-  RecognizeScripts(pndParent);
-  xmlUnsetProp(pndParent, BAD_CAST "sep");
-  xmlUnsetProp(pndParent, BAD_CAST "type");
-
-  pieElementFree(ppeT);
-  pndResult = pndArgTop;
+  RecognizeSymbols(pndTable, LANG_DEFAULT);
+  // CompressTable(pndTable);
+  AddTableCellsEmpty(pndTable);
+  AddTableColumnNames(pndTable);
+  RecognizeScripts(pndTable);
+  //xmlUnsetProp(pndTable, BAD_CAST "sep");
 
   return pndResult;
 } /* end of ParseCsvBuffer() */
@@ -144,7 +115,7 @@ ParseCsvBuffer(xmlNodePtr pndArgTop, xmlChar *pucArg)
 /*! return TRUE if pucArg ends at postion iArg with an XML entity like '&amp;'
 */
 BOOL_T
-StringEndsWithEntity(xmlChar *pucArg, int iArg)
+_StringEndsWithEntity(xmlChar *pucArg, int iArg)
 {
   BOOL_T fResult = FALSE;
 
@@ -162,7 +133,7 @@ StringEndsWithEntity(xmlChar *pucArg, int iArg)
     }
   }
   return fResult;
-} /* end of StringEndsWithEntity() */
+} /* end of _StringEndsWithEntity() */
 
 
 /*! \return a pointer to first char after header markup in pucArg or NULL
@@ -173,14 +144,14 @@ StringGetEndOfHeaderMarker(xmlChar* pucArg)
   xmlChar* pucResult = NULL;
 
   if (pucArg) {
-    xmlChar* pucT;
+    xmlChar* pucIter;
     BOOL_T fHeader;
 
-    for (pucT = pucArg, fHeader = FALSE; ; pucT++) {
-      if (*pucT == (xmlChar)'*') {
+    for (pucIter = pucArg, fHeader = FALSE; ; pucIter++) {
+      if (*pucIter == (xmlChar)'*') {
 	fHeader = TRUE;
       }
-      else if (*pucT == (xmlChar)' ') {
+      else if (*pucIter == (xmlChar)' ') {
 	/* skip spaces */
       }
       else {
@@ -189,11 +160,31 @@ StringGetEndOfHeaderMarker(xmlChar* pucArg)
     }
 
     if (fHeader) {
-      pucResult = pucT;
+      pucResult = pucIter;
     }
   }
   return pucResult;
 } /* end of StringGetEndOfHeaderMarker() */
+
+
+/*! \return a pointer to first linebreak char after in pucArg or NULL
+ */
+xmlChar *
+StringGetEndOfLinePtr(xmlChar *pucArg)
+{
+  xmlChar *pucResult = NULL;
+
+  if (pucArg) {
+      int i;
+
+      for (i = 0; i < 1e4 && pucArg[i] != '\0' && ! islinebreak(pucArg[i]); i++) ;
+
+    if (islinebreak(pucArg[i])) {
+      pucResult = &pucArg[i];
+    }
+  }
+  return pucResult;
+} /* end of StringGetEndOfLinePtr() */
 
 
 /*! \return pointer to detected separator, else DEFAULT_SEP_STR
@@ -245,11 +236,20 @@ GetNextSeparatorPtr(xmlChar *pucArg, xmlChar ucSep)
     int i;
     BOOL_T fInQuotes;
 
+    /*!\bug check numerically encoded entities '&#xF3F5;' */
+
     for (i = 0, fInQuotes = FALSE; pucArg[i] != '\0'; i++) {
       if (pucArg[i] == '\"') { /*!\todo process single quotes too */
 	fInQuotes = !fInQuotes;
       }
-      else if (pucArg[i] == ucSep && fInQuotes == FALSE) {
+      else if (fInQuotes) {
+	/* */
+      }
+      else if (i > 4 && pucArg[i] == (xmlChar)';' && pucArg[i - 1] == (xmlChar)'p' && pucArg[i - 2] == (xmlChar)'m' && pucArg[i - 3] == (xmlChar)'a' &&
+	       pucArg[i - 4] == (xmlChar)'&') {}
+      else if (i > 3 && pucArg[i] == (xmlChar)';' && pucArg[i - 1] == (xmlChar)'t' && (pucArg[i - 2] == (xmlChar)'g' || pucArg[i - 2] == (xmlChar)'l') &&
+	       pucArg[i - 3] == (xmlChar)'&') {}
+      else if (pucArg[i] == ucSep || islinebreak(pucArg[i])) {
 	pucResult = &pucArg[i];
 	break;
       }
@@ -259,55 +259,39 @@ GetNextSeparatorPtr(xmlChar *pucArg, xmlChar ucSep)
 } /* end of GetNextSeparatorPtr() */
 
 
-/*! \return TRUE if content string of pndArgParent is splitted into table data nodes using pucPatternSep, else FALSE
+/*! \return TRUE if content string of pndArgTableRow is splitted into table data nodes using pucPatternSep, else FALSE
 
 \todo compile 'pucPatternSep' as a regexp if '/[;|]/'
 */
 BOOL_T
-SplitNodeToTableDataNodes(xmlNodePtr pndArgParent, xmlChar* pucPatternSep)
+SplitBufferToTableDataNodes(xmlNodePtr pndArgTableRow, xmlChar* pucArg0, xmlChar* pucArg1, xmlChar* pucPatternSep)
 {
   BOOL_T fResult = FALSE;
   
-  if (pndArgParent == NULL) {
+  if (pndArgTableRow == NULL) {
   }
-  else if (pndArgParent->children == NULL || STR_IS_EMPTY(pndArgParent->children->content)) {
-    xmlNodeSetName(pndArgParent, BAD_CAST NAME_PIE_TR);
-  }
-  else if (pndArgParent->children != NULL && pndArgParent->children == pndArgParent->last
-      && pndArgParent->children->content != NULL && xmlStrlen(pndArgParent->children->content) > 0) {
-    BOOL_T fMix = FALSE; /* flag for ';' in pucPatternSep -> problems with included XML entities '&amp;' */
+  else if (pucArg0 != NULL && (pucArg1 == NULL || pucArg1 > pucArg0)) {
     xmlChar *pucBegin;
     xmlChar *pucSep;
     xmlChar* pucCell = NULL;
     xmlChar* pucT;
-    xmlNodePtr pndChild;
 
-    pndChild = pndArgParent->children;
-    xmlUnlinkNode(pndChild);
-
-    fMix = (xmlStrchr(pucPatternSep,(xmlChar)';') != NULL);
-
-    for (pucBegin = pucSep = pndChild->content;;) {
+    for (pucBegin = pucSep = pucArg0;;) {
       xmlNodePtr pndT;
 
       if ((pucSep = GetNextSeparatorPtr(pucSep, pucPatternSep[0])) != NULL) {
-
-	if (fMix && StringEndsWithEntity(pucBegin, (int)(pucSep - pucBegin))) {
-	  /* its a XML entity like '&amp;' dont use this as separator */
-	  pucSep = BAD_CAST xmlStrstr(pucSep + 1, pucPatternSep); /*!\bug to be repeated */
-	}
 
 	if ((pucCell = xmlStrndup(pucBegin, (int)(pucSep - pucBegin))) != NULL) {
 	  StringRemovePairQuotes(pucCell);
 	  StringRemoveDoubleDoubleQuotes(pucCell);
 	  if ((pucT = StringGetEndOfHeaderMarker(pucCell))) {
-	    pndT = xmlNewChild(pndArgParent, NULL, BAD_CAST NAME_PIE_TH, NULL);
+	    pndT = xmlNewChild(pndArgTableRow, NULL, BAD_CAST NAME_PIE_TH, NULL);
 	    if (STR_IS_NOT_EMPTY(pucT)) {
 	      xmlAddChild(pndT, xmlNewText(pucT));
 	    }
 	  }
 	  else {
-	    pndT = xmlNewChild(pndArgParent, NULL, BAD_CAST NAME_PIE_TD, NULL);
+	    pndT = xmlNewChild(pndArgTableRow, NULL, BAD_CAST NAME_PIE_TD, NULL);
 	    if (STR_IS_NOT_EMPTY(pucCell)) {
 	      xmlAddChild(pndT, xmlNewText(pucCell));
 	    }
@@ -315,23 +299,26 @@ SplitNodeToTableDataNodes(xmlNodePtr pndArgParent, xmlChar* pucPatternSep)
 	  xmlFree(pucCell);
 	}
 
+	if (islinebreak(*pucSep)) {
+	  break;
+	}
 	pucBegin = pucSep + xmlStrlen(pucPatternSep);
 	pucSep = pucBegin;
       }
       else if ((pucCell = xmlStrdup(pucBegin)) != NULL) { /* no more separator */
-	/*!\bug StringEndsWithEntity() required */
+	/*!\bug _StringEndsWithEntity() required */
 	StringRemovePairQuotes(pucCell);
 	if (STR_IS_EMPTY(pucCell)) {
 	  /* ignoring trailing empty cell */
 	}
 	else if ((pucT = StringGetEndOfHeaderMarker(pucCell))) {
-	  pndT = xmlNewChild(pndArgParent, NULL, BAD_CAST NAME_PIE_TH, NULL);
+	  pndT = xmlNewChild(pndArgTableRow, NULL, BAD_CAST NAME_PIE_TH, NULL);
 	  if (STR_IS_NOT_EMPTY(pucT)) {
 	    xmlAddChild(pndT, xmlNewText(pucT));
 	  }
 	}
 	else {
-	  pndT = xmlNewChild(pndArgParent, NULL, BAD_CAST NAME_PIE_TD, NULL);
+	  pndT = xmlNewChild(pndArgTableRow, NULL, BAD_CAST NAME_PIE_TD, NULL);
 	  if (STR_IS_NOT_EMPTY(pucCell)) {
 	    xmlAddChild(pndT, xmlNewText(pucCell));
 	  }
@@ -341,14 +328,11 @@ SplitNodeToTableDataNodes(xmlNodePtr pndArgParent, xmlChar* pucPatternSep)
       }
     }
 
-    xmlFreeNode(pndChild);
-    xmlNodeSetName(pndArgParent,BAD_CAST NAME_PIE_TR);
-    RecognizeSymbols(pndArgParent, LANG_DEFAULT);
     fResult = TRUE;
   }
   
   return fResult;
-} /* end of SplitNodeToTableDataNodes() */
+} /* end of SplitBufferToTableDataNodes() */
 
 
 /*! \return number of columns in widest row in table
@@ -520,7 +504,7 @@ AddTableCellsEmpty(xmlNodePtr pndArg)
     }
     /* add some meta data to table */
     xmlSetProp(pndArg, BAD_CAST "cols", mucT);
-    xmlStrPrintf(mucT,128,"%i",r-1);
+    xmlStrPrintf(mucT,128,"%i",r);
     xmlSetProp(pndArg, BAD_CAST "rows", mucT);
   }
   return iResult;
@@ -631,52 +615,6 @@ CompressTable(xmlNodePtr pndArg)
   }
   return iResult;
 } /* end of CompressTable() */
-
-
-/*!
-
-\param pndArgParent
-\param pndArg node of
- */
-xmlNodePtr
-TransformToTable(xmlNodePtr pndArgParent, xmlNodePtr pndArg, xmlChar *pucPatternSep)
-{
-  xmlNodePtr pndResult = pndArgParent;
-
-  // autodetect separator using "sep=" or statistics
-
-  if (pndArg) {
-    xmlNodePtr pndChild;
-
-    if (IS_NODE_PIE_BLOCK(pndArg) || (IS_NODE_PIE_SECTION(pndArg) && domPropIsEqual(pndArg, BAD_CAST"type", BAD_CAST"table"))) {
-      xmlNodeSetName(pndArg, BAD_CAST NAME_PIE_TABLE);
-      xmlNewTextChild(pndArg, NULL, BAD_CAST NAME_PIE_TTAG, BAD_CAST"#table");
-
-      for (pndChild = pndArg->children; pndChild;) {
-	xmlNodePtr pndChildNext;
-
-	pndChildNext = pndChild->next;
-	TransformToTable(pndArgParent, pndChild, pucPatternSep);
-	pndChild = pndChildNext;
-      }
-    }
-    else if (IS_NODE_PIE_PAR(pndArg)) {
-      SplitNodeToTableDataNodes(pndArg, pucPatternSep);
-    }
-    else if (IS_NODE_PIE_HEADER(pndArg)) {
-      SplitNodeToTableDataNodes(pndArg, pucPatternSep);
-      for (pndChild = pndArg->children; pndChild; pndChild = pndChild->next) {
-	xmlNodeSetName(pndChild,BAD_CAST NAME_PIE_TH);
-      }
-    }
-    else if (IS_NODE_PIE_TD(pndArg) || IS_NODE_PIE_TH(pndArg) || IS_NODE_PIE_TABLE(pndArg)) {
-      /* already transformed */
-    }
-  }
-  
-  return pndResult;
-}
-/* end of TransformToTable() */
 
 
 #ifdef TESTCODE

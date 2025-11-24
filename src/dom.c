@@ -1067,6 +1067,40 @@ domNodeTransformToText(xmlNodePtr pndArg, xmlChar *pucArgNew)
 } /* end of domNodeTransformToText() */
 
 
+/*! \return TRUE if two node with all childrens are equal
+\param pndA first candidate
+\param pndB second candidate
+*/
+BOOL_T
+domNodeTransformToNode(xmlNodePtr pndArg, xmlNodePtr pndArgSrc)
+{
+  BOOL_T fResult = FALSE;
+
+  if (pndArg->type == XML_ELEMENT_NODE && pndArgSrc->type == XML_ELEMENT_NODE) {
+    xmlNodePtr pndIter;
+    xmlNodePtr pndT;
+
+    xmlNodeSetName(pndArg, pndArgSrc->name);
+
+    xmlFreeNodeList(pndArg->children);
+    pndArg->children = NULL;
+    pndT = pndArgSrc->children;
+    domUnlinkNodeList(pndT);
+    xmlAddChildList(pndArg, pndT);
+
+    // xmlFreeNodeList(pndArg->properties);
+    // pndArg->properties = NULL;
+    for (pndIter = pndArgSrc->properties; pndIter; pndIter = pndIter->next) {
+      if (xmlNodeIsText(pndIter->children) && STR_IS_NOT_EMPTY(pndIter->children->content)) {
+	xmlSetProp(pndArg, pndIter->name, pndIter->children->content);
+      }
+    }
+
+    fResult = TRUE;
+  }
+  return fResult;
+} /* end of domNodeTransformToNode() */
+
 /*! \return TRUE 
 \param pndA first candidate
 \param pndB second candidate

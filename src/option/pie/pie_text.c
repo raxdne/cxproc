@@ -810,7 +810,6 @@ ImportNodeFile(xmlNodePtr pndArgImport, cxpContextPtr pccArg)
     /*! \todo add cache handling for import */
 
     xmlSetNs(pndArgImport,NULL);
-    xmlNodeSetName(pndArgImport,BAD_CAST NAME_PIE_BLOCK);
 #ifdef HAVE_CGI
     xmlSetProp(pndArgImport, BAD_CAST"context", resNodeGetNameRelative(cxpCtxtRootGet(pccArg), prnInput));
 #else
@@ -939,7 +938,6 @@ ImportNodeFile(xmlNodePtr pndArgImport, cxpContextPtr pccArg)
 	if (STR_IS_NOT_EMPTY(pucScript)) {
 	  pucContent = cxpScriptProcessText(pucScript, pccInput);
 	  if (STR_IS_NOT_EMPTY(pucContent)) {
-	    xmlNodeSetName(pndArgImport, BAD_CAST NAME_PIE_BLOCK);
 	    xmlSetProp(pndArgImport, BAD_CAST "name", NULL);
 	    xmlNodeSetContent(pndArgImport, pucContent);
 	    fResult = ImportNodeContent(pndArgImport, pccInput);
@@ -977,12 +975,12 @@ ImportNodeFile(xmlNodePtr pndArgImport, cxpContextPtr pccArg)
 	    xmlAddChildList(pndArgImport, pndT);
 	  }
 	  xmlFreeDoc(pdocPie);
-	  RecognizeIncludes(pndArgImport);
-	  TraverseIncludeNodes(pndArgImport, pccInput);
-	  ProcessPieNodeOptions(pndArgImport, pndArgImport, pccArg); /* build sub-structures for task, fig etc. */
-	  RecognizeImports(pndArgImport);
-	  ProcessImportOptions(pndArgImport,pndArgImport,pccArg); /* detect urls, substs etc. */
-	  TraverseImportNodes(pndArgImport, pccInput); /* parse result recursively */
+	  RecognizeIncludes(pndT);
+	  TraverseIncludeNodes(pndT, pccInput);
+	  ProcessPieNodeOptions(pndT, pndArgImport, pccArg); /* build sub-structures for task, fig etc. */
+	  RecognizeImports(pndT);
+	  ProcessImportOptions(pndArgImport,pndT,pccArg); /* detect urls, substs etc. */
+	  TraverseImportNodes(pndT, pccInput); /* parse result recursively */
 	}
 	else {
 	  cxpCtxtLogPrint(pccInput, 1, "Cant read from '%s'", resNodeGetNameNormalized(prnInput));

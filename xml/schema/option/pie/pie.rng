@@ -1,11 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <rng:grammar xmlns:a="http://relaxng.org/ns/compatibility/annotations/1.0" xmlns:rng="http://relaxng.org/ns/structure/1.0" ns="" datatypeLibrary="http://www.w3.org/2001/XMLSchema-datatypes">
+
   <rng:start>
     <rng:element name="pie">
       <rng:zeroOrMore>
 	<rng:attribute>
 	  <rng:anyName/>
 	</rng:attribute>
+      </rng:zeroOrMore>
+      <rng:zeroOrMore>
+        <rng:ref name="subst"/>
       </rng:zeroOrMore>
       <rng:optional>
 	<rng:element name="copyright">
@@ -27,7 +31,12 @@
 	  <rng:text/>
 	</rng:element>
       </rng:optional>
-      <rng:ref name="struct-choice"/>
+      <rng:zeroOrMore>
+        <rng:choice>
+	  <rng:ref name="section"/>
+	  <rng:ref name="outline-choice"/>
+	</rng:choice>
+      </rng:zeroOrMore>
       <rng:optional>
         <rng:ref name="meta"/>
       </rng:optional>
@@ -36,12 +45,14 @@
       </rng:optional>
     </rng:element>
   </rng:start>
+
   <rng:define name="flag-choice">
     <rng:choice>
       <rng:value>yes</rng:value>
       <rng:value>no</rng:value>
     </rng:choice>
   </rng:define>
+
   <rng:define name="valid-attr">
     <rng:optional>
       <rng:attribute name="valid">
@@ -49,6 +60,7 @@
       </rng:attribute>
     </rng:optional>
   </rng:define>
+
   <rng:define name="enum-attr">
     <rng:optional>
       <rng:attribute name="enum">
@@ -56,6 +68,7 @@
       </rng:attribute>
     </rng:optional>
   </rng:define>
+
   <rng:define name="time-attrs">
     <rng:optional>
       <rng:attribute name="origin"/>
@@ -67,6 +80,7 @@
       <rng:attribute name="date"/>
     </rng:optional>
   </rng:define>
+
   <rng:define name="prio-attrs">
     <rng:optional>
       <rng:attribute name="impact">
@@ -77,6 +91,7 @@
       </rng:attribute>
     </rng:optional>
   </rng:define>
+
   <rng:define name="view-attrs">
     <rng:optional>
       <rng:attribute name="hidden">
@@ -90,6 +105,7 @@
       <rng:attribute name="color"/>
     </rng:optional>
   </rng:define>
+
   <rng:define name="anyElement">
     <!-- s. http://relaxng.org/tutorial-20011203.html#IDAFLZR -->
     <rng:element>
@@ -105,28 +121,79 @@
       </rng:zeroOrMore>
     </rng:element>
   </rng:define>
-  <rng:define name="struct-choice">
+
+  <rng:define name="outline-choice">
     <rng:interleave>
       <rng:zeroOrMore>
         <rng:choice>
-          <rng:ref name="body"/>
-          <rng:ref name="contact"/>
-          <rng:ref name="fig"/>
-          <rng:ref name="img"/>
-          <rng:ref name="import"/>
-          <rng:ref name="list"/>
-          <rng:ref name="p"/>
-          <rng:ref name="pre"/>
-          <rng:ref name="section"/>
-          <rng:ref name="subst"/>
-          <rng:ref name="table"/>
-          <rng:ref name="tag"/>
-          <rng:ref name="target"/>
-          <rng:ref name="task"/>
-        </rng:choice>
+	  <rng:ref name="figure"/>
+	  <rng:ref name="image"/>
+	  <rng:ref name="import"/>
+	  <rng:ref name="block"/>
+	  <rng:ref name="include"/>
+	  <rng:ref name="list"/>
+	  <rng:ref name="paragraph"/>
+	  <rng:ref name="blockquote"/>
+	  <rng:ref name="pre-formatted"/>
+	  <rng:ref name="table"/>
+	  <rng:ref name="task"/>
+	  <rng:ref name="html"/>
+	  <rng:element name="hr">
+	    <rng:empty/>
+	  </rng:element>
+	</rng:choice>
       </rng:zeroOrMore>
     </rng:interleave>
   </rng:define>
+
+  <rng:define name="inline-choice">
+    <rng:interleave>
+      <rng:zeroOrMore>
+        <rng:choice>
+          <rng:text/>
+          <rng:ref name="list"/>
+          <rng:ref name="date"/>
+          <rng:ref name="link"/>
+          <rng:ref name="strong"/>
+          <rng:ref name="code"/>
+          <rng:ref name="emphasized"/>
+          <rng:ref name="hash-tag"/>
+	  <rng:ref name="span"/>
+          <rng:ref name="import"/>
+	</rng:choice>
+      </rng:zeroOrMore>
+    </rng:interleave>
+  </rng:define>
+
+  <rng:define name="span">	<!-- inline block -->
+    <rng:element name="span">
+      <rng:zeroOrMore>
+	<rng:attribute>
+	  <rng:anyName/>
+	</rng:attribute>
+      </rng:zeroOrMore>
+      <rng:interleave>
+	<rng:zeroOrMore>
+	  <rng:choice>
+	    <rng:text/>
+	    <rng:ref name="anyElement"/>
+	  </rng:choice>
+	</rng:zeroOrMore>
+      </rng:interleave>
+    </rng:element>
+  </rng:define>
+
+  <rng:define name="block">	<!-- outline block -->
+    <rng:element name="block">
+      <rng:zeroOrMore>
+	<rng:attribute>
+	  <rng:anyName/>
+	</rng:attribute>
+      </rng:zeroOrMore>
+      <rng:ref name="anyElement"/>
+    </rng:element>
+  </rng:define>
+
   <rng:define name="meta">
     <rng:element name="meta">
       <rng:zeroOrMore>
@@ -137,16 +204,31 @@
       <rng:ref name="anyElement"/>
     </rng:element>
   </rng:define>
+
   <rng:define name="error">
     <rng:element name="error">
       <rng:text/>
     </rng:element>
   </rng:define>
+
   <rng:define name="tag">
     <rng:element name="tag">
       <rng:text/>
     </rng:element>
   </rng:define>
+
+  <rng:define name="hash-tag">
+    <rng:element name="htag">
+      <rng:text/>
+    </rng:element>
+  </rng:define>
+
+  <rng:define name="date">
+    <rng:element name="date">
+      <rng:text/>
+    </rng:element>
+  </rng:define>
+
   <rng:define name="subst">
     <rng:element name="subst">
       <rng:optional>
@@ -211,34 +293,18 @@
       </rng:optional>
     </rng:element>
   </rng:define>
-  <rng:define name="p-choice">
-    <rng:interleave>
-      <rng:zeroOrMore>
-        <rng:choice>
-          <rng:text/>
-          <rng:ref name="subst"/>
-          <rng:ref name="span"/>
-          <rng:ref name="link"/>
-          <rng:ref name="b"/>
-          <rng:ref name="u"/>
-          <rng:ref name="i"/>
-        </rng:choice>
-      </rng:zeroOrMore>
-    </rng:interleave>
-  </rng:define>
-  <rng:define name="body">
-    <rng:element name="body">	<!-- embedded HTML body element, dont validate -->
+
+  <rng:define name="html">
+    <rng:element name="html">	<!-- embedded HTML body element, dont validate -->
       <rng:ref name="anyElement"/>
     </rng:element>
   </rng:define>
+
   <rng:define name="link">
     <rng:element name="link">
       <rng:zeroOrMore>
         <rng:choice>
 	  <rng:attribute name="href">
-            <rng:text/>
-	  </rng:attribute>
-	  <rng:attribute name="date">
             <rng:text/>
 	  </rng:attribute>
 	  <rng:attribute name="target">
@@ -249,34 +315,48 @@
       <rng:text/>
     </rng:element>
   </rng:define>
-  <rng:define name="b">
-    <rng:element name="b">
+
+  <rng:define name="strong">
+    <rng:element name="strong">
       <rng:text/>
     </rng:element>
   </rng:define>
-  <rng:define name="u">
-    <rng:element name="u">
+
+  <rng:define name="code">
+    <rng:element name="code">
       <rng:text/>
     </rng:element>
   </rng:define>
-  <rng:define name="i">
-    <rng:element name="i">
+
+  <rng:define name="emphasized">
+    <rng:element name="em">
       <rng:text/>
     </rng:element>
   </rng:define>
-  <rng:define name="p">
+
+  <rng:define name="paragraph">
     <rng:element name="p">
       <rng:ref name="valid-attr"/>
       <rng:ref name="view-attrs"/>
-      <rng:ref name="p-choice"/>
+      <rng:ref name="prio-attrs"/>
+      <rng:ref name="inline-choice"/>
     </rng:element>
   </rng:define>
-  <rng:define name="h">
+
+  <rng:define name="blockquote">
+    <rng:element name="blockquote">
+      <rng:text/>
+    </rng:element>
+  </rng:define>
+
+  <rng:define name="header">
     <rng:element name="h">
       <rng:ref name="view-attrs"/>
-      <rng:ref name="p-choice"/>
+      <rng:ref name="inline-choice"/>
+      <rng:text/>
     </rng:element>
   </rng:define>
+
   <rng:define name="list">
     <rng:element name="list">
       <rng:ref name="valid-attr"/>
@@ -286,91 +366,104 @@
 	  <rng:zeroOrMore>
             <rng:choice>
               <rng:ref name="list"/>
-              <rng:ref name="p"/>
+              <rng:ref name="paragraph"/>
             </rng:choice>
 	  </rng:zeroOrMore>
 	</rng:interleave>
       </rng:optional>
     </rng:element>
   </rng:define>
+
   <rng:define name="import">
     <rng:element name="import">
       <rng:ref name="valid-attr"/>
+      <rng:optional>
+	<rng:attribute name="type">
+          <rng:choice>
+            <rng:value>csv</rng:value>
+            <rng:value>markdown</rng:value>
+            <rng:value>cxp</rng:value>
+            <rng:value>script</rng:value>
+          </rng:choice>
+	</rng:attribute>
+      </rng:optional>
       <rng:choice>
 	<!-- TODO: add processing args -->
         <rng:attribute name="name"/>
 	<rng:text/>
+	<rng:ref name="anyElement"/>
       </rng:choice>
     </rng:element>
   </rng:define>
-  <rng:define name="span">
-    <rng:element name="span">
-      <rng:zeroOrMore>
-	<rng:attribute>
-	  <rng:anyName/>
-	</rng:attribute>
-      </rng:zeroOrMore>
-      <rng:text/>
+
+  <rng:define name="include">
+    <rng:element name="include">
+      <rng:ref name="valid-attr"/>
+      <rng:attribute name="name"/>
     </rng:element>
   </rng:define>
-  <rng:define name="pre">
+
+  <rng:define name="pre-formatted">
     <rng:element name="pre">
       <rng:ref name="valid-attr"/>
       <rng:text/>
     </rng:element>
   </rng:define>
-  <rng:define name="td">
+  
+  <rng:define name="table-data-cell">
     <rng:element name="td">
-      <rng:ref name="p-choice"/>
-    </rng:element>
-  </rng:define>
-  <rng:define name="th">
-    <rng:element name="th">
-      <rng:ref name="p-choice"/>
-    </rng:element>
-  </rng:define>
-  <rng:define name="tr">
-    <rng:ref name="valid-attr"/>
-    <rng:element name="tr">
-      <rng:interleave>
-	<rng:zeroOrMore>
-          <rng:choice>
-            <rng:ref name="th"/>
-            <rng:ref name="td"/>
-          </rng:choice>
-	</rng:zeroOrMore>
-      </rng:interleave>
-    </rng:element>
-  </rng:define>
-  <rng:define name="tbody">
-    <rng:element name="tbody">
-      <rng:zeroOrMore>
-        <rng:ref name="tr"/>
-      </rng:zeroOrMore>
-    </rng:element>
-  </rng:define>
-  <rng:define name="thead">
-    <rng:element name="thead">
-      <rng:zeroOrMore>
-        <rng:ref name="tr"/>
-      </rng:zeroOrMore>
-    </rng:element>
-  </rng:define>
-  <rng:define name="table">
-    <rng:element name="table">
-      <!-- TODO: <rng:ref name="valid-attr"/> -->
       <rng:optional>
-        <rng:ref name="thead"/>
+	<rng:attribute name="colspan">
+	  <data type="int"/>
+	</rng:attribute>
       </rng:optional>
-      <rng:choice>
-        <rng:ref name="tbody"/>
-        <rng:zeroOrMore>
-          <rng:ref name="tr"/>
-        </rng:zeroOrMore>
-      </rng:choice>
+      <rng:ref name="inline-choice"/>
     </rng:element>
   </rng:define>
-  <rng:define name="img">
+  
+  <rng:define name="table-head-cell">
+    <rng:element name="th">
+      <rng:optional>
+	<rng:attribute name="colspan">
+	  <data type="int"/>
+	</rng:attribute>
+      </rng:optional>
+      <rng:ref name="inline-choice"/>
+    </rng:element>
+  </rng:define>
+  
+  <rng:define name="table">
+    <rng:choice>
+      <rng:element name="table"> <!-- structured table -->
+	<rng:element name="thead">
+	  <rng:element name="tr">
+	    <rng:oneOrMore>
+              <rng:ref name="table-head-cell"/>
+	    </rng:oneOrMore>
+	  </rng:element>
+	</rng:element>
+	<rng:element name="tbody">
+	  <rng:oneOrMore>
+	    <rng:element name="tr">
+	      <rng:oneOrMore>
+		<rng:ref name="table-data-cell"/>
+	      </rng:oneOrMore>
+	    </rng:element>
+	  </rng:oneOrMore>
+	</rng:element>
+      </rng:element>
+      <rng:element name="table"> <!-- compact table -->
+	<rng:element name="tr">
+	  <rng:interleave>
+	    <rng:ref name="table-head-cell"/>
+	    <rng:ref name="table-data-cell"/>
+	  </rng:interleave>
+	</rng:element>
+      </rng:element>
+    </rng:choice>
+  </rng:define>
+  
+  <rng:define name="image">
     <rng:element name="img">
       <rng:ref name="valid-attr"/>
       <rng:optional>
@@ -381,78 +474,50 @@
       </rng:optional>
     </rng:element>
   </rng:define>
-  <rng:define name="fig">
+
+  <rng:define name="figure">
     <rng:element name="fig">
       <rng:ref name="valid-attr"/>
       <rng:ref name="view-attrs"/>
-      <rng:ref name="img"/>
-      <rng:ref name="h"/>
+      <rng:ref name="image"/>
+      <rng:ref name="header"/>
     </rng:element>
   </rng:define>
+
   <rng:define name="task">
     <rng:element name="task">
       <rng:ref name="valid-attr"/>
       <rng:ref name="time-attrs"/>
       <rng:ref name="prio-attrs"/>
       <rng:ref name="view-attrs"/>
-      <rng:ref name="h"/>
       <rng:optional>
-	<rng:interleave>
-	  <rng:zeroOrMore>
-            <rng:choice>
-              <rng:ref name="contact"/>
-              <rng:ref name="img"/>
-              <rng:ref name="import"/>
-              <rng:ref name="list"/>
-              <rng:ref name="p"/>
-              <rng:ref name="pre"/>
-              <rng:ref name="tag"/>
-            </rng:choice>
-	  </rng:zeroOrMore>
-	</rng:interleave>
-      </rng:optional>
-    </rng:element>
-  </rng:define>
-  <rng:define name="target">
-    <rng:element name="target">
-      <rng:ref name="valid-attr"/>
-      <rng:ref name="time-attrs"/>
-      <rng:ref name="prio-attrs"/>
-      <rng:ref name="view-attrs"/>
-      <rng:ref name="h"/>
-      <rng:optional>
-	<rng:interleave>
-	  <rng:zeroOrMore>
-            <rng:choice>
-              <rng:ref name="tag"/>
-              <rng:ref name="list"/>
-              <rng:ref name="p"/>
-            </rng:choice>
-	  </rng:zeroOrMore>
-	</rng:interleave>
-      </rng:optional>
-    </rng:element>
-  </rng:define>
-  <rng:define name="contact">
-    <rng:element name="contact">
-      <rng:ref name="valid-attr"/>
-      <rng:optional>
-        <rng:attribute name="idref"/>
-      </rng:optional>
-      <rng:interleave>
-	<rng:zeroOrMore>
+	<rng:attribute name="class">
           <rng:choice>
-            <rng:ref name="img"/>
-            <rng:ref name="import"/>
-            <rng:ref name="list"/>
-            <rng:ref name="p"/>
-            <rng:ref name="pre"/>
-            <rng:ref name="tag"/>
+            <rng:value>todo</rng:value>
+            <rng:value>bug</rng:value>
+            <rng:value>done</rng:value>
+            <rng:value>req</rng:value>
+            <rng:value>test</rng:value>
+            <rng:value>target</rng:value>
           </rng:choice>
-	</rng:zeroOrMore>
-      </rng:interleave>
+	</rng:attribute>
+      </rng:optional>
+      <rng:ref name="header"/>
+      <rng:optional>
+	<rng:interleave>
+	  <rng:zeroOrMore>
+            <rng:choice>
+              <rng:ref name="list"/>
+              <rng:ref name="paragraph"/>
+              <rng:ref name="pre-formatted"/>
+              <rng:ref name="tag"/>
+            </rng:choice>
+	  </rng:zeroOrMore>
+	</rng:interleave>
+      </rng:optional>
     </rng:element>
   </rng:define>
+
   <rng:define name="section">
     <rng:element name="section">
       <rng:ref name="valid-attr"/>
@@ -460,35 +525,17 @@
       <rng:ref name="prio-attrs"/>
       <rng:ref name="view-attrs"/>
       <rng:optional>
-	<rng:ref name="h"/>
+	<rng:ref name="header"/>
       </rng:optional>
-      <rng:ref name="struct-choice"/>
+      <rng:interleave>
+	<rng:zeroOrMore>
+	  <rng:choice>
+	    <rng:ref name="section"/>
+	    <rng:ref name="outline-choice"/>
+	  </rng:choice>
+	</rng:zeroOrMore>
+      </rng:interleave>
     </rng:element>
   </rng:define>
-  <!--
-      <rng:define name="phone"
-      </rng:define>
-      <rng:define name="mail"
-      </rng:define>
-      <rng:define name="work"
-      </rng:define>
-      <rng:define name="private"
-      </rng:define>
-      <rng:define name="mobile"
-      </rng:define>
-      <rng:define name="url"
-      </rng:define>
-      <rng:define name="vcard"
-      </rng:define>
-      <rng:define name="name"
-      </rng:define>
-      <rng:define name="title"
-      </rng:define>
-      <rng:define name="birthday"
-      </rng:define>
-      <rng:define name="br"
-      </rng:define>
-      <rng:define name="firstname"
-      </rng:define>
-  -->
+
 </rng:grammar>

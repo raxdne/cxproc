@@ -1,51 +1,130 @@
 <?xml version="1.0" encoding="utf-8"?>
-<pie>
+<pie xmlns:pie="http://www.tenbusch.info/pie" xmlns:cxp="http://www.tenbusch.info/cxproc" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.0">
+  <!-- xmllint -noout -relaxng ~/cxproc-build/cxproc/xml/schema/option/pie/pie.rng test_pie_specification.pie -->
   <section>
     <h>PIE Specification</h>
     <section>
-      <h>Nodes</h>
+      <h>Outline Nodes</h>
       <p>Par</p>
       <list>
 	<p>A</p>
 	<p>B</p>
 	<p>C</p>
       </list>
-      <task class="todo">
+      <task>
 	<h>Demo Task</h>
 	<p>details</p>
       </task>
       <table>
 	<thead>
-	  <tr><td colspan="2">Z</td></tr>
+	  <tr><th colspan="2">Z</th></tr>
 	</thead>
 	<tbody>
 	  <tr><td>Y</td><td>X</td></tr>
 	</tbody>
       </table>
+      <section>
+	<h>Sub Section</h>
+	<p>AAA</p>
+      </section>
+    </section>
+    <section>
+      <h>Inline Nodes</h>
+      <p>_em_ __bold__</p>
+      <hr/>
+      <p>http://www.abcd.de/</p>
+    <section>
+      <h>Date Nodes</h>
+      <p>Date 2025-11-22</p>
+    </section>
+    <section>
+      <h>Tag Nodes</h>
+      <p>Tag @test #haha</p>
+    </section>
+    </section>
+    <section>
+      <h>Markup Nodes</h>
+      <p>TODO: to be done</p>
+      <p>DONE: already done</p>
+      <p>TEST: to be tested</p>
+      <p>REQ: required</p>
+      <p>BUG: to be fixed</p>
+      <p>Fig: Image</p>
+      <p>data:image/png;base64,CiMgQSAoQylvbmZpZ3VyYWJsZSAoWCltbCAoUFJPQyll</p>
+    </section>
+    <section>
+      <h>HTML Nodes</h>
       <html>
-	<div><strong>STRONG</strong></div>
+	<div><strong>STRONG</strong> <a href="http://www.abcd.de/">Link</a></div>
       </html>
+    </section>
+    <section>
+      <h>Inline Imports</h>
+      <p><import>A</import></p>
+      <p><import type="markdown">A _B_</import></p>
+      <p>inline calc: <import type="script">5*5</import></p>
     </section>
     <section>
       <h>Node Imports</h>
       <import>A</import>
       <import type="markdown">A _B_</import>
-      <import type="csv">A,B;C</import>
-      <p>calc: <import type="script">5*5</import></p>
+      <import type="csv">A,B;C\nD;E,F</import>
+      <import type="script">5*5</import>
+      <import type="cxp">
+	<cxp:info/>
+      </import>
+    </section>
+    <section>
+      <h>Structure-In-Node Imports</h>
+      <import>
+* A
+
+** B
+
+DEF
+
+** C
+
+*** CC
+
+**** CCC
+      </import>
+      <import type="markdown">
+# A
+
+## _B_
+
+DEF
+     
+## C
+     
+### CC
+     
+#### CCC
+</import>
+      <import type="csv">A,B;C\nD;E,F</import>
+      <import type="script">5*5</import>
+      <import type="cxp">
+	<cxp:info/>
+      </import>
     </section>
     <section>
       <h>File Imports</h>
-      <import name="none.txt"/>
-      <import name="test-pie-import-plain-001.md"/>
-      <import name="test-pie-import-plain-001.csv"/>
-      <import name="test-pie-import-plain-001.js"/>
+      <import name="test_none.txt"/>
+      <import name="test_pie.pie"/>
+      <import name="test_pie.txt"/>
+      <import name="test_pie.md"/>
+      <import name="test_pie.csv"/>
+      <import name="test_pie.cxp"/>
+      <import name="test_pie.js"/>
     </section>
     <section>
       <h>File Includes</h>
-      <include name="test-pie-import-plain-001.pie"/>
-      <include name="test-pie-import-plain-001.html"/>
-      <include name="test-pie-import-plain-001.txt"/>
-      <import name="test-pie-import-plain-001.js"/>
+      <include name="test_none.txt"/>
+      <include name="test_pie.pie"/>
+      <include name="test_pie.txt"/>
+      <include name="test_pie.html"/>
+      <include name="test_pie.js"/>
     </section>
   </section>
 </pie>

@@ -162,7 +162,14 @@ GetParentElement(cmark_node* pcmnArg, xmlNodePtr pndArgParent)
 xmlNodePtr
 cmarkTreeToDOM(xmlNodePtr pndArgBlock, xmlNodePtr pndArg, cmark_node* pcmnArg)
 {
-  xmlNodePtr pndResult = pndArg;
+  xmlNodePtr pndResult = NULL;
+
+  if (pndArg) {
+    pndResult = pndArg;
+  }
+  else {
+    pndResult = xmlNewNode(NULL, BAD_CAST NAME_PIE_BLOCK);
+  }
 
   if (pcmnArg) {
     xmlChar* pucT;
@@ -179,7 +186,6 @@ cmarkTreeToDOM(xmlNodePtr pndArgBlock, xmlNodePtr pndArg, cmark_node* pcmnArg)
     }
     /* Block */
     else if (pcmnArg->type == CMARK_NODE_DOCUMENT) {
-      pndResult = xmlNewChild(pndArg, NULL, BAD_CAST NAME_PIE_BLOCK, NULL);
       for (pndT = pndResult,  pcmnIter = pcmnArg->first_child; pcmnIter; pcmnIter = pcmnIter->next) {
 	pndT = cmarkTreeToDOM(pndResult, pndT, pcmnIter);
       }
@@ -443,9 +449,9 @@ cmarkTreeToDOM(xmlNodePtr pndArgBlock, xmlNodePtr pndArg, cmark_node* pcmnArg)
 } /* end of cmarkTreeToDOM() */
 
 
-/*! Append the parsed plain text to the given pndArgTop
+/*! Append the parsed plain text to the given pndArgImport
 
-\param pndArgTop parent pcmnArg to append import result nodes OR NULL if pndArgImport must be replaced by result
+\param pndArgImport parent pcmnArg to append import result nodes OR NULL if pndArgImport must be replaced by result
 \param pucArg pointer to an UTF-8 encoded buffer (not XML-conformant!)
 
 \return pointer to result pcmnArg "block" or NULL in case of errors
@@ -454,7 +460,7 @@ similar to ParsePlainBuffer()
 
 */
 xmlNodePtr
-ParseMarkdownBuffer(xmlNodePtr pndArgTop, xmlChar* pucArg)
+ParseMarkdownBuffer(xmlNodePtr pndArgImport, xmlChar* pucArg)
 {
   xmlNodePtr pndResult = NULL;
 
@@ -462,24 +468,8 @@ ParseMarkdownBuffer(xmlNodePtr pndArgTop, xmlChar* pucArg)
     cmark_node *doc;
 
     if ((doc = cmark_parse_document((const char *)pucArg, strlen((const char *)pucArg), CMARK_OPT_DEFAULT)) != NULL) {
-      if (xmlIsBlankNode(pndArgTop) == 1) {
-	xmlNodePtr pndBlock;
-	xmlNodePtr pndIter;
-
-	pndBlock = cmarkTreeToDOM(NULL, pndArgTop, doc);
-	cmark_node_free(doc);
-
-	for (pndIter=pndBlock; IS_NODE_PIE_BLOCK(pndIter); pndIter=pndIter->children);
-	domReplaceNodeList(pndArgTop, pndIter);
-	pndResult = pndIter;
-	xmlFreeNode(pndBlock);
-	//xmlFreeNode(pndArgTop);
-      }
-      else {
-	cmarkTreeToDOM(pndArgTop, pndArgTop, doc);
-	cmark_node_free(doc);
-	pndResult = pndArgTop;
-      }
+      pndResult = cmarkTreeToDOM(NULL, pndResult, doc);
+      cmark_node_free(doc);
     }
   }
   return pndResult;
