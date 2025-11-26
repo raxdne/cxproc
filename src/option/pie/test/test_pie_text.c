@@ -58,7 +58,7 @@ pieTextTest(cxpContextPtr pccArg)
     xmlFreeNode(pndPie);
   }
 
-  if (RUNTEST) {
+  if (SKIPTEST) {
 
 #include "test_pie_specification.c"
 
@@ -131,109 +131,43 @@ pieTextTest(cxpContextPtr pccArg)
       printf("Error 1 tree\n");
     }
 
+    if (ProcessIncludeNode(pnd87, pccArg) == FALSE) {
+      printf("Error 1 tree\n");
+    }
+
+    if (ProcessIncludeNode(pnd88, pccArg) == FALSE) {
+      printf("Error 1 tree\n");
+    }
+
+    if (ProcessIncludeNode(pnd89, pccArg) == FALSE) {
+      printf("Error 1 tree\n");
+    }
+
+    if (ProcessIncludeNode(pnd90, pccArg) == FALSE) {
+      printf("Error 1 tree\n");
+    }
+
     domPutDocString(stderr, BAD_CAST "post import result", pdocResult);
     xmlFreeDoc(pdocResult);
   }
 
-  if (RUNTEST) {
+  if (SKIPTEST) {
+    xmlDocPtr pdocT;
 
 #include "test_pie_specification.c"
 
-    //domPutDocString(stderr, BAD_CAST "pre import result", pdocResult);
+    // domPutDocString(stderr, BAD_CAST "pre import result", pdocResult);
 
     i++;
     printf("TEST %i in '%s:%i': import dummy = ", i, __FILE__, __LINE__);
 
-    TraverseImportNodes(xmlDocGetRootElement(pdocResult), pccArg);
+    pdocT = pieProcessPieNode(xmlDocGetRootElement(pdocResult), pccArg);
 
-    domPutDocString(stderr, BAD_CAST "post import result", pdocResult);
+    domPutDocString(stderr, BAD_CAST "post import result", pdocT);
+    xmlFreeDoc(pdocT);
     xmlFreeDoc(pdocResult);
   }
 
-  return (i - n_ok);
-
-  if (RUNTEST) {
-    xmlNodePtr pndPie;
-    xmlNodePtr pndImport0, pndImport1, pndImport2, pndImport3, pndImport4, pndImport5, pndImport6, pndImport7;
-    xmlNodePtr pndSection;
-    xmlNodePtr pndT;
-
-    i++;
-    printf("TEST %i in '%s:%i': import dummy = ", i, __FILE__, __LINE__);
-
-    pndImport0 = pndImport1 = pndImport2 = pndImport3 = pndImport4 = pndImport5 = pndImport6 = pndImport7 = NULL;
-
-    pndPie = xmlNewNode(NULL, "pie");
-
-    pndSection = xmlNewChild(pndPie, NULL, "section", NULL);
-
-    xmlNewChild(pndSection, NULL, "h", BAD_CAST "Node Imports");
-
-    pndImport0 = xmlNewChild(pndSection, NULL, "import", NULL);
-    
-    pndImport1 = xmlNewChild(pndSection, NULL, "import", BAD_CAST "A");
-
-    xmlAddChild(pndSection, xmlNewText("  "));
-    
-    pndImport2 = xmlNewChild(pndSection, NULL, "import", BAD_CAST "A _B_");
-    xmlSetProp(pndImport2, BAD_CAST "type", BAD_CAST "markdown");
-    
-#if 0
-    pndImport3 = xmlNewChild(pndSection, NULL, "import", BAD_CAST "A,B;C");
-    xmlSetProp(pndImport3, BAD_CAST "type", BAD_CAST "csv");
-    
-    pndT = xmlNewChild(pndSection, NULL, "p", BAD_CAST "P Node Imports: ");
-
-    pndImport4 = xmlNewChild(pndT, NULL, "import", NULL);
-    
-    pndImport5 = xmlNewChild(pndT, NULL, "import", BAD_CAST "A");
-
-    xmlAddChild(pndT, xmlNewText("  "));
-    
-    pndImport6 = xmlNewChild(pndT, NULL, "import", BAD_CAST "A _B_");
-    xmlSetProp(pndImport, BAD_CAST "type", BAD_CAST "markdown");
-
-    xmlAddChild(pndT, xmlNewText("  "));
-    
-    pndImport7 = xmlNewChild(pndT, NULL, "import", BAD_CAST "A,B;C");
-    xmlSetProp(pndImport, BAD_CAST "type", BAD_CAST "csv");
-    
-    pndSection = xmlNewChild(pndPie, NULL, "section", NULL);
-
-    pndT = xmlNewChild(pndSection, NULL, "h", NULL);
-    xmlNodeAddContent(pndT, BAD_CAST "File Imports");
-
-    pndImport = xmlNewChild(pndSection, NULL, "import", NULL);
-    xmlSetProp(pndImport, BAD_CAST "name", BAD_CAST "none.txt");
-
-    pndImport = xmlNewChild(pndSection, NULL, "import", NULL);
-    xmlSetProp(pndImport, BAD_CAST "name", BAD_CAST "test-pie-import-plain-001.txt");
-#endif
-
-    //TraverseImportNodes(pndPie, pccArg);
-
-    if (ProcessImportNode(NULL,pccArg) == TRUE) {
-      printf("Error 1 tree\n");
-    }
-
-    if (ProcessImportNode(pndImport0,pccArg) == TRUE) {
-      printf("Error 1 tree\n");
-    }
-
-    if (ProcessImportNode(pndImport1,pccArg) == FALSE) {
-      printf("Error 1 tree\n");
-    }
-
-#if 0
-    if (IS_NODE_PIE(pndPie) == FALSE || domNumberOfChild(pndPie, BAD_CAST NAME_PIE_BLOCK) != 1 ||
-	domNumberOfChild(pndPie->children, BAD_CAST NAME_PIE_SECTION) != 1 || domNumberOfChild(pndPie->children, BAD_CAST NAME_PIE_IMPORT) != 0) {
-      printf("Error 1 tree\n");
-    }
-#endif
-
-    domPutNodeString(stderr, BAD_CAST "import result", pndPie);
-    xmlFreeNodeList(pndPie);
-  }
 
   if (RUNTEST) {
     xmlDocPtr pdocT;

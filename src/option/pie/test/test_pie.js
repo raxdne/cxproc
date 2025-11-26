@@ -1,2 +1,2 @@
 
-s = 'This is an import';
+s = 'This is an Javascript File import';
