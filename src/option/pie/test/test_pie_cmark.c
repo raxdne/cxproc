@@ -58,7 +58,6 @@ pieCmarkTest(void)
 
 
   if (RUNTEST) {
-    xmlNodePtr pndPie;
     xmlNodePtr pndBlock;
     xmlChar* pucContent = BAD_CAST
       "# ABCDE #\n"
@@ -96,13 +95,10 @@ pieCmarkTest(void)
     i++;
     printf("TEST %i in '%s:%i': parse markdown text and build list of import elements = ", i, __FILE__, __LINE__);
 
-    if ((pndPie = xmlNewNode(NULL, BAD_CAST NAME_PIE_PIE)) == NULL) {
-      printf("Error xmlNewNode()\n");
-    }
-    else if (ParseMarkdownBuffer(pndPie, pucContent) == NULL) {
+    if ((pndBlock = ParseMarkdownBuffer(NULL, pucContent)) == NULL) {
       printf("Error 1 ParseMarkdownBuffer()\n");
     }
-    else if ((pndBlock = pndPie->children) == NULL || IS_NODE_PIE_BLOCK(pndBlock) == FALSE) {
+    else if (IS_NODE_PIE_BLOCK(pndBlock) == FALSE) {
       printf("Error 2 ParseMarkdownBuffer()\n");
     }
 #if 0 
@@ -118,8 +114,6 @@ pieCmarkTest(void)
     //puts(pucContent);
     //domPutNodeString(stderr, BAD_CAST"import result", pndPie);
 #endif
-    
-    xmlFreeNode(pndPie);
   }
 
 #endif

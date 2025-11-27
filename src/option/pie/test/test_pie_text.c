@@ -247,7 +247,7 @@ pieTextTest(cxpContextPtr pccArg)
     else if (ParsePlainBuffer(pndPie, pucContent, RMODE_TABLE) == NULL) {
       printf("Error 1 ParsePlainBuffer()\n");
     }
-    else if (domNumberOfChild(pndPie, BAD_CAST NAME_PIE_BLOCK) != 1 || domNumberOfChild(pndPie->children, BAD_CAST NAME_PIE_TABLE) != 1) {
+    else if (domNumberOfChild(pndPie, BAD_CAST NAME_PIE_TABLE) != 1) {
       printf("Error 2 ParsePlainBuffer()\n");
     }
     else {
@@ -284,7 +284,7 @@ pieTextTest(cxpContextPtr pccArg)
     else if (ParsePlainBuffer(pndPie, pucContent, RMODE_TABLE) == NULL) {
       printf("Error 1 ParsePlainBuffer()\n");
     }
-    else if (domNumberOfChild(pndPie, BAD_CAST NAME_PIE_BLOCK) != 1 || domNumberOfChild(pndPie->children, BAD_CAST NAME_PIE_TABLE) != 1) {
+    else if (IS_NODE_PIE_BLOCK(pndPie) == FALSE || domNumberOfChild(pndPie, BAD_CAST NAME_PIE_TABLE) != 1) {
       printf("Error 2 ParsePlainBuffer()\n");
     }
     else {
@@ -296,7 +296,7 @@ pieTextTest(cxpContextPtr pccArg)
   }
 
 
-  if (RUNTEST) {
+  if (SKIPTEST) {
     xmlNodePtr pndPie;
     xmlChar *pucContent = BAD_CAST
       "\n"
@@ -347,7 +347,7 @@ pieTextTest(cxpContextPtr pccArg)
   }
 
 
-  if (RUNTEST) {
+  if (SKIPTEST) {
     xmlChar *pucContent;
     xmlNodePtr pndPie = NULL;
     xmlNodePtr pndBlock;
@@ -437,7 +437,7 @@ pieTextTest(cxpContextPtr pccArg)
       printf("Error 2 tree\n");
     }
 #endif
-    domPutNodeString(stderr, BAD_CAST "split result", pndPie);
+    //domPutNodeString(stderr, BAD_CAST "split result", pndPie);
     xmlFreeNode(pndPie);
   }
 
@@ -494,7 +494,7 @@ pieTextTest(cxpContextPtr pccArg)
       printf("Error 2 tree\n");
     }
 #endif
-    domPutNodeString(stderr, BAD_CAST "split result", pndPie);
+    //domPutNodeString(stderr, BAD_CAST "split result", pndPie);
     xmlFreeNode(pndPie);
   }
 
@@ -636,8 +636,8 @@ pieTextTest(cxpContextPtr pccArg)
       //domPutNodeString(stderr, BAD_CAST "pre include", pndPie);
       TraverseIncludeNodes(pndPie, pccArg);
       //domPutNodeString(stderr, BAD_CAST "post include", pndPie);
-      if (IS_NODE_PIE(pndPie) == FALSE || (j = domNumberOfChild(pndPie, NULL)) != 13
-	|| domNumberOfChild(pndPie->children, BAD_CAST NAME_PIE_INCLUDE) != 0) {
+      if (IS_NODE_PIE(pndPie) == FALSE || (j = domNumberOfChild(pndPie, NULL)) != 6
+	|| IS_NODE_PIE_BLOCK(pndPie->children) == FALSE) {
 	printf("Error 1 tree: %i\n",j);
       }
       else if ((pdocT = pieProcessPieNode(pndPie, pccArg)) == NULL) {

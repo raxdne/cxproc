@@ -40,22 +40,22 @@ pieTextCsvTest(void)
     i++;
     printf("TEST %i in '%s:%i': find separators in string = ",i,__FILE__,__LINE__);
 
-    if (GetNextSeparatorPtr(NULL,",") != NULL) {
+    if (GetNextSeparatorPtr(NULL,',') != NULL) {
       printf("Error finding separators\n");
     }
-    else if ((pucResult = GetNextSeparatorPtr(pucResult,",")) == NULL) {
+    else if ((pucResult = GetNextSeparatorPtr(pucResult,',')) == NULL) {
       printf("Error finding separators\n");
     }
     else if (pucResult != &pucData[1]) {
       printf("Error finding separators\n");
     }
-    else if ((pucResult = GetNextSeparatorPtr(&pucResult[1],",")) == NULL) {
+    else if ((pucResult = GetNextSeparatorPtr(&pucResult[1],',')) == NULL) {
       printf("Error finding separators\n");
     }
     else if (pucResult != &pucData[7]) {
       printf("Error finding separators\n");
     }
-    else if ((pucResult = GetNextSeparatorPtr(&pucResult[1],",")) == NULL) {
+    else if ((pucResult = GetNextSeparatorPtr(&pucResult[1],',')) == NULL) {
       printf("Error finding separators\n");
     }
     else if (pucResult != &pucData[17]) {

@@ -730,7 +730,6 @@ pieTextBlocksTest(void)
 
 
   if (RUNTEST) {
-    xmlNodePtr pndPie;
     xmlNodePtr pndBlock;
     xmlChar *pucContent = BAD_CAST
       "; begin\n\n"
@@ -769,13 +768,10 @@ pieTextBlocksTest(void)
     i++;
     printf("TEST %i in '%s:%i': parse multi-block plain text and build list of import elements = ", i, __FILE__, __LINE__);
 
-    if ((pndPie = xmlNewNode(NULL, BAD_CAST NAME_PIE_PIE)) == NULL) {
-      printf("Error xmlNewNode()\n");
-    }
-    else if (ParsePlainBuffer(pndPie, pucContent, RMODE_PAR) == NULL) {
+    if ((pndBlock = ParsePlainBuffer(NULL, pucContent, RMODE_PAR)) == NULL) {
       printf("Error 1 ParsePlainBuffer()\n");
     }
-    else if ((pndBlock = pndPie->children) == NULL || IS_NODE_PIE_BLOCK(pndBlock) == FALSE) {
+    else if (IS_NODE_PIE_BLOCK(pndBlock) == FALSE) {
       printf("Error 2 ParsePlainBuffer()\n");
     }
     else if (domNumberOfChild(pndBlock, BAD_CAST NAME_PIE_SECTION) != 2) {
@@ -785,21 +781,19 @@ pieTextBlocksTest(void)
       n_ok++;
       printf("OK\n");
     }
-    //domPutNodeString(stderr, BAD_CAST"import result", pndPie);
-    xmlFreeNode(pndPie);
+    //domPutNodeString(stderr, BAD_CAST"import result", pndBlock);
+    xmlFreeNode(pndBlock);
   }
 
 
   if (RUNTEST) {
     resNodePtr prnT = NULL;
     xmlNodePtr pndPie;
-    xmlNodePtr pndBlock;
-    xmlChar *pucT = NULL;
 
     i++;
     printf("TEST %i in '%s:%i': parse multi-block plain text from file and build list of import elements = ", i, __FILE__, __LINE__);
 
-    if ((pndPie = xmlNewNode(NULL, BAD_CAST NAME_PIE_PIE)) == NULL) {
+    if ((pndPie = xmlNewNode(NULL, BAD_CAST NAME_PIE_IMPORT)) == NULL) {
       printf("Error xmlNewNode()\n");
     }
     else if ((prnT = resNodeDirNew(BAD_CAST TESTPREFIX "option/pie/text/test-pie-loop-step-0.txt")) == NULL) {
@@ -808,10 +802,10 @@ pieTextBlocksTest(void)
     else if (ParsePlainBuffer(pndPie, BAD_CAST resNodeGetContent(prnT,-1), RMODE_PAR) == NULL) {
       printf("Error 1 ParsePlainBuffer()\n");
     }
-    else if ((pndBlock = pndPie->children) == NULL || IS_NODE_PIE_BLOCK(pndBlock) == FALSE) {
+    else if (IS_NODE_PIE_BLOCK(pndPie) == FALSE) {
       printf("Error 2 ParsePlainBuffer()\n");
     }
-    else if (domNumberOfChild(pndBlock, BAD_CAST NAME_PIE_SECTION) != 3) {
+    else if (domNumberOfChild(pndPie, BAD_CAST NAME_PIE_SECTION) != 3) {
       printf("Error 3 ParsePlainBuffer()\n");
     }
     else {

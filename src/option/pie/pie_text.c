@@ -1287,7 +1287,7 @@ IncludeNodeFile(xmlNodePtr pndArgInclude, cxpContextPtr pccArg)
 	}
 
 	if (STR_IS_NOT_EMPTY(pucContent)) {
-	  xmlNodeSetContent(pndArgInclude, pucContent);
+	  xmlNewChild(pndArgInclude, NULL, BAD_CAST NAME_PIE_PRE, pucContent);
 	}
 	else {
 	  cxpCtxtLogPrint(pccInput, 1, "Cant read from '%s'", resNodeGetNameNormalized(prnInput));
@@ -1306,13 +1306,8 @@ IncludeNodeFile(xmlNodePtr pndArgInclude, cxpContextPtr pccArg)
 	  xmlNodePtr pndT;
 
 	  if ((pndT = xmlDocGetRootElement(pdocPie)) != NULL && IS_NODE_PIE_PIE(pndT) && pndT->children != NULL) {
-#if 0
-	    /* domUnlinkNodeList(pndArgInclude); is not yet usable when there is a mix of namspaces */
-	    pndT = xmlCopyNodeList(pndArgInclude->children);
-#else
 	    pndT = pndT->children;
 	    domUnlinkNodeList(pndT);
-#endif
 	    xmlAddChildList(pndArgInclude, pndT);
 	  }
 	  xmlFreeDoc(pdocPie);
@@ -1331,14 +1326,8 @@ IncludeNodeFile(xmlNodePtr pndArgInclude, cxpContextPtr pccArg)
 	    ((pdocHtml = resNodeReadDoc(prnInput)) != NULL)) { /*! \todo remove redundant cache lookup */
 	  xmlNodePtr pndT;
 
-	  if ((pndT = xmlDocGetRootElement(pdocHtml)) != NULL && pndT->children != NULL) {
-#if 0
-	    /* domUnlinkNodeList(pndArgInclude); is not yet usable when there is a mix of namspaces */
-	    pndT = xmlCopyNodeList(pndArgInclude->children);
-#else
-	    pndT = domGetFirstChild(pndT, BAD_CAST "body");
+	  if ((pndT = xmlDocGetRootElement(pdocHtml)) != NULL && (pndT = domGetFirstChild(pndT, BAD_CAST "body")) != NULL) {
 	    domUnlinkNodeList(pndT);
-#endif
 	    xmlNodeSetName(pndT, BAD_CAST NAME_PIE_HTML);
 	    xmlAddChildList(pndArgInclude, pndT);
 	  }
@@ -1357,6 +1346,7 @@ IncludeNodeFile(xmlNodePtr pndArgInclude, cxpContextPtr pccArg)
 	if (STR_IS_NOT_EMPTY(pucContent)) {
 	  xmlNodeSetContent(pndArgInclude, pucContent);
 	  xmlNodeSetName(pndArgInclude, BAD_CAST NAME_PIE_SCRIPT);
+	  xmlSetProp(pndArgInclude, BAD_CAST"eval", BAD_CAST"no");
 	}
 	else {
 	  cxpCtxtLogPrint(pccInput, 1, "Cant read from '%s'", resNodeGetNameNormalized(prnInput));
@@ -1659,7 +1649,7 @@ ProcessImportNode(xmlNodePtr pndArgImport, cxpContextPtr pccArg)
 	fResult = ImportNodeFile(pndArgImport, pccHere);
       }
       else {
-	xmlAddChild(pndArgImport, xmlNewComment(BAD_CAST "unknown content type"));
+	xmlSetProp(pndArgImport, BAD_CAST "error", BAD_CAST "unknown content type");
       }
     }
     else {
@@ -1670,7 +1660,7 @@ ProcessImportNode(xmlNodePtr pndArgImport, cxpContextPtr pccArg)
 	fResult = ImportNodeContent(pndArgImport, (cxpCtxtLocationGet(pccDoc) ? pccDoc : pccHere));
       }
       else {
-	domNodeTransformToPI(pndArgImport,BAD_CAST "unknown content type ");
+	xmlSetProp(pndArgImport, BAD_CAST "error", BAD_CAST "unknown content type");
       }
     }
 

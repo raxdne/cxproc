@@ -508,7 +508,7 @@ ParsePlainBuffer(xmlNodePtr pndArgImport, xmlChar *pucArg, rmode_t eArgMode)
 
   CompileRegExpDefaults();
 
-  if (IS_NODE_PIE_IMPORT(pndArgImport) && STR_IS_NOT_EMPTY(pucArg)) {
+  if (STR_IS_NOT_EMPTY(pucArg)) {
     xmlNodePtr pndBlock; /*! */
     xmlNodePtr pndT; /*! */
 
@@ -527,22 +527,26 @@ ParsePlainBuffer(xmlNodePtr pndArgImport, xmlChar *pucArg, rmode_t eArgMode)
     }
     SetTypeAttr(pndResult, eArgMode);
 
-    if (pndResult == NULL) {
+    if (pndArgImport == NULL) {
+      /* result is complete already */
+    }
+    else if (pndResult == NULL) {
       /* empty result */
     }
-    else if (IS_NODE_STRUCT(pndArgImport->parent)) { // "section/import" -> "section/block"
-      xmlNodePtr pndT = NULL;
-
-      //xmlNodeSetName(pndArgImport, pndResult->name);
+    else if (pndArgImport->parent == NULL || IS_NODE_STRUCT(pndArgImport->parent)) { // "section/import" -> "section/block"
       xmlNodeSetName(pndArgImport, BAD_CAST NAME_PIE_BLOCK);
       pndT = pndResult->children;
       domUnlinkNodeList(pndT);
       xmlAddChildList(pndArgImport, pndT);
+      xmlFreeNode(pndResult);
+      pndResult = pndArgImport;
     }
     else if ((pndT = NodeIsSingleParagraph(pndResult))) { // "p/import" -> "p/span"
       domNodeTransformToNode(pndArgImport, pndT);
       xmlNodeSetName(pndArgImport, BAD_CAST NAME_PIE_SPAN);
-    }
+      xmlFreeNode(pndResult);
+       pndResult = pndArgImport;
+   }
     else { // "p/import/..." -> "p/span/..."
       xmlNodePtr pndIter;
 
@@ -551,8 +555,9 @@ ParsePlainBuffer(xmlNodePtr pndArgImport, xmlChar *pucArg, rmode_t eArgMode)
       domUnlinkNodeList(pndT);
       xmlAddChildList(pndArgImport, pndT);
       xmlNodeSetName(pndArgImport, BAD_CAST NAME_PIE_SPAN);
+      xmlFreeNode(pndResult);
+      pndResult = pndArgImport;
     }
-    xmlFreeNode(pndResult);
   }
   return pndResult;
 } /* end of ParsePlainBuffer() */
