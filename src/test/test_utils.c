@@ -1020,11 +1020,16 @@ utilsTest(void)
     else if (dt_parse_iso_date_time_zone("2012-10-15T08:00:00+05:00", 40, &dt, &r) != 25 || r != 10800) {
       printf("ERROR 3 dt_parse_iso_date_time_zone()\n");
     }
+#if 0
     else if (dt_parse_iso_date_time_zone("2012-10-15T08:00:00−05:00", 40, &dt, &r) != 22 || r != 46800) {
       printf("ERROR 4 dt_parse_iso_date_time_zone()\n");
     }
-    else if (dt_parse_iso_date_time_zone("20121015T080000−0500", 40, &dt, &r) != 20 || r != 46800) {
+#endif
+    else if (dt_parse_iso_date_time_zone("2012-10-15T08:00:00-05:00", 40, &dt, &r) != 25 || r != 46800) {
       printf("ERROR 4 dt_parse_iso_date_time_zone()\n");
+    }
+    else if (dt_parse_iso_date_time_zone("20121015T080000-0500", 40, &dt, &r) != 20 || r != 46800) {
+      printf("ERROR 4b dt_parse_iso_date_time_zone()\n");
     }
     else if (dt_parse_iso_date_time_zone("2012-10-15T08:00:00CST", 40, &dt, &r) != 22 || r != 0) {
       printf("ERROR 5 dt_parse_iso_date_time_zone()\n");

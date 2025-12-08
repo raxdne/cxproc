@@ -304,7 +304,7 @@ ceTest(void)
     else if (xmlStrEqual(pceT->pucSep, BAD_CAST" Decimal") == FALSE) {
       printf("ERROR 3\n");
     }
-    else if (pceT->dt0.dt != dt_from_ymd(2013, 12, 10) || (pceT->dt0.iSec != 3600 && pceT->dt0.iSec != 3600 - 3600) || pceT->dt1.dt != 0 || pceT->dt1.iSec != 0) {
+    else if (pceT->dt0.dt != dt_from_ymd(2013, 12, 10) || (pceT->dt0.iSec != 3600 && pceT->dt0.iSec != 3600 + 3600) || pceT->dt1.dt != 0 || pceT->dt1.iSec != 0) {
       printf("ERROR: %s\n", FormatCalendarElementDateStr(pceT));
     }
     else if ((pceT = CalendarElementNew(BAD_CAST"2013-12-10T10.25Z Decimal")) == NULL) {

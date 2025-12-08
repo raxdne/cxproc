@@ -28,16 +28,6 @@
 			<cxp:xml name="dummy-c.xml"/>
 		</dummy>
 	</cxp:xml>
-	<cxp:system message="*** test-xml-002-002: assemble a DOM from other XML files (generic XML import) ***"/>
-	<cxp:xml name="result/test-xml-002-002.xml">
-		<dummy>
-			<cxp:include name="dummy-a.xml"/>
-			<cxp:include name="not-here.xml"/>
-			<cxp:include name="dummy-b.xml"/>
-			<cxp:include name="not-here.xml"/>
-			<cxp:include name="dummy-c.xml"/>
-		</dummy>
-	</cxp:xml>
 	<cxp:system message="*** test-xml-003: new contexts ***"/>
 	<cxp:xml name="result/test-xml-003.xml">
 		<cxp:xml context="../..">

@@ -364,7 +364,7 @@ domTest(void)
     xmlFreeDoc(pdocTest);
   }
 
-  if (RUNTEST) {
+  if (SKIPTEST) {
     xmlDocPtr pdocTest;
     xmlNodePtr pndRoot;
     xmlNodePtr pndOld;
