@@ -42,6 +42,12 @@
 
 #define IS_NODE_XSL_VARIABLE(NODE) (IS_NODE__XSL(NODE,"variable"))
 
+#define IS_VALID_NODE(NODE) (NODE != NULL && NODE->type == XML_ELEMENT_NODE && domGetPropFlag(NODE,BAD_CAST "valid",TRUE))
+
+#define IS_ROOT(NODE) (NODE != NULL && NODE->type == XML_ELEMENT_NODE && NODE->doc != NULL && NODE == NODE->doc->children)
+
+#define IS_NODE_PI(NODE) (NODE != NULL && NODE->type == XML_PI_NODE)
+
 
 extern void
 domFreeNodeByName(xmlNodePtr pndArg, xmlChar* pucArgName);
@@ -75,7 +81,7 @@ extern int
 domPutDocString(FILE *out, xmlChar *pucArgMessage, xmlDocPtr pdocArg);
 
 extern BOOL_T
-domPutNodeGraphvizString(char *pchNameFile, xmlNodePtr pndArg, int iArgDepth);
+domPutNodeGraphvizString(char *pchNameFile, xmlNodePtr pndArgA, xmlNodePtr pndArgB, int iArgDepth);
 
 extern void
 domPutNodeGraphvizStringRecursive(FILE *out, xmlNodePtr pndArg, int iArgDepth);

@@ -929,31 +929,39 @@ domPutDocString(FILE *out, xmlChar *pucArgMessage, xmlDocPtr pdocArg)
 /*! 
 */
 BOOL_T
-domPutNodeGraphvizString(char *pchNameFile, xmlNodePtr pndArg, int iArgDepth)
+domPutNodeGraphvizString(char *pchNameFile, xmlNodePtr pndArgA, xmlNodePtr pndArgB, int iArgDepth)
 {
-  if (pndArg) {
-    resNodePtr prnT;
+  resNodePtr prnT;
+  if (pchNameFile == NULL || resPathIsStd(pchNameFile)) {
+}
+else {
+	    prnT = resNodeDirNew(BAD_CAST pchNameFile);
+  }
 
-    prnT = resNodeDirNew(BAD_CAST pchNameFile);
-    if (prnT) {
-      if (resNodeOpen(prnT,"wb")) {
-        PrintFormatLog(1,"Write Dump to '%s'", resNodeGetNameNormalized(prnT));
-        fprintf((FILE *)resNodeGetHandleIO(prnT),"digraph dump {\nnode [shape=record];\n");
-        fprintf((FILE *)resNodeGetHandleIO(prnT),"//rankdir=\"LR\";\n");
-        domPutNodeGraphvizStringRecursive((FILE *)resNodeGetHandleIO(prnT),pndArg,iArgDepth);
-        fprintf((FILE *)resNodeGetHandleIO(prnT),"\n}\n\n");
-        resNodeClose(prnT);
-        return TRUE;
+  if (prnT) {
+    if (resNodeOpen(prnT, "wb")) {
+      PrintFormatLog(1, "Write Dump to '%s'", resNodeGetNameNormalized(prnT));
+      fprintf((FILE *)resNodeGetHandleIO(prnT), "digraph dump {\nnode [shape=record];\n");
+      fprintf((FILE *)resNodeGetHandleIO(prnT), "//rankdir=\"LR\";\n");
+      if (pndArgA) {
+	domPutNodeGraphvizStringRecursive((FILE *)resNodeGetHandleIO(prnT), pndArgA, iArgDepth);
       }
-      else {
-        PrintFormatLog(1,"Error resNodeOpen()");
+      if (pndArgB) {
+	domPutNodeGraphvizStringRecursive((FILE *)resNodeGetHandleIO(prnT), pndArgB, iArgDepth);
       }
-      resNodeFree(prnT);
+      fprintf((FILE *)resNodeGetHandleIO(prnT), "\n}\n\n");
+      resNodeClose(prnT);
+      return TRUE;
     }
     else {
-      PrintFormatLog(1,"Error resNodeDirNew()");
+      PrintFormatLog(1, "Error resNodeOpen()");
     }
+    resNodeFree(prnT);
   }
+  else {
+    PrintFormatLog(1, "Error resNodeDirNew()");
+  }
+
   return FALSE;
 }
 /* end of domPutNodeGraphvizString() */
@@ -973,6 +981,14 @@ domPutNodeGraphvizStringRecursive(FILE *out, xmlNodePtr pndArg, int iArgDepth)
 //	      ((pndArg->ns == NULL) ? "null" : (char *)pndArg->ns->prefix),
 	      (char *)pndArg->name);
     }
+#if 0
+   else if (pndArg->type == XML_NAMESPACE_DECL) {
+      fprintf(out,
+	      "\"%p\" [label = \"ELEMENT|\\\"%s\\\"\"];\n",
+	      (void *) pndArg,
+//	      ((pndArg->ns == NULL) ? "null" : (char *)pndArg->ns->prefix),
+	      (char *)pndArg->name);
+    }
     else if (pndArg->type == XML_TEXT_NODE) {
       xmlChar *pucA = BAD_CAST xmlStrchr(pndArg->content,'\n');
       int iLengthMax = (pucA ? pucA - pndArg->content : 8);
@@ -982,17 +998,16 @@ domPutNodeGraphvizStringRecursive(FILE *out, xmlNodePtr pndArg, int iArgDepth)
 	      (char *)xmlStrsub(pndArg->content,0,iLengthMax)
 	      );
     }
-#if 0
     else if (pndArg->type == XML_ATTRIBUTE_NODE) {
       fprintf(out,"\"%p\" [label = \"ATTRIBUTE|\\\"%s\\\"\"];\n", (void *) pndArg, (char *)pndArg->name);
     }
-#endif
     else if (pndArg->type == XML_PI_NODE) {
-      fprintf(out,"\"%p\" [label = \"PI|\\\"%s\\\"\"];\n", (void *) pndArg, (char *)pndArg->name);
-    }
-    else if (pndArg->type == XML_ENTITY_REF_NODE) {
-      fprintf(out,"\"%p\" [label = \"ENTITY_REF|\\\"%s\\\"\"];\n", (void *) pndArg, (char *)pndArg->name);
-    }
+	fprintf(out,"\"%p\" [label = \"PI|\\\"%s\\\"\"];\n", (void *) pndArg, (char *)pndArg->name);
+}
+else if (pndArg->type == XML_ENTITY_REF_NODE) {
+	fprintf(out,"\"%p\" [label = \"ENTITY_REF|\\\"%s\\\"\"];\n", (void *) pndArg, (char *)pndArg->name);
+}
+#endif
 #if 0
     if (pndArg->parent)
       fprintf(out,"\"%p\" -> \"%p\" [label = \"%s\"];\n", (void *) pndArg, (void *) (pndArg->parent ? pndArg->parent : pndArg), "parent");
@@ -1006,6 +1021,8 @@ domPutNodeGraphvizStringRecursive(FILE *out, xmlNodePtr pndArg, int iArgDepth)
     if (pndArg->last)
       fprintf(out,"\"%p\" -> \"%p\" [label = \"%s\"];\n", (void *) pndArg, (void *) (pndArg->last ? pndArg->last : pndArg), "last");
 #if 0
+    if (pndArg->ns)
+      fprintf(out,"\"%p\" -> \"%p\" [label = \"%s\"];\n", (void *) pndArg, (void *) (pndArg->ns ? pndArg->ns : pndArg), pndArg->ns->prefix);
     if (pndArg->properties)
       fprintf(out,"\"%p\" -> \"%p\" [label = \"%s\"];\n", (void *) pndArg, (void *) (pndArg->properties ? pndArg->properties : pndArg), "properties");
 #endif
@@ -1024,7 +1041,7 @@ domPutNodeGraphvizStringRecursive(FILE *out, xmlNodePtr pndArg, int iArgDepth)
     }
 #endif
     fprintf(out,"\n");
-    domPutNodeGraphvizStringRecursive(out,(xmlNodePtr)pndArg->properties,iArgDepth);
+    //domPutNodeGraphvizStringRecursive(out,(xmlNodePtr)pndArg->properties,iArgDepth);
     domPutNodeGraphvizStringRecursive(out,pndArg->children,iArgDepth-1);
     domPutNodeGraphvizStringRecursive(out,pndArg->next,iArgDepth-1);
   }
@@ -1052,6 +1069,7 @@ domNodeTransformToText(xmlNodePtr pndArg, xmlChar *pucArgNew)
     xmlFreeNodeList(pndArg->properties);
     pndArg->properties = NULL;
     // xmlNodeSetName(pndParent,NULL);
+    pndArg->ns = NULL;
     pndArg->name = NULL;
     pndArg->type = XML_TEXT_NODE;
     break;
@@ -1059,10 +1077,8 @@ domNodeTransformToText(xmlNodePtr pndArg, xmlChar *pucArgNew)
     break;
   default:
   }
+  xmlNodeSetContent(pndArg, pucArgNew);
   fResult = (xmlIsBlankNode(pndArg) == 1);
-  if (fResult && pucArgNew != NULL) {
-    xmlNodeSetContent(pndArg, pucArgNew);
-  }
   return fResult;
 } /* end of domNodeTransformToText() */
 
@@ -1081,6 +1097,7 @@ domNodeTransformToNode(xmlNodePtr pndArg, xmlNodePtr pndArgSrc)
     xmlNodePtr pndT;
 
     xmlNodeSetName(pndArg, pndArgSrc->name);
+    xmlSetNs(pndArg, pndArgSrc->ns);
 
     xmlFreeNodeList(pndArg->children);
     pndArg->children = NULL;
@@ -1331,10 +1348,11 @@ domUnlinkNodeList(xmlNodePtr cur) {
 	parent->last = cur->prev;
       }
 
-      /* unlink references to parents */
+      /* unlink references to parents, doc and ns */
       for (pndNext=cur; pndNext; pndNext=pndNext->next) {
 	//if (pndNext->type == XML_ELEMENT_NODE) {
 	xmlSetTreeDoc(pndNext, NULL);
+	xmlSetNs(pndNext, NULL);
 	pndNext->parent = NULL;
 	//}
       }

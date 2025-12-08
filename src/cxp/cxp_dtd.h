@@ -112,14 +112,6 @@
 
 #define NAME_PATHTABLE BAD_CAST "pathtable"
 
-
-#define IS_VALID_NODE(NODE) (NODE != NULL && NODE->type == XML_ELEMENT_NODE && domGetPropFlag(NODE,BAD_CAST "valid",TRUE))
-
-#define IS_ROOT(NODE) (NODE != NULL && NODE->type == XML_ELEMENT_NODE && NODE->doc != NULL && NODE == NODE->doc->children)
-
-#define IS_NODE_PI(NODE) (NODE != NULL && NODE->type == XML_PI_NODE)
-
-
 /* 
    comparison of element names
 */

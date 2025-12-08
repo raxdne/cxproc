@@ -161,7 +161,7 @@ main(int argc, char *argv[], char *envp[])
     //cxpCtxtCacheEnable(pccMain, TRUE);
 
 #if defined(DEBUG)
-    cxpCtxtLogSetLevel(pccMain, 3);
+    cxpCtxtLogSetLevel(pccMain, LEVEL_MAX - 1);
 #else
     cxpCtxtLogSetLevel(pccMain, 1);
 #endif

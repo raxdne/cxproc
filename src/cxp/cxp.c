@@ -494,8 +494,7 @@ cxpProcessXmlNodeEmbedded(xmlNodePtr pndArg, cxpContextPtr pccArg)
 
       pucT = cxpProcessPlainNode(pndArg, pccArg);
       if (STR_IS_NOT_EMPTY(pucT)) {
-	xmlReplaceNode(pndArg, xmlNewText(pucT));
-	xmlFreeNode(pndArg);
+	domNodeTransformToText(pndArg, pucT);
       }
       xmlFree(pucT);
     }
@@ -1071,7 +1070,7 @@ cxpProcessXmlChildNodes(xmlNodePtr pndArg,cxpContextPtr pccArg)
     xmlNodePtr pndNew;
     xmlNodePtr pndRootNew;
     xmlNodePtr pndChild;
-    xmlNodePtr pndT;
+    xmlNodePtr pndT = NULL;
 
     pndRootNew  = xmlCopyNode(pndArg,0);
 
@@ -1096,8 +1095,11 @@ cxpProcessXmlChildNodes(xmlNodePtr pndArg,cxpContextPtr pccArg)
 	/*!\todo compare type compatibility of nodes */
 	xmlAddChild(pndRootNew,pndNew);
       }
+      else if ((pndT = xmlCopyNode(pndChild,1)) != NULL) {
+	xmlAddChild(pndRootNew,pndT);
+      }
       else {
-	xmlAddChild(pndRootNew,xmlCopyNode(pndChild,1));
+	xmlSetProp(pndRootNew,BAD_CAST"error",BAD_CAST"copy");
       }
 
       /* WARNING: pndChild was released eventually in cxpProcessEmbeddedNodes() */
@@ -1392,10 +1394,13 @@ cxpProcessXmlNode(xmlNodePtr pndArg, cxpContextPtr pccArg)
 	      cxpCtxtLogPrint(pccArg, 2, "'%s' evaluation", pndRoot->name);
 	      pdocResult = cxpProcessXmlNode(pndRoot, pccHere);
 	    }
+	    else {
+	      cxpCtxtLogPrint(pccArg, 1, "No XML source '%s'", pndRoot->name);
+	    }
 	  }
 	}
 
-	if (pdocResult != pdocT) {
+	if (pdocResult != pdocT && pdocResult != NULL) {
 	  xmlFreeDoc(pdocT);
 	}
       }
@@ -2082,7 +2087,7 @@ cxpProcessTransformations(const xmlDocPtr pdocArgXml, const xmlNodePtr pndArgPar
 	  pndT = xmlNewDocNode(pdocResult, NULL, BAD_CAST"dummy", NULL);
 	  xmlDocSetRootElement(pdocResult, pndT);
 	  pdocResult->encoding = xmlStrdup(BAD_CAST "UTF-8"); /* according to conversion in ParseImportNodePlainContent() */
-	  cxpCtxtLogPrint(pccArg, 1, "Use a new created dummy DOM");
+	  cxpCtxtLogPrint(pccArg, 3, "Use a new created dummy DOM");
 	}
 	else {
 	  cxpCtxtLogPrint(pccArg, 1, "Cant create new DOM");
@@ -2091,7 +2096,7 @@ cxpProcessTransformations(const xmlDocPtr pdocArgXml, const xmlNodePtr pndArgPar
       else {
 	pdocResult = xmlCopyDoc(pdocArgXml,1);
 	if (pdocResult) {
-	  cxpCtxtLogPrint(pccArg, 1, "Use a fresh copy of DOM");
+	  cxpCtxtLogPrint(pccArg, 3, "Use a fresh copy of DOM");
 	}
 	else {
 	  cxpCtxtLogPrint(pccArg, 1, "Cant copy DOM");
