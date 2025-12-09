@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cxp:make xmlns:cxp="http://www.tenbusch.info/cxproc">
+  <cxp:xhtml name="-">
+      <cxp:include name="head.xml"/>
+      <body>
+      <cxp:include name="body.html"/>
+      </body>
+  </cxp:xhtml>
+</cxp:make>

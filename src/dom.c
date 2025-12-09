@@ -1105,8 +1105,14 @@ domNodeTransformToNode(xmlNodePtr pndArg, xmlNodePtr pndArgSrc)
     domUnlinkNodeList(pndT);
     xmlAddChildList(pndArg, pndT);
 
-    // xmlFreeNodeList(pndArg->properties);
+    pndT = pndArg->properties;
+    domUnlinkNodeList(pndT);
+    xmlFreeNodeList(pndT);
     // pndArg->properties = NULL;
+    //for (pndIter = pndArg->properties; pndIter; pndIter = pndIter->next) {
+	//xmlUnsetProp(pndArg,pndIter->name);
+    //}
+
     for (pndIter = pndArgSrc->properties; pndIter; pndIter = pndIter->next) {
       if (xmlNodeIsText(pndIter->children) && STR_IS_NOT_EMPTY(pndIter->children->content)) {
 	xmlSetProp(pndArg, pndIter->name, pndIter->children->content);

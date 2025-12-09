@@ -21,4 +21,8 @@
         <cxp:include name="dummy-c.xml"/>
       </dummy>
     </cxp:xml>
+    <cxp:system message="*** test-xml-include-004: include XML in a new context ***"/>
+    <cxp:xml name="result/test-xml-include-004.xml">
+      <cxp:include name="config-xml-include-a.cxp"/>
+    </cxp:xml>
 </cxp:make>

@@ -1188,7 +1188,10 @@ cxpGetXmlSourceNode(xmlNodePtr pndArg, cxpContextPtr pccArg)
 
   for (pndChild=pndArg->children; pndChild != NULL; pndChild=pndChild->next) {
 
-    if (IS_NODE_XML(pndChild)) {
+    if (IS_NODE_INCLUDE(pndChild)) {
+      pndResult = pndChild;
+    }
+    else if (IS_NODE_XML(pndChild)) {
       if (pndResult) {
 	cxpCtxtLogPrint(pccArg, 1, "Ignoring redundant XML source: '%s/%s[@name='%s']'",
 	  pndArg->name, pndChild->name, domGetPropValuePtr(pndChild, BAD_CAST"name"));

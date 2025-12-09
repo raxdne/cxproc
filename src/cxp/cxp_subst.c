@@ -172,9 +172,11 @@ ApplySubstRegExp(const xmlNodePtr pndArg, const pcre2_code* preArgFrom, const xm
 
 \return TRUE if successful
 */
-BOOL_T
+xmlNodePtr
 cxpSubstIncludeNodes(xmlNodePtr pndArg,cxpContextPtr pccArg)
 {
+  xmlNodePtr pndResult = pndArg;
+
 #ifdef DEBUG
   cxpCtxtLogPrint(pccArg,4,"cxpSubstIncludeNodes(pndArg=%0x,pccArg=%0x)",pndArg,pccArg);
 #endif
@@ -193,7 +195,6 @@ cxpSubstIncludeNodes(xmlNodePtr pndArg,cxpContextPtr pccArg)
       pcxpSubstT = cxpSubstDetect(pndArg,pccArg);
       if (pcxpSubstT) {
 	xmlDocPtr pdocInclude = NULL;
-	xmlNodePtr pndRootInclude;
 	xmlChar *pucT;
 
 	if (pcxpSubstT->pucName) {
@@ -210,29 +211,84 @@ cxpSubstIncludeNodes(xmlNodePtr pndArg,cxpContextPtr pccArg)
 	}
 
 	if (pdocInclude) {
+	  xmlNodePtr pndRootInclude;
+
 	  pndRootInclude = xmlDocGetRootElement(pdocInclude);
 	  if (pndRootInclude) {
-	    /* replace pndArg with a copy of pndRootInclude */
-	    xmlNodePtr pndCopy;
+#if 1
+	    if (IS_NODE_MAKE(pndRootInclude) && pndArg->doc != NULL && IS_NODE_MAKE(pndArg->doc->children)) {
+	      xmlNodePtr pndIter;
 
-	    pndCopy = xmlCopyNode(pndRootInclude, 1);
-	    if (pndCopy) {
-	      xmlNodePtr pndOld;
+	      for (pndIter = pndRootInclude->last; pndIter; pndIter = pndIter->prev) {
+		xmlNodePtr pndT;
+		xmlNodePtr pndTT;
 
-	      if (IS_NODE_MAKE(pndRootInclude) && IS_NODE_MAKE(pndArg->parent) && IS_ENODE(pndCopy->children)) {
-		cxpCtxtLogPrint(pccArg, 3, "replace subst node by childs");
-		pndOld = domReplaceNodeList(pndArg,pndCopy->children);
-		xmlFreeNode(pndCopy);
-	      }
-	      else {
-		/*!\todo use cxpSubstApply(pndCopy) */
-		pndOld = xmlReplaceNode(pndArg, pndCopy);
-	      }
-
-	      if (pndOld) {
-		xmlFreeNode(pndOld);
+		pndT = xmlCopyNode(pndIter, 1);
+		pndTT = cxpSubstIncludeNodes(pndT, pccArg);
+		if (pndTT != pndT) {
+		  xmlAddNextSibling(pndArg, pndTT);
+		  xmlFreeNode(pndT);
+		  pndResult = pndTT;
+		}
+		else {
+		  xmlAddNextSibling(pndArg, pndT);
+		  pndResult = pndT;
+		}
 	      }
 	    }
+	    else {
+	      xmlNodePtr pndT;
+	      xmlNodePtr pndTT;
+
+	      pndT = xmlCopyNode(pndRootInclude, 1);
+	      pndTT = cxpSubstIncludeNodes(pndT, pccArg);
+	      if (pndTT != pndT) {
+		xmlReplaceNode(pndArg, pndTT);
+		xmlFreeNode(pndT);
+		pndResult = pndTT;
+	      }
+	      else {
+		xmlReplaceNode(pndArg, pndT);
+		pndResult = pndT;
+	      }
+	    }
+#elif 1
+	    xmlNodePtr pndT;
+	    xmlNodePtr pndTT;
+
+	    pndT = xmlCopyNode(pndRootInclude, 1);
+	    pndTT = cxpSubstIncludeNodes(pndT, pccArg);
+	    if (pndTT != pndT) {
+	      xmlReplaceNode(pndArg, pndTT);
+	      xmlFreeNode(pndT);
+	      pndResult = pndTT;
+	    }
+	    else {
+	      xmlReplaceNode(pndArg, pndT);
+	      pndResult = pndT;
+	    }
+#elif 1
+	    xmlNodePtr pndT;
+
+	    pndT = xmlCopyNode(pndRootInclude, 1);
+	    /*!\todo use cxpSubstApply(pndCopy) */
+	    cxpSubstIncludeNodes(pndT, pccArg);
+	    domNodeTransformToNode(pndArg, pndT);
+	    xmlFreeNode(pndT);
+#else
+	    xmlNodePtr pndIter;
+
+	    //domNodeTransformToText(pndArg, NULL);
+	    xmlNodeSetName(pndArg, NAME_COL);
+	    for (pndIter = IS_NODE_MAKE(pndRootInclude) ? pndRootInclude->last : pndRootInclude; pndIter; pndIter = pndIter->prev) {
+	      xmlNodePtr pndT;
+
+	      pndT = xmlCopyNode(pndIter, 1);
+	      /*!\todo use cxpSubstApply(pndCopy) */
+	      cxpSubstIncludeNodes(pndT, pccArg);
+	      xmlAddNextSibling(pndArg, pndT);
+	    }
+#endif
 	  }
 	  xmlFreeDoc(pdocInclude);
 	}
@@ -256,10 +312,10 @@ cxpSubstIncludeNodes(xmlNodePtr pndArg,cxpContextPtr pccArg)
       pndChild = pndChildNext;
     }
   }
+  //domPutNodeString(stderr,BAD_CAST"",pndArg);
 
-  return TRUE;
-}
-/* end of cxpSubstIncludeNodes() */
+  return pndResult;
+} /* end of cxpSubstIncludeNodes() */
 
 
 /*!
