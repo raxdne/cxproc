@@ -241,6 +241,24 @@ cmarkTreeToDOM(xmlNodePtr pndArgBlock, xmlNodePtr pndArg, cmark_node* pcmnArg)
 	  pndT = xmlNewChild(pndArg, NULL, BAD_CAST NAME_PIE_BLOCK, pucT);
 	  xmlSetProp(pndT, BAD_CAST "type", BAD_CAST "text/latex");
 	}
+	else if (xmlStrstr(pucT, BAD_CAST "#subst")) {
+	  int i, j;
+
+	  for (i = j = 0; !isend(pucT[i]); i++) {
+	    if (islinebreak(pucT[i])) {
+	      xmlChar *pucTT;
+	      
+	      pucTT = xmlStrndup(&pucT[j], i - j);
+	      if (StringBeginsWith(pucTT, "#subst")) {
+		pndT = xmlNewChild(pndArg, NULL, BAD_CAST NAME_PIE_PAR, pucTT);
+	      }
+	      xmlFree(pucTT);
+
+	      for (; islinebreak(pucT[i]) || isspace(pucT[i]); i++);
+	      j = i;
+	    }
+	  }
+	}
 	else {
 	  pndT = xmlNewChild(pndArg, NULL, BAD_CAST NAME_PIE_PRE, pucT);
 	}

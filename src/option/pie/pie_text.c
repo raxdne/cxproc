@@ -507,8 +507,8 @@ pieProcessPieNode(xmlNodePtr pndArgPie, cxpContextPtr pccArg)
     pieSubstInChildNodes(pndBlock, NULL, pccArg);
 
     /* replace all subst nodes in tree by its result */
-    cxpCtxtLogPrint(pccArg, 2, "Start node substitution");
-    cxpSubstReplaceNodes(pndBlock, pccArg);
+    //cxpCtxtLogPrint(pccArg, 2, "Start node substitution");
+    //cxpSubstReplaceNodes(pndBlock, pccArg);
 
     ProcessImportOptions(pndPieRoot, pndArgPie, pccArg); /* detect urls, substs etc. */
     ProcessPieNodeOptions(pndPieRoot, pndArgPie, pccArg); /* build sub-structures for task, fig etc. */
