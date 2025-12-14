@@ -977,29 +977,40 @@ ImportNodeFile(xmlNodePtr pndArgImport, cxpContextPtr pccArg)
 	  xmlNodePtr pndT;
 
 	  if ((pndT = xmlDocGetRootElement(pdocPie)) != NULL && IS_NODE_PIE_PIE(pndT) && pndT->children != NULL) {
-#if 1
-	    /* domUnlinkNodeList(pndT); is not yet usable when there is a mix of namspaces */
 	    pndT = xmlCopyNodeList(pndT->children);
-#else
-	    pndT = pndT->children;
-	    domUnlinkNodeList(pndT);
-#endif
 	    xmlAddChildList(pndArgImport, pndT);
 	  }
 	  xmlFreeDoc(pdocPie);
-	  RecognizeIncludes(pndT);
 	  TraverseIncludeNodes(pndT, pccInput);
-	  ProcessPieNodeOptions(pndT, pndArgImport, pccArg); /* build sub-structures for task, fig etc. */
 	  RecognizeImports(pndT);
 	  ProcessImportOptions(pndArgImport,pndT,pccArg); /* detect urls, substs etc. */
 	  TraverseImportNodes(pndT, pccInput); /* parse result recursively */
+	  xmlNodeSetName(pndArgImport, BAD_CAST NAME_PIE_BLOCK);
 	}
 	else {
 	  cxpCtxtLogPrint(pccInput, 1, "Cant read from '%s'", resNodeGetNameNormalized(prnInput));
 	  xmlSetProp(pndArgImport, BAD_CAST"error", BAD_CAST"parse");
 	}
       }
+      else if (iMimeType == MIME_TEXT_HTML) {
+	xmlDocPtr pdocHtml;
 
+	cxpCtxtLogPrint(pccInput, 2, "Including HTML '%s'", (pucAttrCache ? pucAttrCache : resNodeGetNameNormalized(prnInput)));
+
+	if ((((pdocHtml = cxpCtxtCacheGetDoc(pccInput, resNodeGetNameNormalized(prnInput))) != NULL) && (pdocHtml = xmlCopyDoc(pdocHtml, 1)) != NULL) ||
+	    ((pdocHtml = resNodeReadDoc(prnInput)) != NULL)) { /*! \todo remove redundant cache lookup */
+	  xmlNodePtr pndT;
+
+	  if ((pndT = xmlDocGetRootElement(pdocHtml)) != NULL && (pndT = domGetFirstChild(pndT, BAD_CAST "body")) != NULL) {
+	    pndT = xmlCopyNodeList(pndT);
+	    xmlNodeSetName(pndT, BAD_CAST NAME_PIE_HTML);
+	    xmlAddChild(pndArgImport, pndT);
+	    xmlNodeSetName(pndArgImport, BAD_CAST NAME_PIE_BLOCK);
+	  }
+	  xmlFreeDoc(pdocHtml);
+	}
+      }
+ 
       xmlUnsetProp(pndArgImport, BAD_CAST "name");
       xmlFree(pucAttrCache);
       if (pccArg == NULL) {
@@ -1112,9 +1123,13 @@ TraverseIncludeNodes(xmlNodePtr pndArg, cxpContextPtr pccArg)
     /* skip */
   }
   else if (IS_NODE_PIE_INCLUDE(pndArg)) {
-    if (ProcessIncludeNode(pndArg, pccArg)) {
-    }
-    //    xmlFreeNode(pndArg);
+    /* pie include is a reduced import only */
+    xmlNodeSetName(pndArg, BAD_CAST NAME_PIE_IMPORT); 
+    xmlSetProp(pndArg, BAD_CAST "subst", BAD_CAST "yes");
+    xmlSetProp(pndArg, BAD_CAST "url", BAD_CAST "no");
+    xmlSetProp(pndArg, BAD_CAST "date", BAD_CAST "no");
+    xmlSetProp(pndArg, BAD_CAST "tags", BAD_CAST "no");
+    if (ProcessImportNode(pndArg, pccArg)) {}
   }
   else {
     /*
@@ -1140,237 +1155,6 @@ TraverseIncludeNodes(xmlNodePtr pndArg, cxpContextPtr pccArg)
   }
 }
 /* end of TraverseIncludeNodes() */
-
-
-/*! process the single include node pndArgInclude in context of pccArg and replace it
-
-\param pndArgInclude node to test for include, else traversing childs
-\param pccArg the processing context
-
-\return TRUE if include was successful, else FALSE
-*/
-BOOL_T
-ProcessIncludeNode(xmlNodePtr pndArgInclude, cxpContextPtr pccArg)
-{
-  BOOL_T fResult = FALSE;
-
-#ifdef DEBUG
-  cxpCtxtLogPrint(pccArg, 3, "ProcessIncludeNode(pndArgInclude=%0x,pccArg=%0x)", pndArgInclude, pccArg);
-#endif
-
-  if (pndArgInclude != NULL
-    && (pndArgInclude->parent || pndArgInclude->prev || pndArgInclude->next) /* because of replacing pndArgInclude by include result */
-    && IS_NODE_PIE_INCLUDE(pndArgInclude)) {
-    cxpContextPtr pccHere = pccArg;	      /*! process context for include */
-    cxpContextPtr pccDoc = NULL;	      /*! process context for include (derived from DOM) */
-    xmlChar *pucAttrName = NULL;
-    xmlNodePtr pndT;
-    //xmlDocPtr pdocT = NULL;
-
-    //pccHere = cxpCtxtFromAttr(pccArg, pndArgInclude);
-    //pccDoc = cxpCtxtFromAttr(NULL, pndArgInclude);
-    pucAttrName = domGetPropValuePtr(pndArgInclude, BAD_CAST"name");
-
-    if (resPathIsStd(pucAttrName)) {
-
-    }
-#if 0
-    else if ((pdocT = cxpCtxtCacheGetDoc(pccHere, pucAttrName)) != NULL) {
-      /* matching DOM in cache found */
-      if ((pndT = xmlDocGetRootElement(pdocT)) != NULL && pndT->children != NULL && (pndT = xmlCopyNodeList(pndT->children)) != NULL) {
-	fResult = (xmlAddChildList(pndArgInclude, pndT) != NULL);
-	xmlNodeSetName(pndArgInclude, BAD_CAST NAME_PIE_BLOCK);
-      }
-    }
-#endif
-    else if (STR_IS_NOT_EMPTY(pucAttrName)) {
-      fResult = IncludeNodeFile(pndArgInclude, pccHere);
-    }
-    else {
-      xmlAddChild(pndArgInclude, xmlNewComment(BAD_CAST"unknown content type"));
-    }
-
-    cxpCtxtFree(pccDoc);
-    if (pccHere != pccArg) {
-      cxpCtxtIncrExitCode(pccArg, cxpCtxtGetExitCode(pccHere));
-    }
-  }
-  return fResult;
-}
-/* end of ProcessIncludeNode() */
-
-
-/*! process the include instructions of pndArgInclude in directory context of pccArg. 
-
-Simplified version of ImportNodeFile(). Does not create a separate 'block' element in pndArgInclude DOM.
-
-\param pndArgTop node to append processing result
-\param pndArgInclude node to test for include, else traversing childs
-\param pccArg the processing context
-
-\return TRUE if include was successful, else FALSE
-*/
-BOOL_T
-IncludeNodeFile(xmlNodePtr pndArgInclude, cxpContextPtr pccArg)
-{
-  BOOL_T fResult = FALSE;
-  resNodePtr prnInput = NULL; /*! context for include of new document (avoid side effect) */
-
-#ifdef DEBUG
-  cxpCtxtLogPrint(pccArg, 1, "IncludeNodeFile(pndArgInclude=%0x,pccArg=%0x)", pndArgInclude, pccArg);
-#endif
-  assert(pndArgInclude->parent != NULL);
-  assert(IS_NODE_PIE_INCLUDE(pndArgInclude));
-
-  prnInput = cxpResNodeResolveNew(pccArg, pndArgInclude, NULL, CXP_O_READ);
-  if (prnInput) {
-    xmlChar *pucContext = NULL;
-
-    resNodeResetMimeType(prnInput);
-
-#ifdef HAVE_CGI
-    pucContext = resNodeGetNameRelative(cxpCtxtRootGet(pccArg), prnInput);
-#else
-    pucContext = resNodeGetURI(prnInput);
-#endif
-
-    /*! \todo add cache handling for include */
-
-    xmlSetNs(pndArgInclude,NULL);
-    xmlNodeSetName(pndArgInclude,BAD_CAST NAME_PIE_BLOCK);
-    xmlSetProp(pndArgInclude, BAD_CAST"context", pucContext);
-    
-    if (IsImportCircular(pndArgInclude, prnInput)) { /*! check circular reference */
-      xmlSetProp(pndArgInclude, BAD_CAST"error", BAD_CAST"circular");
-      /*! \bug circular check for cache too */
-    }
-    else if (resNodeIsReadable(prnInput) == FALSE && cxpCtxtCacheGetResNode(pccArg, resNodeGetNameNormalized(prnInput)) == NULL) {
-      xmlSetProp(pndArgInclude, BAD_CAST"error", BAD_CAST"read");
-    }
-    else {
-      xmlChar *pucAttrCache = NULL;
-      xmlChar *pucContent = NULL;
-      RN_MIME_TYPE iMimeType;
-      resNodePtr prnT;
-      cxpContextPtr pccInput;
-
-      if (resNodeGetChild(prnInput)) {
-	iMimeType = resNodeGetMimeType(resNodeGetChild(prnInput));
-      }
-      else {
-	iMimeType = resNodeGetMimeType(prnInput);
-      }
-
-      /* set a new cxpContext with file-based location */
-      cxpCtxtLogPrint(pccArg, 1, "New context due to file-based include location '%s'", resNodeGetNameNormalized(prnInput));
-      pccInput = cxpCtxtNew();
-      prnT = resNodeDup(prnInput, RN_DUP_THIS);
-      resNodeSetToParent(prnT);
-      cxpCtxtLocationSet(pccInput, prnT);
-      cxpCtxtLogSetLevel(pccInput, 2);
-      if (pccArg) {
-	cxpCtxtAddChild(pccArg, pccInput);
-      }
-      resNodeFree(prnT);
-
-      if (resNodeGetNameNormalized(prnInput) != NULL && (iMimeType == MIME_TEXT_CSV || iMimeType == MIME_TEXT_PLAIN
-#ifdef WITH_MARKDOWN
-							 || iMimeType == MIME_TEXT_MARKDOWN
-#endif
-							 )) {
-
-	cxpCtxtLogPrint(pccInput, 2, "Including '%s'", resNodeGetNameNormalized(prnInput));
-
-	if ((pucContent = cxpCtxtCacheGetBuffer(pccInput, resNodeGetNameNormalized(prnInput))) == NULL) {
-	  /* there is no cached Buffer */
-	  pucContent = plainGetContextTextEat(prnInput, 1024);
-	}
-
-	if (STR_IS_NOT_EMPTY(pucContent)) {
-	  xmlNewChild(pndArgInclude, NULL, BAD_CAST NAME_PIE_PRE, pucContent);
-	}
-	else {
-	  cxpCtxtLogPrint(pccInput, 1, "Cant read from '%s'", resNodeGetNameNormalized(prnInput));
-	  xmlSetProp(pndArgInclude, BAD_CAST "error", BAD_CAST "empty");
-	}
-	xmlFree(pucContent);
-      }
-      else if (iMimeType == MIME_TEXT_XML || iMimeType == MIME_APPLICATION_PIE_XML) {
-	xmlDocPtr pdocPie;
-
-	cxpCtxtLogPrint(pccInput, 2, "Including XML PIE '%s'", (pucAttrCache ? pucAttrCache : resNodeGetNameNormalized(prnInput)));
-
-	if ((((pdocPie = cxpCtxtCacheGetDoc(pccInput, resNodeGetNameNormalized(prnInput))) != NULL) && (pdocPie = xmlCopyDoc(pdocPie,1)) != NULL)
-	  ||
-	  ((pdocPie = resNodeReadDoc(prnInput)) != NULL)) { /*! \todo remove redundant cache lookup */
-	  xmlNodePtr pndT;
-
-	  if ((pndT = xmlDocGetRootElement(pdocPie)) != NULL && IS_NODE_PIE_PIE(pndT) && pndT->children != NULL) {
-	    pndT = pndT->children;
-	    domUnlinkNodeList(pndT);
-	    xmlAddChildList(pndArgInclude, pndT);
-	  }
-	  xmlFreeDoc(pdocPie);
-	}
-	else {
-	  cxpCtxtLogPrint(pccInput, 1, "Cant read from '%s'", resNodeGetNameNormalized(prnInput));
-	  xmlSetProp(pndArgInclude, BAD_CAST"error", BAD_CAST"parse");
-	}
-      }
-      else if (iMimeType == MIME_TEXT_HTML) {
-	xmlDocPtr pdocHtml;
-
-	cxpCtxtLogPrint(pccInput, 2, "Including HTML '%s'", (pucAttrCache ? pucAttrCache : resNodeGetNameNormalized(prnInput)));
-
-	if ((((pdocHtml = cxpCtxtCacheGetDoc(pccInput, resNodeGetNameNormalized(prnInput))) != NULL) && (pdocHtml = xmlCopyDoc(pdocHtml, 1)) != NULL) ||
-	    ((pdocHtml = resNodeReadDoc(prnInput)) != NULL)) { /*! \todo remove redundant cache lookup */
-	  xmlNodePtr pndT;
-
-	  if ((pndT = xmlDocGetRootElement(pdocHtml)) != NULL && (pndT = domGetFirstChild(pndT, BAD_CAST "body")) != NULL) {
-	    domUnlinkNodeList(pndT);
-	    xmlNodeSetName(pndT, BAD_CAST NAME_PIE_HTML);
-	    xmlAddChildList(pndArgInclude, pndT);
-	  }
-	  xmlFreeDoc(pdocHtml);
-	}
-      }
-      else if (iMimeType == MIME_APPLICATION_X_JAVASCRIPT) {
-
-	cxpCtxtLogPrint(pccInput, 2, "Including '%s'", resNodeGetNameNormalized(prnInput));
-
-	if ((pucContent = cxpCtxtCacheGetBuffer(pccInput, resNodeGetNameNormalized(prnInput))) == NULL) {
-	  /* there is no cached Buffer */
-	  pucContent = plainGetContextTextEat(prnInput, 1024);
-	}
-
-	if (STR_IS_NOT_EMPTY(pucContent)) {
-	  xmlNodeSetContent(pndArgInclude, pucContent);
-	  xmlNodeSetName(pndArgInclude, BAD_CAST NAME_PIE_SCRIPT);
-	  xmlSetProp(pndArgInclude, BAD_CAST"eval", BAD_CAST"no");
-	}
-	else {
-	  cxpCtxtLogPrint(pccInput, 1, "Cant read from '%s'", resNodeGetNameNormalized(prnInput));
-	  xmlSetProp(pndArgInclude, BAD_CAST "error", BAD_CAST "empty");
-	}
-	xmlFree(pucContent);
-      }
-      else {
-	cxpCtxtLogPrint(pccInput, 1, "Cant read from '%s'", resNodeGetNameNormalized(prnInput));
-	xmlSetProp(pndArgInclude, BAD_CAST "error", BAD_CAST "parse");
-      }
-
-      xmlFree(pucAttrCache);
-      if (pccArg == NULL) {
-	cxpCtxtFree(pccInput);
-      }
-    }
-
-    resNodeFree(prnInput);
-    fResult = TRUE;
-  }
-  return fResult;
-}
-/* end of IncludeNodeFile() */
 
 
 /*! traverse DOM of pndArg searching for import nodes in context of pccArg and
