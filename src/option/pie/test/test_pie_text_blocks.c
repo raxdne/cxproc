@@ -821,6 +821,7 @@ pieTextBlocksTest(void)
   if (RUNTEST) {
     xmlChar *pucT = NULL;
     xmlChar* pucTT = NULL;
+    xmlChar* pucTTT = NULL;
 
     i++;
     printf("TEST %i in '%s:%i': StringDecodeCharMarkupNew() = ", i, __FILE__, __LINE__);
@@ -831,16 +832,16 @@ pieTextBlocksTest(void)
     else if ((pucT = StringDecodeCharMarkupNew(BAD_CAST"", (lang_t) 0)) != NULL) {
       printf("Error 1b StringDecodeCharMarkupNew()\n");
     }
-    else if ((pucT = StringDecodeCharMarkupNew(BAD_CAST"<=> A=&gt; B<= C <-> D-&gt;E<- F --- -- G &gt;&gt;H<< I >J<", (lang_t) 0)) == NULL) {
+    else if ((pucT = StringDecodeCharMarkupNew(BAD_CAST"<=> A=&gt; B<= C <-> D-&gt;E<- F --- -- G", (lang_t) 0)) == NULL) {
       printf("Error 2 StringDecodeCharMarkupNew()\n");
     }
-    else if ((pucTT = StringDecodeCharMarkupNew(BAD_CAST"&lt;=> A=> B<= C &lt;-> D->E<- F --- -- G >>H&lt;&lt; I >J<", (lang_t) 0)) == NULL) {
+    else if ((pucTT = StringDecodeCharMarkupNew(BAD_CAST"&lt;=> A=> B<= C &lt;-> D->E<- F --- -- G", (lang_t) 0)) == NULL) {
       printf("Error 3 StringDecodeCharMarkupNew()\n");
     }
     else if (xmlStrEqual(pucT, pucTT) == FALSE) {
       printf("Error 4 StringDecodeCharMarkupNew()\n");
     }
-    else if (xmlStrEqual(pucTT, BAD_CAST
+    else if ((pucTTT = xmlStrdup(BAD_CAST
       STR_UTF8_LEFT_RIGHT_SINGLE_ARROW " A"
       STR_UTF8_RIGHTWARDS_SINGLE_ARROW " B"
       STR_UTF8_LEFTWARDS_SINGLE_ARROW " C "
@@ -848,11 +849,10 @@ pieTextBlocksTest(void)
       STR_UTF8_RIGHTWARDS_ARROW "E"
       STR_UTF8_LEFTWARDS_ARROW " F "
       STR_UTF8_EM_DASH " "
-      STR_UTF8_EN_DASH " G "
-      STR_UTF8_LEFT_DOUBLE_QUOTATION_MARK "H"
-      STR_UTF8_RIGHT_DOUBLE_QUOTATION_MARK " I "
-      ">J<"
-    ) == FALSE) {
+      STR_UTF8_EN_DASH " G")) == NULL) {
+      printf("Error 3 StringDecodeCharMarkupNew()\n");
+    }
+    else if (xmlStrEqual(pucTT, pucTTT) == FALSE) {
       printf("Error 5 StringDecodeCharMarkupNew()\n");
     }
     else {

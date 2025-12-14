@@ -1316,6 +1316,9 @@ RecognizeUrls(xmlNodePtr pndArg)
   if (IS_NODE_PIE_IGNORE_TAGS(pndArg)) {
     /* skip */
   }
+  else if (pndArg->type == XML_COMMENT_NODE || pndArg->type == XML_PI_NODE) {
+    RecognizeUrls(pndArg->next);
+  }
   else if (IS_VALID_NODE(pndArg) == FALSE || xmlHasProp(pndArg,BAD_CAST"hidden") != NULL) {
     /* skip */
   }
@@ -1493,6 +1496,9 @@ RecognizeScripts(xmlNodePtr pndArg)
   
   if (IS_NODE_PIE_IGNORE_TAGS(pndArg)) {
     /* skip */
+  }
+  else if (pndArg->type == XML_COMMENT_NODE || pndArg->type == XML_PI_NODE) {
+    fResult |= RecognizeScripts(pndArg->next);
   }
   else if (IS_VALID_NODE(pndArg) == FALSE || xmlHasProp(pndArg,BAD_CAST"hidden") != NULL) {
     /* skip */
@@ -2131,6 +2137,9 @@ RecognizeSymbols(xmlNodePtr pndArg, lang_t eLangArg)
       xmlFree(pucTT);
       xmlFree(pucT);
     }
+    else if (pndArg->type == XML_COMMENT_NODE || pndArg->type == XML_PI_NODE) {
+      RecognizeSymbols(pndArg->next, eLangArg);
+    }
     else if (IS_NODE_PIE_IGNORE_TAGS(pndArg) || IS_NODE_SCRIPT(pndArg)) {
       /* skip */
     }
@@ -2188,6 +2197,9 @@ RecognizeInlines(xmlNodePtr pndArg)
 	xmlFreeNodeList(pndReplace);
       }
     }
+    else if (pndArg->type == XML_COMMENT_NODE || pndArg->type == XML_PI_NODE) {
+      RecognizeInlines(pndArg->next);
+    }
     else if (IS_VALID_NODE(pndArg) == FALSE || xmlHasProp(pndArg, BAD_CAST"hidden") != NULL) {
       /* skip */
     }
@@ -2234,6 +2246,9 @@ RecognizeDates(xmlNodePtr pndArg, RN_MIME_TYPE eMimeTypeArg)
     }
     else if (IS_NODE_PIE_IGNORE_TAGS(pndArg)) {
       /* skip */
+    }
+    else if (pndArg->type == XML_COMMENT_NODE || pndArg->type == XML_PI_NODE) {
+      RecognizeDates(pndArg->next, eMimeTypeArg);
     }
     else if (IS_VALID_NODE(pndArg) == FALSE || xmlHasProp(pndArg,BAD_CAST"hidden") != NULL) {
       /* skip */
@@ -2423,6 +2438,9 @@ RecognizeSubsts(xmlNodePtr pndArg)
     if (pndArg->ns != NULL && pndArg->ns != pnsPie) {
       /* skip nodes from other namespaces */
     }
+    else if (pndArg->type == XML_COMMENT_NODE || pndArg->type == XML_PI_NODE) {
+      RecognizeSubsts(pndArg->next);
+    }
     else if (IS_VALID_NODE(pndArg) == FALSE || IS_NODE_PIE_IMPORT(pndArg) || IS_NODE_PIE_PRE(pndArg) || xmlHasProp(pndArg,BAD_CAST"hidden") != NULL) {
       /* skip */
     }
@@ -2523,6 +2541,9 @@ RecognizeInserts(xmlNodePtr pndArg, int iArgMode)
     
     if (pndArg->ns != NULL && pndArg->ns != pnsPie) {
       /* skip nodes from other namespaces */
+    }
+    else if (pndArg->type == XML_COMMENT_NODE || pndArg->type == XML_PI_NODE) {
+      RecognizeInserts(pndArg->next, iArgMode);
     }
     else if (IS_VALID_NODE(pndArg) == FALSE || xmlHasProp(pndArg,BAD_CAST"hidden") != NULL) {
       /* skip */
@@ -2695,6 +2716,9 @@ RecognizeTasks(xmlNodePtr pndArg)
     if (pndArg->ns != NULL && pndArg->ns != pnsPie) {
       /* skip nodes from other namespaces */
     }
+    else if (pndArg->type == XML_COMMENT_NODE || pndArg->type == XML_PI_NODE) {
+      RecognizeTasks(pndArg->next);
+    }
     else if (IS_VALID_NODE(pndArg) == FALSE || IS_NODE_PIE_IMPORT(pndArg) || IS_NODE_PIE_IMG(pndArg) || IS_NODE_PIE_PRE(pndArg) || xmlHasProp(pndArg,BAD_CAST"hidden") != NULL) {
       /* skip */
     }
@@ -2750,7 +2774,10 @@ RecognizeFigures(xmlNodePtr pndArg)
   if (pndArg) {
     pndResult = pndArg->next;
 
-    if (IS_VALID_NODE(pndArg) == FALSE || IS_NODE_PIE_IMPORT(pndArg) || IS_NODE_PIE_IMG(pndArg) || IS_NODE_PIE_PRE(pndArg) || xmlHasProp(pndArg,BAD_CAST"hidden") != NULL) {
+    if (pndArg->type == XML_COMMENT_NODE || pndArg->type == XML_PI_NODE) {
+      RecognizeFigures(pndArg->next);
+    }
+    else if (IS_VALID_NODE(pndArg) == FALSE || IS_NODE_PIE_IMPORT(pndArg) || IS_NODE_PIE_IMG(pndArg) || IS_NODE_PIE_PRE(pndArg) || xmlHasProp(pndArg,BAD_CAST"hidden") != NULL) {
       /* skip */
     }
     else if (IS_ENODE(pndArg)) {
@@ -2940,7 +2967,6 @@ GetModeByAttr(xmlNodePtr pndArgImport)
       
       if ((pucAttrName = domGetPropValuePtr(pndArgImport, BAD_CAST "name")) != NULL
 	  && (pucAttrNameExt = resPathGetExtensionStr(pucAttrName)) != NULL) {
-	PrintFormatLog(1, "Ext '%s'", pucAttrNameExt);
 	eResultMode = GetModeByExtension(pucAttrNameExt);
 	xmlFree(pucAttrNameExt);
       }
