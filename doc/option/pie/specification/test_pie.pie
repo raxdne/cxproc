@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<pie xmlns:pie="http://www.tenbusch.info/pie">
+  <section>
+    <h>This is a Header</h>
+    <p>This is a paragraph</p>
+  </section>
+  <p>This is a PIE File import</p>
+  <include name="test_pie.txt"/>
+  <include name="test_pie_specification.pie"/>
+</pie>

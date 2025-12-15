@@ -30,7 +30,7 @@
     </section>
     <section>
       <h>Inline Nodes</h>
-      <p>_em_ __bold__</p>
+      <p>_italic_ __bold__</p>
       <hr/>
       <p>http://www.abcd.de/</p>
     <section>
