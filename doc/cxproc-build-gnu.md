@@ -166,7 +166,7 @@ select `~/cxproc-build/cxproc/third-party/duktape-src` as value for `DUKTAPE_INC
 
 ### using valgrind
 
-	(cd ~/cxproc-build/cxproc/test/xml/ && valgrind --tool=memcheck --leak-check=full --num-callers=20 ~/cxproc-build/x86_64-gnu-linux/bin/cxproc config-xml-subst.cxp &> ~/cxproc-build/x86_64-gnu-linux/memcheck.log)
+	(cd ~/cxproc-build/cxproc/test/xml/ && valgrind --tool=memcheck --leak-check=full --fullpath-after= --num-callers=20 ~/cxproc-build/x86_64-gnu-linux/bin/cxproc config-xml-subst.cxp &> ~/cxproc-build/x86_64-gnu-linux/memcheck.log)
 
 ## CMake
 
@@ -174,6 +174,7 @@ build directory is defined by `misc/prepare-cmake.sh`
 
 	cd ~/cxproc-build/cxproc
 	. misc/prepare-cmake.sh
+	#cmake -S `pwd` -B $DIR_BUILD -G 'Unix Makefiles' -DCMAKE_BUILD_TYPE=Debug -DCXPROC_DOC:BOOL=OFF -DCXPROC_LEGACY:BOOL=OFF -DCXPROC_EXPERIMENTAL:BOOL=ON -DCXPROC_MARKDOWN:BOOL=OFF -DCXPROC_PCRE2:BOOL=OFF -DCXPROC_PETRINET:BOOL=OFF -DCXPROC_PIE:BOOL=OFF -DCXPROC_ARCHIVE:BOOL=OFF -DCXPROC_CURL:BOOL=OFF -DCXPROC_DUKTAPE:BOOL=OFF -DCXPROC_JSON:BOOL=OFF -DCXPROC_SQLITE3:BOOL=OFF -DCXPROC_TESTS:BOOL=ON
 	cmake -S `pwd` -B $DIR_BUILD -G 'Unix Makefiles' -DCMAKE_BUILD_TYPE=Release -DCXPROC_DOC:BOOL=OFF -DCXPROC_LEGACY:BOOL=ON -DCXPROC_EXPERIMENTAL:BOOL=ON -DCXPROC_MARKDOWN:BOOL=ON -DCXPROC_ARCHIVE:BOOL=ON -DCXPROC_CURL:BOOL=ON -DCXPROC_DUKTAPE:BOOL=ON -DCXPROC_SQLITE3:BOOL=ON
 	# cmake-gui -S `pwd` -B $DIR_BUILD &
 	cmake --build $DIR_BUILD -j 4 --target all

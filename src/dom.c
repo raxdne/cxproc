@@ -1129,6 +1129,32 @@ domNodeTransformToNode(xmlNodePtr pndArg, xmlNodePtr pndArgSrc)
 \param pndB second candidate
 */
 BOOL_T
+domNodeTransferDescendants(xmlNodePtr pndArgTo, xmlNodePtr pndArgFrom)
+{
+  BOOL_T fResult = FALSE;
+
+  if (IS_ENODE(pndArgTo) && IS_ENODE(pndArgFrom) && pndArgFrom->children != NULL) {
+    xmlNodePtr pndIter;
+
+    for (pndIter = pndArgFrom->children; pndIter;) {
+      xmlNodePtr pndIterNext;
+
+      pndIterNext = pndIter->next;
+      xmlUnlinkNode(pndIter);
+      xmlAddChild(pndArgTo, pndIter);
+      pndIter = pndIterNext;
+    }
+    fResult = TRUE;
+  }
+  return fResult;
+} /* end of domNodeTransferDescendants() */
+
+
+/*! \return TRUE 
+\param pndA first candidate
+\param pndB second candidate
+*/
+BOOL_T
 domNodeTransformToPI(xmlNodePtr pndArg, xmlChar *pucArgNew)
 {
   BOOL_T fResult = TRUE;

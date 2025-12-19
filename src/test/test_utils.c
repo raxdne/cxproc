@@ -881,7 +881,7 @@ utilsTest(void)
   /* ISO 8601 Durations */
   
   if (RUNTEST) {
-    double y, m, d, w, h, mi, s;
+    double y = 0.0, m = 0.0, d = 0.0, w = 0.0, h = 0.0, mi = 0.0, s = 0.0;
     
     i++;
     printf("TEST %i in '%s:%i': ",i,__FILE__,__LINE__);

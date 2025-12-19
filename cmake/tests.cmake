@@ -165,7 +165,7 @@ IF(MSVC)
 ELSE(MSVC)
   # http://stackoverflow.com/questions/40325957/how-do-i-add-valgrind-tests-to-my-cmake-test-target
   add_custom_target(test_memcheck
-    COMMAND ${CMAKE_CTEST_COMMAND} --force-new-ctest-process --test-action memcheck
+    COMMAND ${CMAKE_CTEST_COMMAND} --force-new-ctest-process --test-action memcheck --rerun-failed --output-on-failure
     )
 ENDIF(MSVC)
 

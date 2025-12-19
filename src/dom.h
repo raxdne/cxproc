@@ -28,11 +28,15 @@
 
 #define NAME_INFO BAD_CAST "info"
 
+#define NAME_INCLUDE BAD_CAST "include"
+
 #define IS_NODE_META(NODE) (IS_NODE(NODE,NAME_META))
 
 #define IS_NODE_ERROR(NODE) (IS_NODE(NODE,NAME_ERROR))
 
 #define IS_NODE_INFO(NODE) (IS_NODE(NODE,NAME_INFO))
+
+#define IS_NODE_INCLUDE(NODE) (IS_NODE(NODE,NAME_INCLUDE))
 
 #define IS_NODE__XSL(NODE,NAME) (NODE != NULL && NODE->type == XML_ELEMENT_NODE && NODE->ns != NULL && NODE->ns->prefix != NULL && xmlStrEqual(NODE->ns->prefix,BAD_CAST "xsl") && NODE->name != NULL && xmlStrEqual(NODE->name,BAD_CAST NAME))
 
@@ -169,6 +173,9 @@ domNodeTransformToNode(xmlNodePtr pndArg, xmlNodePtr pndArgSrc);
 
 extern BOOL_T
 domNodeTransformToPI(xmlNodePtr pndArg, xmlChar *pucArgNew);
+
+extern BOOL_T
+domNodeTransferDescendants(xmlNodePtr pndArgTo, xmlNodePtr pndArgFrom);
 
 extern BOOL_T
 domNodesAreEqual(xmlNodePtr pndA, xmlNodePtr pndB);

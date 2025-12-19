@@ -365,8 +365,10 @@ dirProcessDirNode(xmlNodePtr pndArgDir, resNodePtr prnArgContext, cxpContextPtr 
       /* skip invalid nodes */
     }
     else if (prnT == NULL && IS_NODE_DIR(pndEntry) && (prnT = cxpResNodeResolveNew(pccArg, pndEntry, NULL, (CXP_O_READ | CXP_O_DIR))) == NULL) {
+      /* no directory found */
     }
     else if (prnT == NULL && IS_NODE_FILE(pndEntry) && (prnT = cxpResNodeResolveNew(pccArg, pndEntry, NULL, (CXP_O_READ | CXP_O_FILE))) == NULL) {
+      /* no file found */
     }
     else if (prnT == NULL) {
       /* ignore nodes other than "cxp:dir" or "cxp:file" */

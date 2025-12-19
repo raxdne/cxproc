@@ -878,7 +878,10 @@ cxpCtxtEnvDup(cxpContextPtr pccArg, char *envp[])
 
   if (pccArg != NULL) {
     int i;
-    
+
+    for (i = 0; pccArg->ppcEnv != NULL && pccArg->ppcEnv[i] != NULL; i++) { 
+      xmlFree(pccArg->ppcEnv[i]); 
+    }
     xmlFree(pccArg->ppcEnv);
 
     for (i=0; envp != NULL && envp[i] != NULL; i++) ;

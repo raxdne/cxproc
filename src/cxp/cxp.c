@@ -1402,10 +1402,7 @@ cxpProcessXmlNode(xmlNodePtr pndArg, cxpContextPtr pccArg)
 	    }
 	  }
 	}
-
-	if (pdocResult != pdocT && pdocResult != NULL) {
-	  xmlFreeDoc(pdocT);
-	}
+	xmlFreeDoc(pdocT);
       }
     }
     else if (STR_IS_NOT_EMPTY(pucAttrName)) {
@@ -1689,7 +1686,7 @@ cxpProcessMakeNode(xmlNodePtr pndArg,cxpContextPtr pccArg)
       cxpCtxtLogPrint(pccArg, 2, "Compiled without threads");
 #endif
 
-      cxpSubstIncludeNodes(pndArg, pccHere);
+      cxpTraverseIncludeNodes(pndArg, pccHere);
       /*!\todo substitute format strings in text nodes */
       cxpSubstInChildNodes(pndArg, NULL, pccHere);
       //cxpSubstReplaceNodes(pndArg, pccHere);
@@ -2246,24 +2243,20 @@ cxpProcessTransformations(const xmlDocPtr pdocArgXml, const xmlNodePtr pndArgPar
       }
 
       if (ppdocArgResult != NULL) { /* DOM result expected */
-	assert(ppucArgResult == NULL);
 	*ppdocArgResult = pdocResult;
-	fResult = TRUE;
+	fResult = *ppdocArgResult != NULL;
       }
-      else if (ppucArgResult != NULL) { /* plain text result expected */
-	int l = 0;
-
-	assert(ppdocArgResult == NULL);
+      else { /* plain text result expected */
+	assert(ppucArgResult != NULL);
 	if (pucResult) {
 	  *ppucArgResult = pucResult;
 	}
 	else {
+	  int l = 0;
 	  xmlDocDumpFormatMemoryEnc(pdocResult, ppucArgResult, &l, "UTF-8", 1);
-	  xmlFreeDoc(pdocResult);
 	}
-	fResult = TRUE;
-      }
-      else {
+	xmlFreeDoc(pdocResult);
+	fResult = *ppucArgResult != NULL;
       }
     }
   }
@@ -2389,8 +2382,8 @@ cxpXslRetrieve(const xmlNodePtr pndArgXsl, cxpContextPtr pccArg)
     }
   }
 
-  if (domGetXslOutputMethod(pdocResult)==NULL) {
-    cxpCtxtLogPrint(pccArg, 1, "This XSL DOM has no 'xsl:output' element, ignoring");
+  if (pdocResult != NULL && domGetXslOutputMethod(pdocResult) == NULL) {
+    cxpCtxtLogPrint(pccArg, 1, "This XSL DOM has no 'xsl:output' element, ignoring it");
     xmlFreeDoc(pdocResult);
     pdocResult = NULL;
   }

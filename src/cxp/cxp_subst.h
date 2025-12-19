@@ -88,8 +88,8 @@ cxpSubstReplaceNodes(xmlNodePtr pndArg, cxpContextPtr pccArg);
 extern xmlChar *
 cxpSubstInStringNew(xmlChar *pucArg, cxpSubstPtr pcxpSubstArg, cxpContextPtr pccArg);
 
-extern xmlNodePtr
-cxpSubstIncludeNodes(xmlNodePtr pndArg,cxpContextPtr pccArg);
+void
+cxpTraverseIncludeNodes(xmlNodePtr pndArg, cxpContextPtr pccArg);
 
 extern xmlChar *
 cxpSubstGetPtr(cxpSubstPtr pcxpSubstArg);

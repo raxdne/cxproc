@@ -163,12 +163,13 @@ cxpCtxtCgiParse(cxpContextPtr pccArg)
 {
   resNodePtr prnExecutable;
   xmlChar mpucNameFile[BUFFER_LENGTH];
+  xmlChar *pucCgiQuery = NULL;
   xmlChar *pucCgiCxp = NULL;
   xmlChar *pucCgiRedir = NULL;
   xmlChar *pucCgiPathTranslated = NULL;
-  xmlChar *pucT;
   xmlChar *pucCgiPath = NULL;
   xmlChar *pucCgiEncoding = NULL;
+  xmlChar *pucT;
   xmlNodePtr pndMake = NULL;
   xmlNodePtr pndPlain = NULL;
   xmlNodePtr pndXml = NULL;
@@ -359,15 +360,15 @@ cxpCtxtCgiParse(cxpContextPtr pccArg)
       //pndXml = xmlNewChild(pndMake, NULL, NAME_PLAIN, BAD_CAST"File not found");
     }
   }
-  else if ((pucT = cxpCtxtEnvGetValueByName(pccArg, BAD_CAST "QUERY_STRING")) != NULL && STR_IS_NOT_EMPTY(pucT) && xmlStrchr(pucT, '=') == NULL) { /*!\todo define a more stable criteria than '=' */
+  else if ((pucCgiQuery = cxpCtxtEnvGetValueByName(pccArg, BAD_CAST "QUERY_STRING")) != NULL && STR_IS_NOT_EMPTY(pucCgiQuery) && xmlStrchr(pucCgiQuery, '=') == NULL) { /*!\todo define a more stable criteria than '=' */
     /* copy file content to client */
     xmlNodePtr pndCopy = NULL;
     resNodePtr prnFrom = NULL;
 
-    if ((prnFrom = resNodeRootNew(cxpCtxtRootGet(pccArg), pucT)) != NULL && resNodeIsReadable(prnFrom)) {
+    if ((prnFrom = resNodeRootNew(cxpCtxtRootGet(pccArg), pucCgiQuery)) != NULL && resNodeIsReadable(prnFrom)) {
       pndCopy = xmlNewChild(pndMake, NULL, NAME_FILECOPY, NULL);
       //xmlSetProp(pndCopy, BAD_CAST "from", resNodeGetNameNormalized(prnFrom));
-      xmlSetProp(pndCopy, BAD_CAST "from", pucT);
+      xmlSetProp(pndCopy, BAD_CAST "from", pucCgiQuery);
       xmlSetProp(pndCopy, BAD_CAST "to", BAD_CAST "-");
       resNodeFree(prnFrom);
     }
@@ -560,6 +561,7 @@ cxpCtxtCgiParse(cxpContextPtr pccArg)
     /*
       release the allocated CGI values
     */
+    xmlFree(pucCgiQuery);
     xmlFree(pucCgiCxp);
     xmlFree(pucCgiEmbedd);
     xmlFree(pucCgiXsl);
