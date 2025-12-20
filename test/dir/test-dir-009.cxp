@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cxp:make xmlns:cxp="http://www.tenbusch.info/cxproc">
+  <cxp:system message="TEST 3: directory parsing with case sensitive grep and plain text output"/>
+  <cxp:plain name="result/test-dir-009.txt">
+    <cxp:xml name="result/test-dir-009.xml">
+      <cxp:dir grep="*Process*Node">
+        <cxp:dir name="../pie"/>
+        <cxp:dir name="../../src"/>
+        <cxp:dir name="../petrinet"/>
+      </cxp:dir>
+    </cxp:xml>
+    <cxp:xsl name="PlainGrepResult.xsl"/>
+  </cxp:plain>
+</cxp:make>

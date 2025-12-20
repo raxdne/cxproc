@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cxp:make xmlns:cxp="http://www.tenbusch.info/cxproc">
+  <cxp:system message="TEST 4: directory parsing with grep and match"/>
+  <cxp:xml name="result/test-dir-010.xml">
+    <cxp:dir grep="mark">
+      <cxp:dir name="../option/pie/text"/>
+      <cxp:dir name="../option/petrinet"/>
+    </cxp:dir>
+  </cxp:xml>
+</cxp:make>

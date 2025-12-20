@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cxp:make xmlns:cxp="http://www.tenbusch.info/cxproc">
+  <cxp:system message="TEST 2: directory parsing with case insensitive filename matching"/>
+  <cxp:xml name="result/test-dir-008.xml">
+    <cxp:dir imatch="\.(cxp|txt)$">
+      <cxp:dir name="../pie"/>
+      <cxp:dir name="../../src"/>
+      <cxp:dir name="../petrinet"/>
+    </cxp:dir>
+  </cxp:xml>
+</cxp:make>

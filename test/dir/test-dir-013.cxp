@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cxp:make xmlns:cxp="http://www.tenbusch.info/cxproc">
+  <cxp:system message="TEST 7: iteration through filenames"/>
+  <cxp:each name="%F%">
+    <cxp:from>
+      <cxp:plain>
+        <cxp:xml>
+          <cxp:dir name="."/>
+        </cxp:xml>
+        <cxp:xsl name="ListFiles.xsl"/>
+      </cxp:plain>
+    </cxp:from>
+    <cxp:copy from="%F%" to="result/"/>
+  </cxp:each>
+</cxp:make>
