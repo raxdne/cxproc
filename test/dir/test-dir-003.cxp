@@ -2,7 +2,7 @@
 <cxp:make xmlns:cxp="http://www.tenbusch.info/cxproc">
   <cxp:xml name="result/test-dir-003.xml">
     <cxp:dir verbosity="1">
-      <cxp:dir name="../pie"/>
+      <cxp:dir name="../plain"/>
     </cxp:dir>
   </cxp:xml>
 </cxp:make>

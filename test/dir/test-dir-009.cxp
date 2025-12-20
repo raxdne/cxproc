@@ -4,9 +4,9 @@
   <cxp:plain name="result/test-dir-009.txt">
     <cxp:xml name="result/test-dir-009.xml">
       <cxp:dir grep="*Process*Node">
-        <cxp:dir name="../pie"/>
+        <cxp:dir name="../plain"/>
         <cxp:dir name="../../src"/>
-        <cxp:dir name="../petrinet"/>
+        <cxp:dir name="../option/petrinet"/>
       </cxp:dir>
     </cxp:xml>
     <cxp:xsl name="PlainGrepResult.xsl"/>

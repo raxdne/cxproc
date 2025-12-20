@@ -3,9 +3,9 @@
   <cxp:system message="TEST 2: directory parsing with case insensitive filename matching"/>
   <cxp:xml name="result/test-dir-008.xml">
     <cxp:dir imatch="\.(cxp|txt)$">
-      <cxp:dir name="../pie"/>
+      <cxp:dir name="../plain"/>
       <cxp:dir name="../../src"/>
-      <cxp:dir name="../petrinet"/>
+      <cxp:dir name="../option/petrinet"/>
     </cxp:dir>
   </cxp:xml>
 </cxp:make>

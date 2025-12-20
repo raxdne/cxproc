@@ -3,7 +3,7 @@
   <cxp:system message="TEST 1: directory parsing with verbosity=1..5"/>
   <cxp:xml name="result/test-dir-001.xml">
     <cxp:dir>
-      <cxp:dir name="../pie"/>
+      <cxp:dir name="../plain"/>
     </cxp:dir>
   </cxp:xml>
 </cxp:make>
