@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<cxp:make xmlns:cxp="http://www.tenbusch.info/cxproc" log="1">
+  <cxp:system message="**** test-xsl-002: XSL file not valid"/>
+  <cxp:xml name="result/test-xsl-002.xml">
+    <cxp:xml name="../xml/baustelle.pie"/>
+    <cxp:xsl name="NotValid.xsl"/>
+  </cxp:xml>
+</cxp:make>
