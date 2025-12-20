@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cxp:make xmlns:cxp="http://www.tenbusch.info/cxproc">
+  <!-- TEST 8: write content of a text file to stdout -->
+  <cxp:plain name="-">
+    <cxp:plain name="result/test-plain-001.txt"/>
+  </cxp:plain>
+</cxp:make>

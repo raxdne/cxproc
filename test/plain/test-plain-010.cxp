@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cxp:make xmlns:cxp="http://www.tenbusch.info/cxproc">
+  <!-- *** Test 10: parsing of an existing XML file *** -->
+  <cxp:plain valid="no" name="result/this_is_a_bug.txt">
+This text must not processed!
+  </cxp:plain>
+</cxp:make>

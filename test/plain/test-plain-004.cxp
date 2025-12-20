@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cxp:make xmlns:cxp="http://www.tenbusch.info/cxproc">
+  <!-- TEST 4: transform a DOM into a text file -->
+  <cxp:plain name="result/test-plain-004.txt">
+    <cxp:xml name="test-plain-004.xml"/>
+    <cxp:xsl name="MakePlain.xsl"/>
+  </cxp:plain>
+</cxp:make>

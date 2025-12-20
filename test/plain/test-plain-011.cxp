@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cxp:make xmlns:cxp="http://www.tenbusch.info/cxproc">
+  <!-- *** Test 11: output encoding *** -->
+  <cxp:plain name="result/test-plain-enc-default.txt">
+TEST ENCODING: ABC ÖÄÜß DEF
+  </cxp:plain>
+  <cxp:plain name="result/test-plain-enc-false.txt" encoding="DUMMY">
+TEST ENCODING: ABC ÖÄÜß DEF
+  </cxp:plain>
+  <cxp:plain name="result/test-plain-enc-utf-8.txt" encoding="utf-8">
+TEST ENCODING: ABC ÖÄÜß DEF
+  </cxp:plain>
+  <cxp:plain name="result/test-plain-enc-utf-16.txt" encoding="UTF-16LE">
+TEST ENCODING: ABC ÖÄÜß DEF
+  </cxp:plain>
+  <cxp:plain name="result/test-plain-enc-iso-8859-1.txt" encoding="iso-8859-1">
+TEST ENCODING: ABC ÖÄÜß DEF
+  </cxp:plain>
+</cxp:make>

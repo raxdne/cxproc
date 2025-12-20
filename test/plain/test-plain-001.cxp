@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cxp:make xmlns:cxp="http://www.tenbusch.info/cxproc">
+  <!-- TEST 1: write a text node into a text file -->
+  <cxp:plain name="result/test-plain-001.txt">
+    <cxp:plain>Umlaute Ä Ö Ü</cxp:plain>
+  </cxp:plain>
+</cxp:make>

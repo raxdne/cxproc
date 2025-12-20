@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cxp:make xmlns:cxp="http://www.tenbusch.info/cxproc">
+  <!-- TEST 9: read from HTTP-Server -->
+  <cxp:plain name="result/test-plain-009.txt">
+    <cxp:plain name="http://localhost/"/>
+  </cxp:plain>
+</cxp:make>
