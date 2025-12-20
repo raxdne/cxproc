@@ -1,0 +1,41 @@
+<?xml version="1.0"?>
+<cxp:make xmlns:cxp="http://www.tenbusch.info/cxproc">
+  <cxp:system message="*** Test 0e: create pure HTML file without cxp elements ***"/>
+  <cxp:xhtml name="result/test-xhtml-002.html">
+    <html>
+      <cxp:xhtml>
+        <head>
+          <title>TEST pure HTML</title>
+        </head>
+      </cxp:xhtml>
+      <body>
+        <cxp:xhtml>
+          <html>
+            <body>
+              <p>TEST 1 HTML</p>
+              <cxp:xhtml>
+                <p>TEST 2 HTML</p>
+              </cxp:xhtml>
+            </body>
+          </html>
+        </cxp:xhtml>
+        <p>TEST 3 HTML</p>
+        <cxp:xhtml>
+          <html>
+            <body>
+              <p>TEST 4 HTML</p>
+            </body>
+          </html>
+        </cxp:xhtml>
+        <p>TEST 5 HTML</p>
+        <cxp:xhtml valid="no">
+          <p>TEST INVALID HTML</p>
+        </cxp:xhtml>
+        <p>TEST 6 HTML</p>
+        <cxp:xhtml valid="yes">
+          <p>TEST 7 HTML</p>
+        </cxp:xhtml>
+      </body>
+    </html>
+  </cxp:xhtml>
+</cxp:make>

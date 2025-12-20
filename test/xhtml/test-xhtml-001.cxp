@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<cxp:make xmlns:cxp="http://www.tenbusch.info/cxproc">
+  <cxp:system message="*** Test 1b: process an embedded HTML DOM ***"/>
+  <cxp:xhtml name="result/test-xhtml-001.html">
+    <cxp:xhtml>
+      <html>
+        <head>
+          <title>TEST SIMPLE</title>
+        </head>
+        <body>
+          <p>This is a simple HTML test!</p>
+        </body>
+      </html>
+    </cxp:xhtml>
+  </cxp:xhtml>
+</cxp:make>

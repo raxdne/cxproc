@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<cxp:make xmlns:cxp="http://www.tenbusch.info/cxproc">
+  <cxp:system message="*** Test 3b: embedded HTML with nested cxp:xhtml ***"/>
+  <cxp:xhtml name="result/test-xhtml-007.html">
+    <html>
+      <cxp:xhtml>
+        <cxp:xsl name="CgiPieUi.xsl">
+          <cxp:variable name="str_path" select="''"/>
+          <cxp:variable name="flag_header" select="true()"/>
+        </cxp:xsl>
+      </cxp:xhtml>
+      <body>
+        <div id="ui">
+          <cxp:xhtml>
+            <cxp:xml>
+              <cxp:file verbosity="3" name="TTTT"/>
+            </cxp:xml>
+            <cxp:xsl name="CgiPieUi.xsl"/>
+          </cxp:xhtml>
+          <div id="content">
+            <h1>TEST</h1>
+          </div>
+        </div>
+      </body>
+    </html>
+  </cxp:xhtml>
+</cxp:make>

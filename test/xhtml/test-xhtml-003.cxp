@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<cxp:make xmlns:cxp="http://www.tenbusch.info/cxproc">
+  <cxp:system message="*** Test 1a: parsing of an existing HTML file and save into a new XML file ***"/>
+  <cxp:xml name="result/test-xhtml-003.xml">
+    <cxp:xml name="result/test-xhtml-002.html"/>
+  </cxp:xml>
+</cxp:make>
