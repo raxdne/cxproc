@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cxp:make xmlns:cxp="http://www.tenbusch.info/cxproc">
+  <cxp:system message="**** test-system-0013: Call copy command with search option ****"/>
+  <cxp:copy from="pie.css" to="result" search="yes"/>
+  <cxp:copy from="pie.css" to="" search="yes"/>
+  <cxp:copy from="html/red/presentation.css" to="result" search="yes"/>
+</cxp:make>

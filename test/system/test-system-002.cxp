@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cxp:make xmlns:cxp="http://www.tenbusch.info/cxproc">
+  <!--
+  <cxp:system message="**** test-system-002: Call a shell command with different encoding ****"/>
+  <cxp:system exec="echo &quot;* Test ÄÖÜ &quot; &gt; result/test-system-öü.txt"/>
+  -->
+</cxp:make>

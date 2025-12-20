@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cxp:make xmlns:cxp="http://www.tenbusch.info/cxproc">
+  <cxp:system message="**** test-system-004: Call copy command without from ****"/>
+  <cxp:copy to="result/"/>
+</cxp:make>

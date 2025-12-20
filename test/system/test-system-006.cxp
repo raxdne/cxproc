@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cxp:make xmlns:cxp="http://www.tenbusch.info/cxproc">
+  <cxp:system message="**** test-system-006: Call copy command with non-existing target directory ****"/>
+  <cxp:copy from="source.dat" to="result/tmp-2/"/>
+</cxp:make>

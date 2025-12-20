@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cxp:make xmlns:cxp="http://www.tenbusch.info/cxproc">
+  <cxp:system message="**** test-system-008: Call copy command source path and target directory only ****"/>
+  <cxp:copy from="source.zip" to="result"/>
+</cxp:make>

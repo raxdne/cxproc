@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cxp:make xmlns:cxp="http://www.tenbusch.info/cxproc">
+  <cxp:system message="**** test-system-005: Call copy command with non-existing source file ****"/>
+  <cxp:copy from="rwz.xxx" to="result"/>
+</cxp:make>
