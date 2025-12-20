@@ -945,6 +945,8 @@ cxpProcessPlainNode(xmlNodePtr pndArg, cxpContextPtr pccArg)
       xmlNodePtr pndChild;
       xmlNodePtr pndChildNext;
 
+      cxpSubstInChildNodes(pndArg, NULL, pccHere);
+
       for (pucResult = NULL, pndChild = pndArg->children; pndChild != NULL; pndChild = pndChildNext) {
 	xmlChar *pucChildResult;
 	
@@ -1307,6 +1309,7 @@ cxpProcessXmlNode(xmlNodePtr pndArg, cxpContextPtr pccArg)
       cxpContextPtr pccHere = pccArg;
 
       //pccHere = cxpCtxtFromAttr(pccArg, pndArg);
+      cxpSubstInChildNodes(pndArg, NULL, pccHere);
 
       if (IS_NODE_XML(pndChildSource) || IS_NODE_XHTML(pndChildSource)) {
 	pdocT = cxpProcessXmlNode(pndChildSource,pccHere);
@@ -1370,8 +1373,6 @@ cxpProcessXmlNode(xmlNodePtr pndArg, cxpContextPtr pccArg)
 	 */
 	pdocT = cxpProcessXmlChildNodes(pndArg,pccHere);
       }
-
-      /*!\todo cxpSubstitute(pndArg); */
 
       if (pdocT) {
 	/*! transform DOM by XSL if required */
@@ -1447,6 +1448,7 @@ cxpProcessXmlNode(xmlNodePtr pndArg, cxpContextPtr pccArg)
 	  cxpCtxtLogPrint(pccArg,1,"XML source not readable '%s'", pucAttrName);
 	}
       }
+      cxpSubstInChildNodes(pndArg, NULL, pccArg);
 
       if (domGetPropFlag(pndArg,BAD_CAST "dump",FALSE)) {
 	cxpCtxtLogPrintDoc(pccArg, 1, NULL, pdocResult);
@@ -1458,6 +1460,8 @@ cxpProcessXmlNode(xmlNodePtr pndArg, cxpContextPtr pccArg)
 
     if (pdocResult) {
       xmlNodePtr pndRoot;
+
+      //cxpSubstInChildNodes(pndArg, NULL, pccArg);
 
       pucSchema = domGetPropValuePtr(pndArg, BAD_CAST "schema");
       if (pucSchema != NULL && xmlStrlen(pucSchema) > 4) {

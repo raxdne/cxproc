@@ -959,6 +959,8 @@ cxpSubstFree(cxpSubstPtr pcxpSubstArg)
 \param pndArgSubst a xmlNodePtr to a subst node to apply
 \param pccArg the context
 
+\todo implement substitution on resulting tree from end
+
 \return TRUE if successful
  */
 BOOL_T
