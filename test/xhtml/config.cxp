@@ -1,15 +1,15 @@
 <?xml version="1.0"?>
 <cxp:make xmlns:cxp="http://www.tenbusch.info/cxproc">
   <cxp:system mkdir="result/"/>
-  <include name="test-xhtml-001.cxp"/>
-  <include name="test-xhtml-002.cxp"/>
-  <include name="test-xhtml-003.cxp"/>
-  <include name="test-xhtml-004.cxp"/>
-  <include name="test-xhtml-005.cxp"/>
-  <include name="test-xhtml-006.cxp"/>
-  <include name="test-xhtml-007.cxp"/>
-  <include name="test-xhtml-008.cxp"/>
-  <include name="test-xhtml-009.cxp"/>
-  <include name="test-xhtml-010.cxp"/>
-  <include name="test-xhtml-011.cxp"/>
+  <cxp:include name="test-xhtml-001.cxp"/>
+  <cxp:include name="test-xhtml-002.cxp"/>
+  <cxp:include name="test-xhtml-003.cxp"/>
+  <cxp:include name="test-xhtml-004.cxp"/>
+  <cxp:include name="test-xhtml-005.cxp"/>
+  <cxp:include name="test-xhtml-006.cxp"/>
+  <cxp:include name="test-xhtml-007.cxp"/>
+  <cxp:include name="test-xhtml-008.cxp"/>
+  <cxp:include name="test-xhtml-009.cxp"/>
+  <cxp:include name="test-xhtml-010.cxp"/>
+  <cxp:include name="test-xhtml-011.cxp"/>
 </cxp:make>

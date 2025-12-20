@@ -1,18 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <cxp:make xmlns:cxp="http://www.tenbusch.info/cxproc">
   <cxp:system mkdir="result/"/>
-  <include name="test-plain-001.cxp"/>
-  <include name="test-plain-002.cxp"/>
-  <include name="test-plain-003.cxp"/>
-  <include name="test-plain-004.cxp"/>
-  <include name="test-plain-005.cxp"/>
-  <include name="test-plain-006.cxp"/>
-  <include name="test-plain-007.cxp"/>
-  <include name="test-plain-008.cxp"/>
-  <include name="test-plain-009.cxp"/>
-  <include name="test-plain-010.cxp"/>
-  <include name="test-plain-011.cxp"/>
-  <include name="test-plain-subst-001.cxp"/>
-  <include name="test-plain-cache-001.cxp"/>
-  <include name="test-plain-cache-002.cxp"/>
+  <cxp:include name="test-plain-001.cxp"/>
+  <cxp:include name="test-plain-002.cxp"/>
+  <cxp:include name="test-plain-003.cxp"/>
+  <cxp:include name="test-plain-004.cxp"/>
+  <cxp:include name="test-plain-005.cxp"/>
+  <cxp:include name="test-plain-006.cxp"/>
+  <cxp:include name="test-plain-007.cxp"/>
+  <cxp:include name="test-plain-008.cxp"/>
+  <cxp:include name="test-plain-009.cxp"/>
+  <cxp:include name="test-plain-010.cxp"/>
+  <cxp:include name="test-plain-011.cxp"/>
+  <cxp:include name="test-plain-subst-001.cxp"/>
+  <cxp:include name="test-plain-cache-001.cxp"/>
+  <cxp:include name="test-plain-cache-002.cxp"/>
 </cxp:make>

@@ -1,19 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <cxp:make xmlns:cxp="http://www.tenbusch.info/cxproc">
   <cxp:system mkdir="result/"/>
-  <include name="test-dir-001.cxp"/>
-  <include name="test-dir-002.cxp"/>
-  <include name="test-dir-003.cxp"/>
-  <include name="test-dir-004.cxp"/>
-  <include name="test-dir-005.cxp"/>
-  <include name="test-dir-006.cxp"/>
-  <include name="test-dir-007.cxp"/>
-  <include name="test-dir-008.cxp"/>
-  <include name="test-dir-009.cxp"/>
-  <include name="test-dir-010.cxp"/>
-  <include name="test-dir-011.cxp"/>
-  <include name="test-dir-012.cxp"/>
-  <include name="test-dir-013.cxp"/>
-  <include name="test-dir-014.cxp"/>
-  <include name="test-dir-015.cxp"/>
+  <cxp:include name="test-dir-001.cxp"/>
+  <cxp:include name="test-dir-002.cxp"/>
+  <cxp:include name="test-dir-003.cxp"/>
+  <cxp:include name="test-dir-004.cxp"/>
+  <cxp:include name="test-dir-005.cxp"/>
+  <cxp:include name="test-dir-006.cxp"/>
+  <cxp:include name="test-dir-007.cxp"/>
+  <cxp:include name="test-dir-008.cxp"/>
+  <cxp:include name="test-dir-009.cxp"/>
+  <cxp:include name="test-dir-010.cxp"/>
+  <cxp:include name="test-dir-011.cxp"/>
+  <cxp:include name="test-dir-012.cxp"/>
+  <cxp:include name="test-dir-013.cxp"/>
+  <cxp:include name="test-dir-014.cxp"/>
+  <cxp:include name="test-dir-015.cxp"/>
 </cxp:make>
