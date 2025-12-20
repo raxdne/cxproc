@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<cxp:make xmlns:cxp="http://www.tenbusch.info/cxproc">
+  <cxp:xml name="result/test-xml-cache-001.xml" cache="yes">
+    <cxp:xml>
+      <dummy>
+        <p>TEST CACHE</p>
+      </dummy>
+    </cxp:xml>
+  </cxp:xml>
+  <cxp:xml name="result/test-xml-cache-001-001.xml">
+    <cxp:xml name="result/test-xml-cache-001.xml"/>
+  </cxp:xml>
+</cxp:make>

@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<cxp:make xmlns:cxp="http://www.tenbusch.info/cxproc">
+  <cxp:xml name="result/test-xml-003.xml">
+    <cxp:xml context="../..">
+      <cxp:xml context="test">
+	<cxp:xml context="xml">
+	  <cxp:xml name="baustelle.pie"/>
+	</cxp:xml>
+      </cxp:xml>
+    </cxp:xml>
+  </cxp:xml>
+</cxp:make>

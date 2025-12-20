@@ -1,0 +1,2 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cxp:include name="test-xml-include-include-include-include.cxp" xmlns:cxp="http://www.tenbusch.info/cxproc"/>

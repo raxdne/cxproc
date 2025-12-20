@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<cxp:make xmlns:cxp="http://www.tenbusch.info/cxproc">
+  <cxp:xml name="result/test-xml-002-001.xml">
+    <dummy>
+      <cxp:xml name="dummy-a.xml"/>
+      <cxp:xml name="not-here.xml"/>
+      <cxp:xml name="dummy-b.xml"/>
+      <cxp:xml name="not-here.xml"/>
+      <cxp:xml name="dummy-c.xml"/>
+    </dummy>
+  </cxp:xml>
+</cxp:make>

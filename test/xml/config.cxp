@@ -1,9 +1,25 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <cxp:make xmlns:cxp="http://www.tenbusch.info/cxproc">
   <cxp:system message="test collection"/>
-  <include name="config-xml.cxp"/>
-  <include name="config-xml-include.cxp"/>
-  <include name="config-xml-subst.cxp"/>
-  <include name="config-xml-eval.cxp"/>
-  <include name="config-xml-cache.cxp"/>
+  <include name="test-xml-000.cxp"/>
+  <include name="test-xml-000-000.cxp"/>
+  <include name="test-xml-001-001.cxp"/>
+  <include name="test-xml-001-002.cxp"/>
+  <include name="test-xml-001-003.cxp"/>
+  <include name="test-xml-002-001.cxp"/>
+  <include name="test-xml-003.cxp"/>
+  <include name="test-xml-004.cxp"/>
+  <include name="test-xml-subst-001.cxp"/>
+  <include name="test-xml-subst-002.cxp"/>
+  <include name="test-xml-include-000.cxp"/>
+  <include name="test-xml-include-001.cxp"/>
+  <include name="test-xml-include-002.cxp"/>
+  <include name="test-xml-include-003.cxp"/>
+  <include name="test-xml-include-004.cxp"/>
+  <include name="test-xml-eval-001.cxp"/>
+  <include name="test-xml-eval-002.cxp"/>
+  <include name="test-xml-eval-003.cxp"/>
+  <include name="test-html-include-001.cxp"/>
+  <include name="test-xml-cache-001.cxp"/>
+  <include name="test-xml-cache-002.cxp"/>
 </cxp:make>

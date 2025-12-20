@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<cxp:make xmlns:cxp="http://www.tenbusch.info/cxproc">
+  <cxp:xml eval="yes">
+    <cxp:xml name="test-xml-eval.xml"/>
+  </cxp:xml>
+</cxp:make>
+

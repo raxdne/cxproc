@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cxp:make xmlns:cxp="http://www.tenbusch.info/cxproc" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+  <cxp:xml name="result/test-xml-subst-002.xml">
+    <!--  -->
+    <cxp:subst string="%PRE%" to="YYY"/>
+    <cxp:xml>
+      <dummy a="%PRE%" b="%HOME%" c="%POST%">
+        <p>TEST pre '%PRE%'</p>
+        <p>TEST global '%HOME%'</p>
+        <p>TEST post '%POST%'</p>
+      </dummy>
+    </cxp:xml>
+    <!--  -->
+    <cxp:subst string="%POST%" to="ZZZ"/>
+  </cxp:xml>
+</cxp:make>

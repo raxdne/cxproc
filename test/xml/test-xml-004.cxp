@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<cxp:make xmlns:cxp="http://www.tenbusch.info/cxproc">
+  <cxp:xml name="result/test-xml-004.xml">
+    <ppp:abc xmlns:ppp="http://www.tenbusch.info/ppp">
+      <ppp:def>AAA</ppp:def>
+      <cxp:include name="dummy-a.xml"/>
+      <ppp:hij/>
+      <cxp:xml>
+	<cxp:info/>
+      </cxp:xml>
+    </ppp:abc>
+  </cxp:xml>
+</cxp:make>
