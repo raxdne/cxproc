@@ -108,7 +108,7 @@
             </xsl:otherwise>
           </xsl:choose>
           <!-- element name -->
-          <xsl:text>,&quot;</xsl:text>
+          <xsl:text>,BAD_CAST &quot;</xsl:text>
           <xsl:value-of select="local-name()"/>
           <xsl:text>&quot;,NULL);</xsl:text>
           <xsl:value-of select="$newpar"/>
@@ -161,7 +161,6 @@
     </xsl:for-each>
     <xsl:value-of select="concat($newpar,'// xmlFreeDoc(pdocResult);',$newpar)"/>
   </xsl:template>
-
 
 <xsl:template name="lf2br">
   <!-- import $StringToTransform -->

@@ -124,6 +124,9 @@ xmlNsPtr pnsCxp = NULL; /*!\todo use defined namespace "cxp" */
 #define IS_NODE_SOURCE(NODE) (IS_NODE_XML(NODE) || IS_NODE_XSL(NODE) || IS_NODE_INFO(NODE) || IS_NODE_XHTML(NODE) || IS_NODE_PLAIN(NODE) || IS_NODE_ZIP(NODE) || IS_NODE_IMAGE(NODE) || IS_NODE_DIR(NODE) || IS_NODE_FILE(NODE) || IS_NODE_PIE(NODE))
 
 static BOOL_T
+ValidateSchemaCxp(const xmlDocPtr pdocArgXml, cxpContextPtr pccArg);
+
+static BOOL_T
 ValidateSchema(const xmlDocPtr pdocArgXml, const xmlChar *pucArg, cxpContextPtr pccArg);
 
 static xmlDocPtr
@@ -162,6 +165,50 @@ extern xmlDocPtr
 pieProcessPieNode(xmlNodePtr pndMakePie, cxpContextPtr pccArg);
 
 #endif
+
+/*! \return TRUE if pndArg and descendants are valid cxp elements according to XML Schema
+
+  for complete DOM see ValidateSchema()
+  */
+BOOL_T
+ValidateSchemaCxp(const xmlDocPtr pdocArgXml, cxpContextPtr pccArg)
+{
+  BOOL_T fResult = FALSE;
+
+  if (pdocArgXml) {
+    xmlRelaxNGParserCtxtPtr rngparser;
+    #include "cxp_rng.h"
+
+    /*! parse relaxng file */
+    rngparser = xmlRelaxNGNewDocParserCtxt(pdocResult);
+    if (rngparser) {
+      xmlRelaxNGPtr schema;
+
+      schema = xmlRelaxNGParse(rngparser);
+      if (schema) {
+	xmlRelaxNGValidCtxtPtr validctxt;
+
+	validctxt = xmlRelaxNGNewValidCtxt(schema);
+	if (validctxt) {
+	  /*! validate DOM */
+	  fResult = (xmlRelaxNGValidateDoc(validctxt, pdocArgXml) == 0);
+	  if (fResult) {
+	    cxpCtxtLogPrint(pccArg, 2, "Validation against internal Schema successful");
+	  }
+	  else {
+	    cxpCtxtLogPrint(pccArg, 2, "Validation against internal Schema failed");
+	  }
+	  xmlRelaxNGFreeValidCtxt(validctxt);
+	}
+	xmlRelaxNGFree(schema);
+      }
+      xmlRelaxNGFreeParserCtxt(rngparser);
+    }
+    xmlFreeDoc(pdocResult);
+  }
+  return fResult;
+} /* end of ValidateSchemaCxp() */
+
 
 /*! \return TRUE if pndArg and descendants are valid against relaxng
 
@@ -1465,7 +1512,7 @@ cxpProcessXmlNode(xmlNodePtr pndArg, cxpContextPtr pccArg)
 
       pucSchema = domGetPropValuePtr(pndArg, BAD_CAST "schema");
       if (pucSchema != NULL && xmlStrlen(pucSchema) > 4) {
-	if (ValidateSchema(pdocResult, pucSchema, pccArg) == FALSE) {
+	if (ValidateSchemaCxp(pdocResult, pccArg) == FALSE) {
 	  /*!\todo append validation error messages to existing meta element? */
 	}
       }

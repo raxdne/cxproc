@@ -220,12 +220,20 @@ ADD_EXECUTABLE(pietextx
 
 target_compile_definitions(pietextx PUBLIC PIE_STANDALONE)
 
+#
+add_custom_command(
+  OUTPUT  ${CXPROC_SRC_DIR}/cxp/cxp_rng.h
+  DEPENDS ${PROJECT_SOURCE_DIR}/xml/schema/cxp.rng ${PROJECT_SOURCE_DIR}/xml/xsl/xml2c.xsl
+  COMMAND xsltproc -o ${CXPROC_SRC_DIR}/cxp/cxp_rng.h ${PROJECT_SOURCE_DIR}/xml/xsl/xml2c.xsl ${PROJECT_SOURCE_DIR}/xml/schema/cxp.rng
+  )
+ 
 SET(CXPROC_HEADERS
   ${CXPROC_SRC_DIR}/version.h
 #  ${CXPROC_SRC_DIR}/git_revision.h
 #  ${CXPROC_SRC_DIR}/git_info.h
   ${CXPROC_SRC_DIR}/basics.h
   ${CXPROC_SRC_DIR}/cxp/cxp_dtd.h
+  ${CXPROC_SRC_DIR}/cxp/cxp_rng.h
   ${CXPROC_SRC_DIR}/cxp/cxp_context_enc.h
   ${CXPROC_SRC_DIR}/cxp/cxp_context.h
   ${CXPROC_SRC_DIR}/cxp/cxp_context_cli.h
@@ -822,31 +830,6 @@ ENDIF ()
 #
 # add the command to generate the source code
 
-# TODO: process "git log -n 1" or "git branch --contains"
-IF(MSVC)
-  #ADD_CUSTOM_COMMAND (
-  #  OUTPUT ${CXPROC_SRC_DIR}/svn_revision.h ${CXPROC_SRC_DIR}/svn_info.h
-  #  COMMAND ${PROJECT_SOURCE_DIR}/build/svn_revision.bat
-  #  )
-ELSE(MSVC)
-  # ADD_CUSTOM_COMMAND (
-  #   OUTPUT ${PROJECT_SOURCE_DIR}/build/svn_info.log
-  #   COMMAND svn info ${PROJECT_SOURCE_DIR} > ${PROJECT_SOURCE_DIR}/build/svn_info.log
-  #   )
-  
-  # ADD_CUSTOM_COMMAND (
-  #   OUTPUT ${CXPROC_SRC_DIR}/svn_revision.h
-  #   COMMAND awk -f ${PROJECT_SOURCE_DIR}/build/svn_revision.awk ${PROJECT_SOURCE_DIR}/build/svn_info.log > ${CXPROC_SRC_DIR}/svn_revision.h
-  #   DEPENDS ${PROJECT_SOURCE_DIR}/build/svn_info.log
-  #   )
-  
-  # ADD_CUSTOM_COMMAND (
-  #   OUTPUT ${CXPROC_SRC_DIR}/svn_info.h
-  #   COMMAND awk -f ${PROJECT_SOURCE_DIR}/build/svn_info.awk ${PROJECT_SOURCE_DIR}/build/svn_info.log > ${CXPROC_SRC_DIR}/svn_info.h
-  #   DEPENDS ${PROJECT_SOURCE_DIR}/build/svn_info.log
-  #   )
-ENDIF(MSVC)
- 
 ################################################################################
 #
 
