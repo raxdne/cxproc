@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<cxp:make xmlns:cxp="http://www.tenbusch.info/cxproc">
+  <cxp:system mkdir="result/"/>
+  <include name="test-calendar-001.cxp"/>
+  <include name="test-calendar-002.cxp"/>
+  <include name="test-calendar-003.cxp"/>
+</cxp:make>

@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cxp:make xmlns:cxp="http://www.tenbusch.info/cxproc">
+  <cxp:system message="test collection"/>
+  <include name="xml/config.cxp"/>
+  <include name="xsl/config.cxp"/>
+  <include name="xhtml/config.cxp"/>
+  <include name="plain/config.cxp"/>
+</cxp:make>

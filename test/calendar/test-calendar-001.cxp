@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<make>
+  <xml name="result/test-calendar-001.xml">
+    <calendar year="2022" timezone="CET"/>
+  </xml>
+</make>
