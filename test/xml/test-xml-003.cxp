@@ -1,5 +1,6 @@
 <?xml version="1.0"?>
 <cxp:make xmlns:cxp="http://www.tenbusch.info/cxproc">
+  <cxp:system message="*** test-xml-003: new contexts ***"/>
   <cxp:xml name="result/test-xml-003.xml">
     <cxp:xml context="../..">
       <cxp:xml context="test">

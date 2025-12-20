@@ -1,5 +1,6 @@
 <?xml version="1.0"?>
 <cxp:make xmlns:cxp="http://www.tenbusch.info/cxproc">
+  <cxp:system message="*** test-xml-004: mix of nodes ***"/>
   <cxp:xml name="result/test-xml-004.xml">
     <ppp:abc xmlns:ppp="http://www.tenbusch.info/ppp">
       <ppp:def>AAA</ppp:def>

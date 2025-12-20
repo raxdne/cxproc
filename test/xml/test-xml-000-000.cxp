@@ -1,4 +1,5 @@
 <?xml version="1.0"?>
 <cxp:make xmlns:cxp="http://www.tenbusch.info/cxproc">
+  <cxp:system message="*** test-xml-000: empty DOM ***"/>
   <cxp:xml name="result/test-xml-000-000.xml"/>
 </cxp:make>
