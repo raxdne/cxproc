@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cxp:make xmlns:cxp="http://www.tenbusch.info/cxproc">
+  <cxp:system mkdir="result/"/>
+  <cxp:system message="**** test-pie-import-plain-007: parsing of embedded dates"/>
+  <cxp:xml name="result/test-pie-import-plain-007.pie">
+    <cxp:pie url="yes" figure="no" hidden="no" date="yes" import="yes">
+      <import name="test-pie-import-plain-007.txt">
+	<subst string="2007" to="2017"/>
+	<subst string="valid" to="VALID"/>
+      </import>
+    </cxp:pie>
+  </cxp:xml>
+</cxp:make>

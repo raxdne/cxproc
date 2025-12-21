@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cxp:make xmlns:cxp="http://www.tenbusch.info/cxproc">
+  <cxp:system mkdir="result/"/>
+  <cxp:system message="**** test-pie-import-plain-006: mix of files and strings"/>
+  <cxp:xml name="result/test-pie-import-plain-006.pie">
+    <cxp:pie>
+      <import type="cxp">
+        <cxp:plain>* FGHI</cxp:plain>
+        <cxp:plain>** JKLMÖÄÜßHH</cxp:plain>
+        <cxp:plain name="test-pie-import-plain-001.txt"/>
+        <cxp:plain>ABCDE</cxp:plain>
+        <cxp:plain name="test-pie-import-plain-005-002.txt"/>
+      </import>
+    </cxp:pie>
+  </cxp:xml>
+</cxp:make>

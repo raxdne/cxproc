@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cxp:make xmlns:cxp="http://www.tenbusch.info/cxproc">
+  <cxp:system mkdir="result/"/>
+  <cxp:system message="**** test-pie-import-plain-002: medium file with nested instructions"/>
+  <cxp:xml name="result/test-pie-import-plain-002.pie">
+    <cxp:pie>
+      <import name="test-pie-import-plain-002.txt"/>
+    </cxp:pie>
+  </cxp:xml>
+</cxp:make>
