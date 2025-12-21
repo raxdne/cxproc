@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<cxp:make xmlns:cxp="http://www.tenbusch.info/cxproc">
+  <cxp:system message="TEST test-petrinet-001: one petrinet"/>
+  <cxp:xml name="result/test-petrinet-001.xml">
+    <pie import="yes">
+      <import name="pn-1.pie"/>
+    </pie>
+  </cxp:xml>
+</cxp:make>
