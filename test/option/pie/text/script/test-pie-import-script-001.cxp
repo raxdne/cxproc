@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cxp:make xmlns:cxp="http://www.tenbusch.info/cxproc">
+  <cxp:system mkdir="result/"/>
+  <cxp:xml name="result/test-pie-import-script-001.pie">
+    <cxp:pie>
+      <import type="script">
+var strResult = '* ABC';
+
+for (i=0; i&lt;10; i++) {
+  strResult += '\n\n+ DEF ' + i;
+}
+      </import>
+    </cxp:pie>
+  </cxp:xml>
+</cxp:make>
