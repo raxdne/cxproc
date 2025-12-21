@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cxp:make xmlns:cxp="http://www.tenbusch.info/cxproc">
+  <cxp:system mkdir="result/"/>
+  <cxp:system message="**** test-pie-import-xml-006: mix of namespaces"/>
+  <cxp:xml name="result/test-pie-import-xml-006.pie">
+    <cxp:pie tags="no">
+      <section>
+        <h>Import Test</h>
+        <import name="test-pie-ns.pie"/>
+      </section>
+    </cxp:pie>
+  </cxp:xml>
+</cxp:make>

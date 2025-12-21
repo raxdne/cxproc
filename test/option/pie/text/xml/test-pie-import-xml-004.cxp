@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cxp:make xmlns:cxp="http://www.tenbusch.info/cxproc">
+  <cxp:system mkdir="result/"/>
+  <cxp:system message="**** test-pie-import-xml-004: import of non-parseable PIE file"/>
+  <cxp:xml name="result/test-pie-import-xml-004.pie">
+    <cxp:pie>
+      <import name="test-pie-import-xml-004.pie"/>
+    </cxp:pie>
+  </cxp:xml>
+</cxp:make>

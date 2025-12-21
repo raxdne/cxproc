@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cxp:make xmlns:cxp="http://www.tenbusch.info/cxproc">
+  <cxp:system mkdir="result/"/>
+  <cxp:system message="**** test-pie-import-xml-001-001: XML pie node ***"/>
+  <cxp:xml name="result/test-pie-import-xml-001-001.pie">
+    <cxp:pie>
+      <section>
+        <h>Import Test</h>
+        <section>
+          <h>Section</h>
+          <section>
+            <h>Section</h>
+            <p>ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC</p>
+          </section>
+        </section>
+        <section>
+          <section>
+            <h>A</h>
+            <p>Nur ein → Test</p>
+          </section>
+          <section>
+            <h>B</h>
+          </section>
+          <section>
+            <h>C</h>
+          </section>
+        </section>
+      </section>
+    </cxp:pie>
+  </cxp:xml>
+  <cxp:system message="**** test-pie-import-xml-001-002: simple XML pie/import ***"/>
+  <cxp:xml name="result/test-pie-import-xml-001-002.pie">
+    <cxp:pie>
+      <section>
+        <h>Import Test</h>
+        <import name="test-pie-import-xml-001.pie"/>
+      </section>
+    </cxp:pie>
+  </cxp:xml>
+  <cxp:system message="**** test-pie-import-xml-001-003: simple XML import ***"/>
+  <cxp:xml name="result/test-pie-import-xml-001-003.pie">
+    <cxp:xml name="test-pie-import-xml-001.pie"/>
+  </cxp:xml>
+</cxp:make>

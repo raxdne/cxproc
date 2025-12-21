@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cxp:make xmlns:cxp="http://www.tenbusch.info/cxproc">
+  <cxp:system mkdir="result/"/>
+  <cxp:system message="**** test-pie-import-xml-003: import of PIE file containing subst nodes"/>
+  <cxp:xml name="result/test-pie-import-xml-003.pie">
+    <cxp:pie>
+      <import name="test-pie-import-xml-003.pie"/>
+    </cxp:pie>
+  </cxp:xml>
+</cxp:make>
