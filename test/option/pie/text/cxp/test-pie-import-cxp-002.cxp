@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cxp:make xmlns:cxp="http://www.tenbusch.info/cxproc">
+  <cxp:system mkdir="result/"/>
+  <cxp:system message="**** test-pie-import-cxp-002: PIE format"/>
+  <cxp:xml name="result/test-pie-import-cxp-002.pie">
+    <cxp:xml>
+      <cxp:pie>
+    <import type="cxp">
+      <plain type="par">
+	<xml>
+	  <file name="../test-pie-20.docx" />
+	</xml>
+	<xsl name="docx2txt.xsl"/>
+      </plain>
+    </import>
+      </cxp:pie>
+    </cxp:xml>
+  </cxp:xml>
+</cxp:make>
