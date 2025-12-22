@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cxp:make xmlns:cxp="http://www.tenbusch.info/cxproc">
+  <cxp:system mkdir="result/"/>
+  <cxp:system message="**** test-pie-import-xml-001-003: simple XML import ***"/>
+  <cxp:xml name="result/test-pie-import-xml-001-003.pie">
+    <cxp:xml name="test-pie-import-xml-001.pie"/>
+  </cxp:xml>
+</cxp:make>

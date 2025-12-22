@@ -6,7 +6,4 @@
   <cxp:include name="test-pie-import-xml-004.cxp" />
   <cxp:include name="test-pie-import-xml-005.cxp" />
   <cxp:include name="test-pie-import-xml-006.cxp" />
-  <cxp:include name="test-pie-import-xml-007.cxp" />
-  <cxp:include name="test-pie-import-xml-008.cxp" />
-  <cxp:include name="test-pie-import-xml-009.cxp" />
 </cxp:make>
