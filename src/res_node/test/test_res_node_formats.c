@@ -53,7 +53,7 @@ resNodeTestFormats(void)
     else if (resNodeUpdate(prnT, RN_INFO_MAX, NULL, NULL) == FALSE) {
       printf("Error resNodeReadStatus()\n");
     }
-    else if ((pndT = resNodeToDOM(prnT, RN_INFO_MAX)) == NULL || (j = domNumberOfChild(pndT, NULL)) != 16) {
+    else if ((pndT = resNodeToDOM(prnT, RN_INFO_MAX)) == NULL || (j = domNumberOfChild(pndT, NULL)) != 19) {
       printf("Error resNodeToDOM(): %i\n", j);
     }
     else if ((pucPlain = resNodeToPlain(prnT, RN_INFO_MAX)) == NULL) {
@@ -167,7 +167,7 @@ resNodeTestFormats(void)
 	i++;
 	printf("TEST %i in '%s:%i': transform resNodeList to XML text = ", i, __FILE__, __LINE__);
 	if ((pucT = resNodeListToXmlStr(prnT, RN_INFO_MAX))) {
-	  puts((const char*)pucT);
+	  //puts((const char*)pucT);
 	  n_ok++;
 	  printf("OK\n");
 	}
@@ -324,8 +324,8 @@ resNodeTestFormats(void)
     else {
       n_ok++;
     }
-    puts((const char *)pucT);
-    puts((const char *)pucTT);
+    //puts((const char *)pucT);
+    //puts((const char *)pucTT);
 
     if (xmlStrlen(mucTestResult) > 0) {
       pucModuleTestReport = xmlStrcat(pucModuleTestReport,mucTestLabel);
@@ -349,7 +349,7 @@ resNodeTestFormats(void)
     mucTestResult[0] = '\0';
 
 
-    if ((prnT = resNodeDirNew(BAD_CAST TESTPREFIX "plain/test-plain-3.xml")) == NULL) {
+    if ((prnT = resNodeDirNew(BAD_CAST TESTPREFIX "plain/test-plain-004.xml")) == NULL) {
       xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error domGetFirstChild()\n");
     }
     else if (resNodeReadStatus(prnT) == FALSE) {

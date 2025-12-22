@@ -125,7 +125,7 @@ dirTest(cxpContextPtr pccArg)
     else if ((pndT = domGetFirstChild(pndT, NAME_DIR)) == NULL) {
       printf("Error domGetFirstChild()\n");
     }
-    else if ((k = domNumberOfChild(pndT, NAME_FILE)) != 2) {
+    else if ((k = domNumberOfChild(pndT, NAME_FILE)) != 5) {
       printf("Error '%s' domNumberOfChild(): %i\n", NAME_FILE, k);
     }
     else if ((k = domNumberOfChild(pndT, NAME_DIR)) != 14) {
@@ -236,7 +236,7 @@ dirTest(cxpContextPtr pccArg)
     pndTT = xmlNewChild(pndT, NULL, NAME_FILE, NULL);
     xmlSetProp(pndTT, BAD_CAST "name", BAD_CAST "abc.xml");
     xmlSetProp(pndTT, BAD_CAST "map", BAD_CAST "sub/abc.xml");
-    domPutNodeString(stderr, BAD_CAST "SetTopPrefix(): ", pndPie);
+    //domPutNodeString(stderr, BAD_CAST "SetTopPrefix(): ", pndPie);
 
     if (pndPie == NULL) {
       printf("Error xmlNewChild()\n");
