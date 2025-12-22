@@ -554,7 +554,7 @@ dirNodeToResNodeList(xmlNodePtr pndArg)
     else if (resNodeListParse(prnNew, 9, NULL)) {
     }
     else {
-      printf("Error resNodeListParse() ...\n");
+      // PrintFormatLog(2,"Error resNodeListParse() ...");
     }
     prnResult = prnNew;
 

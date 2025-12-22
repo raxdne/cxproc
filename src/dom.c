@@ -1118,6 +1118,7 @@ domNodeTransformToNode(xmlNodePtr pndArg, xmlNodePtr pndArgSrc)
 	xmlSetProp(pndArg, pndIter->name, pndIter->children->content);
       }
     }
+    xmlReconciliateNs(pndArg->doc, pndArg);
 
     fResult = TRUE;
   }
@@ -1145,6 +1146,7 @@ domNodeTransferDescendants(xmlNodePtr pndArgTo, xmlNodePtr pndArgFrom)
       pndIter = pndIterNext;
     }
     fResult = TRUE;
+    xmlReconciliateNs(pndArgTo->doc,pndArgTo);
   }
   return fResult;
 } /* end of domNodeTransferDescendants() */
@@ -1333,6 +1335,10 @@ domReplaceNodeList(xmlNodePtr old, xmlNodePtr cur)
     old->prev = NULL;
     old->parent = NULL;
     old->doc = NULL;
+
+    if (cur != NULL) {
+      xmlReconciliateNs(cur->doc, cur);
+    }
 
     return(old);
 }
