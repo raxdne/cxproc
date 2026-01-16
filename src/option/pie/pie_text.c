@@ -941,6 +941,7 @@ ImportNodeFile(xmlNodePtr pndArgImport, cxpContextPtr pccArg)
 	}
 	xmlFree(pucContent);
       }
+#ifdef HAVE_JS
       else if (resNodeGetNameNormalized(prnInput) != NULL &&
 	       ((pucAttrType != NULL && xmlStrEqual(pucAttrType, BAD_CAST "script")) || iMimeType == MIME_APPLICATION_X_JAVASCRIPT)) {
 
@@ -972,6 +973,7 @@ ImportNodeFile(xmlNodePtr pndArgImport, cxpContextPtr pccArg)
 	xmlFree(pucContent);
 	xmlFree(pucScript);
       }
+#endif
       else if ((pucAttrType != NULL && xmlStrEqual(pucAttrType, BAD_CAST"xml"))
 	|| iMimeType == MIME_TEXT_XML
 	|| iMimeType == MIME_APPLICATION_PIE_XML) {
