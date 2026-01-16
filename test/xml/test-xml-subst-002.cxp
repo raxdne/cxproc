@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <cxp:make xmlns:cxp="http://www.tenbusch.info/cxproc" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+  <cxp:system message="*** test-xml-subst-002 ***"/>
   <cxp:xml name="result/test-xml-subst-002.xml">
     <!--  -->
     <cxp:subst string="%PRE%" to="YYY"/>

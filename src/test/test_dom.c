@@ -150,7 +150,7 @@ domTest(void)
     xmlNodePtr pndTest;
 
     i++;
-    printf("TEST %i in '%s:%i': domNodeIsDocRoot() = ",i,__FILE__,__LINE__);
+    printf("TEST %i in '%s:%i': domNodeIsDescendant() = ",i,__FILE__,__LINE__);
 
     pdocTest = xmlParseFile(TESTPREFIX "option/pie/text/test-pie-14.pie");
     pndTest = xmlDocGetRootElement(pdocTest);
@@ -197,6 +197,40 @@ domTest(void)
     else {
       printf("Error\n");
     }
+    xmlFreeNode(pndB);
+    xmlFreeNode(pndA);
+  }
+
+
+  if (RUNTEST) {
+    xmlNodePtr pndA;
+    xmlNodePtr pndB;
+
+    i++;
+    printf("TEST %i in '%s:%i': domNodeTransferDescendants() = ",i,__FILE__,__LINE__);
+
+    pndA = xmlNewNode(NULL, NAME_XML);
+    xmlAddChild(pndA, xmlNewPI(NAME_ERROR, BAD_CAST"pre"));
+    xmlNewChild(pndA, NULL, BAD_CAST"p", BAD_CAST"par 1");
+    xmlNewChild(pndA, NULL, BAD_CAST"p", BAD_CAST"par 2");
+    xmlNewChild(pndA, NULL, BAD_CAST"p", BAD_CAST"par 3");
+    xmlAddChild(pndA, xmlNewPI(NAME_ERROR, BAD_CAST"post"));
+
+    pndB = xmlNewNode(NULL, NAME_XHTML);
+    xmlAddChild(pndB, xmlNewPI(NAME_ERROR, BAD_CAST"pre"));
+    xmlNewChild(pndB, NULL, BAD_CAST"p", BAD_CAST"par 1");
+    xmlNewChild(pndB, NULL, BAD_CAST"p", BAD_CAST"par 2");
+    xmlNewChild(pndB, NULL, BAD_CAST"p", BAD_CAST"par 3");
+    xmlAddChild(pndB, xmlNewPI(NAME_ERROR, BAD_CAST"post"));
+
+    if (pndA != NULL && pndB != NULL && domNodeTransferDescendants(pndA,pndB)) {
+      n_ok++;
+      printf("OK\n");
+    }
+    else {
+      printf("Error\n");
+    }
+    domPutNodeString(stderr,BAD_CAST"domNodeTransferDescendants()",pndA);
     xmlFreeNode(pndB);
     xmlFreeNode(pndA);
   }

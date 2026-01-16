@@ -39,6 +39,7 @@
   <cxp:subst string="%H" now="Hour"/>
   <cxp:subst string="%M" now="Minute"/>
   <cxp:subst string="%SEC" now="Second"/>
+  <cxp:system message="*** test-xml-subst-001 ***"/>
   <cxp:xml name="result/test-xml-subst-001.xml">
     <list>
       <p>argv[0] is 'AA'</p>
