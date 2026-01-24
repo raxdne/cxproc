@@ -1272,7 +1272,7 @@ domReplaceNodeList(xmlNodePtr pndArg, xmlNodePtr pndArgList)
   if (pndArg != NULL && pndArgList != NULL) {
     if ((pndResult = domAddNextSiblingNodeList(pndArg, pndArgList)) != NULL && domNodeTransformToText(pndArg, NULL)) {
 	assert(xmlIsBlankNode(pndArg));
-	assert(pndArg->next == pndArgList);
+	//assert(pndArg->next == pndArgList);
     }
     else {
 	pndResult = NULL;

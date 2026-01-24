@@ -1238,7 +1238,8 @@ cxpGetXmlSourceNode(xmlNodePtr pndArg, cxpContextPtr pccArg)
   for (pndChild=pndArg->children; pndChild != NULL; pndChild=pndChild->next) {
 
     if (IS_NODE_INCLUDE(pndChild)) {
-      pndResult = pndChild;
+      cxpCtxtLogPrint(pccArg, 1, "Includes must be processed before: '%s/%s[@name='%s']'",
+	pndArg->name, pndChild->name, domGetPropValuePtr(pndChild, BAD_CAST"name"));
     }
     else if (IS_NODE_XML(pndChild)) {
       if (pndResult) {
@@ -1294,14 +1295,6 @@ cxpGetXmlSourceNode(xmlNodePtr pndArg, cxpContextPtr pccArg)
       pndResult = pndChild;
     }
     else if (IS_NODE_INFO(pndChild)) {
-      if (pndResult) {
-	cxpCtxtLogPrint(pccArg,1,"Ignoring redundant XML source: '%s/%s[@name='%s']'",
-	    pndArg->name,pndChild->name,domGetPropValuePtr(pndChild,BAD_CAST"name"));
-	break;
-      }
-      pndResult = pndChild;
-    }
-    else if (IS_ENODE(pndChild)) { /* every other element node */
       if (pndResult) {
 	cxpCtxtLogPrint(pccArg,1,"Ignoring redundant XML source: '%s/%s[@name='%s']'",
 	    pndArg->name,pndChild->name,domGetPropValuePtr(pndChild,BAD_CAST"name"));
@@ -1502,7 +1495,7 @@ cxpProcessXmlNode(xmlNodePtr pndArg, cxpContextPtr pccArg)
       }
     }
     else {
-      cxpCtxtLogPrint(pccArg,1,"Ignoring empty element '%s'",pndArg->name);
+      cxpCtxtLogPrint(pccArg,3,"Ignoring empty element '%s'",pndArg->name);
     }
 
     if (pdocResult) {

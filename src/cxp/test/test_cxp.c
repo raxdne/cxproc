@@ -1054,7 +1054,7 @@ cxpTest(cxpContextPtr pccArg)
     printf("TEST %i in '%s:%i': subst in DOM = ", i, __FILE__, __LINE__);
 
     pndXml = xmlNewNode(NULL, NAME_XML);
-    pndChild = xmlNewChild(pndXml, NULL, NAME_XML, NULL);
+    pndChild = xmlNewChild(pndXml, NULL, NAME_INCLUDE, NULL);
     xmlSetProp(pndChild, BAD_CAST"name", BAD_CAST TESTPREFIX "xml/baustelle.pie");
     pndChild = xmlNewChild(pndXml, NULL, NAME_SUBST, NULL);
     xmlSetProp(pndChild, BAD_CAST"string", BAD_CAST "Baustelle");

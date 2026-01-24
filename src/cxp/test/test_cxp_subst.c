@@ -65,7 +65,7 @@ cxpSubstTest(cxpContextPtr pccArg)
     }
   }
 
-  if (SKIPTEST) {
+  if (RUNTEST) {
     xmlNodePtr pndT;
     xmlNodePtr pndTest;
     xmlNodePtr pndInclude;
@@ -292,6 +292,9 @@ cxpSubstTest(cxpContextPtr pccArg)
     }
     else if (cxpSubstInChildNodes(pndTest,NULL,pccArg) == FALSE) {
       printf("Error 2\n");
+    }
+    else if (xmlIsBlankNode(pndSubst) == FALSE) {
+      printf("Error 3\n");
     }
     else {
       n_ok++;
