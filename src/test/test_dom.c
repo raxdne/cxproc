@@ -398,8 +398,91 @@ domTest(void)
     xmlFreeDoc(pdocTest);
   }
 
-  if (SKIPTEST) {
+  if (RUNTEST) {
+    xmlDocPtr pdocTestA;
+    xmlNodePtr pndRootA;
+    xmlDocPtr pdocTestB;
+    xmlNodePtr pndRootB;
+
+    i++;
+    printf("TEST %i in '%s:%i': domAddNextSiblingNodeList() without namespaces = ", i, __FILE__, __LINE__);
+
+    pdocTestA = xmlParseFile(TESTPREFIX "option/pie/text/test-pie-14.pie");
+    pndRootA = xmlDocGetRootElement(pdocTestA);
+
+    //domPutDocString(stderr,BAD_CAST"xmlParseFile()",pdocTestA);
+
+    pdocTestB = xmlParseFile(TESTPREFIX "option/pie/text/test-pie-5.pie");
+    pndRootB = xmlDocGetRootElement(pdocTestB);
+
+    if (domAddNextSiblingNodeList(pndRootA->children, pndRootB->children) == NULL) {
+      printf("Error 1\n");
+    }
+    else if (domNodeTransformToText(pndRootA->children, NULL) == FALSE || xmlIsBlankNode(pndRootA->children) == FALSE) {
+      printf("Error 3\n");
+    }
+    else {
+      n_ok++;
+      printf("OK\n");
+    }
+
+    //domPutDocString(stderr,BAD_CAST"domAddNextSiblingNodeList()",pdocTestA);
+    xmlFreeDoc(pdocTestB);
+    xmlFreeDoc(pdocTestA);
+  }
+
+  if (RUNTEST) {
+    xmlNsPtr pnsTestA;
+    xmlNsPtr pnsTestB;
+    xmlDocPtr pdocTestA;
+    xmlNodePtr pndRootA;
+    xmlNodePtr pndTestA;
+    xmlDocPtr pdocTestB;
+    xmlNodePtr pndRootB;
+    xmlNodePtr pndTestB;
+
+    i++;
+    printf("TEST %i in '%s:%i': domAddNextSiblingNodeList() with different namespaces = ", i, __FILE__, __LINE__);
+
+    pdocTestA = xmlParseFile(TESTPREFIX "option/pie/text/test-pie-14.pie");
+    pndRootA = xmlDocGetRootElement(pdocTestA);
+    pnsTestA = xmlNewNs(pndRootA, BAD_CAST "https://www.poc.com/", BAD_CAST "poc");
+    pndTestA = pndRootA->children->children;
+
+    //domPutDocString(stderr, BAD_CAST "xmlParseFile()", pdocTestA);
+
+    pnsTestB = xmlNewNs(NULL, BAD_CAST "https://www.pxc.com/", BAD_CAST "pxc");
+    pndRootB = xmlNewNode(pnsTestB, NAME_XML);
+    xmlAddChild(pndRootB, xmlNewPI(BAD_CAST "simple", BAD_CAST "pre"));
+    xmlNewChild(pndRootB, pnsTestB, BAD_CAST "p", BAD_CAST "par 1");
+    xmlNewChild(pndRootB, pnsTestB, BAD_CAST "p", BAD_CAST "par 2");
+    xmlAddChild(pndRootB, xmlNewComment(BAD_CAST " simple comment "));
+    xmlNewChild(pndRootB, pnsTestB, BAD_CAST "p", BAD_CAST "par 3");
+    xmlAddChild(pndRootB, xmlNewPI(BAD_CAST "simple", BAD_CAST "post"));
+    pndTestB = pndRootB->children;
+
+    //domPutNodeString(stderr, BAD_CAST "xmlNewNode()", pndRootB);
+
+    if (domAddNextSiblingNodeList(pndTestA, pndTestB) == NULL) {
+      printf("Error 1\n");
+    }
+    else if (domNodeTransformToText(pndTestA, NULL) == FALSE || xmlIsBlankNode(pndTestA) == FALSE) {
+      printf("Error 3\n");
+    }
+    else {
+      n_ok++;
+      printf("OK\n");
+    }
+
+    //domPutDocString(stderr, BAD_CAST "domAddNextSiblingNodeList()", pdocTestA);
+    xmlFreeDoc(pdocTestA);
+    xmlFreeNode(pndRootB);
+    xmlFreeNs(pnsTestB);
+  }
+
+  if (RUNTEST) {
     xmlDocPtr pdocTest;
+    xmlNsPtr pnsTest;
     xmlNodePtr pndRoot;
     xmlNodePtr pndOld;
     xmlNodePtr pndCur;
@@ -409,6 +492,7 @@ domTest(void)
 
     pdocTest = xmlParseFile(TESTPREFIX "option/pie/text/test-pie-14.pie");
     pndRoot = xmlDocGetRootElement(pdocTest);
+    pnsTest = xmlNewNs(pndRoot, BAD_CAST "https://www.pod.com/", BAD_CAST "pod");
     //domPutDocString(stderr,BAD_CAST"domReplaceNodeList()",pdocTest);
     pndOld = pndRoot->children->children->next;
 
@@ -420,7 +504,6 @@ domTest(void)
     xmlAddChild(pndCur, xmlNewPI(NAME_ERROR, BAD_CAST"post"));
 
     domReplaceNodeList(pndOld, pndCur->children);
-    xmlFreeNode(pndOld);
     xmlFreeNode(pndCur);
     xmlNewChild(pndRoot->children, NULL, NAME_META, NULL);
     //domPutDocString(stderr,BAD_CAST"domReplaceNodeList()",pdocTest);
@@ -433,18 +516,20 @@ domTest(void)
     xmlAddChild(pndCur, xmlNewPI(NAME_ERROR, BAD_CAST"post"));
 
     pndOld = pndRoot->children->last;
-    domReplaceNodeList(pndOld, pndCur->children);
     //domPutDocString(stderr,BAD_CAST"domReplaceNodeList()",pdocTest);
 
-    if (pndCur->children != NULL && pndCur->parent == NULL && domIsTreeOverlapping(pndRoot, pndCur) == FALSE) {
+    if (domReplaceNodeList(pndOld, pndCur->children) == NULL) {
+      printf("Error 1\n");
+    }
+    else if (domIsTreeOverlapping(pndRoot, pndCur)) {
+      printf("Error 2\n");
+    }
+    else {
       n_ok++;
       printf("OK\n");
     }
-    else {
-      printf("Error\n");
-    }
+
     xmlFreeNode(pndCur);
-    xmlFreeNode(pndOld);
     xmlFreeDoc(pdocTest);
   }
 

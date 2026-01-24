@@ -901,15 +901,17 @@ domPutDocString(FILE *out, xmlChar *pucArgMessage, xmlDocPtr pdocArg)
   }
 #endif
 
-  if (STR_IS_NOT_EMPTY(pucArgMessage)) {
-    fputs((const char *)pucArgMessage, out);
-    fputs("\n",out);
-  }
-  
   if (pdocArg != NULL && STR_IS_NOT_EMPTY(pdocArg->URL)) {
-    fputs((const char *)pdocArg->URL,out);
-    fputs("\n",out);
+    fputs((const char *)pdocArg->URL, out);
+    fputs(" ", out);
   }
+
+  if (STR_IS_NOT_EMPTY(pucArgMessage)) {
+    fputc('"', out);
+    fputs((const char *)pucArgMessage, out);
+    fputc('"', out);
+  }
+  fputs("\n", out);
 
   if (pdocArg) {
     //iResult = xmlDocFormatDump(out, pdocArg, 1);
@@ -1064,13 +1066,13 @@ domNodeTransformToText(xmlNodePtr pndArg, xmlChar *pucArgNew)
 
   switch (pndArg->type) {
   case XML_ELEMENT_NODE:
+    xmlFree(pndArg->name);
+    pndArg->name = NULL;
     xmlFreeNodeList(pndArg->children);
     pndArg->children = NULL;
     xmlFreeNodeList(pndArg->properties);
     pndArg->properties = NULL;
-    // xmlNodeSetName(pndParent,NULL);
     pndArg->ns = NULL;
-    pndArg->name = NULL;
     pndArg->type = XML_TEXT_NODE;
     break;
   case XML_TEXT_NODE:
@@ -1134,9 +1136,11 @@ domNodeTransferDescendants(xmlNodePtr pndArgTo, xmlNodePtr pndArgFrom)
 {
   BOOL_T fResult = FALSE;
 
-  if (IS_ENODE(pndArgTo) && IS_ENODE(pndArgFrom) && pndArgFrom->children != NULL) {
+  if ((IS_ENODE(pndArgTo) || IS_TEXT(pndArgTo)) && ((IS_ENODE(pndArgFrom) && pndArgFrom->children != NULL) || IS_TEXT(pndArgFrom))) {
     xmlNodePtr pndIter;
 
+    pndArgTo->type = pndArgFrom->type;
+    xmlNodeSetName(pndArgTo,pndArgFrom->name);
     for (pndIter = pndArgFrom->children; pndIter;) {
       xmlNodePtr pndIterNext;
 
@@ -1231,12 +1235,61 @@ domNodesAreEqual(xmlNodePtr pndA, xmlNodePtr pndB)
 } /* end of domNodesAreEqual() */
 
 
+/*! add element pndArg by node list cur
+ */
+xmlNodePtr
+domAddNextSiblingNodeList(xmlNodePtr pndArg, xmlNodePtr pndArgList)
+{
+  xmlNodePtr pndResult = NULL;
+
+  if (pndArg) {
+    xmlNodePtr pndI;
+    xmlNodePtr pndIPrev;
+    xmlNodePtr pndINext;
+
+    for (pndIPrev = pndArg, pndResult = pndI = pndArgList; pndI; pndIPrev = pndI, pndI = pndINext) {
+      pndINext = pndI->next;
+      if ( ! xmlAddNextSibling(pndIPrev, pndI)) {
+	break;
+      }
+    }
+
+    if (pndArg->doc) {
+      xmlReconciliateNs(pndArg->doc, pndArg);
+    }
+  }
+  return pndResult;
+} /* end of domAddNextSiblingNodeList() */
+
+
+/*! replace element tree old by node list cur
+ */
+xmlNodePtr
+domReplaceNodeList(xmlNodePtr pndArg, xmlNodePtr pndArgList)
+{
+  xmlNodePtr pndResult = NULL;
+
+  if (pndArg != NULL && pndArgList != NULL) {
+    if ((pndResult = domAddNextSiblingNodeList(pndArg, pndArgList)) != NULL && domNodeTransformToText(pndArg, NULL)) {
+	assert(xmlIsBlankNode(pndArg));
+	assert(pndArg->next == pndArgList);
+    }
+    else {
+	pndResult = NULL;
+    }
+  }
+  return pndResult;
+} /* end of domReplaceNodeList() */
+
+
 /*! derived from xmlReplaceNode()
 
 replace element tree old by node list cur
+
+\deprecated by new implementation
  */
 xmlNodePtr
-domReplaceNodeList(xmlNodePtr old, xmlNodePtr cur)
+domReplaceNodeList_(xmlNodePtr old, xmlNodePtr cur)
 {
   xmlNodePtr last = cur;
   xmlNodePtr pndT;

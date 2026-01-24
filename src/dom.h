@@ -181,7 +181,10 @@ extern BOOL_T
 domNodesAreEqual(xmlNodePtr pndA, xmlNodePtr pndB);
 
 extern xmlNodePtr
-domReplaceNodeList(xmlNodePtr old, xmlNodePtr cur);
+domAddNextSiblingNodeList(xmlNodePtr pndArg, xmlNodePtr pndArgList);
+
+extern xmlNodePtr
+domReplaceNodeList(xmlNodePtr pndArg, xmlNodePtr pndArgList);
 
 extern void
 domUnlinkNodeList(xmlNodePtr cur);
