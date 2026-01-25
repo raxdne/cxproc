@@ -263,80 +263,21 @@ cxpTraverseIncludeNodes(xmlNodePtr pndArg, cxpContextPtr pccArg)
   else if (IS_NODE_INCLUDE(pndArg)) {
     xmlNodePtr pndI;
 
-#if 1
-    if ((pndI = cxpSubstIncludeNode(pndArg, pccArg))) {
-      cxpTraverseIncludeNodes(pndI, pccArg);
-    }
-#elif 1
     if ((pndI = cxpSubstIncludeNode(pndArg, pccArg))) { /*! pndI may be a node list */
-      xmlNodePtr pndArgChildren;
+      xmlNodePtr pndII;
+      xmlNodePtr pndINext;
 
-#if 0
-      //assert(pndI->next == NULL);
-
-      xmlAddNextSibling(pndArg, pndI);
-      domNodeTransformToText(pndArg,NULL);
-      cxpTraverseIncludeNodes(pndI, pccArg);
-      xmlReconciliateNs(pndArg->doc, pndI);
-#elif 0
-      //assert(pndI->next == NULL);
-
-      xmlReplaceNode(pndArg, pndI);
-      xmlReconciliateNs(pndArg->doc, pndI);
-      cxpTraverseIncludeNodes(pndI, pccArg);
-      xmlFreeNode(pndArg);
-#elif 1
-
-      {
-	xmlNodePtr pndII;
-	xmlNodePtr pndINext;
-
-	for (pndII = pndI; pndII; pndII = pndINext) {
-	  pndINext = pndII->next;
-	  cxpTraverseIncludeNodes(pndII, pccArg);
-	  xmlAddNextSibling(pndArg, pndII);
-	  // xmlReconciliateNs(pndArg->doc, pndII);
-	}
-	domNodeTransformToText(pndArg, NULL);
+      for (pndII = pndI; pndII; pndII = pndINext) {
+	pndINext = pndII->next;
+	cxpTraverseIncludeNodes(pndII, pccArg);
       }
-
-#elif 1
       domAddNextSiblingNodeList(pndArg, pndI);
       domNodeTransformToText(pndArg, NULL);
-      cxpTraverseIncludeNodes(pndI, pccArg);
-      xmlReconciliateNs(pndArg->doc, pndI);
-#elif 1
-      domReplaceNodeList(pndArg, pndI);
-      cxpTraverseIncludeNodes(pndI, pccArg);
-      xmlFreeNode(pndArg);
-#else
-      domNodeTransferDescendants(pndArg, pndI);
-      cxpTraverseIncludeNodes(pndI, pccArg);
-      xmlFreeNode(pndI);
-#endif
+      //xmlReconciliateNs(pndArg->doc, pndI);
     }
     else {
       xmlAddChild(pndArg, xmlNewComment(BAD_CAST " XML parser error "));
     }
-#else
-    if ((pndI = cxpSubstIncludeNode(pndArg, pccArg))) { /* result can be a node list */
-      xmlNodePtr pndArgChildren;
-
-      for (; pndI;) {
-	xmlNodePtr pndNext;
-
-	pndNext = pndI->next;
-	xmlUnlinkNode(pndI);
-	xmlAddNextSibling(pndArg, pndI);
-	pndI = pndNext;
-      }
-      xmlUnlinkNode(pndArg);
-      xmlFreeNode(pndArg);
-    }
-    else {
-      xmlAddChild(pndArg, xmlNewComment(BAD_CAST " XML parser error "));
-    }
-#endif
   }
   else {
     /*

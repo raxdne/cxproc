@@ -1139,6 +1139,7 @@ cxpProcessXmlChildNodes(xmlNodePtr pndArg,cxpContextPtr pccArg)
 	cxpCtxtLogPrint(pccArg,2,"Replacing tree of '%s'",pndChild->name);
 	assert(pndNew->next == NULL);
 	/*!\todo compare type compatibility of nodes */
+        //domPutNodeString(stderr, BAD_CAST"Replacing tree ", pndNew);
 	domReplaceNodeList(pndChild,pndNew);
       }
       else if ((pndT = xmlCopyNode(pndChild,1)) != NULL) {
@@ -1697,6 +1698,8 @@ cxpProcessMakeNode(xmlNodePtr pndArg,cxpContextPtr pccArg)
     xmlNodePtr pndChild;
     cxpContextPtr pccHere = pccArg;
 
+    //domPutNodeString(stderr, BAD_CAST"cxpProcessMakeNode ", pndArg);
+
     fValidation = domGetPropFlag(pndArg, BAD_CAST "validation", TRUE);
     if (fValidation == FALSE) {
       cxpCtxtLogPrint(pccArg, 3, "Skipping XML pre-substitution validation");
@@ -1737,6 +1740,7 @@ cxpProcessMakeNode(xmlNodePtr pndArg,cxpContextPtr pccArg)
 #endif
 
       cxpTraverseIncludeNodes(pndArg, pccHere);
+      //domPutNodeString(stderr, BAD_CAST"cxpProcessMakeNode ", pndArg);
       /*!\todo substitute format strings in text nodes */
       cxpSubstInChildNodes(pndArg, NULL, pccHere);
       //cxpSubstReplaceNodes(pndArg, pccHere);

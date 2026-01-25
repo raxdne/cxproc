@@ -893,13 +893,9 @@ domPutDocString(FILE *out, xmlChar *pucArgMessage, xmlDocPtr pdocArg)
 {
   int iResult = EOF;
   
-#if 0
-  out = fopen("cxproc.log","w");
-#else
   if (out == NULL) {
     out = stderr;		/* default */
   }
-#endif
 
   if (pdocArg != NULL && STR_IS_NOT_EMPTY(pdocArg->URL)) {
     fputs((const char *)pdocArg->URL, out);
@@ -914,13 +910,8 @@ domPutDocString(FILE *out, xmlChar *pucArgMessage, xmlDocPtr pdocArg)
   fputs("\n", out);
 
   if (pdocArg) {
-    //iResult = xmlDocFormatDump(out, pdocArg, 1);
-    iResult = xmlSaveFormatFile("-", pdocArg, 1);
+    iResult = xmlDocFormatDump(out, pdocArg, 1);
   }
-
-#if 0
-  fclose(out);
-#endif
 
   return iResult;
 } /* end of domPutDocString() */
@@ -1257,7 +1248,7 @@ domAddNextSiblingNodeList(xmlNodePtr pndArg, xmlNodePtr pndArgList)
     }
 
     if (pndArg->doc) {
-      xmlReconciliateNs(pndArg->doc, pndArg);
+      //xmlReconciliateNs(pndArg->doc, pndArg);
     }
   }
   return pndResult;
