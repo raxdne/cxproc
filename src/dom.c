@@ -1066,11 +1066,11 @@ domNodeTransformToText(xmlNodePtr pndArg, xmlChar *pucArgNew)
 
   switch (pndArg->type) {
   case XML_ELEMENT_NODE:
-    xmlFree(pndArg->name);
+    xmlFree((void *)pndArg->name);
     pndArg->name = NULL;
     xmlFreeNodeList(pndArg->children);
     pndArg->children = NULL;
-    xmlFreeNodeList(pndArg->properties);
+    xmlFreeNodeList((xmlNodePtr) pndArg->properties);
     pndArg->properties = NULL;
     pndArg->ns = NULL;
     pndArg->type = XML_TEXT_NODE;
@@ -1078,8 +1078,9 @@ domNodeTransformToText(xmlNodePtr pndArg, xmlChar *pucArgNew)
   case XML_TEXT_NODE:
     break;
   default:
+  ;
   }
-  xmlNodeSetContent(pndArg, pucArgNew);
+  xmlNodeSetContent(pndArg, pucArgNew ? pucArgNew : BAD_CAST "");
   fResult = (xmlIsBlankNode(pndArg) == 1);
   return fResult;
 } /* end of domNodeTransformToText() */
@@ -1107,7 +1108,7 @@ domNodeTransformToNode(xmlNodePtr pndArg, xmlNodePtr pndArgSrc)
     domUnlinkNodeList(pndT);
     xmlAddChildList(pndArg, pndT);
 
-    pndT = pndArg->properties;
+    pndT = (xmlNodePtr) pndArg->properties;
     domUnlinkNodeList(pndT);
     xmlFreeNodeList(pndT);
     // pndArg->properties = NULL;
@@ -1115,7 +1116,7 @@ domNodeTransformToNode(xmlNodePtr pndArg, xmlNodePtr pndArgSrc)
 	//xmlUnsetProp(pndArg,pndIter->name);
     //}
 
-    for (pndIter = pndArgSrc->properties; pndIter; pndIter = pndIter->next) {
+    for (pndIter = (xmlNodePtr) pndArgSrc->properties; pndIter; pndIter = pndIter->next) {
       if (xmlNodeIsText(pndIter->children) && STR_IS_NOT_EMPTY(pndIter->children->content)) {
 	xmlSetProp(pndArg, pndIter->name, pndIter->children->content);
       }
@@ -1169,7 +1170,7 @@ domNodeTransformToPI(xmlNodePtr pndArg, xmlChar *pucArgNew)
   case XML_ELEMENT_NODE:
     xmlFreeNodeList(pndArg->children);
     pndArg->children = NULL;
-    xmlFreeNodeList(pndArg->properties);
+    xmlFreeNodeList((xmlNodePtr)pndArg->properties);
     pndArg->properties = NULL;
     // xmlNodeSetName(pndParent,NULL);
     pndArg->name = NULL;
@@ -1178,6 +1179,7 @@ domNodeTransformToPI(xmlNodePtr pndArg, xmlChar *pucArgNew)
   case XML_TEXT_NODE:
     break;
   default:
+  ;
   }
   //fResult = (xmlIs(pndArg) == 1);
   if (fResult && pucArgNew != NULL) {

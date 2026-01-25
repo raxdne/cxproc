@@ -564,12 +564,9 @@ cxpProcessXmlNodeEmbedded(xmlNodePtr pndArg, cxpContextPtr pccArg)
 	/*! if there is a new result tree, replace the old processing node 'pndChild' with tree of resulting 'pndT' */
 	cxpCtxtLogPrint(pccArg,2,"Replacing tree of '%s'",pndChild->name);
 
-	assert(pndT->next == NULL);
 	/*!\todo compare type compatibility of nodes */
-
-	xmlReplaceNode(pndChild,pndT);
-	/*! free the unlinked processing node 'pndArg': Side effect!! */
-	xmlFreeNode(pndChild);
+	assert(pndT->next == NULL);
+	domReplaceNodeList(pndChild,pndT);
       }
       /* WARNING: pndChild was released eventually in cxpProcessEmbeddedNodes() */
       pndChild = pndChildNext;
@@ -1142,9 +1139,10 @@ cxpProcessXmlChildNodes(xmlNodePtr pndArg,cxpContextPtr pccArg)
 	cxpCtxtLogPrint(pccArg,2,"Replacing tree of '%s'",pndChild->name);
 	assert(pndNew->next == NULL);
 	/*!\todo compare type compatibility of nodes */
-	xmlAddChild(pndRootNew,pndNew);
+	domReplaceNodeList(pndChild,pndNew);
       }
       else if ((pndT = xmlCopyNode(pndChild,1)) != NULL) {
+	cxpCtxtLogPrint(pccArg,2,"Copying tree of '%s'",pndChild->name);
 	xmlAddChild(pndRootNew,pndT);
       }
       else {
@@ -1295,6 +1293,14 @@ cxpGetXmlSourceNode(xmlNodePtr pndArg, cxpContextPtr pccArg)
       pndResult = pndChild;
     }
     else if (IS_NODE_INFO(pndChild)) {
+      if (pndResult) {
+	cxpCtxtLogPrint(pccArg,1,"Ignoring redundant XML source: '%s/%s[@name='%s']'",
+	    pndArg->name,pndChild->name,domGetPropValuePtr(pndChild,BAD_CAST"name"));
+	break;
+      }
+      pndResult = pndChild;
+    }
+    else if (IS_ENODE(pndChild)) { /* every other element node */
       if (pndResult) {
 	cxpCtxtLogPrint(pccArg,1,"Ignoring redundant XML source: '%s/%s[@name='%s']'",
 	    pndArg->name,pndChild->name,domGetPropValuePtr(pndChild,BAD_CAST"name"));
