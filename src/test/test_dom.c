@@ -100,47 +100,46 @@ domTest(void)
 
   if (RUNTEST) {
     xmlNodePtr pndTest;
+    xmlChar *pucTT = xmlStrdup(BAD_CAST "no");
 
     i++;
-    printf("TEST %i in '%s:%i': domPropIsEqual() + domGetPropFlag() = ",i,__FILE__,__LINE__);
+    printf("TEST %i in '%s:%i': domPropIsEqual() + domGetPropFlag() = ", i, __FILE__, __LINE__);
 
-    pndTest = xmlNewNode(NULL,BAD_CAST"p");
-    if (domPropIsEqual(pndTest, BAD_CAST"valid", NULL) == FALSE
-	&& domPropIsEqual(pndTest, NULL, NULL) == FALSE
-	&& domPropIsEqual(pndTest, BAD_CAST"valid", BAD_CAST"yes") == FALSE
-	&& domGetPropFlag(pndTest,BAD_CAST "valid",TRUE) == TRUE
-	&& domGetPropFlag(pndTest,BAD_CAST "valid",FALSE) == FALSE) {
-      xmlChar *pucTT = xmlStrdup(BAD_CAST"no");;
-      
-      domSetPropEat(pndTest,BAD_CAST"valid",pucTT);
-      if (domPropIsEqual(pndTest, BAD_CAST"valid", NULL) == FALSE
-	  && domPropIsEqual(pndTest, NULL, NULL) == FALSE
-	  && domPropIsEqual(pndTest, BAD_CAST"valid", BAD_CAST"yes") == FALSE
-	  && domPropIsEqual(pndTest, BAD_CAST"valid", BAD_CAST"no") == TRUE
-	  && domGetPropFlag(pndTest,BAD_CAST "valid",TRUE) == FALSE
-	  && domGetPropFlag(pndTest,BAD_CAST "valid",FALSE) == FALSE) {
-	
-	domUnsetPropAll(pndTest);
-	if (domPropIsEqual(pndTest, BAD_CAST"valid", NULL) == FALSE
-	    && domPropIsEqual(pndTest, NULL, NULL) == FALSE
-	    && domPropIsEqual(pndTest, BAD_CAST"valid", BAD_CAST"yes") == FALSE
-	    && domPropIsEqual(pndTest, BAD_CAST"valid", BAD_CAST"no") == FALSE
-	    && domGetPropFlag(pndTest,BAD_CAST "valid",TRUE) == TRUE
-	    && domGetPropFlag(pndTest,BAD_CAST "valid",FALSE) == FALSE) {
-	  n_ok++;
-	  printf("OK\n");
-	}
-	else {
-	  printf("Error\n");
-	}
-      }
-      else {
-	printf("Error\n");
-      }
-    }
-    else {
+    pndTest = xmlNewNode(NULL, BAD_CAST "p");
+
+    if (domPropIsEqual(pndTest, NULL, NULL) == TRUE) {
       printf("Error\n");
     }
+    else if (domPropIsEqual(pndTest, BAD_CAST "valid", NULL) == TRUE) {
+      printf("Error\n");
+    }
+    else if (domPropIsEqual(pndTest, BAD_CAST "valid", BAD_CAST "yes") == TRUE) {
+      printf("Error\n");
+    }
+    else if (domGetPropFlag(pndTest, BAD_CAST "valid", TRUE) == FALSE) {
+      printf("Error\n");
+    }
+    else if (domGetPropFlag(pndTest, BAD_CAST "valid", FALSE) == TRUE) {
+      printf("Error\n");
+    }
+    else if (domSetPropEat(pndTest, BAD_CAST "valid", pucTT) == NULL) {
+      printf("Error\n");
+    }
+    else if (domPropIsEqual(pndTest, BAD_CAST "valid", BAD_CAST "yes") == TRUE) {
+      printf("Error\n");
+    }
+    else if (domGetPropFlag(pndTest, BAD_CAST "valid", TRUE) == TRUE) {
+      printf("Error\n");
+    }
+    else if (domGetPropFlag(pndTest, BAD_CAST "valid", FALSE) == TRUE) {
+      printf("Error\n");
+    }
+    else {
+      n_ok++;
+      printf("OK\n");
+    }
+
+    domUnsetPropAll(pndTest);
     xmlFreeNode(pndTest);
   }
 
@@ -230,7 +229,7 @@ domTest(void)
     else {
       printf("Error\n");
     }
-    domPutNodeString(stderr,BAD_CAST"domNodeTransferDescendants()",pndA);
+    //domPutNodeString(stderr,BAD_CAST"domNodeTransferDescendants()",pndA);
     xmlFreeNode(pndB);
     xmlFreeNode(pndA);
   }
@@ -412,10 +411,10 @@ domTest(void)
 
     //domPutDocString(stderr,BAD_CAST"xmlParseFile()",pdocTestA);
 
-    pdocTestB = xmlParseFile(TESTPREFIX "option/pie/text/test-pie-5.pie");
+    pdocTestB = xmlParseFile(TESTPREFIX "option/pie/text/test-pie-2d.pie");
     pndRootB = xmlDocGetRootElement(pdocTestB);
 
-    if (domAddNextSiblingNodeList(pndRootA->children, pndRootB->children) == NULL) {
+    if (domAddNextSiblingNodeList(pndRootA->children, pndRootB) == NULL) {
       printf("Error 1\n");
     }
     else if (domNodeTransformToText(pndRootA->children, NULL) == FALSE || xmlIsBlankNode(pndRootA->children) == FALSE) {

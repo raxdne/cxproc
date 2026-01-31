@@ -127,9 +127,6 @@ extern BOOL_T
 domNodeIsDocRoot(xmlNodePtr pndArg);
 
 extern BOOL_T
-domNodeIsAttribute(xmlNodePtr pndArg);
-
-extern BOOL_T
 domNodeIsDescendant(xmlNodePtr pndArgTop, xmlNodePtr pndArg);
 
 extern xmlChar*
@@ -182,6 +179,9 @@ domNodesAreEqual(xmlNodePtr pndA, xmlNodePtr pndB);
 
 extern xmlNodePtr
 domAddNextSiblingNodeList(xmlNodePtr pndArg, xmlNodePtr pndArgList);
+
+extern xmlNodePtr
+domAddLastSiblingNodeList(xmlNodePtr pndArg, xmlNodePtr pndArgList);
 
 extern xmlNodePtr
 domReplaceNodeList(xmlNodePtr pndArg, xmlNodePtr pndArgList);

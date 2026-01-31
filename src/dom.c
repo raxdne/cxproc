@@ -427,11 +427,14 @@ domGetPropValuePtr(xmlNodePtr pndArg, xmlChar *pucNameAttr)
 {
   xmlChar *pucResult = NULL;
 
-  if (IS_ENODE(pndArg) && STR_IS_NOT_EMPTY(pucNameAttr)) {
-    xmlAttrPtr patAttr;
+  if (IS_ENODE(pndArg) && pndArg->properties != NULL && STR_IS_NOT_EMPTY(pucNameAttr)) {
+    xmlAttrPtr patIter;
 
-    if ((patAttr = xmlHasProp(pndArg, pucNameAttr)) != NULL && patAttr->children != NULL && patAttr->children->type == XML_TEXT_NODE) {
-      pucResult = patAttr->children->content;
+    for (patIter = pndArg->properties; patIter; patIter = patIter->next) {
+      if (xmlStrEqual(patIter->name, pucNameAttr) && patIter->children != NULL && patIter->children->type == XML_TEXT_NODE) {
+	pucResult = patIter->children->content;
+	break;
+      }
     }
   }
   return pucResult;
@@ -496,18 +499,6 @@ domNodeIsDocRoot(xmlNodePtr pndArg)
   return (pndArg != NULL && pndArg->parent != NULL && pndArg->parent->type == XML_DOCUMENT_NODE);
 }
 /* End of domNodeIsDocRoot() */
-
-
-/*!
-\param pndArg node
-\return TRUE if pndArg is a ttribute node
-*/
-BOOL_T
-domNodeIsAttribute(xmlNodePtr pndArg)
-{
-  return (pndArg != NULL && pndArg->type == XML_ATTRIBUTE_NODE);
-}
-/* End of domNodeIsAttribute() */
 
 
 /*! return TRUE if there is a parent path from pndArg to pndArgTop
@@ -769,13 +760,26 @@ domDocFromNodeNew(xmlNodePtr pndArg)
     pdocResult = xmlNewDoc(BAD_CAST "1.0");
     if (pdocResult) {
       xmlNodePtr pndCopy;
+      xmlNodePtr pndRoot;
 
       pdocResult->encoding = xmlStrdup(BAD_CAST "UTF-8");
       //pdocResult->charset = XML_CHAR_ENCODING_NONE;
-      pndCopy = xmlCopyNode(pndArg,1);
-      if (pndCopy) {
-	xmlSetTreeDoc(pndCopy, pdocResult);
-	xmlDocSetRootElement(pdocResult, pndCopy);
+
+      if (pndArg->next) {
+	/* create dummy root node */
+      xmlNodePtr pndT;
+
+	pndRoot = xmlNewNode(NULL, BAD_CAST"root");
+	pndCopy = xmlCopyNodeList(pndArg);
+	xmlAddChild(pndRoot,pndCopy);
+      }
+      else {
+	pndRoot = xmlCopyNode(pndArg, 1);
+      }
+
+      if (pndRoot) {
+	xmlSetTreeDoc(pndRoot, pdocResult);
+	xmlDocSetRootElement(pdocResult, pndRoot);
 	if (pndArg->doc != NULL && STR_IS_NOT_EMPTY(pndArg->doc->URL)) {
 	  pdocResult->URL = xmlStrdup(pndArg->doc->URL);
 	}
@@ -1228,24 +1232,69 @@ domNodesAreEqual(xmlNodePtr pndA, xmlNodePtr pndB)
 } /* end of domNodesAreEqual() */
 
 
-/*! add element pndArg by node list cur
- */
+/*! insert node list pndArgList after pndArg
+\return last node of pndArgList
+*/
 xmlNodePtr
 domAddNextSiblingNodeList(xmlNodePtr pndArg, xmlNodePtr pndArgList)
 {
   xmlNodePtr pndResult = NULL;
 
-  if (pndArg) {
+  if (pndArg != NULL && pndArgList != NULL) {
     xmlNodePtr pndI;
-    xmlNodePtr pndIPrev;
-    xmlNodePtr pndINext;
+    xmlNodePtr pndN;
 
-    for (pndIPrev = pndArg, pndResult = pndI = pndArgList; pndI; pndIPrev = pndI, pndI = pndINext) {
-      pndINext = pndI->next;
-      if ( ! xmlAddNextSibling(pndIPrev, pndI)) {
+    domUnlinkNodeList(pndArgList);
+    assert(pndArgList->prev == NULL);
+    assert(pndArgList->parent == NULL);
+
+    pndN = pndArg->next;
+    pndArgList->prev = pndArg;
+    pndArg->next = pndArgList;
+    for (pndI = pndArgList; pndI; pndI = pndI->next) {
+      pndI->doc = pndArg->doc;
+      pndI->ns = pndArg->ns;
+      pndI->parent = pndArg->parent;
+
+      if (pndI->next == NULL) {
+	if (pndN) {
+	  pndN->prev = pndI;
+	  pndI->next = pndN;
+	}
+	else if (pndArg->parent) {
+	  pndArg->parent->last = pndI;
+	}
+	pndResult = pndI;
 	break;
       }
     }
+
+    if (pndArg->doc != NULL && pndArg->parent != NULL) {
+      xmlReconciliateNs(pndArg->doc, pndArg->parent);
+    }
+  }
+  return pndResult;
+} /* end of domAddNextSiblingNodeList() */
+
+
+/*! add element pndArg by node list cur
+ */
+xmlNodePtr
+domAddLastSiblingNodeList(xmlNodePtr pndArg, xmlNodePtr pndArgList)
+{
+  xmlNodePtr pndResult = NULL;
+
+  if (pndArg) {
+    xmlNodePtr pndI;
+
+    if (pndArg->parent) {
+      pndI = pndArg->parent->last;
+    }
+    else {
+      for (pndI = pndArg; pndI->next; pndI = pndI->next) ;
+    }
+
+    pndResult = domAddNextSiblingNodeList(pndI, pndArgList);
 
     if (pndArg->doc) {
       //xmlReconciliateNs(pndArg->doc, pndArg);
@@ -1255,7 +1304,7 @@ domAddNextSiblingNodeList(xmlNodePtr pndArg, xmlNodePtr pndArgList)
 } /* end of domAddNextSiblingNodeList() */
 
 
-/*! replace element tree old by node list cur
+/*! replace element (tree) pndArg by node list pndArgList
  */
 xmlNodePtr
 domReplaceNodeList(xmlNodePtr pndArg, xmlNodePtr pndArgList)
