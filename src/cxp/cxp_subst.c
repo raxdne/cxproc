@@ -53,9 +53,6 @@ ApplySubstText(const xmlNodePtr node, const xmlChar *pucFrom, const xmlChar *puc
 static BOOL_T
 ApplySubstRegExp(const xmlNodePtr pndArg, const pcre2_code* preArgFrom, const xmlChar* pucTo, BOOL_T(*pSkip)(xmlNodePtr pndArg));
 
-static xmlNodePtr
-cxpSubstIncludeNode(xmlNodePtr pndArg,cxpContextPtr pccArg);
-
 static BOOL_T
 cxpSubstSkip(xmlNodePtr pndArg);
 
@@ -168,80 +165,6 @@ ApplySubstRegExp(const xmlNodePtr pndArg, const pcre2_code* preArgFrom, const xm
 #endif
 
 
-/*! process the childs of top element MAKE (non-recursive!)
-
-\param pndArg a xmlNodePtr to append data
-\param pccArg the filesystem context
-
-\return a node or node list representing the content of pndArg
-*/
-xmlNodePtr
-cxpSubstIncludeNode(xmlNodePtr pndArg,cxpContextPtr pccArg)
-{
-  xmlNodePtr pndResult = NULL;
-
-#ifdef DEBUG
-  cxpCtxtLogPrint(pccArg,4,"cxpSubstIncludeNode(pndArg=%0x,pccArg=%0x)",pndArg,pccArg);
-#endif
-
-  if (IS_NODE_INCLUDE(pndArg)) {
-    if (IS_ENODE(pndArg->children)) {
-      cxpCtxtLogPrint(pccArg,1,"Ignoring include element with childs");
-    }
-    else {
-      cxpSubstPtr pcxpSubstT;
-
-      pcxpSubstT = cxpSubstDetect(pndArg,pccArg);
-      if (pcxpSubstT) {
-	xmlDocPtr pdocInclude = NULL;
-	xmlChar *pucT;
-
-	if (pcxpSubstT->pucName) {
-	  resNodePtr prnInclude;
-
-	  prnInclude = cxpResNodeResolveNew(pccArg, pndArg, pcxpSubstT->pucName, CXP_O_READ);
-	  if (prnInclude) {
-	    pdocInclude = resNodeReadDoc(prnInclude);
-	    resNodeFree(prnInclude);
-	  }
-	}
-	else if ((pucT = cxpSubstGetPtr(pcxpSubstT)) != NULL) {
-	  pdocInclude = xmlParseMemory((const char*)pucT, xmlStrlen(pucT));
-	}
-
-	if (pdocInclude) {
-	  xmlNodePtr pndRootInclude;
-
-	  pndRootInclude = xmlDocGetRootElement(pdocInclude);
-	  if (pndRootInclude) {
-	    xmlNodePtr pndInclude;
-
-	    if (IS_NODE_MAKE(pndRootInclude) && pndArg->doc != NULL && IS_NODE_MAKE(pndArg->doc->children)) {
-	      pndInclude = pndRootInclude->children;
-	    }
-	    else {
-	      pndInclude = pndRootInclude;
-	    }
-
-	    if ((pndResult = domAddNextSiblingNodeList(pndArg, pndInclude)) != NULL && domNodeTransformToText(pndArg, NULL)) {
-	      assert(xmlIsBlankNode(pndArg));
-	      assert(pndArg->next == pndInclude);
-	      if (pndArg->doc) {
-		//xmlReconciliateNs(pndArg->doc, pndArg);
-	      }
-	      pndResult = pndInclude;
-	    }
-	  }
-	  xmlFreeDoc(pdocInclude);
-	}
-	cxpSubstFree(pcxpSubstT);
-      }
-    }
-  }
-  return pndResult;
-} /* end of cxpSubstIncludeNode() */
-
-
 /*! traverse DOM of pndArg searching for include nodes in context of pccArg and
 * replaces include node by his processing result if pndArgTop is NULL, else append result to pndArgTop
 
@@ -261,22 +184,42 @@ cxpTraverseIncludeNodes(xmlNodePtr pndArg, cxpContextPtr pccArg)
     /* ignore NULL and invalid elements */
   }
   else if (IS_NODE_INCLUDE(pndArg)) {
-    xmlNodePtr pndI;
+    resNodePtr prnInclude = NULL;
 
-    if ((pndI = cxpSubstIncludeNode(pndArg, pccArg))) { /*! pndI may be a node list */
-      xmlNodePtr pndII;
-      xmlNodePtr pndINext;
+    prnInclude = cxpResNodeResolveNew(pccArg, pndArg, NULL, CXP_O_FILE | CXP_O_READ);
+    if (prnInclude) {
+      xmlDocPtr pdocInclude = NULL;
 
-      for (pndII = pndI; pndII; pndII = pndINext) {
-	pndINext = pndII->next;
-	cxpTraverseIncludeNodes(pndII, pccArg);
+      pdocInclude = resNodeReadDoc(prnInclude);
+      if (pdocInclude) {
+	xmlNodePtr pndRootInclude;
+
+	//domPutDocString(stderr, BAD_CAST "cxpSubstIncludeNode()", pdocInclude);
+
+	pndRootInclude = xmlDocGetRootElement(pdocInclude);
+	if (pndRootInclude) {
+	  xmlNodePtr pndIter;
+	  xmlNodePtr pndInclude;
+
+	  if (IS_NODE_MAKE(pndRootInclude) && pndArg->doc != NULL && IS_NODE_MAKE(pndArg->doc->children)) {
+	    domAddNextSiblingNodeList(pndArg, pndRootInclude->children);
+	  }
+	  else {
+	    xmlAddNextSibling(pndArg, pndRootInclude);
+	  }
+	  domNodeTransformToText(pndArg, NULL);
+	  for (pndIter = pndArg->next; pndIter; pndIter = pndIter->next) { 
+	    cxpTraverseIncludeNodes(pndIter, pccArg);
+	  }
+	}
+
+	xmlFreeDoc(pdocInclude);
+	//domPutDocString(stderr, BAD_CAST "cxpSubstIncludeNode()", pndArg->doc);
       }
-      domAddNextSiblingNodeList(pndArg, pndI);
-      domNodeTransformToText(pndArg, NULL);
-      //xmlReconciliateNs(pndArg->doc, pndI);
-    }
-    else {
-      xmlAddChild(pndArg, xmlNewComment(BAD_CAST " XML parser error "));
+      else {
+	xmlAddChild(pndArg, xmlNewComment(BAD_CAST " XML parser error "));
+      }
+      resNodeFree(prnInclude);
     }
   }
   else {

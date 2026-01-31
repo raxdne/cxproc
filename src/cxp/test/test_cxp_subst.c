@@ -66,7 +66,7 @@ cxpSubstTest(cxpContextPtr pccArg)
   }
 
   if (RUNTEST) {
-    xmlNodePtr pndT;
+    int k;
     xmlNodePtr pndTest;
     xmlNodePtr pndInclude;
 
@@ -77,49 +77,21 @@ cxpSubstTest(cxpContextPtr pccArg)
     pndInclude = xmlNewChild(pndTest,NULL,NAME_INCLUDE,NULL);
     xmlSetProp(pndInclude,BAD_CAST "name",BAD_CAST TESTPREFIX "option/pie/calendar/test-date.pie");
     
-    if ((pndT = cxpSubstIncludeNode(NULL,pccArg)) != NULL) {
-      printf("Error 1 cxpSubstIncludeNode()\n");
-    }
-    else if ((pndT = cxpSubstIncludeNode(pndTest,pccArg)) != NULL) {
-      printf("Error 2 cxpSubstIncludeNode()\n");
-    }
-    else {
-      n_ok++;
-      printf("OK\n");
-    }
-    //domPutNodeString(stderr, BAD_CAST"include", pndTest);
-    if (pndT != pndTest) {
-      xmlFreeNode(pndT);
-    }
-    xmlFreeNode(pndTest);
-  }
-
-  if (SKIPTEST) {
-    xmlNodePtr pndT;
-    xmlNodePtr pndTest;
-    xmlNodePtr pndInclude;
-
-    i++;
-    printf("TEST %i in '%s:%i': cxpSubstIncludeNode() = ",i,__FILE__,__LINE__);
-
-    pndTest = xmlNewNode(NULL,NAME_MAKE);
-    pndInclude = xmlNewChild(pndTest,NULL,NAME_INCLUDE,NULL);
-    xmlSetProp(pndInclude,BAD_CAST "name",BAD_CAST TESTPREFIX "xml/config-xml-subst.cxp");
-    pndInclude = xmlNewChild(pndTest,NULL,NAME_INCLUDE,NULL);
-    xmlSetProp(pndInclude,BAD_CAST "name",BAD_CAST TESTPREFIX "xml/config-xml-cache.cxp");
-    xmlNewChild(pndTest,NULL,NAME_DIR,NULL);
-    //domPutNodeString(stderr, BAD_CAST"include", pndTest);
-
-    if ((pndT = cxpSubstIncludeNode(pndTest,pccArg)) == NULL) {
-      printf("Error 2 cxpSubstIncludeNode()\n");
-    }
-    else {
-      n_ok++;
-      printf("OK\n");
-    }
+    //cxpTraverseIncludeNodes(NULL,pccArg);
+    cxpTraverseIncludeNodes(pndTest,pccArg);
     domPutNodeString(stderr, BAD_CAST"include", pndTest);
+
+    if ((k = domNumberOf(pndTest, BAD_CAST "section",0)) != 4) {
+      printf("Error 1 domNumberOf(): %i\n", k);
+    }
+    else {
+      n_ok++;
+      printf("OK\n");
+    }
+
     xmlFreeNode(pndTest);
   }
+
 
   if (RUNTEST) {
     cxpSubstPtr pT;

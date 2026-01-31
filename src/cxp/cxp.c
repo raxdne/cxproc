@@ -1331,16 +1331,17 @@ cxpProcessXmlNode(xmlNodePtr pndArg, cxpContextPtr pccArg)
 #ifdef DEBUG
   cxpCtxtLogPrint(pccArg,3,"cxpProcessXmlNode(pndArg=%0x,pccArg=%0x)",pndArg,pccArg);
 #endif
+  assert(IS_NODE_XML(pndArg));
 
   if (IS_VALID_NODE(pndArg) == FALSE) {
     /* ignore NULL and invalid elements */
   }
-  else if (IS_NODE_XML(pndArg) && domGetPropFlag(pndArg,BAD_CAST"eval",TRUE) == FALSE) {
-    /* make a recursive copy of pndArg */
+  else if (domGetPropFlag(pndArg,BAD_CAST"eval",TRUE) == FALSE) {
+    /* make a recursive copy of pndArg only */
     pdocResult = domDocFromNodeNew(pndArg);
     xmlUnsetProp(xmlDocGetRootElement(pdocResult),BAD_CAST"eval");
   }
-  else if (IS_NODE_XML(pndArg)) {
+  else {
     xmlChar *pucSchema;
     xmlChar *pucT = NULL;
     xmlChar *pucAttrName;
@@ -1529,10 +1530,6 @@ cxpProcessXmlNode(xmlNodePtr pndArg, cxpContextPtr pccArg)
       }
     }
   }
-  else {
-    cxpCtxtLogPrint(pccArg,1,"Ignoring non XML element '%s'",pndArg->name);
-  }
-//  xmlAddChild(xmlDocGetRootElement(pdocResult),cxpGetLog());
 
   return pdocResult;
 }

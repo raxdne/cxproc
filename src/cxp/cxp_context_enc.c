@@ -1268,6 +1268,28 @@ cxpCtxtCgiGetCount(cxpContextPtr pccArg)
 \return pointer to name of CGI parameter with index 'iIndex' or NULL else
 */
 xmlChar*
+cxpCtxtCgiGetNamePtr(cxpContextPtr pccArg, index_t iIndex)
+{
+  xmlChar* pucResult = NULL;
+
+#ifdef HAVE_CGI
+  if (iIndex < cgi_num_entries && cgi_entries[iIndex].name != NULL && strlen(cgi_entries[iIndex].name) > 0) {
+    /* no conversion */
+    pucResult = BAD_CAST cgi_entries[iIndex].name;
+  }
+#else
+#endif
+  return pucResult;
+} /* end of cxpCtxtCgiGetNamePtr() */
+
+
+/*! cxp Ctxt Cgi Get Name
+
+\param pccArg -- pointer to context
+\param iIndex -- index
+\return pointer to copy of name of CGI parameter with index 'iIndex' or NULL else
+*/
+xmlChar*
 cxpCtxtCgiGetName(cxpContextPtr pccArg, index_t iIndex)
 {
   xmlChar* pucResult = NULL;
@@ -1393,13 +1415,11 @@ cxpCtxtCgiGetValueByName(cxpContextPtr pccArg, xmlChar *pucArgName)
   index_t i;
   xmlChar* pucT;
 
-  for (i = 0; (pucT = cxpCtxtCgiGetName(pccArg, i)); i++) {
+  for (i = 0; (pucT = cxpCtxtCgiGetNamePtr(pccArg, i)); i++) {
     if (xmlStrEqual(pucT, pucArgName)) {
       pucResult = cxpCtxtCgiGetValue(pccArg, i);
-      xmlFree(pucT);
       break;
     }
-    xmlFree(pucT);
   }
 
   if (pucResult) {
