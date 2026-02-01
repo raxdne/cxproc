@@ -1684,6 +1684,8 @@ SplitStringToDateNodes(const xmlChar *pucArg, RN_MIME_TYPE eMimeTypeArg)
   size_t ducOrigin;
   xmlNodePtr pndResult = NULL;
 
+  assert(re_date != NULL);
+
   if (pucArg != NULL && (ducOrigin = xmlStrlen(pucArg)) > 0) {
     int rc;
     pcre2_match_data *match_data;
@@ -1694,7 +1696,7 @@ SplitStringToDateNodes(const xmlChar *pucArg, RN_MIME_TYPE eMimeTypeArg)
     rc = pcre2_match(
       re_date,        /* result of pcre2_compile() */
       (PCRE2_SPTR8)pucArg,  /* the subject string */
-      xmlStrlen(pucArg),             /* the length of the subject string */
+      ducOrigin,             /* the length of the subject string */
       0,              /* start at offset 0 in the subject */
       0,              /* default options */
       match_data,        /* vector of integers for substring information */
@@ -1705,25 +1707,26 @@ SplitStringToDateNodes(const xmlChar *pucArg, RN_MIME_TYPE eMimeTypeArg)
 
       ovector = pcre2_get_ovector_pointer(match_data);
       if (ovector[3] - ovector[2] > 0) {
-	/*
-	the regexp match, assemble node list with a common dummy
-	element node
+	/* the regexp match, assemble node list
 	*/
 	xmlChar *pucDate;
 	xmlChar *pucA = (xmlChar *)pucArg + ovector[2];
 
 	if ((pucDate = xmlStrndup(pucA, (int)(ovector[3] - ovector[2]))) != NULL) {
+	  xmlNodePtr pndI = NULL;
 
 	  PrintFormatLog(3, "Date '%s' (%i..%i) in '%s'", pucDate, ovector[2], ovector[3], pucArg);
-
-	  pndResult = xmlNewNode(NULL, BAD_CAST "dummy");
 
 	  if (ovector[0] > 0) {
 	    /* the content starts with text	*/
 	    xmlChar *pucT = xmlStrndup(pucArg, (int)ovector[0]);
-	    xmlAddChild(pndResult, xmlNewText(pucT));
+	    pndI = xmlNewText(pucT);
 	    xmlFree(pucT);
 	  }
+	  else {
+	    pndI = xmlNewText(BAD_CAST "");
+	  }
+	  pndResult = pndI;
 
 	  /*! separate the list of dates if required (ISO compact dates only, neither extended nor time) */
 	  xmlChar *pucSep = NULL;
@@ -1745,28 +1748,28 @@ SplitStringToDateNodes(const xmlChar *pucArg, RN_MIME_TYPE eMimeTypeArg)
 
 	  if (((pucSep > pucDate && !isend(*pucSep)) && (pucD = xmlStrndup(pucDate, (int)(pucSep - pucDate)))) || (pucD = xmlStrdup(pucDate))) {
 
-	    pndIn = xmlNewTextChild(pndResult, NULL, BAD_CAST NAME_PIE_DATE, pucD);
+	    pndIn = xmlNewNode(NULL, BAD_CAST NAME_PIE_DATE);
+	    xmlNodeSetContent(pndIn,pucD);
+	    pndI = xmlAddNextSibling(pndI, pndIn);
+
 	    if (pucSep > pucDate && !isend(*pucSep)) {
-	      xmlAddChild(pndResult, xmlNewText(BAD_CAST ","));
+	      pndI = xmlAddNextSibling(pndI, xmlNewText(BAD_CAST ","));
 	    }
 	    xmlFree(pucD);
 	  }
-	}
 
-	if (pndIn != NULL && ducOrigin > ovector[1]) {
-	  /* the content ends with text, recursion */
+	  if (pndIn != NULL && ducOrigin > ovector[1]) {
+	    /* the content ends with text, recursion */
 
-	  pndPostfix = SplitStringToDateNodes(pucArg + ovector[1], eMimeTypeArg);
-	  if (pndPostfix) {
-	    xmlNodePtr pndT = pndPostfix->children;
-	    domUnlinkNodeList(pndT);
-	    xmlAddChildList(pndResult, pndT);
-	    xmlFreeNode(pndPostfix);
-	  }
-	  else {
-	    xmlChar *pucT = xmlStrdup(pucArg + ovector[1]);
-	    xmlAddChild(pndResult, xmlNewText(pucT));
-	    xmlFree(pucT);
+	    pndPostfix = SplitStringToDateNodes(pucArg + ovector[1], eMimeTypeArg);
+	    if (pndPostfix) {
+	      pndI = domAddNextSiblingNodeList(pndI, pndPostfix);
+	    }
+	    else {
+	      xmlChar *pucT = xmlStrdup(pucArg + ovector[1]);
+	      pndI = xmlAddNextSibling(pndI, xmlNewText(pucT));
+	      xmlFree(pucT);
+	    }
 	  }
 	}
 	xmlFree(pucDate);
@@ -1774,6 +1777,7 @@ SplitStringToDateNodes(const xmlChar *pucArg, RN_MIME_TYPE eMimeTypeArg)
     }
     pcre2_match_data_free(match_data);   /* Release memory used for the match */
   }
+  //domPutNodeString(stderr, BAD_CAST"SplitStringToDateNodes()",pndResult);
   return pndResult;
 }
 /* end of SplitStringToDateNodes() */
@@ -2237,11 +2241,8 @@ RecognizeDates(xmlNodePtr pndArg, RN_MIME_TYPE eMimeTypeArg)
       pndReplace = SplitStringToDateNodes(pndArg->content, eMimeTypeArg);
       if (pndReplace) {
 	/* there is a result list */
-	if (domReplaceNodeList(pndArg, pndReplace->children) == pndArg) {
-	  xmlFreeNodeList(pndArg);
+	if (domReplaceNodeList(pndArg, pndReplace)) {
 	}
-	/*  */
-	xmlFreeNodeList(pndReplace);
       }
     }
     else if (IS_NODE_PIE_IGNORE_TAGS(pndArg)) {
@@ -2257,7 +2258,6 @@ RecognizeDates(xmlNodePtr pndArg, RN_MIME_TYPE eMimeTypeArg)
       /* skip existing tag elements */
     }
     else if (IS_ENODE(pndArg) && (pndArg->ns==NULL || pndArg->ns==pnsPie)) {
-
       xmlChar* pucExt;
       xmlNodePtr pndChild;
       RN_MIME_TYPE eMimeTypeHere = eMimeTypeArg;

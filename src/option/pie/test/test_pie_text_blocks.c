@@ -1123,44 +1123,48 @@ pieTextBlocksTest(void)
     if ((pndPie = xmlNewNode(NULL, BAD_CAST NAME_PIE_PIE)) == NULL) {
       printf("Error xmlNewNode()\n");
     }
-    else if ((pndT = SplitStringToDateNodes(BAD_CAST"TODO: 20160301 done",MIME_TEXT_PLAIN)) == NULL || xmlAddChild(pndPie, pndT) == NULL) {
+    else if ((pndT = SplitStringToDateNodes(BAD_CAST"TODO: 20160301 done ",MIME_TEXT_PLAIN)) == NULL || xmlAddChildList(pndPie, pndT) == NULL) {
       printf("Error 1 SplitStringToDateNodes()\n");
     }
-    else if ((pndT = SplitStringToDateNodes(BAD_CAST"20160301,20160303 and 20160304",MIME_TEXT_PLAIN)) == NULL || xmlAddChild(pndPie, pndT) == NULL) {
+    else if ((pndT = SplitStringToDateNodes(BAD_CAST"20160301,20160303 and 20160304 ",MIME_TEXT_PLAIN)) == NULL || xmlAddChildList(pndPie, pndT) == NULL) {
       printf("Error 2 SplitStringToDateNodes()\n");
     }
-    else if ((pndT = SplitStringToDateNodes(BAD_CAST"20160301,04,0303 and 20160304",MIME_TEXT_PLAIN)) == NULL || xmlAddChild(pndPie, pndT) == NULL) {
+    else if ((pndT = SplitStringToDateNodes(BAD_CAST"20160301,04,0303 and 20160304\n",MIME_TEXT_PLAIN)) == NULL || xmlAddChildList(pndPie, pndT) == NULL) {
       printf("Error 2 SplitStringToDateNodes()\n");
     }
-    else if ((pndT = SplitStringToDateNodes(BAD_CAST"2016-03-01;2016-03-03 and 2016-03-04",MIME_TEXT_PLAIN)) == NULL || xmlAddChild(pndPie, pndT) == NULL) {
+    else if ((pndT = SplitStringToDateNodes(BAD_CAST"2016-03-01;2016-03-03 and 2016-03-04 ",MIME_TEXT_PLAIN)) == NULL || xmlAddChildList(pndPie, pndT) == NULL) {
       printf("Error 3 SplitStringToDateNodes()\n");
     }
-    else if ((pndT = SplitStringToDateNodes(BAD_CAST"2013-10-11,10-14,01-14 and ", MIME_TEXT_PLAIN)) == NULL || xmlAddChild(pndPie, pndT) == NULL) {
+    else if ((pndT = SplitStringToDateNodes(BAD_CAST"2013-10-11,10-14,01-14 and ", MIME_TEXT_PLAIN)) == NULL || xmlAddChildList(pndPie, pndT) == NULL) {
       printf("Error 2 SplitStringToDateNodes()\n");
     }
-    else if ((pndT = SplitStringToDateNodes(BAD_CAST"2016/2017",MIME_TEXT_PLAIN)) == NULL || xmlAddChild(pndPie, pndT) == NULL) {
+    else if ((pndT = SplitStringToDateNodes(BAD_CAST"2016/2017 ",MIME_TEXT_PLAIN)) == NULL || xmlAddChildList(pndPie, pndT) == NULL) {
       printf("Error 4 SplitStringToDateNodes()\n");
       xmlFreeNode(pndT);
     }
 #if EXPERIMENTAL
-    else if ((pndT = SplitStringToDateNodes(BAD_CAST"Offset 2016-01-01/O1Y1M1D test",MIME_TEXT_PLAIN)) == NULL || xmlAddChild(pndPie, pndT) == NULL) {
+    else if ((pndT = SplitStringToDateNodes(BAD_CAST"Offset 2016-01-01/O1Y1M1D test ",MIME_TEXT_PLAIN)) == NULL || xmlAddChildList(pndPie, pndT) == NULL) {
       printf("Error 5 SplitStringToDateNodes()\n");
       xmlFreeNode(pndT);
     }
-    else if ((pndT = SplitStringToDateNodes(BAD_CAST"Offset 20160101/O3W test",MIME_TEXT_PLAIN)) == NULL || xmlAddChild(pndPie, pndT) == NULL) {
+    else if ((pndT = SplitStringToDateNodes(BAD_CAST"Offset 20160101/O3W test ",MIME_TEXT_PLAIN)) == NULL || xmlAddChildList(pndPie, pndT) == NULL) {
       printf("Error 6 SplitStringToDateNodes()\n");
       xmlFreeNode(pndT);
     }
-    else if ((pndT = SplitStringToDateNodes(BAD_CAST"Offset O2M/20160101 test",MIME_TEXT_PLAIN)) == NULL || xmlAddChild(pndPie, pndT) == NULL) {
+    else if ((pndT = SplitStringToDateNodes(BAD_CAST"Offset O2M/20160101 test",MIME_TEXT_PLAIN)) == NULL || xmlAddChildList(pndPie, pndT) == NULL) {
       printf("Error 7 SplitStringToDateNodes()\n");
       xmlFreeNode(pndT);
     }
 #endif
+    else if (domNumberOfChild(pndPie, BAD_CAST NAME_PIE_DATE) != 14) {
+      printf("Error 9 SplitStringToDateNodes()\n");
+      xmlFreeNode(pndT);
+    }
     else {
       n_ok++;
       printf("OK\n");
     }
-    //domPutNodeString(stderr, BAD_CAST"date result", pndPie);
+    domPutNodeString(stderr, BAD_CAST"date result", pndPie);
     xmlFreeNode(pndPie);
   }
 
@@ -1207,7 +1211,51 @@ pieTextBlocksTest(void)
       n_ok++;
       printf("OK\n");
     }
-    //domPutNodeString(stderr, BAD_CAST"date result", pndPie);
+    domPutNodeString(stderr, BAD_CAST"date result", pndPie);
+    xmlFreeNode(pndPie);
+  }
+
+
+  if (RUNTEST) {
+    xmlNodePtr pndPie;
+    xmlNodePtr pndP = NULL;
+
+    pndPie = xmlNewNode(NULL, BAD_CAST NAME_PIE_PIE);
+    pndP = xmlNewChild(pndPie, NULL, BAD_CAST NAME_PIE_PAR, BAD_CAST "child");
+    pndP = xmlNewChild(pndPie, NULL, BAD_CAST NAME_PIE_PAR, BAD_CAST "TODO: 20160301 done");
+    pndP = xmlNewChild(pndPie, NULL, BAD_CAST NAME_PIE_PAR, BAD_CAST "20160301,20160303 and 20160304");
+    pndP = xmlNewChild(pndPie, NULL, BAD_CAST NAME_PIE_PAR, BAD_CAST "20160301,04,0303 and 20160304");
+    pndP = xmlNewChild(pndPie, NULL, BAD_CAST NAME_PIE_PAR, BAD_CAST "2016-03-01;2016-03-03 and 2016-03-04");
+    pndP = xmlNewChild(pndPie, NULL, BAD_CAST NAME_PIE_PAR, BAD_CAST "2013-10-11,10-14,01-14 and ");
+    pndP = xmlNewChild(pndPie, NULL, BAD_CAST NAME_PIE_PAR, BAD_CAST "Pre 2016/2017");
+#if EXPERIMENTAL
+    pndP = xmlNewChild(pndPie, NULL, BAD_CAST NAME_PIE_PAR, BAD_CAST "Offset 2016-01-01/O1Y1M1D test");
+    pndP = xmlNewChild(pndPie, NULL, BAD_CAST NAME_PIE_PAR, BAD_CAST "Offset 20160101/O3W test");
+    pndP = xmlNewChild(pndPie, NULL, BAD_CAST NAME_PIE_PAR, BAD_CAST "Offset O2M/20160101 test");
+    pndP = xmlNewChild(pndPie, NULL, BAD_CAST NAME_PIE_PAR, BAD_CAST "");
+    pndP = xmlNewChild(pndPie, NULL, BAD_CAST NAME_PIE_PAR, BAD_CAST "");
+    pndP = xmlNewChild(pndPie, NULL, BAD_CAST NAME_PIE_PAR, BAD_CAST "");
+    pndP = xmlNewChild(pndPie, NULL, BAD_CAST NAME_PIE_PAR, BAD_CAST "");
+    pndP = xmlNewChild(pndPie, NULL, BAD_CAST NAME_PIE_PAR, BAD_CAST "");
+#endif
+    pndP = xmlNewChild(pndPie, NULL, BAD_CAST NAME_PIE_PAR, BAD_CAST "last");
+
+    i++;
+    printf("TEST %i in '%s:%i': parse date = ", i, __FILE__, __LINE__);
+
+    domPutNodeString(stderr, BAD_CAST"pre", pndPie);
+
+    if (pndPie == NULL) {
+      printf("Error xmlNewNode()\n");
+    }
+    else if (RecognizeDates(pndPie,MIME_TEXT_PLAIN) != NULL) {
+      printf("Error RecognizeDates()\n");
+    }
+    else {
+      n_ok++;
+      printf("OK\n");
+    }
+    domPutNodeString(stderr, BAD_CAST"post", pndPie);
     xmlFreeNode(pndPie);
   }
 

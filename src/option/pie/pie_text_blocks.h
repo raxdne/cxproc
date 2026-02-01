@@ -150,6 +150,10 @@
   \
   "(" RE_ISO_QUATER ")/(" RE_ISO_QUATER ")" \
   "|"									\
+  "(" RE_ISO_QUATER ")/(" RE_ISO_PERIOD ")" \
+  "|"									\
+  "(" RE_ISO_PERIOD ")/(" RE_ISO_QUATER ")" \
+  "|"									\
   "(" RE_ISO_QUATER ")" \
   "|"									\
   \
