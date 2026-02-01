@@ -1424,19 +1424,18 @@ SplitStringToScriptNode(const xmlChar *pucArg)
        */
       PCRE2_SIZE *ovector;
       int i = 0;
+      xmlNodePtr pndIter = NULL;
 
       ovector = pcre2_get_ovector_pointer(match_data_link);
 
       PrintFormatLog(3, "Script (%i..%i) in '%s'", ovector[i], ovector[i+1], pucArg);
 
-      pndResult = xmlNewNode(NULL, BAD_CAST "dummy");
-
       if (ovector[i*2+1] - ovector[i*2] > 0) {
 	if (ovector[i*2] > 0) {
 	  xmlChar *pucPre;
 	  pucPre = xmlStrndup(pucArg, (int)ovector[i*2]);
-	  PrintFormatLog(3, "Script pre '%s' (%i..%i) in '%s'", pucPre, 0, ovector[0], pucArg);
-	  xmlAddChild(pndResult, xmlNewText(pucPre));
+	  PrintFormatLog(4, "Script pre '%s' (%i..%i) in '%s'", pucPre, 0, ovector[0], pucArg);
+	  pndResult = pndIter = xmlNewText(pucPre);
 	  xmlFree(pucPre);
 	}
 	else { /* string starts with 'script="' */
@@ -1451,9 +1450,16 @@ SplitStringToScriptNode(const xmlChar *pucArg)
 	if (STR_IS_NOT_EMPTY(pucScript)) {
 	  xmlNodePtr pndScript;
 
-	  PrintFormatLog(3, "Script '%s'", pucScript);
-	  pndScript = xmlNewChild(pndResult, NULL, BAD_CAST NAME_PIE_IMPORT, pucScript);
+	  PrintFormatLog(4, "Script '%s'", pucScript);
+	  pndScript = xmlNewNode(NULL, BAD_CAST NAME_PIE_IMPORT);
+	  xmlNodeSetContent(pndScript, pucScript);
 	  xmlSetProp(pndScript, BAD_CAST "type", BAD_CAST "script");
+	  if (pndIter) {
+	    pndIter = xmlAddNextSibling(pndIter, pndScript);
+	  }
+	  else {
+	    pndResult = pndIter = pndScript;
+	  }
 	}
 	xmlFree(pucScript);
       }
@@ -1461,18 +1467,15 @@ SplitStringToScriptNode(const xmlChar *pucArg)
       if (xmlStrlen(&pucArg[ovector[1]]) > 0) {
 	xmlNodePtr pndPostfix;
 
-	PrintFormatLog(3, "Script post '%s' (%i..%i) in '%s'", &pucArg[ovector[1]], ovector[1], ovector[1] + xmlStrlen(&pucArg[ovector[1]]), pucArg);
+	PrintFormatLog(4, "Script post '%s' (%i..%i) in '%s'", &pucArg[ovector[1]], ovector[1], ovector[1] + xmlStrlen(&pucArg[ovector[1]]), pucArg);
 	/* the content ends with text, recursion */
 	pndPostfix = SplitStringToScriptNode(&pucArg[ovector[1]]);
 	if (pndPostfix) {
-	  xmlNodePtr pndT = pndPostfix->children;
-	  domUnlinkNodeList(pndT);
-	  xmlAddChildList(pndResult, pndT);
-	  xmlFreeNode(pndPostfix);
+	  pndIter = domAddNextSiblingNodeList(pndIter,pndPostfix);
 	}
 	else {
 	  xmlChar *pucT = xmlStrdup(&pucArg[ovector[1]]);
-	  xmlAddChild(pndResult, xmlNewText(pucT));
+	  pndIter = domAddNextSiblingNodeList(pndIter, xmlNewText(pucT));
 	  xmlFree(pucT);
 	}
       }
@@ -1493,17 +1496,17 @@ BOOL_T
 RecognizeScripts(xmlNodePtr pndArg)
 {
   BOOL_T fResult = FALSE;
-  
+
   if (IS_NODE_PIE_IGNORE_TAGS(pndArg)) {
     /* skip */
   }
   else if (pndArg->type == XML_COMMENT_NODE || pndArg->type == XML_PI_NODE) {
     fResult |= RecognizeScripts(pndArg->next);
   }
-  else if (IS_VALID_NODE(pndArg) == FALSE || xmlHasProp(pndArg,BAD_CAST"hidden") != NULL) {
+  else if (IS_VALID_NODE(pndArg) == FALSE || xmlHasProp(pndArg, BAD_CAST "hidden") != NULL) {
     /* skip */
   }
-  else if (IS_ENODE(pndArg) && (pndArg->ns==NULL || pndArg->ns==pnsPie)) {
+  else if (IS_ENODE(pndArg) && (pndArg->ns == NULL || pndArg->ns == pnsPie)) {
     xmlNodePtr pndChild;
 
     for (pndChild = pndArg->children; pndChild != NULL; pndChild = (pndChild != NULL) ? pndChild->next : NULL) {
@@ -1512,59 +1515,9 @@ RecognizeScripts(xmlNodePtr pndArg)
 	xmlNodePtr pndReplace;
 
 	pndReplace = SplitStringToScriptNode(pndChild->content);
-	if (pndReplace == NULL) {
-	  /* nothing found */
-	}
-	else {
+	if (pndReplace) {
 	  /* there is a result list */
-	  xmlNodePtr pndT;
-
-#if 1
-	  pndT = pndChild->next;
-	  if (domReplaceNodeList(pndChild,pndReplace->children) == pndChild) {
-	    xmlFreeNodeList(pndChild);
-	  }
-	  xmlFreeNode(pndReplace);
-	  /*  */
-	  if (pndT != NULL && pndT->prev != NULL) {
-	    pndChild = pndT->prev;
-	  }
-	  else {
-	    pndChild = NULL;
-	  }
-#elif 1
-	  xmlNodePtr pndIter;
-
-	  pndT = pndReplace->children; /* shortcut */
-
-	  if (pndChild->parent->children == pndChild) {
-	    pndChild->parent->children = pndT;
-	  }
-	  else {
-	    pndChild->prev->next = pndT;
-	    pndT->prev = pndChild->prev;
-	  }
-
-	  if (pndChild->parent->last == pndChild) {
-	    pndChild->parent->last = pndT->parent->last;
-	  }
-	  else {
-	    pndChild->next->prev = pndT;
-	    pndT->parent->last->next = pndChild->next;
-	  }
-
-	  for (pndIter = pndT; pndIter != NULL; pndIter = pndIter->next) { /* relocate all childs of pndReplace to pndChild */
-	    pndIter->parent = pndChild->parent;
-	  }
-
-	  /* unlink */
-	  pndChild->parent = pndChild->next = pndChild->prev = NULL;
-	  xmlFreeNode(pndChild);
-
-	  pndChild = pndReplace->last;
-	  pndReplace->parent = pndReplace->next = pndReplace->prev = pndReplace->children = pndReplace->last = NULL;
-	  xmlFreeNode(pndReplace);
-#endif
+	  if (domReplaceNodeList(pndChild, pndReplace)) {}
 	  fResult = TRUE;
 	}
       }
@@ -1576,7 +1529,6 @@ RecognizeScripts(xmlNodePtr pndArg)
   return fResult;
 }
 /* End of RecognizeScripts() */
-
 
 /*! splits an UTF-8 string into a list of text and inline element nodes
 

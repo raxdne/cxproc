@@ -1089,6 +1089,10 @@ pieTextBlocksTest(void)
 #endif
 
 
+ /*!
+  inline dates
+  */
+
   if (RUNTEST) {
     xmlNodePtr pndPie;
     xmlNodePtr pndP = NULL;
@@ -1164,7 +1168,7 @@ pieTextBlocksTest(void)
       n_ok++;
       printf("OK\n");
     }
-    domPutNodeString(stderr, BAD_CAST"date result", pndPie);
+    //domPutNodeString(stderr, BAD_CAST"date result", pndPie);
     xmlFreeNode(pndPie);
   }
 
@@ -1211,7 +1215,7 @@ pieTextBlocksTest(void)
       n_ok++;
       printf("OK\n");
     }
-    domPutNodeString(stderr, BAD_CAST"date result", pndPie);
+    //domPutNodeString(stderr, BAD_CAST"date result", pndPie);
     xmlFreeNode(pndPie);
   }
 
@@ -1243,7 +1247,7 @@ pieTextBlocksTest(void)
     i++;
     printf("TEST %i in '%s:%i': parse date = ", i, __FILE__, __LINE__);
 
-    domPutNodeString(stderr, BAD_CAST"pre", pndPie);
+    //domPutNodeString(stderr, BAD_CAST"pre", pndPie);
 
     if (pndPie == NULL) {
       printf("Error xmlNewNode()\n");
@@ -1255,11 +1259,124 @@ pieTextBlocksTest(void)
       n_ok++;
       printf("OK\n");
     }
-    domPutNodeString(stderr, BAD_CAST"post", pndPie);
+    //domPutNodeString(stderr, BAD_CAST"post", pndPie);
     xmlFreeNode(pndPie);
   }
 
 
+  /*!
+  inline scripts
+  */
+
+  if (RUNTEST) {
+    xmlNodePtr pndPie;
+    xmlNodePtr pndP = NULL;
+    xmlNodePtr pndT = NULL;
+
+    i++;
+    printf("TEST %i in '%s:%i': parse date must fail = ", i, __FILE__, __LINE__);
+
+    if ((pndPie = xmlNewNode(NULL, BAD_CAST NAME_PIE_PIE)) == NULL) {
+      printf("Error xmlNewNode()\n");
+    }
+    else if ((pndT = SplitStringToScriptNode(NULL)) != NULL || (pndT = SplitStringToScriptNode(BAD_CAST"")) != NULL) {
+      printf("Error 1 SplitStringToScriptNode()\n");
+    }
+    else if ((pndT = SplitStringToScriptNode(BAD_CAST"pre script=\"\" post ")) != NULL) {
+      printf("Error 2 SplitStringToScriptNode()\n");
+    }
+    else if ((pndT = SplitStringToScriptNode(BAD_CAST"script=\"\" post ")) != NULL) {
+      printf("Error 2 SplitStringToScriptNode()\n");
+    }
+    else {
+      n_ok++;
+      printf("OK\n");
+    }
+    xmlFreeNode(pndT);
+    xmlFreeNode(pndPie);
+  }
+
+  if (RUNTEST) {
+    int k;
+    xmlNodePtr pndPie;
+    xmlNodePtr pndT = NULL;
+
+    i++;
+    printf("TEST %i in '%s:%i': parse script = ", i, __FILE__, __LINE__);
+
+    if ((pndPie = xmlNewNode(NULL, BAD_CAST NAME_PIE_PIE)) == NULL) {
+      printf("Error xmlNewNode()\n");
+    }
+    else if ((pndT = SplitStringToScriptNode(BAD_CAST"pre script=\"1+1\" post ")) == NULL || xmlAddChildList(pndPie, pndT) == NULL) {
+      printf("Error 2 SplitStringToScriptNode()\n");
+    }
+    else if ((pndT = SplitStringToScriptNode(BAD_CAST"script=\"5**5;\" post\n")) == NULL || xmlAddChildList(pndPie, pndT) == NULL) {
+      printf("Error 2 SplitStringToScriptNode()\n");
+    }
+    else if ((pndT = SplitStringToScriptNode(BAD_CAST"pre script=\"5<1;\"\n")) == NULL || xmlAddChildList(pndPie, pndT) == NULL) {
+      printf("Error 3 SplitStringToScriptNode()\n");
+    }
+    else if ((pndT = SplitStringToScriptNode(BAD_CAST"pre script=\"Math.round(3.1415);\" script=\"(3.1415).toFixes(3);\" script=\"'ABC';\" post ")) == NULL || xmlAddChildList(pndPie, pndT) == NULL) {
+      printf("Error 2 SplitStringToScriptNode()\n");
+    }
+    else if ((k = domNumberOfChild(pndPie, BAD_CAST NAME_PIE_IMPORT)) != 6) {
+      printf("Error 9 SplitStringToScriptNode(): %i\n", k);
+    }
+    else {
+      n_ok++;
+      printf("OK\n");
+    }
+    //domPutNodeString(stderr, BAD_CAST"script result", pndPie);
+    xmlFreeNode(pndPie);
+  }
+
+
+  if (RUNTEST) {
+    xmlNodePtr pndPie;
+    xmlChar *pucContent = BAD_CAST
+      "\n"
+      "* Test of Blocks script=\"Date();\"\n"
+      "\n"
+      "This is a Test: script=\"5*5;\" : postfix\n"
+      "\n"
+      "This is a Test: script=\"5*5;\" sep script=\"5*5*5;\" : postfix\n"
+      "\n"
+      "This is a Test: SCRIPT=\"5*5;\" : postfix\n"
+      "\n"
+      ;
+
+    i++;
+    printf("TEST %i in '%s:%i': parse plain text with script attributes and build tree = ", i, __FILE__, __LINE__);
+
+    if ((pndPie = xmlNewNode(NULL, BAD_CAST NAME_PIE_PIE)) == NULL) {
+      printf("Error xmlNewNode()\n");
+    }
+    else if (ParsePlainBuffer(pndPie, pucContent, RMODE_PAR) == NULL) {
+      printf("Error ParsePlainBuffer()\n");
+    }
+    else if (IS_NODE_PIE_BLOCK(pndPie) == FALSE || domNumberOf(pndPie, BAD_CAST NAME_PIE_SECTION, 0) != 1 || domNumberOf(pndPie, BAD_CAST NAME_PIE_HEADER, 0) != 1
+	     || domNumberOf(pndPie, BAD_CAST NAME_PIE_PAR, 0) != 3 || domNumberOf(pndPie, BAD_CAST NAME_PIE_IMPORT, 0) != 0) {
+      printf("Error 1 tree\n");
+    }
+    else if (RecognizeScripts(pndPie) == FALSE) {
+      printf("Error RecognizeScripts()\n");
+    }
+    else if (IS_NODE_PIE_BLOCK(pndPie) == FALSE || domNumberOf(pndPie, BAD_CAST NAME_PIE_SECTION,0) != 1 || domNumberOf(pndPie, BAD_CAST NAME_PIE_HEADER, 0) != 1
+	     || domNumberOf(pndPie, BAD_CAST NAME_PIE_PAR, 0) != 3 || domNumberOf(pndPie, BAD_CAST NAME_PIE_IMPORT, 0) != 5) {
+      printf("Error 2 tree\n");
+    }
+    else {
+      n_ok++;
+      printf("OK\n");
+    }
+    //domPutNodeString(stderr, BAD_CAST "script result", pndPie);
+    xmlFreeNode(pndPie);
+  }
+
+
+  /*!
+  task blocks
+  */
   if (RUNTEST) {
     xmlNodePtr pndPie;
     xmlNodePtr pndP = NULL;
