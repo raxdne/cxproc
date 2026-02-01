@@ -901,11 +901,14 @@ pieTextBlocksTest(void)
     else if ((pndT = SplitStringToInlineNodes(BAD_CAST"ABC __EM EM__ or **EM\n EM** or `ttt` ")) == NULL || xmlAddChild(pndPie, pndT) == NULL) {
       printf("Error 1 SplitStringToInlineNodes()\n");
     }
+    else if (domNumberOf(pndPie, BAD_CAST NAME_PIE_EM,0) != 2 || domNumberOf(pndPie, BAD_CAST NAME_PIE_TT, 0) != 1) {
+      printf("Error 1 tree\n");
+    }
     else {
       n_ok++;
       printf("OK\n");
     }
-    //domPutNodeString(stderr, BAD_CAST"result", pndPie);
+    domPutNodeString(stderr, BAD_CAST"result", pndPie);
     xmlFreeNode(pndPie);
   }
 

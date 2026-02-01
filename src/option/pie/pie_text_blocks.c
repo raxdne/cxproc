@@ -1543,8 +1543,6 @@ SplitStringToInlineNodes(const xmlChar *pucArg)
   if (pucArg != NULL && (ducOrigin = xmlStrlen(pucArg)) > 0) {
     int rc;
     pcre2_match_data *match_data;
-    xmlNodePtr pndIn;
-    xmlNodePtr pndPostfix;
 
     match_data = pcre2_match_data_create_from_pattern(re_inline, NULL);
     rc = pcre2_match(
@@ -1564,9 +1562,11 @@ SplitStringToInlineNodes(const xmlChar *pucArg)
 
     //pcre2_get_startchar();
 
-
     if (rc > -1) {
       PCRE2_SIZE *ovector;
+      xmlNodePtr pndIter;
+      xmlNodePtr pndIn;
+      xmlNodePtr pndPostfix;
 
       ovector = pcre2_get_ovector_pointer(match_data);
       if (pcre2_get_ovector_count(match_data) == 1 && ovector[1] - ovector[0] > 0) { //
@@ -1584,41 +1584,43 @@ SplitStringToInlineNodes(const xmlChar *pucArg)
 
 	PrintFormatLog(3, "Inline '%s' in '%s'", pucIn, pucArg);
 
-	pndResult = xmlNewNode(NULL, BAD_CAST "dummy");
-
 	if (ovector[0] > 0) {
 	  /* the content starts with text	*/
 	  xmlChar *pucT = xmlStrndup(pucArg, (int)ovector[0]);
-	  xmlAddChild(pndResult, xmlNewText(pucT));
+	  pndResult = pndIter = xmlNewText(pucT);
 	  xmlFree(pucT);
 	}
 
 	if (pucArg[ovector[0]] == (xmlChar)'`') {
-	  pndIn = xmlNewTextChild(pndResult, NULL, BAD_CAST NAME_PIE_TT, pucIn);
+	  pndIn = xmlNewNode(NULL, BAD_CAST NAME_PIE_TT);
 	}
 	else if (i0 - ovector[0] > 2) {
-	  pndIn = xmlNewTextChild(pndResult, NULL, BAD_CAST NAME_PIE_STRONG, pucIn);
+	  pndIn = xmlNewNode(NULL, BAD_CAST NAME_PIE_STRONG);
 	}
 	else {
-	  pndIn = xmlNewTextChild(pndResult, NULL, BAD_CAST NAME_PIE_EM, pucIn);
+	  pndIn = xmlNewNode(NULL, BAD_CAST NAME_PIE_EM);
+	}
+	xmlNodeSetContent(pndIn, pucIn);
+	xmlFree(pucIn);
+	if (pndIter) {
+	  pndIter = xmlAddNextSibling(pndIter, pndIn);
+	}
+	else {
+	  pndResult = pndIter = pndIn;
 	}
 
 	if (ducOrigin > ovector[1]) {
 	  /* the content ends with text, recursion */
 	  pndPostfix = SplitStringToInlineNodes(pucArg + ovector[1]);
-	  if (pndPostfix) {
-	    xmlNodePtr pndT = pndPostfix->children;
-	    domUnlinkNodeList(pndT);
-	    xmlAddChildList(pndResult, pndT);
-	    xmlFreeNode(pndPostfix);
-	  }
-	  else {
-	    xmlChar *pucT = xmlStrdup(pucArg + ovector[1]);
-	    xmlAddChild(pndResult, xmlNewText(pucT));
-	    xmlFree(pucT);
-	  }
+	if (pndPostfix) {
+	  pndIter = domAddNextSiblingNodeList(pndIter,pndPostfix);
 	}
-	xmlFree(pucIn);
+	else {
+	  xmlChar *pucT = xmlStrdup(&pucArg[ovector[1]]);
+	  pndIter = domAddNextSiblingNodeList(pndIter, xmlNewText(pucT));
+	  xmlFree(pucT);
+	}
+	}
       }
     }
     pcre2_match_data_free(match_data);   /* Release memory used for the match */
@@ -2013,7 +2015,7 @@ SetPropInherit(xmlNodePtr pndArg, const xmlChar *pucArgName, const xmlChar *pucA
 } /* end of SetPropInherit() */
 
 
-/*! 
+/*! modifies the node attributes for validity and impact according to unicode markup in content
 */
 xmlNodePtr
 RecognizeSymbols(xmlNodePtr pndArg, lang_t eLangArg)
