@@ -401,6 +401,10 @@ cmarkTreeToDOM(xmlNodePtr pndArgBlock, xmlNodePtr pndArg, cmark_node* pcmnArg)
 	  xmlAddChild(pndT, xmlNewText(BAD_CAST & (pcmnArg->first_child->data[7])));
 	  xmlSetProp(pndT, BAD_CAST "href", pcmnArg->as.link.url);
 	}
+	else if (StringBeginsWith((char *) pcmnArg->as.link.url, "id:")) {
+	  xmlAddChild(pndT, xmlNewText(BAD_CAST pcmnArg->first_child->data));
+	  xmlSetProp(pndT, BAD_CAST "name", &pcmnArg->as.link.url[3]);
+	}
 	else if (xmlStrEqual(pcmnArg->first_child->data, pcmnArg->as.link.url)) {
 	  /* attribute href not required if it's same like display value */
 	  xmlAddChild(pndT, xmlNewText(BAD_CAST pcmnArg->first_child->data));

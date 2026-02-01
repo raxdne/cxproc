@@ -988,9 +988,8 @@ ImportNodeFile(xmlNodePtr pndArgImport, cxpContextPtr pccArg)
 	    ((pdocContent = resNodeReadDoc(prnInput)) != NULL)) { /*! \todo remove redundant cache lookup */
 	  xmlNodePtr pndT;
 
-	  if ((pndT = xmlDocGetRootElement(pdocContent)) != NULL && IS_NODE_PIE_PIE(pndT) && pndT->children != NULL &&
-	      (pndT = xmlCopyNodeList(pndT->children)) != NULL) {
-	    xmlAddChildList(pndArgImport, pndT);
+	  if ((pndT = xmlDocGetRootElement(pdocContent)) != NULL && IS_NODE_PIE_PIE(pndT) && pndT->children != NULL) {
+	    domNodeTransferDescendants(pndArgImport,pndT);
 	    xmlNodeSetName(pndArgImport, BAD_CAST NAME_PIE_BLOCK);
 	    TraverseIncludeNodes(pndArgImport, pccInput);
 	    // RecognizeImports(pndT);
@@ -1199,7 +1198,6 @@ TraverseImportNodes(xmlNodePtr pndArg, cxpContextPtr pccArg)
   else if (IS_NODE_PIE_IMPORT(pndArg)) {
     if (ProcessImportNode(pndArg, pccArg)) {
     }
-    //    xmlFreeNode(pndArg);
   }
   else {
     /*
@@ -1797,7 +1795,7 @@ RecognizeRegExps(xmlNodePtr pndArg, pcre2_code* preArg)
 	   || IS_NODE_PIE_BLOCKQUOTE(pndArg) || IS_NODE_PIE_PRE(pndArg)) {
     xmlChar* pucT;
 
-    pucT = domNodeListGetString(pndArg,NULL);
+    pucT = xmlNodeListGetString(pndArg->doc,pndArg,1);
     if (STR_IS_NOT_EMPTY(pucT)) { /* pndIter is a text node */
       int rc;
       pcre2_match_data* match_data;
