@@ -177,6 +177,30 @@ xmlTest(void)
     }
   }
 
+  if (RUNTEST) {
+   int k;
+    xmlDocPtr pdocResult = NULL;
+    xmlChar* pucT;
+    xmlNodePtr pndRoot;
+
+    i++;
+    printf("TEST %i in '%s:%i': xmlNodeListGetString ", i, __FILE__, __LINE__);
+
+    if ((pdocResult = xmlParseFile(TESTPREFIX "option/pie/text/test-pie-14.pie")) == NULL
+      || (pndRoot = xmlDocGetRootElement(pdocResult)) == NULL) {
+      printf("Error 1 xmlParseFile()\n");
+    }
+    else if ((pucT = xmlNodeListGetString(pdocResult,pndRoot, 1)) == NULL || (k = xmlStrlen(pucT)) != 11) {
+      printf("Error 1 xmlNodeListGetString(): %i\n",k);
+    }
+    else {
+      n_ok++;
+      printf("OK\n");
+    }
+    xmlFreeDoc(pdocResult);
+  }
+
+
   printf("Result in '%s': %i/%i OK\n\n", __FILE__, n_ok, i);
 
   return (i - n_ok);
