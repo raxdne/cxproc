@@ -961,6 +961,7 @@ SplitTupelToLinkNodesMd(const xmlChar *pucArg)
        */
       xmlChar *pucUrl = NULL;
       PCRE2_SIZE *ovector;
+      xmlNodePtr pndIter = NULL;
       int i = 0;
 
       assert(pcre2_get_ovector_count(match_data_link) == 3);
@@ -975,14 +976,13 @@ SplitTupelToLinkNodesMd(const xmlChar *pucArg)
       */
 
       PrintFormatLog(3, "URL (%i..%i) in '%s'", ovector[i], ovector[i+1], pucArg);
-      pndResult = xmlNewNode(NULL, BAD_CAST "dummy");
 
       if (ovector[0] > 0) {
 	xmlChar *pucPre;
 
 	pucPre = xmlStrndup(pucArg, (int)ovector[0]);
-	PrintFormatLog(3, "URL pre text '%s' (%i..%i) in '%s'", pucPre, 0, ovector[0], pucArg);
-	xmlAddChild(pndResult, xmlNewText(pucPre));
+	PrintFormatLog(4, "URL pre text '%s' (%i..%i) in '%s'", pucPre, 0, ovector[0], pucArg);
+	pndResult = pndIter = xmlNewText(pucPre);
 	xmlFree(pucPre);
       }
 
@@ -991,21 +991,22 @@ SplitTupelToLinkNodesMd(const xmlChar *pucArg)
 	if ((pucUrlDisplay = xmlStrndup(&pucArg[ovector[i*2]], (int)(ovector[i*2+1] - ovector[i*2]))) != NULL) {
 	  DecodeRFC1738((char *)pucUrlDisplay);
 	  if (pucArg[ovector[0]] == '!') {
-	    PrintFormatLog(3, "Image display text '%s' (%i..%i) in '%s'", pucUrlDisplay, ovector[i*2], ovector[i*2+1], pucArg);
-	    pndLink = xmlNewChild(pndResult, NULL, BAD_CAST NAME_PIE_IMG, NULL);
+	    PrintFormatLog(4, "Image display text '%s' (%i..%i) in '%s'", pucUrlDisplay, ovector[i*2], ovector[i*2+1], pucArg);
+	    pndLink = xmlNewNode(NULL, BAD_CAST NAME_PIE_IMG);
+	    //xmlNodeSetContent(pndLink, pucUrlDisplay);
 	    xmlSetProp(pndLink, BAD_CAST "title", pucUrlDisplay);
 	    xmlSetProp(pndLink, BAD_CAST "alt", pucUrlDisplay);
 	  }
 	  else {
-	    PrintFormatLog(3, "URL display text '%s' (%i..%i) in '%s'", pucUrlDisplay, ovector[i * 2], ovector[i * 2 + 1], pucArg);
-	    pndLink = xmlNewChild(pndResult, NULL, BAD_CAST NAME_PIE_LINK, NULL);
-	    xmlAddChild(pndLink, xmlNewText(pucUrlDisplay));
+	    PrintFormatLog(4, "URL display text '%s' (%i..%i) in '%s'", pucUrlDisplay, ovector[i * 2], ovector[i * 2 + 1], pucArg);
+	    pndLink = xmlNewNode(NULL, BAD_CAST NAME_PIE_LINK);
+	    xmlNodeSetContent(pndLink, pucUrlDisplay);
 	  }
 	}
       }
       else {
 	/* empty value */
-	pndLink = xmlNewChild(pndResult, NULL, BAD_CAST NAME_PIE_LINK, NULL);
+	pndLink = xmlNewNode(NULL, BAD_CAST NAME_PIE_LINK);
       }
 
       i++;
@@ -1049,24 +1050,28 @@ SplitTupelToLinkNodesMd(const xmlChar *pucArg)
 	}
 	xmlFree(pucUrl);
       }
+      xmlFree(pucUrlDisplay);
+
+      if (pndIter) {
+	pndIter = xmlAddNextSibling(pndIter, pndLink);
+      }
+      else {
+	pndResult = pndIter = pndLink;
+      }
 
       if (xmlStrlen(&pucArg[ovector[1]]) > 0) {
 	PrintFormatLog(3, "URL post '%s' (%i..%i) in '%s'", &pucArg[ovector[1]], ovector[1], ovector[1] + xmlStrlen(&pucArg[ovector[1]]), pucArg);
 	/* the content ends with text, recursion */
 	pndPostfix = SplitTupelToLinkNodesMd(&pucArg[ovector[1]]);
 	if (pndPostfix) {
-	  xmlNodePtr pndT = pndPostfix->children;
-	  domUnlinkNodeList(pndT);
-	  xmlAddChildList(pndResult, pndT);
-	  xmlFreeNode(pndPostfix);
+	  pndIter = domAddNextSiblingNodeList(pndIter, pndPostfix);
 	}
 	else {
 	  pucT = xmlStrdup(&pucArg[ovector[1]]);
-	  xmlAddChild(pndResult, xmlNewText(pucT));
+	  pndIter = domAddNextSiblingNodeList(pndIter, xmlNewText(pucT));
 	  xmlFree(pucT);
 	}
       }
-      xmlFree(pucUrlDisplay);
     }
 
     pcre2_match_data_free(match_data_link);   /* Release memory used for the match */
@@ -1101,6 +1106,7 @@ SplitStringToLinkNodes(const xmlChar *pucArg)
 
     if (rc > -1) {
       PCRE2_SIZE *ovector;
+      xmlNodePtr pndIter = NULL;
 
       ovector = pcre2_get_ovector_pointer(match_data);
       if (ovector[1] - ovector[0] > 3) {
@@ -1124,12 +1130,10 @@ SplitStringToLinkNodes(const xmlChar *pucArg)
 
 	PrintFormatLog(3, "URL '%s' (%i..%i) in '%s'", pucUrl, ovector[0], ovector[1], pucArg);
 
-	pndResult = xmlNewNode(NULL, BAD_CAST "dummy");
-
 	if (ovector[0] > 0) {
 	  /* the content starts with text	*/
 	  xmlChar *pucT = xmlStrndup(pucArg, (int)ovector[0]);
-	  xmlAddChild(pndResult, xmlNewText(pucT));
+	  pndResult = pndIter = xmlNewText(pucT);
 	  xmlFree(pucT);
 	}
 
@@ -1142,35 +1146,41 @@ SplitStringToLinkNodes(const xmlChar *pucArg)
 	  DecodeRFC1738((char *)pucUrlDisplay);
 	  if (xmlCheckUTF8(pucUrlDisplay)) {
 	    /* OK */
-	    pndLink = xmlNewTextChild(pndResult, NULL, BAD_CAST NAME_PIE_LINK, pucUrlDisplay);
+	    pndLink = xmlNewNode(NULL, BAD_CAST NAME_PIE_LINK);
+	    xmlNodeSetContent(pndLink, pucUrlDisplay);
 	    xmlSetProp(pndLink, BAD_CAST "href", pucUrl);
 	  }
 	  else {
-	    pndLink = xmlNewTextChild(pndResult, NULL, BAD_CAST NAME_PIE_LINK, pucUrl);
+	    pndLink = xmlNewNode(NULL, BAD_CAST NAME_PIE_LINK);
+	    xmlNodeSetContent(pndLink, pucUrl);
 	  }
 	}
 	else {
-	  pndLink = xmlNewTextChild(pndResult, NULL, BAD_CAST NAME_PIE_LINK, pucUrl);
+	  pndLink = xmlNewNode(NULL, BAD_CAST NAME_PIE_LINK);
+	  xmlNodeSetContent(pndLink, pucUrl);
+	}
+	xmlFree(pucUrlDisplay);
+	xmlFree(pucUrl);
+
+	if (pndIter) {
+	  pndIter = xmlAddNextSibling(pndIter, pndLink);
+	}
+	else {
+	  pndResult = pndIter = pndLink;
 	}
 
 	if (ducOrigin > ovector[1]) {
 	  /* the content ends with text, recursion */
 	  pndPostfix = SplitStringToLinkNodes(pucArg + ovector[1]);
 	  if (pndPostfix) {
-	    xmlNodePtr pndT = pndPostfix->children;
-	    domUnlinkNodeList(pndT);
-	    xmlAddChildList(pndResult, pndT);
-	    xmlFreeNode(pndPostfix);
+	    pndIter = domAddNextSiblingNodeList(pndIter, pndPostfix);
 	  }
 	  else {
 	    xmlChar *pucT = xmlStrdup(pucArg + ovector[1]);
-	    xmlAddChild(pndResult, xmlNewText(pucT));
+	    pndIter = domAddNextSiblingNodeList(pndIter, xmlNewText(pucT));
 	    xmlFree(pucT);
 	  }
 	}
-
-	xmlFree(pucUrlDisplay);
-	xmlFree(pucUrl);
       }
     }
 
@@ -1207,6 +1217,7 @@ SplitStringToAutoLinkNodes(const xmlChar *pucArg)
 
     if (rc > -1) {
       PCRE2_SIZE *ovector;
+      xmlNodePtr pndIter = NULL;
 
       assert(pcre2_get_ovector_count(match_data) == 5);
 
@@ -1220,12 +1231,10 @@ SplitStringToAutoLinkNodes(const xmlChar *pucArg)
 	xmlChar *pucUrlDisplay;
 	index_t i0, i1;
 
-	pndResult = xmlNewNode(NULL, BAD_CAST "dummy");
-
 	if (ovector[0] > 0) {
 	  /* the content starts with text	*/
 	  xmlChar *pucT = xmlStrndup(pucArg, (int)ovector[0]);
-	  xmlAddChild(pndResult, xmlNewText(pucT));
+	  pndResult = pndIter = xmlNewText(pucT);
 	  xmlFree(pucT);
 	}
 
@@ -1268,34 +1277,40 @@ SplitStringToAutoLinkNodes(const xmlChar *pucArg)
 	  DecodeRFC1738((char *)pucUrlDisplay);
 	  if (xmlCheckUTF8(pucUrlDisplay)) {
 	    /* OK */
-	    pndLink = xmlNewTextChild(pndResult, NULL, BAD_CAST NAME_PIE_LINK, pucUrlDisplay);
+	    pndLink = xmlNewNode(NULL, BAD_CAST NAME_PIE_LINK);
+	    xmlNodeSetContent(pndLink, pucUrlDisplay);
 	  }
 	  else {
-	    pndLink = xmlNewTextChild(pndResult, NULL, BAD_CAST NAME_PIE_LINK, pucUrl);
+	    pndLink = xmlNewNode(NULL, BAD_CAST NAME_PIE_LINK);
+	    xmlNodeSetContent(pndLink, pucUrl);
 	  }
 	}
 	else {
-	  pndLink = xmlNewTextChild(pndResult, NULL, BAD_CAST NAME_PIE_LINK, pucUrl);
+	    pndLink = xmlNewNode(NULL, BAD_CAST NAME_PIE_LINK);
+	    xmlNodeSetContent(pndLink, pucUrl);
+	}
+	xmlFree(pucUrlDisplay);
+	xmlFree(pucUrl);
+
+	if (pndIter) {
+	  pndIter = xmlAddNextSibling(pndIter, pndLink);
+	}
+	else {
+	  pndResult = pndIter = pndLink;
 	}
 
 	if (ducOrigin > ovector[1]) {
 	  /* the content ends with text, recursion */
 	  pndPostfix = SplitStringToAutoLinkNodes(pucArg + ovector[1]);
 	  if (pndPostfix) {
-	    xmlNodePtr pndT = pndPostfix->children;
-	    domUnlinkNodeList(pndT);
-	    xmlAddChildList(pndResult, pndT);
-	    xmlFreeNode(pndPostfix);
+	    pndIter = domAddNextSiblingNodeList(pndIter, pndPostfix);
 	  }
 	  else {
 	    xmlChar *pucT = xmlStrdup(pucArg + ovector[1]);
-	    xmlAddChild(pndResult, xmlNewText(pucT));
+	    pndIter = domAddNextSiblingNodeList(pndIter, xmlNewText(pucT));
 	    xmlFree(pucT);
 	  }
 	}
-
-	xmlFree(pucUrlDisplay);
-	xmlFree(pucUrl);
       }
     }
 
@@ -1336,10 +1351,10 @@ RecognizeUrls(xmlNodePtr pndArg)
 	pucRelease = TranslateUncToUrl(pndChild->content);
 
 	if ((pndReplace = SplitStringToAutoLinkNodes(pucRelease))) {
-	  RecognizeUrls(pndReplace);
+	  //RecognizeUrls(pndReplace);
 	}
 	else if ((pndReplace = SplitTupelToLinkNodesMd(pucRelease))) {
-	  RecognizeUrls(pndReplace);
+	  //RecognizeUrls(pndReplace);
 	}
 	else if ((pndReplace = SplitStringToLinkNodes(pucRelease))) {
 	}
@@ -1368,10 +1383,8 @@ RecognizeUrls(xmlNodePtr pndArg)
 	  xmlNodePtr pndT;
 
 	  pndT = pndChild->next;
-	  if (domReplaceNodeList(pndChild,pndReplace->children) == pndChild) {
-	    xmlFreeNodeList(pndChild);
-	  }
-	  xmlFreeNode(pndReplace);
+	  domReplaceNodeList(pndChild,pndReplace);
+
 	  /*  */
 	  if (pndT != NULL && pndT->prev != NULL) {
 	    pndChild = pndT->prev;

@@ -255,21 +255,13 @@ pieTextBlocksTest(void)
     else if ((pndT = SplitStringToAutoLinkNodes(BAD_CAST "pre URL <http://www.abc.de> or <ABC.HTML>  or &lt;ABC.HTML&gt; or \xE2\x80\x99y.htm\xE2\x80\x98 post URL")) == NULL || xmlAddChild(pndPie, pndT) == NULL) {
       printf("Error 4 splitting URL\n");
     }
-    else if (pndT->children == NULL
-      || IS_NODE_PIE_LINK(pndT->children->next) == FALSE
-      || pndT->children->next->properties != NULL
-      || pndT->children->next->next == NULL
-      || IS_NODE_PIE_LINK(pndT->children->next->next->next) == FALSE) {
+    else if (domNumberOf(pndPie,BAD_CAST NAME_PIE_LINK, 0) != 4) {
       printf("Error 5 splitting URL\n");
-    }
-    else if (xmlStrEqual(pndT->children->next->children->content, BAD_CAST"http://www.abc.de") == 0) {
-      printf("Error 6 splitting URL\n");
     }
     else {
       n_ok++;
       printf("OK\n");
     }
-    //domPutNodeString(stderr, BAD_CAST "split result", pndT);
     //domPutNodeString(stderr, BAD_CAST"import result", pndPie);
     xmlFreeNode(pndPie);
   }
@@ -277,37 +269,36 @@ pieTextBlocksTest(void)
 
   if (RUNTEST) {
     xmlNodePtr pndPie;
+    xmlNodePtr pndT;
 
     i++;
     printf("TEST %i in '%s:%i': split Markdown link & image = ",i,__FILE__,__LINE__);
 
-    if ((pndPie = SplitTupelToLinkNodesMd(NULL)) != NULL) {
+    if ((pndPie = xmlNewNode(NULL, BAD_CAST NAME_PIE_PIE)) == NULL) {
+      printf("Error xmlNewNode\n");
+    }
+    else if ((pndT = SplitTupelToLinkNodesMd(NULL)) != NULL) {
       printf("Error 1 splitting URL\n");
     }
-    else if ((pndPie = SplitTupelToLinkNodesMd(BAD_CAST"AAAA abc")) != NULL) {
+    else if ((pndT = SplitTupelToLinkNodesMd(BAD_CAST"AAAA abc")) != NULL) {
       printf("Error 2 splitting URL\n");
+      xmlAddChild(pndPie,pndT);
     }
-    else if ((pndPie = SplitTupelToLinkNodesMd(BAD_CAST"AAAA ||b| abc")) != NULL) {
+    else if ((pndT = SplitTupelToLinkNodesMd(BAD_CAST"AAAA ||b| abc")) != NULL) {
       printf("Error 3 splitting URL\n");
+      xmlAddChild(pndPie,pndT);
     }
-    else if ((pndPie = SplitTupelToLinkNodesMd(BAD_CAST "pre URL [ABC &amp; DEF](http://www.abc.de) and ![ABC > DEF](abc.png) post URL")) == NULL) {
+    else if ((pndT = SplitTupelToLinkNodesMd(BAD_CAST "pre URL [ABC &amp; DEF](http://www.abc.de) and ![ABC > DEF](abc.png) post URL")) == NULL || xmlAddChild(pndPie, pndT) == NULL) {
       printf("Error 4 splitting URL\n");
     }
-    else if (pndPie->children == NULL
-	|| pndPie->children->next == NULL
-	|| pndPie->children->next->properties == NULL
-	|| pndPie->children->next->properties->children == NULL
-	|| pndPie->children->next->properties->children->content == NULL) {
+    else if (domNumberOf(pndPie,BAD_CAST NAME_PIE_LINK, 0) != 1 || domNumberOf(pndPie,BAD_CAST NAME_PIE_IMG, 0) != 1) {
       printf("Error 5 splitting URL\n");
-    }
-    else if (xmlStrEqual(pndPie->children->next->properties->children->content,BAD_CAST"http://www.abc.de") == 0) {
-      printf("Error 6 splitting URL\n");
     }
     else {
       n_ok++;
       printf("OK\n");
     }
-    //domPutNodeString(stderr, BAD_CAST"import result", pndPie);
+    domPutNodeString(stderr, BAD_CAST"import result", pndPie);
     xmlFreeNode(pndPie);
   }
 
