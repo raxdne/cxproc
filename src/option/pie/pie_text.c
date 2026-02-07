@@ -1795,7 +1795,7 @@ RecognizeRegExps(xmlNodePtr pndArg, pcre2_code* preArg)
 	   || IS_NODE_PIE_BLOCKQUOTE(pndArg) || IS_NODE_PIE_PRE(pndArg)) {
     xmlChar* pucT;
 
-    pucT = xmlNodeListGetString(pndArg->doc,pndArg,1);
+    pucT = domNodeListGetString(pndArg,NULL);
     if (STR_IS_NOT_EMPTY(pucT)) { /* pndIter is a text node */
       int rc;
       pcre2_match_data* match_data;

@@ -99,6 +99,31 @@ domTest(void)
 
 
   if (RUNTEST) {
+    int k = -1;
+    xmlDocPtr pdocResult = NULL;
+    xmlChar *pucT;
+    xmlNodePtr pndRoot;
+
+    i++;
+    printf("TEST %i in '%s:%i': domNodeListGetString ", i, __FILE__, __LINE__);
+
+    if ((pdocResult = xmlParseFile(TESTPREFIX "option/pie/text/test-pie-14.pie")) == NULL || (pndRoot = xmlDocGetRootElement(pdocResult)) == NULL ||
+	pndRoot->children == NULL || pndRoot->children->children == NULL) {
+      printf("Error 1 xmlParseFile()\n");
+    }
+    else if ((pucT = domNodeListGetString(pndRoot->children,NULL)) == NULL || (k = xmlStrlen(pucT)) != 104) {
+      printf("Error 1 domNodeListGetString(): %i\n", k);
+    }
+    else {
+      n_ok++;
+      printf("OK\n");
+    }
+    xmlFree(pucT);
+    xmlFreeDoc(pdocResult);
+  }
+
+
+  if (RUNTEST) {
     xmlNodePtr pndTest;
     xmlChar *pucTT = xmlStrdup(BAD_CAST "no");
 

@@ -1577,8 +1577,8 @@ SplitStringToInlineNodes(const xmlChar *pucArg)
 
     if (rc > -1) {
       PCRE2_SIZE *ovector;
-      xmlNodePtr pndIter;
-      xmlNodePtr pndIn;
+      xmlNodePtr pndIter = NULL;
+      xmlNodePtr pndIn = NULL;
       xmlNodePtr pndPostfix;
 
       ovector = pcre2_get_ovector_pointer(match_data);
@@ -2637,7 +2637,7 @@ TaskNodeNew(xmlNodePtr pndArg)
 	if (pucT) {
 	  xmlChar* pucTTT;
 	  
-	  pucTTT = xmlNodeListGetString(pndArg->doc,pndArg->children,0);
+	  pucTTT = domNodeListGetString(pndArg->children,NULL);
 	  StringToLower((char*)pucT);
 	  if (xmlStrEqual(pucT, BAD_CAST"done") || (xmlStrEqual(pucT, BAD_CAST"todo") && IS_PIE_OK(pucTTT))) {
 	    xmlSetProp(pndResult, BAD_CAST"class", BAD_CAST"todo");

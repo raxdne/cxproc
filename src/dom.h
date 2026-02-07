@@ -129,6 +129,9 @@ domNodeIsDocRoot(xmlNodePtr pndArg);
 extern BOOL_T
 domNodeIsDescendant(xmlNodePtr pndArgTop, xmlNodePtr pndArg);
 
+extern xmlChar*
+domNodeListGetString(xmlNodePtr pndArg, xmlChar* pucArg);
+
 extern void 
 domNodeDumpMemoryEnc(xmlNodePtr pndArg, xmlChar **ppucArg, int *piArg, const char *pcArg);
 

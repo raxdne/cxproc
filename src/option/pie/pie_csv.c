@@ -522,7 +522,7 @@ IsTableCellEmpty(xmlNodePtr pndArg)
   if (pndArg) {
     xmlChar* pucT;
 
-    pucT = xmlNodeListGetString(pndArg->doc, pndArg->children, 1);
+    pucT = domNodeListGetString(pndArg->children, NULL);
     NormalizeStringSpaces((char*)pucT);
     fResult = xmlStrlen(pucT) < 1;
     xmlFree(pucT);
