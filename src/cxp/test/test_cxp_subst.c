@@ -79,7 +79,7 @@ cxpSubstTest(cxpContextPtr pccArg)
     
     //cxpTraverseIncludeNodes(NULL,pccArg);
     cxpTraverseIncludeNodes(pndTest,pccArg);
-    domPutNodeString(stderr, BAD_CAST"include", pndTest);
+    //domPutNodeString(stderr, BAD_CAST"include", pndTest);
 
     if ((k = domNumberOf(pndTest, BAD_CAST "section",0)) != 4) {
       printf("Error 1 domNumberOf(): %i\n", k);
