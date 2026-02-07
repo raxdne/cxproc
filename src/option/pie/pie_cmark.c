@@ -254,7 +254,7 @@ cmarkTreeToDOM(xmlNodePtr pndArgBlock, xmlNodePtr pndArg, cmark_node* pcmnArg)
 	      }
 	      xmlFree(pucTT);
 
-	      for (; islinebreak(pucT[i]) || isspace(pucT[i]); i++);
+	      for (; islinebreak(pucT[i+1]) || isspace(pucT[i+1]); i++);
 	      j = i;
 	    }
 	  }
