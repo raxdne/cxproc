@@ -156,6 +156,9 @@ domGetNextNode(xmlNodePtr pndArg, xmlChar *pucNameElement);
 extern xmlNsPtr
 domGetNsXsl(void);
 
+extern xmlNsPtr
+domGetXhtmlNs(void);
+
 extern BOOL_T
 domSetNsRecursive(xmlNodePtr pndArg, xmlNsPtr ns);
 

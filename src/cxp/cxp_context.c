@@ -145,6 +145,8 @@ cxpCtxtOutputSaveFormat(cxpContextPtr pccArg,resNodePtr prnOut,xmlDocPtr pdocArg
 	}
 #else
 #endif
+	domUnsetNs(xmlDocGetRootElement(pdocArgOutput)); /* HTML output without Namespace */
+	//xmlSetNs(xmlDocGetRootElement(pdocArgOutput),domGetXhtmlNs());
 	iResult = htmlSaveFileFormat(resNodeGetNameNormalizedNative(prnOut),pdocArgOutput,encoding,format);
       }
       else if (encoding) {

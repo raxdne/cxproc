@@ -47,6 +47,9 @@ xmlNsPtr pnsXsl = NULL;
 
 const xmlChar *pucXsl = BAD_CAST "http://www.w3.org/1999/XSL/Transform";
 
+xmlNsPtr pnsXhtml = NULL;
+
+const xmlChar *pucXhtml = BAD_CAST "http://www.w3.org/1999/xhtml";
 
 
 /*! cleanup this module
@@ -57,7 +60,22 @@ domCleanup(void)
   if (pnsXsl) {
     xmlFreeNs(pnsXsl);
   }
+  if (pnsXhtml) {
+    xmlFreeNs(pnsXhtml);
+  }
 } /* end of domCleanup() */
+
+
+/*! \return pointer to existing or freshly allocated XHTML namespace
+*/
+xmlNsPtr
+domGetXhtmlNs(void)
+{
+  if (pnsXhtml == NULL) {
+    pnsXhtml = xmlNewNs(NULL, BAD_CAST pucXhtml, BAD_CAST"xhtml");
+  }
+  return pnsXhtml;
+} /* end of domGetXhtmlNs() */
 
 
 /*! searchs under the nexts of 'pndArg' for an element named 'pucNameElement'
@@ -837,9 +855,12 @@ domDocIsHtml(xmlDocPtr pdocArg)
 {
   xmlNodePtr pndRoot;
 
-  return (pdocArg != NULL && (pndRoot = xmlDocGetRootElement(pdocArg)) != NULL
-      && xmlStrcasecmp(pndRoot->name,BAD_CAST "html") == 0 && pndRoot->children != NULL
-      && (domGetFirstChild(pndRoot,BAD_CAST "head") != NULL || domGetFirstChild(pndRoot,BAD_CAST "body") != NULL));
+  /*!\todo check empty or XHTML Namespace */
+
+  return (pdocArg != NULL && (pndRoot = xmlDocGetRootElement(pdocArg)) != NULL &&
+	  ((xmlStrcasecmp(pndRoot->name, BAD_CAST "html") == 0 &&
+	    (domGetFirstChild(pndRoot, BAD_CAST "head") != NULL || domGetFirstChild(pndRoot, BAD_CAST "body") != NULL)) ||
+	   xmlStrcasecmp(pndRoot->name, BAD_CAST "head") == 0 || xmlStrcasecmp(pndRoot->name, BAD_CAST "body") == 0));
 }
 /* end of domDocIsHtml() */
 
