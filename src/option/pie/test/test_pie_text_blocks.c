@@ -298,7 +298,7 @@ pieTextBlocksTest(void)
       n_ok++;
       printf("OK\n");
     }
-    domPutNodeString(stderr, BAD_CAST"import result", pndPie);
+    //domPutNodeString(stderr, BAD_CAST"import result", pndPie);
     xmlFreeNode(pndPie);
   }
 
@@ -899,7 +899,7 @@ pieTextBlocksTest(void)
       n_ok++;
       printf("OK\n");
     }
-    domPutNodeString(stderr, BAD_CAST"result", pndPie);
+    //domPutNodeString(stderr, BAD_CAST"result", pndPie);
     xmlFreeNode(pndPie);
   }
 

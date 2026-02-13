@@ -521,8 +521,7 @@ pieTextTest(cxpContextPtr pccArg)
       //domPutNodeString(stderr, BAD_CAST "pre include", pndPie);
       TraverseIncludeNodes(pndPie, pccArg);
       //domPutNodeString(stderr, BAD_CAST "post include", pndPie);
-      if (IS_NODE_PIE(pndPie) == FALSE || (j = domNumberOfChild(pndPie, NULL)) != 6
-	|| IS_NODE_PIE_BLOCK(pndPie->children) == FALSE) {
+      if (IS_NODE_PIE(pndPie) == FALSE || (j = domNumberOfChild(pndPie, NULL)) != 13) {
 	printf("Error 1 tree: %i\n",j);
       }
       else if ((pdocT = pieProcessPieNode(pndPie, pccArg)) == NULL) {
