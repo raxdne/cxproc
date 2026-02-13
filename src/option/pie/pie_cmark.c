@@ -286,7 +286,7 @@ cmarkTreeToDOM(xmlNodePtr pndArgBlock, xmlNodePtr pndArg, cmark_node* pcmnArg)
 
 	pdocHtml = xmlParseMemory((const char *)pcmnArg->data, xmlStrlen(BAD_CAST pcmnArg->data)); /* XHTML only */
 	if ((pndNew = xmlDocGetRootElement(pdocHtml)) != NULL) {
-	  xmlUnlinkNode(pndNew);
+	  domUnlinkNodeList(pndNew);
 	  pndT = xmlNewChild(pndArg, NULL, BAD_CAST "block", NULL);
 	  xmlSetProp(pndT, BAD_CAST "type", BAD_CAST "text/html");
 	  xmlAddChild(pndT, pndNew);

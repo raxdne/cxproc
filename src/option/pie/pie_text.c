@@ -665,15 +665,14 @@ ImportNodeCxp(xmlNodePtr pndArgImport, cxpContextPtr pccArg)
 	if ((pdocContentProc = pieProcessPieNode(pndPieRoot, pccArg)) != NULL) {
 	  if ((pndPieProcRoot = xmlDocGetRootElement(pdocContentProc)) != NULL && IS_NODE_PIE_PIE(pndPieProcRoot) && pndPieProcRoot->children != NULL) {
 	    //domPutNodeString(stderr,BAD_CAST "ImportNodeCxp()",pndPieProcRoot);
-	    xmlUnlinkNode(pndPieProcRoot);
+	    domUnlinkNodeList(pndPieProcRoot);
 	    xmlNodeSetName(pndPieProcRoot, BAD_CAST NAME_PIE_BLOCK);
 	    xmlSetNs(pndPieProcRoot,NULL);
 	    RecognizeIncludes(pndPieProcRoot);
 	    TraverseIncludeNodes(pndPieProcRoot, pccArg);
 	    RecognizeImports(pndPieProcRoot);
 	    ProcessImportOptions(pndPieProcRoot,pndPieRoot, pccArg); /* detect urls, substs etc. */
-	    xmlReplaceNode(pndArgImport, pndPieProcRoot);
-	    xmlFreeNode(pndArgImport);
+	    domReplaceNodeList(pndArgImport, pndPieProcRoot);
 	    TraverseImportNodes(pndPieProcRoot, pccArg); /* parse result recursively */
 	    ProcessPieNodeOptions(pndPieProcRoot, pndPieRoot, pccArg); /* build sub-structures for task, fig etc. */
 	    fResult = TRUE;

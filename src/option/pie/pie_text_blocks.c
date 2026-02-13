@@ -1372,7 +1372,7 @@ RecognizeUrls(xmlNodePtr pndArg)
 	  xmlNodeSetName(pndArg, BAD_CAST NAME_PIE_FIG);
 	  xmlNodeSetContent(pndArg,NULL);
 	  xmlNewChild(pndArg, NULL, BAD_CAST NAME_PIE_HEADER, domGetPropValuePtr(pndT, BAD_CAST"title"));
-	  xmlUnlinkNode(pndT);
+	  domUnlinkNodeList(pndT);
 	  xmlAddChild(pndArg, pndT);
 	  xmlFreeNode(pndReplace);
 	  xmlNewTextChild(pndArg, NULL, BAD_CAST NAME_PIE_TTAG, BAD_CAST"#fig");
@@ -2594,7 +2594,7 @@ TaskNodeNew(xmlNodePtr pndArg)
 	for (pndT = pndHeader->children; pndT; pndT = pndTT) { /* relocate all list childs to new task node */
 	  pndTT = pndT->next;
 	  if (IS_NODE_PIE_LIST(pndT)) {
-	    xmlUnlinkNode(pndT);
+	    domUnlinkNodeList(pndT);
 	    xmlAddChild(pndResult, pndT);
 	  }
 	}
@@ -2707,7 +2707,7 @@ RecognizeTasks(xmlNodePtr pndArg)
 	  /* relocate the following list element to task node */
 	  pndList = pndArg->next;
 	  //pndResult = pndList->next;
-	  xmlUnlinkNode(pndList);
+	  domUnlinkNodeList(pndList);
 	  xmlAddChild(pndTask, pndList);
 	}
 	else {

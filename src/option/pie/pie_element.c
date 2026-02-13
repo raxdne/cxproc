@@ -1002,7 +1002,7 @@ pieElementToDOM(pieTextElementPtr ppeT)
 	      if (pndRootInclude) {
 		/* replace pndArg with a copy of pndRootInclude */
 
-		xmlUnlinkNode(pndRootInclude);
+		domUnlinkNodeList(pndRootInclude);
 
 		pndResult = xmlNewNode(NULL, BAD_CAST NAME_PIE_IMPORT);
 		xmlSetProp(pndResult, BAD_CAST "type", BAD_CAST "cxp");
