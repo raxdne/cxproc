@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<pie version="0.1">
+  <section>
+    <h>Test of Including</h>
+    <section>
+      <h>Sub-test</h>
+      <p>Par pre</p>
+      <include name="test-pie-include-none.pie"/>
+      <p>Par post</p>
+      <p>Par pre</p>
+      <include name="test-pie-include-001.pie"/>
+      <p>Par post</p>
+      <p>Par pre</p>
+      <include name="test-pie-include-001-001.pie"/>
+      <p>Par post</p>
+      <p>Par pre</p>
+      <include name="test-pie-include-001-001.html"/>
+      <p>Par post</p>
+      <p>Par pre</p>
+      <include name="test-pie-include-001-001.md"/>
+      <p>Par post</p>
+      <p>Par pre</p>
+      <include name="test-pie-include-001-001.txt"/>
+      <p>Par post</p>
+      <p>Par pre</p>
+      <include name="test-pie-include-001-001.js"/>
+      <p>Par post</p>
+      <!-- 
+       -->
+      <p>Par pre</p>
+      <include name="test-pie-include-001-001.dat"/>
+      <p>Par post</p>
+    </section>
+  </section>
+</pie>
