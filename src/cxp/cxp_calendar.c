@@ -892,15 +892,8 @@ ProcessCalendarColumns(cxpCalendarPtr pCalendarArg, cxpContextPtr pccArg)
 	    if (pndRoot) {
 	      domFreeNodeByName(pndRoot, NAME_META);
 	      cxpCtxtLogPrint(pccArg, 2, "Insert XML DOM into calendar");
-	      /*!\todo avoid copy of DOM, replace instead (respect the used namespaces) */
-#if 0
-	      xmlUnlinkNode(pndRoot);
-	      xmlSetTreeDoc(pndRoot, pCalendarArg->pdocCalendar);
+	      domUnlinkNodeList(pndRoot);
 	      xmlAddChild(pndColNew, pndRoot);
-#else
-	      /*!\todo use domReplaceNodeList() */
-	      xmlAddChild(pndColNew,xmlCopyNode(pndRoot,1));
-#endif
 	    }
 	    else {
 	      cxpCtxtLogPrint(pccArg, 1, "This DOM is empty");

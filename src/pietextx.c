@@ -85,7 +85,7 @@ AppendBufferToDoc(xmlNodePtr pndArg, xmlChar *pucArgFileName, xmlChar* pucArgCon
 
 	pndRoot = xmlDocGetRootElement(pdocT);
 	if (IS_NODE_PIE_PIE(pndRoot)) {
-	  xmlUnlinkNode(pndRoot);
+	  domUnlinkNodeList(pndRoot);
 	  xmlNodeSetName(pndRoot, NAME_PIE_BLOCK);
 	  xmlAddChild(pndArg, pndRoot);
 	}
