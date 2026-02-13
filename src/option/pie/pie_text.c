@@ -1140,13 +1140,9 @@ TraverseIncludeNodes(xmlNodePtr pndArg, cxpContextPtr pccArg)
     /* skip */
   }
   else if (IS_NODE_PIE_INCLUDE(pndArg)) {
-    /* pie include is a reduced import only */
-    xmlNodeSetName(pndArg, BAD_CAST NAME_PIE_IMPORT); 
-    xmlSetProp(pndArg, BAD_CAST "subst", BAD_CAST "yes");
-    xmlSetProp(pndArg, BAD_CAST "url", BAD_CAST "no");
-    xmlSetProp(pndArg, BAD_CAST "date", BAD_CAST "no");
-    xmlSetProp(pndArg, BAD_CAST "tags", BAD_CAST "no");
-    if (ProcessImportNode(pndArg, pccArg)) {}
+    if (IncludeNodeFile(pndArg, pccArg)) {
+      /* result of include will be next sibbling of pndArg */
+    }
   }
   else {
     /*
@@ -1172,6 +1168,204 @@ TraverseIncludeNodes(xmlNodePtr pndArg, cxpContextPtr pccArg)
   }
 }
 /* end of TraverseIncludeNodes() */
+
+
+/*! process the include instructions of pndArgInclude in directory context of pccArg. 
+
+Simplified version of ImportNodeFile(). Does not create a separate 'block' element in pndArgInclude DOM.
+
+\param pndArgTop node to append processing result
+\param pndArgInclude node to test for include, else traversing childs
+\param pccArg the processing context
+
+\return TRUE if include was successful, else FALSE
+*/
+BOOL_T
+IncludeNodeFile(xmlNodePtr pndArgInclude, cxpContextPtr pccArg)
+{
+  BOOL_T fResult = FALSE;
+  resNodePtr prnInput = NULL; /*! context for include of new document (avoid side effect) */
+
+#ifdef DEBUG
+  cxpCtxtLogPrint(pccArg, 1, "IncludeNodeFile(pndArgInclude=%0x,pccArg=%0x)", pndArgInclude, pccArg);
+#endif
+  assert(pndArgInclude->parent != NULL);
+  assert(IS_NODE_PIE_INCLUDE(pndArgInclude));
+
+  prnInput = cxpResNodeResolveNew(pccArg, pndArgInclude, NULL, CXP_O_READ);
+  if (prnInput) {
+    xmlChar *pucContext = NULL;
+
+    resNodeResetMimeType(prnInput);
+
+#ifdef HAVE_CGI
+    pucContext = resNodeGetNameRelative(cxpCtxtRootGet(pccArg), prnInput);
+#else
+    pucContext = resNodeGetURI(prnInput);
+#endif
+
+    /*! \todo add cache handling for include */
+#if 1
+#else
+    xmlSetNs(pndArgInclude,NULL);
+    xmlNodeSetName(pndArgInclude,BAD_CAST NAME_PIE_BLOCK);
+    xmlSetProp(pndArgInclude, BAD_CAST"context", pucContext);
+#endif
+
+    if (IsImportCircular(pndArgInclude, prnInput)) { /*! check circular reference */
+      xmlSetProp(pndArgInclude, BAD_CAST"error", BAD_CAST"circular");
+      /*! \bug circular check for cache too */
+    }
+    else if (resNodeIsReadable(prnInput) == FALSE && cxpCtxtCacheGetResNode(pccArg, resNodeGetNameNormalized(prnInput)) == NULL) {
+      xmlSetProp(pndArgInclude, BAD_CAST"error", BAD_CAST"read");
+    }
+    else {
+      xmlChar *pucAttrCache = NULL;
+      xmlChar *pucContent = NULL;
+      RN_MIME_TYPE iMimeType;
+      resNodePtr prnT;
+      cxpContextPtr pccInput;
+
+      if (resNodeGetChild(prnInput)) {
+	iMimeType = resNodeGetMimeType(resNodeGetChild(prnInput));
+      }
+      else {
+	iMimeType = resNodeGetMimeType(prnInput);
+      }
+
+      /* set a new cxpContext with file-based location */
+      cxpCtxtLogPrint(pccArg, 1, "New context due to file-based include location '%s'", resNodeGetNameNormalized(prnInput));
+      pccInput = cxpCtxtNew();
+      prnT = resNodeDup(prnInput, RN_DUP_THIS);
+      resNodeSetToParent(prnT);
+      cxpCtxtLocationSet(pccInput, prnT);
+      cxpCtxtLogSetLevel(pccInput, 2);
+      if (pccArg) {
+	cxpCtxtAddChild(pccArg, pccInput);
+      }
+      resNodeFree(prnT);
+
+      if (resNodeGetNameNormalized(prnInput) != NULL && (iMimeType == MIME_TEXT_CSV || iMimeType == MIME_TEXT_PLAIN
+#ifdef WITH_MARKDOWN
+							 || iMimeType == MIME_TEXT_MARKDOWN
+#endif
+							 )) {
+
+	cxpCtxtLogPrint(pccInput, 2, "Including '%s'", resNodeGetNameNormalized(prnInput));
+
+	if ((pucContent = cxpCtxtCacheGetBuffer(pccInput, resNodeGetNameNormalized(prnInput))) == NULL) {
+	  /* there is no cached Buffer */
+	  pucContent = plainGetContextTextEat(prnInput, 1024);
+	}
+
+	if (STR_IS_NOT_EMPTY(pucContent)) {
+	  rmode_t m;
+
+	  if (iMimeType == MIME_TEXT_PLAIN) {
+	    m = GetModeByExtension(resNodeGetExtension(prnInput));
+	  }
+	  else if (iMimeType != MIME_UNDEFINED) {
+	    m = GetModeByMimeType(iMimeType);
+	  }
+	  else {
+	    m = GetModeByAttr(pndArgInclude);
+	  }
+
+	  if (ParsePlainBuffer(pndArgInclude, pucContent, m)) {
+	    xmlNodePtr pndList = pndArgInclude->children;
+
+	    domUnlinkNodeList(pndList);
+	    domNodeTransformToText(pndArgInclude, NULL);
+	    domAddNextSiblingNodeList(pndArgInclude, pndList);
+	  }
+	}
+	else {
+	  cxpCtxtLogPrint(pccInput, 1, "Cant read from '%s'", resNodeGetNameNormalized(prnInput));
+	  xmlSetProp(pndArgInclude, BAD_CAST "error", BAD_CAST "empty");
+	}
+	xmlFree(pucContent);
+      }
+      else if (iMimeType == MIME_TEXT_XML || iMimeType == MIME_APPLICATION_PIE_XML) {
+	xmlDocPtr pdocPie;
+
+	cxpCtxtLogPrint(pccInput, 2, "Including XML PIE '%s'", (pucAttrCache ? pucAttrCache : resNodeGetNameNormalized(prnInput)));
+
+	if ((((pdocPie = cxpCtxtCacheGetDoc(pccInput, resNodeGetNameNormalized(prnInput))) != NULL) && (pdocPie = xmlCopyDoc(pdocPie,1)) != NULL)
+	  ||
+	  ((pdocPie = resNodeReadDoc(prnInput)) != NULL)) { /*! \todo remove redundant cache lookup */
+	  xmlNodePtr pndT;
+
+	  if ((pndT = xmlDocGetRootElement(pdocPie)) != NULL && IS_NODE_PIE_PIE(pndT) && pndT->children != NULL) {
+	    pndT = pndT->children;
+	    domUnlinkNodeList(pndT);
+	    domNodeTransformToText(pndArgInclude, NULL);
+	    domAddNextSiblingNodeList(pndArgInclude, pndT);
+	  }
+	  xmlFreeDoc(pdocPie);
+	}
+	else {
+	  cxpCtxtLogPrint(pccInput, 1, "Cant read from '%s'", resNodeGetNameNormalized(prnInput));
+	  xmlSetProp(pndArgInclude, BAD_CAST"error", BAD_CAST"parse");
+	}
+      }
+      else if (iMimeType == MIME_TEXT_HTML) {
+	xmlDocPtr pdocHtml;
+
+	cxpCtxtLogPrint(pccInput, 2, "Including HTML '%s'", (pucAttrCache ? pucAttrCache : resNodeGetNameNormalized(prnInput)));
+
+	if ((((pdocHtml = cxpCtxtCacheGetDoc(pccInput, resNodeGetNameNormalized(prnInput))) != NULL) && (pdocHtml = xmlCopyDoc(pdocHtml, 1)) != NULL) ||
+	    ((pdocHtml = resNodeReadDoc(prnInput)) != NULL)) { /*! \todo remove redundant cache lookup */
+	  xmlNodePtr pndT;
+
+	  if ((pndT = xmlDocGetRootElement(pdocHtml)) != NULL && (pndT = domGetFirstChild(pndT, BAD_CAST "body")) != NULL) {
+	    domUnlinkNodeList(pndT);
+	    xmlNodeSetName(pndT, BAD_CAST NAME_PIE_HTML);
+	    domNodeTransformToText(pndArgInclude, NULL);
+	    domAddNextSiblingNodeList(pndArgInclude, pndT);
+	  }
+	  xmlFreeDoc(pdocHtml);
+	}
+      }
+      else if (iMimeType == MIME_APPLICATION_X_JAVASCRIPT) {
+
+	cxpCtxtLogPrint(pccInput, 2, "Including '%s'", resNodeGetNameNormalized(prnInput));
+
+	if ((pucContent = cxpCtxtCacheGetBuffer(pccInput, resNodeGetNameNormalized(prnInput))) == NULL) {
+	  /* there is no cached Buffer */
+	  pucContent = plainGetContextTextEat(prnInput, 1024);
+	}
+
+	if (STR_IS_NOT_EMPTY(pucContent)) {
+	  xmlNodeSetContent(pndArgInclude, pucContent);
+	  xmlNodeSetName(pndArgInclude, BAD_CAST NAME_PIE_SCRIPT);
+	  //xmlSetProp(pndArgInclude, BAD_CAST"eval", BAD_CAST"no");
+	}
+	else {
+	  cxpCtxtLogPrint(pccInput, 1, "Cant read from '%s'", resNodeGetNameNormalized(prnInput));
+	  xmlSetProp(pndArgInclude, BAD_CAST "error", BAD_CAST "empty");
+	}
+	xmlFree(pucContent);
+      }
+      else {
+	cxpCtxtLogPrint(pccInput, 1, "Cant handle '%s'", resNodeGetNameNormalized(prnInput));
+	xmlNodeSetName(pndArgInclude, BAD_CAST "error");
+      }
+
+      xmlFree(pucAttrCache);
+      if (pccArg == NULL) {
+	cxpCtxtFree(pccInput);
+      }
+    }
+
+    resNodeFree(prnInput);
+    fResult = TRUE;
+  }
+  else {
+    xmlNodeSetName(pndArgInclude, BAD_CAST "error");
+  }
+  return fResult;
+}
+/* end of IncludeNodeFile() */
 
 
 /*! traverse DOM of pndArg searching for import nodes in context of pccArg and
@@ -1381,7 +1575,7 @@ ProcessPieNodeOptions(xmlNodePtr pndArgPie, xmlNodePtr pndArgImport, cxpContextP
       cxpCtxtLogPrint(pccArg, 3, "Ignoring tasks markup");
     }
 
-    if (domGetPropFlag(pndArgImport, BAD_CAST "locators", TRUE)) {
+    if (domGetPropFlag(pndArgImport, BAD_CAST "locators", FALSE)) {
       resNodePtr prnDoc;
 
       cxpCtxtLogPrint(pccArg, 2, "Add locator attribute");

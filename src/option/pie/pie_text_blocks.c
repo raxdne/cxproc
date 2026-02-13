@@ -2412,8 +2412,8 @@ RecognizeSubsts(xmlNodePtr pndArg)
       /* skip */
     }
     else if ((pndSubst = SubstNodeNew(pndArg)) != NULL) {
-      xmlReplaceNode(pndArg, pndSubst); /*! replace pndArg by pndSubst */
-      xmlFreeNode(pndArg);
+      xmlAddNextSibling(pndArg, pndSubst);
+      domNodeTransformToText(pndArg,NULL);
     }
     else if (IS_NODE_PIE_SECTION(pndArg) || IS_NODE_PIE_BLOCK(pndArg) || IS_NODE_PIE_PIE(pndArg)) {
       for (pndChild = pndArg->children; pndChild; pndChild = RecognizeSubsts(pndChild));
@@ -2482,7 +2482,9 @@ ImportNodeNew(xmlNodePtr pndArg, int iArgMode)
     if (STR_IS_NOT_EMPTY(puc0)) {
       pndResult = xmlNewNode(NULL, ((iArgMode == 0) ? BAD_CAST NAME_PIE_INCLUDE : BAD_CAST NAME_PIE_IMPORT));
       xmlSetProp(pndResult, BAD_CAST"name", puc0);
-      xmlSetProp(pndResult, BAD_CAST"valid", BAD_CAST(IS_PIE_CANCEL(pucC) ? "no" : "yes"));
+      if (IS_PIE_CANCEL(pucC)) {
+	xmlSetProp(pndResult, BAD_CAST "valid", BAD_CAST "no");
+      }
     }
     else {
       pndResult = xmlNewComment(BAD_CAST pucC);
