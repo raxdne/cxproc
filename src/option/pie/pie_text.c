@@ -320,12 +320,12 @@ pieSubstInChildNodes(xmlNodePtr pndArgTop, xmlNodePtr pndArgSubst, cxpContextPtr
 	) {
 
 	if (pndArgTop->parent != NULL && pndArgTop->parent->type == XML_DOCUMENT_NODE) {
-	  if (IS_VALID_NODE(pndArgTop)) {
+	  if (IS_VALID_NODE(pndArgTop) || IS_TEXT(pndArgTop)) {
 	    cxpSubstApply(pndArgTop, pcxpSubstT, pccArg);
 	  }
 	}
 	else {
-	  if (IS_VALID_NODE(pndArgSubst->next)) {
+	  if (IS_VALID_NODE(pndArgSubst->next) || IS_TEXT(pndArgSubst->next)) {
 	    cxpSubstApply(pndArgSubst->next, pcxpSubstT, pccArg);
 	  }
 	}
@@ -1459,7 +1459,7 @@ TraverseDateNodes(xmlNodePtr pndArg, cxpContextPtr pccArg)
   ) {
     /* skip */
   }
-  else if (IS_NODE_PIE_DATE(pndArg) && xmlHasProp(pndArg,BAD_CAST"iso") == NULL) {
+  else if (IS_NODE_PIE_DATE(pndArg) && domGetPropValuePtr(pndArg,BAD_CAST"iso") == NULL) {
     /* avoid redundant child 'date' */
 #ifdef PIE_STANDALONE
     /* no calendar element available */
@@ -1833,7 +1833,7 @@ SetPropXpathInBlock(xmlNodePtr pndArg, xmlChar* pucArgPrefix)
 
     for (pndChild = pndArg->children; pndChild != NULL; pndChild = pndChild->next) {
       i++;
-      if ( ! IS_ENODE(pndChild) || xmlHasProp(pndChild, BAD_CAST"bxpath")) {
+      if ( ! IS_ENODE(pndChild) || domGetPropValuePtr(pndChild, BAD_CAST"bxpath") != NULL) {
       }
       else if (IS_NODE_PIE_TTAG(pndChild) || IS_NODE_PIE_ETAG(pndChild) || IS_NODE_PIE_HTAG(pndChild) || IS_NODE_PIE_RULER(pndChild) || IS_NODE_PIE_META(pndChild) || IS_NODE_ERROR(pndChild)) {
 	/* dont set xpath attribute here */
@@ -1869,7 +1869,7 @@ IncrementWeightProp(xmlNodePtr pndArg, int iArg)
     int iCurrent;
     xmlAttrPtr patT;
 
-    if ((patT = xmlHasProp(pndArg, BAD_CAST"w")) == NULL
+    if ((patT = domGetPropValuePtr(pndArg, BAD_CAST"w")) == NULL
       || patT->children == NULL || STR_IS_EMPTY(patT->children->content)) {
       /* there is no attribute value yet, initial value '1' */
       iResult = 1;
@@ -1980,7 +1980,7 @@ RecognizeRegExps(xmlNodePtr pndArg, pcre2_code* preArg)
     /* regexp error handling */
     //PrintFormatLog(1, "hashtag regexp '%s' error: '%i'", RE_HASHTAG, errornumber);
   }
-  else if (IS_VALID_NODE(pndArg) == FALSE || xmlHasProp(pndArg,BAD_CAST"hidden") != NULL) {
+  else if (IS_VALID_NODE(pndArg) == FALSE || IS_NODE_HIDDEN(pndArg)) {
     /* skip */
   }
   else if (IS_NODE_PIE_HEADER(pndArg) || IS_NODE_PIE_PAR(pndArg) || IS_NODE_PIE_LIST(pndArg)

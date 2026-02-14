@@ -298,7 +298,7 @@ RecognizeHashtags(xmlNodePtr pndArg, pcre2_code* preArgHashTag, pcre2_code* preA
       fResult = FALSE;
     }
   }
-  else if (IS_VALID_NODE(pndArg) == FALSE || xmlHasProp(pndArg,BAD_CAST"hidden") != NULL) {
+  else if (IS_VALID_NODE(pndArg) == FALSE || IS_NODE_HIDDEN(pndArg)) {
     /* skip */
   }
   else if (IS_NODE_PIE_PIE(pndArg) || IS_NODE_PIE_BLOCK(pndArg)) {
@@ -657,7 +657,7 @@ RecognizeNodeTags(xmlNodePtr pndTags, xmlNodePtr pndArg, pcre2_code* preArg)
   if (preArg == NULL) {
     /* skip */
   }
-  else if (IS_VALID_NODE(pndArg) == FALSE || xmlHasProp(pndArg,BAD_CAST"hidden") != NULL) {
+  else if (IS_VALID_NODE(pndArg) == FALSE || IS_NODE_HIDDEN(pndArg)) {
     /* skip */
   }
   else if (IS_NODE_PIE_IGNORE_TAGS(pndArg)) {
@@ -821,7 +821,7 @@ RecognizeGlobalTags(xmlNodePtr pndTags, xmlNodePtr pndArg)
   if (IS_NODE_META(pndArg) || IS_NODE_PIE_PRE(pndArg) || IS_NODE_PIE_TT(pndArg)) {
     /* skip */
   }
-  else if (IS_VALID_NODE(pndArg) == FALSE || xmlHasProp(pndArg,BAD_CAST"hidden") != NULL) {
+  else if (IS_VALID_NODE(pndArg) == FALSE || IS_NODE_HIDDEN(pndArg)) {
     /* skip */
   }
   else if (IS_ENODE(pndArg) && (pndArg->ns==NULL)) { //  || pndArg->ns==pnsPie

@@ -1334,7 +1334,7 @@ RecognizeUrls(xmlNodePtr pndArg)
   else if (pndArg->type == XML_COMMENT_NODE || pndArg->type == XML_PI_NODE) {
     RecognizeUrls(pndArg->next);
   }
-  else if (IS_VALID_NODE(pndArg) == FALSE || xmlHasProp(pndArg,BAD_CAST"hidden") != NULL) {
+  else if (IS_VALID_NODE(pndArg) == FALSE || IS_NODE_HIDDEN(pndArg)) {
     /* skip */
   }
   else if (IS_ENODE(pndArg) && (pndArg->ns==NULL || pndArg->ns==pnsPie)) {
@@ -1516,7 +1516,7 @@ RecognizeScripts(xmlNodePtr pndArg)
   else if (pndArg->type == XML_COMMENT_NODE || pndArg->type == XML_PI_NODE) {
     fResult |= RecognizeScripts(pndArg->next);
   }
-  else if (IS_VALID_NODE(pndArg) == FALSE || xmlHasProp(pndArg, BAD_CAST "hidden") != NULL) {
+  else if (IS_VALID_NODE(pndArg) == FALSE || IS_NODE_HIDDEN(pndArg)) {
     /* skip */
   }
   else if (IS_ENODE(pndArg) && (pndArg->ns == NULL || pndArg->ns == pnsPie)) {
@@ -1778,7 +1778,7 @@ pieRemoveInvalidsFromTree(xmlNodePtr pndArg)
     xmlChar *pucV;
     
     if (((pucV = domGetPropValuePtr(pndArg,BAD_CAST"state")) != NULL && xmlStrEqual(pucV,BAD_CAST"rejected"))
-	|| domGetPropValuePtr(pndArg,BAD_CAST"hidden") != NULL
+	|| IS_NODE_HIDDEN(pndArg)
 	|| IS_VALID_NODE(pndArg) == FALSE) {
       xmlNodePtr pndRelease = pndArg;
       
@@ -1812,7 +1812,7 @@ CleanUpTree(xmlNodePtr pndArg)
   else if (IS_NODE_PIE_META(pndArg) || IS_NODE_PIE_TTAG(pndArg)) {
     /* to be ignored */
   }
-  else if (xmlHasProp(pndArg, BAD_CAST"w")) {
+  else if (domGetPropValuePtr(pndArg, BAD_CAST"w")) {
     xmlNodePtr pndChild;
     xmlNodePtr pndNext = NULL;
 
@@ -1820,7 +1820,7 @@ CleanUpTree(xmlNodePtr pndArg)
       BOOL_T fT;
       
       for (fT = TRUE, pndChild = pndArg->children; fT && pndChild != NULL; pndChild = pndChild->next) {
-	fT = (xmlHasProp(pndChild, BAD_CAST"w") == NULL);
+	fT = (domGetPropValuePtr(pndChild, BAD_CAST"w") == NULL);
       }
 
       if (fT) {
@@ -1864,7 +1864,7 @@ CleanUpTree(xmlNodePtr pndArg)
     xmlUnsetProp(pndArg, BAD_CAST"w");
 #endif
   }
-  else if (IS_NODE_PIE_HEADER(pndArg) && xmlHasProp(pndArg->parent, BAD_CAST"w") != NULL) {
+  else if (IS_NODE_PIE_HEADER(pndArg) && domGetPropValuePtr(pndArg->parent, BAD_CAST"w") != NULL) {
     /* keep header if parent section has @w */
   }
   else {
@@ -2114,7 +2114,7 @@ RecognizeSymbols(xmlNodePtr pndArg, lang_t eLangArg)
     else if (IS_NODE_PIE_IGNORE_TAGS(pndArg) || IS_NODE_SCRIPT(pndArg)) {
       /* skip */
     }
-    else if (IS_VALID_NODE(pndArg) == FALSE || xmlHasProp(pndArg,BAD_CAST"hidden") != NULL) {
+    else if (IS_VALID_NODE(pndArg) == FALSE || IS_NODE_HIDDEN(pndArg)) {
       /* skip */
     }
     else if (IS_NODE_PIE_ETAG(pndArg) || IS_NODE_PIE_HTAG(pndArg) || IS_NODE_PIE_TTAG(pndArg) || IS_NODE_PIE_IMG(pndArg)) {
@@ -2171,7 +2171,7 @@ RecognizeInlines(xmlNodePtr pndArg)
     else if (pndArg->type == XML_COMMENT_NODE || pndArg->type == XML_PI_NODE) {
       RecognizeInlines(pndArg->next);
     }
-    else if (IS_VALID_NODE(pndArg) == FALSE || xmlHasProp(pndArg, BAD_CAST"hidden") != NULL) {
+    else if (IS_VALID_NODE(pndArg) == FALSE || IS_NODE_HIDDEN(pndArg)) {
       /* skip */
     }
     else if (IS_NODE_PIE_IGNORE_TAGS(pndArg)) {
@@ -2218,7 +2218,7 @@ RecognizeDates(xmlNodePtr pndArg, RN_MIME_TYPE eMimeTypeArg)
     else if (pndArg->type == XML_COMMENT_NODE || pndArg->type == XML_PI_NODE) {
       RecognizeDates(pndArg->next, eMimeTypeArg);
     }
-    else if (IS_VALID_NODE(pndArg) == FALSE || xmlHasProp(pndArg,BAD_CAST"hidden") != NULL) {
+    else if (IS_VALID_NODE(pndArg) == FALSE || IS_NODE_HIDDEN(pndArg)) {
       /* skip */
     }
     else if (IS_NODE_PIE_ETAG(pndArg) || IS_NODE_PIE_HTAG(pndArg) || IS_NODE_PIE_TTAG(pndArg) || IS_NODE_PIE_IMG(pndArg)) {
@@ -2408,7 +2408,7 @@ RecognizeSubsts(xmlNodePtr pndArg)
     else if (pndArg->type == XML_COMMENT_NODE || pndArg->type == XML_PI_NODE) {
       RecognizeSubsts(pndArg->next);
     }
-    else if (IS_VALID_NODE(pndArg) == FALSE || IS_NODE_PIE_IMPORT(pndArg) || IS_NODE_PIE_PRE(pndArg) || xmlHasProp(pndArg,BAD_CAST"hidden") != NULL) {
+    else if (IS_VALID_NODE(pndArg) == FALSE || IS_NODE_PIE_IMPORT(pndArg) || IS_NODE_PIE_PRE(pndArg) || IS_NODE_HIDDEN(pndArg)) {
       /* skip */
     }
     else if ((pndSubst = SubstNodeNew(pndArg)) != NULL) {
@@ -2514,7 +2514,7 @@ RecognizeInserts(xmlNodePtr pndArg, int iArgMode)
     else if (pndArg->type == XML_COMMENT_NODE || pndArg->type == XML_PI_NODE) {
       RecognizeInserts(pndArg->next, iArgMode);
     }
-    else if (IS_VALID_NODE(pndArg) == FALSE || xmlHasProp(pndArg,BAD_CAST"hidden") != NULL) {
+    else if (IS_VALID_NODE(pndArg) == FALSE || IS_NODE_HIDDEN(pndArg)) {
       /* skip */
     }
     else if (IS_NODE_PIE_SCRIPT(pndArg)) {
@@ -2688,7 +2688,7 @@ RecognizeTasks(xmlNodePtr pndArg)
     else if (pndArg->type == XML_COMMENT_NODE || pndArg->type == XML_PI_NODE) {
       RecognizeTasks(pndArg->next);
     }
-    else if (IS_VALID_NODE(pndArg) == FALSE || IS_NODE_PIE_IMPORT(pndArg) || IS_NODE_PIE_IMG(pndArg) || IS_NODE_PIE_PRE(pndArg) || xmlHasProp(pndArg,BAD_CAST"hidden") != NULL) {
+    else if (IS_VALID_NODE(pndArg) == FALSE || IS_NODE_PIE_IMPORT(pndArg) || IS_NODE_PIE_IMG(pndArg) || IS_NODE_PIE_PRE(pndArg) || IS_NODE_HIDDEN(pndArg)) {
       /* skip */
     }
     else if (IS_ENODE(pndArg)) {
@@ -2746,7 +2746,7 @@ RecognizeFigures(xmlNodePtr pndArg)
     if (pndArg->type == XML_COMMENT_NODE || pndArg->type == XML_PI_NODE) {
       RecognizeFigures(pndArg->next);
     }
-    else if (IS_VALID_NODE(pndArg) == FALSE || IS_NODE_PIE_IMPORT(pndArg) || IS_NODE_PIE_IMG(pndArg) || IS_NODE_PIE_PRE(pndArg) || xmlHasProp(pndArg,BAD_CAST"hidden") != NULL) {
+    else if (IS_VALID_NODE(pndArg) == FALSE || IS_NODE_PIE_IMPORT(pndArg) || IS_NODE_PIE_IMG(pndArg) || IS_NODE_PIE_PRE(pndArg) || IS_NODE_HIDDEN(pndArg)) {
       /* skip */
     }
     else if (IS_ENODE(pndArg)) {
