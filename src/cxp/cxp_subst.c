@@ -125,7 +125,7 @@ ApplySubstRegExp(const xmlNodePtr pndArg, const pcre2_code* preArgFrom, const xm
     if (pSkip != NULL && (*pSkip)(pndArg)) {
       /* skip this branch */
     }
-    else if (pndArg->type == XML_TEXT_NODE || pndArg->type == XML_PI_NODE || pndArg->type == XML_COMMENT_NODE) {
+    else if (pndArg->type == XML_TEXT_NODE) {
       int rc;
       size_t sInput;
 
@@ -183,6 +183,12 @@ cxpTraverseIncludeNodes(xmlNodePtr pndArg, cxpContextPtr pccArg)
   else if (IS_VALID_NODE(pndArg) == FALSE) {
     /* ignore NULL and invalid elements */
   }
+  else if (IS_NODE_META(pndArg)) {
+    /* skip */
+  }
+  else if (IS_NODE_PIE(pndArg)) {
+    /* due to separate namespace */
+  }
   else if (IS_NODE_INCLUDE(pndArg)) {
     resNodePtr prnInclude = NULL;
 
@@ -226,18 +232,10 @@ cxpTraverseIncludeNodes(xmlNodePtr pndArg, cxpContextPtr pccArg)
     /*
     recursion for all child nodes
     */
-    xmlNodePtr pndArgChildren;
+    xmlNodePtr pndIter;
 
-    for (pndArgChildren=pndArg->children; pndArgChildren;) {
-      xmlNodePtr pndNext;
-
-      pndNext = pndArgChildren->next;
-      if (IS_NODE_META(pndArgChildren)) {
-      }
-      else {
-	cxpTraverseIncludeNodes(pndArgChildren, pccArg);
-      }
-      pndArgChildren = pndNext;
+    for (pndIter = pndArg->children; pndIter; pndIter = pndIter->next) {
+      cxpTraverseIncludeNodes(pndIter, pccArg);
     }
   }
 } /* end of cxpTraverseIncludeNodes() */
