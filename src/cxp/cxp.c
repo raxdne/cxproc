@@ -174,7 +174,7 @@ BOOL_T
 ValidateSchemaCxp(const xmlDocPtr pdocArgXml, cxpContextPtr pccArg)
 {
   BOOL_T fResult = FALSE;
-
+#if 0
   if (pdocArgXml) {
     xmlRelaxNGParserCtxtPtr rngparser;
     #include "cxp_rng.h"
@@ -206,6 +206,7 @@ ValidateSchemaCxp(const xmlDocPtr pdocArgXml, cxpContextPtr pccArg)
     }
     xmlFreeDoc(pdocResult);
   }
+#endif
   return fResult;
 } /* end of ValidateSchemaCxp() */
 

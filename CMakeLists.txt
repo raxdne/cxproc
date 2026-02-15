@@ -233,7 +233,7 @@ SET(CXPROC_HEADERS
 #  ${CXPROC_SRC_DIR}/git_info.h
   ${CXPROC_SRC_DIR}/basics.h
   ${CXPROC_SRC_DIR}/cxp/cxp_dtd.h
-  ${CXPROC_SRC_DIR}/cxp/cxp_rng.h
+#  ${CXPROC_SRC_DIR}/cxp/cxp_rng.h
   ${CXPROC_SRC_DIR}/cxp/cxp_context_enc.h
   ${CXPROC_SRC_DIR}/cxp/cxp_context.h
   ${CXPROC_SRC_DIR}/cxp/cxp_context_cli.h

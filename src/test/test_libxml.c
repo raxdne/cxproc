@@ -34,6 +34,7 @@ xmlTest(void)
       /* TEST:
        */
       xmlDocPtr pdocResult = NULL;
+      xmlNodePtr pndRelease = NULL;
       int options;
 
       i++;
@@ -47,11 +48,19 @@ xmlTest(void)
       if ((pdocResult = xmlReadFile((const char *) TESTPREFIX "xml/baustelle.pie", NULL, options)) == NULL) {
 	printf("ERROR xmlReadFile()\n");
       }
+      else if ((pndRelease = xmlDocGetRootElement(pdocResult)) == NULL) {
+	printf("ERROR pdocResult()\n");
+      }
+      else if ((pndRelease = pndRelease->children) == NULL) {
+	printf("ERROR children\n");
+      }
       else {
 	n_ok++;
 	printf("OK\n");
       }
       //xmlSaveFileEnc("-",pdocResult,"UTF-8");
+      xmlUnlinkNode(pndRelease);
+      xmlFreeNode(pndRelease);
       xmlFreeDoc(pdocResult);
   }
 
