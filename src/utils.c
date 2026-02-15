@@ -2672,7 +2672,7 @@ dt_parse_eternal_date(const char *str, size_t len, dt_t *dtp)
 size_t
 dt_parse_easter_date(const char *str, size_t len, dt_t *dtp)
 {
-  char *p;
+  char *p = NULL;
   int y, d;
   size_t n = 0;
 

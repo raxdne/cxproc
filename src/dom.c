@@ -1080,24 +1080,23 @@ domNodeTransformToText(xmlNodePtr pndArg, xmlChar *pucArgNew)
 {
   BOOL_T fResult = FALSE;
 
-  switch (pndArg->type) {
-  case XML_ELEMENT_NODE:
-    xmlFree((void *)pndArg->name);
-    pndArg->name = NULL;
-    xmlFreeNodeList(pndArg->children);
-    pndArg->children = NULL;
-    xmlFreeNodeList((xmlNodePtr) pndArg->properties);
-    pndArg->properties = NULL;
-    pndArg->ns = NULL;
-    pndArg->type = XML_TEXT_NODE;
-    break;
-  case XML_TEXT_NODE:
-    break;
-  default:
-  ;
+  if (pndArg) {
+    assert(pndArg->doc == NULL || pndArg->doc->type == XML_DOCUMENT_NODE);
+    assert(pndArg->type != XML_DOCUMENT_NODE);
+
+    if (pndArg->type == XML_ELEMENT_NODE) {
+      xmlFree((void *)pndArg->name);
+      pndArg->name = NULL;
+      xmlFreeNodeList(pndArg->children);
+      pndArg->children = NULL;
+      xmlFreeNodeList((xmlNodePtr)pndArg->properties);
+      pndArg->properties = NULL;
+      pndArg->ns = NULL;
+      pndArg->type = XML_TEXT_NODE;
+    }
+    xmlNodeSetContent(pndArg, pucArgNew ? pucArgNew : BAD_CAST "");
+    fResult = (xmlIsBlankNode(pndArg) == 1);
   }
-  xmlNodeSetContent(pndArg, pucArgNew ? pucArgNew : BAD_CAST "");
-  fResult = (xmlIsBlankNode(pndArg) == 1);
   return fResult;
 } /* end of domNodeTransformToText() */
 
@@ -1111,38 +1110,44 @@ domNodeTransformToNode(xmlNodePtr pndArg, xmlNodePtr pndArgSrc)
 {
   BOOL_T fResult = FALSE;
 
-  if (pndArg->type == XML_ELEMENT_NODE && pndArgSrc->type == XML_ELEMENT_NODE) {
-    xmlNodePtr pndIter;
-    xmlNodePtr pndT;
+  if (pndArg) {
+    assert(pndArg->doc == NULL || pndArg->doc->type == XML_DOCUMENT_NODE);
+    assert(pndArg->type != XML_DOCUMENT_NODE);
 
-    xmlNodeSetName(pndArg, pndArgSrc->name);
-    xmlSetNs(pndArg, pndArgSrc->ns);
+    if (pndArg->type == XML_ELEMENT_NODE && pndArgSrc->type == XML_ELEMENT_NODE) {
+      xmlNodePtr pndIter;
+      xmlNodePtr pndT;
 
-    xmlFreeNodeList(pndArg->children);
-    pndArg->children = NULL;
-    pndT = pndArgSrc->children;
-    domUnlinkNodeList(pndT);
-    xmlAddChildList(pndArg, pndT);
+      xmlNodeSetName(pndArg, pndArgSrc->name);
+      xmlSetNs(pndArg, pndArgSrc->ns);
 
-    pndT = (xmlNodePtr) pndArg->properties;
-    domUnlinkNodeList(pndT);
-    xmlFreeNodeList(pndT);
-    // pndArg->properties = NULL;
-    //for (pndIter = pndArg->properties; pndIter; pndIter = pndIter->next) {
-	//xmlUnsetProp(pndArg,pndIter->name);
-    //}
+      xmlFreeNodeList(pndArg->children);
+      pndArg->children = NULL;
+      pndT = pndArgSrc->children;
+      domUnlinkNodeList(pndT);
+      xmlAddChildList(pndArg, pndT);
 
-    for (pndIter = (xmlNodePtr) pndArgSrc->properties; pndIter; pndIter = pndIter->next) {
-      if (xmlNodeIsText(pndIter->children) && STR_IS_NOT_EMPTY(pndIter->children->content)) {
-	xmlSetProp(pndArg, pndIter->name, pndIter->children->content);
+      pndT = (xmlNodePtr)pndArg->properties;
+      domUnlinkNodeList(pndT);
+      xmlFreeNodeList(pndT);
+      // pndArg->properties = NULL;
+      // for (pndIter = pndArg->properties; pndIter; pndIter = pndIter->next) {
+      // xmlUnsetProp(pndArg,pndIter->name);
+      //}
+
+      for (pndIter = (xmlNodePtr)pndArgSrc->properties; pndIter; pndIter = pndIter->next) {
+	if (xmlNodeIsText(pndIter->children) && STR_IS_NOT_EMPTY(pndIter->children->content)) {
+	  xmlSetProp(pndArg, pndIter->name, pndIter->children->content);
+	}
       }
-    }
-    xmlReconciliateNs(pndArg->doc, pndArg);
+      xmlReconciliateNs(pndArg->doc, pndArg);
 
-    fResult = TRUE;
+      fResult = TRUE;
+    }
   }
   return fResult;
 } /* end of domNodeTransformToNode() */
+
 
 /*! \return TRUE 
 \param pndA first candidate
@@ -1153,21 +1158,28 @@ domNodeTransferDescendants(xmlNodePtr pndArgTo, xmlNodePtr pndArgFrom)
 {
   BOOL_T fResult = FALSE;
 
-  if ((IS_ENODE(pndArgTo) || IS_TEXT(pndArgTo)) && ((IS_ENODE(pndArgFrom) && pndArgFrom->children != NULL) || IS_TEXT(pndArgFrom))) {
-    xmlNodePtr pndIter;
+  if (pndArgTo) {
+    assert(pndArgTo->type != XML_DOCUMENT_NODE);
+    assert(pndArgTo->doc == NULL || pndArgTo->doc->type == XML_DOCUMENT_NODE);
+    assert(pndArgFrom->type != XML_DOCUMENT_NODE);
+    assert(pndArgFrom->doc == NULL || pndArgFrom->doc->type == XML_DOCUMENT_NODE);
 
-    pndArgTo->type = pndArgFrom->type;
-    xmlNodeSetName(pndArgTo,pndArgFrom->name);
-    for (pndIter = pndArgFrom->children; pndIter;) {
-      xmlNodePtr pndIterNext;
+    if ((IS_ENODE(pndArgTo) || IS_TEXT(pndArgTo)) && ((IS_ENODE(pndArgFrom) && pndArgFrom->children != NULL) || IS_TEXT(pndArgFrom))) {
+      xmlNodePtr pndIter;
 
-      pndIterNext = pndIter->next;
-      xmlUnlinkNode(pndIter);
-      xmlAddChild(pndArgTo, pndIter);
-      pndIter = pndIterNext;
+      pndArgTo->type = pndArgFrom->type;
+      xmlNodeSetName(pndArgTo, pndArgFrom->name);
+      for (pndIter = pndArgFrom->children; pndIter;) {
+	xmlNodePtr pndIterNext;
+
+	pndIterNext = pndIter->next;
+	xmlUnlinkNode(pndIter);
+	xmlAddChild(pndArgTo, pndIter);
+	pndIter = pndIterNext;
+      }
+      fResult = TRUE;
+      xmlReconciliateNs(pndArgTo->doc, pndArgTo);
     }
-    fResult = TRUE;
-    xmlReconciliateNs(pndArgTo->doc,pndArgTo);
   }
   return fResult;
 } /* end of domNodeTransferDescendants() */
@@ -1182,24 +1194,28 @@ domNodeTransformToPI(xmlNodePtr pndArg, xmlChar *pucArgNew)
 {
   BOOL_T fResult = TRUE;
 
-  switch (pndArg->type) {
-  case XML_ELEMENT_NODE:
-    xmlFreeNodeList(pndArg->children);
-    pndArg->children = NULL;
-    xmlFreeNodeList((xmlNodePtr)pndArg->properties);
-    pndArg->properties = NULL;
-    // xmlNodeSetName(pndParent,NULL);
-    pndArg->name = NULL;
-    pndArg->type = XML_PI_NODE;
-    break;
-  case XML_TEXT_NODE:
-    break;
-  default:
-  ;
-  }
-  //fResult = (xmlIs(pndArg) == 1);
-  if (fResult && pucArgNew != NULL) {
-    xmlNodeSetContent(pndArg, pucArgNew);
+  if (pndArg) {
+    assert(pndArg->doc == NULL || pndArg->doc->type == XML_DOCUMENT_NODE);
+    assert(pndArg->type != XML_DOCUMENT_NODE);
+
+    switch (pndArg->type) {
+    case XML_ELEMENT_NODE:
+      xmlFreeNodeList(pndArg->children);
+      pndArg->children = NULL;
+      xmlFreeNodeList((xmlNodePtr)pndArg->properties);
+      pndArg->properties = NULL;
+      // xmlNodeSetName(pndParent,NULL);
+      pndArg->name = NULL;
+      pndArg->type = XML_PI_NODE;
+      break;
+    case XML_TEXT_NODE:
+      break;
+    default:;
+    }
+    // fResult = (xmlIs(pndArg) == 1);
+    if (fResult && pucArgNew != NULL) {
+      xmlNodeSetContent(pndArg, pucArgNew);
+    }
   }
   return fResult;
 } /* end of domNodeTransformToPI() */
@@ -1273,7 +1289,6 @@ domAddNextSiblingNodeList(xmlNodePtr pndArg, xmlNodePtr pndArgList)
     pndArgList->prev = pndArg;
     pndArg->next = pndArgList;
     for (pndI = pndArgList; pndI; pndI = pndI->next) {
-      pndI->doc = pndArg->doc;
       pndI->ns = pndArg->ns;
       pndI->parent = pndArg->parent;
 
@@ -1289,6 +1304,7 @@ domAddNextSiblingNodeList(xmlNodePtr pndArg, xmlNodePtr pndArgList)
 	break;
       }
     }
+    xmlSetTreeDoc(pndI, pndArg->doc);
 
     if (pndArg->doc != NULL && pndArg->parent != NULL) {
       xmlReconciliateNs(pndArg->doc, pndArg->parent);
