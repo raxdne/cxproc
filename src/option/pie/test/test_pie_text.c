@@ -62,7 +62,7 @@ pieTextTest(cxpContextPtr pccArg)
 
 #include "test_pie_specification.c"
 
-    domPutDocString(stderr, BAD_CAST "pre import result", pdocResult);
+    //domPutDocString(stderr, BAD_CAST "pre import result", pdocResult);
 
     i++;
     printf("TEST %i in '%s:%i': import dummy = ", i, __FILE__, __LINE__);
@@ -147,7 +147,7 @@ pieTextTest(cxpContextPtr pccArg)
       printf("Error 1 tree\n");
     }
 
-    domPutDocString(stderr, BAD_CAST "post import result", pdocResult);
+    //domPutDocString(stderr, BAD_CAST "post import result", pdocResult);
     xmlFreeDoc(pdocResult);
   }
 
@@ -163,7 +163,7 @@ pieTextTest(cxpContextPtr pccArg)
 
     pdocT = pieProcessPieNode(xmlDocGetRootElement(pdocResult), pccArg);
 
-    domPutDocString(stderr, BAD_CAST "post import result", pdocT);
+    //domPutDocString(stderr, BAD_CAST "post import result", pdocT);
     xmlFreeDoc(pdocT);
     xmlFreeDoc(pdocResult);
   }
@@ -496,7 +496,7 @@ pieTextTest(cxpContextPtr pccArg)
       printf("Error xmlNewNode()\n");
     }
     else if ((pndT = xmlNewChild(pndPie, NULL, BAD_CAST NAME_PIE_INCLUDE, NULL)) == NULL
-      || xmlSetProp(pndT, BAD_CAST "name", BAD_CAST TESTPREFIX "option/pie/text/test-pie-subst.txt") == NULL) {
+      || xmlSetProp(pndT, BAD_CAST "name", BAD_CAST TESTPREFIX "option/pie/text/subst/test-pie-subst.txt") == NULL) {
       printf("Error xmlNewChild()\n");
     }
     else if ((pndT = xmlNewChild(pndPie, NULL, BAD_CAST NAME_SUBST, NULL)) == NULL

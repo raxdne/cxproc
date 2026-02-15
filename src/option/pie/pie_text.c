@@ -668,13 +668,15 @@ ImportNodeCxp(xmlNodePtr pndArgImport, cxpContextPtr pccArg)
 	    domUnlinkNodeList(pndPieProcRoot);
 	    xmlNodeSetName(pndPieProcRoot, BAD_CAST NAME_PIE_BLOCK);
 	    xmlSetNs(pndPieProcRoot,NULL);
+	    domReplaceNodeList(pndArgImport, pndPieProcRoot);
+
 	    RecognizeIncludes(pndPieProcRoot);
 	    TraverseIncludeNodes(pndPieProcRoot, pccArg);
 	    RecognizeImports(pndPieProcRoot);
 	    ProcessImportOptions(pndPieProcRoot,pndPieRoot, pccArg); /* detect urls, substs etc. */
-	    domReplaceNodeList(pndArgImport, pndPieProcRoot);
 	    TraverseImportNodes(pndPieProcRoot, pccArg); /* parse result recursively */
 	    ProcessPieNodeOptions(pndPieProcRoot, pndPieRoot, pccArg); /* build sub-structures for task, fig etc. */
+
 	    fResult = TRUE;
 	  }
 	  else {
@@ -1867,18 +1869,13 @@ IncrementWeightProp(xmlNodePtr pndArg, int iArg)
 
   if ((pndArg != NULL) && (pndArg->type == XML_ELEMENT_NODE) && iArg != 0) {
     int iCurrent;
-    xmlAttrPtr patT;
 
-    if ((patT = domGetPropValuePtr(pndArg, BAD_CAST"w")) == NULL
-      || patT->children == NULL || STR_IS_EMPTY(patT->children->content)) {
-      /* there is no attribute value yet, initial value '1' */
-      iResult = 1;
-    }
-    else if ((iCurrent = atoi((const char *)patT->children->content)) != 0) {
+    if ((iCurrent = domGetPropInt(pndArg, BAD_CAST "w", 1)) > 1) {
       iResult = iCurrent + iArg;
     }
     else {
-      /*\todo remove property if iArg == 0? */
+      /* there is no attribute value yet, initial value '1' */
+      iResult = 1;
     }
 
     if (iResult) {

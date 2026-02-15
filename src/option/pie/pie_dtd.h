@@ -201,7 +201,8 @@
 #define IS_NODE_PIE_TAGS(N) (IS_NODE(N,NAME_PIE_HTAG) || IS_NODE(N,NAME_PIE_ETAG) || IS_NODE(N,NAME_PIE_TTAG))
 
 /* all nodes to be ignored while tagging */
-#define IS_NODE_PIE_IGNORE_TAGS(N) (N == NULL || IS_NODE(N,NAME_PIE_META) || IS_NODE(N,NAME_PIE_IMPORT) || IS_NODE(N,NAME_PIE_INCLUDE) || IS_NODE_SUBST(N) || IS_NODE(N,NAME_PIE_SCRIPT) || IS_NODE(N,NAME_PIE_PRE) || IS_NODE(N,NAME_PIE_TT) || IS_NODE(N,NAME_PIE_DATE) || IS_NODE(N,NAME_PIE_LINK))
+#define IS_NODE_PIE_IGNORE_TAGS(N) (N == NULL || N->type == XML_DOCUMENT_NODE || IS_NODE(N,NAME_PIE_META) || IS_NODE(N,NAME_PIE_IMPORT) || IS_NODE(N,NAME_PIE_INCLUDE) || IS_NODE_SUBST(N) || IS_NODE(N,NAME_PIE_SCRIPT) || IS_NODE(N,NAME_PIE_PRE) || IS_NODE(N,NAME_PIE_TT) || IS_NODE(N,NAME_PIE_DATE) || IS_NODE(N,NAME_PIE_LINK))
 
-#define IS_NODE_HIDDEN(N) domGetPropFlag(pndArg,BAD_CAST"hidden", FALSE)
+#define IS_NODE_NOT_HIDDEN(N) (N != NULL && domGetPropValuePtr(N,BAD_CAST"hidden") == NULL && (N->last != NULL && N->last->type == XML_TEXT_NODE && IS_PIE_CANCEL(N->last->content) == FALSE))
 
+#define IS_NODE_HIDDEN(N) (N == NULL || domGetPropValuePtr(N,BAD_CAST"hidden") != NULL || (N->last != NULL && N->last->type == XML_TEXT_NODE && IS_PIE_CANCEL(N->last->content)))
