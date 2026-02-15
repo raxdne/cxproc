@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<pie version="0.1">
+  <subst regexp="PARAGRAPH" to="HPARGARAP"/>
+</pie>

@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <cxp:make xmlns:cxp="http://www.tenbusch.info/cxproc">
   <cxp:system message="test collection"/>
+  <cxp:xml eval="yes" name="include/test-pie-include-001.cxp"/>
+  <cxp:xml eval="yes" name="subst/test-pie-subst-001.cxp"/>
   <cxp:xml eval="yes" name="xml/config-pie-import-xml.cxp"/>
   <cxp:xml eval="yes" name="plain/config-pie-import-plain.cxp"/>
   <cxp:xml eval="yes" name="circular/test-pie-circular-001.cxp"/>

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<pie version="0.1">
+  <subst regexp="Par(agraph)*" to="PARAGRAPH"/>
+  <include name="test-pie-subst-001-001.pie"/>
+  <section>
+    <h>Test of Substituting</h>
+    <section>
+      <h>Sub-test</h>
+      <p>Par pre</p>
+      <include name="test-pie-include-none.pie"/>
+      <p>Par post</p>
+      <p>Par pre</p>
+      <include name="test-pie-include-001.pie"/>
+      <p>Par post</p>
+      <p>Par pre</p>
+      <include name="test-pie-include-001-001.pie"/>
+      <p>Par post</p>
+      <p>Par pre</p>
+      <include name="test-pie-include-001-001.html"/>
+      <p>Par post</p>
+      <p>Par pre</p>
+      <include name="test-pie-include-001-001.md"/>
+      <p>Par post</p>
+      <p>Par pre</p>
+      <include name="test-pie-include-001-001.txt"/>
+      <p>Par post</p>
+    </section>
+  </section>
+</pie>

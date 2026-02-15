@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cxp:make xmlns:cxp="http://www.tenbusch.info/cxproc">
+  <cxp:system mkdir="result/"/>
+  <cxp:system message="**** test-pie-subst-001: subst file content"/>
+  <cxp:xml name="result/test-pie-subst-001.pie">
+    <cxp:include name="test-pie-subst-001.pie"/>
+  </cxp:xml>
+</cxp:make>

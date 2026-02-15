@@ -125,6 +125,14 @@ IF (BUILD_TESTING)
     WORKING_DIRECTORY ${CXPROC_PREFIX}
     COMMAND ${CXPROC_PREFIX}/bin/pietextx ${CXPROC_TEST_DIR}/option/pie/text/test-pie-9.txt)
 
+  add_test(NAME pie-cxp-include
+    WORKING_DIRECTORY ${CXPROC_TEST_DIR}/option/pie/text/include
+    COMMAND ${CXPROC_PREFIX}/bin/cxproc test-pie-include-001.cxp)
+
+  add_test(NAME pie-cxp-subst
+    WORKING_DIRECTORY ${CXPROC_TEST_DIR}/option/pie/text/subst
+    COMMAND ${CXPROC_PREFIX}/bin/cxproc test-pie-subst-001.cxp)
+
   add_test(NAME pie-cxp-import-circular
     WORKING_DIRECTORY ${CXPROC_TEST_DIR}/option/pie/text/circular
     COMMAND ${CXPROC_PREFIX}/bin/cxproc config-circular.cxp)
