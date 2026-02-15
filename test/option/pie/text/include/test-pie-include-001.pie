@@ -5,10 +5,10 @@
     <section>
       <h>Sub-test</h>
       <p>Par pre</p>
-      <include name="test-pie-include-none.pie"/>
+      <include name="test-pie-include-none.pie"/> <!-- non-existent -->
       <p>Par post</p>
       <p>Par pre</p>
-      <include name="test-pie-include-001.pie"/>
+      <include name="test-pie-include-001.pie"/> <!-- circular -->
       <p>Par post</p>
       <p>Par pre</p>
       <include name="test-pie-include-001-001.pie"/>

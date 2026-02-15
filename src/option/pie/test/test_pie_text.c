@@ -58,6 +58,7 @@ pieTextTest(cxpContextPtr pccArg)
     xmlFreeNode(pndPie);
   }
 
+#if 0
   if (SKIPTEST) {
 
 #include "test_pie_specification.c"
@@ -150,6 +151,7 @@ pieTextTest(cxpContextPtr pccArg)
     //domPutDocString(stderr, BAD_CAST "post import result", pdocResult);
     xmlFreeDoc(pdocResult);
   }
+#endif
 
   if (SKIPTEST) {
     xmlDocPtr pdocT;

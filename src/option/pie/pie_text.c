@@ -59,7 +59,7 @@ static BOOL_T
 ProcessPieDoc(xmlNodePtr pndArgResult, xmlDocPtr pdocArgPie, cxpContextPtr pccArg);
 
 static BOOL_T
-ProcessIncludeNode(xmlNodePtr pndArgInclude, cxpContextPtr pccArg);
+_ProcessIncludeNode(xmlNodePtr pndArgInclude, cxpContextPtr pccArg);
 
 static BOOL_T
 IncludeNodeFile(xmlNodePtr pndArgInclude, cxpContextPtr pccArg);
