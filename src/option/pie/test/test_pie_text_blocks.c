@@ -1375,20 +1375,25 @@ pieTextBlocksTest(void)
 	      || TransformToTaskNode(pndP) != NULL) {
       printf("Error 5 TransformToTaskNode()\n");
     }
+    else if ((pndP = xmlNewChild(pndPie, NULL, BAD_CAST NAME_PIE_PAR, BAD_CAST "")) == NULL || xmlAddChild(pndP, xmlNewText(BAD_CAST "TODO: cancelled ")) == NULL ||
+	     xmlNewChild(pndP, NULL, BAD_CAST NAME_PIE_LINK, BAD_CAST "http://www.abc.de/") == NULL || xmlAddChild(pndP, xmlNewText(BAD_CAST "  " STR_UTF8_HEAVY_BALLOT_X)) == NULL
+	      || TransformToTaskNode(pndP) != NULL) {
+      printf("Error 5b TransformToTaskNode()\n");
+    }
     else if ((pndP = xmlNewChild(pndPie, NULL, BAD_CAST NAME_PIE_PAR, BAD_CAST"TODO: HKL invalid")) == NULL || xmlSetProp(pndP, BAD_CAST "valid", BAD_CAST "no") == NULL || TransformToTaskNode(pndP) != NULL) {
       printf("Error 6 TransformToTaskNode()\n");
     }
-    else if ((j = domNumberOf(pndPie, BAD_CAST NAME_PIE_TASK, 0)) != 2) {
+    else if ((j = domNumberOf(pndPie, BAD_CAST NAME_PIE_TASK, 0)) != 3) {
       printf("Error 7 TransformToTaskNode(): %i\n", j);
     }
-    else if ((j = domNumberOf(pndPie, BAD_CAST NAME_PIE_HEADER, 0)) != 2) {
+    else if ((j = domNumberOf(pndPie, BAD_CAST NAME_PIE_HEADER, 0)) != 3) {
       printf("Error 8 TransformToTaskNode(): %i\n", j);
     }
     else {
       n_ok++;
       printf("OK\n");
     }
-    domPutNodeString(stderr, BAD_CAST"task result", pndPie);
+    //domPutNodeString(stderr, BAD_CAST"task result", pndPie);
     xmlFreeNode(pndPie);
   }
 
@@ -1413,6 +1418,46 @@ pieTextBlocksTest(void)
     }
     else if ((pndT = TraversePieElementTree(pndPie, PrintNodeName)) != NULL) {
       printf("Error 2 TraversePieElementTree()\n");
+    }
+    else if ((j = domNumberOf(pndPie, BAD_CAST NAME_PIE_TASK, 0)) != 1) {
+      printf("Error 4 TraversePieElementTree(): %i\n", j);
+    }
+    else if ((j = domNumberOf(pndPie, BAD_CAST NAME_PIE_HEADER, 0)) != 3) {
+      printf("Error 5 TraversePieElementTree(): %i\n", j);
+    }
+    else {
+      n_ok++;
+      printf("OK\n");
+    }
+    //domPutDocString(stderr, BAD_CAST "task nodes", pdocTest);
+    xmlFreeDoc(pdocTest);
+  }
+
+
+  if (RUNTEST) {
+    int j;
+    xmlDocPtr pdocTest = NULL;
+    xmlNodePtr pndPie = NULL;
+    xmlNodePtr pndTest = NULL;
+    xmlNodePtr pndT = NULL;
+
+    i++;
+    printf("TEST %i in '%s:%i': TraversePieElementTree(TransformToTaskNode) = ", i, __FILE__, __LINE__);
+
+    if ((pdocTest = xmlReadFile(TESTPREFIX "option/pie/text/test-pie-task.pie", NULL, 0)) == NULL) {
+      printf("Error xmlReadFile()\n");
+    }
+    else if ((pndPie = xmlDocGetRootElement(pdocTest)) == NULL) {
+      printf("Error xmlDocGetRootElement()\n");
+    }
+    else if ((pndT = TraversePieElementTree(pndPie, TransformToTaskNode)) != NULL) {
+      printf("Error 3 TraversePieElementTree()\n");
+    }
+    else if ((j = domNumberOf(pndPie, BAD_CAST NAME_PIE_TASK, 0)) != 11) {
+      printf("Error 4 TraversePieElementTree(): %i\n", j);
+    }
+    else if ((j = domNumberOf(pndPie, BAD_CAST NAME_PIE_HEADER, 0)) != 13) {
+      printf("Error 5 TraversePieElementTree(): %i\n", j);
     }
     else if ((pndT = TraversePieElementTree(pndPie, TransformToTaskNode)) != NULL) {
       printf("Error 3 TraversePieElementTree()\n");
@@ -1486,7 +1531,7 @@ pieTextBlocksTest(void)
     xmlNodePtr pndT = NULL;
 
     i++;
-    printf("TEST %i in '%s:%i': TraversePieElementTree() = ", i, __FILE__, __LINE__);
+    printf("TEST %i in '%s:%i': TraversePieElementTree(TransformToFigureNode) = ", i, __FILE__, __LINE__);
 
     if ((pdocTest = xmlReadFile(TESTPREFIX "option/pie/text/test-pie-figure.pie", NULL, 0)) == NULL) {
       printf("Error xmlReadFile()\n");
@@ -1494,22 +1539,28 @@ pieTextBlocksTest(void)
     else if ((pndPie = xmlDocGetRootElement(pdocTest)) == NULL) {
       printf("Error xmlDocGetRootElement()\n");
     }
-    else if ((pndT = TraversePieElementTree(NULL, NULL)) != NULL) {
-      printf("Error 1 TraversePieElementTree()\n");
+    else if ((pndT = TraversePieElementTree(pndPie, TransformToFigureNode)) != NULL) {
+      printf("Error 3 TraversePieElementTree()\n");
     }
-    else if ((pndT = TraversePieElementTree(pndPie, PrintNodeName)) != NULL) {
-      printf("Error 2 TraversePieElementTree()\n");
+    else if ((j = domNumberOf(pndPie, BAD_CAST NAME_PIE_FIG, 0)) != 5) {
+      printf("Error 4 TraversePieElementTree(): %i\n", j);
+    }
+    else if ((j = domNumberOf(pndPie, BAD_CAST NAME_PIE_IMG, 0)) != 6) {
+      printf("Error 5 TraversePieElementTree(): %i\n", j);
+    }
+    else if ((j = domNumberOf(pndPie, BAD_CAST NAME_PIE_HEADER, 0)) != 8) {
+      printf("Error 6 TraversePieElementTree(): %i\n", j);
     }
     else if ((pndT = TraversePieElementTree(pndPie, TransformToFigureNode)) != NULL) {
       printf("Error 3 TraversePieElementTree()\n");
     }
-    else if ((j = domNumberOf(pndPie, BAD_CAST NAME_PIE_FIG, 0)) != 4) {
+    else if ((j = domNumberOf(pndPie, BAD_CAST NAME_PIE_FIG, 0)) != 5) {
       printf("Error 4 TraversePieElementTree(): %i\n", j);
     }
-    else if ((j = domNumberOf(pndPie, BAD_CAST NAME_PIE_IMG, 0)) != 5) {
+    else if ((j = domNumberOf(pndPie, BAD_CAST NAME_PIE_IMG, 0)) != 6) {
       printf("Error 5 TraversePieElementTree(): %i\n", j);
     }
-    else if ((j = domNumberOf(pndPie, BAD_CAST NAME_PIE_HEADER, 0)) != 7) {
+    else if ((j = domNumberOf(pndPie, BAD_CAST NAME_PIE_HEADER, 0)) != 8) {
       printf("Error 6 TraversePieElementTree(): %i\n", j);
     }
     else {

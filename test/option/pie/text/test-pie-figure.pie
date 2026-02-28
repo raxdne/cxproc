@@ -21,5 +21,8 @@
       <p>Fig. KLM.gif <link>http://www.dummy.org/</link></p>
       <p>Fig. MMM data:image/svg;base64,hfhkshfksfhksdfh</p>
     </list>
+    <p>Fig. KLM.gif ✘</p>
+    <p hidden="1">Fig. KLM.gif</p>
+    <p>Fig. KLM.gif <link>http://www.dummy.org/</link> ✔</p>
   </section>
 </pie>
