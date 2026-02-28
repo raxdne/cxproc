@@ -68,13 +68,16 @@ static xmlNodePtr
 SplitStringToInlineNodes(const xmlChar *pucArg);
 
 static xmlNodePtr
-TraverseTree(xmlNodePtr pndArg, void *pArgFunction(xmlNodePtr));
+TraversePieElementTree(xmlNodePtr pndArg, void *pArgFunction(xmlNodePtr));
 
 static xmlNodePtr
 TransformToTaskNode(xmlNodePtr pndArg);
 
 static xmlNodePtr
 TransformToFigureNode(xmlNodePtr pndArg);
+
+static xmlNodePtr
+pieRemoveInvalid(xmlNodePtr pndArg);
 
 static xmlNodePtr
 SubstNodeNew(xmlNodePtr pndArg);
@@ -1784,7 +1787,15 @@ GetNumberOfMatches(xmlNodePtr pndArg, xmlChar *pucArgPattern)
 xmlNodePtr
 pieRemoveInvalidsFromTree(xmlNodePtr pndArg)
 {
-  if (IS_ENODE(pndArg)) {
+  xmlNodePtr pndResult = (pndArg) ? pndArg->next : NULL;
+
+  if (IS_TEXT(pndArg)) {
+    if (IS_NODE_TEXT_EMPTY(pndArg)) {
+      xmlUnlinkNode(pndArg);
+      xmlFreeNode(pndArg);
+    }
+  }
+  else if (IS_ENODE(pndArg)) {
     xmlChar *pucV;
     
     if (((pucV = domGetPropValuePtr(pndArg,BAD_CAST"state")) != NULL && xmlStrEqual(pucV,BAD_CAST"rejected"))
@@ -1797,17 +1808,12 @@ pieRemoveInvalidsFromTree(xmlNodePtr pndArg)
     }
     else {
       xmlNodePtr pndChild;
-      xmlNodePtr pndNext = NULL;
       
-      for (pndChild = pndArg->children; pndChild != NULL; pndChild = pndNext) {
-	pndNext = pndChild->next;
-	pieRemoveInvalidsFromTree(pndChild);
-      }
+      for (pndChild = pndArg->children; pndChild != NULL; pndChild = pieRemoveInvalidsFromTree(pndChild)) ;
     }
   }
-  return NULL;
-}
-/* end of pieRemoveInvalidsFromTree() */
+  return pndResult;
+} /* end of pieRemoveInvalidsFromTree() */
 
 
 /*! unlinks all element trees containing attribute valid="no" or has no attribute "w"
@@ -2656,7 +2662,7 @@ TransformToTaskNode(xmlNodePtr pndArg)
 	xmlFree(pucLastContent);
 	xmlNewTextChild(pndTask, NULL, BAD_CAST NAME_PIE_TTAG, BAD_CAST "#task");
       }
-      TraverseTree(pndTask, TransformToTaskNode);
+      TraversePieElementTree(pndTask, TransformToTaskNode);
     }
     pcre2_match_data_free(match_data); /* Release memory used for the match */
     xmlFree(pucFirstContent);
@@ -2673,7 +2679,7 @@ RecognizeTasks(xmlNodePtr pndArg)
   xmlNodePtr pndResult = NULL;
 
   if (pndArg) {
-   pndResult = TraverseTree(pndArg, TransformToTaskNode);
+   pndResult = TraversePieElementTree(pndArg, TransformToTaskNode);
   }
   return pndResult;
 } /* End of RecognizeTasks() */
@@ -2690,10 +2696,12 @@ PrintNodeName(xmlNodePtr pndArg)
 } /* End of PrintNodeName() */
 
 
-/*!\return pointer to next node
+/*! applies pArgFunction on all valid pie element nodes
+
+\return pointer to next node
  */
 xmlNodePtr
-TraverseTree(xmlNodePtr pndArg, void *pArgFunction(xmlNodePtr))
+TraversePieElementTree(xmlNodePtr pndArg, void *pArgFunction(xmlNodePtr))
 {
   xmlNodePtr pndResult = NULL;
 
@@ -2717,14 +2725,14 @@ TraverseTree(xmlNodePtr pndArg, void *pArgFunction(xmlNodePtr))
       //pndResult = (xmlNodePtr)(*pArgFunction)(pndArg);
       (*pArgFunction)(pndArg);
 
-      for (pndChild = pndArg->children; pndChild; pndChild = TraverseTree(pndChild, pArgFunction));
+      for (pndChild = pndArg->children; pndChild; pndChild = TraversePieElementTree(pndChild, pArgFunction));
     }
     else {
       /* skip */
     }
   }
   return pndResult;
-} /* End of TraverseTree() */
+} /* End of TraversePieElementTree() */
 
 
 /*! derive a sequence of text and LINK nodes from node
@@ -2842,7 +2850,7 @@ RecognizeFigures(xmlNodePtr pndArg)
   xmlNodePtr pndResult = NULL;
 
   if (pndArg) {
-   pndResult = TraverseTree(pndArg, TransformToFigureNode);
+    pndResult = TraversePieElementTree(pndArg, TransformToFigureNode);
   }
   return pndResult;
 } /* End of RecognizeFigures() */

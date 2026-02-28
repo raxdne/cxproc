@@ -206,3 +206,5 @@
 #define IS_NODE_NOT_HIDDEN(N) (N != NULL && domGetPropValuePtr(N,BAD_CAST"hidden") == NULL && (N->last != NULL && N->last->type == XML_TEXT_NODE && IS_PIE_CANCEL(N->last->content) == FALSE))
 
 #define IS_NODE_HIDDEN(N) (N == NULL || domGetPropValuePtr(N,BAD_CAST"hidden") != NULL || (N->last != NULL && N->last->type == XML_TEXT_NODE && IS_PIE_CANCEL(N->last->content)))
+
+#define IS_NODE_TEXT_EMPTY(N) (N != NULL && N->children != NULL && N->children->type == XML_TEXT_NODE && STR_IS_EMPTY(N->children->content))
