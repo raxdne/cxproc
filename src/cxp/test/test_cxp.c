@@ -384,7 +384,7 @@ cxpTest(cxpContextPtr pccArg)
     else if ((prnTT = cxpResNodeResolveNew(pccTest, pndT, NULL, CXP_O_READ)) == NULL) {
       printf("Error 3\n");
     }
-    else if (resPathIsEquivalent(resNodeGetNameNormalized(prnTT),BAD_CAST TESTPREFIX "option/pie/text/xml/config-pie-import-xml.cxp") == FALSE) {
+    else if (resPathIsEquivalent(resNodeGetNameNormalized(prnTT),BAD_CAST TESTPREFIX "option/pie/text/include/test-pie-include-001.cxp") == FALSE) {
       printf("Error 4\n");
     }
     else if (resNodeIsReadable(prnTT) == FALSE) {

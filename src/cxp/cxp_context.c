@@ -478,6 +478,7 @@ cxpCtxtLogPrint(cxpContextPtr pccArg, int level, const char *fmt, ...)
   if (pccArg) {
     va_list ap;
     char mBuffer[BUFFER_LENGTH];
+    xmlChar *pucT;
 
     assert(fmt != NULL);
 
@@ -497,11 +498,11 @@ cxpCtxtLogPrint(cxpContextPtr pccArg, int level, const char *fmt, ...)
 
     va_end(ap);
 
-    cxpCtxtLogAppend(pccArg, BAD_CAST mBuffer);
-
-    //\todo cxpCtxtGetRunningTime();
+    //cxpCtxtLogAppend(pccArg, BAD_CAST mBuffer);
 #ifdef DEBUG
-    fprintf(stderr, "0x%8p: %s\n", (void *)pccArg, mBuffer);
+    pucT = GetNowFormatStr("%s");
+    fprintf(stderr, "0x%8p/%s: %s\n", (void *)pccArg, pucT, mBuffer);
+    xmlFree(pucT);
 #else
     fputs(mBuffer,stderr);
     fputs("\n",stderr);
