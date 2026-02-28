@@ -106,6 +106,33 @@ domGetNextNode(xmlNodePtr pndArg, xmlChar *pucNameElement)
 /* End of domGetNextNode() */
 
 
+/*! searchs under the childs of 'pndArg' for the first non-empty text node
+
+\param pndArg is the current node (for recursion)
+
+\return the first non-empty text node
+*/
+xmlNodePtr
+domGetFirstChildTextNodePtr(xmlNodePtr pndArg)
+{
+  xmlNodePtr pndResult = NULL;
+
+  if (pndArg) {
+    xmlNodePtr pndIter;
+
+    for (pndIter = pndArg->children; pndIter != NULL && xmlNodeIsText(pndIter) && pndResult == NULL; pndIter = pndIter->next) {
+      if (STR_IS_EMPTY(pndIter->content)) {
+	/* skip leading empty text childs */
+      }
+      else {
+	pndResult = pndIter;
+      }
+    }
+  }
+  return pndResult;
+} /* End of domGetFirstChildTextNodePtr() */
+
+
 /*! \return a pointer to xmlXPathObject according to XPath 'pucArg' in pdocArg was found
 \param pdocArg source DOM
 \param pucArg pointer to XPath string

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<pie version="0.1">
+  <subst string="KLM" to="MLK"/>
+  <p>TODO: 2026-02-16 KLM</p>
+  <section>
+    <h>ABC</h>
+    <p>TODO: must be ignored</p>
+    <section>
+      <h>TODO: must be ignored ++</h>
+      <task class="req">
+        <h>QRS</h>
+        <p>HIJ</p>
+      </task>
+      <p>OPQ</p>
+      <!-- RST -->
+      <p>OPQ</p>
+    </section>
+    TODO: this also ignored
+    <list>
+      <p>OPQ</p>
+      <p>TODO: <link>http://www.dummy.org/</link></p>
+      <p>TODO: 2024-01-01T19</p>
+      <p>TODO: </p>
+    </list>
+    <p>TARGET: my target</p>
+    <p>ToDo: also allowed</p>
+    <p>DONE: finished</p>
+    <p>BUG: problem</p>
+    <p>REQ: requirement</p>
+    <p></p>
+  </section>
+  <p>TODO: ABC DEF ✔</p>
+</pie>

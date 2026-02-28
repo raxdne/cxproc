@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<pie version="0.1">
+  <subst string="KLM" to="MLK"/>
+  <p>Fig. ABC.png Test</p>
+  <p>data:image/png;base64,hfhkshfksfhksdfh</p>
+  <section>
+    <h>ABC</h>
+    <section>
+      <h>Fig. BBB must be ignored ++</h>
+      <task class="req">
+        <h>QRS</h>
+        <p>Fig. HIJ.jpeg</p>
+      </task>
+      <p>OPQ</p>
+      <!-- RST -->
+      <p>OPQ</p>
+    </section>
+    Fig. AAA: this also ignored
+    <list>
+      <p>OPQ</p>
+      <p>Fig. KLM.gif <link>http://www.dummy.org/</link></p>
+      <p>Fig. MMM data:image/svg;base64,hfhkshfksfhksdfh</p>
+    </list>
+  </section>
+</pie>

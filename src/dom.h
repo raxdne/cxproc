@@ -153,6 +153,9 @@ domCopyPropList(xmlNodePtr target, xmlNodePtr cur);
 extern xmlNodePtr
 domGetNextNode(xmlNodePtr pndArg, xmlChar *pucNameElement);
 
+extern xmlNodePtr
+domGetFirstChildTextNodePtr(xmlNodePtr pndArg);
+
 extern xmlNsPtr
 domGetNsXsl(void);
 
