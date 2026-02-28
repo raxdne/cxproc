@@ -555,15 +555,18 @@ ParsePlainBuffer(xmlNodePtr pndArgImport, xmlChar *pucArg, rmode_t eArgMode)
       xmlNodeSetName(pndArgImport, BAD_CAST NAME_PIE_SPAN);
       xmlFreeNode(pndResult);
        pndResult = pndArgImport;
-   }
+    }
     else { // "p/import/..." -> "p/span/..."
       xmlNodePtr pndIter;
 
       for (pndIter = pndResult; IS_NODE_PIE_BLOCK(pndIter); pndIter = pndIter->children);
-      pndT = pndIter->children;
-      domUnlinkNodeList(pndT);
-      xmlAddChildList(pndArgImport, pndT);
-      xmlNodeSetName(pndArgImport, BAD_CAST NAME_PIE_SPAN);
+
+      if (pndIter) {
+	pndT = pndIter->children;
+	domUnlinkNodeList(pndT);
+	xmlAddChildList(pndArgImport, pndT);
+	xmlNodeSetName(pndArgImport, BAD_CAST NAME_PIE_SPAN);
+      }
       xmlFreeNode(pndResult);
       pndResult = pndArgImport;
     }

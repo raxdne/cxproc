@@ -439,7 +439,7 @@ cmarkTreeToDOM(xmlNodePtr pndArgBlock, xmlNodePtr pndArg, cmark_node* pcmnArg)
 	xmlSetProp(pndImage, BAD_CAST "alt", pcmnArg->first_child->data);
       }
 
-      if (pcmnArg->next == NULL && pcmnArg->prev == NULL && !IS_NODE_PIE_LIST(pndArg->parent)) {
+      if (pcmnArg->next == NULL && pcmnArg->prev == NULL && pndArg != NULL && !IS_NODE_PIE_LIST(pndArg->parent)) {
 	/* its an image in a single paragraph */
 	xmlNodeSetName(pndArg, BAD_CAST NAME_PIE_FIG);
 	xmlAddChild(pndArg, pndImage);
