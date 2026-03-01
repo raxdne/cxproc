@@ -171,8 +171,8 @@ resNodeContentToDOM(xmlNodePtr pndArg, resNodePtr prnArg)
 	  RecognizeScripts(pndPie);
 	  RecognizeFigures(pndPie);
 	  RecognizeInlines(pndPie);
-	  RecognizeUrls(pndPie);
 	  RecognizeSymbols(pndPie, LANG_DEFAULT);
+	  RecognizeUrls(pndPie);
 	  RecognizeDates(pndPie, iMimeType);
 	  RecognizeTasks(pndPie);
 	  RecognizeHashtags(pndPie,NULL, NULL);

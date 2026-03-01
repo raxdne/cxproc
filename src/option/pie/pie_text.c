@@ -1513,6 +1513,8 @@ ProcessImportOptions(xmlNodePtr pndArgPie, xmlNodePtr pndArgImport, cxpContextPt
 
     RecognizeInlines(pndArgPie);
 
+    RecognizeSymbols(pndArgPie, GetPieNodeLang(pndArgPie, pccArg));
+
     if (domGetPropFlag(pndArgImport, BAD_CAST "url", TRUE)) {
       cxpCtxtLogPrint(pccArg, 2, "Recognize URLs");
       /*! \todo use an attribute for regexp?? */
@@ -1521,8 +1523,6 @@ ProcessImportOptions(xmlNodePtr pndArgPie, xmlNodePtr pndArgImport, cxpContextPt
     else {
       cxpCtxtLogPrint(pccArg, 3, "Ignoring URLs");
     }
-
-    RecognizeSymbols(pndArgPie, GetPieNodeLang(pndArgPie, pccArg));
 
     if (domGetPropFlag(pndArgImport, BAD_CAST "date", TRUE)) {
       cxpCtxtLogPrint(pccArg, 2, "Recognize dates");
