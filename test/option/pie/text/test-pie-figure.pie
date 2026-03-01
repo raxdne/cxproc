@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <pie version="0.1">
   <subst string="KLM" to="MLK"/>
+  <p><img src="ABC.png" title="Test"/></p>
   <p>Fig. ABC.png Test</p>
   <p>data:image/png;base64,hfhkshfksfhksdfh</p>
   <section>
@@ -13,6 +14,7 @@
       </task>
       <p>OPQ</p>
       <!-- RST -->
+      <p><img src="XYZ.png" title="Test"/></p>
       <p>OPQ</p>
     </section>
     Fig. AAA: this also ignored

@@ -235,6 +235,9 @@ domNodeGrepNew(xmlNodePtr pndArg, xmlChar *pucArgGrep);
 extern BOOL_T
 domGrepRegExpInTree(xmlNodePtr pndResultArg, xmlNodePtr pndArg, const pcre2_code *re_grep);
 
+extern BOOL_T
+domNodeIsSingleElementChild(xmlNodePtr pndArg);
+
 extern void
 domCleanup(void);
 

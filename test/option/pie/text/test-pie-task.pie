@@ -4,7 +4,6 @@
   <p>TODO: 2026-02-16 KLM</p>
   <section>
     <h>ABC</h>
-    <p>TODO: must be ignored</p>
     <section>
       <h>TODO: must be ignored ++</h>
       <task class="req">
@@ -19,7 +18,27 @@
     <list>
       <p>OPQ</p>
       <p>TODO: <link>http://www.dummy.org/</link></p>
+      <p>TODO: 2024-01-01T19<list>
+      <p>OPQ</p>
+      <p>TODO: <link>http://www.dummy.org/</link><list>
+      <p>OPQ</p>
+      <p>TODO: <link>http://www.dummy.org/</link><list>
+      <p>OPQ</p>
+      <p>TODO: <link>http://www.dummy.org/</link><list>
+      <p>OPQ</p>
+      <p>TODO: <link>http://www.dummy.org/</link></p>
       <p>TODO: 2024-01-01T19</p>
+      <p>TODO: </p>
+      </list></p>
+      <p>TODO: 2024-01-01T19</p>
+      <p>TODO: </p>
+      </list></p>
+      <p>TODO: 2024-01-01T19</p>
+      <p>TODO: </p>
+      </list></p>
+      <p>TODO: 2024-01-01T19</p>
+      <p>TODO: </p>
+      </list></p>
       <p>TODO: </p>
     </list>
     <p>TARGET: my target</p>

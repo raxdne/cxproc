@@ -1707,6 +1707,27 @@ domNodeHasChild(xmlNodePtr pndArg, xmlChar* pucArg)
 } /* end of domNodeHasChild() */
 
 
+/*! \return TRUE if 'pndArg' is the only element child node
+ */
+BOOL_T
+domNodeIsSingleElementChild(xmlNodePtr pndArg)
+{
+  BOOL_T fResult = FALSE;
+
+  if (pndArg != NULL && pndArg->parent != NULL) {
+    xmlNodePtr pndIter;
+
+    /* check node childs */
+    for (pndIter = pndArg->parent->children, fResult = TRUE; pndIter != NULL && fResult; pndIter = pndIter->next) {
+      if (pndIter != pndArg && (pndIter->type == XML_ELEMENT_NODE || (pndIter->type == XML_TEXT_NODE && ! xmlIsBlankNode(pndIter)))) {
+	fResult = FALSE;
+      }
+    }
+  }
+  return fResult;
+} /* end of domNodeIsSingleElementChild() */
+
+
 /*! returns TRUE if there is an overlapping between pndArgA and pndArgB
 */
 BOOL_T

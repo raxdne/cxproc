@@ -302,33 +302,15 @@ cmarkTreeToDOM(xmlNodePtr pndArgBlock, xmlNodePtr pndArg, cmark_node* pcmnArg)
       xmlAddChild(pndArg, xmlNewComment(BAD_CAST"CMARK_NODE_CUSTOM_BLOCK"));
     }
     else if (pcmnArg->type == CMARK_NODE_PARAGRAPH) {
-      RN_MIME_TYPE t;
-
-      if (pcmnArg->first_child != NULL && pcmnArg->first_child == pcmnArg->last_child && pcmnArg->first_child->data != NULL && resMimeIsPicture((t = resMimeGetTypeFromDataBase64(pcmnArg->first_child->data)))) {
-	xmlChar *pucTT;
-	xmlNodePtr pndImage;
-
-	pndImage = xmlNewChild(pndArg, NULL, BAD_CAST NAME_PIE_IMG, NULL);
-	xmlSetProp(pndImage, BAD_CAST "type", BAD_CAST resMimeGetTypeStr(t));
-
-	if ((pucTT = BAD_CAST xmlStrchr(pcmnArg->first_child->data, ',')) != NULL && pucTT++) {
-	  xmlNewChild(pndImage, NULL, BAD_CAST NAME_BASE64, pucTT);
-	}
-      }
-      else if (pcmnArg->first_child != NULL && pcmnArg->first_child == pcmnArg->last_child && pcmnArg->first_child->data != NULL &&
+      if (pcmnArg->first_child != NULL && pcmnArg->first_child == pcmnArg->last_child && pcmnArg->first_child->data != NULL &&
 	       StringBeginsWith((char *)pcmnArg->first_child->data, "ORIGIN: ")) {
 	/*!\bug when nested imports with multiple "ORIGIN:" without "END:" markup */
-#if 0
-	pndArg = xmlNewChild(pndArg, NULL, BAD_CAST NAME_PIE_BLOCK, NULL);
-	xmlSetProp(pndArg, BAD_CAST "context", BAD_CAST pcmnArg->first_child->data + strlen("ORIGIN: "));
-#else
 	for (pndT = pndArg; pndT != NULL; pndT = pndT->parent) {
 	  if (IS_NODE_PIE_BLOCK(pndT)) {
 	    xmlSetProp(pndT, BAD_CAST "context", BAD_CAST pcmnArg->first_child->data + strlen("ORIGIN: "));
 	    break;
 	  }
 	}
-#endif
       }
       else {
         pndT = xmlNewChild(pndArg, NULL, BAD_CAST NAME_PIE_PAR, NULL);
@@ -394,27 +376,6 @@ cmarkTreeToDOM(xmlNodePtr pndArgBlock, xmlNodePtr pndArg, cmark_node* pcmnArg)
       pndT = xmlNewChild(pndArg, NULL, BAD_CAST NAME_PIE_STRONG, NULL);
       cmarkTreeToDOM(pndArgBlock, pndT, pcmnArg->first_child);
     }
-    else if (pcmnArg->type == CMARK_NODE_LINK) {
-      pndT = xmlNewChild(pndArg, NULL, BAD_CAST NAME_PIE_LINK, NULL);
-      if (pcmnArg->first_child != NULL && pcmnArg->first_child == pcmnArg->last_child) {
-	if (StringBeginsWith((char *) pcmnArg->first_child->data, "mailto:")) {
-	  xmlAddChild(pndT, xmlNewText(BAD_CAST & (pcmnArg->first_child->data[7])));
-	  xmlSetProp(pndT, BAD_CAST "href", pcmnArg->as.link.url);
-	}
-	else if (StringBeginsWith((char *) pcmnArg->as.link.url, "id:")) {
-	  xmlAddChild(pndT, xmlNewText(BAD_CAST pcmnArg->first_child->data));
-	  xmlSetProp(pndT, BAD_CAST "name", &pcmnArg->as.link.url[3]);
-	}
-	else if (xmlStrEqual(pcmnArg->first_child->data, pcmnArg->as.link.url)) {
-	  /* attribute href not required if it's same like display value */
-	  xmlAddChild(pndT, xmlNewText(BAD_CAST pcmnArg->first_child->data));
-	}
-	else {
-	  xmlAddChild(pndT, xmlNewText(BAD_CAST pcmnArg->first_child->data));
-	  xmlSetProp(pndT, BAD_CAST "href", pcmnArg->as.link.url);
-	}
-      }
-    }
     else if (pcmnArg->type == CMARK_NODE_IMAGE) {
       RN_MIME_TYPE t;
       xmlNodePtr pndImage;
@@ -436,24 +397,30 @@ cmarkTreeToDOM(xmlNodePtr pndArgBlock, xmlNodePtr pndArg, cmark_node* pcmnArg)
       }
 
       if (pcmnArg->first_child != NULL && STR_IS_NOT_EMPTY(pcmnArg->first_child->data)) {
-	xmlSetProp(pndImage, BAD_CAST "alt", pcmnArg->first_child->data);
+	xmlSetProp(pndImage, BAD_CAST "title", pcmnArg->first_child->data);
       }
-
-      if (pcmnArg->next == NULL && pcmnArg->prev == NULL && pndArg != NULL && !IS_NODE_PIE_LIST(pndArg->parent)) {
-	/* its an image in a single paragraph */
-	xmlNodeSetName(pndArg, BAD_CAST NAME_PIE_FIG);
-	xmlAddChild(pndArg, pndImage);
-
-	if (pcmnArg->first_child != NULL && STR_IS_NOT_EMPTY(pcmnArg->first_child->data)) {
-	  pndT = xmlNewChild(pndArg, NULL, BAD_CAST NAME_PIE_HEADER, pcmnArg->first_child->data);
-	}
-
-	//cmarkTreeToDOM(pndArg, pndImage, pcmnArg->first_child);
-	xmlNewTextChild(pndArg, NULL, BAD_CAST NAME_PIE_TTAG, BAD_CAST "#fig");
-      }
-      else {
 	/* the image is inline (prefix and/or postfix text) */
 	xmlAddChild(pndArg, pndImage);
+    }
+    else if (pcmnArg->type == CMARK_NODE_LINK) {
+      pndT = xmlNewChild(pndArg, NULL, BAD_CAST NAME_PIE_LINK, NULL);
+      if (pcmnArg->first_child != NULL && pcmnArg->first_child == pcmnArg->last_child) {
+	if (StringBeginsWith((char *) pcmnArg->first_child->data, "mailto:")) {
+	  xmlAddChild(pndT, xmlNewText(BAD_CAST & (pcmnArg->first_child->data[7])));
+	  xmlSetProp(pndT, BAD_CAST "href", pcmnArg->as.link.url);
+	}
+	else if (StringBeginsWith((char *) pcmnArg->as.link.url, "id:")) {
+	  xmlAddChild(pndT, xmlNewText(BAD_CAST pcmnArg->first_child->data));
+	  xmlSetProp(pndT, BAD_CAST "name", &pcmnArg->as.link.url[3]);
+	}
+	else if (xmlStrEqual(pcmnArg->first_child->data, pcmnArg->as.link.url)) {
+	  /* attribute href not required if it's same like display value */
+	  xmlAddChild(pndT, xmlNewText(BAD_CAST pcmnArg->first_child->data));
+	}
+	else {
+	  xmlAddChild(pndT, xmlNewText(BAD_CAST pcmnArg->first_child->data));
+	  xmlSetProp(pndT, BAD_CAST "href", pcmnArg->as.link.url);
+	}
       }
     }
     else if (pcmnArg->type == CMARK_NODE_LAST_INLINE) {

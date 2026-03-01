@@ -129,6 +129,7 @@ resNodeContentToDOM(xmlNodePtr pndArg, resNodePtr prnArg)
 	    pndPie = xmlNewNode(NULL, NAME_PIE);
 	    if (pndPie) {
 	      rmode_t m;
+	      xmlNodePtr pndPieChildren = NULL;
 
 	      if (iMimeType == MIME_TEXT_PLAIN) {
 		m = GetModeByExtension(resNodeGetExtension(prnArg));
@@ -137,7 +138,8 @@ resNodeContentToDOM(xmlNodePtr pndArg, resNodePtr prnArg)
 		m = GetModeByMimeType(iMimeType);
 	      }
 
-	      if (ParsePlainBuffer(pndPie, pucContent, m)) {
+	      pndPieChildren = xmlNewChild(pndPie,NULL,NAME_PIE_BLOCK,NULL);
+	      if (pndPieChildren != NULL && ParsePlainBuffer(pndPieChildren, pucContent, m)) {
 #ifdef HAVE_CGI
 		xmlSetProp(pndPie->children, BAD_CAST "context", resNodeGetNameShort(prnArg)); /* in CGI mode use short path only */
 #else
