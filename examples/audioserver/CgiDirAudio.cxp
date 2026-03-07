@@ -156,8 +156,7 @@ li {
 			  <xsl:when test="@read='no' or @error"/>
 			  <xsl:when test="@name = '' or @name = 'tmp' or @name = 'temp' or @name = 'Temp'"/>
 			  <xsl:when test="self::file[not(@size) or @size &lt; 100]"/>
-			  <xsl:when test="self::dir[@execute='no']"/>
-			  <xsl:when test="self::dir[child::dir or child::file[contains(@type,'audio')]]">
+			  <xsl:when test="self::dir[child::dir or child::file[contains(@type,'audio') or contains(@type,'video')]]">
 			    <xsl:element name="li">
 			      <xsl:element name="a">
 				<xsl:attribute name="class">btn navigation</xsl:attribute>
