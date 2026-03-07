@@ -160,6 +160,7 @@ typedef enum {
     Video formats
   */
   MIME_VIDEO_AVI,
+  MIME_VIDEO_MP2T,
   MIME_VIDEO_MP4,
   /*
     symbolic types only

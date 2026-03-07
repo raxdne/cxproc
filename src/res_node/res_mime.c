@@ -166,6 +166,7 @@ static const char* resMimeTypeStr[] = {
     Video formats
   */
   /* MIME_VIDEO_AVI */ "video/avi",
+  /* MIME_VIDEO_MP2T */ "video/mp2t",
   /* MIME_VIDEO_MP4 */ "video/mp4",
   /* MIME_APPLICATION_X_BACKUP_EDITOR */ "application/editor+backup",
   /*
@@ -279,6 +280,7 @@ BOOL_T
 resMimeIsVideo(int iMimeType)
 {
   return (iMimeType == MIME_VIDEO_MP4
+	  || iMimeType == MIME_VIDEO_MP2T
 	  || iMimeType == MIME_VIDEO_AVI
 	  );
 } /* end of resMimeIsVideo() */
@@ -662,6 +664,9 @@ resMimeGetTypeFromExt(const xmlChar *pucArg)
   }
   else if (xmlStrcasecmp(pucArg, BAD_CAST"mp4") == 0) {
     eMimeTypeResult = MIME_VIDEO_MP4;
+  }
+  else if (xmlStrcasecmp(pucArg, BAD_CAST"ts") == 0) {
+    eMimeTypeResult = MIME_VIDEO_MP2T;
   }
   else if (xmlStrcasecmp(pucArg, BAD_CAST"avi") == 0) {
     eMimeTypeResult = MIME_VIDEO_AVI;

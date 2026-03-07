@@ -187,6 +187,17 @@ li {
 			      </xsl:element>
 			    </xsl:element>
 			  </xsl:when>
+			  <xsl:when test="self::file[contains(@type,'video')]">
+			    <xsl:element name="li">
+			      <xsl:element name="a">
+				<xsl:attribute name="class">btn file</xsl:attribute>
+				<xsl:attribute name="href">
+				  <xsl:value-of select="concat('/',$str_path)"/>
+				</xsl:attribute>
+				<xsl:value-of select="concat('📹 ',$str_display)"/>
+			      </xsl:element>
+			    </xsl:element>
+			  </xsl:when>
 			  <xsl:otherwise>
 			    <!-- empty sub directories without links -->
 			  </xsl:otherwise>
