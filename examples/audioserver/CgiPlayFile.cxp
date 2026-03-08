@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<cxp:make xmlns:cxp="http://www.tenbusch.info/cxproc" log="2">
+  <cxp:subst string="%SERVER_NAME%" env="HTTP_HOST" default="localhost" />
+  <cxp:subst string="%CGIPATH%" cgi="path" />
+  <cxp:subst string="%CGITITLE%" cgi="title" default="cxproc"/>
+  <cxp:system message="Single-file Playlist in '%CGIPATH%'" />
+  <cxp:plain name='-' type='audio/x-mpegurl' disposition='attachement; filename="%CGITITLE%.m3u"'>
+    <!--  -->
+    <cxp:xml>
+      <cxp:file name="%CGIPATH%" urlencode="yes" />
+    </cxp:xml>
+    <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.0">
+      <xsl:output method="text" encoding="UTF-8" />
+      <!-- s. http://www.xspf.org/ -->
+      <xsl:template match="file">
+          <!-- -->
+          <xsl:value-of select="concat('http://','%SERVER_NAME%','/',@urlprefix,'/',@urlname,'&#10;')" />
+      </xsl:template>
+    </xsl:stylesheet>
+  </cxp:plain>
+</cxp:make>
