@@ -229,10 +229,13 @@ pieTextBlocksTest(void)
       printf("Error 3 splitting URL\n");
       xmlAddChild(pndPie,pndT);
     }
-    else if ((pndT = SplitStringToAutoLinkNodes(BAD_CAST "pre URL <http://www.abc.de> or <ABC.HTML>  or &lt;ABC.HTML&gt; or \xE2\x80\x99y.htm\xE2\x80\x98 post URL")) == NULL || xmlAddChild(pndPie, pndT) == NULL) {
+    else if ((pndT = SplitStringToAutoLinkNodes(BAD_CAST " pre URL <http://www.abc.de> or <ABC.HTML>  or &lt;ABC.HTML&gt; or \xE2\x80\x99y.htm\xE2\x80\x98 post URL")) == NULL || xmlAddChildList(pndPie, pndT) == NULL) {
       printf("Error 4 splitting URL\n");
     }
-    else if (domNumberOf(pndPie,BAD_CAST NAME_PIE_LINK, 0) != 4) {
+    else if ((pndT = SplitStringToAutoLinkNodes(BAD_CAST" AAAA &lt;?path=Abc/def%20ghi.mm&amp;cxp=PiejQDefault&gt; BBBB")) == NULL || xmlAddChildList(pndPie, pndT) == NULL) {
+      printf("Error 3b splitting URL\n");
+    }
+    else if (domNumberOf(pndPie,BAD_CAST NAME_PIE_LINK, 0) != 5) {
       printf("Error 5 splitting URL\n");
     }
     else {
@@ -265,7 +268,7 @@ pieTextBlocksTest(void)
       printf("Error 3 splitting URL\n");
       xmlAddChild(pndPie,pndT);
     }
-    else if ((pndT = SplitTupelToLinkNodesMd(BAD_CAST "pre URL [ABC &amp; DEF](http://www.abc.de) and ![ABC > DEF](abc.png) post URL")) == NULL || xmlAddChild(pndPie, pndT) == NULL) {
+    else if ((pndT = SplitTupelToLinkNodesMd(BAD_CAST "pre URL [ABC &amp; DEF](http://www.abc.de) and ![ABC > DEF](abc.png) post URL")) == NULL || xmlAddChildList(pndPie, pndT) == NULL) {
       printf("Error 4 splitting URL\n");
     }
     else if (domNumberOf(pndPie,BAD_CAST NAME_PIE_LINK, 0) != 1 || domNumberOf(pndPie,BAD_CAST NAME_PIE_IMG, 0) != 1) {

@@ -1283,10 +1283,10 @@ SplitStringToAutoLinkNodes(const xmlChar *pucArg)
 	PrintFormatLog(4, "URL '%s' (%i..%i) in '%s'", pucUrl, ovector[0], ovector[1], pucArg);
 
 	if (StringBeginsWith((char *)pucUrl, "mailto:")) {
-	  pucUrlDisplay = xmlStrdup(&pucUrl[7]);
+	  pucUrlDisplay = StringEncodeXmlDefaultEntitiesNew(&pucUrl[7]);
 	}
 	else {
-	  pucUrlDisplay = xmlStrdup(pucUrl);
+	  pucUrlDisplay = StringEncodeXmlDefaultEntitiesNew(pucUrl);
 	}
 
 	if (STR_IS_NOT_EMPTY(pucUrlDisplay)) {
@@ -1296,6 +1296,7 @@ SplitStringToAutoLinkNodes(const xmlChar *pucArg)
 	    /* OK */
 	    pndLink = xmlNewNode(NULL, BAD_CAST NAME_PIE_LINK);
 	    xmlNodeSetContent(pndLink, pucUrlDisplay);
+	    xmlSetProp(pndLink, BAD_CAST "href", pucUrl);
 	  }
 	  else {
 	    pndLink = xmlNewNode(NULL, BAD_CAST NAME_PIE_LINK);
@@ -1364,7 +1365,7 @@ RecognizeUrls(xmlNodePtr pndArg)
 
 	if (xmlNodeIsText(pndChild)) { /* pndChild is a text node */
 	  xmlChar *pucRelease;
-	  xmlNodePtr pndReplace;
+	  xmlNodePtr pndReplace = NULL;
 
 	  pucRelease = TranslateUncToUrl(pndChild->content);
 
@@ -1378,18 +1379,7 @@ RecognizeUrls(xmlNodePtr pndArg)
 
 	  if (pndReplace) {
 	    /* there is a result list */
-	    xmlNodePtr pndT;
-
-	    pndT = pndChild->next;
 	    domReplaceNodeList(pndChild, pndReplace);
-
-	    /*  */
-	    if (pndT != NULL && pndT->prev != NULL) {
-	      pndChild = pndT->prev;
-	    }
-	    else {
-	      pndChild = NULL;
-	    }
 	  }
 	  xmlFree(pucRelease);
 	}
@@ -2607,29 +2597,27 @@ TransformToTaskNode(xmlNodePtr pndArg)
 	 */
 	pucT = xmlStrndup(pucFirstContent, (int)ovector[3]);
 	if (pucT) {
+	  xmlChar *pucTT;
+
 	  StringToLower((char *)pucT);
-	  if (xmlStrEqual(pucT, BAD_CAST "done") || (xmlStrEqual(pucT, BAD_CAST "todo") && IS_PIE_OK(pucLastContent))) {
-	    xmlSetProp(pndTask, BAD_CAST "class", BAD_CAST "todo");
+	  xmlSetProp(pndTask, BAD_CAST "class", pucT);
+	  pucTT = xmlStrdup(BAD_CAST "#");
+	  pucTT = xmlStrcat(pucTT, pucT);
+	  xmlNewTextChild(pndTask, NULL, BAD_CAST NAME_PIE_TTAG, pucTT);
+	  xmlFree(pucTT);
+
+	  if (xmlStrEqual(pucT, BAD_CAST "done") || domGetPropFlag(pndTask, BAD_CAST "done", FALSE) ||
+	      (xmlStrEqual(pucT, BAD_CAST "todo") && IS_PIE_OK(pucLastContent))) {
 	    xmlSetProp(pndTask, BAD_CAST "state", BAD_CAST "done");
 	    xmlNewTextChild(pndTask, NULL, BAD_CAST NAME_PIE_TTAG, BAD_CAST "#done");
 	  }
-	  else {
-	    xmlChar *pucTT;
-
-	    xmlSetProp(pndTask, BAD_CAST "class", pucT);
-
-	    if (IS_PIE_CANCEL(pucLastContent)) {
-	      xmlSetProp(pndTask, BAD_CAST "state", BAD_CAST "rejected");
-	      xmlNewTextChild(pndTask, NULL, BAD_CAST NAME_PIE_TTAG, BAD_CAST "#rejected");
-	    }
-
-	    pucTT = xmlStrdup(BAD_CAST "#");
-	    pucTT = xmlStrcat(pucTT, pucT);
-	    xmlNewTextChild(pndTask, NULL, BAD_CAST NAME_PIE_TTAG, pucTT);
-	    xmlFree(pucTT);
+	  else if (IS_PIE_CANCEL(pucLastContent)) {
+	    xmlSetProp(pndTask, BAD_CAST "state", BAD_CAST "rejected");
+	    xmlNewTextChild(pndTask, NULL, BAD_CAST NAME_PIE_TTAG, BAD_CAST "#rejected");
 	  }
 	  xmlFree(pucT);
 	}
+
 	xmlFree(pucHeader);
 	xmlFree(pucLastContent);
 	xmlNewTextChild(pndTask, NULL, BAD_CAST NAME_PIE_TTAG, BAD_CAST "#task");

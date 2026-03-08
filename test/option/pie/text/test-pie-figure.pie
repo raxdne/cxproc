@@ -14,7 +14,7 @@
       </task>
       <p>OPQ</p>
       <!-- RST -->
-      <p><img src="XYZ.png" title="Test"/></p>
+      <p><img src="XYZ.png" title="Test"/><t>@tester</t></p>
       <p>OPQ</p>
     </section>
     Fig. AAA: this also ignored

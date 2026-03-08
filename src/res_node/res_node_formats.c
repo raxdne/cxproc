@@ -169,12 +169,12 @@ resNodeContentToDOM(xmlNodePtr pndArg, resNodePtr prnArg)
 	  RecognizeSubsts(pndPie);
 	  RecognizeImports(pndPie);
 	  RecognizeScripts(pndPie);
-	  RecognizeFigures(pndPie);
-	  RecognizeInlines(pndPie);
 	  RecognizeSymbols(pndPie, LANG_DEFAULT);
+	  RecognizeFigures(pndPie);
 	  RecognizeUrls(pndPie);
-	  RecognizeDates(pndPie, iMimeType);
 	  RecognizeTasks(pndPie);
+	  RecognizeInlines(pndPie);
+	  RecognizeDates(pndPie, iMimeType);
 	  RecognizeHashtags(pndPie,NULL, NULL);
 	  InheritHashtags(pndPie, pndPie);
 	  RecognizeGlobalTags(pndTags, pndPie);
