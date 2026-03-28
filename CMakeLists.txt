@@ -68,7 +68,21 @@ string(TIMESTAMP TODAY "%Y%m%d")
 execute_process(COMMAND git describe --tags --long
   OUTPUT_VARIABLE GIT_TAG
   WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+  RESULT_VARIABLE STATUS
+)
+
+IF(STATUS AND NOT STATUS EQUAL "0")
+  MESSAGE(ERROR " it's not a git clone, use a fixed development version")
+  SET(GIT_TAG "v2.0-dummy")
+  SET(GIT_BRANCH "develop")
+ELSE()
+  execute_process(COMMAND git branch --show-current
+    OUTPUT_VARIABLE GIT_BRANCH
+    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
   )
+  string(STRIP "${GIT_BRANCH}" GIT_BRANCH)
+ENDIF()
+
 string(STRIP ${GIT_TAG} GIT_TAG)
 string(REGEX REPLACE "^v" "" INFO ${GIT_TAG})
 string(FIND ${INFO} "." POS_DOT)
@@ -77,12 +91,6 @@ string(SUBSTRING ${INFO} 0 ${POS_DOT} GIT_TAG_MAJOR)
 MATH(EXPR POS_DOT "${POS_DOT}+1")
 MATH(EXPR L_MINUS "${POS_MINUS} - ${POS_DOT}")
 string(SUBSTRING ${INFO} ${POS_DOT} ${L_MINUS} GIT_TAG_MINOR)
-
-execute_process(COMMAND git branch --show-current
-  OUTPUT_VARIABLE GIT_BRANCH
-  WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
-  )
-string(STRIP "${GIT_BRANCH}" GIT_BRANCH)
 
 include(docs)
 
