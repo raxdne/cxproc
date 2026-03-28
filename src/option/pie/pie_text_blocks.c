@@ -1281,6 +1281,7 @@ SplitStringToAutoLinkNodes(const xmlChar *pucArg)
 
 	pucUrl = xmlStrndup(BAD_CAST pucArg + i0, i1 - i0);
 	PrintFormatLog(4, "URL '%s' (%i..%i) in '%s'", pucUrl, ovector[0], ovector[1], pucArg);
+	pndLink = xmlNewNode(NULL, BAD_CAST NAME_PIE_LINK);
 
 	if (StringBeginsWith((char *)pucUrl, "mailto:")) {
 	  pucUrlDisplay = StringEncodeXmlDefaultEntitiesNew(&pucUrl[7]);
@@ -1292,20 +1293,14 @@ SplitStringToAutoLinkNodes(const xmlChar *pucArg)
 	if (STR_IS_NOT_EMPTY(pucUrlDisplay)) {
 	  /*! Percent-encode non-ASCII chars (s. https://en.wikipedia.org/wiki/Percent-encoding) */
 	  DecodeRFC1738((char *)pucUrlDisplay);
-	  if (xmlCheckUTF8(pucUrlDisplay)) {
+	  if (xmlCheckUTF8(pucUrlDisplay) && xmlStrEqual(pucUrlDisplay,pucUrl) == 0) {
 	    /* OK */
-	    pndLink = xmlNewNode(NULL, BAD_CAST NAME_PIE_LINK);
 	    xmlNodeSetContent(pndLink, pucUrlDisplay);
 	    xmlSetProp(pndLink, BAD_CAST "href", pucUrl);
 	  }
 	  else {
-	    pndLink = xmlNewNode(NULL, BAD_CAST NAME_PIE_LINK);
 	    xmlNodeSetContent(pndLink, pucUrl);
 	  }
-	}
-	else {
-	    pndLink = xmlNewNode(NULL, BAD_CAST NAME_PIE_LINK);
-	    xmlNodeSetContent(pndLink, pucUrl);
 	}
 	xmlFree(pucUrlDisplay);
 	xmlFree(pucUrl);
