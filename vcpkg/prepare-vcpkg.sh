@@ -41,26 +41,24 @@ export DIR_WWW="$PREFIX/www/html"
 test -d $DIR_WWW/test || mkdir -p $DIR_WWW/test
 
 cd $PREFIX_VCPKG
-VCPKG_DISABLE_METRICS=yes
 
 # https://learn.microsoft.com/en-us/vcpkg/get_started/get-started-packaging?pivots=shell-bash
 
 if [ -d $PREFIX_VCPKG/vcpkg ] ; then 
   cd vcpkg 
-  #git pull
+  git pull
 else
-  #git clone https://github.com/microsoft/vcpkg.git
+  git clone https://github.com/microsoft/vcpkg.git
   cd vcpkg 
 fi
 
-#test -x vcpkg || ./bootstrap-vcpkg.sh
-./bootstrap-vcpkg.sh
+./bootstrap-vcpkg.sh -disableMetrics
 
-#./vcpkg integrate install
+./vcpkg integrate install
 
-./vcpkg --triplet $ARCH --x-install-root=$PREFIX_VCPKG --recurse install cxproc
-# curl[tool] zlib libzip liblzma libarchive pcre2 libxml2[tools] libxslt[tools] sqlite3 duktape cmark[tools]
+./vcpkg --triplet $ARCH --x-install-root=$PREFIX_VCPKG --recurse install curl[tools] zlib libzip liblzma libarchive pcre2 libxml2[tools] libxslt[tools] sqlite3 duktape cmark[tools]
 
 # libexif imagemagick libgif libjpeg libpng libtiff
-  
-# TODO: install library tools like 'sqliteshell', 'xsltproc' etc
+
+# cmake -DCMAKE_TOOLCHAIN_FILE=~/cxproc-build/cxproc/cmake/mingw-w64-x86_64.cmake -S ~/cxproc-build/cxproc -B $DIR_BUILD -DCMAKE_BUILD_TYPE=Debug -DCXPROC_DOC:BOOL=OFF -DCXPROC_LEGACY:BOOL=OFF -DCXPROC_EXPERIMENTAL:BOOL=ON -DCXPROC_MARKDOWN:BOOL=OFF -DCXPROC_PCRE2:BOOL=OFF -DCXPROC_PETRINET:BOOL=OFF -DCXPROC_PIE:BOOL=OFF -DCXPROC_ARCHIVE:BOOL=OFF -DCXPROC_CURL:BOOL=OFF -DCXPROC_DUKTAPE:BOOL=OFF -DCXPROC_JSON:BOOL=OFF -DCXPROC_SQLITE3:BOOL=OFF -DCXPROC_TESTS:BOOL=ON
+

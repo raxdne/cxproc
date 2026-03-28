@@ -684,6 +684,8 @@ resNodeResolveLinkChildNew(resNodePtr prnArg)
 
 #endif
 
+#elif defined(_WIN32)
+
 #else
     int ciLength;
     char mcT[MAX_PATH];
@@ -3455,6 +3457,8 @@ resNodeReadStatus(resNodePtr prnArg)
 
 #ifdef _MSC_VER
 	  err = _stat(pcName, &(prnArg->s));
+#elif defined(_WIN32)
+	  err = stat(pcName, &(prnArg->s));
 #else
 	  err = lstat(pcName, &(prnArg->s));
 #endif
@@ -3494,15 +3498,15 @@ resNodeReadStatus(resNodePtr prnArg)
 		resNodeSetType(prnArg,rn_type_file);
 	      }
 	    }
-#elif defined WIN32
+#elif defined(_WIN32)
 	    /* no symlink on MinGW */
 	    if (resNodeGetType(prnArg) == rn_type_root) {
 	      /* keep this type */
 	    }
-	    else if (S_ISDIR(s.st_mode)) {
+	    else if (S_ISDIR(prnArg->s.st_mode)) {
 	      resNodeSetType(prnArg,rn_type_dir);
 	    }
-	    else if (S_ISREG(s.st_mode)) {
+	    else if (S_ISREG(prnArg->s.st_mode)) {
 	      resNodeSetType(prnArg,rn_type_file);
 	    }
 #else
