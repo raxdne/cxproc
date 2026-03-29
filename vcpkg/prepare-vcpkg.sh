@@ -9,7 +9,7 @@
 # check https://learn.microsoft.com/en-us/vcpkg/
 
 # https://learn.microsoft.com/en-us/vcpkg/concepts/triplets
-PREFIX_VCPKG=~/vcpkg-build
+PREFIX_VCPKG=~/cxproc-build
 #ARCH=$(uname -m)"-"$(uname -o | tr '[:upper:]' '[:lower:]' | tr '[:punct:]' '-')
 ARCH=x64-mingw-dynamic
 PREFIX=$PREFIX_VCPKG/$ARCH
@@ -56,7 +56,7 @@ fi
 
 ./vcpkg integrate install
 
-./vcpkg --triplet $ARCH --x-install-root=$PREFIX_VCPKG --recurse install curl[tools] zlib libzip liblzma libarchive pcre2 libxml2[tools] libxslt[tools] sqlite3 duktape cmark[tools]
+./vcpkg --triplet $ARCH --x-install-root=$PREFIX_VCPKG --recurse install curl[tool] zlib libzip liblzma libarchive pcre2 libxml2[tools] libxslt[tools] sqlite3 duktape cmark[tools]
 
 # libexif imagemagick libgif libjpeg libpng libtiff
 

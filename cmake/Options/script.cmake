@@ -8,7 +8,7 @@ FIND_PACKAGE( Duktape )
 
 IF (DUKTAPE_SOURCE_FILE)
   OPTION (CXPROC_DUKTAPE "Enable support for compiling cxproc with duktape." OFF)
-ELSEIF (DUKTAPE_LIBRARY)
+ELSEIF (DUKTAPE_SOURCE_FILE)
   OPTION (CXPROC_DUKTAPE "Enable support for linking cxproc with duktape." OFF)
 ENDIF ()
 

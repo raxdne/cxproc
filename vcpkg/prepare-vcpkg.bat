@@ -1,11 +1,10 @@
 REM
-REM (p) 2020,2021,2022 A. Tenbusch
+REM (p) 2020,2021,2022,2026 A. Tenbusch
 REM
-
 
 REM for /f "delims=" %%i in ("%0") do set CXPBASE=%%~dpi
 
-SET CXPBASE=%CD%\..\cxproc-build\a\b\
+SET CXPBASE=C:\UserData\cxproc-build
 
 SET STATIC=0
 SET FLAG64=1
@@ -24,23 +23,24 @@ IF "%STATIC%" == "1" (
   SET CXPARCH=%VSCMD_ARG_TGT_ARCH%-windows
 )
 
+mkdir %CXPBASE%
+
 IF "1" == "1" (
   REM check https://learn.microsoft.com/en-us/vcpkg/
-  pushd C:\UserData\Develop\vcpkg
-  REM bootstrap-vcpkg.bat -disableMetrics
-  REM git pull
+  pushd %CXPBASE%
+  REM git clone https://github.com/microsoft/vcpkg.git
+  cd vcpkg
+  del status
+  bootstrap-vcpkg.bat -disableMetrics
+  git pull
+  git checkout 2026.03.18
   .\vcpkg integrate install
-
-  .\vcpkg --triplet %CXPARCH% --x-install-root=%CXPBASE%..\.. --recurse install curl[tool] zlib libzip liblzma libarchive pcre2 libxml2[http,tools] libxslt[tools] libexif sqlite3[tool] duktape cmark[tools]
-
+  .\vcpkg --vcpkg-root=%CXPBASE%\vcpkg --triplet %CXPARCH% --x-install-root=%CXPBASE% --recurse install curl[tool] zlib libzip liblzma libarchive pcre2 libxml2[tools] libxslt[tools] libexif sqlite3[tool] duktape cmark[tools]
   REM imagemagick libgif libjpeg libpng libtiff
-  
-  REM TODO: install library tools like 'sqliteshell', 'xsltproc' etc
-
   popd
 )
 
-set PREFIX=%CXPBASE%..\..\%CXPARCH%
+set PREFIX=%CXPBASE%\%CXPARCH%
 
 SET DIR_BIN="%PREFIX%\bin"
 md %DIR_BIN%
@@ -54,8 +54,9 @@ SET DIR_CGI="%PREFIX%\www\cgi-bin"
 md %DIR_CGI%
 robocopy %DIR_BIN% %DIR_CGI% *.dll
 
-REM robocopy c:\windows\system32 %CXPBASE%..\..\%CXPARCH%\debug\bin VCRUNTIME140D.DLL
-REM robocopy c:\windows\system32 %DIR_CGI% VCRUNTIME140D.DLL
+REM robocopy c:\windows\system32 "%PREFIX%\debug\bin" VCRUNTIME140D.DLL
+REM robocopy c:\windows\system32 "%DIR_CGI%" VCRUNTIME140D.DLL
+FOR /D %%D IN (%PREFIX%\tools\*.*) DO robocopy "%%D" "%PREFIX%\bin" *.exe
 
 SET DIR_LOG="%PREFIX%\www\log"
 md %DIR_LOG%
@@ -73,13 +74,14 @@ REM robocopy /S "%PREFIX%" "C:\UserData\Develop\cxproc-build\%CXPARCH%" *.*
 
 IF "0" == "1" (
   pushd %PREFIX%
-  REM "C:\UserData\Programme\7-ZipPortable\App\7-Zip\7z.exe" a -r ..\cxproc-v1.3-pre_%CXPARCH%.zip bin xml doc examples www\cgi-bin www\html\test -x!*.pdb -x!*.ilk -x!cxproc-test.exe
+  REM "C:\UserData\vcpkg-build\vcpkg\downloads\tools\7zip-26.00-windows\7z.exe" a -r ..\cxproc-v1.3-pre_%CXPARCH%.zip bin xml doc examples www\cgi-bin www\html\test -x!*.pdb -x!*.ilk -x!cxproc-test.exe
   popd
 )
 
-IF "0" == "1" (
-  pushd %CXPBASE%..
-  REM "C:\UserData\Programme\cmake\bin\cmake.exe" -B %DIR_BUILD% -G "Visual Studio 16 2019" -A %VSCMD_ARG_TGT_CXPARCH% -DCMAKE_TOOLCHAIN_FILE=C:\UserData\Develop\vcpkg\scripts\buildsystems\vcpkg.cmake -D CXPROC_DOC:BOOL=OFF -D CXPROC_PIE:BOOL=ON -D CXPROC_EXPERIMENTAL:BOOL=OFF -D CXPROC_CXX:BOOL=OFF
+IF "1" == "1" (
+  pushd %DIR_BUILD%
+  "C:\UserData\cxproc-build\vcpkg\downloads\tools\cmake-3.31.10-windows\cmake-3.31.10-windows-x86_64\bin\cmake-gui.exe" -B . -S H:\cxproc-build\cxproc
+  REM "C:\UserData\cxproc-build\vcpkg\downloads\tools\cmake-3.31.10-windows\cmake-3.31.10-windows-x86_64\bin\cmake.exe" -B . -S H:\cxproc-build\cxproc -G "Visual Studio 17 2022" -A %VSCMD_ARG_TGT_CXPARCH% -DCMAKE_TOOLCHAIN_FILE=C:\UserData\Develop\vcpkg\scripts\buildsystems\vcpkg.cmake -D CXPROC_DOC:BOOL=OFF -D CXPROC_PIE:BOOL=ON -D CXPROC_EXPERIMENTAL:BOOL=OFF -D CXPROC_CXX:BOOL=OFF
   REM "C:\UserData\Programme\cmake\bin\cmake.exe" --build %DIR_BUILD% --config Release --target cxproc
   popd
 )
