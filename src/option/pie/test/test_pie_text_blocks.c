@@ -1652,13 +1652,13 @@ pieTextBlocksTest(void)
     else if ((pndT = TraversePieElementTree(pndPie, TransformToFigureNode)) != NULL) {
       printf("Error 3 TraversePieElementTree()\n");
     }
-    else if ((j = domNumberOf(pndPie, BAD_CAST NAME_PIE_FIG, 0)) != 7) {
+    else if ((j = domNumberOf(pndPie, BAD_CAST NAME_PIE_FIG, 0)) != 6) {
       printf("Error 4 TraversePieElementTree(): %i\n", j);
     }
     else if ((j = domNumberOf(pndPie, BAD_CAST NAME_PIE_IMG, 0)) != 8) {
       printf("Error 5 TraversePieElementTree(): %i\n", j);
     }
-    else if ((j = domNumberOf(pndPie, BAD_CAST NAME_PIE_HEADER, 0)) != 10) {
+    else if ((j = domNumberOf(pndPie, BAD_CAST NAME_PIE_HEADER, 0)) != 9) {
       printf("Error 6 TraversePieElementTree(): %i\n", j);
     }
     else if ((pndT = TraversePieTextTree(pndPie, TransformTextMarkups)) != NULL) {
@@ -1667,13 +1667,13 @@ pieTextBlocksTest(void)
     else if ((pndT = TraversePieElementTree(pndPie, TransformToFigureNode)) != NULL) { /* second call must not change the result */
       printf("Error 3b TraversePieElementTree()\n");
     }
-    else if ((j = domNumberOf(pndPie, BAD_CAST NAME_PIE_FIG, 0)) != 7) {
+    else if ((j = domNumberOf(pndPie, BAD_CAST NAME_PIE_FIG, 0)) != 6) {
       printf("Error 4b TraversePieElementTree(): %i\n", j);
     }
     else if ((j = domNumberOf(pndPie, BAD_CAST NAME_PIE_IMG, 0)) != 8) {
       printf("Error 5b TraversePieElementTree(): %i\n", j);
     }
-    else if ((j = domNumberOf(pndPie, BAD_CAST NAME_PIE_HEADER, 0)) != 10) {
+    else if ((j = domNumberOf(pndPie, BAD_CAST NAME_PIE_HEADER, 0)) != 9) {
       printf("Error 6b TraversePieElementTree(): %i\n", j);
     }
     else {

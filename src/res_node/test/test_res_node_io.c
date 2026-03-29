@@ -421,19 +421,20 @@ resNodeTestInOut(void)
   if (RUNTEST) {
     resNodePtr prnT = NULL;
     xmlChar *pucContent = NULL;
-    size_t s = 2897;
+    size_t s = 1234;
+    size_t r = 0;
 
     i++;
     printf("TEST %i in '%s:%i': open and close a local HTTP file context on high level  = ",i,__FILE__,__LINE__);
 
-    if ((prnT = resNodeDirNew(BAD_CAST HTTPPREFIX "Test/Documents/TestContent.txt")) == NULL) {
+    if ((prnT = resNodeDirNew(BAD_CAST HTTPPREFIX "Test/BLOBs/TestBlob1234.bin")) == NULL) {
       printf("Error resNodeDirNew()\n");
     }
     else if (resNodeGetContent(prnT,1024) == NULL) {
       printf("Error resNodeReadContent(): there is no content\n");
     }
-    else if (resNodeGetSize(prnT) != s) {
-      printf("Error size: %i\n", s);
+    else if ((r = resNodeGetSize(prnT)) != s) {
+      printf("Error size: %i on '%s'\n", r, resNodeGetNameNormalized(prnT));
     }
     else {
       n_ok++;
