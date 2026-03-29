@@ -6,7 +6,7 @@ cmake_minimum_required(VERSION 3.20) # setting this is required
 project(cxproc)            # this sets the project name
 
 set(CMAKE_CONFIGURATION_TYPES "Debug;Release;Profile" CACHE STRING "" FORCE) 
-#set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Default build type: Release" FORCE)
+set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Default build type: Release" FORCE)
 
 # for profiling s. https://stackoverflow.com/questions/26491948/how-to-use-gprof-with-cmake
 # or see test/main.sh and https://github.com/jrfonseca/gprof2dot
@@ -28,7 +28,7 @@ SET(CMAKE_VERBOSE_MAKEFILE ON)
 # (cmake --graphviz=cxproc.dot -B ../x86_64-gnu-linux/build && dot -T png -o cxproc.png cxproc.dot.cxproc)
 
 # default value for Testing
-SET(CXPROC_HTTPPREFIX CACHE STRING "http://localhost:8183/")
+SET(CXPROC_HTTPPREFIX "http://localhost:8183/" CACHE STRING "default URL for tests")
 
 # flag for Code check (see target "cpp-check")
 SET(CXPROC_CHECK OFF)
@@ -331,7 +331,7 @@ ENDIF ()
 
 IF(MSVC)
   target_sources(filex      PUBLIC ${CXPROC_SRC_DIR}/version.rc)
-  target_sources(dir2csv PUBLIC ${CXPROC_SRC_DIR}/version.rc)
+  target_sources(dir2csv    PUBLIC ${CXPROC_SRC_DIR}/version.rc)
   target_sources(dir2sqlite PUBLIC ${CXPROC_SRC_DIR}/version.rc)
   target_sources(pietextx   PUBLIC ${CXPROC_SRC_DIR}/version.rc)
   target_sources(cxproc     PUBLIC ${CXPROC_SRC_DIR}/version.rc)
@@ -460,6 +460,7 @@ ENDIF ()
 FIND_PACKAGE( ZLIB )
 
 IF (ZLIB_INCLUDE_DIR)
+  # package found
 ELSE(ZLIB_INCLUDE_DIR)
   find_path(ZLIB_INCLUDE_DIR NAMES "zlib.h" HINTS ${HINT_DIR_INCLUDE}) 
   find_library(ZLIB_LIBRARY_DEBUG NAMES "zlibd" HINTS ${HINT_DIR_LIBD})
@@ -478,6 +479,7 @@ ENDIF (ZLIB_LIBRARY_RELEASE)
 FIND_PACKAGE( LibLZMA )
 
 IF (LIBLZMA_INCLUDE_DIR)
+  # package found
 ELSE(LIBLZMA_INCLUDE_DIR)
   find_path(LIBLZMA_INCLUDE_DIR NAMES "lzma.h" HINTS ${HINT_DIR_INCLUDE}) 
   find_library(LIBLZMA_LIBRARY_DEBUG NAMES "lzma" HINTS ${HINT_DIR_LIBD})
@@ -515,16 +517,22 @@ include(script)
 # libiconv
 #
 
-IF (LIBICONV_INCLUDE_DIR)
-ELSE(LIBICONV_INCLUDE_DIR)
-  find_path(LIBICONV_INCLUDE_DIR NAMES "iconv.h" HINTS ${HINT_DIR_INCLUDE})
-  find_library(LIBICONV_LIBRARY NAMES "iconv" HINTS ${HINT_DIR_LIB})
-  find_library(LIBCHARSET_LIBRARY NAMES "charset" HINTS ${HINT_DIR_LIB})
-ENDIF (LIBICONV_INCLUDE_DIR)
+FIND_PATH(LIBICONV_INCLUDE_DIR NAME iconv.h HINTS ${HINT_DIR_INCLUDE})
 
-IF (LIBICONV_INCLUDE_DIR AND LIBICONV_LIBRARY AND LIBCHARSET_LIBRARY)
-  SET(LIBICONV_FOUND ON)
-ENDIF ()
+IF (LIBICONV_INCLUDE_DIR)
+  IF (MSVC)
+    find_library(LIBICONV_LIBRARY NAMES "iconv" HINTS ${HINT_DIR_LIB})
+    find_library(LIBCHARSET_LIBRARY NAMES "charset" HINTS ${HINT_DIR_LIB})
+    IF (LIBICONV_LIBRARY AND LIBCHARSET_LIBRARY)
+      SET(LIBICONV_FOUND ON)
+    ELSE ()
+      # select interactively
+    ENDIF ()
+  ELSE ()
+    # no library file required on Linux
+    SET(LIBICONV_FOUND ON)
+  ENDIF ()
+ENDIF (LIBICONV_INCLUDE_DIR)
 
 IF (LIBICONV_FOUND)
   MESSAGE(STATUS "Found required libiconv: ${LIBICONV_LIBRARY} ${LIBCHARSET_LIBRARY}")
@@ -542,6 +550,7 @@ add_compile_definitions(ICONV_CODE_UNIT_WIDTH=8)
 FIND_PACKAGE( LibXml2 )
 
 IF (LIBXML2_INCLUDE_DIR)
+  # package found
 ELSE(LIBXML2_INCLUDE_DIR)
   #
   SET(LIBXML2_INCLUDE_DIR "${HINT_DIR_INCLUDE}/libxml2/libxml" CACHE PATH "Prefix")
@@ -583,6 +592,7 @@ ENDIF ()
 FIND_PACKAGE( LibXslt )
 
 IF (LIBXSLT_INCLUDE_DIR)
+  # package found
 ELSE(LIBXSLT_INCLUDE_DIR)
   SET(LIBXSLT_INCLUDE_DIR ${HINT_DIR_INCLUDE} CACHE PATH "include files of libxslt")
   find_path(_LIBXSLT_INCLUDE_DIR NAMES "xslt.h" HINTS "${HINT_DIR_INCLUDE}/libxslt") 
@@ -594,6 +604,7 @@ ELSE(LIBXSLT_INCLUDE_DIR)
 ENDIF (LIBXSLT_INCLUDE_DIR)
 
 IF (LIBXSLT_EXSLT_INCLUDE_DIR)
+  # package found
 ELSE(LIBXSLT_EXSLT_INCLUDE_DIR)
   SET(LIBXSLT_EXSLT_INCLUDE_DIR ${HINT_DIR_INCLUDE} CACHE PATH "include files of libexslt")
   find_path(_LIBXSLT_EXSLT_INCLUDE_DIR NAMES "exslt.h" HINTS "${HINT_DIR_INCLUDE}/libexslt") 
