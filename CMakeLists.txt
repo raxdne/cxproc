@@ -15,6 +15,8 @@ set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Default build type: Release" FORCE)
 
 # s. https://cmake.org/Wiki/CMake_Useful_Variables
 
+# /sbin/ldconfig -p
+
 # CMAKE_POLICY(SET CMP0026 OLD)
 
 SET(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake" "${PROJECT_SOURCE_DIR}/cmake/Modules" "${PROJECT_SOURCE_DIR}/cmake/Options")
@@ -41,26 +43,31 @@ FIND_PATH(CXPROC_SRCLIB_DIR
   NAME cgi-util
   PATHS "third-party")
 
-cmake_path(GET PROJECT_BINARY_DIR PARENT_PATH _CXPROC_PREFIX)
-SET(CXPROC_PREFIX ${_CXPROC_PREFIX} CACHE PATH "Prefix")
+cmake_path(GET PROJECT_BINARY_DIR PARENT_PATH CXPROC_PREFIX)
+#SET(CXPROC_PREFIX ${_CXPROC_PREFIX} CACHE PATH "Prefix")
 SET(CXPROC_TEMP_DIR "${CXPROC_PREFIX}/tmp")
 # working directory for tests
 SET(CXPROC_TEST_DIR "${PROJECT_SOURCE_DIR}/test")
 
-# helper: default path to use as HINT
-SET(HINT_DIR ${CXPROC_PREFIX})
-#cmake_path(NORMAL_PATH CXPROC_PREFIX OUTPUT_VARIABLE HINT_DIR)
-SET(HINT_DIR_INCLUDE "${CXPROC_PREFIX}/include")
-SET(HINT_DIR_LIB "${CXPROC_PREFIX}/lib")
-SET(HINT_DIR_LIBD "${CXPROC_PREFIX}/debug/lib")
-SET(HINT_DIR_BIN "${CXPROC_PREFIX}/bin")
+include(helper)
 
-INCLUDE_DIRECTORIES("${PROJECT_SOURCE_DIR}/third-party"
+include_directories(BEFORE SYSTEM
+  "${PROJECT_SOURCE_DIR}/third-party"
   "${PROJECT_SOURCE_DIR}/third-party/option"
   ${CXPROC_SRC_DIR}
   "${CXPROC_SRC_DIR}/option"
   ${HINT_DIR_INCLUDE}
-  )
+)
+
+#link_directories(BEFORE
+#  ${HINT_DIR_LIB}
+#  ${HINT_DIR_LIBD}
+#)
+  
+#SET(CMAKE_INCLUDE_PATH "${CMAKE_SYSTEM_INCLUDE_PATH};/usr/include")
+#MESSAGE(STATUS "Using CMAKE_INCLUDE_PATH: ${CMAKE_INCLUDE_PATH}")
+#SET(CMAKE_LIBRARY_PATH "/usr/lib;/usr/lib/x86_64-linux-gnu")
+#MESSAGE(STATUS "Using CMAKE_LIBRARY_PATH: ${CMAKE_LIBRARY_PATH}")
 
 #set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG ${PROJECT_BINARY_DIR}/debug)
 #set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_BINARY_DIR}/release)
@@ -364,19 +371,33 @@ IF(CXPROC_CHECK)
 ENDIF (CXPROC_CHECK)
 
 ################################################################################
+
+# FIND_PACKAGE( LocalThreads )
+
+FIND_PACKAGE( PCRE2 )
+
+FIND_PACKAGE( Duktape )
+
+FIND_PACKAGE( LibCMark )
+
+FIND_PACKAGE( LocalCURL )
+
+FIND_PACKAGE( LocalZLIB )
+
+FIND_PACKAGE( LocalLibLZMA )
+
+FIND_PACKAGE( LocalBZip2 )
+
+FIND_PACKAGE( LibZip )
+
+FIND_PACKAGE( LocalLibXml2 )
+
+FIND_PACKAGE( LocalLibXslt )
+
+################################################################################
 #
 # pthread
 #
-
-# FIND_PACKAGE( Threads )
-
-# IF(CMAKE_USE_PTHREADS_INIT)
-#   MESSAGE(STATUS "Found optional libpthtread: ${CMAKE_THREAD_LIBS_INIT}")
-#   OPTION (CXPROC_PTHREAD "Enable support for linking cxproc with libpthread." OFF)
-# ELSE ()
-#   OPTION (CXPROC_THREAD "Enable support native threads." OFF)
-# ENDIF ()
-# MARK_AS_ADVANCED(CXPROC_THREAD)
 
 # SET(THREAD_FILES
 #   ${CXPROC_SRC_DIR}/cxp/cxp_threadp.h
@@ -397,18 +418,9 @@ ENDIF (CXPROC_CHECK)
 #   add_compile_definitions(WITH_THREAD)
 # ENDIF (CXPROC_PTHREAD)
 
-################################################################################
-#
-# pcre2 (impact on PIE)
-#
+###############################################################################
 
-FIND_PACKAGE( PCRE2 )
-
-IF (PCRE2_LIBRARY)
-  OPTION(CXPROC_PCRE2 "Enable support for linking cxproc with libpcre2." ON)
-ENDIF ()
-
-IF (CXPROC_PCRE2)
+IF (PCRE2_INCLUDE_DIR AND PCRE2_LIBRARY)
   target_compile_definitions(cxproc PUBLIC HAVE_PCRE2 PCRE2_CODE_UNIT_WIDTH=8)
   target_compile_definitions(cxproc-cgi PUBLIC HAVE_PCRE2 PCRE2_CODE_UNIT_WIDTH=8)
   IF(CXPROC_TESTS)
@@ -417,80 +429,7 @@ IF (CXPROC_PCRE2)
   IF(CXPROC_CHECK)
     target_compile_definitions(cpp-check PUBLIC HAVE_PCRE2 PCRE2_CODE_UNIT_WIDTH=8)
   ENDIF ()
-  IF (${PCRE2_LIBRARY} MATCHES ".+static.*\\.lib$" OR ${PCRE2_LIBRARY} MATCHES ".+\\.a$")
-    #ADD_LIBRARY(pcre2-8 STATIC IMPORTED)
-    add_compile_definitions(PCRE2_STATIC)
-  ENDIF ()
-ELSE ()
 ENDIF ()
-
-################################################################################
-#
-# cmark
-#
-
-FIND_PACKAGE( LibCMark )
-
-################################################################################
-#
-# libzip
-#
-
-FIND_PACKAGE( LibZip )
-
-################################################################################
-#
-# libcurl
-#
-
-FIND_PACKAGE( CURL )
-
-IF (CURL_LIBRARY_RELEASE)
-  OPTION(CXPROC_CURL "Enable support for linking cxproc with libcurl." OFF)
-  MARK_AS_ADVANCED(CXPROC_CURL)
-ELSE ()
-  SET(CXPROC_CURL OFF)
-ENDIF ()
-
-################################################################################
-#
-# zlib
-#
-
-FIND_PACKAGE( ZLIB )
-
-IF (ZLIB_INCLUDE_DIR)
-  # package found
-ELSE(ZLIB_INCLUDE_DIR)
-  find_path(ZLIB_INCLUDE_DIR NAMES "zlib.h" HINTS ${HINT_DIR_INCLUDE}) 
-  find_library(ZLIB_LIBRARY_DEBUG NAMES "zlibd" HINTS ${HINT_DIR_LIBD})
-  find_library(ZLIB_LIBRARY_RELEASE NAMES "zlib" HINTS ${HINT_DIR_LIB})
-ENDIF (ZLIB_INCLUDE_DIR)
-
-IF (ZLIB_LIBRARY_RELEASE)
-  SET(CXPROC_LIBZ ON)
-ENDIF (ZLIB_LIBRARY_RELEASE)
-
-################################################################################
-#
-# liblzma
-#
-
-FIND_PACKAGE( LibLZMA )
-
-IF (LIBLZMA_INCLUDE_DIR)
-  # package found
-ELSE(LIBLZMA_INCLUDE_DIR)
-  find_path(LIBLZMA_INCLUDE_DIR NAMES "lzma.h" HINTS ${HINT_DIR_INCLUDE}) 
-  find_library(LIBLZMA_LIBRARY_DEBUG NAMES "lzma" HINTS ${HINT_DIR_LIBD})
-  find_library(LIBLZMA_LIBRARY_RELEASE NAMES "lzma" HINTS ${HINT_DIR_LIB})
-ENDIF (LIBLZMA_INCLUDE_DIR)
-
-IF (LIBLZMA_LIBRARIES)
-  SET(CXPROC_LZMA ON)
-ENDIF (LIBLZMA_LIBRARIES)
-
-###############################################################################
 
 include(tests)
 
@@ -517,49 +456,28 @@ include(script)
 # libiconv
 #
 
-FIND_PATH(LIBICONV_INCLUDE_DIR NAME iconv.h HINTS ${HINT_DIR_INCLUDE})
+find_path(LIBICONV_INCLUDE_DIR NAME iconv.h HINTS ${HINT_DIR_INCLUDE} NO_DEFAULT_PATH)
 
 IF (LIBICONV_INCLUDE_DIR)
   IF (MSVC)
-    find_library(LIBICONV_LIBRARY NAMES "iconv" HINTS ${HINT_DIR_LIB})
-    find_library(LIBCHARSET_LIBRARY NAMES "charset" HINTS ${HINT_DIR_LIB})
+    find_library(LIBICONV_LIBRARY NAMES "iconv" HINTS ${HINT_DIR_LIB} REQUIRED)
+    find_library(LIBCHARSET_LIBRARY NAMES "charset" HINTS ${HINT_DIR_LIB} REQUIRED)
     IF (LIBICONV_LIBRARY AND LIBCHARSET_LIBRARY)
-      SET(LIBICONV_FOUND ON)
+      MESSAGE(STATUS "Found required libiconv: ${LIBICONV_LIBRARY} ${LIBCHARSET_LIBRARY}")
     ELSE ()
       # select interactively
     ENDIF ()
   ELSE ()
     # no library file required on Linux
-    SET(LIBICONV_FOUND ON)
+    add_compile_definitions(ICONV_CODE_UNIT_WIDTH=8)
   ENDIF ()
 ENDIF (LIBICONV_INCLUDE_DIR)
 
-IF (LIBICONV_FOUND)
-  MESSAGE(STATUS "Found required libiconv: ${LIBICONV_LIBRARY} ${LIBCHARSET_LIBRARY}")
-ELSE (LIBICONV_FOUND)
-  MESSAGE(FATAL_ERROR "libiconv must be available")
-ENDIF (LIBICONV_FOUND)
-
-add_compile_definitions(ICONV_CODE_UNIT_WIDTH=8)
 
 ################################################################################
 #
 # libxml2
 #
-
-FIND_PACKAGE( LibXml2 )
-
-IF (LIBXML2_INCLUDE_DIR AND LIBXML2_LIBRARY)
-  # package found
-ELSE()
-  #
-  find_path(_LIBXML2_INCLUDE_DIR NAMES "tree.h" HINTS "${HINT_DIR_INCLUDE}/libxml2/libxml") 
-  cmake_path(GET _LIBXML2_INCLUDE_DIR PARENT_PATH _LIBXML2_INCLUDE_PARENT_DIR)
-  #message(ERROR " LIBXML2_INCLUDE_DIR=${_LIBXML2_INCLUDE_PARENT_DIR}")
-  SET(LIBXML2_INCLUDE_DIR ${_LIBXML2_INCLUDE_PARENT_DIR} CACHE PATH "" FORCE)
-  find_library(LIBXML2_LIBRARY NAMES "libxml2" HINTS ${HINT_DIR_LIB})
-  find_program(LIBXML2_XMLLINT_EXECUTABLE NAMES "xmllint" HINTS ${HINT_DIR_BIN})
-ENDIF ()
 
 IF (LIBXML2_INCLUDE_DIR AND LIBXML2_LIBRARY)
   INCLUDE_DIRECTORIES(${LIBXML2_INCLUDE_DIR})
@@ -583,45 +501,6 @@ IF (LIBXML2_INCLUDE_DIR AND LIBXML2_LIBRARY)
   ENDIF ()
 ELSE()
   MESSAGE(FATAL_ERROR " 'libxml2' is a mandatory library")
-ENDIF ()
-
-################################################################################
-#
-# libxslt
-#
-
-FIND_PACKAGE( LibXslt )
-
-IF (LIBXSLT_INCLUDE_DIR)
-  # package found
-ELSE(LIBXSLT_INCLUDE_DIR)
-  SET(LIBXSLT_INCLUDE_DIR ${HINT_DIR_INCLUDE} CACHE PATH "include files of libxslt")
-  find_path(_LIBXSLT_INCLUDE_DIR NAMES "xslt.h" HINTS "${HINT_DIR_INCLUDE}/libxslt") 
-  cmake_path(GET _LIBXSLT_INCLUDE_DIR PARENT_PATH LIBXSLT_INCLUDE_DIR)
-  #message(ERROR " LIBXSLT_INCLUDE_DIR=${LIBXSLT_INCLUDE_DIR}")
-  SET(LIBXSLT_INCLUDE_DIR ${LIBXSLT_INCLUDE_DIR} CACHE PATH "" FORCE)
-  find_library(LIBXSLT_LIBRARY NAMES "libxslt" HINTS ${HINT_DIR_LIB})
-  find_program(LIBXSLT_XSLTPROC_EXECUTABLE NAMES "xsltproc" HINTS ${HINT_DIR_BIN})
-ENDIF (LIBXSLT_INCLUDE_DIR)
-
-IF (LIBXSLT_EXSLT_INCLUDE_DIR)
-  # package found
-ELSE(LIBXSLT_EXSLT_INCLUDE_DIR)
-  SET(LIBXSLT_EXSLT_INCLUDE_DIR ${HINT_DIR_INCLUDE} CACHE PATH "include files of libexslt")
-  find_path(_LIBXSLT_EXSLT_INCLUDE_DIR NAMES "exslt.h" HINTS "${HINT_DIR_INCLUDE}/libexslt") 
-  cmake_path(GET _LIBXSLT_EXSLT_INCLUDE_DIR PARENT_PATH LIBXSLT_EXSLT_INCLUDE_DIR)
-  #message(ERROR " LIBXSLT_EXSLT_INCLUDE_DIR=${LIBXSLT_EXSLT_INCLUDE_DIR}")
-  SET(LIBXSLT_EXSLT_INCLUDE_DIR ${LIBXSLT_EXSLT_INCLUDE_DIR} CACHE PATH "" FORCE)
-  find_library(LIBXSLT_EXSLT_LIBRARY NAMES "libexslt" HINTS ${HINT_DIR_LIB})
-  find_program(LIBXSLT_XSLTPROC_EXECUTABLE NAMES "xsltproc" HINTS ${HINT_DIR_BIN})
-ENDIF (LIBXSLT_EXSLT_INCLUDE_DIR)
-
-IF (LIBXSLT_LIBRARIES)
-  INCLUDE_DIRECTORIES(${LIBXSLT_INCLUDE_DIR})
-  #add_compile_definitions(${LIBXSLT_DEFINITIONS})
-  IF ("${LIBXSLT_LIBRARIES}" MATCHES ".+static.*\\.lib" OR "${LIBXSLT_LIBRARIES}" MATCHES ".+\\.a")
-    add_compile_definitions(LIBXSLT_STATIC)
-  ENDIF ()
 ENDIF ()
 
 ################################################################################
@@ -679,7 +558,7 @@ ENDIF (MSVC)
 # pcre2
 #
 
-IF (CXPROC_PCRE2)
+IF (PCRE2_LIBRARY)
   target_link_libraries(filex ${PCRE2_LIBRARY})
   target_link_libraries(dir2csv ${PCRE2_LIBRARY})
   target_link_libraries(dir2sqlite ${PCRE2_LIBRARY})
@@ -699,7 +578,7 @@ ENDIF ()
 # either local ZLIB or system ZLIB
 #
 
-IF (CXPROC_LIBZ)
+IF (ZLIB_LIBRARY_RELEASE)
   target_link_libraries(filex ${ZLIB_LIBRARY_RELEASE})
   target_link_libraries(dir2csv ${ZLIB_LIBRARY_RELEASE})
   target_link_libraries(dir2sqlite ${ZLIB_LIBRARY_RELEASE})
@@ -712,36 +591,28 @@ IF (CXPROC_LIBZ)
   #IF (LIBMICROHTTPD_FOUND)
   #  target_link_libraries(cxproc-httpd ${ZLIB_LIBRARY_RELEASE})
   #ENDIF ()
-ENDIF (CXPROC_LIBZ)
+ENDIF ()
 
 ################################################################################
 #
 # libbz2
 #
 
-FIND_PACKAGE( BZip2 )
-
-IF (LIBBZ2_LIBRARY_RELEASE)
-  OPTION (CXPROC_LIBBZ2 "Enable support for linking cxproc with libbz2." OFF)
-ELSE(LIBBZ2_LIBRARY_RELEASE)
-  SET(CXPROC_LIBBZ2 OFF)
-ENDIF (LIBBZ2_LIBRARY_RELEASE)
-
-IF (CXPROC_LIBBZ2)
+IF (BZIP2_LIBRARIES)
   INCLUDE_DIRECTORIES(${LIBBZ2_INCLUDE_DIR})
   add_compile_definitions(HAVE_LIBBZ2)
-  IF (${LIBBZ2_LIBRARY_RELEASE} MATCHES ".+static.*\\.lib$" OR ${LIBBZ2_LIBRARY_RELEASE} MATCHES ".+\\.a$")
+  IF (${BZIP2_LIBRARIES} MATCHES ".+static.*\\.lib$" OR ${BZIP2_LIBRARIES} MATCHES ".+\\.a$")
     add_compile_definitions(LIBBZ2_STATIC)
   ENDIF ()
-  target_link_libraries(cxproc ${LIBBZ2_LIBRARY_RELEASE})
-  target_link_libraries(cxproc-cgi  ${LIBBZ2_LIBRARY_RELEASE})
+  target_link_libraries(cxproc ${BZIP2_LIBRARIES})
+  target_link_libraries(cxproc-cgi  ${BZIP2_LIBRARIES})
   IF(CXPROC_TESTS)
-    target_link_libraries(cxproc-test ${LIBBZ2_LIBRARY_RELEASE})
+    target_link_libraries(cxproc-test ${BZIP2_LIBRARIES})
   ENDIF ()
   #IF (LIBMICROHTTPD_FOUND)
-  #  target_link_libraries(cxproc-httpd ${LIBBZ2_LIBRARY_RELEASE})
+  #  target_link_libraries(cxproc-httpd ${BZIP2_LIBRARIES})
   #ENDIF ()
-ENDIF (CXPROC_LIBBZ2)
+ENDIF ()
 
 ################################################################################
 #

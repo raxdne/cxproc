@@ -4,11 +4,7 @@
 # duktape
 #
 
-FIND_PACKAGE( Duktape )
-
-IF (DUKTAPE_SOURCE_FILE)
-  OPTION (CXPROC_DUKTAPE "Enable support for compiling cxproc with duktape." OFF)
-ELSEIF (DUKTAPE_LIBRARY)
+IF (DUKTAPE_LIBRARY)
   OPTION (CXPROC_DUKTAPE "Enable support for linking cxproc with duktape." OFF)
 ENDIF ()
 
@@ -20,22 +16,14 @@ IF (CXPROC_DUKTAPE)
     ${CXPROC_SRC_DIR}/option/script/cxp_script.c
     )
 
-  IF (DUKTAPE_SOURCE_FILE)
-    SET(DUKTAPE_FILES ${DUKTAPE_FILES}
-      ${DUKTAPE_INCLUDE_DIR}/duktape.h
-      ${DUKTAPE_SOURCE_FILE}
-      )
-    # no library to be linked
-  ELSE (DUKTAPE_SOURCE_FILE)
-    target_link_libraries(cxproc ${DUKTAPE_LIBRARY})
-    target_link_libraries(cxproc-cgi ${DUKTAPE_LIBRARY})
-    IF(CXPROC_TESTS)
-      target_link_libraries(cxproc-test ${DUKTAPE_LIBRARY})
-    ENDIF ()
-    #IF (LIBMICROHTTPD_FOUND)
-    #  target_link_libraries(cxproc-httpd ${DUKTAPE_LIBRARY})
-    #ENDIF ()
-  ENDIF (DUKTAPE_SOURCE_FILE)
+  target_link_libraries(cxproc ${DUKTAPE_LIBRARY})
+  target_link_libraries(cxproc-cgi ${DUKTAPE_LIBRARY})
+  IF(CXPROC_TESTS)
+    target_link_libraries(cxproc-test ${DUKTAPE_LIBRARY})
+  ENDIF ()
+  #IF (LIBMICROHTTPD_FOUND)
+  #  target_link_libraries(cxproc-httpd ${DUKTAPE_LIBRARY})
+  #ENDIF ()
 
   target_sources(cxproc PUBLIC ${DUKTAPE_FILES})
 

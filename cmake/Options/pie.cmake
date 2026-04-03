@@ -4,7 +4,7 @@
 
 # TODO: cmake_dependent_option(USE_FOO "Use Foo" ON "USE_BAR;NOT USE_ZOT" OFF)
 
-IF (CXPROC_PCRE2)
+IF (PCRE2_LIBRARY)
   OPTION(CXPROC_PIE "Include PIE code" ON)
   IF (LIBCMARK_LIBRARY)
     OPTION(CXPROC_MARKDOWN "Compile MARKDOWN code" ON)
@@ -188,7 +188,7 @@ ENDIF (CXPROC_PIE)
 # 
 #
 
-IF (CXPROC_PCRE2)
+IF (PCRE2_LIBRARY)
   target_link_libraries(pietextx ${PCRE2_LIBRARY})
 ENDIF ()
 
