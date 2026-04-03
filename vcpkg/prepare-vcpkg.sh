@@ -11,7 +11,8 @@
 # https://learn.microsoft.com/en-us/vcpkg/concepts/triplets
 PREFIX_VCPKG=~/cxproc-build
 #ARCH=$(uname -m)"-"$(uname -o | tr '[:upper:]' '[:lower:]' | tr '[:punct:]' '-')
-ARCH=x64-mingw-dynamic
+#ARCH=x64-mingw-dynamic
+ARCH=x64-linux
 PREFIX=$PREFIX_VCPKG/$ARCH
 
 echo "! preparing '$PREFIX' ..."
@@ -52,6 +53,8 @@ else
   cd vcpkg 
 fi
 
+rm status
+git checkout 2026.03.18
 ./bootstrap-vcpkg.sh -disableMetrics
 
 ./vcpkg integrate install
