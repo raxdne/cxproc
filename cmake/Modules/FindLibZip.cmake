@@ -3,19 +3,19 @@
 # either local libzip or system libzip
 #
 
-find_path(LIBZIP_INCLUDE_DIR NAMES "zip.h" HINTS ${HINT_DIR_INCLUDE} NO_DEFAULT_PATH)
-
-IF (LIBZIP_INCLUDE_DIR)
-  find_library(LIBZIP_LIBRARY_DEBUG NAMES "zip" HINTS ${HINT_DIR_LIBD} NO_DEFAULT_PATH)
-  find_library(LIBZIP_LIBRARY       NAMES "zip" HINTS ${HINT_DIR_LIB}  NO_DEFAULT_PATH)
-ELSE()
-  # system
-  find_path(LIBZIP_INCLUDE_DIR NAMES "zip.h")
-  find_library(LIBZIP_LIBRARY NAMES "zip")
+IF (HINT_DIR_INCLUDE)
+  find_path(LIBZIP_INCLUDE_DIR NAMES "zip.h" HINTS ${HINT_DIR_INCLUDE} NO_DEFAULT_PATH)
+  find_library(LIBZIP_LIBRARY_DEBUG NAMES "libzip" "zip" HINTS ${HINT_DIR_LIBD} NO_DEFAULT_PATH)
+  find_library(LIBZIP_LIBRARY       NAMES "libzip" "zip" HINTS ${HINT_DIR_LIB}  NO_DEFAULT_PATH)
 ENDIF ()
 
-IF (LIBZIP_LIBRARY)
+find_path(LIBZIP_INCLUDE_DIR NAMES "zip.h")
+find_library(LIBZIP_LIBRARY  NAMES "libzip" "zip")
+
+IF (LIBZIP_INCLUDE_DIR AND LIBZIP_LIBRARY)
   MESSAGE(STATUS "Found libzip: ${LIBZIP_LIBRARY}")
+  SET(LIBZIP_FOUND)
+  add_compile_definitions(HAVE_LIBZIP)
 ELSE()
   MESSAGE(ERROR " Not found: libzip")
 ENDIF ()

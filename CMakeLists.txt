@@ -378,6 +378,8 @@ FIND_PACKAGE( LocalBZip2 )
 
 FIND_PACKAGE( LibZip )
 
+FIND_PACKAGE( LocalIconv )
+
 FIND_PACKAGE( LocalLibXml2 )
 
 FIND_PACKAGE( LocalLibXslt )
@@ -437,30 +439,6 @@ include(c-dt)
 # TODO: include(rp)
 include(script)
 # TODO: include(vorbiscomment)
-
-
-################################################################################
-#
-# libiconv
-#
-
-find_path(LIBICONV_INCLUDE_DIR NAME iconv.h HINTS ${HINT_DIR_INCLUDE} NO_DEFAULT_PATH)
-
-IF (LIBICONV_INCLUDE_DIR)
-  IF (MSVC)
-    find_library(LIBICONV_LIBRARY NAMES "iconv" HINTS ${HINT_DIR_LIB} REQUIRED)
-    find_library(LIBCHARSET_LIBRARY NAMES "charset" HINTS ${HINT_DIR_LIB} REQUIRED)
-    IF (LIBICONV_LIBRARY AND LIBCHARSET_LIBRARY)
-      MESSAGE(STATUS "Found required libiconv: ${LIBICONV_LIBRARY} ${LIBCHARSET_LIBRARY}")
-    ELSE ()
-      # select interactively
-    ENDIF ()
-  ELSE ()
-    # no library file required on Linux
-    add_compile_definitions(ICONV_CODE_UNIT_WIDTH=8)
-  ENDIF ()
-ENDIF (LIBICONV_INCLUDE_DIR)
-
 
 ################################################################################
 #
@@ -570,7 +548,7 @@ IF (ZLIB_LIBRARY_RELEASE)
   target_link_libraries(filex ${ZLIB_LIBRARY_RELEASE})
   target_link_libraries(dir2csv ${ZLIB_LIBRARY_RELEASE})
   target_link_libraries(dir2sqlite ${ZLIB_LIBRARY_RELEASE})
-  target_link_libraries(pietextx ${ZLIB_LIBRARY_RELEASE})
+  #target_link_libraries(pietextx ${ZLIB_LIBRARY_RELEASE})
   target_link_libraries(cxproc ${ZLIB_LIBRARY_RELEASE})
   target_link_libraries(cxproc-cgi  ${ZLIB_LIBRARY_RELEASE})
   IF(CXPROC_TESTS)
@@ -578,6 +556,26 @@ IF (ZLIB_LIBRARY_RELEASE)
   ENDIF ()
   #IF (LIBMICROHTTPD_FOUND)
   #  target_link_libraries(cxproc-httpd ${ZLIB_LIBRARY_RELEASE})
+  #ENDIF ()
+ENDIF ()
+
+################################################################################
+#
+# either local LIBZIP or system LIBZIP
+#
+
+IF (LIBZIP_LIBRARY)
+  target_link_libraries(filex ${LIBZIP_LIBRARY})
+  target_link_libraries(dir2csv ${LIBZIP_LIBRARY})
+  target_link_libraries(dir2sqlite ${LIBZIP_LIBRARY})
+  #target_link_libraries(pietextx ${LIBZIP_LIBRARY})
+  target_link_libraries(cxproc ${LIBZIP_LIBRARY})
+  target_link_libraries(cxproc-cgi  ${LIBZIP_LIBRARY})
+  IF(CXPROC_TESTS)
+    target_link_libraries(cxproc-test ${LIBZIP_LIBRARY})
+  ENDIF ()
+  #IF (LIBMICROHTTPD_FOUND)
+  #  target_link_libraries(cxproc-httpd ${LIBZIP_LIBRARY})
   #ENDIF ()
 ENDIF ()
 
@@ -731,18 +729,18 @@ ENDIF ()
 # add list of mandatory libraries
 #
 
-target_link_libraries(filex ${LIBZIP_LIBRARY} ${LIBICONV_LIBRARY} ${LIBCHARSET_LIBRARY} ${LIBXML2_LIBRARY})
-target_link_libraries(dir2csv ${LIBZIP_LIBRARY} ${LIBICONV_LIBRARY} ${LIBCHARSET_LIBRARY} ${LIBXML2_LIBRARY})
-target_link_libraries(dir2sqlite ${LIBZIP_LIBRARY} ${LIBICONV_LIBRARY} ${LIBCHARSET_LIBRARY} ${LIBXML2_LIBRARY})
-target_link_libraries(pietextx ${LIBZIP_LIBRARY} ${LIBICONV_LIBRARY} ${LIBCHARSET_LIBRARY} ${LIBXML2_LIBRARY})
-target_link_libraries(cxproc ${LIBZIP_LIBRARY} ${LIBICONV_LIBRARY} ${LIBCHARSET_LIBRARY} ${LIBXML2_LIBRARY} ${LIBXSLT_LIBRARIES} ${LIBXSLT_EXSLT_LIBRARIES})
-target_link_libraries(cxproc-cgi ${LIBZIP_LIBRARY} ${LIBICONV_LIBRARY} ${LIBCHARSET_LIBRARY} ${LIBXML2_LIBRARY} ${LIBXSLT_LIBRARIES} ${LIBXSLT_EXSLT_LIBRARIES})
+target_link_libraries(filex ${LIBICONV_LIBRARY} ${LIBCHARSET_LIBRARY} ${LIBXML2_LIBRARY})
+target_link_libraries(dir2csv ${LIBICONV_LIBRARY} ${LIBCHARSET_LIBRARY} ${LIBXML2_LIBRARY})
+target_link_libraries(dir2sqlite ${LIBICONV_LIBRARY} ${LIBCHARSET_LIBRARY} ${LIBXML2_LIBRARY})
+target_link_libraries(pietextx ${LIBICONV_LIBRARY} ${LIBCHARSET_LIBRARY} ${LIBXML2_LIBRARY})
+target_link_libraries(cxproc ${LIBICONV_LIBRARY} ${LIBCHARSET_LIBRARY} ${LIBXML2_LIBRARY} ${LIBXSLT_LIBRARIES} ${LIBXSLT_EXSLT_LIBRARIES})
+target_link_libraries(cxproc-cgi ${LIBICONV_LIBRARY} ${LIBCHARSET_LIBRARY} ${LIBXML2_LIBRARY} ${LIBXSLT_LIBRARIES} ${LIBXSLT_EXSLT_LIBRARIES})
 IF(CXPROC_TESTS)
-  target_link_libraries(cxproc-test ${LIBZIP_LIBRARY} ${LIBICONV_LIBRARY} ${LIBCHARSET_LIBRARY} ${LIBXML2_LIBRARY} ${LIBXSLT_LIBRARIES} ${LIBXSLT_EXSLT_LIBRARIES})
+  target_link_libraries(cxproc-test ${LIBICONV_LIBRARY} ${LIBCHARSET_LIBRARY} ${LIBXML2_LIBRARY} ${LIBXSLT_LIBRARIES} ${LIBXSLT_EXSLT_LIBRARIES})
 ENDIF ()
 
 #IF (LIBMICROHTTPD_FOUND)
-#  target_link_libraries(cxproc-httpd ${LIBZIP_LIBRARY} ${LIBICONV_LIBRARY} ${LIBCHARSET_LIBRARY} ${LIBXML2_LIBRARY} ${LIBXSLT_LIBRARIES} ${LIBMICROHTTPD_LIBRARIES})
+#  target_link_libraries(cxproc-httpd ${LIBICONV_LIBRARY} ${LIBCHARSET_LIBRARY} ${LIBXML2_LIBRARY} ${LIBXSLT_LIBRARIES} ${LIBMICROHTTPD_LIBRARIES})
 #ENDIF ()
 
 ################################################################################
