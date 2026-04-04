@@ -35,20 +35,6 @@ SET(CXPROC_HTTPPREFIX "http://localhost:8183/" CACHE STRING "default URL for tes
 # flag for Code check (see target "cpp-check")
 SET(CXPROC_CHECK OFF)
 
-FIND_PATH(CXPROC_SRC_DIR
-  NAME cxproc.c
-  PATHS "src")
-
-FIND_PATH(CXPROC_SRCLIB_DIR
-  NAME cgi-util
-  PATHS "third-party")
-
-cmake_path(GET PROJECT_BINARY_DIR PARENT_PATH CXPROC_PREFIX)
-#SET(CXPROC_PREFIX ${_CXPROC_PREFIX} CACHE PATH "Prefix")
-SET(CXPROC_TEMP_DIR "${CXPROC_PREFIX}/tmp")
-# working directory for tests
-SET(CXPROC_TEST_DIR "${PROJECT_SOURCE_DIR}/test")
-
 include(helper)
 
 include_directories(BEFORE SYSTEM
@@ -379,6 +365,8 @@ FIND_PACKAGE( PCRE2 )
 FIND_PACKAGE( Duktape )
 
 FIND_PACKAGE( LibCMark )
+
+FIND_PACKAGE( LocalSQLite3 )
 
 FIND_PACKAGE( LocalCURL )
 

@@ -4,24 +4,6 @@
 # SQLite3 library
 #
 
-FIND_PACKAGE( SQLite3 )
-
-IF (SQLite3_INCLUDE_DIR)
-  IF (EXISTS "${SQLite3_INCLUDE_DIR}/sqlite3.c")
-    SET(SQLite3_SOURCE_FILE "${SQLite3_INCLUDE_DIR}/sqlite3.c")
-    UNSET(SQLite3_LIBRARY)
-  ENDIF()
-ELSE(SQLite3_INCLUDE_DIR)
-  find_path(SQLite3_INCLUDE_DIR NAMES "sqlite3.h" HINTS ${HINT_DIR_INCLUDE}) 
-  find_library(SQLite3_LIBRARY NAMES "sqlite3" HINTS ${HINT_DIR_LIB})
-ENDIF (SQLite3_INCLUDE_DIR)
-
-IF (SQLite3_SOURCE_FILE)
-  OPTION (CXPROC_SQLITE3 "Enable support for compiling cxproc with sqlite3." OFF)
-ELSEIF (SQLite3_LIBRARY)
-  OPTION (CXPROC_SQLITE3 "Enable support for linking cxproc with sqlite3." OFF)
-ENDIF ()
-
 IF (CXPROC_SQLITE3)
   INCLUDE_DIRECTORIES(${SQLite3_INCLUDE_DIR})
 

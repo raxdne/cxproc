@@ -15,6 +15,7 @@ include(helper)
 #FIND_PACKAGE( LocalZLIB )
 #FIND_PACKAGE( PCRE2 )
 #FIND_PACKAGE( Duktape )
+#FIND_PACKAGE( LibCMark )
 #FIND_PACKAGE( Exif )
 
 # FIND_PACKAGE( Id3Tag )
@@ -23,6 +24,7 @@ include(helper)
 
 # # provided by cmake
 
+FIND_PACKAGE( LocalSQLite3 )
 #FIND_PACKAGE( LocalBZip2 )
 #FIND_PACKAGE( LocalLibLZMA )
 #FIND_PACKAGE( LocalCURL )
@@ -30,7 +32,7 @@ include(helper)
 # FIND_PACKAGE( LibArchive )
 
 #FIND_PACKAGE( LibXml2 )
-FIND_PACKAGE( LocalLibXml2 )
+#FIND_PACKAGE( LocalLibXml2 )
 # FIND_PACKAGE( LibXslt )
 #FIND_PACKAGE( LocalLibXslt )
 # FIND_PACKAGE( SQLite3 )

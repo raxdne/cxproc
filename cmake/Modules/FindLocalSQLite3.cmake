@@ -1,0 +1,28 @@
+#
+# SQLite3 library
+#
+
+find_path(SQLite3_INCLUDE_DIR NAMES "sqlite3.h" HINTS ${HINT_DIR_INCLUDE} NO_DEFAULT_PATH) 
+
+IF (SQLite3_INCLUDE_DIR)
+  IF (EXISTS "${SQLite3_INCLUDE_DIR}/sqlite3.c")
+    SET(SQLite3_SOURCE_FILE "${SQLite3_INCLUDE_DIR}/sqlite3.c")
+    UNSET(SQLite3_LIBRARY)
+  ELSE ()
+    find_library(SQLite3_LIBRARY NAMES "sqlite3.a" "sqlite3" HINTS ${HINT_DIR_LIB} NO_DEFAULT_PATH)
+  ENDIF()
+ELSE(SQLite3_INCLUDE_DIR)
+  FIND_PACKAGE( SQLite3 )
+ENDIF (SQLite3_INCLUDE_DIR)
+
+IF (SQLite3_SOURCE_FILE)
+  MESSAGE(STATUS "Found SQLite3 Code: ${SQLite3_SOURCE_FILE}")
+  OPTION (CXPROC_SQLITE3 "Enable support for compiling cxproc with sqlite3." OFF)
+ELSEIF (SQLite3_LIBRARY)
+  MESSAGE(STATUS "Found libsqlite3: ${SQLite3_LIBRARY}")
+  OPTION (CXPROC_SQLITE3 "Enable support for linking cxproc with sqlite3." OFF)
+ELSE ()
+  MESSAGE(STATUS "Not found: headers of SQLite3")
+ENDIF ()
+
+#MESSAGE(FATAL_ERROR " ${SQLite3_LIBRARY}: ${SQLite3_SRC_DIR} ${SQLite3_INCLUDE_DIR} ${SQLite3_BUILD_DIR}")

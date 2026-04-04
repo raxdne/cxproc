@@ -15,7 +15,7 @@ Optional tools
 
 Core libraries
 
-    sudo apt install libc6-dev libpcre2-dev libarchive-dev zip unzip libzip-dev zlib1g zlib1g-dev libxml2 libxml2-utils libxml2-dev libxslt1-dev libxslt1.1 sqlite3 libsqlite3-dev liblzma-dev libbz2-dev duktape duktape-dev libssl-dev libcurl4-openssl-dev
+    sudo apt install libc6-dev libpcre2-dev libarchive-dev zip unzip libzip-dev zlib1g zlib1g-dev libxml2 libxml2-utils libxml2-dev libxslt1-dev libxslt1.1 sqlite3 libsqlite3-dev liblzma-dev libbz2-dev libcmark libcmark-dev duktape duktape-dev libssl-dev libcurl4-openssl-dev
 
 Graphic libraries (optional)
 
@@ -112,7 +112,7 @@ Development environment
 	git clone https://github.com/commonmark/cmark.git
 	# (cd ~/cxproc-build/cmark/ && git pull)
 	mkdir -p ~/cxproc-build/cmark/build
-	(cd ~/cxproc-build/cmark/build && cmake .. "-GUnix Makefiles" -DCMAKE_BUILD_TYPE=Release)
+	(cd ~/cxproc-build/cmark/build && cmake .. "-GUnix Makefiles" -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=NO)
 	cmake --build ~/cxproc-build/cmark/build
 	cmake --install ~/cxproc-build/cmark/build --prefix $PREFIX/
 

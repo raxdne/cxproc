@@ -203,7 +203,6 @@ ENDIF (CXPROC_LZMA)
 target_link_libraries(pietextx ${LIBICONV_LIBRARY} ${LIBCHARSET_LIBRARY} ${LIBXML2_LIBRARY})
 
 IF (CXPROC_MARKDOWN)
-  INCLUDE_DIRECTORIES(${LIBCMARK_BUILD_DIR} ${LIBCMARK_SRC_DIR} ${LIBCMARK_INCLUDE_DIR})
   add_compile_definitions(WITH_MARKDOWN)
   target_link_libraries(filex ${LIBCMARK_LIBRARY})
   target_link_libraries(pietextx ${LIBCMARK_LIBRARY})
