@@ -4426,6 +4426,10 @@ resNodeDirAppendEntries(resNodePtr prnArgDir, const pcre2_code *re_match)
   return fResult;
 } /* end of resNodeDirAppendEntries() */
 
+#elif defined(_WIN32)
+
+#error "readdir() to be implemented"
+
 #else
 
 /*! wrapper for readdir(), append all directory entries as childs

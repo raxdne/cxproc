@@ -1348,6 +1348,8 @@ cxpCtxtGetHostValueNamed(cxpContextPtr pccArgParent, const xmlChar *pucName)
   if (xmlStrEqual(BAD_CAST"os",pucName)) {
 #ifdef _MSC_VER
     pucResult = xmlStrdup(BAD_CAST "Windows");
+#elif defined(_WIN32)
+    pucResult = xmlStrdup(BAD_CAST "Windows/MinGW");
 #else
     struct utsname Uname;
 

@@ -143,26 +143,15 @@ typedef int index_t;
 
 #elif defined(_WIN32)
 
-#include <windows.h>
-#include <aclapi.h>
-#include <share.h>
-#include <fcntl.h>
-
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 #include <dirent.h>
-
-#include <objbase.h>
-#include <shlobj.h>
-#include <strsafe.h>
-#include <ole2.h>
-
-#include <direct.h>
-#include <io.h>
-
-#include <commdlg.h>
 
 #define MAXFILENAME (256)
 
 #else
+
 #include <unistd.h>
 #include <pwd.h>
 #include <sys/types.h>

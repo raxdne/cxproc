@@ -3492,6 +3492,9 @@ cxpProcessInfoNode(xmlNodePtr pndInfo, cxpContextPtr pccArg)
     resNodePtr prnTest;
     cxpContextPtr pccI;
 #ifdef _MSC_VER
+
+#elif defined(_WIN32)
+
 #else
     uid_t u;
 

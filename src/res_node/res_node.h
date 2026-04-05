@@ -51,7 +51,7 @@
 
 #ifdef _MSC_VER
 #include <io.h>
-#elif defined WIN32
+#elif defined(_WIN32)
 #include <io.h>
 #include <dirent.h>
 #else

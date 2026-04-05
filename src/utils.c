@@ -2991,7 +2991,7 @@ localtime_offset(void)
     time_t gmt, rawtime = time(NULL);
     struct tm *ptm;
 
-#if !defined(WIN32)
+#if !defined(_WIN32)
     struct tm gbuf;
     ptm = gmtime_r(&rawtime, &gbuf);
 #else
