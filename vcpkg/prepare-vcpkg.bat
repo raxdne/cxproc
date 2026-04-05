@@ -72,20 +72,13 @@ REM robocopy /S %CXPBASE%..\examples %PREFIX%\examples
 
 REM robocopy /S "%PREFIX%" "C:\UserData\Develop\cxproc-build\%CXPARCH%" *.*
 
-IF "0" == "1" (
-  pushd %PREFIX%
-  REM "C:\UserData\vcpkg-build\vcpkg\downloads\tools\7zip-26.00-windows\7z.exe" a -r ..\cxproc-v1.3-pre_%CXPARCH%.zip bin xml doc examples www\cgi-bin www\html\test -x!*.pdb -x!*.ilk -x!cxproc-test.exe
-  popd
-)
-
 IF "1" == "1" (
   pushd %DIR_BUILD%
-  "C:\UserData\cxproc-build\vcpkg\downloads\tools\cmake-3.31.10-windows\cmake-3.31.10-windows-x86_64\bin\cmake-gui.exe" -B . -S H:\cxproc-build\cxproc
-  REM "C:\UserData\cxproc-build\vcpkg\downloads\tools\cmake-3.31.10-windows\cmake-3.31.10-windows-x86_64\bin\cmake.exe" -B . -S H:\cxproc-build\cxproc -G "Visual Studio 17 2022" -A %VSCMD_ARG_TGT_CXPARCH% -DCMAKE_TOOLCHAIN_FILE=C:\UserData\Develop\vcpkg\scripts\buildsystems\vcpkg.cmake -D CXPROC_DOC:BOOL=OFF -D CXPROC_PIE:BOOL=ON -D CXPROC_EXPERIMENTAL:BOOL=OFF -D CXPROC_CXX:BOOL=OFF
+  "%CXPBASE%\vcpkg\downloads\tools\cmake-3.31.10-windows\cmake-3.31.10-windows-x86_64\bin\cmake-gui.exe" -B . -S H:\cxproc-build\cxproc -G "Visual Studio 17 2022"
+  REM "%CXPBASE%\vcpkg\downloads\tools\cmake-3.31.10-windows\cmake-3.31.10-windows-x86_64\bin\cmake.exe" -B . -S H:\cxproc-build\cxproc -A %VSCMD_ARG_TGT_CXPARCH% -G "NMake Makefiles" -DCMAKE_TOOLCHAIN_FILE=%CXPBASE%\vcpkg\scripts\buildsystems\vcpkg.cmake -D CXPROC_DOC:BOOL=OFF -D CXPROC_PIE:BOOL=ON -D CXPROC_EXPERIMENTAL:BOOL=OFF -D CXPROC_CXX:BOOL=OFF
   REM "C:\UserData\Programme\cmake\bin\cmake.exe" --build %DIR_BUILD% --config Release --target cxproc
+  REM nmake /f Makefile package
   popd
 )
-
-REM TODO: CPack s. https://cmake.org/cmake/help/latest/module/CPack.html
 
 REM pause
