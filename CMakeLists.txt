@@ -6,7 +6,7 @@ cmake_minimum_required(VERSION 3.20) # setting this is required
 project(cxproc)            # this sets the project name
 
 set(CMAKE_CONFIGURATION_TYPES "Debug;Release;Profile" CACHE STRING "" FORCE) 
-set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Default build type: Release" FORCE)
+set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Default build type: Release")
 
 # for profiling s. https://stackoverflow.com/questions/26491948/how-to-use-gprof-with-cmake
 # or see test/main.sh and https://github.com/jrfonseca/gprof2dot
