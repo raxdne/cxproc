@@ -105,17 +105,24 @@ CalendarElementUpdate(ceElementPtr pceArg, xmlChar* pucArg)
     if (pceArg->pucIntern) {
       int i, j, k;
       BOOL_T fTime;
+      BOOL_T fOffset;
+      BOOL_T fPeriod;
 
       for (i = 0; isspace(pucArg[i]); i++) {}
 
-      for (fTime = FALSE, k = j = 0; (isiso8601(pucArg[i + j]) || isalnum(pucArg[i + j]) || pucArg[i + j] == 0xE2) && k < l; j++) {
+      for (fTime = fOffset = fPeriod = FALSE, k = j = 0; (isiso8601(pucArg[i + j]) || isalnum(pucArg[i + j]) || pucArg[i + j] == 0xE2) && k < l; j++) {
 	switch (pucArg[i + j]) {
 	case ':':
 	  /* ignoring chars */
 	  break;
 
 	case '-':
-	  if (fTime) { /* minus char is time zone offset now */
+	  if (fPeriod || fOffset) {
+	    /* negative periods/offsets are not permitted */
+	    CalendarElementReset(pceArg);
+	    return NULL;
+	  }
+	  else if (fTime) { /* minus char is time zone offset now */
 	    pceArg->pucIntern[k++] = pucArg[i + j];
 	  }
 	  break;
@@ -128,12 +135,28 @@ CalendarElementUpdate(ceElementPtr pceArg, xmlChar* pucArg)
 	  break;
 
 	case '/':
-	  fTime = FALSE; /* reset flag for next date/time */
+	  fTime = fOffset = fPeriod = FALSE; /* reset flag for next date/time */
+	  pceArg->pucIntern[k++] = pucArg[i + j];
+	  break;
+
+	case 'O':
+	  /* following Offset must not be modified, but copied */
+	  fOffset = TRUE;
+	  pceArg->pucIntern[k++] = pucArg[i + j];
+	  break;
+
+	case 'P':
+	  /* following Period must not contain '-', but copied */
+	  fPeriod = TRUE;
 	  pceArg->pucIntern[k++] = pucArg[i + j];
 	  break;
 
 	case 'T':
+	  /* following Time must not be modified, but copied */
 	  fTime = TRUE;
+	  pceArg->pucIntern[k++] = pucArg[i + j];
+	  break;
+
 	default:
 	  pceArg->pucIntern[k++] = pucArg[i + j];
 	}

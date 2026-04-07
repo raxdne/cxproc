@@ -898,10 +898,13 @@ utilsTest(void)
     else if (y > DBL_EPSILON || m > DBL_EPSILON || d > DBL_EPSILON || h > DBL_EPSILON || mi > DBL_EPSILON || s > DBL_EPSILON) {
       printf("ERROR 6 dt_parse_iso_period()\n");
     }
-    else if (dt_parse_iso_period("P1Y2M-4DT", 20, &y, &m, &d, NULL, NULL, NULL, NULL) != 9) {
+    else if (dt_parse_iso_period("P1Y2M-4DT", 20, &y, &m, &d, NULL, NULL, NULL, NULL) != 0) {
       printf("ERROR 2 dt_parse_iso_period()\n");
     }
-    else if (fabs(y - 1.0f) > DBL_EPSILON || fabs(m - 2.0f) > DBL_EPSILON || fabs(d + 4.0f) > DBL_EPSILON || h > DBL_EPSILON || mi > DBL_EPSILON || s > DBL_EPSILON) {
+    else if (dt_parse_iso_period("P1Y2M4DT", 20, &y, &m, &d, NULL, NULL, NULL, NULL) != 8) {
+      printf("ERROR 2b dt_parse_iso_period()\n");
+    }
+    else if (fabs(y - 1.0f) > DBL_EPSILON || fabs(m - 2.0f) > DBL_EPSILON || fabs(d - 4.0f) > DBL_EPSILON || h > DBL_EPSILON || mi > DBL_EPSILON || s > DBL_EPSILON) {
       printf("ERROR 6 dt_parse_iso_period()\n");
     }
     else if (dt_parse_iso_period("P3Y6M4DT12H30M5S", BUFFER_LENGTH, &y, &m, &d, NULL, &h, &mi, &s) != 16) {
@@ -927,10 +930,13 @@ utilsTest(void)
     else if (fabs(y - 7.0f) > DBL_EPSILON || m > DBL_EPSILON || d > DBL_EPSILON || h > DBL_EPSILON || mi > DBL_EPSILON || s > DBL_EPSILON) {
       printf("ERROR 6 dt_parse_iso_period()\n");
     }
-    else if (dt_parse_iso_period("P-2W", BUFFER_LENGTH, &y, &m, &d, &w, &h, &mi, &s) != 4) {
+    else if (dt_parse_iso_period("P-2W", BUFFER_LENGTH, &y, &m, &d, &w, &h, &mi, &s) != 0) {
       printf("ERROR 9 dt_parse_iso_period()\n");
     }
-    else if (y > DBL_EPSILON || m > DBL_EPSILON || d > DBL_EPSILON || fabs(w + 2.0f) > DBL_EPSILON || h > DBL_EPSILON || mi > DBL_EPSILON || s > DBL_EPSILON) {
+    else if (dt_parse_iso_period("P2W", BUFFER_LENGTH, &y, &m, &d, &w, &h, &mi, &s) != 3) {
+      printf("ERROR 9b dt_parse_iso_period()\n");
+    }
+    else if (y > DBL_EPSILON || m > DBL_EPSILON || d > DBL_EPSILON || fabs(w - 2.0f) > DBL_EPSILON || h > DBL_EPSILON || mi > DBL_EPSILON || s > DBL_EPSILON) {
       printf("ERROR 6 dt_parse_iso_period()\n");
     }
     else {
@@ -1061,6 +1067,9 @@ utilsTest(void)
       printf("ERROR 2 dt_parse_eternal_date()\n");
     }
     else if (dt_parse_eternal_date("0000-WEA-7/O1D", 40, &dt) != 10) {
+      printf("ERROR 3 dt_parse_eternal_date()\n");
+    }
+    else if (dt_parse_eternal_date("0000-WEA-7/O-49D", 40, &dt) != 10) {
       printf("ERROR 3 dt_parse_eternal_date()\n");
     }
     else {

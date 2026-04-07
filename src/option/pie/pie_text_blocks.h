@@ -98,16 +98,16 @@
   #define RE_ISO_TIME      "T[012]*[0-9](:*[0-5][0-9]){0,2}([\\.][0-9]{1,10})*" "(((\\+|\\-|" STR_UTF8_MINUS ")[0-9]{1,2}([:\\.]*[0-9]{1,2})*)" "|" "[A-Z]{3}" "|" "Z" ")*"
   #define RE_ISO_DAY_TIME  RE_ISO_DAY "(" RE_ISO_TIME ")*"
   #ifdef USE_ISO_EXTENSION
-    #define RE_ISO_PERIOD    "[PO](-*[0-9\\.]+[YMDW])*" "(T(-*[0-9\\.]+[HMS]))*"
+    #define RE_ISO_PERIOD    "([PO][0-9\\.]+[YMDW])*" "(T([0-9\\.]+[HMS]))*"
   #else
-    #define RE_ISO_PERIOD    "P(-*[0-9\\.]+[YMDW])*" "(T(-*[0-9\\.]+[HMS]))*"
+    #define RE_ISO_PERIOD    "(P[0-9\\.]+[YMDW])*" "(T([0-9\\.]+[HMS]))*"
   #endif
 #else
   #define RE_ISO_DAY_TIME  RE_ISO_DAY
   #ifdef USE_ISO_EXTENSION
-    #define RE_ISO_PERIOD    "[PO](-*[0-9\\.]+[YMDW])+"
+    #define RE_ISO_PERIOD    "([PO][0-9\\.]+[YMDW])+"
   #else
-    #define RE_ISO_PERIOD    "P(-*[0-9\\.]+[YMDW])+"
+    #define RE_ISO_PERIOD    "(P[0-9\\.]+[YMDW])+"
   #endif
 #endif
 

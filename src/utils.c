@@ -2866,6 +2866,10 @@ dt_parse_iso_period(const char* str, size_t len, double* yp, double* mp, double*
       if (fabs(i) < DBL_EPSILON) {
 	continue; /* value is zero */
       }
+      else if (i < DBL_EPSILON) {
+	/* value is negative */
+	return 0;
+      }
 
       if (t) {
 	/*! time parsing */
