@@ -4,7 +4,7 @@
 # duktape
 #
 
-IF (DUKTAPE_LIBRARY)
+IF (DUKTAPE_FOUND)
   OPTION (CXPROC_DUKTAPE "Enable support for linking cxproc with duktape." OFF)
 ENDIF ()
 

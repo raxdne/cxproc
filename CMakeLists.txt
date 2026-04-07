@@ -680,6 +680,10 @@ ENDIF (CXPROC_PTHREAD)
 # CURL
 #
 
+IF(CURL_FOUND)
+  OPTION (CXPROC_CURL "Enable support for compiling cxproc with curl." OFF)
+ENDIF ()
+
 IF(CXPROC_CURL)
   INCLUDE_DIRECTORIES(${CURL_INCLUDE_DIR})
 

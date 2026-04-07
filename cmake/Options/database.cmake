@@ -4,6 +4,10 @@
 # SQLite3 library
 #
 
+IF(SQLite3_FOUND)
+  OPTION (CXPROC_SQLITE3 "Enable support for compiling cxproc with sqlite3." OFF)
+ENDIF ()
+
 IF (CXPROC_SQLITE3)
   INCLUDE_DIRECTORIES(${SQLite3_INCLUDE_DIR})
 
