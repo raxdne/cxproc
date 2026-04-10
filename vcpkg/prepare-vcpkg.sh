@@ -59,9 +59,12 @@ git checkout 2026.03.18
 
 ./vcpkg integrate install
 
-./vcpkg --triplet $ARCH --x-install-root=$PREFIX_VCPKG --recurse install sqlite3 duktape cmark[tools]
-# curl[tool] zlib libzip liblzma libarchive pcre2 libxml2[tools] libxslt[tools]
-# libexif imagemagick libgif libjpeg libpng libtiff
+./vcpkg --triplet $ARCH --x-install-root=$PREFIX_VCPKG --recurse install zlib libzip liblzma libarchive pcre2 libxml2[tools] libxslt[tools] sqlite3 duktape cmark[tools] curl[tool] libexif
+# imagemagick libgif libjpeg libpng libtiff
+
+# cmake -DCMAKE_TOOLCHAIN_FILE=~/cxproc-build/vcpkg/scripts/buildsystems/vcpkg.cmake -S ~/cxproc-build/cxproc -B $DIR_BUILD -DCMAKE_BUILD_TYPE=Debug -DCXPROC_DOC:BOOL=OFF -DCXPROC_LEGACY:BOOL=OFF -DCXPROC_EXPERIMENTAL:BOOL=ON -DCXPROC_MARKDOWN:BOOL=OFF -DCXPROC_PCRE2:BOOL=OFF -DCXPROC_PETRINET:BOOL=OFF -DCXPROC_PIE:BOOL=OFF -DCXPROC_ARCHIVE:BOOL=OFF -DCXPROC_CURL:BOOL=OFF -DCXPROC_DUKTAPE:BOOL=OFF -DCXPROC_JSON:BOOL=OFF -DCXPROC_SQLITE3:BOOL=OFF -DCXPROC_TESTS:BOOL=ON
 
 # cmake -DCMAKE_TOOLCHAIN_FILE=~/cxproc-build/cxproc/cmake/mingw-w64-x86_64.cmake -S ~/cxproc-build/cxproc -B $DIR_BUILD -DCMAKE_BUILD_TYPE=Debug -DCXPROC_DOC:BOOL=OFF -DCXPROC_LEGACY:BOOL=OFF -DCXPROC_EXPERIMENTAL:BOOL=ON -DCXPROC_MARKDOWN:BOOL=OFF -DCXPROC_PCRE2:BOOL=OFF -DCXPROC_PETRINET:BOOL=OFF -DCXPROC_PIE:BOOL=OFF -DCXPROC_ARCHIVE:BOOL=OFF -DCXPROC_CURL:BOOL=OFF -DCXPROC_DUKTAPE:BOOL=OFF -DCXPROC_JSON:BOOL=OFF -DCXPROC_SQLITE3:BOOL=OFF -DCXPROC_TESTS:BOOL=ON
 
+# cmake --build $DIR_BUILD -j 4 --target all
+# cxproc filex cxproc-cgi cxproc-test 
