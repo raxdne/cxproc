@@ -46,6 +46,8 @@
 #include <petrinet/petrinet.h>
 #endif
 
+#define LIMIT_BLOCKS (1024)
+
 static void
 TraverseIncludeNodes(xmlNodePtr pndArg, cxpContextPtr pccArg);
 
@@ -760,7 +762,7 @@ ImportNodeStdin(xmlNodePtr pndArgImport, cxpContextPtr pccArg)
 
   prnInput = cxpResNodeResolveNew(NULL, pndArgImport, NULL, CXP_O_NONE);
   if (prnInput) {
-    pucContent = plainGetContextTextEat(prnInput, 1024);
+    pucContent = plainGetContextTextEat(prnInput, LIMIT_BLOCKS);
     if (pucContent) {
       int iLen;
       xmlDocPtr pdocContent;
@@ -874,7 +876,7 @@ ImportNodeFile(xmlNodePtr pndArgImport, cxpContextPtr pccArg)
 
 	if ((pucContent = cxpCtxtCacheGetBuffer(pccInput, resNodeGetNameNormalized(prnInput))) == NULL) {
 	  /* there is no cached Buffer */
-	  pucContent = plainGetContextTextEat(prnInput, 1024);
+	  pucContent = plainGetContextTextEat(prnInput, LIMIT_BLOCKS);
 	}
 
 	if (STR_IS_NOT_EMPTY(pucContent)) {
@@ -906,7 +908,7 @@ ImportNodeFile(xmlNodePtr pndArgImport, cxpContextPtr pccArg)
 
 	if ((pucContent = cxpCtxtCacheGetBuffer(pccInput, resNodeGetNameNormalized(prnInput))) == NULL) {
 	  /* there is no cached Buffer */
-	  pucContent = plainGetContextTextEat(prnInput, 1024);
+	  pucContent = plainGetContextTextEat(prnInput, LIMIT_BLOCKS);
 	}
 
 	if (STR_IS_NOT_EMPTY(pucContent)) {
@@ -954,7 +956,7 @@ ImportNodeFile(xmlNodePtr pndArgImport, cxpContextPtr pccArg)
 
 	if ((pucScript = cxpCtxtCacheGetBuffer(pccInput, resNodeGetNameNormalized(prnInput))) == NULL) {
 	  /* there is no cached Buffer */
-	  pucScript = plainGetContextTextEat(prnInput, 1024);
+	  pucScript = plainGetContextTextEat(prnInput, LIMIT_BLOCKS);
 	}
 
 	if (STR_IS_NOT_EMPTY(pucScript)) {
@@ -1256,7 +1258,7 @@ IncludeNodeFile(xmlNodePtr pndArgInclude, cxpContextPtr pccArg)
 
 	if ((pucContent = cxpCtxtCacheGetBuffer(pccInput, resNodeGetNameNormalized(prnInput))) == NULL) {
 	  /* there is no cached Buffer */
-	  pucContent = plainGetContextTextEat(prnInput, 1024);
+	  pucContent = plainGetContextTextEat(prnInput, LIMIT_BLOCKS);
 	}
 
 	if (STR_IS_NOT_EMPTY(pucContent)) {
@@ -1333,7 +1335,7 @@ IncludeNodeFile(xmlNodePtr pndArgInclude, cxpContextPtr pccArg)
 
 	if ((pucContent = cxpCtxtCacheGetBuffer(pccInput, resNodeGetNameNormalized(prnInput))) == NULL) {
 	  /* there is no cached Buffer */
-	  pucContent = plainGetContextTextEat(prnInput, 1024);
+	  pucContent = plainGetContextTextEat(prnInput, LIMIT_BLOCKS);
 	}
 
 	if (STR_IS_NOT_EMPTY(pucContent)) {

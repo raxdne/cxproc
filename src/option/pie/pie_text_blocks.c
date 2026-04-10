@@ -2187,7 +2187,7 @@ RecognizeDates(xmlNodePtr pndArg, RN_MIME_TYPE eMimeTypeArg)
 	}
       }
     }
-    else if (IS_NODE_PIE_IGNORE_TAGS(pndArg)) {
+    else if (IS_NODE_PIE_IGNORE_TAGS(pndArg) || IS_NODE_PIE_IMG(pndArg)) {
       /* skip */
     }
     else if (pndArg->type == XML_COMMENT_NODE || pndArg->type == XML_PI_NODE) {
@@ -2196,7 +2196,7 @@ RecognizeDates(xmlNodePtr pndArg, RN_MIME_TYPE eMimeTypeArg)
     else if (IS_VALID_NODE(pndArg) == FALSE || IS_NODE_HIDDEN(pndArg)) {
       /* skip */
     }
-    else if (IS_NODE_PIE_ETAG(pndArg) || IS_NODE_PIE_HTAG(pndArg) || IS_NODE_PIE_TTAG(pndArg) || IS_NODE_PIE_IMG(pndArg)) {
+    else if (IS_NODE_PIE_ETAG(pndArg) || IS_NODE_PIE_HTAG(pndArg) || IS_NODE_PIE_TTAG(pndArg)) {
       /* skip existing tag elements */
     }
     else if (IS_ENODE(pndArg) && (pndArg->ns==NULL || pndArg->ns==pnsPie)) {
@@ -2603,6 +2603,7 @@ TransformToTaskNode(xmlNodePtr pndArg)
 
 	  if (xmlStrEqual(pucT, BAD_CAST "done") || domGetPropFlag(pndTask, BAD_CAST "done", FALSE) ||
 	      (xmlStrEqual(pucT, BAD_CAST "todo") && IS_PIE_OK(pucLastContent))) {
+	    xmlSetProp(pndTask, BAD_CAST "class", BAD_CAST "todo");
 	    xmlSetProp(pndTask, BAD_CAST "state", BAD_CAST "done");
 	    xmlNewTextChild(pndTask, NULL, BAD_CAST NAME_PIE_TTAG, BAD_CAST "#done");
 	  }
@@ -2839,9 +2840,13 @@ TransformToFigureNode(xmlNodePtr pndArg)
 	  else {
 	    /* use filename as header */
 	    pucT = resPathGetRootnameStr(pucRelease);
-	    //pucT = xmlStrcat(pucT,BAD_CAST" ");
+	    if (STR_IS_EMPTY(pucT)) {
+	      xmlNodeSetContent(pndFirst, pucRelease);
+	    }
+	    else {
+	      xmlNodeSetContent(pndFirst, pucT);
+	    }
 	    domSetPropEat(pndImage, BAD_CAST "src", pucRelease);
-	    xmlNodeSetContent(pndFirst, pucT);
 	    xmlNodeSetName(pndArg, BAD_CAST NAME_PIE_HEADER);
 	  }
 

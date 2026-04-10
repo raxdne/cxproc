@@ -266,8 +266,7 @@ cmarkTreeToDOM(xmlNodePtr pndArgBlock, xmlNodePtr pndArg, cmark_node* pcmnArg)
     }
     else if (pcmnArg->type == CMARK_NODE_HTML_BLOCK) {
       if (StringBeginsWith((char *)pcmnArg->data, "<?")) {
-	xmlChar *pucT = xmlStrdup(BAD_CAST pcmnArg->data);
-
+	pucT = xmlStrdup(BAD_CAST pcmnArg->data);
 	pndT = xmlNewChild(pndArg, NULL, BAD_CAST NAME_PIE_PAR, NULL);
 	if (StringRemovePairOfChars(pucT, '<', '>')) {
 	  /* attribute href not required if it's same like display value */
@@ -454,8 +453,10 @@ ParseMarkdownBuffer(xmlNodePtr pndArgImport, xmlChar* pucArg)
 
   if (STR_IS_NOT_EMPTY(pucArg)) {
     cmark_node *doc;
+    size_t l = strlen((const char *)pucArg);
 
-    if ((doc = cmark_parse_document((const char *)pucArg, strlen((const char *)pucArg), CMARK_OPT_DEFAULT)) != NULL) {
+    if ((doc = cmark_parse_document((const char *)pucArg, l, CMARK_OPT_DEFAULT)) != NULL) {
+      PrintFormatLog(3, "Markdown Block in Byte: %i", l);
       pndResult = cmarkTreeToDOM(NULL, pndResult, doc);
       cmark_node_free(doc);
     }
