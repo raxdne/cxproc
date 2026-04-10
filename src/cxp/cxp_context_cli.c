@@ -559,7 +559,24 @@ cxpCtxtCliParse(cxpContextPtr pccArg)
 	  xmlFree(pucPattern);
 	}
       }
-      else if (xmlStrEqual(pucArgvFirst, BAD_CAST"-v")) {
+      else if (xmlStrEqual(pucArgvFirst, BAD_CAST "-i")) { 
+	/* build an include tree of cxp files */
+	int i;
+
+	for (i = j+1; i < iArgCount; i++) {
+	  pucRelease = cxpCtxtCliGetValue(pccArg, i);
+	  if (STR_IS_NOT_EMPTY(pucRelease)) {
+	      /*
+		it's a name of an include XML, existing or not!
+	      */
+	      pndXml = xmlNewChild(pndMake, NULL, BAD_CAST NAME_INCLUDE, NULL);
+	      //xmlSetProp(pndXml, BAD_CAST "search", BAD_CAST "yes");
+	      domSetPropEat(pndXml, BAD_CAST "name", pucRelease);
+	  }
+	}
+	fResult = FALSE;
+      }
+      else if (xmlStrEqual(pucArgvFirst, BAD_CAST "-v")) {
 	/*! search for files an validate them
 	 */
 	int i;
