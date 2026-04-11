@@ -25,7 +25,6 @@
 #include <limits.h>
 
 #include <libxml/parser.h>
-#include <libxml/parserInternals.h>
 
 #include "basics.h"
 #include "utils.h"
@@ -316,7 +315,7 @@ StringDecodeNumericCharsNew(xmlChar *pucArg)
 	  k += j;
 	}
 	else {
-	  j = xmlCopyCharMultiByte(&pucResult[k], iCode);
+	  j = CopyCharMultiByte(&pucResult[k], iCode);
 	  assert(j > 0);
 	  k += j;
 	  i = (int)(pucT - pucArg - 1);
@@ -1316,8 +1315,38 @@ GetPositionISO6709(const char *pchArg,double *pdArgLatitude,double *pdArgLongitu
 /* end of GetPositionISO6709() */
 
 
+/*!\return number of copied Bytes of the multi-byte character for val
+
+  Replacement for xmlCopyCharMultiByte()
+
+  RISK: end of buffer pucArg
+ */
+int
+CopyCharMultiByte(xmlChar *pucArg, int val)
+{
+  int iResult = 0; /* error by default */
+
+  if (pucArg != NULL && val > -1) {
+    xmlChar *pucCode;
+
+    pucCode = GetUTF8Bytes(val);
+    if (pucCode != NULL) {
+      size_t k;
+
+      k = strlen((const char *)pucCode); /* as BYTE length */
+      if (k > 0 && k < 8) {
+	memcpy(pucArg, pucCode, k);
+	iResult = k;
+      }
+      xmlFree(pucCode);
+    }
+  }
+  return iResult;
+} /* end of CopyCharMultiByte() */
+
+
 /**
- * derived from xmlCopyCharMultiByte()
+ * derived from libxml2/src/parserInternals.c/xmlCopyCharMultiByte()
 
  * @val:  the char value
  *
@@ -1326,49 +1355,49 @@ GetPositionISO6709(const char *pchArg,double *pdArgLatitude,double *pdArgLongitu
 xmlChar *
 GetUTF8Bytes(int val)
 {
-  xmlChar *out;
+  xmlChar *out = NULL;
 
-  out = BAD_CAST xmlMalloc(10);
-  if (out) {
-    /*
-     * We are supposed to handle UTF8, check it's valid
-     * From rfc2044: encoding of the Unicode values on UTF-8:
-     *
-     * UCS-4 range (hex.)           UTF-8 octet sequence (binary)
-     * 0000 0000-0000 007F   0xxxxxxx
-     * 0000 0080-0000 07FF   110xxxxx 10xxxxxx
-     * 0000 0800-0000 FFFF   1110xxxx 10xxxxxx 10xxxxxx
-     */
-    if  (val >= 0x80) {
-      xmlChar *savedout = out;
-      int bits;
+  if (val > -1) {
+    out = BAD_CAST xmlMalloc(10);
+    if (out) {
+      /*
+       * We are supposed to handle UTF8, check it's valid
+       * From rfc2044: encoding of the Unicode values on UTF-8:
+       *
+       * UCS-4 range (hex.)           UTF-8 octet sequence (binary)
+       * 0000 0000-0000 007F   0xxxxxxx
+       * 0000 0080-0000 07FF   110xxxxx 10xxxxxx
+       * 0000 0800-0000 FFFF   1110xxxx 10xxxxxx 10xxxxxx
+       */
+      if (val >= 0x80) {
+	xmlChar *savedout = out;
+	int bits;
 
-      if (val < 0x800) {
-	*out++= (val >>  6) | 0xC0;
-	bits=  0;
-      }
-      else if (val < 0x10000) {
-	*out++= (val >> 12) | 0xE0;
-	bits=  6;
-      }
-      else if (val < 0x110000) {
-	*out++= (val >> 18) | 0xF0;
-	bits=  12;
+	if (val < 0x800) {
+	  *out++ = (val >> 6) | 0xC0;
+	  bits = 0;
+	}
+	else if (val < 0x10000) {
+	  *out++ = (val >> 12) | 0xE0;
+	  bits = 6;
+	}
+	else if (val < 0x110000) {
+	  *out++ = (val >> 18) | 0xF0;
+	  bits = 12;
+	}
+	else {
+	  PrintFormatLog(1, "Internal error, GetUTF8Bytes(0x%X) out of bound\n", val);
+	  xmlFree(savedout);
+	  return NULL;
+	}
+	for (; bits >= 0; bits -= 6) { *out++ = ((val >> bits) & 0x3F) | 0x80; }
+	savedout[out - savedout] = (xmlChar)'\0'; /* string termination */
+	out = savedout;
       }
       else {
-	PrintFormatLog(1,"Internal error, GetUTF8Bytes(0x%X) out of bound\n",val);
-	xmlFree(savedout);
-	return NULL;
+	*out = (xmlChar)val; /* simple ASCII codes */
+	out[1] = (xmlChar)'\0';
       }
-      for ( ; bits >= 0; bits-= 6) {
-	*out++= ((val >> bits) & 0x3F) | 0x80 ;
-      }
-      savedout[out - savedout] = (xmlChar) '\0'; /* string termination */
-      out = savedout;
-    }
-    else {
-      *out = (xmlChar) val;
-      out[1] = (xmlChar) '\0';
     }
   }
   return out;

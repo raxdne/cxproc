@@ -156,7 +156,6 @@ main(int argc, char *argv[], char *envp[])
   /* register for exit() */
   if (atexit(xsltCleanupGlobals) != 0
       || atexit(xmlCleanupParser) != 0
-      || atexit(xmlMemoryDump) != 0
       || atexit(domCleanup) != 0
       || atexit(cxpCleanup) != 0
       || atexit(cgi_quit) != 0

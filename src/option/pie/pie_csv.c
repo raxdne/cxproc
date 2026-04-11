@@ -385,7 +385,7 @@ AddTableColumnNames(xmlNodePtr pndArg)
     xmlNodePtr pndTableHeader;
     xmlNodePtr pndTableBody;
 
-    pndTableHeader = domGetFirstChild(pndArg, NAME_PIE_THEAD);
+    pndTableHeader = domGetFirstChild(pndArg, BAD_CAST NAME_PIE_THEAD);
     if (pndTableHeader) {
       domUnlinkNodeList(pndTableHeader);
     }
@@ -393,14 +393,14 @@ AddTableColumnNames(xmlNodePtr pndArg)
       /* table header does not yet exist */
       int j;
 
-      pndTableHeader = xmlNewNode(NULL, NAME_PIE_THEAD);
-      pndT = xmlNewChild(pndTableHeader, NULL, NAME_PIE_TR, NULL);
+      pndTableHeader = xmlNewNode(NULL, BAD_CAST NAME_PIE_THEAD);
+      pndT = xmlNewChild(pndTableHeader, NULL, BAD_CAST NAME_PIE_TR, NULL);
 #if 1
       for (j = 0; j < i; j++) {
 	xmlChar mucT[128];
 
 	xmlStrPrintf(mucT, sizeof(mucT), "%i", j+1);
-	xmlNewChild(pndT, NULL, NAME_PIE_TH, mucT);
+	xmlNewChild(pndT, NULL, BAD_CAST NAME_PIE_TH, mucT);
       }
 #else
       for (j = 0; j < i; j++) {
@@ -423,12 +423,12 @@ AddTableColumnNames(xmlNodePtr pndArg)
 #endif
     }
 
-    pndTableBody = domGetFirstChild(pndArg, NAME_PIE_TBODY);
+    pndTableBody = domGetFirstChild(pndArg, BAD_CAST NAME_PIE_TBODY);
     if (pndTableBody) {
       domUnlinkNodeList(pndTableBody);
     }
     else {
-      pndTableBody = xmlNewNode(NULL, NAME_PIE_TBODY);
+      pndTableBody = xmlNewNode(NULL, BAD_CAST NAME_PIE_TBODY);
       pndT = pndArg->children;
       domUnlinkNodeList(pndT);
       xmlAddChildList(pndTableBody, pndT);

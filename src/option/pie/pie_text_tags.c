@@ -363,7 +363,7 @@ RecognizeHashtags(xmlNodePtr pndArg, pcre2_code* preArgHashTag, pcre2_code* preA
 
       pndNext = (pndIter != NULL) ? pndIter->next : NULL;
 
-      if (xmlNodeIsText(pndIter) && (pucT = pndIter->content) != NULL) { /* pndIter is a text node */
+      if (pndIter != NULL && xmlNodeIsText(pndIter) && (pucT = pndIter->content) != NULL) { /* pndIter is a text node */
 	xmlNodePtr pndReplace;
 
 	pndReplace = SplitToTagNodes(pucT, preArgHashTag, preArgBlockTag);

@@ -23,7 +23,6 @@
 /* 
  */
 #include <libxml/tree.h>
-#include <libxml/parserInternals.h>
 
 /* 
  */
@@ -1977,7 +1976,7 @@ StringDecodeCharMarkupNew(xmlChar *pucArg, lang_t eLangArg)
 	/* numeric character reference detected */
 	int j;
 
-	j = xmlCopyCharMultiByte(&pucResult[k], iCode);
+	j = CopyCharMultiByte(&pucResult[k], iCode);
 	assert(j > 0 && j < 8);
 	//assert(j <= l);
 
@@ -2564,7 +2563,7 @@ TransformToTaskNode(xmlNodePtr pndArg)
 	  pucLastContent = xmlStrdup(pndArg->last->content);
 	}
 
-	pndTask = xmlNewNode(NULL, NAME_PIE_TASK);
+	pndTask = xmlNewNode(NULL, BAD_CAST NAME_PIE_TASK);
 	xmlAddPrevSibling(pndArg, pndTask);
 	xmlUnlinkNode(pndArg);
 	xmlNodeSetName(pndArg, BAD_CAST NAME_PIE_HEADER);
@@ -2646,7 +2645,7 @@ PrintNodeName(xmlNodePtr pndArg)
 {
   xmlNodePtr pndResult = NULL;
   if (pndArg) {
-	fputs(pndArg->name,stdout);
+	fputs((const char *)pndArg->name,stdout);
   }
   return pndResult;
 } /* End of PrintNodeName() */
@@ -2750,7 +2749,7 @@ TransformToFigureNode(xmlNodePtr pndArg)
   xmlNodePtr pndResult = NULL;
   xmlNodePtr pndFirst;
 
-  if (IS_NODE_PIE_PAR(pndArg) && IS_VALID_NODE(pndArg) && ! IS_NODE_PIE_LIST(pndArg->parent) && (pndFirst = domGetFirstChild(pndArg, NAME_PIE_IMG)) != NULL && domNodeIsSingleElementChild(pndFirst)) {
+  if (IS_NODE_PIE_PAR(pndArg) && IS_VALID_NODE(pndArg) && ! IS_NODE_PIE_LIST(pndArg->parent) && (pndFirst = domGetFirstChild(pndArg, BAD_CAST NAME_PIE_IMG)) != NULL && domNodeIsSingleElementChild(pndFirst)) {
     xmlChar *pucT;
 
     pndResult = pndArg->next;
@@ -2815,7 +2814,7 @@ TransformToFigureNode(xmlNodePtr pndArg)
 	  pucRelease = xmlStrndup(pucSubstr + ovector[4], (int)(ovector[5] - ovector[4]));
 	  PrintFormatLog(4, "fig '%s' (%i..%i) in '%s'", pucRelease, ovector[0], ovector[1], pucSubstr);
 
-	  pndFigure = xmlNewNode(NULL, NAME_PIE_FIG);
+	  pndFigure = xmlNewNode(NULL, BAD_CAST NAME_PIE_FIG);
 	  xmlAddPrevSibling(pndArg, pndFigure);
 	  xmlUnlinkNode(pndArg);
 

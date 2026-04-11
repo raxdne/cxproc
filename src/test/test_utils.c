@@ -361,6 +361,48 @@ utilsTest(void)
 
 
   if (RUNTEST) {
+    xmlChar *pucA = NULL;
+    xmlChar *pucB = NULL;
+//    xmlChar *pucC = NULL;
+    xmlChar *pucD = NULL;
+    int k;
+
+    i++;
+    printf("TEST %i in '%s:%i': GetUTF8Bytes() = ", i, __FILE__, __LINE__);
+
+    if ((pucA = GetUTF8Bytes(-1)) != NULL) {
+      printf("ERROR 1\n");
+    }
+    else if ((pucA = GetUTF8Bytes(0x2714)) == NULL || pucA[0] != 0xE2 || pucA[1] != 0x9C || pucA[2] != 0x94 || pucA[3] != 0) {
+      printf("ERROR 2\n");
+    }
+    else if ((pucB = xmlStrdup(BAD_CAST "AAA ")) == NULL) {
+      printf("ERROR 2\n");
+    }
+    else if ((pucB = xmlStrcat(pucB, pucA)) == NULL || xmlStrEqual(pucB, BAD_CAST "AAA ✔") == FALSE) {
+      printf("ERROR 4\n");
+    }
+//    else if ((pucC = GetUTF8Bytes(0x201C)) == NULL || pucC[0] != 0xE2 || pucC[1] != 0x80 || pucC[2] != 0x9C || pucC[3] != 0) {
+//      printf("ERROR 3\n");
+//    }
+    else if ((pucD = xmlStrdup(BAD_CAST "AAA ")) == NULL) {
+      printf("ERROR 2\n");
+    }
+    else if ((k = CopyCharMultiByte(&pucD[4], 0x2714)) != 3 || xmlStrEqual(pucB, pucD) == FALSE) {
+      printf("ERROR 4\n");
+    }
+    else {
+      n_ok++;
+      printf("OK\n");
+    }
+    xmlFree(pucD);
+//    xmlFree(pucC);
+    xmlFree(pucB);
+    xmlFree(pucA);
+  }
+
+
+  if (RUNTEST) {
     /* static references */
     xmlChar* pucTestA = BAD_CAST"invalid: &#; or &#x; or \\u \\U &#144;";
     xmlChar* pucTestB = BAD_CAST"valid: &#13; <= &#x21D2; <=> \\u21D2 => &#x2014; \\U2014";

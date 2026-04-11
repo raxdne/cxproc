@@ -149,6 +149,9 @@ GetSelectedFileName(xmlChar *pucArgMsg, xmlChar *pucArgPath);
 extern int
 chomp(unsigned char *c);
 
+extern int
+CopyCharMultiByte(xmlChar *pucArg, int val);
+
 extern xmlChar *
 GetUTF8Bytes(int val);
 

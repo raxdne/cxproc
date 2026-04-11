@@ -248,7 +248,7 @@ cmarkTreeToDOM(xmlNodePtr pndArgBlock, xmlNodePtr pndArg, cmark_node* pcmnArg)
 	      xmlChar *pucTT;
 	      
 	      pucTT = xmlStrndup(&pucT[j], i - j);
-	      if (StringBeginsWith(pucTT, "#subst")) {
+	      if (StringBeginsWith((char *)pucTT, "#subst")) {
 		pndT = xmlNewChild(pndArg, NULL, BAD_CAST NAME_PIE_PAR, pucTT);
 	      }
 	      xmlFree(pucTT);
