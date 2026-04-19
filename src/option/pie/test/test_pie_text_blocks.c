@@ -1092,6 +1092,7 @@ pieTextBlocksTest(void)
 
 
   if (RUNTEST) {
+    int k;
     xmlNodePtr pndPie;
     xmlNodePtr pndT = NULL;
 
@@ -1116,8 +1117,20 @@ pieTextBlocksTest(void)
     else if ((pndT = SplitStringToDateNodes(BAD_CAST"2013-10-11,10-14,01-14 and ", MIME_TEXT_PLAIN)) == NULL || xmlAddChildList(pndPie, pndT) == NULL) {
       printf("Error 2 SplitStringToDateNodes()\n");
     }
-    else if ((pndT = SplitStringToDateNodes(BAD_CAST"2016/2017 ",MIME_TEXT_PLAIN)) == NULL || xmlAddChildList(pndPie, pndT) == NULL) {
+    else if ((pndT = SplitStringToDateNodes(BAD_CAST"20160107/20170208 ",MIME_TEXT_PLAIN)) == NULL || xmlAddChildList(pndPie, pndT) == NULL) {
       printf("Error 4 SplitStringToDateNodes()\n");
+      xmlFreeNode(pndT);
+    }
+    else if ((pndT = SplitStringToDateNodes(BAD_CAST"PT2H/20170208T160000 ",MIME_TEXT_PLAIN)) == NULL || xmlAddChildList(pndPie, pndT) == NULL) {
+      printf("Error 4c SplitStringToDateNodes()\n");
+      xmlFreeNode(pndT);
+    }
+    else if ((pndT = SplitStringToDateNodes(BAD_CAST"20160107T10/20170208T160000 ",MIME_TEXT_PLAIN)) == NULL || xmlAddChildList(pndPie, pndT) == NULL) {
+      printf("Error 4a SplitStringToDateNodes()\n");
+      xmlFreeNode(pndT);
+    }
+    else if ((pndT = SplitStringToDateNodes(BAD_CAST"2016/2017 ",MIME_TEXT_PLAIN)) == NULL || xmlAddChildList(pndPie, pndT) == NULL) {
+      printf("Error 4b SplitStringToDateNodes()\n");
       xmlFreeNode(pndT);
     }
 #if EXPERIMENTAL
@@ -1134,9 +1147,8 @@ pieTextBlocksTest(void)
       xmlFreeNode(pndT);
     }
 #endif
-    else if (domNumberOfChild(pndPie, BAD_CAST NAME_PIE_DATE) != 14) {
-      printf("Error 9 SplitStringToDateNodes()\n");
-      xmlFreeNode(pndT);
+    else if ((k = domNumberOfChild(pndPie, BAD_CAST NAME_PIE_DATE)) != 17) {
+      printf("Error 9 SplitStringToDateNodes(): %i\n",k);
     }
     else {
       n_ok++;
