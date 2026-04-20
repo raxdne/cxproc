@@ -515,6 +515,11 @@ pieProcessPieNode(xmlNodePtr pndArgPie, cxpContextPtr pccArg)
     ProcessImportOptions(pndPieRoot, pndArgPie, pccArg); /* detect urls, substs etc. */
     ProcessPieNodeOptions(pndPieRoot, pndArgPie, pccArg); /* build sub-structures for task, fig etc. */
 
+    if (domGetPropFlag(pndArgPie, BAD_CAST "locator", TRUE)) {
+      /* add additional attributes for navigation */
+      SetPropXpathInBlock(pndBlock, NULL);
+    }
+
     pucAttr = domGetPropValuePtr(pndArgPie, BAD_CAST "xpath"); /* extract requested XPath as resulting DOM */
     if (STR_IS_NOT_EMPTY(pucAttr) && xmlStrEqual(pucAttr,BAD_CAST"/*") == FALSE) {
       xmlDocPtr pdocResultXPath;
@@ -1845,7 +1850,7 @@ SetPropXpathInBlock(xmlNodePtr pndArg, xmlChar* pucArgPrefix)
       else {
 	xmlChar mucT[BUFFER_LENGTH];
 
-	xmlStrPrintf(mucT, BUFFER_LENGTH, "%s/*[%i]", (pucArgPrefix == NULL ? BAD_CAST "/*" : pucArgPrefix), i);
+	xmlStrPrintf(mucT, BUFFER_LENGTH, "%s/*[%i]", (pucArgPrefix == NULL ? BAD_CAST "" : pucArgPrefix), i);
 	xmlSetProp(pndChild, BAD_CAST "bxpath", mucT);
 
 	if (IS_NODE_PIE_PAR(pndChild) || IS_NODE_PIE_HEADER(pndChild) || IS_NODE_PIE_TABLE(pndChild)) {
