@@ -242,7 +242,15 @@ resNodeContentToDOM(xmlNodePtr pndArg, resNodePtr prnArg)
 	  xmlNodePtr pndRootResult;
 	  
 	  if ((pndRootResult = xmlDocGetRootElement(pdocResult)) != NULL) {
-	    xmlAddChild(pndArg, xmlCopyNode(pndRootResult,1));
+	    xmlNodePtr pndRootCopy;
+
+	    pndRootCopy = xmlCopyNode(pndRootResult, 1);
+	    if (pndRootCopy) {
+	      //if (domGetPropFlag(pndArg, BAD_CAST "locator", TRUE)) {
+	      //  domSetPropXpath(pndRootCopy, BAD_CAST "xpath", NULL);
+	      //}
+	      xmlAddChild(pndArg, pndRootCopy);
+	    }
 	  }
 	  else {
 	    xmlSetProp(pndArg, BAD_CAST "error", BAD_CAST "parse");

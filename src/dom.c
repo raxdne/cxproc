@@ -664,84 +664,23 @@ domUnsetPropAll(xmlNodePtr pndArg)
 } /* End of domUnsetPropAll() */
 
 
-/*! Adds locator attribute to all descendant element nodes.
-
-\param pndArg pointer to node to add attribute
-\param pucArg pointer to locator string for childs
- */
-void
-domUnsetPropFileLocator(xmlNodePtr pndArg)
-{
-  if (IS_NODE_META(pndArg) || IS_NODE_ERROR(pndArg)) {
-  }
-  else if (IS_ENODE(pndArg)) {
-    xmlNodePtr pndChild;
-    for (pndChild = pndArg->children; pndChild != NULL; pndChild = pndChild->next) {
-      xmlUnsetProp(pndChild,BAD_CAST"flocator");
-      xmlUnsetProp(pndChild,BAD_CAST"fxpath");
-      domUnsetPropFileLocator(pndChild);
-    }
-  }
-}
-/* End of domUnsetPropFileLocator() */
-
-
-/*! Adds locator attribute to all descendant element nodes.
-
-\param pndArg pointer to node to add attribute
-\param pucArg pointer to locator string for childs
- */
-void
-domSetPropFileLocator(xmlNodePtr pndArg, xmlChar *pucArg)
-{
-  if (pucArg == NULL || isend(*pucArg)) {
-    /* no usable value, dont set the attribute, no recursion */
-  }
-  else if (IS_NODE_META(pndArg) || IS_NODE_ERROR(pndArg)) {
-  }
-  else if (IS_ENODE(pndArg)) {
-    xmlNodePtr pndChild;
-    for (pndChild = pndArg->children; pndChild != NULL; pndChild = pndChild->next) {
-      if (IS_NODE_PIE_SECTION(pndChild) || IS_NODE(pndChild,BAD_CAST"node")) {
-	xmlSetProp(pndChild,BAD_CAST"flocator",pucArg);
-	domSetPropFileLocator(pndChild,pucArg);
-      }
-      else if (FALSE
-#ifdef HAVE_PIE
-	|| IS_NODE_PIE_TASK(pndChild)
-	|| IS_NODE_PIE_TARGET(pndChild)
-	|| IS_NODE_PIE_PRE(pndChild)
-#endif
-#ifdef HAVE_PETRINET
-	|| IS_NODE_PKG2_STATE(pndChild)
-	|| IS_NODE_PKG2_TRANSITION(pndChild)
-	|| IS_NODE_PKG2_REQUIREMENT(pndChild)
-#endif
-	) {
-	xmlSetProp(pndChild,BAD_CAST"flocator",pucArg);
-      }
-      else {
-	domSetPropFileLocator(pndChild,pucArg);
-      }
-    }
-  }
-}
-/* End of domSetPropFileLocator() */
-
-
 /*! Adds XPath attribute to all descendant element nodes.
 
 \param pndArg pointer to node to add attribute
 \param pucArgPrefix pointer to XPath prefix for childs
  */
 void
-domSetPropFileXpath(xmlNodePtr pndArg, xmlChar* pucArgName, xmlChar* pucArgPrefix)
+domSetPropXpath(xmlNodePtr pndArg, xmlChar* pucArgName, xmlChar* pucArgPrefix)
 {
   if (IS_NODE_META(pndArg) || IS_NODE_ERROR(pndArg)) {
   }
   else if (IS_ENODE(pndArg)) {
     xmlNodePtr pndChild;
     int i=0;
+
+    if (pucArgPrefix == NULL) {
+      xmlSetProp(pndArg, pucArgName, BAD_CAST "/*");
+    }
 
     for (pndChild = pndArg->children; pndChild != NULL; pndChild = pndChild->next) {
 
@@ -752,13 +691,13 @@ domSetPropFileXpath(xmlNodePtr pndArg, xmlChar* pucArgName, xmlChar* pucArgPrefi
 	i++;
 	xmlStrPrintf(mucT, BUFFER_LENGTH, "%s/*[%i]", (pucArgPrefix==NULL ? BAD_CAST "/*" : pucArgPrefix), i);
 	xmlSetProp(pndChild, pucArgName, mucT);
-	domSetPropFileXpath(pndChild, pucArgName, mucT);
+	domSetPropXpath(pndChild, pucArgName, mucT);
 #else
 	xmlChar* pucT = xmlGetNodePath(pndChild);
 
 	xmlSetProp(pndChild, pucArgName, pucT);
 	xmlFree(pucT);
-	domSetPropFileXpath(pndChild, pucArgName, pucT);
+	domSetPropXpath(pndChild, pucArgName, pucT);
 #endif
       }
     }

@@ -69,13 +69,7 @@ extern xmlDocPtr
 domGetXPathDoc(xmlDocPtr pdocArg, xmlChar *pucArg);
 
 extern void
-domUnsetPropFileLocator(xmlNodePtr pndArg);
-
-extern void
-domSetPropFileLocator(xmlNodePtr pndArg, xmlChar *pucArg);
-
-extern void
-domSetPropFileXpath(xmlNodePtr pndArg, xmlChar *pucArgName, xmlChar *pucArgPrefix);
+domSetPropXpath(xmlNodePtr pndArg, xmlChar *pucArgName, xmlChar *pucArgPrefix);
 
 #ifdef DEBUG
 extern int

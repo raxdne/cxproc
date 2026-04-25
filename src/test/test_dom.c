@@ -562,11 +562,11 @@ domTest(void)
     xmlNodePtr pndRoot;
 
     i++;
-    printf("TEST %i in '%s:%i': domSetPropFileXpath() = ",i,__FILE__,__LINE__);
+    printf("TEST %i in '%s:%i': domSetPropXpath() = ",i,__FILE__,__LINE__);
 
     pdocT = xmlParseFile(TESTPREFIX "option/pie/text/test-pie-14.pie");
     pndRoot = xmlDocGetRootElement(pdocT);
-    domSetPropFileXpath(pndRoot,BAD_CAST"xpath",NULL);
+    domSetPropXpath(pndRoot,BAD_CAST"xpath",NULL);
     if (domGetPropValuePtr(pndRoot->children,BAD_CAST"xpath")) {
       //domPutDocString(stderr,pdocT,BAD_CAST"cxpAddXpath()");
       n_ok++;
@@ -576,31 +576,6 @@ domTest(void)
       printf("Error \n");
     }
     xmlFreeDoc(pdocT);
-  }
-
-  if (RUNTEST) {
-    xmlDocPtr pdocTest;
-    xmlNodePtr pndRoot;
-
-    i++;
-    printf("TEST %i in '%s:%i': domSetPropFileLocator() and domSetPropFileXpath() = ",i,__FILE__,__LINE__);
-
-    pdocTest = xmlParseFile(TESTPREFIX "option/pie/text/test-pie-14.pie");
-    pndRoot = xmlDocGetRootElement(pdocTest);
-
-    domSetPropFileLocator(pndRoot,BAD_CAST pdocTest->URL);
-    domSetPropFileXpath(pndRoot,BAD_CAST"fxpath",BAD_CAST"//");
-    if (xmlStrEqual(domGetPropValuePtr(pndRoot->children,BAD_CAST"flocator"),pdocTest->URL)) {
-      xmlSaveFormatFileEnc(TEMPPREFIX "test-pie-14-locator.pie",pdocTest,"UTF-8",1);
-      domUnsetPropFileLocator(pndRoot);
-      xmlSaveFormatFileEnc(TEMPPREFIX "test-pie-14-locator-removed.pie",pdocTest,"UTF-8",1);
-      n_ok++;
-      printf("OK\n");
-    }
-    else {
-      printf("Error\n");
-    }
-    xmlFreeDoc(pdocTest);
   }
 
 

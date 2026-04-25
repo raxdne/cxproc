@@ -740,7 +740,7 @@ cxpCtxtCliParse(cxpContextPtr pccArg)
 	    xmlSetProp(pndPie, BAD_CAST "figure", BAD_CAST "yes");
 	    xmlSetProp(pndPie, BAD_CAST "import", BAD_CAST "yes");
 	    xmlSetProp(pndPie, BAD_CAST "script", BAD_CAST "yes");
-	    xmlSetProp(pndPie, BAD_CAST "locators", BAD_CAST "no");
+	    xmlSetProp(pndPie, BAD_CAST "locator", BAD_CAST "no");
 	    
 	    pndImport = xmlNewChild(pndPie, NULL, BAD_CAST NAME_PIE_IMPORT, NULL);
 	    if (resNodeIsFile(prnContent) && resNodeIsExist(prnContent)) {

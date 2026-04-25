@@ -1515,8 +1515,8 @@ cxpProcessXmlNode(xmlNodePtr pndArg, cxpContextPtr pccArg)
 	    xmlNodePtr pndRoot;
 
 	    pndRoot = xmlDocGetRootElement(pdocResult);
-	    domSetPropFileLocator(pndRoot,resNodeGetNameRelative(cxpCtxtRootGet(pccArg),prnFile));
-	    domSetPropFileXpath(pndRoot,BAD_CAST"fxpath",NULL);
+	    xmlSetProp(pndRoot, BAD_CAST "context", resNodeGetNameRelative(cxpCtxtRootGet(pccArg), prnFile));
+	    domSetPropXpath(pndRoot, BAD_CAST"fxpath", NULL);
 	  }
 	  cxpCtxtCacheAppendResNodeEat(pccArg,prnFile);
 	}
@@ -1550,11 +1550,11 @@ cxpProcessXmlNode(xmlNodePtr pndArg, cxpContextPtr pccArg)
 	cxpCtxtLogPrint(pccArg,4, "No Schema Validation requested");
       }
 
-      if (domGetPropFlag(pndArg,BAD_CAST "xpath",FALSE)) {
+      if (domGetPropFlag(pndArg,BAD_CAST "locator",FALSE)) {
 	pndRoot = xmlDocGetRootElement(pdocResult);
 	if (pndRoot) {
 	  cxpCtxtLogPrint(pccArg,2,"Add XPath attribute to every element");
-	  domSetPropFileXpath(pndRoot,BAD_CAST"xpath",NULL);
+	  domSetPropXpath(pndRoot,BAD_CAST"xpath",NULL);
 	}
       }
     }
