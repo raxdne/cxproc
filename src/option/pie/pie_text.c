@@ -88,7 +88,7 @@ static BOOL_T
 ImportNodeStdin(xmlNodePtr pndArgImport, cxpContextPtr pccArg);
 
 static void
-SetPropXpathInBlock(xmlNodePtr pndArg, xmlChar* pucArgPrefix);
+SetPropXpathPerBlock(xmlNodePtr pndArg, xmlChar* pucArgPrefix);
 
 static lang_t
 GetPieNodeLang(xmlNodePtr pndArg, cxpContextPtr pccArg);
@@ -515,31 +515,6 @@ pieProcessPieNode(xmlNodePtr pndArgPie, cxpContextPtr pccArg)
     ProcessImportOptions(pndPieRoot, pndArgPie, pccArg); /* detect urls, substs etc. */
     ProcessPieNodeOptions(pndPieRoot, pndArgPie, pccArg); /* build sub-structures for task, fig etc. */
 
-    if (domGetPropFlag(pndArgPie, BAD_CAST "locator", TRUE)) {
-      /* add additional attributes for navigation */
-      SetPropXpathInBlock(pndBlock, NULL);
-    }
-
-    pucAttr = domGetPropValuePtr(pndArgPie, BAD_CAST "xpath"); /* extract requested XPath as resulting DOM */
-    if (STR_IS_NOT_EMPTY(pucAttr) && xmlStrEqual(pucAttr,BAD_CAST"/*") == FALSE) {
-      xmlDocPtr pdocResultXPath;
-      
-      cxpCtxtLogPrint(pccArg, 2, "Locator XPath for '%s'", pucAttr);
-      if ((pdocResultXPath = domGetXPathDoc(pdocResult, pucAttr)) != NULL) {
-	xmlChar* pucRegExpTag = NULL;
-
-	/* collect all NAME_PIE_PI_TAG in current DOM and add result to sub-DOM pdocResultXPath */
-	if ((pndPieRoot = xmlDocGetRootElement(pdocResultXPath)) != NULL
-	  && (pucRegExpTag = GetBlockTagRegExpStr(xmlDocGetRootElement(pdocResult), NULL, TRUE)) != NULL) {
-	  xmlAddChild(pndPieRoot, xmlNewPI(BAD_CAST NAME_PIE_PI_TAG, pucRegExpTag));
-	  xmlFree(pucRegExpTag);
-	}
-
-	xmlFreeDoc(pdocResult);
-	pdocResult = pdocResultXPath;
-      }
-    }
-
     pndMeta = xmlNewChild(pndPieRoot, NULL, BAD_CAST NAME_META, NULL);
     xmlSetTreeDoc(pndMeta, pdocResult);
     
@@ -937,6 +912,12 @@ ImportNodeFile(xmlNodePtr pndArgImport, cxpContextPtr pccArg)
 	    RecognizeImports(pndArgImport);
 	    ProcessImportOptions(pndArgImport, pndArgImport, pccArg); /* detect urls, substs etc. */
 	    TraverseImportNodes(pndArgImport, pccInput); /* parse result recursively */
+#ifdef HAVE_CGI
+	    if (domGetAncestorsPropFlag(pndArgImport, BAD_CAST "locator", TRUE)) {
+	      cxpCtxtLogPrint(pccArg, 2, "Adding block-related XPath attributes for addressing");
+	      SetPropXpathPerBlock(pndArgImport, NULL);
+	    }
+#endif
 	  }
 	  else {
 	    xmlSetProp(pndArgImport, BAD_CAST "error", BAD_CAST "parse");
@@ -1582,22 +1563,6 @@ ProcessPieNodeOptions(xmlNodePtr pndArgPie, xmlNodePtr pndArgImport, cxpContextP
     else {
       cxpCtxtLogPrint(pccArg, 3, "Ignoring tasks markup");
     }
-
-    if (domGetPropFlag(pndArgImport, BAD_CAST "locators", FALSE)) {
-      resNodePtr prnDoc;
-
-      cxpCtxtLogPrint(pccArg, 2, "Add locator attribute");
-      if (pndArgImport != NULL && pndArgImport->doc != NULL && (prnDoc = resNodeDirNew(BAD_CAST pndArgImport->doc->URL)) != NULL) {
-	SetPropXpathInBlock(pndArgPie, NULL);
-	resNodeFree(prnDoc);
-      }
-      else {
-	SetPropXpathInBlock(pndArgPie, NULL);
-      }
-    }
-    else {
-      cxpCtxtLogPrint(pccArg, 3, "Skipping locators");
-    }
   }
   return fResult;
 } /* end of ProcessPieNodeOptions() */
@@ -1832,37 +1797,62 @@ pieGetSelfAncestorNodeList(xmlNodePtr pndArg, xmlChar *pucArgId)
 \param pucArgPrefix pointer to XPath prefix for childs
  */
 void
-SetPropXpathInBlock(xmlNodePtr pndArg, xmlChar* pucArgPrefix)
+SetPropXpathPerBlock(xmlNodePtr pndArg, xmlChar* pucArgPrefix)
 {
   if (IS_NODE_META(pndArg) || IS_NODE_ERROR(pndArg)) {
+    /* ignoring */
   }
   else if (IS_ENODE(pndArg)) {
+    int i;
+    xmlChar *pucPrefix = pucArgPrefix;
     xmlNodePtr pndChild;
-    int i=0;
 
-    for (pndChild = pndArg->children; pndChild != NULL; pndChild = pndChild->next) {
-      i++;
-      if ( ! IS_ENODE(pndChild) || domGetPropValuePtr(pndChild, BAD_CAST"bxpath") != NULL) {
+    domIncrProp(pndArg, BAD_CAST "i", 1);
+
+    if (IS_NODE_PIE_BLOCK(pndArg) && domGetPropValuePtr(pndArg, BAD_CAST "context") != NULL) {
+
+      for (pndChild = pndArg->children; pndChild != NULL; pndChild = pndChild->next) {
+	if (IS_ENODE(pndChild)) {
+	  if (domGetPropValuePtr(pndChild, BAD_CAST "bxpath") != NULL) {
+	    /* attribute bxpath exists in tree, dont set attribute in descendant's tree again */
+	    return;
+	  }
+	  break;
+	}
       }
-      else if (IS_NODE_PIE_TTAG(pndChild) || IS_NODE_PIE_ETAG(pndChild) || IS_NODE_PIE_HTAG(pndChild) || IS_NODE_PIE_RULER(pndChild) || IS_NODE_PIE_META(pndChild) || IS_NODE_ERROR(pndChild)) {
-	/* dont set xpath attribute here */
-      }
-      else {
-	xmlChar mucT[BUFFER_LENGTH];
 
-	xmlStrPrintf(mucT, BUFFER_LENGTH, "%s/*[%i]", (pucArgPrefix == NULL ? BAD_CAST "" : pucArgPrefix), i);
-	xmlSetProp(pndChild, BAD_CAST "bxpath", mucT);
+      /* start new xpath for this branch */
+      pucPrefix = BAD_CAST "/*";
+    }
 
-	if (IS_NODE_PIE_PAR(pndChild) || IS_NODE_PIE_HEADER(pndChild) || IS_NODE_PIE_TABLE(pndChild)) {
-	  /* dont set bxpath attribute at childs */
+    if (pucArgPrefix == NULL) {
+      xmlSetProp(pndArg, BAD_CAST "bxpath", pucPrefix);
+    }
+
+    for (i = 0, pndChild = pndArg->children; pndChild != NULL; pndChild = pndChild->next) {
+      if (IS_ENODE(pndChild)) {
+	i++;
+	if (IS_NODE_PIE_TTAG(pndChild) || IS_NODE_PIE_ETAG(pndChild) || IS_NODE_PIE_HTAG(pndChild) || IS_NODE_PIE_RULER(pndChild) ||
+	    IS_NODE_PIE_META(pndChild) || IS_NODE_ERROR(pndChild)) {
+	  /* dont set bxpath attribute in descendant's tree */
 	}
 	else {
-	  SetPropXpathInBlock(pndChild, mucT);
+	  xmlChar mucT[BUFFER_LENGTH];
+
+	  xmlStrPrintf(mucT, BUFFER_LENGTH, "%s/*[%i]", pucPrefix, i);
+	  xmlSetProp(pndChild, BAD_CAST "bxpath", mucT);
+
+	  if (IS_NODE_PIE_PAR(pndChild) || IS_NODE_PIE_HEADER(pndChild) || IS_NODE_PIE_TABLE(pndChild)) {
+	    /* dont set bxpath attribute at child's tree */
+	  }
+	  else {
+	    SetPropXpathPerBlock(pndChild, mucT);
+	  }
 	}
       }
     }
   }
-} /* end of SetPropXpathInBlock() */
+} /* end of SetPropXpathPerBlock() */
 
 
 /*! increments value of property "w" by iArg numerically
