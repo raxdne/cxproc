@@ -393,6 +393,23 @@ domGetPropInt(xmlNodePtr pndArg, xmlChar *pucNameAttr, int iDefault)
 } /* End of domGetPropInt() */
 
 
+/*! domSetPropInt
+\param pndArg parent node for attributes
+\param pucNameAttr name of wanted attribute
+\param iDefault default return value if attribute not found
+*/
+void
+domSetPropInt(xmlNodePtr pndArg, xmlChar *pucNameAttr, int iArg)
+{
+  if (pndArg != NULL && STR_IS_NOT_EMPTY(pucNameAttr)) {
+    xmlChar mucT[BUFFER_LENGTH];
+
+    xmlStrPrintf(mucT, BUFFER_LENGTH, "%i", iArg);
+    xmlSetProp(pndArg, pucNameAttr, mucT);
+  }
+} /* End of domSetPropInt() */
+
+
 /*! domGetPropFlag
 \param pndArg parent node for attributes
 \param pucNameAttr name of wanted attribute
@@ -1510,7 +1527,6 @@ domIncrProp(xmlNodePtr pndArg, xmlChar *pucArg, int iArg)
 {
   if ((pndArg != NULL) && (pndArg->type == XML_ELEMENT_NODE) && STR_IS_NOT_EMPTY(pucArg)) {
     xmlAttrPtr patT;
-    xmlChar mucCount[32];
 
     patT = xmlHasProp(pndArg, pucArg);
     if (patT) {
@@ -1518,14 +1534,12 @@ domIncrProp(xmlNodePtr pndArg, xmlChar *pucArg, int iArg)
 	int iCurrent;
 
 	iCurrent = atoi((const char *)patT->children->content);
-	xmlStrPrintf(mucCount,sizeof(mucCount),"%i", iCurrent + iArg);
-	xmlSetProp(pndArg, pucArg, mucCount);
+	domSetPropInt(pndArg, pucArg, iCurrent + iArg);
       }
     }
     else {
       /* there is no attribute yet, implicit value '1' */
-      xmlStrPrintf(mucCount, sizeof(mucCount), "%i", iArg + 1);
-      xmlSetProp(pndArg, pucArg, mucCount);
+      domSetPropInt(pndArg, pucArg, iArg + 1);
     }
   }
 } /* end of domIncrProp() */
@@ -1725,6 +1739,73 @@ domValidateTree(xmlNodePtr pndArg)
   return NULL;
 }
 /* end of domValidateTree() */
+
+
+/*! add base64-encoded text as child to pndArg
+
+https://datatracker.ietf.org/doc/html/rfc2045
+
+ */
+xmlNodePtr
+domAddChildBase64(xmlNodePtr pndArg, xmlChar* pucArg)
+{
+  xmlNodePtr pndResult = NULL;
+
+#define LINELENGTH 76
+
+  if (pndArg != NULL && domGetAncestorsPropFlag(pndArg, BAD_CAST "embed", FALSE)) {
+    RN_MIME_TYPE t;
+    unsigned int i;
+    unsigned int l;
+    xmlChar *pucTT = NULL;
+#if 0
+    pndResult = xmlNewChild(pndArg, NULL, BAD_CAST NAME_BASE64, NULL);
+#elif 1
+    /* line text nodes for base64 */
+    const unsigned int k = LINELENGTH;
+    char mcLine[LINELENGTH + 1];
+
+    mcLine[k] = '\0';
+    pndResult = xmlNewChild(pndArg, NULL, BAD_CAST NAME_BASE64, NULL);
+    if (pndResult) {
+      xmlChar *pucT;
+
+      t = resMimeGetTypeFromDataBase64(pucArg,&pucTT);
+      xmlSetProp(pndResult, BAD_CAST "type", BAD_CAST resMimeGetTypeStr(t));
+      
+      pucT = xmlMemStrdup(pucTT);
+      l = base64removespaces(pucT);
+      domSetPropInt(pndResult, BAD_CAST "size", l);
+
+      for (i = 0; i < l; i += k) {
+	xmlNodePtr pndT;
+
+	if (l - i < k) {
+	  memccpy(mcLine, &pucT[i], 1, l - i);
+	  mcLine[l - i] = '\0';
+	}
+	else {
+	  memccpy(mcLine, &pucT[i], 1, k);
+	}
+	xmlNewChild(pndResult, NULL, BAD_CAST "l", mcLine);
+      }
+      xmlFree(pucT);
+      }
+#else
+    /* single text node for base64 */
+    t = resMimeGetTypeFromDataBase64(pucArg, &pucTT);
+    if (STR_IS_NOT_EMPTY(pucTT)) {
+      pndResult = xmlNewChild(pndArg, NULL, BAD_CAST NAME_BASE64, pucTT);
+      if (pndResult != NULL && pndResult->children != NULL && STR_IS_NOT_EMPTY(pndResult->children->content)) {
+	l = base64removespaces(pndResult->children->content);
+	xmlSetProp(pndResult, BAD_CAST "type", BAD_CAST resMimeGetTypeStr(t));
+	domSetPropInt(pndResult, BAD_CAST "size", l);
+      }
+    }
+#endif
+  }
+  return pndResult;
+} /* end of domAddChildBase64() */
 
 
 /*! unlinks all element trees containing attribute valid="no"

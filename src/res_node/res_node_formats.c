@@ -429,19 +429,13 @@ resNodeContentToDOM(xmlNodePtr pndArg, resNodePtr prnArg)
 
 	pucContent = resNodeGetContentBase64Eat(prnArg,1024);
 	if (pucContent) {
-	  xmlNodePtr pndBase64;
-	  
-	  pndBase64 = xmlNewChild(pndArg,NULL,BAD_CAST NAME_BASE64,NULL);
-	  if (pndBase64) {
-	    xmlNodePtr pndBase64Text;
+	  RN_MIME_TYPE t;
+	  xmlChar *pucTT;
 
-	    xmlSetProp(pndBase64,BAD_CAST"type",BAD_CAST resNodeGetMimeTypeStr(prnArg));
-	    pndBase64Text = xmlNewText(NULL);
-	    if (pndBase64Text) {
-	      pndBase64Text->content = pucContent; /* direct use of buffer as node content, to avoid duplication of large buffers */
-	      pucContent = NULL;
-	      xmlAddChild(pndBase64,pndBase64Text);
-	    }
+	  t = resMimeGetTypeFromDataBase64(pucContent, &pucTT);
+	  if (resMimeIsPicture(t) && STR_IS_NOT_EMPTY(pucTT)) {
+	    /* embedded base64-encoded image */
+	    domAddChildBase64(pndArg, pucContent);
 	  }
 	  xmlFree(pucContent);
 	}

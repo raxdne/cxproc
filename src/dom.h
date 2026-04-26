@@ -132,6 +132,9 @@ domNodeDumpMemoryEnc(xmlNodePtr pndArg, xmlChar **ppucArg, int *piArg, const cha
 extern int
 domGetPropInt(xmlNodePtr pndArg, xmlChar *pucNameAttr, int iDefault);
 
+extern void
+domSetPropInt(xmlNodePtr pndArg, xmlChar *pucNameAttr, int iArg);
+
 extern BOOL_T
 domGetPropFlag(xmlNodePtr pndArg, xmlChar *pucNameAttr, BOOL_T fDefault);
 
@@ -216,6 +219,9 @@ domNodeHasChild(xmlNodePtr pndArg, xmlChar* pucArg);
 
 extern xmlNodePtr
 domValidateTree(xmlNodePtr pndArg);
+
+extern xmlNodePtr
+domAddChildBase64(xmlNodePtr pndArg, xmlChar* pucArg);
 
 extern xmlNodePtr
 domAddNodeToError(xmlDocPtr pdocArg, xmlNodePtr pndArg);

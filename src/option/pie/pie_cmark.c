@@ -310,6 +310,11 @@ cmarkTreeToDOM(xmlNodePtr pndArgBlock, xmlNodePtr pndArg, cmark_node* pcmnArg)
 	  }
 	}
       }
+      else if (pcmnArg->first_child != NULL && pcmnArg->first_child == pcmnArg->last_child && pcmnArg->first_child->data != NULL &&
+	       StringBeginsWith((char *)pcmnArg->first_child->data, "data:")) {
+        pndT = xmlNewChild(pndArg, NULL, BAD_CAST NAME_PIE_PAR, NULL);
+	domAddChildBase64(pndT, pcmnArg->first_child->data);
+      }
       else {
         pndT = xmlNewChild(pndArg, NULL, BAD_CAST NAME_PIE_PAR, NULL);
         for (pcmnIter = pcmnArg->first_child; pcmnIter; pcmnIter = pcmnIter->next) {
@@ -376,19 +381,15 @@ cmarkTreeToDOM(xmlNodePtr pndArgBlock, xmlNodePtr pndArg, cmark_node* pcmnArg)
     }
     else if (pcmnArg->type == CMARK_NODE_IMAGE) {
       RN_MIME_TYPE t;
+      xmlChar *pucTT;
       xmlNodePtr pndImage;
 
       pndImage = xmlNewChild(pndArg, NULL, BAD_CAST NAME_PIE_IMG, NULL);
 
-      t = resMimeGetTypeFromDataBase64(pcmnArg->as.link.url);
-      if (resMimeIsPicture(t)) {
-	xmlChar *pucTT;
-
+      t = resMimeGetTypeFromDataBase64(pcmnArg->as.link.url,&pucTT);
+      if (resMimeIsPicture(t) && STR_IS_NOT_EMPTY(pucTT)) {
 	xmlSetProp(pndImage, BAD_CAST "type", BAD_CAST resMimeGetTypeStr(t));
-
-	if ((pucTT = BAD_CAST xmlStrchr(pcmnArg->as.link.url, ',')) != NULL && pucTT++) {
-	  xmlNewChild(pndImage, NULL, BAD_CAST NAME_BASE64, pucTT);
-	}
+	domAddChildBase64(pndImage, pucTT);
       }
       else {
 	xmlSetProp(pndImage, BAD_CAST "src", pcmnArg->as.link.url);

@@ -1031,20 +1031,12 @@ SplitTupelToLinkNodesMd(const xmlChar *pucArg)
 
 	if (IS_NODE_PIE_IMG(pndLink)) {
 	  RN_MIME_TYPE t;
+	  xmlChar *pucTT;
 
-	  if (resMimeIsPicture((t = resMimeGetTypeFromDataBase64(pucUrl)))) {
+	  t = resMimeGetTypeFromDataBase64(pucUrl, &pucTT);
+	  if (resMimeIsPicture(t) && STR_IS_NOT_EMPTY(pucTT)) {
 	    /* embedded base64-encoded image */
-	    xmlChar *pucTT;
-
-	    if ((pucTT = BAD_CAST xmlStrchr((const xmlChar *)pucUrl, (xmlChar)',')) != NULL && pucTT++) {
-	      xmlNodePtr pndBase64;
-
-	      pndBase64 = xmlNewChild(pndLink, NULL, BAD_CAST NAME_BASE64, pucTT);
-	      if (pndBase64 != NULL && xmlNodeIsText(pndBase64->children) && (pucTT = pndBase64->children->content) != NULL) {
-		base64removespaces(pucTT);
-		xmlSetProp(pndBase64, BAD_CAST "type", BAD_CAST resMimeGetTypeStr(t));
-	      }
-	    }
+	    domAddChildBase64(pndLink, pucUrl);
 	  }
 	  else {
 	    xmlSetProp(pndLink, BAD_CAST "src", pucUrl);
@@ -2767,23 +2759,15 @@ TransformToFigureNode(xmlNodePtr pndArg)
     //xmlNodePtr pndForAppend;
     xmlNodePtr pndImage;
     int iLengthStr;
+    xmlChar *pucTT;
 
     pndResult = pndArg->next;
 
-    if (resMimeIsPicture((t = resMimeGetTypeFromDataBase64(pndFirst->content)))) {
+    t = resMimeGetTypeFromDataBase64(pndFirst->content, &pucTT);
+    if (resMimeIsPicture(t) && STR_IS_NOT_EMPTY(pucTT)) {
       /* embedded base64-encoded image */
-      xmlChar *pucT;
-
       pndImage = xmlNewChild(pndArg, NULL, BAD_CAST NAME_PIE_IMG, NULL);
-      if ((pucT = BAD_CAST xmlStrchr(pndFirst->content, (xmlChar)',')) != NULL && pucT++) {
-	xmlNodePtr pndBase64;
-
-	pndBase64 = xmlNewChild(pndImage, NULL, BAD_CAST NAME_BASE64, pucT);
-	if (pndBase64 != NULL && xmlNodeIsText(pndBase64->children) && (pucT = pndBase64->children->content) != NULL) {
-	  base64removespaces(pucT);
-	  xmlSetProp(pndBase64, BAD_CAST "type", BAD_CAST resMimeGetTypeStr(t));
-	}
-      }
+      domAddChildBase64(pndImage, pndFirst->content);
       xmlNodeSetContent(pndFirst, NULL);
     }
     else if (pndFirst->content != NULL && (iLengthStr = xmlStrlen(pndFirst->content)) > 0) {
@@ -2820,14 +2804,10 @@ TransformToFigureNode(xmlNodePtr pndArg)
 
 	  pndImage = xmlNewChild(pndFigure, NULL, BAD_CAST NAME_PIE_IMG, NULL);
 
-	  if (resMimeIsPicture((t = resMimeGetTypeFromDataBase64(&pucSubstr[ovector[4]])))) {
-	    xmlNodePtr pndBase64;
-
-	    pndBase64 = xmlNewChild(pndImage, NULL, BAD_CAST NAME_BASE64, pucT);
-	    if (pndBase64 != NULL && xmlNodeIsText(pndBase64->children) && (pucT = pndBase64->children->content) != NULL) {
-	      base64removespaces(pucT);
-	      xmlSetProp(pndBase64, BAD_CAST "type", BAD_CAST resMimeGetTypeStr(t));
-	    }
+	  t = resMimeGetTypeFromDataBase64(&pucSubstr[ovector[4]], &pucTT);
+	  if (resMimeIsPicture(t) && STR_IS_NOT_EMPTY(pucTT)) {
+	    /* embedded base64-encoded image */
+	    domAddChildBase64(pndImage, &pucSubstr[ovector[4]]);
 	  }
 	  else if (pcre2_get_ovector_count(match_data) > 2 && ovector[7] - ovector[6] > 0) {
 	    /* there exists an additional name */

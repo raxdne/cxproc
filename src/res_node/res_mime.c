@@ -356,7 +356,7 @@ resMimeIsBrowserViewable(int iMimeType)
   \param prnArg the context
  */
 RN_MIME_TYPE
-resMimeGetTypeFromDataBase64(const xmlChar *pucArg)
+resMimeGetTypeFromDataBase64(const xmlChar *pucArg, xmlChar **ppucArg)
 {
   RN_MIME_TYPE eMimeTypeResult = MIME_UNDEFINED;
 
@@ -364,10 +364,17 @@ resMimeGetTypeFromDataBase64(const xmlChar *pucArg)
     int i;
     int j;
 
+    if (ppucArg) {
+      *ppucArg = NULL;
+    }
+
     for (i = MIME_END - 1, j = 5; i > MIME_UNDEFINED; i--) {
       if (StringBeginsWith((char *)&pucArg[j], resMimeTypeStr[i])) {
 	j += xmlStrlen(BAD_CAST resMimeTypeStr[i]);
 	if (StringBeginsWith((char *)&pucArg[j], ";base64,") && pucArg[j + 8] != '\0') {
+	  if (ppucArg) {
+	    *ppucArg = &pucArg[j + 8];
+	  }
 	  return (RN_MIME_TYPE)i;
 	}
 	break;

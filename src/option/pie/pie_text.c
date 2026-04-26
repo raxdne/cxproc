@@ -1807,8 +1807,6 @@ SetPropXpathPerBlock(xmlNodePtr pndArg, xmlChar* pucArgPrefix)
     xmlChar *pucPrefix = pucArgPrefix;
     xmlNodePtr pndChild;
 
-    domIncrProp(pndArg, BAD_CAST "i", 1);
-
     if (IS_NODE_PIE_BLOCK(pndArg) && domGetPropValuePtr(pndArg, BAD_CAST "context") != NULL) {
 
       for (pndChild = pndArg->children; pndChild != NULL; pndChild = pndChild->next) {
