@@ -1510,7 +1510,7 @@ cxpProcessXmlNode(xmlNodePtr pndArg, cxpContextPtr pccArg)
 	      pdocResult->URL = NULL;
 	    }
 	  }
-	  else if (domGetPropFlag(pndArg, BAD_CAST "locator", FALSE)) {
+	  else if (domGetAncestorsPropFlag(pndArg, BAD_CAST "locator", FALSE)) {
 	    /* add additional attributes for navigation */
 	    xmlNodePtr pndRoot;
 
@@ -1550,7 +1550,7 @@ cxpProcessXmlNode(xmlNodePtr pndArg, cxpContextPtr pccArg)
 	cxpCtxtLogPrint(pccArg,4, "No Schema Validation requested");
       }
 
-      if (domGetPropFlag(pndArg,BAD_CAST "locator",FALSE)) {
+      if (domGetAncestorsPropFlag(pndArg,BAD_CAST "locator",FALSE)) {
 	pndRoot = xmlDocGetRootElement(pdocResult);
 	if (pndRoot) {
 	  cxpCtxtLogPrint(pccArg,2,"Add XPath attribute to every element");

@@ -4060,10 +4060,19 @@ resNodeGetNameRelative(resNodePtr prnArgBase, resNodePtr prnArg)
 {
   xmlChar *pucResult = NULL;
 
-  if (prnArgBase != NULL && prnArg != NULL) {
-    pucResult = resPathDiffPtr(resNodeGetNameNormalized(prnArgBase),resNodeGetNameNormalized(prnArg));
-    while (STR_IS_NOT_EMPTY(pucResult) && issep(*pucResult)) {
-      pucResult++;
+  if (prnArg) {
+    if (prnArgBase) {
+      pucResult = resPathDiffPtr(resNodeGetNameNormalized(prnArgBase), resNodeGetNameNormalized(prnArg));
+      while (STR_IS_NOT_EMPTY(pucResult) && issep(*pucResult)) {
+        pucResult++;
+      }
+    }
+    else {
+#ifdef HAVE_CGI
+      /* no absolute path in CGI mode */
+#else
+      pucResult = resNodeGetNameNormalized(prnArg);
+#endif
     }
   }
   return pucResult;
