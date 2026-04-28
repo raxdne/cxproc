@@ -491,6 +491,8 @@ check/merge code of dirNodeToResNodeList()
       size_t inlen;
       size_t outlen;
 
+      /*!\todo use domGetChildBase64() */
+
       inlen = xmlStrlen(pucT);
       pchT = (char *)xmlMalloc(inlen * sizeof(char *));
       outlen = inlen;

@@ -1743,6 +1743,19 @@ domValidateTree(xmlNodePtr pndArg)
 
 /*! add base64-encoded text as child to pndArg
 
+\todo implement decoding from base64 node to blob
+ */
+xmlNodePtr
+domGetChildBase64(xmlNodePtr pndArg, xmlChar* pucArg)
+{
+  xmlNodePtr pndResult = NULL;
+
+  return pndResult;
+} /* end of domGetChildBase64() */
+
+
+/*! add base64-encoded text as child to pndArg
+
 https://datatracker.ietf.org/doc/html/rfc2045
 
  */
