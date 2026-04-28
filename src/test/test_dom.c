@@ -1,7 +1,7 @@
 /*
   cxproc - Configurable Xml PROCessor
 
-  Copyright (C) 2006..2020 by Alexander Tenbusch
+  Copyright (C) 2006..2024 by Alexander Tenbusch
 
   This program is free software; you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -61,41 +61,6 @@ domTest(void)
 
 
   if (RUNTEST) {
-    xmlNodePtr pndTest;
-
-    i++;
-    printf("TEST %i in '%s:%i': isEmptyTextNode() = ",i,__FILE__,__LINE__);
-
-    pndTest = xmlNewText(BAD_CAST"\t\n\n");
-    if (pndTest != NULL && isEmptyTextNode(pndTest) == TRUE && isEmptyTextNode(NULL) == FALSE) {
-      n_ok++;
-      printf("OK\n");
-    }
-    else {
-      printf("Error\n");
-    }
-    xmlFreeNode(pndTest);
-  }
-
-  if (RUNTEST) {
-    xmlNodePtr pndTest;
-
-    i++;
-    printf("TEST %i in '%s:%i': isValidNodeType() = ",i,__FILE__,__LINE__);
-
-    pndTest = xmlNewText(BAD_CAST"\t\n\n");
-    if (pndTest != NULL && isValidNodeType(pndTest) == TRUE && isValidNodeType(NULL) == FALSE) {
-      n_ok++;
-      printf("OK\n");
-    }
-    else {
-      printf("Error\n");
-    }
-    xmlFreeNode(pndTest);
-  }
-
-
-  if (RUNTEST) {
     xmlDocPtr pdocTest;
     xmlNodePtr pndTest;
 
@@ -139,7 +104,7 @@ domTest(void)
     i++;
     printf("TEST %i in '%s:%i': domPropIsEqual() + domGetPropFlag() = ",i,__FILE__,__LINE__);
 
-    pndTest = xmlNewNode(NULL,NAME_PIE_PAR);
+    pndTest = xmlNewNode(NULL,BAD_CAST"p");
     if (domPropIsEqual(pndTest, BAD_CAST"valid", NULL) == FALSE
 	&& domPropIsEqual(pndTest, NULL, NULL) == FALSE
 	&& domPropIsEqual(pndTest, BAD_CAST"valid", BAD_CAST"yes") == FALSE
@@ -209,19 +174,19 @@ domTest(void)
     i++;
     printf("TEST %i in '%s:%i': domNodesAreEqual() = ",i,__FILE__,__LINE__);
 
-    pndA = xmlNewNode(NULL, NAME_PIE_PIE);
-    xmlAddChild(pndA, xmlNewPI(NAME_PIE_ERROR, BAD_CAST"pre"));
-    xmlNewChild(pndA, NULL, NAME_PIE_PAR, BAD_CAST"par 1");
-    xmlNewChild(pndA, NULL, NAME_PIE_PAR, BAD_CAST"par 2");
-    xmlNewChild(pndA, NULL, NAME_PIE_PAR, BAD_CAST"par 3");
-    xmlAddChild(pndA, xmlNewPI(NAME_PIE_ERROR, BAD_CAST"post"));
+    pndA = xmlNewNode(NULL, NAME_XML);
+    xmlAddChild(pndA, xmlNewPI(NAME_ERROR, BAD_CAST"pre"));
+    xmlNewChild(pndA, NULL, BAD_CAST"p", BAD_CAST"par 1");
+    xmlNewChild(pndA, NULL, BAD_CAST"p", BAD_CAST"par 2");
+    xmlNewChild(pndA, NULL, BAD_CAST"p", BAD_CAST"par 3");
+    xmlAddChild(pndA, xmlNewPI(NAME_ERROR, BAD_CAST"post"));
 
-    pndB = xmlNewNode(NULL, NAME_PIE_PIE);
-    xmlAddChild(pndB, xmlNewPI(NAME_PIE_ERROR, BAD_CAST"pre"));
-    xmlNewChild(pndB, NULL, NAME_PIE_PAR, BAD_CAST"par 1");
-    xmlNewChild(pndB, NULL, NAME_PIE_PAR, BAD_CAST"par 2");
-    xmlNewChild(pndB, NULL, NAME_PIE_PAR, BAD_CAST"par 3");
-    xmlAddChild(pndB, xmlNewPI(NAME_PIE_ERROR, BAD_CAST"post"));
+    pndB = xmlNewNode(NULL, NAME_XML);
+    xmlAddChild(pndB, xmlNewPI(NAME_ERROR, BAD_CAST"pre"));
+    xmlNewChild(pndB, NULL, BAD_CAST"p", BAD_CAST"par 1");
+    xmlNewChild(pndB, NULL, BAD_CAST"p", BAD_CAST"par 2");
+    xmlNewChild(pndB, NULL, BAD_CAST"p", BAD_CAST"par 3");
+    xmlAddChild(pndB, xmlNewPI(NAME_ERROR, BAD_CAST"post"));
 
     if (pndA != NULL && pndB != NULL
 	&& domNodesAreEqual(pndA,pndB) == TRUE
@@ -377,38 +342,11 @@ domTest(void)
 
   if (RUNTEST) {
     xmlDocPtr pdocTest;
-    resNodePtr prnT = NULL;
-
-    i++;
-    printf("TEST %i in '%s:%i': domChangeURL() = ", i, __FILE__, __LINE__);
-
-    prnT = resNodeDirNew(BAD_CAST TESTPREFIX "xml/");
-    pdocTest = xmlParseFile(TESTPREFIX "xsl/TestValidate.xsl");
-    if (pdocTest) {
-      domChangeURL(pdocTest, prnT);
-      if (xmlStrEqual(pdocTest->URL, resNodeGetURI(prnT))) {
-	n_ok++;
-	printf("OK\n");
-      }
-      else {
-	printf("Error\n");
-      }
-    }
-    else {
-      printf("Error\n");
-    }
-
-    xmlFreeDoc(pdocTest);
-    resNodeFree(prnT);
-  }
-
-  if (RUNTEST) {
-    xmlDocPtr pdocTest;
     xmlNodePtr pndRoot;
     xmlNodePtr pndT;
 
     i++;
-    printf("TEST %i in '%s:%i': domGetFollowingNode() = ", i, __FILE__, __LINE__);
+    printf("TEST %i in '%s:%i': domUnlinkNodeList() = ", i, __FILE__, __LINE__);
 
     pdocTest = xmlParseFile(TESTPREFIX "option/pie/text/test-pie-14.pie");
     pndRoot = xmlDocGetRootElement(pdocTest);
@@ -433,25 +371,38 @@ domTest(void)
     xmlNodePtr pndCur;
 
     i++;
-    printf("TEST %i in '%s:%i': domReplaceNodeList() = ", i, __FILE__, __LINE__);
+    printf("TEST %i in '%s:%i': multiple domReplaceNodeList() = ", i, __FILE__, __LINE__);
 
     pdocTest = xmlParseFile(TESTPREFIX "option/pie/text/test-pie-14.pie");
     pndRoot = xmlDocGetRootElement(pdocTest);
+    //domPutDocString(stderr,BAD_CAST"domReplaceNodeList()",pdocTest);
     pndOld = pndRoot->children->children->next;
 
-    pndCur = xmlNewNode(NULL, NAME_PIE_PIE);
-    xmlAddChild(pndCur, xmlNewPI(NAME_PIE_ERROR, BAD_CAST"pre"));
-    xmlNewChild(pndCur, NULL, NAME_PIE_PAR, BAD_CAST"par 1");
-    xmlNewChild(pndCur, NULL, NAME_PIE_PAR, BAD_CAST"par 2");
-    xmlNewChild(pndCur, NULL, NAME_PIE_PAR, BAD_CAST"par 3");
-    xmlAddChild(pndCur, xmlNewPI(NAME_PIE_ERROR, BAD_CAST"post"));
+    pndCur = xmlNewNode(NULL, NAME_XML);
+    xmlAddChild(pndCur, xmlNewPI(NAME_ERROR, BAD_CAST"pre"));
+    xmlNewChild(pndCur, NULL, BAD_CAST"p", BAD_CAST"par 1");
+    xmlNewChild(pndCur, NULL, BAD_CAST"p", BAD_CAST"par 2");
+    xmlNewChild(pndCur, NULL, BAD_CAST"p", BAD_CAST"par 3");
+    xmlAddChild(pndCur, xmlNewPI(NAME_ERROR, BAD_CAST"post"));
 
-    //domPutDocString(stderr,pdocTest,BAD_CAST"domReplaceNodeList()");
     domReplaceNodeList(pndOld, pndCur->children);
+    xmlFreeNode(pndOld);
+    xmlFreeNode(pndCur);
     xmlNewChild(pndRoot->children, NULL, NAME_META, NULL);
-    //domPutDocString(stderr,pdocTest,BAD_CAST"domReplaceNodeList()");
+    //domPutDocString(stderr,BAD_CAST"domReplaceNodeList()",pdocTest);
 
-    if (pndCur->children == NULL && pndCur->parent == NULL && domIsTreeOverlapping(pndRoot, pndCur) == FALSE) {
+    pndCur = xmlNewNode(NULL, NAME_XML);
+    xmlAddChild(pndCur, xmlNewPI(NAME_ERROR, BAD_CAST"pre"));
+    xmlNewChild(pndCur, NULL, BAD_CAST"p", BAD_CAST"par 4");
+    xmlNewChild(pndCur, NULL, BAD_CAST"p", BAD_CAST"par 5");
+    xmlNewChild(pndCur, NULL, BAD_CAST"p", BAD_CAST"par 6");
+    xmlAddChild(pndCur, xmlNewPI(NAME_ERROR, BAD_CAST"post"));
+
+    pndOld = pndRoot->children->last;
+    domReplaceNodeList(pndOld, pndCur->children);
+    //domPutDocString(stderr,BAD_CAST"domReplaceNodeList()",pdocTest);
+
+    if (pndCur->children != NULL && pndCur->parent == NULL && domIsTreeOverlapping(pndRoot, pndCur) == FALSE) {
       n_ok++;
       printf("OK\n");
     }
@@ -460,28 +411,6 @@ domTest(void)
     }
     xmlFreeNode(pndCur);
     xmlFreeNode(pndOld);
-    xmlFreeDoc(pdocTest);
-  }
-
-  if (RUNTEST) {
-    xmlDocPtr pdocTest;
-    xmlNodePtr pndRoot;
-
-    i++;
-    printf("TEST %i in '%s:%i': domGetFollowingNode() = ", i, __FILE__, __LINE__);
-
-    pdocTest = xmlParseFile(TESTPREFIX "option/pie/text/test-pie-14.pie");
-    pndRoot = xmlDocGetRootElement(pdocTest);
-
-    if (domGetFollowingNode(NULL, NAME_PIE_HEADER) == NULL && domGetFollowingNode(pndRoot, NULL) == NULL
-      && domGetFollowingNode(pndRoot, NAME_PIE_HEADER) != NULL && IS_ROOT(domGetFollowingNode(pndRoot, BAD_CAST"hhhh"))) {
-      n_ok++;
-      printf("OK\n");
-    }
-    else {
-      printf("Error\n");
-    }
-
     xmlFreeDoc(pdocTest);
   }
 
@@ -499,11 +428,11 @@ domTest(void)
       //domPutDocString(stderr,pdocT,BAD_CAST"cxpAddXpath()");
       n_ok++;
       printf("OK\n");
-      xmlFreeDoc(pdocT);
     }
     else {
       printf("Error \n");
     }
+    xmlFreeDoc(pdocT);
   }
 
   if (RUNTEST) {
@@ -540,19 +469,19 @@ domTest(void)
     i++;
     printf("TEST %i in '%s:%i': domGetFirstChild() = ", i, __FILE__, __LINE__);
 
-    pndTop = xmlNewNode(NULL, NAME_PIE_PIE);
-    xmlAddChild(pndTop, xmlNewPI(NAME_PIE_ERROR, BAD_CAST"pre"));
-    pndTestFirst = xmlNewChild(pndTop, NULL, NAME_PIE_PAR, BAD_CAST"par 1");
-    xmlNewChild(pndTop, NULL, NAME_PIE_PAR, BAD_CAST"par 2");
-    pndTest = xmlNewChild(pndTop, NULL, NAME_PIE_LIST, BAD_CAST"list 1");
-    xmlNewChild(pndTop, NULL, NAME_PIE_PAR, BAD_CAST"par 3");
-    xmlAddChild(pndTop, xmlNewPI(NAME_PIE_ERROR, BAD_CAST"post"));
+    pndTop = xmlNewNode(NULL, NAME_XML);
+    xmlAddChild(pndTop, xmlNewPI(NAME_ERROR, BAD_CAST"pre"));
+    pndTestFirst = xmlNewChild(pndTop, NULL, BAD_CAST"p", BAD_CAST"par 1");
+    xmlNewChild(pndTop, NULL, BAD_CAST"p", BAD_CAST"par 2");
+    pndTest = xmlNewChild(pndTop, NULL, BAD_CAST"ul", BAD_CAST"list 1");
+    xmlNewChild(pndTop, NULL, BAD_CAST"p", BAD_CAST"par 3");
+    xmlAddChild(pndTop, xmlNewPI(NAME_ERROR, BAD_CAST"post"));
 
     if (pndTop != NULL && pndTop->children != NULL && pndTop->parent == NULL
-	&& domGetFirstChild(NULL,NAME_PIE_PAR) == NULL
-	&& domGetFirstChild(pndTop,NAME_PIE_HEADER) == NULL
+	&& domGetFirstChild(NULL,BAD_CAST"p") == NULL
+	&& domGetFirstChild(pndTop,BAD_CAST"h") == NULL
 	&& domGetFirstChild(pndTop,NULL) == pndTestFirst
-	&& domGetFirstChild(pndTop,NAME_PIE_LIST) == pndTest) {
+	&& domGetFirstChild(pndTop,BAD_CAST"ul") == pndTest) {
       n_ok++;
       printf("OK\n");
     }
@@ -571,19 +500,19 @@ domTest(void)
     i++;
     printf("TEST %i in '%s:%i': domGetNextNode() = ", i, __FILE__, __LINE__);
 
-    pndTop = xmlNewNode(NULL, NAME_PIE_PIE);
-    xmlAddChild(pndTop, xmlNewPI(NAME_PIE_ERROR, BAD_CAST"pre"));
-    xmlNewChild(pndTop, NULL, NAME_PIE_PAR, BAD_CAST"par 1");
-    pndTestFirst = xmlNewChild(pndTop, NULL, NAME_PIE_PAR, BAD_CAST"par 2");
-    xmlNewChild(pndTop, NULL, NAME_PIE_LIST, BAD_CAST"list 1");
-    pndTest = xmlNewChild(pndTop, NULL, NAME_PIE_PAR, BAD_CAST"par 3");
-    xmlAddChild(pndTop, xmlNewPI(NAME_PIE_ERROR, BAD_CAST"post"));
+    pndTop = xmlNewNode(NULL, NAME_XML);
+    xmlAddChild(pndTop, xmlNewPI(NAME_ERROR, BAD_CAST"pre"));
+    xmlNewChild(pndTop, NULL, BAD_CAST"p", BAD_CAST"par 1");
+    pndTestFirst = xmlNewChild(pndTop, NULL, BAD_CAST"p", BAD_CAST"par 2");
+    xmlNewChild(pndTop, NULL, BAD_CAST"ul", BAD_CAST"list 1");
+    pndTest = xmlNewChild(pndTop, NULL, BAD_CAST"p", BAD_CAST"par 3");
+    xmlAddChild(pndTop, xmlNewPI(NAME_ERROR, BAD_CAST"post"));
 
     if (pndTop != NULL && pndTop->children != NULL && pndTop->parent == NULL
-	&& domGetNextNode(NULL,NAME_PIE_PAR) == NULL
-	&& domGetNextNode(pndTestFirst,NAME_PIE_HEADER) == NULL
+	&& domGetNextNode(NULL,BAD_CAST"p") == NULL
+	&& domGetNextNode(pndTestFirst,BAD_CAST"h") == NULL
 	&& domGetNextNode(pndTestFirst,NULL) == pndTest
-	&& domGetNextNode(pndTestFirst,NAME_PIE_PAR) == pndTest) {
+	&& domGetNextNode(pndTestFirst,BAD_CAST"p") == pndTest) {
       n_ok++;
       printf("OK\n");
     }
@@ -597,7 +526,6 @@ domTest(void)
   if (RUNTEST) {
     xmlDocPtr pdocT;
     xmlNodePtr pndRoot;
-    xmlNsPtr pnsXsl;
     xmlNodePtr pndXslNew;
     xmlNodePtr pndNew;
 
@@ -607,10 +535,10 @@ domTest(void)
     pndRoot = xmlNewNode(NULL,NAME_XML);
     pndXslNew = xmlNewChild(pndRoot,NULL,BAD_CAST "stylesheet",NULL);
     if (pndXslNew) {
-      /*\todo domChangeURL(pdocResult,cxpCtxtLocationGet(pccArg)); ?? */
+      /*\todo resNodeChangeDomURL(pdocResult,cxpCtxtLocationGet(pccArg)); ?? */
 
       /* create local namespace for XSL */
-      pnsXsl = xmlNewNs(pndXslNew,XSLT_NAMESPACE,BAD_CAST "xsl");
+      //pnsXsl = xmlNewNs(pndXslNew,XSLT_NAMESPACE,BAD_CAST "xsl");
       xmlSetNs(pndXslNew,pnsXsl);
       xmlSetProp(pndXslNew, BAD_CAST "version", BAD_CAST "1.0");
 
@@ -634,6 +562,29 @@ domTest(void)
       xmlFreeDoc(pdocT);
       xmlFreeNode(pndRoot);
     }
+  }
+
+
+  if (RUNTEST) {
+    xmlDocPtr pdocT;
+    xmlNodePtr pndRoot;
+
+    i++;
+    printf("TEST %i in '%s:%i': file XSL tree = ",i,__FILE__,__LINE__);
+
+    if ((pdocT = xmlParseFile(TESTPREFIX "xsl/TestValidate.xsl")) == NULL) {
+    }
+    else if ((pndRoot = xmlDocGetRootElement(pdocT)) == NULL) {
+    }
+    else if (xmlStrEqual(domGetXslOutputMethod(pdocT),BAD_CAST"xml") == FALSE) {
+      //domPutDocString(stderr,pdocT,BAD_CAST"Result XSL Document");
+    }
+    else {
+      n_ok++;
+      printf("OK\n");
+    }
+
+    xmlFreeDoc(pdocT);
   }
 
 
@@ -664,7 +615,7 @@ domTest(void)
     i++;
     printf("TEST %i in '%s:%i': domNodeEatContent() = ",i,__FILE__,__LINE__);
 
-    pndTop = xmlNewNode(NULL,NAME_PIE_PAR);
+    pndTop = xmlNewNode(NULL,BAD_CAST"p");
     pndTest = xmlNewTextChild(pndTop,NULL,BAD_CAST"b",pucT);
     if (pndTest != NULL
 	&& (pucTT = domNodeEatContent(pndTest)) != NULL && xmlStrEqual(pucTT,pucT) && domNodeGetContentPtr(pndTest) == NULL
@@ -755,11 +706,11 @@ domTest(void)
       printf("Error 4 domGetXPathNodeset()\n");
     }
     else {
-      int i;
+      int j;
       BOOL_T fResult;
 
-      for (fResult = TRUE, i=0; fResult && i < nodeset->nodeNr; i++) {
-	fResult = IS_NODE_PIE_PAR(nodeset->nodeTab[i]);
+      for (fResult = TRUE, j=0; fResult && j < nodeset->nodeNr; j++) {
+	fResult = IS_NODE_PIE_PAR(nodeset->nodeTab[j]);
       }
 
       if (fResult) {
@@ -775,48 +726,42 @@ domTest(void)
     xmlFreeDoc(pdocResult);
   }
 
-
-#ifdef HAVE_PIE
   if (RUNTEST) {
     /* TEST:
-    */
+     */
     xmlDocPtr pdocResult = NULL;
-    xmlChar *pucXpathCheck = (xmlChar*) "//*[@w]";
-    xmlChar *pucPattern = (xmlChar*) "//*[name()='p']";
-    xmlNodeSetPtr nodeset;
-    xmlXPathObjectPtr result = NULL;
-    xmlNodePtr pndRoot;
+    xmlNodePtr pndT;
 
     i++;
-    printf("TEST %i in '%s:%i': XPath nodeset ", i, __FILE__, __LINE__);
+    printf("TEST %i in '%s:%i': domNodeDumpMemoryEnc() ", i, __FILE__, __LINE__);
 
-    if ((pdocResult = xmlParseFile(TESTPREFIX "option/pie/text/test-pie-14.pie")) == NULL
-      || (pndRoot = xmlDocGetRootElement(pdocResult)) == NULL) {
-      printf("Error 1 xmlParseFile()\n");
+    if ((pdocResult = xmlReadFile((const char *)TESTPREFIX "option/pie/text/test-pie-14.pie", NULL, 0)) == NULL) {
+      printf("Error xmlReadFile()\n");
     }
-    else if (domWeightXPathInDoc(pdocResult, pucPattern) == FALSE) {
-      printf("Error 1 domWeightXPathInDoc()\n");
-    }
-    else if ((result = domGetXPathNodeset(pdocResult, pucXpathCheck)) == NULL
-      || (nodeset = result->nodesetval) == NULL) {
-      printf("Error 3 domGetXPathNodeset()\n");
-    }
-    else if (nodeset->nodeNr != 5) {
-      printf("Error 4 domGetXPathNodeset()\n");
+    else if ((pndT = xmlDocGetRootElement(pdocResult)) == NULL || (pndT = pndT->children) == NULL) {
+      printf("Error xmlDocGetRootElement()\n");
     }
     else {
+      xmlChar *pucT = NULL;
+      int iT;
+
+      domNodeDumpMemoryEnc(pndT, &pucT, &iT, "UTF-8");
+      if (STR_IS_EMPTY(pucT)) {
+	printf("Error empty\n");
+      }
+      else if (iT < 10) {
+	printf("Error length\n");
+      }
+      else {
 	n_ok++;
 	printf("OK\n");
+      }
+      //puts((char *)pucT);
+      xmlFree(pucT);
     }
-    //CleanUpTree(pndRoot);
-    //domPutDocString(stderr, BAD_CAST "domWeightXPathInDoc(): ", pdocResult);
-
-    xmlXPathFreeObject(result);
     xmlFreeDoc(pdocResult);
   }
-#endif
 
-  
 #ifdef HAVE_PCRE2
   if (RUNTEST) {
     xmlDocPtr pdocTest;

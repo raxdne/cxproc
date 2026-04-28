@@ -1,0 +1,12 @@
+
+* CXP Test
+
+This is a test for embedded cxp tree
+
+<make>
+  <xml>
+    <info/>
+  </xml>
+</make>
+
+plain text again

@@ -14,7 +14,10 @@
 					;(package-initialize)
 					;(package-list-packages)
 					;(package-refresh-contents)
+
 ;(package-install "markdown-mode+")
+(setq markdown-command "~/cxproc-build/x86_64-gnu-linux/bin/cmark")
+
 ;(package-install "move-text")
 
 ;(setq load-path (cons "~/cxproc-build/site-lisp/ecb" load-path))
@@ -71,7 +74,7 @@
 
 ;; (autoload 'cflow-mode "cflow-mode")
 
-;(load (concat (file-name-directory (buffer-file-name)) "../contrib/pie/elisp/pie.el"))
+(load (concat "~/cxproc-build/x86_64-gnu-linux/www/html/" "pie/misc/pie.el"))
 
 ; (setenv "LD_RUN_PATH" (concat (getenv "HOME") "/target/lib"))
 ; (setenv "LD_RUN_PATH" "/usr/lib/debug/usr/lib:/usr/lib:/lib")
@@ -89,10 +92,10 @@
 ; (setenv "CXP_PATH" prefix)
 ; (setenv "CXP_LOG" "3")
 
-(setq 
- gdb-many-window t
- gdb-show-main t
- gud-gdb-command-name "gdb -i=mi --annotate=3 -x debug.gdb")
+;; (setq 
+;;  gdb-many-window t
+;;  gdb-show-main t
+;;  gud-gdb-command-name "gdb -i=mi --annotate=3 -x debug.gdb")
 
 ;;; mode
 
@@ -130,9 +133,9 @@
   ;(local-set-key    [C-f4] 'developer-c-for-insert)
   ;;
 ;; gud
-  (local-set-key    [f5] 'gud-break)
-  (local-set-key    [f6] 'gud-step)
-  (local-set-key    [f7] 'gud-next)
+  ;(local-set-key    [f5] 'gud-break)
+  ;(local-set-key    [f6] 'gud-step)
+  ;(local-set-key    [f7] 'gud-next)
   (font-lock-mode)
   ;;
 
@@ -270,24 +273,24 @@
 ;; 			    (setq tag-list-i (cdr tag-list-i))
 ;; 			    )
 
-			  (query-replace "PIE - Personal Information Environment" 
-					 "cxproc - Configurable Xml PROCessor
+			  (query-replace "Copyright (C) 2006..2020 by Alexander Tenbusch" "Copyright (C) 2006..2022 by Alexander Tenbusch")
 
-  Copyright (C) 2006,2007,2008 by Alexander Tenbusch")
-			  ;(query-replace "printf_debug(" "printf_debug(1,")
 			  (save-buffer)
 			  ;(kill-buffer nil)
 			  )
 		)
 
 
-(global-set-key [f3]  (lambda ()
+(global-set-key [f7]  (lambda ()
 			  ""
 			  (interactive)
 			  (if (buffer-file-name)
 			      (save-buffer))
 			  (compile (concat "cmake --build " prefix "/../x86_64-gnu-linux/build/ -j 4"
-					   ;" all" cxproc filex cxproc-cgi cxproc-test 
+					   ;;" --target cpp-check"
+					   ;;" --target cxproc"
+					   ;;" --target doc_doxygen"
+					   ;;" --target all" cxproc filex cxproc-cgi cxproc-test 
 			  		   ))
 					;(compile "make test")
 			  )
@@ -322,15 +325,12 @@
 (global-set-key [C-f9]  (lambda ()
 			""
 			(interactive)
-			(grep
-			 (concat grep-command
-				 " '\\b"
-				 (current-word)
-				 "\\b' "
-				 (buffer-name)
-				 ))
+			(vc-git-grep
+			 (concat "\\b" (current-word) "\\b")
+			 "\\*.\\*"
+			 prefix)
 			)
-)
+		)
 
 (global-set-key [S-f9]  (lambda ()
 			""
@@ -341,18 +341,19 @@
 				  (progn
 				    (kill-ring-save (region-beginning) (region-end))
 				    (current-kill 0))
-				(current-word)
+				(if (current-word)
+				    (current-word)
+				  (current-kill 0 t))
 				)
 			      )
 			(set-text-properties 0 (length name) nil name)
 
-			(grep
-			 (concat grep-command
-				 " \"" name "\" "
-				 " -r " prefix
-				 ))
-			;(other-window 1)
-			;(search-forward-regexp pattern-line)
+			(vc-git-grep
+			 name
+			 "\\*.\\*"
+			 prefix)
+					;(other-window 1)
+					;(search-forward-regexp pattern-line)
 			)
 )
 
@@ -371,6 +372,7 @@
 ; TODO: menu option for switching on/off
 
 (global-set-key      [f1]  'delete-other-windows)
+;(global-set-key      [f1]  'reset-window-config)
 (global-set-key    [M-f1]  'man)
 
 (global-set-key      [f2]  'save-buffer)
@@ -487,3 +489,58 @@
   )
 
 
+(delete-other-windows)
+(dired "~/cxproc-build/cxproc/")
+
+(if nil
+    (progn
+;;;
+;;; single-frame Speedbar https://sites.google.com/site/xiangyangsite/home/technical-tips/linux-unix/emacs/speedbar-in-one-frame
+;;;
+
+      (require 'tramp)
+      (defconst my-junk-buffer-name "Junk")
+      (setq junk-buffer (get-buffer-create my-junk-buffer-name)
+	    )
+
+      (require 'speedbar)
+      (defconst my-speedbar-buffer-name "SPEEDBAR")
+      (setq speedbar-buffer (get-buffer-create my-speedbar-buffer-name)
+	    speedbar-frame (selected-frame)
+	    dframe-attached-frame (selected-frame)
+	    speedbar-select-frame-method 'attached
+	    speedbar-verbosity-level 2
+	    speedbar-last-selected-file nil)
+      (setq right-window (split-window-horizontally 34))
+      (setq left-window (frame-first-window))
+					;(walk-windows (lambda (w) (setq left-window w)) "nominibuffer" t)
+      (set-buffer speedbar-buffer)
+      (speedbar-mode)
+      (speedbar-reconfigure-keymaps)
+      (speedbar-update-contents)
+      (speedbar-set-timer 1)
+      (set-window-buffer left-window "SPEEDBAR")
+      (set-window-dedicated-p left-window t)
+      (toggle-read-only) ; HACK, REQUIRED for Tramp to work ????
+      (select-window right-window)
+
+      (defun select-right-window () (select-window right-window))
+					;(defun reset-window-config () (interactive)
+					; (walk-windows (lambda (w) (when (not (or (eq w left-window) (eq w right-window))) (delete-window w))) "nominibuffer" t)
+					; )
+
+      (defun reset-window-config () (interactive)
+	     (delete-other-windows)
+	     (setq right-window (split-window-horizontally 24))
+	     (setq left-window (frame-first-window))
+	     (set-window-buffer left-window speedbar-buffer)
+	     (set-window-dedicated-p left-window t)
+	     (select-window right-window)
+	     (set-window-dedicated-p right-window nil)
+	     (when (eq speedbar-buffer (window-buffer right-window)) (set-window-buffer right-window (next-buffer)))
+	     (set-window-dedicated-p right-window nil)
+	     )
+
+      (global-set-key "\C-x1" 'reset-window-config)
+
+      ))

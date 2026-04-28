@@ -7,9 +7,9 @@ fjslkdjflskd
 
 --- hhhhh
 
-_italic_ Markup
+__italic__ Markup
 
-Markup _italic_ Markup _italic_Markup _italic_jwqhekqw
+Markup __italic__ Markup __italic__Markup __italic__jwqhekqw
 
 TODO: Task Test 1
 

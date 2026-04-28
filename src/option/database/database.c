@@ -1,7 +1,7 @@
 /* 
    cxproc - Configurable Xml PROCessor
    
-   Copyright (C) 2006..2020 by Alexander Tenbusch
+   Copyright (C) 2006..2024 by Alexander Tenbusch
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -39,7 +39,7 @@
 #include "basics.h"
 #include "utils.h"
 #include <res_node/res_node_io.h>
-#include <pie/calendar_element.h>
+#include "calendar_element.h"
 #include <cxp/cxp.h>
 #include "dom.h"
 #include <cxp/cxp_dir.h>
@@ -60,6 +60,9 @@ dbGetColDeclarationsToNode(xmlNodePtr pndArgParent, sqlite3_stmt *pStmt);
 
 static BOOL_T
 dbGetEntriesToNode(xmlNodePtr pndArgParent, sqlite3_stmt *pStmt);
+
+static BOOL_T
+dbGetErrorsToNode(xmlNodePtr pndArgParent, sqlite3 *pdbArg);
 
 
 /*! \return a checked string of the next SQL statement
@@ -154,6 +157,24 @@ dbGetColDeclarationsToNode(xmlNodePtr pndArgParent, sqlite3_stmt *pStmt)
 \todo error handling
 */
 BOOL_T
+dbGetErrorsToNode(xmlNodePtr pndArgParent, sqlite3 *pdbArg)
+{
+  xmlChar *pucMessage;
+
+  pucMessage = BAD_CAST sqlite3_errmsg(pdbArg);
+  if (STR_IS_NOT_EMPTY(pucMessage)) {
+    xmlNewChild(pndArgParent, NULL, BAD_CAST "error", pucMessage);
+  }
+
+  return TRUE;
+}
+/* end of dbGetErrorsToNode() */
+
+/*! adds the column declarations of table 'pucArgName' at database 'pdbArg' as child to 'pndArgParent'
+
+\todo error handling
+*/
+BOOL_T
 dbGetEntriesToNode(xmlNodePtr pndArgParent, sqlite3_stmt *pStmt)
 {
   int ncols;
@@ -164,12 +185,13 @@ dbGetEntriesToNode(xmlNodePtr pndArgParent, sqlite3_stmt *pStmt)
   for (iRow=0; iRow < 10e6; iRow++) {
     int iCodeState;
     xmlChar mucT[BUFFER_LENGTH];
-    xmlNodePtr pndRow = xmlNewChild(pndArgParent, NULL, BAD_CAST"entry", NULL);
 
-    iCodeState = sqlite3_step (pStmt);
+    iCodeState = sqlite3_step(pStmt);
     if (iCodeState == SQLITE_ROW) {
-      PrintFormatLog(4,"Append query result entry '%i'",iRow);
-      xmlStrPrintf(mucT,BUFFER_LENGTH-1,"%i",iRow);
+      xmlNodePtr pndRow = xmlNewChild(pndArgParent, NULL, BAD_CAST "entry", NULL);
+
+      PrintFormatLog(4, "Append query result entry '%i'", iRow);
+      xmlStrPrintf(mucT, BUFFER_LENGTH - 1, "%i", iRow);
       xmlSetProp(pndRow, BAD_CAST "nr", mucT);
       for (iCol=0; iCol<ncols; iCol++) {
 	const xmlChar *pucT = sqlite3_column_text(pStmt,iCol);
@@ -237,6 +259,7 @@ dbProcessQueryToNode(xmlNodePtr pndArgParent, resNodePtr prnArgDb, xmlChar *pucA
     }
     else {
       PrintFormatLog(1,"SQL error");
+      dbGetErrorsToNode(pndResult,(sqlite3 *)resNodeGetHandleIO(prnArgDb));
     }
 
     sqlite3_finalize(pStmt);
@@ -448,100 +471,28 @@ BOOL_T
 dbParseDirCreateTables(resNodePtr prnArgDb)
 {
   BOOL_T fResult = TRUE;
-  xmlChar *pucSql = NULL;
-  xmlChar mpucT[BUFFER_LENGTH];
-  char* zErr = NULL;
-  int rc;
-  int i;
   sqlite3 *pdbContext;
 
-  pdbContext = (sqlite3 *)resNodeGetHandleIO(prnArgDb);
+  if ((pdbContext = (sqlite3 *)resNodeGetHandleIO(prnArgDb)) != NULL) {
+    xmlChar *pucSql = NULL;
 
-  if (TableExists(prnArgDb,BAD_CAST"meta") == FALSE) {
-    pucSql = BAD_CAST"create table meta(i INTEGER PRIMARY KEY, timestamp INTEGER, key text, value text);";
-    rc = sqlite3_exec(pdbContext, (const char *)pucSql, NULL, NULL, &zErr);
-    if (rc == SQLITE_OK) {
-    }
-    else if (zErr) {
-      PrintFormatLog(1, "SQL error 'meta': %s\n", zErr);
-      sqlite3_free(zErr);
-      fResult = FALSE;
-    }
-  }
-  dbInsertMetaLog(prnArgDb, BAD_CAST"log/create",NULL);
-
-  if (TableExists(prnArgDb,BAD_CAST"directory") == FALSE) {
-    pucSql = BAD_CAST"create table directory("
-      "i INTEGER PRIMARY KEY, "
-      "depth INTEGER, "
-      "type INTEGER, "
-      "mime INTEGER, "
-      "r INTEGER, "
-      "w INTEGER, "
-      "x INTEGER, "
-      "h INTEGER, "
-#if 0
-      "owner text, "
-#endif
-      "name text, "
-      "ext text, "
-      "object text, "
-      "size INTEGER, "
-      "rsize INTEGER, "
-      "path text, "
-      "mtime INTEGER, "
-      "mtime2 text"
-      ");";
-    rc = sqlite3_exec(pdbContext, (const char *)pucSql, NULL, NULL, &zErr);
-    if (rc == SQLITE_OK) {
-    }
-    else if (zErr) {
-      PrintFormatLog(1, "SQL error 'directory': %s\n", zErr);
-      sqlite3_free(zErr);
-      fResult = FALSE;
-    }
-  }
-
-  if (TableExists(prnArgDb,BAD_CAST"mimetypes") == FALSE) {
-    pucSql = xmlStrdup(BAD_CAST"create table mimetypes(mime INTEGER, name text);");
-    for (i=MIME_UNKNOWN; i < MIME_END; i++) {
-      char *pcMime;
-	
-      pcMime = (char *)resMimeGetTypeStr(i);
-      if (pcMime) {
-	xmlStrPrintf(mpucT,BUFFER_LENGTH, "insert into mimetypes(mime,name) values (%i,\"%s\");", i, BAD_CAST pcMime);
-	pucSql = xmlStrcat(pucSql,mpucT);
+    if ((pucSql = resNodeDatabaseSchemaStr(RN_OUT_MAX)) != NULL) {
+      char* zErr = NULL;
+      int rc;
+    
+      rc = sqlite3_exec(pdbContext, (const char *)pucSql, NULL, NULL, &zErr);
+      if (rc == SQLITE_OK) {
       }
+      else if (zErr) {
+	PrintFormatLog(1, "SQL error 'meta': %s\n", zErr);
+	sqlite3_free(zErr);
+	fResult = FALSE;
+      }
+      xmlFree(pucSql);
     }
 
-    rc = sqlite3_exec(pdbContext, (const char *)pucSql, NULL, NULL, &zErr);
-    if (rc == SQLITE_OK) {
-    }
-    else if (zErr) {
-      PrintFormatLog(1, "SQL error 'mimetypes': %s\n", zErr);
-      sqlite3_free(zErr);
-      fResult = FALSE;
-    }
-    xmlFree(pucSql);
+    dbInsertMetaLog(prnArgDb, BAD_CAST"log/create",NULL);
   }
-  
-  if (TableExists(prnArgDb,BAD_CAST"queries") == FALSE) {
-    pucSql = BAD_CAST"create table queries(query text);"
-      "insert into queries(query) values (\"SELECT * FROM meta;\");"
-      "insert into queries(query) values (\"SELECT DISTINCT name FROM directory;\");"
-      "insert into queries(query) values (\"SELECT sum(size)/(1024*1024*1024) AS GB FROM directory;\");"
-      "insert into queries(query) values (\"SELECT path || '/' || name AS File,(size / 1048576) AS MB,mtime2 AS MTime FROM directory WHERE (size > 1048576) ORDER BY MB DESC;\");"
-      "insert into queries(query) values (\"SELECT count() AS Count, name AS Name FROM directory GROUP BY name ORDER BY Count DESC;\");";
-    rc = sqlite3_exec(pdbContext, (const char *)pucSql, NULL, NULL, &zErr);
-    if (rc == SQLITE_OK) {
-    }
-    else if (zErr) {
-      PrintFormatLog(1, "SQL error 'queries': %s\n", zErr);
-      sqlite3_free(zErr);
-      fResult = FALSE;
-    }
-  }
-
   return fResult;
 } /* end of dbParseDirCreateTables() */
 
@@ -718,13 +669,14 @@ xmlDocPtr
 dbDumpContextToDoc(resNodePtr prnArgDb, int iOptions)
 {
   xmlDocPtr pdocResult = NULL;
-  xmlNodePtr pndMeta;
-  xmlNodePtr pndSql;
-  xmlChar mpucT[BUFFER_LENGTH];
   sqlite3 *pdbContext;
 
   pdbContext = (sqlite3 *)resNodeGetHandleIO(prnArgDb);
   if (pdbContext != NULL && sqlite3_errcode(pdbContext) == SQLITE_OK) {
+    xmlChar *pucT = NULL;
+    xmlNodePtr pndMeta;
+    xmlNodePtr pndSql;
+    
     assert( pdbContext != NULL && sqlite3_errcode(pdbContext) == SQLITE_OK );
 
     /*! create DOM
@@ -735,10 +687,13 @@ dbDumpContextToDoc(resNodePtr prnArgDb, int iOptions)
 
     pndMeta = xmlNewChild(pndSql, NULL, NAME_META, NULL);
     //xmlAddChild(pndMeta,xmlCopyNode(pndMakeSql,1));
+    
     /* Get the current time. */
-    xmlStrPrintf(mpucT,BUFFER_LENGTH, "%i", GetTodayTime());
-    xmlSetProp(pndMeta, BAD_CAST "ctime", mpucT);
-    xmlSetProp(pndMeta, BAD_CAST "ctime2", GetTodayTag());
+    if ((pucT = GetNowFormatStr(BAD_CAST "%T"))) {
+      xmlSetProp(pndMeta, BAD_CAST "ctime", pucT);
+      xmlFree(pucT);
+    }
+    
     // cxpInfoProgram(pndMeta, NULL);
 
     dbDumpContextToNode(pndSql,prnArgDb,iOptions);
@@ -817,7 +772,7 @@ GetXslInsertAsPlain(void)
       "</xsl:stylesheet>"
       ;
 
-  pdocResult = xmlParseMemory(pcXsl,strlen(pcXsl));
+  pdocResult = xmlParseMemory((const char *)pcXsl,strlen(pcXsl));
 
   return pdocResult;
 }

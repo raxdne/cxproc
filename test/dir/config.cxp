@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <cxp:make xmlns:cxp="http://www.tenbusch.info/cxproc">
-  <cxp:system mkdir="result"/>
+  <cxp:system mkdir="result/"/>
   <cxp:system message="TEST 1: directory parsing with verbosity=1..5"/>
   <cxp:xml name="result/test-dir-verbosity-default.xml">
     <cxp:dir>

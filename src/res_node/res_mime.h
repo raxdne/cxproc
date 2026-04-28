@@ -1,7 +1,7 @@
  /*
   cxproc - Configurable Xml PROCessor
 
-  Copyright (C) 2006..2020 by Alexander Tenbusch
+  Copyright (C) 2006..2024 by Alexander Tenbusch
 
   This program is free software; you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -24,6 +24,7 @@
 typedef enum {
   MIME_UNDEFINED,
   MIME_UNKNOWN,
+  MIME_EMPTY,
   /*
     Microsoft Office
   */
@@ -70,6 +71,12 @@ typedef enum {
   MIME_APPLICATION_VND_PTC_CAD_CONFIGURATION,
   MIME_APPLICATION_VND_PTC_CAD_XYZ,
   /*
+    GARMIN formats
+  */
+  MIME_APPLICATION_VND_GARMIN_FIT,
+  MIME_APPLICATION_VND_GARMIN_FITX,
+  MIME_APPLICATION_VND_GARMIN_TCX,
+  /*
     Application formats
   */
   MIME_APPLICATION_CAD_2D,
@@ -78,14 +85,16 @@ typedef enum {
   MIME_APPLICATION_COMMAND,
   MIME_APPLICATION_CXP_XML,
   MIME_APPLICATION_MMAP_XML,
+  MIME_APPLICATION_XMMAP_XML,
   MIME_APPLICATION_MM_XML,
   MIME_APPLICATION_X_BYTECODE_ELISP,
   MIME_APPLICATION_JSON,
   MIME_APPLICATION_X_JAVASCRIPT,
   MIME_APPLICATION_X_JAVA_VM,
   MIME_APPLICATION_XMIND_XML,
-  MIME_APPLICATION_XMMAP_XML,
   MIME_APPLICATION_RDF_XML,
+  MIME_APPLICATION_XSD_XML,
+  MIME_APPLICATION_RNG_XML,
 #ifdef HAVE_PIE
   MIME_APPLICATION_PIE_XML,
   MIME_APPLICATION_PIE_XML_INDEX,
@@ -117,10 +126,15 @@ typedef enum {
     Image formats
   */
   MIME_IMAGE_GIF,
+  MIME_IMAGE_BMP,
   MIME_IMAGE_JPEG,
   MIME_IMAGE_PNG,
+  MIME_IMAGE_SVG_XML,
   MIME_IMAGE_TIFF,
+  MIME_IMAGE_AVIF,
   MIME_IMAGE_WMF,
+  MIME_IMAGE_X_CANON_CRW,
+  MIME_IMAGE_X_PANASONIC_RAW,
   /*
     Filesystem elements
   */
@@ -135,7 +149,6 @@ typedef enum {
   MIME_TEXT_CSV,
   MIME_TEXT_HTML,
   MIME_TEXT_PLAIN,
-  MIME_TEXT_PLAIN_CALENDAR,
   MIME_TEXT_MARKDOWN,
   MIME_TEXT_VCARD,
   MIME_TEXT_XML,
@@ -165,12 +178,15 @@ typedef enum {
 
 
 extern RN_MIME_TYPE
+resMimeGetTypeFromDataBase64(const xmlChar *pucArg);
+
+extern RN_MIME_TYPE
 resMimeGetTypeFromExt(const xmlChar *pucArg);
 
 extern RN_MIME_TYPE
 resMimeGetType(const char *pchArg);
 
-extern char *
+extern const char *
 resMimeGetTypeStr(int iArg);
 
 extern BOOL_T
@@ -180,13 +196,22 @@ extern BOOL_T
 resMimeIsPicture(int iMimeType);
 
 extern BOOL_T
+resMimeIsVideo(int iMimeType);
+
+extern BOOL_T
 resMimeIsArchive(int iMimeType);
+
+extern BOOL_T
+resMimeIsZipDocument(int iMimeType);
 
 extern BOOL_T
 resMimeIsXml(int iMimeType);
 
 extern BOOL_T
 resMimeIsPlain(int iMimeType);
+
+extern BOOL_T
+resMimeIsBrowserViewable(int iMimeType);
 
 #ifdef TESTCODE
 extern int

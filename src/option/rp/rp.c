@@ -1,7 +1,7 @@
 /*
   cxproc - Configurable Xml PROCessor
 
-  Copyright (C) 2006..2020 by Alexander Tenbusch
+  Copyright (C) 2006..2024 by Alexander Tenbusch
 
   This program is free software; you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -303,7 +303,7 @@ rpProcessImage(xmlNodePtr pndArg, resNodePtr prnArgSrc, resNodePtr prnArgTo)
 	xmlChar *pucFilename;
 	printf("Content-type: pImage/%s\n", pImage->magick);
 	if (pImage->filename != NULL
-	    && (pucFilename = resPathGetBasename(BAD_CAST pImage->filename)) != NULL) {
+	    && (pucFilename = resPathGetBasenameStr(BAD_CAST pImage->filename)) != NULL) {
 	  printf("Content-Disposition: filename=\"%s\"\n",pucFilename);
 	  xmlFree(pucFilename);
 	}
@@ -321,7 +321,7 @@ rpProcessImage(xmlNodePtr pndArg, resNodePtr prnArgSrc, resNodePtr prnArgTo)
     }
     else {
       /* create target directory first */
-      if (resNodeMakeDirectoryStr(resNodeGetNameBaseDir(prnArgSrc),MODE_DIR_CREATE)) {
+      if (resNodeMakeDirectoryStr(resNodeGetNameBaseDir(prnArgSrc),MODE_DIR_CREATE) == rn_error_none) {
 	/* needed basedir created successfully */
       }
       WriteImages(pInfoImage,pImage,resNodeGetNameNormalizedNative(prnArgTo),pException);

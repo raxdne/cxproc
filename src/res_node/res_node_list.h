@@ -1,7 +1,7 @@
 /*
   cxproc - Configurable Xml PROCessor
 
-  Copyright (C) 2006..2020 by Alexander Tenbusch
+  Copyright (C) 2006..2024 by Alexander Tenbusch
 
   This program is free software; you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -30,7 +30,13 @@
 
 #define RN_FIND_IN_ARCHIVE (8)
 
-#define RN_FIND_ALL        (RN_FIND_FILE | RN_FIND_DIR | RN_FIND_IN_SUBDIR | RN_FIND_IN_ARCHIVE)
+#define RN_FIND_NEXT	  (16)
+
+#define RN_FIND_REGEXP	  (32)
+
+#define RN_FIND_IN_TEMP	  (64)
+
+#define RN_FIND_ALL        (RN_FIND_FILE | RN_FIND_DIR | RN_FIND_IN_SUBDIR | RN_FIND_IN_ARCHIVE | RN_FIND_NEXT)
 
 extern BOOL_T
 resNodeListParse(resNodePtr prnArg, int iArgDepth, const pcre2_code *re_match);
@@ -52,24 +58,6 @@ resNodeListFindPath(resNodePtr prnArg, xmlChar *pucArgPath, int iArgOptions);
 
 extern resNodePtr
 resNodeListFindPathNext(resNodePtr prnArg, xmlChar *pucArgPath, int iArgOptions);
-
-extern xmlNodePtr
-resNodeListToDOM(resNodePtr prnArg, int iLevelVerboseArg);
-
-extern xmlChar *
-resNodeListToSQL(resNodePtr prnArg, int iLevelVerboseArg);
-
-extern xmlChar *
-resNodeListToJSON(resNodePtr prnArg, int iLevelVerboseArg);
-
-extern xmlChar *
-resNodeListToXml(resNodePtr prnArg, int iLevelVerboseArg);
-
-extern xmlChar *
-resNodeListToPlain(resNodePtr prnArg, int iLevelVerboseArg);
-
-extern xmlChar*
-resNodeListToPlainTree(resNodePtr prnArg, xmlChar* pucArgPrefix, int iArgOptions);
 
 #ifdef TESTCODE
 int

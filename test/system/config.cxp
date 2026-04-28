@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <cxp:make xmlns:cxp="http://www.tenbusch.info/cxproc">
-  <cxp:system mkdir="result"/>
+  <cxp:system mkdir="result/"/>
   <!--
   <cxp:system message="**** test-system-001: Call a shell command ****"/>
   <cxp:system exec="echo &quot;* Test &quot; &gt; result/test-system-1.txt"/>

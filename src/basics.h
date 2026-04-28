@@ -1,7 +1,7 @@
 /*
   cxproc - Configurable Xml PROCessor
 
-  Copyright (C) 2006..2020 by Alexander Tenbusch
+  Copyright (C) 2006..2024 by Alexander Tenbusch
 
   This program is free software; you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -21,6 +21,7 @@
 /*! common basics of all modules
  */
 
+#include <assert.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <stddef.h>
@@ -47,12 +48,6 @@ typedef int index_t;
 /*! value for error */
 #define ERROR_INDEX -1
 
-#define NAME_FILE_INDEX ".index.pie"
-
-#define NAME_TMP_INDEX "#index.pie#"
-
-#define NAME_CONFIG_INDEX ".index.cxp"
-
 /*! size of static buffers */
 #define BUFFER_LENGTH ((size_t)(4 * 1024))
 
@@ -62,8 +57,8 @@ typedef int index_t;
     #include <stdbool.h>
     #define BOOL_T bool
   #else
-    /*! use int as boolean type */
-    #define BOOL_T int
+    /*! use char as boolean type */
+    #define BOOL_T _Bool
   #endif
 #endif
 
@@ -86,6 +81,11 @@ typedef int index_t;
   #else
     #define TESTHTTP 0
   #endif
+  #ifdef HTTPPREFIX
+    /* is define elsewhere */
+  #else
+    #define HTTPPREFIX "http://localhost:8183/"
+  #endif
 #else
   #define RUNTEST (FALSE)
 #endif
@@ -104,6 +104,12 @@ typedef int index_t;
 #include "version.h"
 
 #ifdef _MSC_VER
+
+/* https://social.msdn.microsoft.com/Forums/vstudio/de-DE/e189173e-870d-440b-a416-340678481ed7/exclude-msxmlh?forum=vcgeneral */
+#ifndef __MSXML_LIBRARY_DEFINED__
+#define __MSXML_LIBRARY_DEFINED__
+#endif
+
 #include <windows.h>
 #include <WinBase.h>
 #include <WinDef.h>
@@ -140,11 +146,18 @@ typedef int index_t;
 #include <pwd.h>
 #include <sys/types.h>
 #include <sys/utsname.h>
+#include <sys/stat.h>
+#include <dirent.h>
+
 #define MAX_PATH BUFFER_LENGTH
 #endif
 
 #ifndef TIME_H_INCLUDED
 #include <time.h>
+#endif
+
+#ifndef __DT_H__
+#include <c-dt/dt.h>
 #endif
 
 /* https://www.cs.tut.fi/~jkorpela/round.html */
@@ -201,10 +214,6 @@ typedef int index_t;
 #define STR_UTF8_HEAVY_CHECK_MARK "\xE2\x9C\x94"
 
 #define STR_UTF8_HEAVY_BALLOT_X "\xE2\x9C\x98"
-
-#define STR_PIE_OK STR_UTF8_HEAVY_CHECK_MARK
-
-#define STR_PIE_CANCEL STR_UTF8_HEAVY_BALLOT_X
 
 #define STR_UTF8_MINUS "\xE2\x88\x92"
 

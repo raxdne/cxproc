@@ -1,7 +1,7 @@
 /*
   cxproc - Configurable Xml PROCessor
 
-  Copyright (C) 2006..2020 by Alexander Tenbusch
+  Copyright (C) 2006..2024 by Alexander Tenbusch
 
   This program is free software; you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -52,7 +52,13 @@ struct _cxpSubst {
   xmlChar *pucScriptResult;
 #endif
 
+#ifdef HAVE_PCRE2
+  pcre2_code *preFrom;
+#endif
+  
   BOOL_T  fReplaceInAttr;
+
+  BOOL_T(*pPredicateSkip)(xmlNodePtr pndArg); /* pointer to a predicate function */
 
   /*! different encodings of subst */
   encoding_t eEncoding;
@@ -74,6 +80,9 @@ extern BOOL_T
 cxpSubstInChildNodes(xmlNodePtr pndArgTop, xmlNodePtr pndArgSubst, cxpContextPtr pccArg);
 
 extern BOOL_T
+cxpSubstApply(xmlNodePtr pndArgTop, cxpSubstPtr pcxpSubstArg, cxpContextPtr pccArg);
+
+extern BOOL_T
 cxpSubstReplaceNodes(xmlNodePtr pndArg, cxpContextPtr pccArg);
 
 extern xmlChar *
@@ -85,8 +94,12 @@ cxpSubstIncludeNodes(xmlNodePtr pndArg,cxpContextPtr pccArg);
 extern xmlChar *
 cxpSubstGetPtr(cxpSubstPtr pcxpSubstArg);
 
-extern xmlChar *
-_cxpSubstGetDefaultPtr(cxpSubstPtr pcxpSubstArg);
+#ifdef HAVE_PCRE2
+
+extern pcre2_code*
+cxpSubstGetRegExp(cxpSubstPtr pcxpSubstArg);
+
+#endif
 
 extern xmlChar *
 cxpSubstGetNamePtr(cxpSubstPtr pcxpSubstArg);

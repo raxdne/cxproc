@@ -1,7 +1,7 @@
 /*
   cxproc - Configurable Xml PROCessor
 
-  Copyright (C) 2006..2020 by Alexander Tenbusch
+  Copyright (C) 2006..2024 by Alexander Tenbusch
 
   This program is free software; you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -144,7 +144,7 @@ resPathCleanup(void)
 \return pointer to a new UTF encoded string of 'pucArg' or NULL in case of error
 */
 xmlChar*
-resPathEncode(const char* pchArg)
+resPathEncodeStr(const char* pchArg)
 {
   xmlChar* pucResult = NULL;
   size_t iLength = 0;
@@ -192,7 +192,7 @@ resPathEncode(const char* pchArg)
   }
 
   return pucResult;
-} /* end of resPathEncode() */
+} /* end of resPathEncodeStr() */
 
 
 /*! Resource Path Decode  
@@ -201,7 +201,7 @@ resPathEncode(const char* pchArg)
 \return pointer to a new native encoded string of 'pucArg' or NULL in case of error
 */
 char *
-resPathDecode(xmlChar *pucArg)
+resPathDecodeStr(xmlChar *pucArg)
 {
   char* pchResult = NULL;
   size_t iLength = 0;
@@ -249,7 +249,7 @@ resPathDecode(xmlChar *pucArg)
   }
 
   return pchResult;
-} /* end of resPathDecode() */
+} /* end of resPathDecodeStr() */
 
 
 /*! Resource Path print iconv error messages
@@ -392,6 +392,44 @@ resPathIsMatchingEnd(xmlChar *pucArgPath, xmlChar *pucArgNameFile)
 /* end of resPathIsMatchingEnd() */
 
 
+/*! \return pucArgPath 
+
+\param pucArgPath
+*/
+xmlChar *
+resPathSkipPrefixFilePtr(xmlChar *pucArgPath)
+{
+  xmlChar *pucResult = pucArgPath;
+
+  if (STR_IS_NOT_EMPTY(pucResult)) {
+
+    if (StringBeginsWith((char *)pucResult, "file://")) {
+      pucResult += 7;
+    }
+    
+    if (issep(pucResult[0]) && issep(pucResult[1])) {
+      /* Windows UNC path */
+    }
+    else if (issep(pucResult[0]) && isalpha(pucResult[1]) && pucResult[2] == ':' && issep(pucResult[3])) {
+      /* local Windows path with leading separator */
+#ifdef _MSC_VER
+      pucResult++;
+#else
+      pucResult += 3;
+#endif
+    }
+    else if (isalpha(pucResult[0]) && pucResult[1] == ':' && issep(pucResult[2])) {
+      /* local Windows path */
+#ifdef _MSC_VER
+#else
+      pucResult += 2;
+#endif
+    }
+  }
+  return pucResult;
+} /* end of resPathSkipPrefixFilePtr() */
+
+
 /*! \return TRUE if pucArgPathDescendant is a descendant of pucArgPath ("pucArgPathDescendant starts with pucArgPath")
 
 \param pucArgPath
@@ -401,6 +439,10 @@ xmlChar *
 resPathDiffPtr(xmlChar *pucArgPath, xmlChar *pucArgPathDescendant)
 {
   if (STR_IS_NOT_EMPTY(pucArgPath) && STR_IS_NOT_EMPTY(pucArgPathDescendant)) {
+
+    pucArgPath = resPathSkipPrefixFilePtr(pucArgPath);
+    pucArgPathDescendant = resPathSkipPrefixFilePtr(pucArgPathDescendant);
+
     for ( ; ; pucArgPath++, pucArgPathDescendant++) {
       int iDeltaUpperLower = ('a' - 'A');
 
@@ -463,7 +505,7 @@ resPathIsDescendant(xmlChar *pucArgPath, xmlChar *pucArgPathDescendant)
 
 
 /*! \return TRUE if pucArgA and pucArgB results in the same target
- pucArgA and pucArgB must be normalized, use resPathCollapse() before
+ pucArgA and pucArgB must be normalized, use resPathCollapseStr() before
 */
 BOOL_T
 resPathIsEquivalent(xmlChar *pucArgA, xmlChar *pucArgB)
@@ -480,24 +522,12 @@ resPathIsEquivalent(xmlChar *pucArgA, xmlChar *pucArgB)
 
     eProtocolA = resPathGetProtocol(pucA); /* detect protocol prefix */
     if (eProtocolA == PROTOCOL_FILE) { /* file access */
-      assert(xmlStrlen(pucA) > 7);
-      /* cut "file://" prefix */
-#ifdef _MSC_VER
-      for (pucA += 5; issep(*pucA); pucA++); /* skip separators */
-#else
-      for (pucA += 5; issep(pucA[1]); pucA++); /* skip separators */
-#endif
+      pucA = resPathSkipPrefixFilePtr(pucA);
     }
 
     eProtocolB = resPathGetProtocol(pucB); /* detect protocol prefix */
     if (eProtocolB == PROTOCOL_FILE) { /* file access */
-      assert(xmlStrlen(pucB) > 7);
-      /* cut "file://" prefix */
-#ifdef _MSC_VER
-      for (pucB += 5; issep(*pucB); pucB++); /* skip separators */
-#else
-      for (pucB += 5; issep(pucB[1]); pucB++); /* skip separators */
-#endif
+      pucB = resPathSkipPrefixFilePtr(pucB);
     }
 
     if ((eProtocolA == PROTOCOL_FILE && eProtocolB == PROTOCOL_NIL) || (eProtocolB == PROTOCOL_FILE && eProtocolA == PROTOCOL_NIL)) {
@@ -564,6 +594,18 @@ resPathIsEquivalent(xmlChar *pucArgA, xmlChar *pucArgB)
 /* end of resPathIsEquivalent() */
 
 
+/*! \return TRUE if pucArg is a temporary path ("Backup","Cache","Temp","Trash","tmp")
+*/
+BOOL_T
+resPathIsTemp(xmlChar *pucArg)
+{
+  return (STR_IS_EMPTY(pucArg) || xmlStrcasestr(pucArg, BAD_CAST "/Backup/") != NULL ||
+	  xmlStrcasestr(pucArg, BAD_CAST "/Temp/") != NULL || xmlStrcasestr(pucArg, BAD_CAST "/Trash/") != NULL ||
+	  xmlStrcasestr(pucArg, BAD_CAST "/tmp/") != NULL || StringEndsWith((char *)pucArg, (const char *)"~") != NULL);
+}
+/* end of resPathIsTemp() */
+
+
 /*! \return TRUE if pucArg starts as a relative path
 */
 BOOL_T
@@ -596,6 +638,9 @@ resPathIsRelative(xmlChar *pucArg)
 	fResult = FALSE;
       }
     }
+  }
+  else {
+    //fResult = FALSE;
   }
   return fResult;
 }
@@ -744,24 +789,12 @@ resPathBeginIsArchive(xmlChar *pucArg)
 
     for (pucDot=NULL, pucT=pucArg; pucT; pucT++) {
       if (isseporend(*pucT) || isquot(*pucT)) {
-	if (pucDot != NULL && pucT - pucDot > 4) {
-	  fResult =
-	       (*(pucT - 4) == (xmlChar)'d' && *(pucT - 3) == (xmlChar)'o' && *(pucT - 2) == (xmlChar)'c' && *(pucT - 1) == (xmlChar)'x')
-	    || (*(pucT - 4) == (xmlChar)'p' && *(pucT - 3) == (xmlChar)'p' && *(pucT - 2) == (xmlChar)'t' && *(pucT - 1) == (xmlChar)'x')
-	    || (*(pucT - 4) == (xmlChar)'x' && *(pucT - 3) == (xmlChar)'l' && *(pucT - 2) == (xmlChar)'s' && *(pucT - 1) == (xmlChar)'x')
-	    ;
-	  assert(fResult == FALSE || isdot(*(pucT - 5)));
-	  break;
-	}
-	else if (pucDot != NULL && pucT - pucDot > 3) {
+	if (pucDot != NULL && pucT - pucDot > 3) {
 	  fResult =
 	       (*(pucT - 3) == (xmlChar)'z' && *(pucT - 2) == (xmlChar)'i' && *(pucT - 1) == (xmlChar)'p')
 	    || (*(pucT - 3) == (xmlChar)'t' && *(pucT - 2) == (xmlChar)'a' && *(pucT - 1) == (xmlChar)'r')
 	    || (*(pucT - 3) == (xmlChar)'i' && *(pucT - 2) == (xmlChar)'s' && *(pucT - 1) == (xmlChar)'o')
 	    || (*(pucT - 3) == (xmlChar)'w' && *(pucT - 2) == (xmlChar)'i' && *(pucT - 1) == (xmlChar)'m')
-	    || (*(pucT - 3) == (xmlChar)'o' && *(pucT - 2) == (xmlChar)'d' && *(pucT - 1) == (xmlChar)'t')
-	    || (*(pucT - 3) == (xmlChar)'o' && *(pucT - 2) == (xmlChar)'d' && *(pucT - 1) == (xmlChar)'s')
-	    || (*(pucT - 3) == (xmlChar)'o' && *(pucT - 2) == (xmlChar)'d' && *(pucT - 1) == (xmlChar)'p')
 	    ;
 	  assert(fResult == FALSE || isdot(*(pucT - 4)));
 	  break;
@@ -776,6 +809,7 @@ resPathBeginIsArchive(xmlChar *pucArg)
       }
     }
   }
+
   return fResult;
 }
 /* end of resPathBeginIsArchive() */
@@ -901,13 +935,15 @@ resPathIsRoot(xmlChar *pucArg)
 	   ||
 	   (isquot(pucArg[0]) && issep(pucArg[1]) && isquot(pucArg[2]) && isend(pucArg[3]))
 	   ||
-	   (resPathIsDosDrive(pucArg) && isend(pucArg[3]))
+	   (isalpha(pucArg[0]) && pucArg[1] == (xmlChar)':' && isend(pucArg[2]))
 	   ||
-	   (isquot(pucArg[0]) && resPathIsDosDrive(pucArg + 1) && isquot(pucArg[4]) && isend(pucArg[5]))
-	   )
+	   (isquot(pucArg[0]) && isalpha(pucArg[1]) && pucArg[2] == (xmlChar)':' && isquot(pucArg[3]) && isend(pucArg[4]))
+	   ||
+	   (isalpha(pucArg[0]) && pucArg[1] == (xmlChar)':' && issep(pucArg[2]) && isend(pucArg[3]))
+	   ||
+	   (isquot(pucArg[0]) && isalpha(pucArg[1]) && pucArg[2] == (xmlChar)':' && issep(pucArg[3]) && isquot(pucArg[4]) && isend(pucArg[5])))
 	  );
-}
-/* end of resPathIsRoot() */
+} /* end of resPathIsRoot() */
 
 
 /*! \return a dynamically allocated string containing the lowercase extension of pucArg or NULL
@@ -917,7 +953,7 @@ resPathIsRoot(xmlChar *pucArg)
 
  */
 xmlChar *
-resPathGetExtension(xmlChar *pucArg)
+resPathGetExtensionStr(xmlChar *pucArg)
 {
   xmlChar *pucT, *pucResult, *pucTail;
   int diResult;
@@ -1013,13 +1049,13 @@ resPathGetExtension(xmlChar *pucArg)
   /* case (1) */
   return NULL;
 }
-/* end of resPathGetExtension() */
+/* end of resPathGetExtensionStr() */
 
 
 /*! \return a dynamically allocated string with the whole directory path of the given filename
 */
 xmlChar *
-resPathGetBasedir(xmlChar *pucArgNameFile)
+resPathGetBasedirStr(xmlChar *pucArgNameFile)
 {
   xmlChar *pucSep;
   xmlChar *ptr;
@@ -1043,7 +1079,7 @@ resPathGetBasedir(xmlChar *pucArgNameFile)
   }
 
   if (resPathIsDir(pucArgNameFile)) {
-    return xmlStrndup(pucArgNameFile, (int)(pucEnd - pucArgNameFile + 1));
+//    return xmlStrndup(pucArgNameFile, (int)(pucEnd - pucArgNameFile + 1));
   }
 
   for (ptr=BAD_CAST pucArgNameFile, pucSep=NULL;
@@ -1063,19 +1099,19 @@ resPathGetBasedir(xmlChar *pucArgNameFile)
     }
     else if (pucSep - pucPath > 0 || ! isdot(*pucPath)) {
       /* there is a directory path on argv[1] */
-      return xmlStrndup(pucPath, (int)(pucSep - pucPath));
+      return xmlStrndup(pucPath, (int)(pucSep - pucPath) + 1);
     }
   }
 
   return NULL;
 }
-/* end of resPathGetBasedir() */
+/* end of resPathGetBasedirStr() */
 
 
 /*! \return a dynamically allocated string with the basename of the given filename
 */
 xmlChar *
-resPathGetBasename(xmlChar *pucArgNameFile)
+resPathGetBasenameStr(xmlChar *pucArgNameFile)
 {
   xmlChar *pucSep;
   xmlChar *ptr;
@@ -1083,11 +1119,7 @@ resPathGetBasename(xmlChar *pucArgNameFile)
   xmlChar *pucEnd;
   int l;
 
-  if (STR_IS_EMPTY(pucArgNameFile)) {
-    return NULL;
-  }
-
-  if (resPathIsDir(pucArgNameFile)) {
+  if (STR_IS_EMPTY(pucArgNameFile) || resPathIsRoot(pucArgNameFile)) {
     return NULL;
   }
 
@@ -1122,24 +1154,24 @@ resPathGetBasename(xmlChar *pucArgNameFile)
   }
   return NULL;
 }
-/* end of resPathGetBasename() */
+/* end of resPathGetBasenameStr() */
 
 
 /*! \return a dynamically allocated string with the rootname of the given filename
 */
 xmlChar *
-resPathGetRootname(xmlChar *pucArgNameFile)
+resPathGetRootnameStr(xmlChar *pucArgNameFile)
 {
   xmlChar *pucResult = NULL;
 
   if (STR_IS_NOT_EMPTY(pucArgNameFile)) {
     xmlChar *pucRoot = NULL;
 
-    pucRoot = resPathGetBasename(pucArgNameFile);
+    pucRoot = resPathGetBasenameStr(pucArgNameFile);
     if (STR_IS_NOT_EMPTY(pucRoot)) {
       xmlChar *pucExt;
     
-      pucExt = resPathGetExtension(pucRoot);
+      pucExt = resPathGetExtensionStr(pucRoot);
       if (STR_IS_NOT_EMPTY(pucExt)) {
 	xmlChar *pucEnd;
       
@@ -1154,13 +1186,13 @@ resPathGetRootname(xmlChar *pucArgNameFile)
   }
   return pucResult;
 }
-/* end of resPathGetRootname() */
+/* end of resPathGetRootnameStr() */
 
 
 /*! \return a dynamically allocated string with doubled '\\'
 */
 xmlChar *
-resPathGetQuoted(xmlChar *pucArgNameFile)
+resPathGetQuotedStr(xmlChar *pucArgNameFile)
 {
   xmlChar *pucResult = NULL;
 
@@ -1187,7 +1219,7 @@ resPathGetQuoted(xmlChar *pucArgNameFile)
   }
   return pucResult;
 }
-/* end of resPathGetQuoted() */
+/* end of resPathGetQuotedStr() */
 
 
 /*! \return pointer to end of the given path without quotes etc
@@ -1201,7 +1233,7 @@ resPathCutTrailingChars(xmlChar *pucArgPath)
     xmlChar *pucEnd;
     int l;
 
-    /* cut trailing separators */
+    /* cut redundant trailing separators */
     l = xmlStrlen(pucArgPath);
     for (pucEnd = BAD_CAST &pucArgPath[l-1];
       pucEnd > pucArgPath && (issep(*pucEnd) || isdot(*pucEnd));
@@ -1243,7 +1275,7 @@ resPathChangeToSlashes(xmlChar *pucArgPath)
 /*! \return the pointer to next path separator in pucArgPath or NULL if fails
 */
 xmlChar *
-resPathGetNextSeparator(xmlChar *pucArgPath)
+resPathGetNextSeparatorPtr(xmlChar *pucArgPath)
 {
   xmlChar *pucResult = NULL;
 
@@ -1259,13 +1291,34 @@ resPathGetNextSeparator(xmlChar *pucArgPath)
   }
   return pucResult;
 }
-/* end of resPathGetNextSeparator() */
+/* end of resPathGetNextSeparatorPtr() */
+
+
+/*! \return the pointer to next path separator in pucArgPath or NULL if fails
+*/
+xmlChar *
+resPathGetNextPathPtr(xmlChar *pucArgPath)
+{
+  xmlChar *pucResult = NULL;
+
+  if (STR_IS_NOT_EMPTY(pucArgPath)) {
+    xmlChar *pucT;
+
+    for (pucT = pucArgPath; pucT != NULL && !isend(*pucT); pucT++) {
+      if (*pucT == PATHLIST_SEPARATOR) {
+	pucResult = pucT;
+	break;
+      }
+    }
+  }
+  return pucResult;
+} /* end of resPathGetNextPathPtr() */
 
 
 /*! \return search for first occurance of pucArgNeedle in pucArgPath
 */
 xmlChar *
-resPathGetDirFind(xmlChar *pucArgPath, xmlChar *pucArgNeedle)
+resPathFindDirStr(xmlChar *pucArgPath, xmlChar *pucArgNeedle)
 {
   xmlChar *pucResult = NULL;
 
@@ -1289,7 +1342,7 @@ resPathGetDirFind(xmlChar *pucArgPath, xmlChar *pucArgNeedle)
   }
   return pucResult;
 }
-/* end of resPathGetDirFind() */
+/* end of resPathFindDirStr() */
 
 
 /*! \return the path depth of context (= number of path separators)
@@ -1364,10 +1417,10 @@ CopyPath(xmlChar *pucArgTarget, xmlChar *pucArgSource)
   \param pucArgB
   \return a new allocated string with all concatenated arguments separated by '/' or NULL if fails
 
-  for fast processing of pre-tested values (use resPathConcatNormalized() else)
+  for fast processing of pre-tested values (use resPathConcatNormalizedStr() else)
  */
 xmlChar *
-resPathConcat(xmlChar *pucArgA, xmlChar *pucArgB)
+resPathConcatStr(xmlChar *pucArgA, xmlChar *pucArgB)
 {
   xmlChar *pucResult = NULL;
 
@@ -1405,13 +1458,13 @@ resPathConcat(xmlChar *pucArgA, xmlChar *pucArgB)
 
   return pucResult;
 }
-/* end of resPathConcat() */
+/* end of resPathConcatStr() */
 
 
 /*! \return a new allocated string with all concatenated arguments separated by '/' or NULL if fails
 */
 xmlChar *
-resPathConcatNormalized(xmlChar *pucArgA, xmlChar *pucArgB)
+resPathConcatNormalizedStr(xmlChar *pucArgA, xmlChar *pucArgB)
 {
   xmlChar *pucResult = NULL;
 
@@ -1419,23 +1472,23 @@ resPathConcatNormalized(xmlChar *pucArgA, xmlChar *pucArgB)
     if (STR_IS_NOT_EMPTY(pucArgB)) {
       xmlChar *pucRelease;
 
-      pucRelease = resPathConcat(pucArgA,pucArgB);
-      pucResult = resPathNormalize(pucRelease);
+      pucRelease = resPathConcatStr(pucArgA,pucArgB);
+      pucResult = resPathCollapseStr(pucRelease, FS_PATH_FULL);
       xmlFree(pucRelease);
     }
     else {
-      pucResult = resPathNormalize(pucArgA);
+      pucResult = resPathCollapseStr(pucArgA, FS_PATH_FULL);
     }
   }
   return pucResult;
 }
-/* end of resPathConcatNormalized() */
+/* end of resPathConcatNormalizedStr() */
 
 
 /*! \return a new allocated string of (resPathGetPathInNextArchivePtr(P) - P) or NULL if fails
 */
 xmlChar *
-resPathGetPathOfArchive(xmlChar *pucArg)
+resPathGetPathOfArchiveStr(xmlChar *pucArg)
 {
   xmlChar *pucResult = NULL;
 
@@ -1449,7 +1502,7 @@ resPathGetPathOfArchive(xmlChar *pucArg)
     }
   }
   return pucResult;
-} /* end of resPathGetPathOfArchive() */
+} /* end of resPathGetPathOfArchiveStr() */
 
 
 /*! \return a pointer to next archive name in pucArg or NULL by default
@@ -1479,7 +1532,7 @@ resPathGetNameOfNextArchivePtr(xmlChar *pucArg)
     if (resPathBeginIsArchive(pucArg)) {
       pucResult = pucArg; /* begin of pucArg is result */
     }
-    else if ((pucResult = resPathGetNextSeparator(pucArg)) != NULL) {
+    else if ((pucResult = resPathGetNextSeparatorPtr(pucArg)) != NULL) {
       assert(pucResult > pucArg);
       while(issep(*pucResult) || isquot(*pucResult)) pucResult++; /* skip trailing quotes and separators */
       if (isend(*pucResult)) {
@@ -1506,7 +1559,7 @@ resPathGetPathInNextArchivePtr(xmlChar *pucArg)
   xmlChar *pucArchive;
 
   if ((pucArchive = resPathGetNameOfNextArchivePtr(pucArg))) {
-    if ((pucResult = resPathGetNextSeparator(pucArchive)) != NULL) {
+    if ((pucResult = resPathGetNextSeparatorPtr(pucArchive)) != NULL) {
       assert(pucResult > pucArchive);
       while(issep(*pucResult) || isquot(*pucResult)) pucResult++;
       if (isend(*pucResult)) {
@@ -1596,7 +1649,7 @@ resPathGetProtocol(xmlChar *pucArg)
 -
 */
 xmlChar *
-resPathCollapse(xmlChar *pucArg, int iArgOpts)
+resPathCollapseStr(xmlChar *pucArg, int iArgOpts)
 {
   BOOL_T fPathLocal = TRUE;
   BOOL_T fPathValid = TRUE;
@@ -1609,10 +1662,6 @@ resPathCollapse(xmlChar *pucArg, int iArgOpts)
     return pucResult;
   }
 
-#if 0
-  pucResult = xmlStrdup(pucArg);
-  resPathRemoveQuotes(pucResult);
-#else
   for ( ; isquot(*pucArg); pucArg++); /* skip leading quotes */
 
   for (ciLength=0; ! isend(pucArg[ciLength]) && ! isquot(pucArg[ciLength]); ciLength++) { /* count chars between quotes */
@@ -1621,7 +1670,6 @@ resPathCollapse(xmlChar *pucArg, int iArgOpts)
     }
   }
   pucResult = xmlStrndup(pucArg,ciLength); /* copy without quotes */
-#endif
   
   if (STR_IS_EMPTY(pucResult) || resPathIsStd(pucResult) || (iArgOpts & FS_PATH_NUL)) {
     /* path contains nothing or stdout "-" */
@@ -1632,9 +1680,9 @@ resPathCollapse(xmlChar *pucArg, int iArgOpts)
     /* path starts with "." or ".." */
     xmlChar *pucT, *pucTT;
 
-    pucT = resPathGetCwd();
+    pucT = resPathGetCwdStr();
 
-    pucTT = resPathConcat(pucT,pucResult);
+    pucTT = resPathConcatStr(pucT,pucResult);
     xmlFree(pucT);
     xmlFree(pucResult);
     pucResult = pucTT;
@@ -1673,12 +1721,8 @@ resPathCollapse(xmlChar *pucArg, int iArgOpts)
       xmlFree(pucResult);
       return NULL;
     }
-    else { /* cut "file://" prefix */
-#ifdef _MSC_VER
-      for (pucA += 5; issep(*pucA); pucA++); /* skip separators */
-#else
-      for (pucA += 5; issep(pucA[1]); pucA++); /* skip separators */
-#endif
+    else {
+      pucA = resPathSkipPrefixFilePtr(pucA); /* cut "file://" prefix */
       pucB = pucResult;
     }
   }
@@ -1778,15 +1822,15 @@ resPathCollapse(xmlChar *pucArg, int iArgOpts)
   }
   else {
     xmlFree(pucResult);
-    pucResult = resPathCollapse(pucArg, FS_PATH_SELF | FS_PATH_SEP); /* build a medium collapsed result */
+    pucResult = resPathCollapseStr(pucArg, FS_PATH_SELF | FS_PATH_SEP); /* build a medium collapsed result */
     if (pucResult == NULL) {
-      pucResult = resPathCollapse(pucArg, FS_PATH_NUL); /* build a minimal collapsed result */
+      pucResult = resPathCollapseStr(pucArg, FS_PATH_NUL); /* build a minimal collapsed result */
     }
   }
 
   return pucResult;
 }
-/* end of resPathCollapse() */
+/* end of resPathCollapseStr() */
 
 
 /*! normalize a given string pointer to path pieces
@@ -1803,7 +1847,7 @@ resPathCollapse(xmlChar *pucArg, int iArgOpts)
 - 
 */
 xmlChar *
-resPathNormalize(xmlChar *pucArg)
+_resPathNormalize(xmlChar *pucArg)
 {
   xmlChar *pucResult = NULL;
 
@@ -1812,7 +1856,7 @@ resPathNormalize(xmlChar *pucArg)
   if (STR_IS_EMPTY(pucArg)) {
     /* not an usable argument */
   }
-  else if ((pucResult = resPathCollapse(pucArg, FS_PATH_FULL))) {
+  else if ((pucResult = resPathCollapseStr(pucArg, FS_PATH_FULL))) {
     /* OK */
   }
   return pucResult;
@@ -1849,7 +1893,7 @@ resPathRemoveQuotes(xmlChar *pucArg)
  * \bug not thread safe!!
 */
 xmlChar *
-resPathGetCwd(void)
+resPathGetCwdStr(void)
 {
   char buffer[BUFFER_LENGTH];
   char *pchValue;
@@ -1861,7 +1905,7 @@ resPathGetCwd(void)
   pchValue = getcwd((char *)buffer, BUFFER_LENGTH);
 #endif
   if (STR_IS_NOT_EMPTY(pchValue)) {
-    pucResult = resPathEncode((const char *)buffer);
+    pucResult = resPathEncodeStr((const char *)buffer);
   }
   else {
     PrintFormatLog(1, "No valid working directory");
@@ -1869,7 +1913,7 @@ resPathGetCwd(void)
 
   return pucResult;
 }
-/* end of resPathGetCwd() */
+/* end of resPathGetCwdStr() */
 
 
 #ifdef TESTCODE

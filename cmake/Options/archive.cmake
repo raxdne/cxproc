@@ -1,0 +1,115 @@
+################################################################################
+#
+# libarchive
+#
+
+FIND_PACKAGE( LibArchive )
+
+IF (LibArchive_LIBRARIES)
+  OPTION(CXPROC_ARCHIVE "Enable support for linking cxproc with libarchive." OFF)
+  MARK_AS_ADVANCED(CXPROC_ARCHIVE)
+ENDIF (LibArchive_LIBRARIES)
+
+IF (CXPROC_ARCHIVE)
+  INCLUDE_DIRECTORIES(${LibArchive_INCLUDE_DIR})
+
+  SET(ARCHIVE_FILES
+    ${CXPROC_SRC_DIR}/res_node/res_node_archive.h
+    ${CXPROC_SRC_DIR}/res_node/res_node_archive.c
+    )
+
+  SET(CXP_ARCHIVE_FILES
+    ${CXPROC_SRC_DIR}/cxp/cxp_archive.h
+    ${CXPROC_SRC_DIR}/cxp/cxp_archive.c
+    )
+
+  target_sources(dir2csv PUBLIC ${ARCHIVE_FILES})
+  target_compile_definitions(dir2csv PUBLIC HAVE_LIBARCHIVE)
+
+  target_sources(dir2sqlite PUBLIC ${ARCHIVE_FILES})
+  target_compile_definitions(dir2sqlite PUBLIC HAVE_LIBARCHIVE)
+
+  target_sources(filex PUBLIC ${ARCHIVE_FILES})
+  target_compile_definitions(filex PUBLIC HAVE_LIBARCHIVE)
+
+  target_sources(cxproc PUBLIC ${ARCHIVE_FILES} ${CXP_ARCHIVE_FILES})
+  target_compile_definitions(cxproc PUBLIC HAVE_LIBARCHIVE)
+
+  target_sources(cxproc-cgi PUBLIC ${ARCHIVE_FILES} ${CXP_ARCHIVE_FILES})
+  target_compile_definitions(cxproc-cgi PUBLIC HAVE_LIBARCHIVE)
+
+  IF(CXPROC_TESTS)
+    target_sources(cxproc-test PUBLIC ${ARCHIVE_FILES} ${CXP_ARCHIVE_FILES})
+    target_compile_definitions(cxproc-test PUBLIC HAVE_LIBARCHIVE)
+  ENDIF ()
+
+  IF (${LibArchive_LIBRARIES} MATCHES ".+static\\.lib$" OR ${LibArchive_LIBRARIES} MATCHES ".+\\.a$")
+    add_compile_definitions(LIBARCHIVE_STATIC)
+  ENDIF ()
+
+  IF(MSVC)
+    # additional libraries with VC++
+    target_link_libraries(filex ${LibArchive_LIBRARIES} ${LIBBZ2_LIBRARY_RELEASE} ${CRYPTO_LIBRARY} ${LZ4_LIBRARY} ${ZSTD_LIBRARY} ${LZO2_LIBRARY})
+    target_link_libraries(dir2csv ${LibArchive_LIBRARIES} ${LIBBZ2_LIBRARY_RELEASE} ${CRYPTO_LIBRARY} ${LZ4_LIBRARY} ${ZSTD_LIBRARY} ${LZO2_LIBRARY})
+    target_link_libraries(dir2sqlite ${LibArchive_LIBRARIES} ${LIBBZ2_LIBRARY_RELEASE} ${CRYPTO_LIBRARY} ${LZ4_LIBRARY} ${ZSTD_LIBRARY} ${LZO2_LIBRARY})
+    target_link_libraries(cxproc ${LibArchive_LIBRARIES} ${LIBBZ2_LIBRARY_RELEASE} ${CRYPTO_LIBRARY} ${LZ4_LIBRARY} ${ZSTD_LIBRARY} ${LZO2_LIBRARY})
+    target_link_libraries(cxproc-cgi ${LibArchive_LIBRARIES} ${LIBBZ2_LIBRARY_RELEASE} ${CRYPTO_LIBRARY} ${LZ4_LIBRARY} ${ZSTD_LIBRARY} ${LZO2_LIBRARY})
+    IF(CXPROC_TESTS)
+      target_link_libraries(cxproc-test ${LibArchive_LIBRARIES} ${LIBBZ2_LIBRARY_RELEASE} ${CRYPTO_LIBRARY} ${LZ4_LIBRARY} ${ZSTD_LIBRARY} ${LZO2_LIBRARY})
+    ENDIF ()
+  ELSE(MSVC)
+    target_link_libraries(filex ${LibArchive_LIBRARIES})
+    target_link_libraries(dir2csv ${LibArchive_LIBRARIES})
+    target_link_libraries(dir2sqlite ${LibArchive_LIBRARIES})
+    target_link_libraries(cxproc ${LibArchive_LIBRARIES})
+    target_link_libraries(cxproc-cgi ${LibArchive_LIBRARIES})
+    IF(CXPROC_TESTS)
+      target_link_libraries(cxproc-test ${LibArchive_LIBRARIES})
+    ENDIF ()
+  ENDIF(MSVC)
+  
+  #IF (LIBMICROHTTPD_FOUND)
+  #  target_link_libraries(cxproc-httpd ${LibArchive_LIBRARIES})
+  #ENDIF ()
+
+IF(BUILD_TESTING)
+
+  IF(CXPROC_TESTS)
+    add_test(NAME archive-code
+      WORKING_DIRECTORY ${CXPROC_PREFIX}
+      COMMAND ${CXPROC_PREFIX}/bin/cxproc-test -t archive)
+
+    set_tests_properties(archive-code PROPERTIES
+      ENVIRONMENT "CXP_PATH=${PROJECT_SOURCE_DIR}//"
+    )
+  ENDIF ()
+
+  add_test(NAME archive-cxp
+    WORKING_DIRECTORY ${CXPROC_TEST_DIR}/option/archive
+    COMMAND ${CXPROC_PREFIX}/bin/cxproc config.cxp)
+
+  set_tests_properties(archive-cxp PROPERTIES
+    ENVIRONMENT "CXP_PATH=${PROJECT_SOURCE_DIR}//"
+    )
+
+  add_test(NAME filex-archive-intern
+    WORKING_DIRECTORY ${CXPROC_PREFIX}
+    COMMAND ${CXPROC_PREFIX}/bin/filex ${CXPROC_TEST_DIR}/xml/test-xml-zip.odt/content.xml)
+
+  add_test(NAME filex-archive-intern-intern
+    WORKING_DIRECTORY ${CXPROC_PREFIX}
+    COMMAND ${CXPROC_PREFIX}/bin/filex ${CXPROC_TEST_DIR}/option/archive/test-zip-odt.zip/test-xml-zip.odt/content.xml)
+
+  add_test(NAME cgi-archive
+    WORKING_DIRECTORY ${CXPROC_PREFIX}
+    COMMAND ${CXPROC_PREFIX}/www/cgi-bin/cxproc-cgi)
+
+  set_property(TEST cgi-archive
+    APPEND PROPERTY ENVIRONMENT CXP_LOGFILE=cxproc-archive.log;QUERY_STRING=path=Test/Archive/TestArchive.zip/Test/SubTest/SubTest/Length_1024.txt
+    )
+
+ENDIF(BUILD_TESTING)
+  
+
+ENDIF (CXPROC_ARCHIVE)
+

@@ -1,7 +1,7 @@
 /*
   cxproc - Configurable Xml PROCessor
 
-  Copyright (C) 2006..2020 by Alexander Tenbusch
+  Copyright (C) 2006..2024 by Alexander Tenbusch
 
   This program is free software; you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -29,6 +29,214 @@ icsTest(void)
   i=0;
 
   if (RUNTEST) {
+
+    i++;
+    printf("TEST %i in '%s:%i': UnfoldLines() = ", i, __FILE__, __LINE__);
+
+    if (UnfoldLines(NULL, -1) == TRUE) { //
+      printf("Error 1 UnfoldLines()\n");
+    }
+    else if (UnfoldLines(NULL, 1e5) == TRUE) { //
+      printf("Error 2 UnfoldLines()\n");
+    }
+    else {
+      n_ok++;
+      printf("OK\n");
+    }
+  }
+
+ if (RUNTEST) {
+    int l;
+    int j0, j1;
+    int k0, k1;
+    int n0, n1;
+    int v0, v1;
+    char *pchT = strdup("DESCRIPTION:MIDWAY STADIUM\\n\n"
+"  Big time game. MUST see.\n"
+" Expected duration:2 hours\\n\n"
+		);
+
+    i++;
+    printf("TEST %i in '%s:%i': UnfoldLines() = ", i, __FILE__, __LINE__);
+
+    k0 = 0;
+    k1 = strlen(pchT);
+
+    if (detectNextLine(pchT, k0, k1, &n0, &n1, &v0, &v1) == FALSE || n1 != 10 || v0 != 12) {
+      printf("Error 1 detectNextLine()\n");
+    }
+    else if (UnfoldLines(pchT, v1) == FALSE) {
+      printf("Error 1 UnfoldLines()\n");
+    }
+    else {
+      n_ok++;
+      printf("OK\n");
+    }
+    free(pchT);
+  }
+
+  if (RUNTEST) {
+
+    i++;
+    printf("TEST %i in '%s:%i': detectNextBlock() = ", i, __FILE__, __LINE__);
+
+    if (detectNextBlock(NULL, 0, -1, NULL, NULL, NULL, NULL) == TRUE) {
+      printf("Error 1 detectNextBlock()\n");
+    }
+    else if (detectNextLine(NULL, 0, -1, NULL, NULL, NULL, NULL) == TRUE) {
+      printf("Error 2 detectNextLine()\n");
+    }
+    else {
+      n_ok++;
+      printf("OK\n");
+    }
+  }
+
+  if (SKIPTEST) {
+    char *pchT = "   \n\n AAA BBB;\n\nDTSTART:20250106\n\nAAA\nSUMMARY:My Test\n  ";
+    int j0, j1;
+    int k0, k1;
+    int n0, n1;
+    int v0, v1;
+    int l;
+
+    i++;
+    printf("TEST %i in '%s:%i': detectNextBlock() = ", i, __FILE__, __LINE__);
+
+    k1 = strlen(pchT);
+
+    if (detectNextBlock(pchT, k0, k1, &j0, &k0, &k1, &j1) == TRUE) { //
+      printf("Error 2 detectNextBlock()\n");
+    }
+    else if (detectNextLine(pchT, k0, k1, &n0, &n1, &v0, &v1) == TRUE) {
+      printf("Error 3 detectNextBlock()\n");
+    }
+    else if (detectNextLine(pchT, v1, k1, &n0, &n1, &v0, &v1) == FALSE) {
+      printf("Error 3 detectNextBlock()\n");
+    }
+    else if (detectNextLine(pchT, v1, k1, &n0, &n1, &v0, &v1) == TRUE) {
+      printf("Error 3 detectNextBlock()\n");
+    }
+    else if (detectNextLine(pchT, v1, k1, &n0, &n1, &v0, &v1) == FALSE) {
+      printf("Error 3 detectNextBlock()\n");
+    }
+    else if (detectNextLine(pchT, v1, k1, &n0, &n1, &v0, &v1) == TRUE) {
+      printf("Error 3 detectNextBlock()\n");
+    }
+    else {
+      n_ok++;
+      printf("OK\n");
+    }
+  }
+
+  if (RUNTEST) {
+    char *pchT = "   \n\n BEGIN:VCALENDAR\nAAA BBB;\nX-PROP:AAA\n BBB\n\nBEGIN:VEVENT\nDTSTART:20250106\nDTEND:20250109\nSUMMARY:My Test\nEND:VEVENT\nEND:VCALENDAR\nAAA:BBB;";
+    int j0, j1;
+    int k0, k1;
+    int n0, n1;
+    int v0, v1;
+    int l;
+
+    i++;
+    printf("TEST %i in '%s:%i': detectNextBlock() = ", i, __FILE__, __LINE__);
+
+    l = strlen(pchT);
+    if (detectNextBlock(pchT, 0, l, &j0, &k0, &k1, &j1) == FALSE || j0 != 6 || k0 != 21 || k1 != 120 || j1 != 133) { //
+      printf("Error 2 detectNextBlock()\n");
+    }
+    else if (detectNextLine(pchT, k0, k1, &n0, &n1, &v0, &v1) == TRUE) {
+      printf("Error 3 detectNextBlock()\n");
+    }
+    else if (detectNextBlock(pchT, v1, l, &j0, &k0, &k1, &j1) == FALSE || j0 != 32  || k0 != 44 || k1 != 93 || j1 != 103) {
+      printf("Error 4 detectNextBlock()\n");
+    }
+    else if (detectNextLine(pchT, k0, k1, &n0, &n1, &v0, &v1) == FALSE || n0 != 45 || n1 != 51 || v0 != 53 || v1 != 61) {
+      printf("Error 5 detectNextBlock()\n");
+    }
+    else if (detectNextLine(pchT, v1, k1, &n0, &n1, &v0, &v1) == FALSE || n0 != 62 || n1 != 66 || v0 != 68 || v1 != 76) {
+      printf("Error 6 detectNextBlock()\n");
+    }
+    else if (detectNextLine(pchT, v1, k1, &n0, &n1, &v0, &v1) == FALSE || n0 != 77 || n1 != 83 || v0 != 85 || v1 != 92) {
+      printf("Error 7 detectNextBlock()\n");
+    }
+    else if (detectNextLine(pchT, v1, k1, &n0, &n1, &v0, &v1) == TRUE) {
+      printf("Error 8 detectNextBlock()\n");
+    }
+    else {
+      n_ok++;
+      printf("OK\n");
+    }
+  }
+
+ if (RUNTEST) {
+    char *pchT = "   BEGIN:VCALENDAR\nX-PROP:AAA\n BBB\nBEGIN:VEVENT\nDTSTART:20250106\nDTEND:20250109\nSUMMARY:My Test\nEND:VEVENT\nEND:VCALENDAR\nAAA:BBBB \\ CCC\n\nBEGIN:VCALENDAR\nAAA\nBBB\nBEGIN:VEVENT\nDTSTART:20250106\n\nEND:VEVENT\n\nEND:VCALENDAR";
+    int d0, d1;
+    int i0, i1;
+    int j0, j1;
+    int k0, k1;
+    int y;
+
+    i++;
+    printf("TEST %i in '%s:%i': detectNextBlock() as Iterator = ", i, __FILE__, __LINE__);
+
+    for (y = 0, i0 = 0, i1 = d1 = strlen(pchT), j0 = j1 = 0, k0 = k1 = 0; i0 < d1;) {
+      /* iteration */
+
+      if (detectNextBlock(pchT, i0, i1, &j0, &k0, &k1, &j1)) {
+	i0 = j1;
+	i1 = d1;
+	y++;
+      }
+      else if (detectNextLine(pchT, i0, i1, &k0, &k1, &j0, &j1)) {
+	i0 = j1;
+	i1 = d1;
+	y++;
+      }
+      else if (j1 == i0) {
+	break;
+      }
+      else {
+	i0 = j1;
+      }
+    }
+
+    if (y != 3) {
+      printf("Error 2 detectNextLine()\n");
+    }
+    else {
+      n_ok++;
+      printf("OK\n");
+    }
+  }
+
+  if (RUNTEST) {
+    char *pchT = "  \t\nBEGIN:VCALENDAR\nAAA\nBBB\nBEGIN:VEVENT\nDTSTART:20250106\nDTEND:20250109\nSUMMARY:My Test\nEND:VEVENT\nEND:VCALENDAR\nAAA\nBEGIN:VCALENDAR\nAAA\nBBB\nBEGIN:VEVENT\nDTSTART:20250106\n\nEND:VEVENT\nEND:VCALENDAR";
+    xmlDocPtr pdocResult = NULL;
+    xmlNodePtr pndFile;
+    
+    i++;
+    printf("TEST %i in '%s:%i': icsParse() = ",i,__FILE__,__LINE__);
+
+    pdocResult = xmlNewDoc(BAD_CAST "1.0");
+    pndFile = xmlNewDocNode(pdocResult, NULL, NAME_FILE, NULL); 
+    xmlDocSetRootElement(pdocResult,pndFile);
+    pdocResult->encoding = xmlStrdup(BAD_CAST "UTF-8"); /* according to conversion in ParseImportNodePlainContent() */
+
+    if (icsParseString(pndFile, "") == TRUE) { //
+      printf("Error icsParseString()\n");
+    }
+    else if (icsParseString(pndFile, pchT) == FALSE) { //
+      printf("Error icsParseString()\n");
+    }
+    else {
+      n_ok++;
+      printf("OK\n");
+    }
+    //domPutNodeString(stderr,"ICS",pndFile);
+  }
+
+
+  if (RUNTEST) {
     
     i++;
     printf("TEST %i in '%s:%i': empty icsParse() = ",i,__FILE__,__LINE__);
@@ -41,6 +249,7 @@ icsTest(void)
       printf("OK\n");
     }
   }
+
 
   if (RUNTEST) {
     xmlDocPtr pdocResult = NULL;
@@ -67,6 +276,35 @@ icsTest(void)
     }
 
     xmlSaveFormatFileEnc(TEMPPREFIX "2446.pie", pdocResult, "UTF-8", 1);
+    xmlFreeDoc(pdocResult);
+    resNodeFree(prnIcs);
+  }
+
+  if (RUNTEST) {
+    xmlDocPtr pdocResult = NULL;
+    xmlNodePtr pndFile;
+    resNodePtr prnIcs = NULL;
+    
+    i++;
+    printf("TEST %i in '%s:%i': icsParse() = ",i,__FILE__,__LINE__);
+
+    pdocResult = xmlNewDoc(BAD_CAST "1.0");
+    pndFile = xmlNewDocNode(pdocResult, NULL, NAME_FILE, NULL); 
+    xmlDocSetRootElement(pdocResult,pndFile);
+    pdocResult->encoding = xmlStrdup(BAD_CAST "UTF-8"); /* according to conversion in ParseImportNodePlainContent() */
+
+    if ((prnIcs = resNodeConcatNew(BAD_CAST TESTPREFIX, BAD_CAST "option/ics/2446-corrupt.ics")) == NULL) {
+      printf("Error icsParse()\n");
+    }
+    else if (icsParse(pndFile,prnIcs) == FALSE) {
+      printf("Error icsParse()\n");
+    }
+    else {
+      n_ok++;
+      printf("OK\n");
+    }
+
+    xmlSaveFormatFileEnc(TEMPPREFIX "2446-corrupt.pie", pdocResult, "UTF-8", 1);
     xmlFreeDoc(pdocResult);
     resNodeFree(prnIcs);
   }

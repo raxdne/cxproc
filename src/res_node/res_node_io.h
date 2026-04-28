@@ -1,7 +1,7 @@
 /*
   cxproc - Configurable Xml PROCessor
 
-  Copyright (C) 2006..2020 by Alexander Tenbusch
+  Copyright (C) 2006..2024 by Alexander Tenbusch
 
   This program is free software; you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -20,6 +20,11 @@
 */
 
 #include <res_node/res_node.h>
+#include <res_node/res_node_formats.h>
+#include <res_node/res_node_zip.h>
+
+extern BOOL_T
+resNodeSetMode(resNodePtr prnArg, const char *pchArgMode);
 
 extern BOOL_T
 resNodeOpen(resNodePtr prnArg, const char *pchMode);
@@ -32,6 +37,9 @@ resNodeClose(resNodePtr prnArg);
 
 extern BOOL_T
 resNodePutContent(resNodePtr prnArg);
+
+extern BOOL_T
+resNodeListPut(resNodePtr prnArg);
 
 extern BOOL_T
 resNodeSaveContent(resNodePtr prnArg);
@@ -48,6 +56,17 @@ resNodeGetHandleIO(resNodePtr prnArg);
 extern void *
 resNodeSetContentPtr(resNodePtr prnArg, void *pArg, size_t iSize);
 
+#define resNodeResetContentPtr(R) resNodeSetContentPtr(R,NULL,0)
+
+extern void *
+resNodeAppendContent(resNodePtr prnArg, void *pArg, size_t iSize);
+
+extern size_t
+resNodeSetBlockSize(resNodePtr prnArg, size_t iArg);
+
+extern size_t
+resNodeGetBlockSize(resNodePtr prnArg);
+
 extern void *
 resNodeEatContentPtr(resNodePtr prnArg);
 
@@ -63,7 +82,7 @@ resNodeEatContentDoc(resNodePtr prnArg);
 extern xmlDocPtr
 resNodeGetContentDoc(resNodePtr prnArg);
 
-extern BOOL_T
+extern RN_ERROR
 resNodeSwapContent(resNodePtr prnArgFrom, resNodePtr prnArgTo);
 
 extern xmlDocPtr
@@ -71,6 +90,17 @@ resNodeReadDoc(resNodePtr prnArg);
 
 extern int
 resNodeGetUsageCount(resNodePtr prnArg);
+
+extern void
+resNodeChangeDomURL(xmlDocPtr pdocArg, resNodePtr pccArg);
+
+#ifdef HAVE_LIBCURL
+extern size_t
+_CurlReadFromMemoryCallback(void *contents, size_t size, size_t nmemb, void *prnArg);
+
+extern size_t
+CurlWriteToMemoryCallback(void *pucArgBlock, size_t iArgSize, size_t iArgNumber, void *pArg);
+#endif
 
 #ifdef TESTCODE
 extern int

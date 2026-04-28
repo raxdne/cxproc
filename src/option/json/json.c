@@ -1,7 +1,7 @@
 /*
   cxproc - Configurable Xml PROCessor
 
-  Copyright (C) 2006..2020 by Alexander Tenbusch
+  Copyright (C) 2006..2024 by Alexander Tenbusch
 
   This program is free software; you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -21,122 +21,20 @@
 
 #include <libxml/tree.h>
 
-#ifdef HAVE_JSON
-#include "jsmn/jsmn.h"
-#endif
-
 #include "basics.h"
 #include "utils.h"
-#include <res_node/res_node.h>
-#include <cxp/cxp.h>
-#include <cxp/cxp_dir.h>
+#include <res_node/res_node_io.h>
 #include "dom.h"
-#include "calendar_element.h"
 #include "plain_text.h"
+
+#include "jsmn/jsmn.h"
 #include <json/json.h>
 
-
-static int
+extern int
 jsonTransform(xmlNodePtr pndArgJson, const char *js, jsmntok_t *t, size_t count);
 
-#include "jsmn/jsmn.c"
 
-/*! process the JSON child instructions of pndMakePie
- */
-xmlDocPtr
-jsonProcessJsonNode(xmlNodePtr pndArgJson, cxpContextPtr pccArg)
-{
-  xmlDocPtr pdocResult = NULL;
-  resNodePtr prnFile = NULL; /* filesystem context */
-  xmlNodePtr pndMeta;
-  //xmlNodePtr pndError;
-  xmlNodePtr pndRoot;
-  xmlNodePtr pndJson = NULL;
-  xmlChar *pucAttrFile;
-  xmlChar mpucT[BUFFER_LENGTH];
-  xmlChar *pucContent = NULL;
-  int iLength;
-
-#ifdef DEBUG
-  PrintFormatLog(1,"jsonProcessJsonNode(pndArgJson=%0x,pccArg=%0x)",pndArgJson,pccArg);
-#endif
-
-  assert(pndArgJson);
-
-  pdocResult = xmlNewDoc(BAD_CAST "1.0");
-  pdocResult->encoding = xmlStrdup(BAD_CAST "UTF-8");
-
-  pndRoot = xmlNewNode(NULL,NAME_JSON);
-  xmlDocSetRootElement(pdocResult,pndRoot);
-  pndMeta = xmlNewChild(pndRoot,NULL,NAME_META,NULL);
-
-  xmlAddChild(pndMeta,xmlCopyNode(pndArgJson,1));
-  /* Get the current time. */
-  domSetPropEat(pndMeta, BAD_CAST "ctime", GetNowFormatStr(BAD_CAST "%s"));
-  domSetPropEat(pndMeta, BAD_CAST "ctime2", GetDateIsoString(0));
-
-  if (IS_VALID_NODE(pndArgJson) == FALSE) {
-    /* ignore NULL and invalid elements */
-  }
-  else if (IS_NODE_JSON(pndArgJson) == FALSE && IS_NODE_FILE(pndArgJson) == FALSE) {
-  }
-  else if (pndArgJson->children) {
-    if (pndArgJson->children->content) {
-      PrintFormatLog(2,"Reading JSON from node");
-      pucContent = xmlStrdup(pndArgJson->children->content);
-    }
-    else {
-      xmlNewChild(pndMeta,NULL,NAME_ERROR,BAD_CAST "Empty JSON node");
-    }
-  }
-  else if ((prnFile = cxpResNodeResolveNew(pccArg,pndArgJson,NULL,CXP_O_READ)) != NULL) {
-    if (resNodeGetMimeType(prnFile) == MIME_APPLICATION_JSON) { /* this is a JSON file (to read) */
-      PrintFormatLog(2,"Reading JSON file '%s'", resNodeGetNameNormalized(prnFile));
-
-      pucContent = plainGetContextTextEat(prnFile,1024);
-    }
-    else {
-      PrintFormatLog(1,"JSON source not readable '%s'", pucAttrFile);
-    }
-    resNodeFree(prnFile);
-  }
-  else {
-    /* no json make instructions */
-    pndJson = xmlNewDocNode(pdocResult, NULL, NAME_JSON, NULL);
-    xmlDocSetRootElement(pdocResult, pndJson);
-    xmlSetProp(pndJson, BAD_CAST "class", BAD_CAST "empty");
-  }
-
-  if (pucContent != NULL && (iLength = xmlStrlen(pucContent)) > 0) {
-    jsmn_parser p;
-    jsmntok_t *tok;
-    size_t tokcount = iLength;
-    int r;
-
-    /* Prepare parser */
-    jsmn_init(&p);
-
-    tok = (jsmntok_t *) xmlMalloc(sizeof(*tok) * tokcount);
-
-    r = jsmn_parse(&p, (const char *)pucContent, iLength, tok, tokcount);
-    if (r < 0) {
-      if (r == JSMN_ERROR_NOMEM) {
-	xmlFree(tok);
-	return NULL;
-      }
-    } else {
-      jsonTransform(pndRoot, (const char *)pucContent, tok, p.toknext);
-    }
-    xmlFree(tok);
-  }
-  xmlFree(pucContent);
-
-  return pdocResult;
-}
-/* end of jsonProcessJsonNode() */
-
-
-/*! process the JSON child instructions of pndMakePie
+/*! 
  *
  * s. https://tools.ietf.org/html/rfc4627
  * s. https://en.wikipedia.org/wiki/JSON
@@ -188,7 +86,7 @@ jsonTransform(xmlNodePtr pndArgJson, const char *js, jsmntok_t *t, size_t count)
     xmlNodePtr pndObject;
     xmlNodePtr pndProperty;
     xmlChar *pucT;
-    int i, j;
+    int c, i, j;
     int ciChilds;
 
     j = 0;
@@ -209,7 +107,7 @@ jsonTransform(xmlNodePtr pndArgJson, const char *js, jsmntok_t *t, size_t count)
 
 	  xmlSetProp(pndProperty,BAD_CAST "type",BAD_CAST "object");
 	  PrintFormatLog(2,"JSON new property object '%s' with %i childs", pucT, ciObjectChilds);
-	  for (h = 0; h < ciObjectChilds; ) {
+	  for (h = 0, c = 0; c < ciObjectChilds; c++) {
 	    xmlChar *pucTT;
 
 	    pucTT = xmlStrndup(BAD_CAST (js + ((t+1+j)+1+h)->start), (((t+1+j)+1+h)->end - ((t+1+j)+1+h)->start));
@@ -230,7 +128,7 @@ jsonTransform(xmlNodePtr pndArgJson, const char *js, jsmntok_t *t, size_t count)
 
 	  xmlSetProp(pndProperty,BAD_CAST "type",BAD_CAST "array");
 	  PrintFormatLog(2,"JSON new property array '%s' with %i childs", pucT, ciArrayChilds);
-	  for (h = 0; h < ciArrayChilds; ) {
+	  for (h = 0, c = 0; c < ciArrayChilds; c++) {
 	    xmlNodePtr pndEntity;
 
 	    pndEntity = xmlNewChild(pndProperty,NULL,BAD_CAST "entity",NULL);
@@ -249,7 +147,7 @@ jsonTransform(xmlNodePtr pndArgJson, const char *js, jsmntok_t *t, size_t count)
   else if (t->type == JSMN_ARRAY) {
     xmlNodePtr pndArray;
     xmlNodePtr pndNew;
-    int i, j;
+    int c, i, j;
     int ciChilds;
 
     j = 0;
@@ -257,7 +155,7 @@ jsonTransform(xmlNodePtr pndArgJson, const char *js, jsmntok_t *t, size_t count)
     xmlSetProp(pndArray,BAD_CAST "type",BAD_CAST "array");
     ciChilds = t->size;
     PrintFormatLog(2,"JSON new array '%s' with %i childs", BAD_CAST "anonymous", ciChilds);
-    for (i = 0; i < ciChilds; i++) {
+    for (c = 0; c < ciChilds; c++) {
       pndNew = xmlNewChild(pndArray,NULL,BAD_CAST "entity",NULL);
       j += jsonTransform(pndNew, js, t+1+j, count-j);
     }
@@ -268,14 +166,51 @@ jsonTransform(xmlNodePtr pndArgJson, const char *js, jsmntok_t *t, size_t count)
 /* end of jsonTransform() */
 
 
+/*! \return a DOM for parsed buffer
+*/
+BOOL_T
+jsonParseBuffer(xmlNodePtr pndParent, xmlChar *pucArg)
+{
+  BOOL_T fResult = FALSE;
+  int iLength;
+  
+  if (pucArg != NULL && (iLength = xmlStrlen(pucArg)) > 0) {
+    jsmn_parser p;
+    jsmntok_t *tok;
+    size_t tokcount = iLength;
+
+    /* Prepare parser */
+    jsmn_init(&p);
+
+    tok = (jsmntok_t *) xmlMalloc(sizeof(*tok) * tokcount);
+    if (tok) {
+      int r;
+
+      r = jsmn_parse(&p, (const char *)pucArg, iLength, tok, tokcount);
+      if (r < 0) {
+	if (r == JSMN_ERROR_NOMEM) {
+	  xmlFree(tok);
+	  return FALSE;
+	}
+      }
+      else {
+	jsonTransform(pndParent, (const char *)pucArg, tok, p.toknext);
+      }
+      xmlFree(tok);
+    }
+  }
+  return fResult;
+} /* end of jsonParseBuffer() */
+
+
 /*! Append detailed information about JSON content
 */
 xmlNodePtr
-jsonParseFile(xmlNodePtr pndParent, resNodePtr prnArg)
+jsonParseFile(xmlNodePtr pndArgFile, resNodePtr prnArg)
 {
   xmlNodePtr pndResult = NULL;
   xmlDocPtr pdocT;
-  cxpContextPtr pccT;
+  xmlChar *pucContent = NULL;
   
   /*! Read an JSON file.
   */
@@ -287,12 +222,10 @@ jsonParseFile(xmlNodePtr pndParent, resNodePtr prnArg)
     return pndResult;
   }
 
+#if 0
   assert(resNodeIsOpen(prnArg) == FALSE);
 
-  pccT = cxpCtxtCliNew(-1,NULL,NULL);
-  cxpCtxtLocationSet(pccT,prnArg);
-
-  if (resNodeOpen(cxpCtxtLocationGet(pccT),"r") == FALSE) {
+  if (resNodeOpen(prnArg,"r") == FALSE) {
     xmlSetProp(pndParent,BAD_CAST "error",BAD_CAST "open");
     return pndResult;
   }
@@ -303,7 +236,18 @@ jsonParseFile(xmlNodePtr pndParent, resNodePtr prnArg)
   else {
     pndResult = xmlNewNode(NULL,NAME_JSON);
   }
+#endif
 
+#if 1
+  PrintFormatLog(2,"Reading JSON file '%s'", resNodeGetNameNormalized(prnArg));
+
+  pucContent = plainGetContextTextEat(prnArg,1024);
+  pndResult = xmlNewChild(pndArgFile,NULL,BAD_CAST"json",NULL);
+  if (pndResult) {
+    jsonParseBuffer(pndResult, pucContent);
+  }
+  xmlFree(pucContent);
+#else
   pdocT = jsonProcessJsonNode(pndResult, pccT);
   if (pdocT) {
     pndResult = xmlDocGetRootElement(pdocT);
@@ -313,13 +257,10 @@ jsonParseFile(xmlNodePtr pndParent, resNodePtr prnArg)
     }
     xmlFreeDoc(pdocT);
   }
-
-//  cxpCtxtIncrExitCode(pccTest,cxpCtxtGetExitCode(pccT));
-  cxpCtxtFree(pccT);
-
+#endif
+  
   return pndResult;
-}
-/* end of jsonParseFile() */
+} /* end of jsonParseFile() */
 
 
 #ifdef TESTCODE

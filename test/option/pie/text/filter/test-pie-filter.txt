@@ -1,0 +1,95 @@
+; Speicherung <test-pie-6.txt 15.10.2011 11:42:33 developer>
+
+* This is an Test
+
+new paragraph
+
+Abb. abc.png ABC
+
+second paragraph
+
+Abb. http://www.qrz.de/def.png DEF http://www.qrz.de/
+
+third paragraph
+
+Abb. No file
+
+last paragraph
+
+Abb.
+file://../aaa.png
+sssss
+
+dksjflskjf
+
+Fig. file://../bbb.png
+fjdlksjsl
+
+Fig. file://../ccc.png
+
+; Abb. slkfl.png: kjalekJlJEl
+
+Fig. http://upload.wikimedia.org/wikipedia/commons/thumb/8/8d/Rick.A2009290.2020.250m.jpg/457px-Rick.A2009290.2020.250m.jpg
+URL of Picture
+
+this is a relative file link file://abc.txt with some postfix chars
+
+a mix of UNC and URL file://\\jessie\developer\cxproc-build\trunk\test\pie\sub-1
+
+file://\\jessie\developer\cxproc-build\ abc secon file://\\jessie\developer\cxproc-build\test nn,n,
+
+\\jessie\developer\cxproc-build\trunk\test\ aa bb cc
+
+#begin_of_skip
+
+This paragraph has to be skipped!!!
+
+#end_of_skip
+
+some non-XML characters & and " and ' 
+
+%% invisible header
+
+jdsljls
+
+; This is a remark
+
+zipotirzp
+
+%% preformatted paragraph
+
+#begin_of_pre
+# /etc/fstab: static file system information.
+#
+# <file system> <mount point>   <type>  <options>       <dump>  <pass>
+proc            /proc           proc    defaults        0       0
+# /dev/hda6
+UUID=2187b9ce-96bc-473e-984d-c6a5a0ef15b9 /               ext3    defaults,errors=remount-ro 0       1
+# /dev/hda1
+UUID=0EAC9126AC9108FB /media/hda1     ntfs    defaults,nls=utf8,umask=007,gid=46 0       1
+# /dev/hda2
+UUID=50AD-2BD4  /media/hda2     vfat    defaults,utf8,umask=007,gid=46 0       1
+# /dev/hda4
+#UUID=4cd5608c-57fe-40c8-89a6-9bd3facb2806 /media/hda4     ext3    defaults        0       2
+# /dev/hda5
+UUID=614b3d17-ba01-4346-a7ce-60246ed187e7 none            swap    sw              0       0
+/dev/hdc        /media/cdrom0   udf,iso9660 user,noauto     0       0
+
+# sshfs#tester@192.168.2.2:/ /mnt/tupile fuse ro,user,noauto,uid=1001,gid=100,umask=0 0 0
+#sshfs#tester@192.168.2.2:/ /mnt/tupile  fuse user,noauto 0 0
+# Siemens Mobile
+#/dev/ttyUSB0    /media/mobile   siefs   ro      0       0
+
+#http://tleilax/mydav /mnt/tleilax davfs  user,noauto 0 0
+https://tleilax/alex  /home/alex/share davfs  user,noauto 0 0
+https://tleilax/share  /home/share davfs  user,noauto 0 0
+#end_of_pre
+
+alskjdlakjdlak
+
+
+#begin_of_pre
+End.
+#end_of_pre
+
+	

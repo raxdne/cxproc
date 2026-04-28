@@ -1,0 +1,69 @@
+
+* Database
+
+* SQL
+
+multiple queries with plain result
+
+#begin_of_pre
+<cxp:plain name="../../tmp/test-db-4.txt">
+  <cxp:db name="../../tmp/test-db-1.db3"/>
+  <cxp:query>SELECT * FROM test;</cxp:query>
+  <cxp:query>SELECT * FROM test;</cxp:query>
+</cxp:plain>
+#end_of_pre
+
+single query with XML result only
+
+#begin_of_pre
+<cxp:xml name="../../tmp/test-db-6.xml">
+  <cxp:db name="../../tmp/test-db-6.db3"/>
+  <cxp:query>SELECT name,size FROM directory;</cxp:query>
+</cxp:xml>
+#end_of_pre
+
+insert from plain text
+
+#begin_of_pre
+  <cxp:db name="../../tmp/test.db3" append="no" write="yes">
+    <cxp:plain>
+CREATE TABLE IF NOT EXISTS test(number int, dummy text);
+INSERT INTO test(number,dummy) VALUES (1,"TEST");
+INSERT INTO test(number,dummy) VALUES (2,"TEST");
+</cxp:plain>
+  </cxp:db>
+#end_of_pre
+
+insert from XML text
+
+#begin_of_pre
+  <cxp:db name="../../tmp/test.db3" write="yes">
+    <test>
+      <entry>
+        <id>ABC</id>
+        <name>DB test only</name>
+        <count type="int">12345</count>
+      </entry>
+      <entry>
+        <id>DEF</id>
+        <name>DBB test only</name>
+        <count>999</count>
+      </entry>
+      <entry>
+        <id>HIJ</id>
+        <name>DBBB test only</name>
+        <count>999111</count>
+      </entry>
+    </test>
+  </cxp:db>
+#end_of_pre
+
+input from directory parser
+
+#begin_of_pre
+<db name="t-4.db3">
+  <dir verbosity="2" index="skip" hidden="no">
+    <dir depth="100" name="/usr"/>
+  </dir>
+</db>
+#end_of_pre

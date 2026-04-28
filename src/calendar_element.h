@@ -1,0 +1,134 @@
+/*
+  cxproc - Configurable Xml PROCessor
+
+  Copyright (C) 2006..2024 by Alexander Tenbusch
+
+  This program is free software; you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation; either version 2 of the License, or
+  (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License 
+  along with this program; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+*/
+
+#ifndef __CALENDAR_ELEMENT_H__
+
+#define __CALENDAR_ELEMENT_H__
+
+#include <c-dt/dt.h>
+
+/*! structure
+ */
+typedef struct {
+  int y;
+  int m;
+  int d;
+  int w;
+  int hour;
+  int minute;
+  int second;
+} iso8601PeriodType;
+
+/*! structure
+ */
+typedef struct {
+  dt_t dt; /*!< day index of Date */
+  int iSec; 			/*!< seconds of day */
+  dt_zone_t z;
+} iso8601DateType;
+
+/*! structure
+ */
+struct ceElement {
+
+  xmlNodePtr pndEntry; /*!< pointer to anchor DOM node */
+  
+  xmlAttrPtr patAttr; /*!< pointer to descendant DOM attribute of pndEntry */
+
+  xmlChar *pucColId; /*!< pointer to column id of Date anchor */
+  xmlChar *pucId; /*!< pointer to ID string */
+  xmlChar *pucDate; /*!< pointer to single date string */
+  xmlChar *pucIntern; /*!< pointer to simplified internal date string */
+  xmlChar *pucSep; /*!< pointer to iteration separator string */
+
+  xmlChar *pucFormatted; /*!< pointer to formatted string */
+
+  iso8601DateType dt0; /*!< day index of Interval Begin Date */ 
+  iso8601DateType dt1; /*!< day index of Interval End Date */
+
+  iso8601PeriodType period;
+
+  int iRecurrence;	/*! recurrences */
+  int iRecurrenceIndex;	/*! index of recurrence */
+
+  struct ceElement *pNext;
+} ;
+
+typedef struct ceElement ceElementType;
+
+typedef ceElementType *ceElementPtr;
+
+
+extern const xmlChar *dow[];
+
+extern const xmlChar *moy[];
+
+extern BOOL_T
+ceInit(void);
+
+extern ceElementPtr
+CalendarElementNew(xmlChar *pucArg);
+
+extern ceElementPtr
+CalendarElementUpdate(ceElementPtr pceArg, xmlChar* pucArg);
+
+extern BOOL_T
+CalendarElementUpdateValues(ceElementPtr pceArg);
+
+extern void
+CalendarElementFree(ceElementPtr pceArg);
+
+extern ceElementPtr
+CalendarElementDup(ceElementPtr pceArg);
+
+extern BOOL_T
+CalendarElementListAdd(ceElementPtr pceArgList, ceElementPtr pceArg);
+
+extern dt_t
+UpdateToday(xmlChar *pucArgToday);
+
+extern dt_t
+GetToday(void);
+
+#if defined(DEBUG) || defined(TESTCODE)
+
+extern void
+PrintCalendarElement(ceElementPtr pceArg);
+
+#endif
+
+extern xmlChar*
+FormatCalendarElementDateStr(ceElementPtr pceArg);
+
+extern BOOL_T
+ScanCalendarElementDate(ceElementPtr pceArgResult);
+
+extern ceElementPtr
+SplitCalendarElementRecurrences(ceElementPtr pceArg);
+
+extern BOOL_T
+AddNodeDateAttributes(xmlNodePtr pndArg, ceElementPtr pceArg);
+
+#ifdef TESTCODE
+extern int
+ceTest(void);
+#endif
+
+#endif

@@ -1,0 +1,18 @@
+
+* Script Test
+
+This is a test for embedded ECMA Script
+
+<script>
+
+var strL = "";
+
+for (i=0; i<5; i++) {
+   strL = strL + i;
+}
+
+strL;
+
+</script>
+
+plain text again

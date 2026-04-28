@@ -1,7 +1,7 @@
 /*
 cxproc - Configurable Xml PROCessor
 
-Copyright (C) 2006..2020 by Alexander Tenbusch
+Copyright (C) 2006..2024 by Alexander Tenbusch
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -29,6 +29,8 @@ cxpCtxtCgiParse(cxpContextPtr pccArg);
 extern BOOL_T
 cxpCtxtCgiProcess(cxpContextPtr pccArg);
 
+extern BOOL_T
+cxpProcessCGICopyNode(xmlNodePtr pndArgCopy, cxpContextPtr pccArg);
 
 #ifdef TESTCODE
 extern int

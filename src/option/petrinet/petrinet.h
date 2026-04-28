@@ -1,7 +1,7 @@
 /*
   cxproc - Configurable Xml PROCessor
 
-  Copyright (C) 1999..2020 by Alexander Tenbusch
+  Copyright (C) 1999..2024 by Alexander Tenbusch
 
   This program is free software; you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -18,24 +18,18 @@
   Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 */
 
-#define CXP_PETRINET_URL (BAD_CAST "http://pkg2.tenbusch.info/")
-
-#define NAME_PKG2_TRANSITION BAD_CAST "transition"
-
-#define NAME_PKG2_STELLE BAD_CAST "stelle"
-
-#define NAME_PKG2_REQUIREMENT BAD_CAST "requirement"
-
-#define IS_NODE_PKG2_TRANSITION(NODE) (IS_NODE(NODE,NAME_PKG2_TRANSITION))
-
-#define IS_NODE_PKG2_STELLE(NODE) (IS_NODE(NODE,NAME_PKG2_STELLE))
-
-#define IS_NODE_PKG2_REQUIREMENT(NODE) (IS_NODE(NODE,NAME_PKG2_REQUIREMENT))
+#include <petrinet/petrinet_dtd.h>
 
 /****************************************************************************
 
    Declaration of public functions (prototypes)
 */
+
+extern xmlNsPtr
+pkgGetNs(void);
+
+extern void
+pkgCleanup(void);
 
 extern xmlDocPtr
 pnetProcessNode(xmlNodePtr pndArg, cxpContextPtr pccArg);

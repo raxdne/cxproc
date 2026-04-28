@@ -1,7 +1,7 @@
 /*
   cxproc - Configurable Xml PROCessor
 
-  Copyright (C) 2006..2020 by Alexander Tenbusch
+  Copyright (C) 2006..2024 by Alexander Tenbusch
 
   This program is free software; you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -34,19 +34,11 @@
 #include "basics.h"
 #include "utils.h"
 #include <res_node/res_node_io.h>
-#include <cxp/cxp.h>
-
-#ifdef HAVE_PIE
-#include <pie/pie_text.h>
-#else
 #include <pie/pie_dtd.h>
-#endif
-
-#include <cxp/cxp_dir.h>
 #include "dom.h"
 
 #ifdef HAVE_PETRINET
-#include <petrinet/petrinet.h>
+#include <petrinet/petrinet_dtd.h>
 #endif
 
 
@@ -55,9 +47,6 @@ xmlNsPtr pnsXsl = NULL;
 
 const xmlChar *pucXsl = BAD_CAST "http://www.w3.org/1999/XSL/Transform";
 
-
-static int
-IncrementWeightProp(xmlNodePtr pndArg, int iArg);
 
 
 /*! cleanup this module
@@ -99,79 +88,11 @@ domGetNextNode(xmlNodePtr pndArg, xmlChar *pucNameElement)
 /* End of domGetNextNode() */
 
 
-/*!
-  XPath axis "following"
+/*! \return a pointer to xmlXPathObject according to XPath 'pucArg' in pdocArg was found
+\param pdocArg source DOM
+\param pucArg pointer to XPath string
 
-  problem if root element matches
-*/
-xmlNodePtr
-domGetFollowingNode(xmlNodePtr pndArg, xmlChar *pucName)
-{
-  if (pucName != NULL && pndArg != NULL && pndArg->type == XML_ELEMENT_NODE) {
-    xmlNodePtr pndTest;
-    xmlNodePtr pndResult = NULL;
-
-    /* recursive processing of all childs
-     */
-    for (pndTest = pndArg->children; pndTest != NULL; pndTest = pndTest->next) {
-      if (pndTest->type == XML_ELEMENT_NODE) {
-	if (xmlStrEqual(pndTest->name,pucName)) {
-	  return pndTest;
-	}
-	pndResult = domGetFollowingNode(pndTest,pucName);
-	if (pndResult) {
-	  return pndResult;
-	}
-      }
-    }
-
-    /* recursive processing of all following siblings
-     */
-    for (pndTest = pndArg->next; pndTest != NULL; pndTest = pndTest->next) {
-      if (pndTest->type == XML_ELEMENT_NODE) {
-	if (xmlStrEqual(pndTest->name,pucName)) {
-	  return pndTest;
-	}
-	pndResult = domGetFollowingNode(pndTest,pucName);
-	if (pndResult) {
-	  return pndResult;
-	}
-      }
-    }
-
-    /* recursive processing of all ancestor nodes
-     */
-    if (IS_ROOT(pndArg)) {
-      return pndArg;
-    }
-    else {
-      for (pndTest = pndArg->parent; pndTest != NULL; pndTest = pndTest->parent) {
-
-	if (IS_ROOT(pndTest)) {
-	  /* pndTest is root element of current DOM */
-	  return pndTest;
-	}
-
-	if (pndTest->next != NULL) {
-	  if (pndTest->type == XML_ELEMENT_NODE) {
-	    if (xmlStrEqual(pndTest->next->name,pucName)) {
-	      return pndTest->next;
-	    }
-	    pndResult = domGetFollowingNode(pndTest->next,pucName);
-	    if (pndResult) {
-	      return pndResult;
-	    }
-	  }
-	}
-      }
-    }
-  }
-  return NULL;
-} /* end of domGetFollowingNode() */
-
-
-/* http://xmlsoft.org/tutorial/apd.html "D. Code for XPath Example"
-
+ http://xmlsoft.org/tutorial/apd.html "D. Code for XPath Example"
 */
 xmlXPathObjectPtr
 domGetXPathNodeset(xmlDocPtr pdocArg, xmlChar *pucArg)
@@ -204,79 +125,9 @@ domGetXPathNodeset(xmlDocPtr pdocArg, xmlChar *pucArg)
 } /* end of domGetXPathNodeset() */
 
 
-/*! increments value of property "w" by iArg numerically
-*/
-int
-IncrementWeightProp(xmlNodePtr pndArg, int iArg)
-{
-  int iResult = 0;
-
-  if ((pndArg != NULL) && (pndArg->type == XML_ELEMENT_NODE) && iArg != 0) {
-    int iCurrent;
-    xmlAttrPtr patT;
-
-    if ((patT = xmlHasProp(pndArg, BAD_CAST"w")) == NULL
-      || patT->children == NULL || STR_IS_EMPTY(patT->children->content)) {
-      /* there is no attribute value yet, initial value '1' */
-      iResult = 1;
-    }
-    else if ((iCurrent = atoi((const char *)patT->children->content)) != 0) {
-      iResult = iCurrent + iArg;
-    }
-    else {
-      /*\todo remove property if iArg == 0? */
-    }
-
-    if (iResult) {
-      xmlChar mucCount[32];
-
-      xmlStrPrintf(mucCount, sizeof(mucCount), "%i", iResult);
-      xmlSetProp(pndArg, BAD_CAST"w", mucCount);
-    }
-  }
-  return iResult;
-} /* end of IncrementWeightProp() */
-
-
-/*
-
-*/
-BOOL_T
-domWeightXPathInDoc(xmlDocPtr pdocArg, xmlChar *pucArg)
-{
-  BOOL_T fResult = FALSE;
-
-  if (pdocArg != NULL && STR_IS_NOT_EMPTY(pucArg)) {
-    xmlNodePtr pndRoot;
-
-    if ((pndRoot = xmlDocGetRootElement(pdocArg))) {
-      xmlXPathObjectPtr result;
-
-      if ((result = domGetXPathNodeset(pdocArg, pucArg)) != NULL) {
-	int i;
-	xmlNodeSetPtr nodeset;
-
-	nodeset = result->nodesetval;
-	if (nodeset->nodeNr > 0) {
-	  for (i=0; i < nodeset->nodeNr; i++) {
-	    xmlNodePtr pndT;
-
-	    for (pndT=nodeset->nodeTab[i]; pndT; pndT=pndT->parent) {
-	      IncrementWeightProp(pndT, 1);
-	    }
-	  }
-	  fResult = TRUE;
-	}
-	xmlXPathFreeObject(result);
-      }
-    }
-  }
-  return fResult;
-} /* end of domGetXPathNodeset() */
-
-
-/* 
-
+/*! \return a new DOM according to XPath 'pucArg' in pdocArg
+\param pdocArg source DOM
+\param pucArg pointer to XPath string
 */
 xmlDocPtr
 domGetXPathDoc(xmlDocPtr pdocArg, xmlChar *pucArg)
@@ -290,7 +141,7 @@ domGetXPathDoc(xmlDocPtr pdocArg, xmlChar *pucArg)
       xmlChar *pucRootName;
 
       if ((pucRootName = BAD_CAST pndRoot->name) == NULL) {
-	pucRootName = NAME_PIE_PIE;
+	pucRootName = NAME_XML;
       }
 
       if ((pdocResult = xmlNewDoc(BAD_CAST "1.0")) != NULL) {
@@ -361,40 +212,6 @@ domSetNsRecursive(xmlNodePtr pndArg, xmlNsPtr ns)
 
 
 /*!
- */
-BOOL_T
-_domTransferNsTo(xmlNodePtr pndArg, xmlDocPtr pdocArg)
-{
-  BOOL_T fResult = FALSE;
-
-  if (pndArg) {
-    xmlNsPtr *ppList = NULL;
-
-    if ((ppList = xmlGetNsList(pdocArg, xmlDocGetRootElement(pdocArg)))) {
-      xmlNsPtr pNsI = NULL;
-
-      for (pNsI = *ppList; pNsI; pNsI = pNsI->next) {
-#if 1
-	/* s. code in tree.c:xmlNewReconciliedNs() */
-	xmlNsPtr pNsT = NULL;
-
-	pNsT = xmlNewNs(pndArg, pNsI->href, pNsI->prefix);
-#else
-	xmlChar* pucT;
-
-	pucT = xmlStrdup(BAD_CAST "xmlns:");
-	pucT = xmlStrcat(pucT, pNsI->prefix);
-	xmlSetProp(pndArg, pucT, pNsI->href);
-#endif
-      }
-      fResult = TRUE;
-    }
-  }
-  return fResult;
-} /* end of domTransferNsTo() */
-
-
-/*!
 */
 void
 domUnsetNs(xmlNodePtr pndArg)
@@ -408,6 +225,30 @@ domUnsetNs(xmlNodePtr pndArg)
   }
   return;
 } /* end of domUnsetNs() */
+
+
+/*!
+*/
+xmlAttrPtr
+domCopyPropList(xmlNodePtr target, xmlNodePtr cur)
+{
+  xmlAttrPtr pResult = NULL;
+
+  if (target != NULL && target->type == XML_ELEMENT_NODE && cur != NULL && cur->type == XML_ELEMENT_NODE && target != cur) {
+    xmlAttrPtr p;
+
+    for (p = cur->properties; p; p = p->next) {
+      if (p->children != NULL && STR_IS_NOT_EMPTY(p->children->content)) {
+	xmlSetProp(target, p->name, p->children->content);
+      }
+    }
+
+    if (p != cur->properties) { /* one attribute minimum */
+      pResult = target->properties;
+    }
+  }
+  return pResult;
+} /* end of domCopyPropList() */
 
 
 /*! counts the number of elements with right name
@@ -485,6 +326,28 @@ domGetFirstChild(xmlNodePtr pndArg, xmlChar *pucNameElement)
 /* End of domGetFirstChild() */
 
 
+/*! domGetPropInt
+\param pndArg parent node for attributes
+\param pucNameAttr name of wanted attribute
+\param iDefault default return value if attribute not found
+\return a Int value according to attribute value
+*/
+int
+domGetPropInt(xmlNodePtr pndArg, xmlChar *pucNameAttr, int iDefault)
+{
+  int iResult = -1;
+  xmlChar *pucAttr = domGetPropValuePtr(pndArg, pucNameAttr);
+
+  if (STR_IS_NOT_EMPTY(pucAttr)) {
+    iResult = atoi((const char *)pucAttr);
+  }
+  else {
+    iResult = iDefault;
+  }
+  return iResult;
+} /* End of domGetPropInt() */
+
+
 /*! domGetPropFlag
 \param pndArg parent node for attributes
 \param pucNameAttr name of wanted attribute
@@ -507,6 +370,28 @@ domGetPropFlag(xmlNodePtr pndArg, xmlChar *pucNameAttr, BOOL_T fDefault)
   return fDefault;
 }
 /* End of domGetPropFlag() */
+
+
+/*! domGetAncestorsPropFlag
+\param pndArg parent node for attributes
+\param pucNameAttr name of wanted attribute
+\param fDefault default return value if attribute not found
+\return a flag value according to attribute value
+*/
+BOOL_T
+domGetAncestorsPropFlag(xmlNodePtr pndArg, xmlChar *pucNameAttr, BOOL_T fDefault)
+{
+  xmlChar *pucAttr = domGetPropValuePtr(pndArg,pucNameAttr);
+
+  if (pucAttr) {
+    return domGetPropFlag(pndArg, pucNameAttr, fDefault);
+  }
+  else if  (pndArg != NULL && pndArg->parent != NULL) {
+    return domGetAncestorsPropFlag(pndArg->parent, pucNameAttr, fDefault);
+  }
+  return fDefault;
+}
+/* End of domGetAncestorsPropFlag() */
 
 
 /*! domPropIsEqual
@@ -542,7 +427,7 @@ domGetPropValuePtr(xmlNodePtr pndArg, xmlChar *pucNameAttr)
 {
   xmlChar *pucResult = NULL;
 
-  if (pndArg != NULL && STR_IS_NOT_EMPTY(pucNameAttr)) {
+  if (IS_ENODE(pndArg) && STR_IS_NOT_EMPTY(pucNameAttr)) {
     xmlAttrPtr patAttr;
 
     if ((patAttr = xmlHasProp(pndArg, pucNameAttr)) != NULL && patAttr->children != NULL && patAttr->children->type == XML_TEXT_NODE) {
@@ -552,6 +437,31 @@ domGetPropValuePtr(xmlNodePtr pndArg, xmlChar *pucNameAttr)
   return pucResult;
 } /* End of domGetPropValuePtr() */
 
+
+/*! use of domGetPropValuePtr() on acestors, returns only a pointer
+* 
+\param pndArg parent node for attributes
+\param pucNameAttr name of wanted attribute
+\return the content pointer of the attribute named 'pucNameAttr'
+of 'pndArg' OR NULL if no attribute found
+*/
+xmlChar *
+domGetAncestorPropValuePtr(xmlNodePtr pndArg, xmlChar *pucNameAttr)
+{
+  xmlChar *pucResult = NULL;
+
+  if (IS_ENODE(pndArg) && STR_IS_NOT_EMPTY(pucNameAttr)) {
+    xmlNodePtr pndI;
+    
+    for (pndI = pndArg->parent; pndI; pndI = pndI->parent) {
+      pucResult = domGetPropValuePtr(pndI, pucNameAttr);
+      if (STR_IS_NOT_EMPTY(pucResult)) {
+	break;
+      }
+    }
+  }
+  return pucResult;
+} /* End of domGetAncestorPropValuePtr() */
 
 /*!
 \param pndArg node for content
@@ -617,6 +527,33 @@ domNodeIsDescendant(xmlNodePtr pndArgTop, xmlNodePtr pndArg)
   return FALSE;
 }
 /* end of domNodeIsDescendant() */
+
+
+/*! find all  matching to preArgBlockTag
+
+\todo test xmlSaveToBuffer()
+
+\return a new string containing all descendant text nodes of pndArg
+*/
+xmlChar*
+domNodeListGetString(xmlNodePtr pndArg, xmlChar* pucArg)
+{
+  xmlChar* pucResult = pucArg;
+
+  if (IS_ENODE(pndArg)) {
+    xmlNodePtr pndIter;
+
+    for (pndIter = pndArg->children; pndIter != NULL; pndIter = pndIter->next) {
+      pucResult = domNodeListGetString(pndIter, pucResult);
+    }
+  }
+  else if (pndArg != NULL && xmlNodeIsText(pndArg) && STR_IS_NOT_EMPTY(pndArg->content)) {
+    pucResult = xmlStrcat(pucResult, BAD_CAST" ");
+    pucResult = xmlStrcat(pucResult, pndArg->content);
+  }
+
+  return pucResult;
+} /* end of domNodeListGetString() */
 
 
 /**
@@ -699,7 +636,7 @@ domUnsetPropAll(xmlNodePtr pndArg)
 void
 domUnsetPropFileLocator(xmlNodePtr pndArg)
 {
-  if (IS_NODE_META(pndArg) || IS_NODE_PIE_ERROR(pndArg)) {
+  if (IS_NODE_META(pndArg) || IS_NODE_ERROR(pndArg)) {
   }
   else if (IS_ENODE(pndArg)) {
     xmlNodePtr pndChild;
@@ -724,7 +661,7 @@ domSetPropFileLocator(xmlNodePtr pndArg, xmlChar *pucArg)
   if (pucArg == NULL || isend(*pucArg)) {
     /* no usable value, dont set the attribute, no recursion */
   }
-  else if (IS_NODE_META(pndArg) || IS_NODE_PIE_ERROR(pndArg)) {
+  else if (IS_NODE_META(pndArg) || IS_NODE_ERROR(pndArg)) {
   }
   else if (IS_ENODE(pndArg)) {
     xmlNodePtr pndChild;
@@ -733,11 +670,14 @@ domSetPropFileLocator(xmlNodePtr pndArg, xmlChar *pucArg)
 	xmlSetProp(pndChild,BAD_CAST"flocator",pucArg);
 	domSetPropFileLocator(pndChild,pucArg);
       }
-      else if (IS_NODE_PIE_TASK(pndChild)
+      else if (FALSE
+#ifdef HAVE_PIE
+	|| IS_NODE_PIE_TASK(pndChild)
 	|| IS_NODE_PIE_TARGET(pndChild)
 	|| IS_NODE_PIE_PRE(pndChild)
+#endif
 #ifdef HAVE_PETRINET
-	|| IS_NODE_PKG2_STELLE(pndChild)
+	|| IS_NODE_PKG2_STATE(pndChild)
 	|| IS_NODE_PKG2_TRANSITION(pndChild)
 	|| IS_NODE_PKG2_REQUIREMENT(pndChild)
 #endif
@@ -761,7 +701,7 @@ domSetPropFileLocator(xmlNodePtr pndArg, xmlChar *pucArg)
 void
 domSetPropFileXpath(xmlNodePtr pndArg, xmlChar* pucArgName, xmlChar* pucArgPrefix)
 {
-  if (IS_NODE_META(pndArg) || IS_NODE_PIE_ERROR(pndArg)) {
+  if (IS_NODE_META(pndArg) || IS_NODE_ERROR(pndArg)) {
   }
   else if (IS_ENODE(pndArg)) {
     xmlNodePtr pndChild;
@@ -851,9 +791,8 @@ domDocFromNodeNew(xmlNodePtr pndArg)
 /* end of domDocFromNodeNew() */
 
 
-/*! Detect and sets the DOM MIME type of this context.
-
-  \param prnArg the context
+/*! \return MIME type of this DOM
+  \param pdocArg source DOM
  */
 RN_MIME_TYPE
 domMimeType(xmlDocPtr pdocArg)
@@ -874,7 +813,7 @@ domMimeType(xmlDocPtr pdocArg)
 	eTypeResult = MIME_TEXT_HTML;
       }
 #ifdef HAVE_PIE
-      else if (xmlStrEqual(pndRoot->name,BAD_CAST "pie")) {
+      else if (xmlStrEqual(pndRoot->name,BAD_CAST NAME_PIE_PIE)) {
 	eTypeResult = MIME_APPLICATION_PIE_XML;
       }
 #endif
@@ -884,9 +823,48 @@ domMimeType(xmlDocPtr pdocArg)
     }
   }
   return eTypeResult;
-}
-/* end of domMimeType() */
+} /* end of domMimeType() */
 
+
+/*! \return TRUE if DOM pdocArg is HTML
+ */
+BOOL_T
+domDocIsHtml(xmlDocPtr pdocArg)
+{
+  xmlNodePtr pndRoot;
+
+  return (pdocArg != NULL && (pndRoot = xmlDocGetRootElement(pdocArg)) != NULL
+      && xmlStrcasecmp(pndRoot->name,BAD_CAST "html") == 0 && pndRoot->children != NULL
+      && (domGetFirstChild(pndRoot,BAD_CAST "head") != NULL || domGetFirstChild(pndRoot,BAD_CAST "body") != NULL));
+}
+/* end of domDocIsHtml() */
+
+
+/*! similar use as xmlDocDumpMemoryEnc()
+*/
+void
+domNodeDumpMemoryEnc(xmlNodePtr pndArg, xmlChar **ppucArg, int *piArg, const char *pcArg)
+{
+  xmlBufferPtr buffer;
+
+  if (pndArg != NULL && ppucArg != NULL && pndArg != NULL && piArg != NULL) {
+    if ((buffer = xmlBufferCreate()) != NULL) {
+      int iLength = 0;
+      xmlOutputBufferPtr outbuf;
+
+      if ((outbuf = xmlOutputBufferCreateBuffer(buffer, NULL)) != NULL) {
+	xmlNodeDumpOutput(outbuf, pndArg->doc, pndArg, 2, 1, "UTF-8");
+	if ((*piArg = xmlOutputBufferGetSize(outbuf)) > 0 && xmlOutputBufferGetContent(outbuf) != NULL) {
+	  *ppucArg = xmlStrdup(xmlOutputBufferGetContent(outbuf));
+	}
+	xmlOutputBufferClose(outbuf);
+      }
+      xmlBufferFree(buffer);
+    }
+  }
+} /* end of domNodeDumpMemoryEnc() */
+
+#ifdef DEBUG
 
 /*! 
 */
@@ -946,7 +924,7 @@ domPutDocString(FILE *out, xmlChar *pucArgMessage, xmlDocPtr pdocArg)
 } /* end of domPutDocString() */
 
 
-#ifdef DEBUG
+#if 0
 
 /*! 
 */
@@ -1053,11 +1031,14 @@ domPutNodeGraphvizStringRecursive(FILE *out, xmlNodePtr pndArg, int iArgDepth)
   return;
 }
 /* end of domPutNodeGraphvizStringRecursive() */
+
+#endif
+
 #endif
 
 
-/*! compare two node with all childrens
 
+/*! \return TRUE if two node with all childrens are equal
 \param pndA first candidate
 \param pndB second candidate
 */
@@ -1102,8 +1083,7 @@ domNodesAreEqual(xmlNodePtr pndA, xmlNodePtr pndB)
     }
   }
   return TRUE;
-}
-/* end of domNodesAreEqual() */
+} /* end of domNodesAreEqual() */
 
 
 /*! derived from xmlReplaceNode()
@@ -1153,8 +1133,11 @@ domReplaceNodeList(xmlNodePtr old, xmlNodePtr cur)
 #endif
 	return(old);
     }
+#if 0
     domUnlinkNodeList(cur);	/* unlink new node list from previous context */
-
+#else
+    cur = xmlCopyNodeList(cur);
+#endif
     while (cur != NULL) {
       xmlNodePtr next;
 
@@ -1213,39 +1196,6 @@ domReplaceNodeList(xmlNodePtr old, xmlNodePtr cur)
 /* end of domReplaceNodeList() */
 
 
-/*
-*/
-BOOL_T
-isValidNodeType(xmlNodePtr pndArg)
-{
-  return (pndArg != NULL && (pndArg->type == XML_ELEMENT_NODE || pndArg->type == XML_ATTRIBUTE_NODE || pndArg->type == XML_TEXT_NODE || pndArg->type == XML_CDATA_SECTION_NODE || pndArg->type == XML_ENTITY_REF_NODE || pndArg->type == XML_ENTITY_NODE || pndArg->type == XML_PI_NODE || pndArg->type == XML_COMMENT_NODE || pndArg->type == XML_DOCUMENT_NODE || pndArg->type == XML_DOCUMENT_TYPE_NODE || pndArg->type == XML_DOCUMENT_FRAG_NODE || pndArg->type == XML_NOTATION_NODE || pndArg->type == XML_HTML_DOCUMENT_NODE || pndArg->type == XML_DTD_NODE || pndArg->type == XML_ELEMENT_DECL || pndArg->type == XML_ATTRIBUTE_DECL || pndArg->type == XML_ENTITY_DECL || pndArg->type == XML_NAMESPACE_DECL || pndArg->type == XML_XINCLUDE_START || pndArg->type == XML_XINCLUDE_END));
-}
-
-
-/* returns TRUE if pndArg is a text node with content == NULL or containing only characters ' ','\n', '\r' or '\t' 
-*/
-BOOL_T
-isEmptyTextNode(xmlNodePtr pndArg)
-{
-  BOOL_T fResult = FALSE;
-
-  if (pndArg != NULL && pndArg->type == XML_TEXT_NODE) {
-
-    if (pndArg->content) {
-      xmlChar *pucT = NULL;
-
-      for (pucT = pndArg->content; *pucT == (xmlChar)'\n' || *pucT == (xmlChar)'\r' || *pucT == (xmlChar)'\t' || *pucT == (xmlChar)' '; pucT++) { }
-
-      fResult = (pucT != pndArg->content);
-    }
-    else {
-      fResult = TRUE;
-    }
-  }
-  return fResult;
-}
-
-
 /* derived from from xmlUnlinkNode() in libxml2-2.6.26/tree.c */
 /**
  * domUnlinkNodeList:
@@ -1259,7 +1209,6 @@ void
 domUnlinkNodeList(xmlNodePtr cur) {
 
   if (cur) {
-    assert(isValidNodeType(cur));
 
     if (cur->type == XML_ELEMENT_NODE && cur == xmlDocGetRootElement(cur->doc)) {
       xmlUnlinkNode(cur); 	/* unlink root node */
@@ -1304,27 +1253,6 @@ domUnlinkNodeList(xmlNodePtr cur) {
     }
   }
 } /* end of domUnlinkNodeList() */
-
-
-/*! increments value of named property by iArg numerically
- */
-void
-domIncrPropRecursive(xmlNodePtr pndArg, xmlChar *pucArg, int iArg)
-{
-  if ((pndArg != NULL) && (pndArg->type == XML_ELEMENT_NODE) && STR_IS_NOT_EMPTY(pucArg)) {
-    xmlNodePtr pndT;
-
-    if (IS_NODE_PIE_TTAG(pndArg) || IS_NODE_PIE_LINK(pndArg) || IS_NODE_PIE_DATE(pndArg) || IS_NODE_PIE_META(pndArg)) {
-      /* to be ignored */
-    }
-    else {
-      domIncrProp(pndArg, pucArg, iArg);
-      for (pndT = pndArg->children; pndT; pndT = pndT->next) {
-	domIncrPropRecursive(pndT, pucArg, iArg);
-      }
-    }
-  }
-} /* end of domIncrPropRecursive() */
 
 
 /*! increments value of named property by iArg numerically
@@ -1449,6 +1377,27 @@ domNodeHasAncestor(xmlNodePtr pndArg, xmlChar* pucArg)
 } /* end of domNodeHasAncestor() */
 
 
+/*! \return TRUE if 'pndArg' has an child node with name 'pucArg'
+ */
+BOOL_T
+domNodeHasChild(xmlNodePtr pndArg, xmlChar* pucArg)
+{
+  BOOL_T fResult = FALSE;
+
+  if (pndArg != NULL && STR_IS_NOT_EMPTY(pucArg)) {
+    xmlNodePtr pndT;
+
+    /* check node childs */
+    for (pndT = pndArg->children; fResult == FALSE && pndT != NULL; pndT = pndT->next) {
+      if (IS_NODE(pndT, pucArg)) {
+	fResult = TRUE;
+      }
+    }
+  }
+  return fResult;
+} /* end of domNodeHasChild() */
+
+
 /*! returns TRUE if there is an overlapping between pndArgA and pndArgB
 */
 BOOL_T
@@ -1521,13 +1470,13 @@ domAddNodeToError(xmlDocPtr pdocArg, xmlNodePtr pndArg)
   assert(pdocArg);
   pndRoot = xmlDocGetRootElement(pdocArg);
   assert(pndRoot);
-  pndMeta = domGetFirstChild(pndRoot,NAME_META);
+  pndMeta = domGetFirstChild(pndRoot,BAD_CAST NAME_META);
   if (pndMeta == NULL) {
-      pndMeta = xmlNewChild(pndRoot,NULL,NAME_META,NULL);
+      pndMeta = xmlNewChild(pndRoot,NULL,BAD_CAST NAME_META,NULL);
   }
-  pndError = domGetFirstChild(pndMeta,NAME_ERROR);
+  pndError = domGetFirstChild(pndMeta,BAD_CAST NAME_ERROR);
   if (pndError == NULL) {
-    pndError = xmlNewChild(pndMeta,NULL,NAME_ERROR,NULL);
+    pndError = xmlNewChild(pndMeta,NULL,BAD_CAST NAME_ERROR,NULL);
   }
   return xmlAddChild(pndError,pndArg);
 }
@@ -1561,6 +1510,7 @@ domGrepRegExpInTree(xmlNodePtr pndResultArg, xmlNodePtr pndArg, const pcre2_code
     */
     for (pndAttr = pndArg->properties; pndAttr != NULL; pndAttr = pndAttr->next) {
     
+      if (pndAttr->children != NULL && STR_IS_NOT_EMPTY(pndAttr->children->content)) {
 	pucText = pndAttr->children->content;
 	match_data = pcre2_match_data_create_from_pattern(re_grep, NULL);
 	rc = pcre2_match(
@@ -1573,7 +1523,7 @@ domGrepRegExpInTree(xmlNodePtr pndResultArg, xmlNodePtr pndArg, const pcre2_code
 			 NULL);            /* number of elements (NOT size in bytes) */
 
 	if (rc > -1) {
-	  pndMatch = xmlNewChild(pndResultArg,NULL,NAME_MATCH,NULL);
+	  pndMatch = xmlNewChild(pndResultArg,NULL,BAD_CAST NAME_MATCH,NULL);
 	  domSetPropEat(pndMatch, BAD_CAST"xpath", xmlGetNodePath(pndArg));
 	  pndT = xmlNewChild(pndMatch,NULL,pndArg->name,NULL);
 	  //pndT = xmlNewChild(pndT,NULL,pndAttr->name,pucText);
@@ -1582,6 +1532,7 @@ domGrepRegExpInTree(xmlNodePtr pndResultArg, xmlNodePtr pndArg, const pcre2_code
 	}
     
 	pcre2_match_data_free(match_data);   /* Release memory used for the match */
+      }
     }
 
     /*!
@@ -1606,7 +1557,7 @@ domGrepRegExpInTree(xmlNodePtr pndResultArg, xmlNodePtr pndArg, const pcre2_code
 			 NULL);            /* number of elements (NOT size in bytes) */
 
 	if (rc > -1) {
-	  pndMatch = xmlNewChild(pndResultArg,NULL,NAME_MATCH,NULL);
+	  pndMatch = xmlNewChild(pndResultArg,NULL,BAD_CAST NAME_MATCH,NULL);
 	  domSetPropEat(pndMatch, BAD_CAST"xpath", xmlGetNodePath(pndChild->parent));
 	  xmlNewChild(pndMatch,NULL,pndChild->parent->name,pucText);
 	  /*!\todo split text() into resulting substrings */
@@ -1650,7 +1601,7 @@ domNodeGrepNew(xmlNodePtr pndArg, xmlChar *pucArgGrep)
 
     if (re_grep != NULL) {
     
-      pndResult = xmlNewNode(NULL,NAME_GREP);
+      pndResult = xmlNewNode(NULL,BAD_CAST NAME_GREP);
       if (pndResult != NULL) {
 	xmlSetProp(pndResult, BAD_CAST ((opt_match_pcre & PCRE2_CASELESS) ? "imatch" : "match"), pucArgGrep);
 	if (domGrepRegExpInTree(pndResult,pndArg,re_grep)) {
@@ -1670,46 +1621,6 @@ domNodeGrepNew(xmlNodePtr pndArg, xmlChar *pucArgGrep)
 } /* End of domNodeGrepNew() */
 
 #endif
-
-
-/*! change the URL of DOM pdocArg to URI of pccArg
-
-\param pdocArg pointer to DOM
-\param pccArg the filesystem context
-
- */
-void
-domChangeURL(xmlDocPtr pdocArg, resNodePtr prnArg)
-{
-#ifdef DEBUG
-  PrintFormatLog(3,"domChangeURL(pdocArg=%0x,prnArg=%0x) to '%s'",pdocArg,prnArg,resNodeGetURI(prnArg));
-#endif
-
-  if (pdocArg != NULL && prnArg != NULL) {
-    xmlChar *pucUri;
-
-    pucUri = resNodeGetURI(prnArg);
-    if (pucUri) {
-      xmlFree((void *) pdocArg->URL);
-      pdocArg->URL = xmlStrdup(pucUri);
-    }
-  }
-}
-/* end of domChangeURL() */
-
-
-/*! return TRUE if DOM pdocArg is HTML
- */
-BOOL_T
-domDocIsHtml(xmlDocPtr pdocArg)
-{
-  xmlNodePtr pndRoot;
-
-  return (pdocArg != NULL && (pndRoot = xmlDocGetRootElement(pdocArg)) != NULL
-      && xmlStrcasecmp(pndRoot->name,BAD_CAST "html") == 0 && pndRoot->children != NULL
-      && (domGetFirstChild(pndRoot,BAD_CAST "head") != NULL || domGetFirstChild(pndRoot,BAD_CAST "body") != NULL));
-}
-/* end of domDocIsHtml() */
 
 
 #ifdef TESTCODE

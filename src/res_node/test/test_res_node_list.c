@@ -1,7 +1,7 @@
 /*
   cxproc - Configurable Xml PROCessor
 
-  Copyright (C) 2006..2020 by Alexander Tenbusch
+  Copyright (C) 2006..2024 by Alexander Tenbusch
 
   This program is free software; you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -97,23 +97,23 @@ resNodeTestList(void)
       printf("Error resNodeDirNew()\n");
     }
     else if ((prnFile = resNodeListFindPath(prnT, BAD_CAST"config-test.cxp", (RN_FIND_FILE | RN_FIND_IN_SUBDIR))) == NULL) {
-      printf("Error resNodeListFindPath()\n");
+      printf("Error 1 resNodeListFindPath()\n");
     }
     else if ((prnFile = resNodeListFindPath(prnT, BAD_CAST"pn-1.pie", (RN_FIND_FILE | RN_FIND_IN_SUBDIR))) == NULL) {
-      printf("Error resNodeListFindPath()\n");
+      printf("Error 2 resNodeListFindPath()\n");
     }
     else if ((prnFile = resNodeListFindPath(prnT, BAD_CAST"rp/", (RN_FIND_DIR | RN_FIND_IN_SUBDIR))) == NULL) {
-      printf("Error resNodeListFindPath()\n");
+      printf("Error 3 resNodeListFindPath()\n");
     }
     else if ((prnFile = resNodeListFindPath(prnT, BAD_CAST"non/existing.file", (RN_FIND_FILE | RN_FIND_IN_SUBDIR))) != NULL) {
-      printf("Error resNodeListFindPath()\n");
+      printf("Error 4 resNodeListFindPath()\n");
     }
-#ifdef HAVE_ARCHIVE
-    else if ((prnFile = resNodeListFindPath(prnT, BAD_CAST"SubTest/SubTest/Length_1024.txt")) == NULL) {
-      printf("Error resNodeListFindPath() inside archive\n");
+#ifdef HAVE_LIBARCHIVE
+    else if ((prnFile = resNodeListFindPath(prnT, BAD_CAST"sub/a.txt", RN_FIND_FILE | RN_FIND_IN_ARCHIVE)) == NULL) {
+      printf("Error 1 resNodeListFindPath() inside archive\n");
     }
-    else if ((prnFile = resNodeListFindPath(prnFile, BAD_CAST"SubTest/Length_1024.txt")) == NULL) {
-      printf("Error resNodeListFindPath() inside archive\n");
+    else if ((prnFile = resNodeListFindPath(prnFile, BAD_CAST"a.txt", RN_FIND_FILE | RN_FIND_IN_ARCHIVE)) == NULL) {
+      printf("Error 2 resNodeListFindPath() inside archive\n");
     }
 #endif
     else {
@@ -176,7 +176,7 @@ resNodeTestList(void)
     else if ((prnTTT = resNodeAddChildNew(prnTT, BAD_CAST"Images/0987654321.JPG")) == NULL) {
       printf("Error resNodeAddChildNew() ...\n");
     }
-    else if (resNodeAddChild(prnT, resNodeCommentNew(prnTTT)) == NULL) {
+    else if (resNodeAddChild(prnT, resNodeCommentNew(prnTTT)) == FALSE) {
       printf("Error resNodeCommentNew() ...\n");
     }
     else if (resNodeAddChildNew(prnTT, BAD_CAST"Settings/default.ini") == NULL) {
@@ -191,7 +191,7 @@ resNodeTestList(void)
     else if (resNodeAddChildNew(prnT, BAD_CAST"Fun/") == NULL) {
       printf("Error resNodeAddChildNew() ...\n");
     }
-    else if ((j = resNodeGetChildCount(prnT, rn_type_dir)) != 6 || (j = resNodeGetChildCount(prnT, rn_type_file)) != 1) {
+    else if ((j = resNodeGetChildCount(prnT, rn_type_dir)) != 6 || (j = resNodeGetChildCount(prnT, rn_type_file)) != 3) {
       printf("Error resNodeDirAppendEntries() = %i\n", j);
     }
     else if (resNodeListFindChild(prnT, BAD_CAST"Notes.txt") != resNodeGetNext(resNodeGetChild(prnT))) {
@@ -212,6 +212,11 @@ resNodeTestList(void)
     else if (resNodeListFindPath(prnT, BAD_CAST"Podcasts/Blah Blah", (RN_FIND_DIR | RN_FIND_IN_SUBDIR | RN_FIND_IN_ARCHIVE)) != prnNeedleDir) {
       printf("Error 5 resNodeListFindPath() ...\n");
     }
+#ifdef HAVE_PCRE2
+    else if (resNodeListFindPath(prnT, BAD_CAST"^.*567891\\.jpg", (RN_FIND_FILE | RN_FIND_IN_SUBDIR | RN_FIND_REGEXP)) == NULL) {
+      printf("Error 5b resNodeListFindPath() ...\n");
+    }
+#endif
     else if ((prnFound = resNodeListFindPath(prnT, BAD_CAST"Dummy/", (RN_FIND_DIR | RN_FIND_IN_SUBDIR))) == NULL) {
       printf("Error 6 resNodeListFindPath() ...\n");
     }
@@ -223,7 +228,7 @@ resNodeTestList(void)
       printf("OK\n");
     }
 
-    //puts((const char*)resNodeListToXml(prnT,RN_INFO_MIN));
+    //puts((const char*)resNodeListToXmlStr(prnT,RN_INFO_MIN));
     resNodeFree(prnT);
   }
 
@@ -258,7 +263,7 @@ resNodeTestList(void)
       printf("OK\n");
     }
 
-    //puts((const char*)resNodeListToXml(prnT,RN_INFO_MIN));
+    //puts((const char*)resNodeListToXmlStr(prnT,RN_INFO_MIN));
     resNodeFree(prnU);
     resNodeFree(prnT);
   }
@@ -287,15 +292,16 @@ resNodeTestList(void)
       printf("OK\n");
     }
 
-    //puts((const char*)resNodeListToXml(prnT,RN_INFO_MIN));
+    //puts((const char*)resNodeListToXmlStr(prnT,RN_INFO_MIN));
     resNodeFree(prnT);
   }
 
 
-#ifdef HAVE_ARCHIVE
-  if (RUNTEST) {
+#ifdef HAVE_LIBARCHIVE
+  if (SKIPTEST) {
     size_t j;
     resNodePtr prnT = NULL;
+    resNodePtr prnTT = NULL;
 
     i++;
     printf("TEST %i in '%s:%i': build non-existing nested archive contexts = ", i, __FILE__, __LINE__);
@@ -309,14 +315,21 @@ resNodeTestList(void)
     else if (resNodeAddChildNew(prnT, BAD_CAST"archive/test-zip-7.zip/TestContent.odt/content.xml") == NULL) {
       printf("Error resNodeAddChildNew() ...\n");
     }
-    else if ((j = resNodeGetChildCount(prnT, rn_type_archive)) != 1
-	     || (j = resNodeGetChildCount(resNodeGetChild(prnT), rn_type_dir_in_archive)) != 1
-	     || (j = resNodeGetChildCount(resNodeGetChild(resNodeGetChild(prnT)), rn_type_file_in_archive)) != 2) {
+    else if ((prnTT = resNodeGetChild(prnT)) == NULL || resNodeGetType(prnTT) != rn_type_dir) {
+      printf("Error resNodeGetChild()\n");
+    }
+    else if ((prnTT = resNodeGetChild(prnTT)) == NULL || resNodeGetType(prnTT) != rn_type_archive) {
+      printf("Error resNodeGetChild()\n");
+    }
+    else if ((prnTT = resNodeGetChild(prnTT)) == NULL || resNodeGetType(prnTT) != rn_type_dir_in_archive) {
+      printf("Error resNodeGetChild()\n");
+    }
+    else if ((j = resNodeGetChildCount(prnTT, rn_type_file_in_archive)) != 1) {
       printf("Error resNodeAddChildNew() = %i\n", j);
     }
     else if (resNodeSetRecursion(prnT,TRUE) == FALSE
 	     || resNodeUpdate(prnT, RN_INFO_MAX, NULL, NULL) == FALSE
-	     || resNodeGetError(prnT) != rn_error_stat) {
+	     || resNodeGetError(prnT) == rn_error_stat) {
       printf("Error resNodeUpdate() '%s' ...\n", resNodeGetErrorMsg(prnT));
     }
     else {
@@ -324,7 +337,7 @@ resNodeTestList(void)
       printf("OK\n");
     }
 
-    //puts((const char*)resNodeListToXml(prnT,RN_INFO_MAX));
+    //puts((const char*)resNodeListToXmlStr(prnT,RN_INFO_MAX));
     resNodeFree(prnT);
   }
 
@@ -350,18 +363,21 @@ resNodeTestList(void)
     else if ((prnTT = resNodeGetChild(prnT)) == NULL || resNodeGetType(prnTT) != rn_type_dir) {
       printf("Error resNodeUpdate() 1\n");
     }
-    else if ((prnTT = resNodeGetChild(prnTT)) == NULL || resNodeGetType(prnTT) != rn_type_file_compressed || resNodeGetMimeType(prnTT) != MIME_APPLICATION_GZIP) {
+    else if ((prnTT = resNodeGetChild(prnTT)) == NULL || resNodeGetType(prnTT) != rn_type_dir) {
       printf("Error resNodeUpdate() 2\n");
     }
-    else if ((prnTT = resNodeGetChild(prnTT)) == NULL || resNodeGetType(prnTT) != rn_type_file_in_archive || resNodeGetMimeType(prnTT) != MIME_TEXT_PLAIN) {
+    else if ((prnTT = resNodeGetChild(prnTT)) == NULL || resNodeGetType(prnTT) != rn_type_file_compressed || resNodeGetMimeType(prnTT) != MIME_APPLICATION_GZIP) {
       printf("Error resNodeUpdate() 3\n");
+    }
+    else if ((prnTT = resNodeGetChild(prnTT)) == NULL || resNodeGetType(prnTT) != rn_type_file_in_archive || resNodeGetMimeType(prnTT) != MIME_TEXT_PLAIN) {
+      printf("Error resNodeUpdate() 4\n");
     }
     else {
       n_ok++;
       printf("OK\n");
     }
 
-    //puts((const char*)resNodeListToXml(prnT,RN_INFO_MAX));
+    //puts((const char*)resNodeListToXmlStr(prnT,RN_INFO_MAX));
     resNodeFree(prnT);
   }
 #endif
@@ -392,7 +408,7 @@ resNodeTestList(void)
       printf("OK\n");
     }
 
-    //puts((const char*)resNodeListToXml(prnT,RN_INFO_MAX));
+    //puts((const char*)resNodeListToXmlStr(prnT,RN_INFO_MAX));
     resNodeFree(prnT);
   }
 
@@ -411,7 +427,7 @@ resNodeTestList(void)
     else if (resNodeListParse(prnT, 999, NULL) == FALSE) {
       printf("Error resNodeListParse() ...\n");
     }
-    else if ((j = resNodeGetChildCount(prnT, rn_type_dir)) != 12) {
+    else if ((j = resNodeGetChildCount(prnT, rn_type_dir)) != 14) {
       printf("Error resNodeDirAppendEntries() = %i\n", j);
     }
     else if ((prnFound = resNodeListFindPath(prnT, BAD_CAST"dir/", (RN_FIND_DIR | RN_FIND_IN_SUBDIR))) == NULL) {
@@ -425,7 +441,7 @@ resNodeTestList(void)
       printf("OK\n");
     }
 
-    //puts((const char*)resNodeListToXml(prnT,RN_INFO_MAX));
+    //puts((const char*)resNodeListToXmlStr(prnT,RN_INFO_MAX));
     resNodeFree(prnT);
   }
 
@@ -461,18 +477,18 @@ resNodeTestList(void)
       printf("OK\n");
     }
 
-    //puts((const char*)resNodeListToXml(prnT,RN_INFO_MAX));
+    //puts((const char*)resNodeListToXmlStr(prnT,RN_INFO_MAX));
     resNodeFree(prnT);
   }
 
 
-#ifdef HAVE_ARCHIVE
-  if (RUNTEST) {
+#ifdef HAVE_LIBARCHIVE
+  if (SKIPTEST) {
     size_t j;
     resNodePtr prnT = NULL;
     resNodePtr prnTT = NULL;
     resNodePtr prnFound = NULL;
-    xmlChar *pucArgFind = BAD_CAST"META-INF";
+    xmlChar *pucArgFind = BAD_CAST"META-INF/manifest.xml";
     
     i++;
     printf("TEST %i in '%s:%i': find iterator = ", i, __FILE__, __LINE__);
@@ -480,25 +496,25 @@ resNodeTestList(void)
     if ((prnT = resNodeDirNew(BAD_CAST TESTPREFIX "xml")) == NULL) {
       printf("Error resNodeDirNew()\n");
     }
-    else if ((prnFound = resNodeListFindPathNext(prnFound, NULL)) != NULL) {
+    else if ((prnFound = resNodeListFindPathNext(prnFound, NULL, 0)) != NULL) {
       printf("Error 1 resNodeListFindPathNext()\n");
     }
-    else if ((prnFound = resNodeListFindPathNext(prnFound, BAD_CAST "")) != NULL) {
+    else if ((prnFound = resNodeListFindPathNext(prnFound, BAD_CAST "", RN_FIND_FILE)) != NULL) {
       printf("Error 2 resNodeListFindPathNext()\n");
     }
-    else if ((prnFound = resNodeListFindPath(prnT, pucArgFind)) == NULL) {
+    else if ((prnFound = resNodeListFindPath(prnT, pucArgFind, (RN_FIND_FILE | RN_FIND_IN_ARCHIVE))) == NULL) {
       printf("Error 3 resNodeListFindPath()\n");
     }
-    else if ((prnTT = prnFound) == NULL || (prnFound = resNodeListFindPathNext(prnFound, pucArgFind)) == NULL || (prnTT == prnFound)) {
+    else if ((prnTT = prnFound) == NULL || (prnFound = resNodeListFindPathNext(prnFound, pucArgFind, RN_FIND_FILE)) == NULL || (prnTT == prnFound)) {
       printf("Error 4 resNodeListFindPathNext()\n");
     }
-    else if ((prnTT = prnFound) == NULL || (prnFound = resNodeListFindPathNext(prnFound, pucArgFind)) == NULL || (prnTT == prnFound)) {
+    else if ((prnTT = prnFound) == NULL || (prnFound = resNodeListFindPathNext(prnFound, pucArgFind, RN_FIND_FILE)) == NULL || (prnTT == prnFound)) {
       printf("Error 5 resNodeListFindPathNext()\n");
     }
-    else if ((prnTT = prnFound) == NULL || (prnFound = resNodeListFindPathNext(prnFound, pucArgFind)) == NULL || (prnTT == prnFound)) {
+    else if ((prnTT = prnFound) == NULL || (prnFound = resNodeListFindPathNext(prnFound, pucArgFind, RN_FIND_FILE)) == NULL || (prnTT == prnFound)) {
       printf("Error 6 resNodeListFindPathNext()\n");
     }
-    else if (resNodeListFindPathNext(prnFound, pucArgFind) != NULL) {
+    else if (resNodeListFindPathNext(prnFound, pucArgFind, (RN_FIND_FILE | RN_FIND_IN_ARCHIVE)) != NULL) {
       printf("Error 7 resNodeListFindPathNext()\n");
     }
     else {
@@ -506,7 +522,7 @@ resNodeTestList(void)
       printf("OK\n");
     }
 
-    //puts((const char*)resNodeListToXml(prnT,RN_INFO_MAX));
+    //puts((const char*)resNodeListToXmlStr(prnT,RN_INFO_MAX));
     resNodeFree(prnT);
   }
 #endif
@@ -543,179 +559,80 @@ resNodeTestList(void)
       printf("Error resNodeListParse() ...\n");
     }
     else if ((prnFound = resNodeListFindPath(prnT, BAD_CAST"dir/config.cxp", (RN_FIND_FILE | RN_FIND_IN_SUBDIR))) == NULL) {
-      printf("Error resNodeListFindPath() ...\n");
+      printf("Error 1 resNodeListFindPath() ...\n");
     }
     else if (resPathIsEquivalent(resNodeGetNameBase(prnFound), BAD_CAST"config.cxp") == FALSE) {
-      printf("Error resNodeListFindPath() ...\n");
+      printf("Error 2 resNodeListFindPath() ...\n");
     }
     else {
       n_ok++;
       printf("OK\n");
     }
     pcre2_code_free(re_match);
-    //puts((const char*)resNodeListToXml(prnT,RN_INFO_MIN));
+    //puts((const char*)resNodeListToXmlStr(prnFound,RN_INFO_MIN));
     resNodeFree(prnT);
   }
 #endif
 
 
   if (RUNTEST) {
-    int j = 0;
-    xmlChar *pucPlain = NULL;
-    xmlChar *pucJSON = NULL;
-    xmlChar *pucSql = NULL;
+    size_t j;
     resNodePtr prnT = NULL;
-    xmlNodePtr pndT = NULL;
+    resNodePtr prnTT = NULL;
+    resNodePtr prnFound = NULL;
 
     i++;
-    printf("TEST %i in '%s:%i': resNodeTo*() recursive directory = ", i, __FILE__, __LINE__);
+    printf("TEST %i in '%s:%i': parse filesystem context recursively and search for context = ", i, __FILE__, __LINE__);
 
-    if ((prnT = resNodeDirNew(BAD_CAST TESTPREFIX)) == NULL) {
+    if ((prnTT = resNodeDirNew(BAD_CAST TESTPREFIX "option")) == NULL) {
       printf("Error resNodeDirNew()\n");
     }
-    else if (resNodeListParse(prnT, 9, NULL) == FALSE) {
-      printf("Error resNodeReadStatus()\n");
+    else if (resNodeAddSibling(prnTT, resNodeDirNew(BAD_CAST TEMPPREFIX)) == FALSE) {
+      printf("Error resNodeAddSibling()\n");
     }
-    else if (resNodeUpdate(prnT, RN_INFO_MAX, NULL, NULL) == FALSE) {
-      printf("Error resNodeReadStatus()\n");
+    else if (resNodeAddSibling(prnTT, resNodeDirNew(BAD_CAST TESTPREFIX "xml/")) == FALSE) {
+      printf("Error resNodeAddSibling()\n");
     }
-    else if ((pndT = resNodeToDOM(prnT, RN_INFO_MAX)) == NULL || (j = domNumberOfChild(pndT, NULL)) != 13) {
-      printf("Error resNodeToDOM(): %i\n", j);
+    else if (resNodeAddSibling(prnTT, resNodeDirNew(BAD_CAST TESTPREFIX "DUMMY")) == FALSE) {
+      printf("Error resNodeAddSibling()\n");
     }
-    else if ((pucPlain = resNodeToPlain(prnT, RN_INFO_MAX)) == NULL) {
-      printf("Error resNodeToPlain() = %i\n", j);
+    else if (resNodeAddSibling(prnTT, resNodeDirNew(BAD_CAST TESTPREFIX "plain//")) == FALSE) {
+      printf("Error resNodeAddSibling()\n");
     }
-    else if ((pucJSON = resNodeToJSON(prnT, RN_INFO_MAX)) == NULL) {
-      printf("Error resNodeToJSON() = %i\n", j);
+    else if (resNodeListParse(prnTT, 999, NULL) == FALSE) {
+      printf("Error resNodeListParse() ...\n");
     }
-    else if ((pucSql = resNodeToSql(prnT, RN_INFO_MAX)) == NULL) {
-      printf("Error resNodeToSql() = %i\n", j);
+    else if ((j = resNodeGetChildCount(prnTT, rn_type_dir)) != 10) {
+      printf("Error resNodeGetChildCount() = %i\n", j);
     }
-    else {
-      n_ok++;
-      printf("OK\n");
+    else if ((prnT = resNodeDup(prnTT, RN_DUP_NEXT | RN_DUP_READ)) == NULL) {
+      printf("Error resNodeDup()\n");
     }
-    //puts((const char *)pucPlain);
-    //puts((const char *)pucJSON);
-    //puts((const char *)pucSql);
-
-    xmlFree(pucSql);
-    xmlFree(pucJSON);
-    xmlFree(pucPlain);
-    xmlFreeNode(pndT);
-    resNodeFree(prnT);
-  }
-
-
-#ifdef HAVE_ARCHIVE
-  if (RUNTEST) {
-    resNodePtr prnT = NULL;
-    xmlChar *pucT = NULL;
-    xmlNodePtr pndT = NULL;
-
-    i++;
-    printf("TEST %i in '%s:%i': resNodeTo*() archive file = ", i, __FILE__, __LINE__);
-
-    if ((prnT = resNodeDirNew(BAD_CAST TESTPREFIX "option/archive/test-zip-7.zip")) == NULL) {
-      printf("Error resNodeDirNew()\n");
+#if 0
+    else if (resNodeListParse(prnT, 999, NULL) == FALSE) {
+      printf("Error resNodeListParse() ...\n");
     }
-    else if (resNodeUpdate(prnT, RN_INFO_MAX,NULL,NULL) == FALSE) {
-      printf("Error resNodeReadStatus()\n");
+    else if ((j = resNodeGetChildCount(prnT, rn_type_dir)) != 10) {
+      printf("Error resNodeDirAppendEntries() = %i\n", j);
     }
-    else if ((pndT = resNodeToDOM(prnT, RN_INFO_MAX)) == NULL || domNumberOfChild(pndT, NULL) != 1) {
-      printf("Error resNodeToDOM()\n");
-    }
-    else if ((pucT = resNodeToPlain(prnT, RN_INFO_MAX)) == NULL) {
-      printf("Error resNodeToPlain() = %i\n", xmlStrlen(pucT));
-    }
-    else {
-      n_ok++;
-      printf("OK\n");
-    }
-    //puts((const char *)pucT);
-    xmlFree(pucT);
-    xmlFreeNode(pndT);
-    resNodeFree(prnT);
-  }
 #endif
-
-
-  if (RUNTEST) {
-    resNodePtr prnT = NULL;
-
-    prnT = resNodeDirNew(BAD_CAST TESTPREFIX "xml/");
-    if (prnT) {
-      /*  */
-
-      if (resNodeListParse(prnT, 2, NULL)) {
-	xmlNodePtr pndT;
-	xmlChar *pucT = NULL;
-
-	i++;
-	printf("TEST %i in '%s:%i': transform resNodeList to DOM = ", i, __FILE__, __LINE__);
-	if ((pndT = resNodeListToDOM(prnT, RN_INFO_MAX))) {
-	  xmlFreeNode(pndT);
-	  n_ok++;
-	  printf("OK\n");
-	}
-	else {
-	  printf("Error resNodeListToDOM() ...\n");
-	}
-
-	i++;
-	printf("TEST %i in '%s:%i': transform resNodeList to XML text = ", i, __FILE__, __LINE__);
-	if ((pucT = resNodeListToXml(prnT, RN_INFO_MAX))) {
-	  //puts((const char*)pucT);
-	  n_ok++;
-	  printf("OK\n");
-	}
-	else {
-	  printf("Error resNodeListToXml() ...\n");
-	}
-	xmlFree(pucT);
-
-	i++;
-	printf("TEST %i in '%s:%i': transform resNodeList to plain text = ", i, __FILE__, __LINE__);
-	if ((pucT = resNodeListToPlain(prnT, RN_INFO_MAX))) {
-	  //puts((const char*)pucT);
-	  n_ok++;
-	  printf("OK\n");
-	}
-	else {
-	  printf("Error resNodeListToPlain() ...\n");
-	}
-	xmlFree(pucT);
-
-	i++;
-	printf("TEST %i in '%s:%i': transform resNodeList to JSON text = ", i, __FILE__, __LINE__);
-	if ((pucT = resNodeListToJSON(prnT, RN_INFO_INFO))) {
-	  //puts((const char*)pucT);
-	  n_ok++;
-	  printf("OK\n");
-	}
-	else {
-	  printf("Error resNodeListToJSON() ...\n");
-	}
-	xmlFree(pucT);
-
-	i++;
-	printf("TEST %i in '%s:%i': transform resNodeList to SQL statements = ", i, __FILE__, __LINE__);
-	if ((pucT = resNodeListToSQL(prnT, RN_INFO_MAX))) {
-	  //puts((const char*)pucT);
-	  n_ok++;
-	  printf("OK\n");
-	}
-	else {
-	  printf("Error resNodeListToSQL() ...\n");
-	}
-	xmlFree(pucT);
-
-      }
-      resNodeFree(prnT);
+    else if ((prnFound = resNodeListFindPath(prnT, BAD_CAST"xml", (RN_FIND_DIR | RN_FIND_IN_SUBDIR))) == NULL) {
+      printf("Error 1 resNodeListFindPath() ...\n");
+    }
+    else if ((prnFound = resNodeListFindPath(prnT, BAD_CAST "pie/text/config.cxp", (RN_FIND_FILE | RN_FIND_IN_SUBDIR))) == NULL) {
+      printf("Error 2 resNodeListFindPath() ...\n");
+    }
+    else if ((prnFound = resNodeListFindPath(prnT, BAD_CAST "plain/config.cxp", (RN_FIND_ALL))) == NULL) {
+      printf("Error 3 resNodeListFindPath() ...\n");
     }
     else {
-      printf("Error resNodeNew()\n");
+      n_ok++;
+      printf("OK\n");
     }
+
+    //puts((const char*)resNodeListToPlain(prnTT,RN_INFO_MAX));
+    resNodeListFree(prnT);
+    resNodeListFree(prnTT);
   }
 
 

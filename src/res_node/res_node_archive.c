@@ -1,0 +1,843 @@
+/*
+  cxproc - Configurable Xml PROCessor
+
+  Copyright (C) 2006..2024 by Alexander Tenbusch
+
+  This program is free software; you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation; either version 2 of the License, or
+  (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License 
+  along with this program; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+
+*/
+
+/*!\todo compress
+    existing files
+        XML structure
+        Plain text list (like SQL result)
+
+    empty directories
+
+    DOM node content
+
+    file comments
+
+    to stdout
+
+    in memory
+
+    update of content?
+    
+    with or without path mapping
+        zip
+        tar
+        iso
+
+    <cxp:copy from"test/a.png" to="abc.zip!test-b/b.png"/>
+*/
+
+
+/*
+*/
+#include <libxml/parser.h>
+
+#include "basics.h"
+#include "calendar_element.h"
+#include <res_node/res_node_ops.h>
+#include <cxp/cxp.h>
+#include "dom.h"
+#include <cxp/cxp_dir.h>
+#include "plain_text.h"
+#include "utils.h"
+
+
+#define CXP_CODING_ZIP "CP437"
+
+iconv_t iconvArcEncode = NULL;     /*! charset of archive headers */
+
+iconv_t iconvArcDecode = NULL;     /*! charset of archive headers */
+
+
+static void
+arcIconvCleanup(void);
+
+
+/*! opens context prnArg
+
+\todo handle in-memory achives for stdout/stdin s. archive_write_open_memory()
+
+\return TRUE if successful
+*/
+BOOL_T
+arcFileOpen(resNodePtr prnArg)
+{
+  BOOL_T fResult = FALSE;
+
+#ifdef HAVE_LIBARCHIVE
+//  assert(prnArg != NULL && prnArg->handleIO == NULL);
+
+  if (prnArg->eMode == mode_read) {
+    prnArg->handleIO = (void *)archive_read_new();
+    if (prnArg->handleIO) {
+      if (arcMapReadFormat(prnArg)) {
+	if (resNodeIsMemory(prnArg)) { /* achive in memory already */
+	  if (archive_read_open_memory((arcPtr)prnArg->handleIO, prnArg->pContent, resNodeGetSize(prnArg)) == ARCHIVE_OK) {
+	    prnArg->fExist = TRUE;
+	    prnArg->eAccess = rn_access_archive;
+	    fResult = TRUE;
+	    PrintFormatLog(4, "archive_read_open_memory('%s') OK", resNodeGetNameNormalized(prnArg));
+	  }
+	  else {
+	    arcFileClose(prnArg);
+	    resNodeSetError(prnArg, rn_error_archive, "archive_read_open_memory() failed");
+	  }
+	  /*!\todo read archive from memory buffer ":memory:" archive_read_open_memory() */
+	}
+	else if (archive_read_open_filename((arcPtr)prnArg->handleIO, resNodeGetNameNormalizedNative(prnArg), BUFFER_LENGTH) == ARCHIVE_OK) {
+	  prnArg->fExist = TRUE;
+	  prnArg->eAccess = rn_access_archive;
+	  fResult = TRUE;
+	  PrintFormatLog(4, "archive_read_open_filename('%s') OK", resNodeGetNameNormalized(prnArg));
+	}
+	else {
+	  arcFileClose(prnArg);
+	  resNodeSetError(prnArg, rn_error_archive, "archive_read_open_filename('%s') failed", resNodeGetNameNormalized(prnArg));
+	}
+      }
+      else {
+	arcFileClose(prnArg);
+	resNodeSetError(prnArg, rn_error_archive, "arcMapReadFormat('%s') failed", resNodeGetNameNormalized(prnArg));
+      }
+    }
+    else {
+      arcFileClose(prnArg);
+      resNodeSetError(prnArg, rn_error_archive, "archive_read_new('%s') failed", resNodeGetNameNormalized(prnArg));
+    }
+  }
+  else if (prnArg->eMode == mode_write) {
+    /*\todo append content to existing archive file */
+
+    /*\todo delete existing archive file first */
+
+    prnArg->handleIO = (void *)archive_write_new();
+    if (prnArg->handleIO) {
+      //archive_write_set_options((arcPtr)prnArg->handleIO, "compression=store");
+      if ((resNodeGetMimeType(prnArg) == MIME_APPLICATION_X_TAR
+	&& archive_write_set_format_gnutar((arcPtr)prnArg->handleIO) == ARCHIVE_OK)
+	||
+	archive_write_set_format_zip((arcPtr)prnArg->handleIO) == ARCHIVE_OK
+	
+#if 0
+	||
+	(resNodeGetMimeType(prnArg) == MIME_APPLICATION_X_ISO9660_IMAGE
+	&& archive_write_set_format_iso9660((arcPtr)prnArg->handleIO) == ARCHIVE_OK)
+#endif
+	) {
+
+	if (archive_write_add_filter_none((arcPtr)prnArg->handleIO) == ARCHIVE_OK) {
+#if 0
+	  if (resNodeIsStd(prnArg)) {
+	    const size_t iSize = 1024 * 1024 * 1024;
+
+	    if ((prnArg->pContent = xmlMalloc(iSize))) {
+	      if (archive_write_open_memory((arcPtr)prnArg->handleIO, prnArg->pContent, iSize, &prnArg->liSizeContent) == ARCHIVE_OK) {
+		prnArg->fExist = TRUE;
+		prnArg->eAccess = rn_access_archive;
+		fResult = TRUE;
+		PrintFormatLog(4, "archive_write_open_memory('%s') OK", resNodeGetNameNormalized(prnArg));
+	      }
+	    }
+	    else {
+	      arcFileClose(prnArg);
+	      resNodeSetError(prnArg, rn_error_archive, "xmlMalloc() failed");
+	    }
+	  }
+#endif
+	  if (resNodeIsStd(prnArg) && archive_write_open_fd((arcPtr)prnArg->handleIO, 1) == ARCHIVE_OK) {
+	    prnArg->fExist = TRUE;
+	    prnArg->eAccess = rn_access_archive;
+	    fResult = TRUE;
+	    //PrintFormatLog(4, "archive_write_open_filename('%s') OK", resNodeGetNameNormalized(prnArg));
+	  }
+	  else if (archive_write_open_filename((arcPtr)prnArg->handleIO, resNodeGetNameNormalizedNative(prnArg)) == ARCHIVE_OK) {
+	    prnArg->fExist = TRUE;
+	    prnArg->eAccess = rn_access_archive;
+	    fResult = TRUE;
+	    PrintFormatLog(4, "archive_write_open_filename('%s') OK", resNodeGetNameNormalized(prnArg));
+	  }
+	  else {
+	    arcFileClose(prnArg);
+	    resNodeSetError(prnArg, rn_error_archive, "archive_write_new('%s') failed", resNodeGetNameNormalized(prnArg));
+	  }
+	}
+	else {
+	  arcFileClose(prnArg);
+	  //	      resNodeSetError(prnArg,rn_error_archive, "archive_write_set_format_ustar('%s') failed: %s",
+	  //			     resNodeGetNameNormalized(prnArg), archive_error_string((arcPtr)resNodeGetHandleIO(prnArg)));
+	}
+      }
+      else {
+	arcFileClose(prnArg);
+#if 0
+	resNodeSetError(prnArg, rn_error_archive, "archive_read_support_format_*('%s') failed: %s",
+	  resNodeGetNameNormalized(prnArg), archive_error_string((arcPtr)resNodeGetHandleIO(prnArg)));
+#endif
+      }
+    }
+    else {
+      arcFileClose(prnArg);
+      resNodeSetError(prnArg, rn_error_archive, "archive_write_new('%s') failed", resNodeGetNameNormalized(prnArg));
+    }
+  }
+  else {
+    resNodeSetError(prnArg, rn_error_open, "unknown mode for archive opening '%s'", resNodeGetNameNormalized(prnArg));
+  }
+#endif
+
+  return fResult;
+} /* end of arcFileOpen() */
+
+
+/*! opens context prnArg
+
+\return TRUE if successful
+*/
+BOOL_T
+arcFileClose(resNodePtr prnArg)
+{
+  BOOL_T fResult = FALSE;
+
+#ifdef HAVE_LIBARCHIVE
+  assert(prnArg != NULL);
+
+  if (resNodeGetHandleIO(prnArg) == NULL) {
+    /* closed already, OK */
+  }
+  else if (prnArg->eMode == mode_read) {
+    archive_read_close((arcPtr)resNodeGetHandleIO(prnArg));
+    if (archive_read_free((arcPtr)resNodeGetHandleIO(prnArg)) == ARCHIVE_OK) {
+      fResult = TRUE;
+    }
+    else {
+      resNodeSetError(prnArg, rn_error_archive, "Error archive_read_free('%s')", resNodeGetNameNormalized(prnArg));
+    }
+  }
+  else if (prnArg->eMode == mode_write) {
+    archive_write_close((arcPtr)resNodeGetHandleIO(prnArg));
+    if (archive_write_free((arcPtr)resNodeGetHandleIO(prnArg)) == ARCHIVE_OK) {
+      fResult = TRUE;
+    }
+    else {
+      resNodeSetError(prnArg, rn_error_archive, "Error archive_write_free('%s')", resNodeGetNameNormalized(prnArg));
+    }
+  }
+  else {
+    resNodeSetError(prnArg, rn_error_archive, "Error closing archive '%s'", resNodeGetNameNormalized(prnArg));
+  }
+  prnArg->handleIO = NULL;
+  prnArg->eAccess = rn_access_undef;
+#endif
+
+  return fResult;
+} /* end of arcFileClose() */
+
+
+/*! \return TRUE if successful
+*/
+BOOL_T
+arcFileWriteTraverse(resNodePtr prnArgZip, resNodePtr prnArg)
+{
+  BOOL_T fResult = FALSE;
+
+  if (prnArgZip) {
+    resNodePtr prnI;
+
+    if (prnArg == NULL) {
+      fResult = arcFileWriteTraverse(prnArgZip, prnArgZip);
+    }
+    else if ((prnI = resNodeGetChild(prnArg)) == NULL) {
+      //resNodeUpdate(prnArg, RN_INFO_CONTENT, NULL, NULL);
+      if (resNodeGetNameAlias(prnArg)) {
+	fResult |= arcAddResNode(prnArgZip, prnArg, NULL, NULL);
+      }
+      else {
+	fResult |= arcAddResNode(prnArgZip, prnArg, resPathDiffPtr(resNodeGetNameNormalized(prnArgZip), resNodeGetNameNormalized(prnArg)), NULL);
+      }
+      // resNodeResetContentPtr(prnArg);
+    }
+    else {
+      for (; prnI; prnI = resNodeGetNext(prnI)) {
+	fResult |= arcFileWriteTraverse(prnArgZip, prnI);
+      }
+    }
+  }
+  else {
+    resNodeSetError(prnArg, rn_error_archive, "Error archive '%s'", resNodeGetNameNormalized(prnArg));
+  }
+  return fResult;
+} /* end of arcFileWriteTraverse() */
+
+
+/*! opens context prnArg
+
+\return TRUE if successful
+*/
+BOOL_T
+arcFileWrite(resNodePtr prnArg)
+{
+  BOOL_T fResult = FALSE;
+
+#ifdef HAVE_LIBARCHIVE
+  if (resNodeOpen(prnArg, "wa")) {
+    fResult = arcFileWriteTraverse(prnArg, NULL);
+    resNodeClose(prnArg);
+  }
+  else {
+    resNodeSetError(prnArg, rn_error_archive, "Error archive '%s'", resNodeGetNameNormalized(prnArg));
+  }
+#endif
+  return fResult;
+} /* end of arcFileWrite() */
+
+
+/*!
+*/
+BOOL_T
+arcIconvInit(void)
+{
+  iconvArcEncode = iconv_open(CXP_CODING_ZIP, "UTF-8");
+  if (iconvArcEncode == (iconv_t)-1) {
+    /* Something went wrong.  */
+    PrintFormatLog(1, "Conversion to '" CXP_CODING_ZIP "' to UTF-8 not possible");
+  }
+
+  /*
+  create the required conversion descriptors
+  */
+  iconvArcDecode = iconv_open("UTF-8", CXP_CODING_ZIP);
+  if (iconvArcDecode == (iconv_t)-1) {
+    /* Something went wrong.  */
+    PrintFormatLog(1, "Conversion from '" CXP_CODING_ZIP "' to UTF-8 not possible");
+  }
+
+  /* register for exit() */
+  if (atexit(arcIconvCleanup) != 0) {
+    exit(EXIT_FAILURE);
+  }
+
+  return TRUE;
+}
+/* end of arcIconvInit() */
+
+
+/* module cleanup for libiconv, runs in exit()
+*/
+void
+arcIconvCleanup(void)
+{
+  if (iconvArcEncode != NULL) {
+    iconv_close(iconvArcEncode);
+    iconvArcEncode = NULL;
+  }
+  if (iconvArcDecode != NULL) {
+    iconv_close(iconvArcDecode);
+    iconvArcDecode = NULL;
+  }
+}
+/* end of arcCleanup() */
+
+
+/*! \return 0 in case of success
+*/
+BOOL_T
+arcMapReadFormat(resNodePtr prnArg)
+{
+  BOOL_T fResult = FALSE;
+
+  if (prnArg != NULL && resNodeGetHandleIO(prnArg) != NULL) {
+    int iMimeType;
+    int iErr = -1;
+
+    if (archive_read_support_filter_all((arcPtr)resNodeGetHandleIO(prnArg)) != ARCHIVE_OK) {
+      resNodeSetError(prnArg, rn_error_archive, "error of archive_read_support_filter_all(): '%s'\n", archive_error_string((arcPtr)resNodeGetHandleIO(prnArg)));
+    }
+
+    iMimeType = resNodeGetMimeType(prnArg);
+    switch (iMimeType) {
+
+    case MIME_APPLICATION_ZIP:
+      iErr = archive_read_support_format_zip((arcPtr) resNodeGetHandleIO(prnArg));
+      break;
+
+    case MIME_APPLICATION_GZIP:
+    case MIME_APPLICATION_X_BZIP:
+      //iErr = archive_read_support_compression_gzip((arcPtr)resNodeGetHandleIO(prnArg));
+      //iErr = archive_read_support_compression_bzip2((arcPtr)resNodeGetHandleIO(prnArg));
+      iErr = archive_read_support_format_raw((arcPtr)resNodeGetHandleIO(prnArg));
+      break;
+
+    case MIME_APPLICATION_X_TAR:
+      iErr = archive_read_support_format_gnutar((arcPtr) resNodeGetHandleIO(prnArg));
+      break;
+
+    case MIME_APPLICATION_X_ISO9660_IMAGE:
+      iErr = archive_read_support_format_iso9660((arcPtr) resNodeGetHandleIO(prnArg));
+      break;
+
+    case MIME_INODE_SYMLINK:
+      /*!\todo add link target information */
+      break;
+
+    default:
+      resNodeSetError(prnArg, rn_error_archive, archive_error_string((arcPtr)resNodeGetHandleIO(prnArg)));
+      break;
+    }
+
+    fResult = (iErr == ARCHIVE_OK);
+  }
+  return fResult;
+} /* end of arcMapReadFormat() */
+
+
+/*! Encodes a UTF-8 path string to code page 437 (ZIP default).
+
+\param pucArg pointer to path string to convert
+\param ppcResult pointer to result pointer
+\param fDecode flag for decode/encode
+\return TRUE if encoding or decoding of filename is successful, else FALSE
+*/
+BOOL_T
+arcGetFileNameEncoded(xmlChar *pucArg,char **ppcResult)
+{
+  BOOL_T fResult = FALSE;
+
+  if (iconvArcEncode == NULL) {
+    arcIconvInit();
+  }
+
+  assert(ppcResult != NULL);
+
+  if (pucArg == NULL || isend(*pucArg)) {
+    *ppcResult = NULL;
+  }
+  else { /* is UTF-8 encoding */
+    char mpcOut[BUFFER_LENGTH];
+    char *pchOut;
+    char *pchIn;
+    size_t int_in;
+    size_t int_out;
+    size_t nconv;
+
+    int_in = xmlStrlen(pucArg) + 1;
+    pchIn = (char *)pucArg;
+    int_out = BUFFER_LENGTH - 1;
+    pchOut = mpcOut;
+
+    nconv = iconv(iconvArcEncode, (char **)&pchIn, &int_in, &pchOut, &int_out);
+    //cxpCtxtEncError(pccArg,errno,nconv);
+    pchOut = mpcOut;
+    *ppcResult = (char *)xmlStrdup(BAD_CAST mpcOut);
+    fResult = TRUE;
+  }
+
+  return fResult;
+}
+/* end of arcGetFileNameEncoded() */
+
+
+/*! Decodes a ZIP path string to UTF-8.
+
+\param pcArg pointer to path string to convert
+\param ppucResult pointer to result pointer
+\param fDecode flag for decode/encode
+\return TRUE if encoding or decoding of filename is successful, else FALSE
+*/
+BOOL_T
+arcGetFileNameDecoded(char *pcArg, xmlChar **ppucResult)
+{
+  BOOL_T fResult = FALSE;
+
+  if (iconvArcDecode == NULL) {
+    arcIconvInit();
+  }
+
+  assert(ppucResult != NULL);
+
+  if (pcArg == NULL || isend(*pcArg)) {
+    *ppucResult = NULL;
+  }
+  else if (xmlCheckUTF8(BAD_CAST pcArg)) { /* is UTF-8 encoding already */
+    *ppucResult = xmlStrdup(BAD_CAST pcArg);
+    fResult = TRUE;
+  }
+  else { /* is UTF-8 encoding */
+    xmlChar mpucOut[BUFFER_LENGTH];
+    char *pchOut;
+    char *pchIn;
+    size_t int_in;
+    size_t int_out;
+    size_t nconv;
+
+    int_in = strlen((const char *)pcArg) + 1;
+    pchIn = pcArg;
+    int_out = BUFFER_LENGTH - 1;
+    pchOut = (char *)mpucOut;
+
+    nconv = iconv(iconvArcDecode, (char **)&pchIn, &int_in, &pchOut, &int_out);
+    //cxpCtxtEncError(pccArg,errno,nconv);
+    *ppucResult = xmlStrdup(mpucOut);
+    fResult = TRUE;
+  }
+
+  return fResult;
+}
+/* end of arcGetFileNameDecoded() */
+
+
+/*! wrapper for , append all archive entries as childs
+
+similar to resNodeDirAppendEntries()
+
+\param prnArgArchive the archive node
+\param re_match pointer to a compiled regexp
+\param fArgContent flag to extract data of a matching header
+\return TRUE if successful, else FALSE
+
+\todo handle archive in archive recursively 
+*/
+BOOL_T
+arcAppendEntries(resNodePtr prnArgArchive, const pcre2_code* re_match, BOOL_T fArgContent)
+{
+  BOOL_T fResult = FALSE;
+
+  assert(resNodeIsArchive(prnArgArchive));
+
+  if (fArgContent && resNodeHasDetails(prnArgArchive, RN_INFO_CONTENT)) {
+    /* archive conent was read already */
+    fResult = TRUE;
+  }
+  else if (!fArgContent && resNodeHasDetails(prnArgArchive, RN_INFO_STRUCT)) {
+    /* archive was parsed already */
+    fResult = TRUE;
+  }
+  else if (resNodeReadStatus(prnArgArchive) && resNodeOpen(prnArgArchive, "ra")) {
+    BOOL_T fLoop;
+    xmlChar *pucT = NULL;
+    resNodePtr prnContent = NULL;
+
+    prnContent = resNodeGetLastDescendant(prnArgArchive);
+    if (prnContent) {
+      pucT = resNodeGetNameRelative(prnArgArchive, prnContent);
+    }
+
+    PrintFormatLog(4, "Begin of '%s'", resNodeGetNameNormalized(prnArgArchive));
+    for (fLoop = TRUE; fLoop;) {
+      /* Read entries, match up names with regexp. */
+      arcEntryPtr pArcEntryT;
+      int iError;
+
+      iError = archive_read_next_header((arcPtr)resNodeGetHandleIO(prnArgArchive), &pArcEntryT);
+      if (iError == ARCHIVE_EOF) {
+	PrintFormatLog(4, "End of '%s'", resNodeGetNameNormalized(prnArgArchive));
+	fResult = TRUE;
+	break;
+      }
+      else if (iError == ARCHIVE_OK) {
+	char* pcT;
+	xmlChar* pucNameEncoded = NULL;
+
+	pcT = (char*)archive_entry_pathname(pArcEntryT);
+	if (STR_IS_NOT_EMPTY(pcT) && arcGetFileNameDecoded(pcT, &pucNameEncoded) && STR_IS_NOT_EMPTY(pucNameEncoded)) {
+	  resNodePtr prnChild = NULL;
+	  time_t mtimeEntry;
+
+	  if (STR_IS_NOT_EMPTY(pucT)) {
+	    if (resPathIsEquivalent(pucT, pucNameEncoded)) {
+	      prnChild = prnContent;
+	      fResult = TRUE;
+	      fLoop = FALSE;
+	    }
+	    else {
+	      xmlFree(pucNameEncoded);
+	      continue;
+	    }
+	  }
+	  else if (resNodeGetChild(prnArgArchive) != NULL && resNodeGetMimeType(prnArgArchive) == MIME_APPLICATION_GZIP) { /* */
+	    prnChild = resNodeGetChild(prnArgArchive);
+	  }
+	  else if (resNodeGetChild(prnArgArchive) != NULL) { /* */
+	    prnChild = resNodeListFindPath(resNodeGetChild(prnArgArchive), pucNameEncoded, RN_FIND_ALL);
+	  }
+	  else if (resNodeGetMimeType(prnArgArchive) == MIME_APPLICATION_GZIP && resNodeGetNameObject(prnArgArchive) != NULL) {
+	    xmlFree(pucNameEncoded);
+	    pucNameEncoded = xmlStrdup(resNodeGetNameObject(prnArgArchive)); /* use parent object name */
+	  }
+	  else {
+	    /* use pucNameEncoded */
+	  }
+	  PrintFormatLog(4, " %s", pucNameEncoded);
+
+	  /*!\todo exclude hidden entries? */
+
+	  if (prnChild) {
+	    /* no match test for existing childrens */
+	  }
+	  else {
+#ifdef HAVE_PCRE2
+	    if (re_match) {   /* filename matching */
+	      int rc = 1;
+
+	      pcre2_match_data* match_data;
+
+	      match_data = pcre2_match_data_create_from_pattern(re_match, NULL);
+	      rc = pcre2_match(
+		re_match,        /* result of pcre2_compile() */
+		(PCRE2_SPTR8)pucNameEncoded,  /* the subject string */
+		strlen((const char*)pucNameEncoded),             /* the length of the subject string */
+		0,              /* start at offset 0 in the subject */
+		0,              /* default options */
+		match_data,        /* vector of integers for substring information */
+		NULL);            /* number of elements (NOT size in bytes) */
+
+	      if (rc < 0) {
+		//PrintFormatLog(4, "%s ignore '%s'", NAME_FILE, pucNameEncoded);
+	      }
+	      else {
+		prnChild = resNodeAddChildNew(prnArgArchive, pucNameEncoded);
+	      }
+	      pcre2_match_data_free(match_data);   /* Release memory used for the match */
+	    }
+	    else {
+	      prnChild = resNodeAddChildNew(prnArgArchive, pucNameEncoded);
+	    }
+#else
+	    prnChild = resNodeAddChildNew(prnArgArchive, pucNameEncoded);
+#endif
+	  }
+
+	  if (prnChild) {
+	    resNodePtr prnAncestor;
+
+	    resNodeResetContentPtr(prnChild);
+	    resNodeResetMimeType(prnChild);
+	    prnChild->fExist = TRUE;
+	    prnChild->fRead = TRUE;
+	    prnChild->eAccess = rn_access_archive;
+
+	    /* set all parent directories in this archive too */
+	    for (prnAncestor = resNodeGetParent(prnChild);
+	      resNodeGetType(prnAncestor) == rn_type_dir_in_archive;
+	      prnAncestor = resNodeGetParent(prnAncestor)) {
+	      prnAncestor->fExist = TRUE;
+	      prnAncestor->fRead = TRUE;
+	      prnAncestor->eAccess = rn_access_archive;
+	      resNodeAddDetails(prnAncestor, RN_INFO_STAT);
+	    }
+
+
+	    if (resNodeGetMimeType(prnArgArchive) == MIME_APPLICATION_GZIP) {
+	      resNodeSetType(prnChild, rn_type_file_in_archive);
+	      resNodeSetType(prnArgArchive, rn_type_file_compressed);
+	      prnChild->liSize = (long)BUFFER_LENGTH * 1024L; /*\todo handle file size dynamically */
+	    }
+	    else {
+	      prnChild->liSize = (long)archive_entry_size(pArcEntryT);
+	      prnChild->tMtime = (time_t)archive_entry_mtime(pArcEntryT);
+	    }
+
+	    if (fArgContent && prnChild->liSize > 0) {
+	      void* pData;
+	      int iSizeWanted = prnChild->liSize;
+
+	      pData = xmlMalloc(iSizeWanted + 1);
+	      if (pData) {
+		int iSizeGot;
+
+		// https://github.com/libarchive/libarchive/wiki/Examples
+		/* read data of current archive header */
+		iSizeGot = archive_read_data((arcPtr)resNodeGetHandleIO(prnArgArchive), pData, iSizeWanted);
+		if (iSizeGot < 0) {
+		  xmlFree(pData);
+		  resNodeSetError(prnChild, rn_error_archive, "Archive read error: %s", archive_error_string((arcPtr)resNodeGetHandleIO(prnArgArchive)));
+		  fResult = FALSE;
+		  break;
+		}
+		else {
+		  /*!\todo use of resNodeAppendContent() see resNodeReadContent()*/
+		  
+		  if (iSizeGot < iSizeWanted) {
+		    pData = xmlRealloc(pData, iSizeGot + 1);
+		  }
+		  if (resMimeIsPlain(prnChild->eMimeType) || resMimeIsPlain(prnChild->eMimeType)) {
+		    xmlChar* pucData = BAD_CAST pData;
+		    pucData[iSizeGot] = '\0'; /* null termination of text input */
+		  }
+		  resNodeSetContentPtr(prnChild, pData, iSizeGot);
+		  fResult = TRUE;
+
+		  if (resMimeIsArchive(prnChild->eMimeType)) {
+		    //fResult = arcAppendEntries(prnChild, re_match, fArgContent);
+		  }
+		}
+	      }
+	    }
+	    
+	    if (fArgContent) {
+	      resNodeAddDetails(prnChild, RN_INFO_MAX);
+	    }
+	    else {
+	      resNodeAddDetails(prnChild, RN_INFO_STAT | RN_INFO_STRUCT);
+	    }
+	  }
+	  else {
+	    resNodeSetError(prnArgArchive, rn_error_parse, "error no child in arcAppendEntries()\n");
+	  }
+	}
+	xmlFree(pucNameEncoded);
+      }
+      else {
+	resNodeSetError(prnArgArchive, rn_error_parse, "%s", archive_error_string((arcPtr)resNodeGetHandleIO(prnArgArchive)));
+	break;
+      }
+    }
+    resNodeClose(prnArgArchive);
+
+    if (fResult) {
+      if (fArgContent) {
+	resNodeAddDetails(prnArgArchive, RN_INFO_CONTENT);
+      }
+      resNodeAddDetails(prnArgArchive, RN_INFO_STRUCT);
+    }
+  }
+  return fResult;
+} /* end of arcAppendEntries() */
+
+
+/*! compress prnArgAdd and all descendants to archive prnArgZip
+
+\bug writing ISO9660 image format
+
+\return TRUE in case of success
+*/
+BOOL_T
+arcAddResNode(resNodePtr prnArgZip, resNodePtr prnArgAdd, xmlChar* pucArg, xmlChar* pucArgBase)
+{
+  BOOL_T fResult = FALSE;
+
+  if (resNodeIsError(prnArgZip) == FALSE && resNodeGetHandleIO(prnArgZip) != NULL && resNodeIsError(prnArgAdd) == FALSE) {
+    char* pcPathInZip;
+    xmlChar* pucT = NULL;
+    arcEntryPtr pArcEntryAdd;
+
+    if (STR_IS_NOT_EMPTY(pucArg)) {
+      /* use mapped name */
+      pucT = xmlStrdup(pucArg);
+    }
+    else if (resNodeGetNameAlias(prnArgAdd)) {
+      pucT = xmlStrdup(resNodeGetNameAlias(prnArgAdd));
+    }
+    else if ((pucT = resPathDiffPtr(pucArgBase,resNodeGetNameNormalized(prnArgAdd)))) {
+      pucT = xmlStrdup(pucT);
+    }
+    else {
+      pucT = resNodeGetAncestorPathStr(prnArgAdd);
+    }
+
+    if (resNodeIsDir(prnArgAdd)) {
+      pucT = xmlStrcat(pucT, BAD_CAST"/");
+    }
+    resPathChangeToSlashes(pucT);
+
+    if (arcGetFileNameEncoded(pucT, &pcPathInZip) == FALSE || pcPathInZip == NULL) {
+      PrintFormatLog(2, "Skipping file because of context encoding error");
+    }
+    else {
+
+#ifdef DEBUG
+      PrintFormatLog(1, "Compress '%s' as '%s' to '%s'", resNodeGetNameNormalizedNative(prnArgAdd), pucT, resNodeGetNameNormalizedNative(prnArgZip));
+#else
+      //PrintStatusDot(2);
+#endif
+
+      pArcEntryAdd = archive_entry_new();
+      if (pArcEntryAdd) {
+	int iErr;
+
+	if (resNodeGetMtime(prnArgAdd) > 0) {
+	  archive_entry_set_mtime(pArcEntryAdd, resNodeGetMtime(prnArgAdd), 0);
+	}
+	else {
+	  archive_entry_set_mtime(pArcEntryAdd, time(NULL), 0);
+	}
+
+	/*!\bug define mode based on file/dir attributes */
+	archive_entry_set_mode(pArcEntryAdd, AE_IFREG | 0755);
+
+	/*!\todo define compression level */
+	// archive_write_set_filter_option((arcPtr)resNodeGetHandleIO(prnArgZip), NULL, "compression-level", "1");
+
+	if (resNodeIsDirInArchive(prnArgAdd) || resNodeIsFileInArchive(prnArgAdd)) {
+	  /* ignore direct sources from an other archive */
+	}
+	else if (resNodeIsDir(prnArgAdd)) {
+	  archive_entry_copy_pathname(pArcEntryAdd, pcPathInZip);
+	  archive_entry_set_size(pArcEntryAdd, 0);
+	  iErr = archive_write_header((arcPtr)resNodeGetHandleIO(prnArgZip), pArcEntryAdd);
+	  if (iErr != ARCHIVE_OK) {
+	    PrintFormatLog(1, "Error writing header file '%s' to '%s': %s", resNodeGetNameNormalizedNative(prnArgAdd),
+			   resNodeGetNameNormalizedNative(prnArgZip), archive_error_string((arcPtr)resNodeGetHandleIO(prnArgZip)));
+	  }
+	}
+	else if (resNodeIsFile(prnArgAdd)) {
+	  unsigned int l = 0;
+
+	  if (prnArgAdd != NULL && resNodeGetContent(prnArgAdd, 1024) != NULL) {
+	    l = resNodeGetSize(prnArgAdd);
+	  }
+	  archive_entry_copy_pathname(pArcEntryAdd, pcPathInZip);
+	  archive_entry_set_size(pArcEntryAdd, l);
+	  iErr = archive_write_header((arcPtr)resNodeGetHandleIO(prnArgZip), pArcEntryAdd);
+	  if (iErr == ARCHIVE_OK) {
+	    if (l > 0) {
+	      unsigned int m = 0;
+
+	      /*!\todo update content to existing archive file */
+
+	      m = archive_write_data((arcPtr)resNodeGetHandleIO(prnArgZip), resNodeGetContent(prnArgAdd, 1024), l);
+	      if (m != l) {
+		PrintFormatLog(1, "Error writing file '%s' to '%s'", resNodeGetNameNormalizedNative(prnArgAdd), resNodeGetNameNormalizedNative(prnArgZip));
+	      }
+	    }
+	  }
+	  else {
+	    PrintFormatLog(1, "Error writing header file '%s' to '%s': %s", resNodeGetNameNormalizedNative(prnArgAdd),
+			   resNodeGetNameNormalizedNative(prnArgZip), archive_error_string((arcPtr)resNodeGetHandleIO(prnArgZip)));
+	  }
+	}
+	else {
+	  PrintFormatLog(1, "Error writing header file '%s' to '%s': %s", resNodeGetNameNormalizedNative(prnArgAdd), resNodeGetNameNormalizedNative(prnArgZip),
+			 "unknown type");
+	}
+	archive_entry_free(pArcEntryAdd);
+	fResult = TRUE;
+      }
+    }
+    xmlFree(pcPathInZip);
+    xmlFree(pucT);
+  }
+  return fResult;
+} /* end of arcAddResNode() */
+
+
+#ifdef TESTCODE
+#include "test/test_res_node_archive.c"
+#endif
+

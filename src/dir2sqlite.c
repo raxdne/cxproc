@@ -1,0 +1,137 @@
+/* 
+   cxproc - Configurable Xml PROCessor
+
+   Copyright (C) 2006..2024 by Alexander Tenbusch
+
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 2, or (at your option)
+   any later version.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
+
+   You should have received a copy of the GNU General Public License
+   along with this program; if not, write to the Free Software Foundation,
+   Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.  
+
+*/
+
+/*! command line frontend for resource nodes
+*/
+
+/*
+ */
+#include <libxml/parser.h>
+#include <xmlzipio/xmlzipio.h>
+
+/* 
+ */
+#include "basics.h"
+#include "utils.h"
+#include <res_node/res_node_io.h>
+#include "dom.h"
+
+
+/*  find -type f -iname '*.txt' | dir2sqlite | sqlite3 abc.db3
+
+    dir2sqlite c:/UserData/Test | sqlite3 abc.db3
+
+    dir2sqlite c:/UserData/Test// > Test.sqlite
+
+ */
+int
+main(int argc, char *argv[], char *envp[])
+{
+
+  /*!\todo create SQL queries dynamically, usable in option/database/database.c */
+  
+  SetLogLevel(1);
+
+  if (argc > 1 && strcmp(argv[1],"-?") == 0) {
+    fprintf(stderr,"'%s' - write parsed directory data into a sqlite3 dump format\n\n",argv[0]);
+    fprintf(stderr,"  'find -type f -iname '*.txt' | %s | sqlite3 abc.db3' - output of find command, parse directory data and write into a sqlite3 dump format\n\n",argv[0]);
+    fprintf(stderr,"  '%s c:/UserData/Test | sqlite3 abc.db3' - output of find command, parse directory data and write into a sqlite3 dump format\n\n",argv[0]);
+    fprintf(stderr,"  '%s c:/UserData/Test > Test.sqlite' - parse named directory and write summary information as sqlite3 dump format\n\n",argv[0]);
+    fprintf(stderr,"  '%s -f c:/UserData/Test > Test.sqlite' - parse named directory and write detail information as sqlite3 dump format\n\n",argv[0]);
+  }
+  else {
+    int i = 1;
+    int iArgOptions = RN_OUT_MAX;
+    xmlChar *pucT = NULL;
+    resNodePtr prnI;
+    time_t system_zeit_1;
+
+    /*! write sqlite declarations first */
+    pucT = resNodeDatabaseSchemaStr(iArgOptions);
+    fputs((const char *)pucT,stdout);
+    xmlFree(pucT);
+
+    time(&system_zeit_1);
+    fprintf(stdout,
+	    "INSERT INTO 'meta' VALUES (%li,\"%s\",\"%s\");\n",
+	    (long int)system_zeit_1, "parse/begin", "");
+    
+    fflush(stdout);
+
+    if (argc > 1 && strcmp(argv[1], "-f") == 0) {
+      //iArgOptions |= RN_OUT_OWNER; /* output of file detail information */
+      i++;
+    }
+
+    if (argc - i > 0) {
+      /* use program arguments as paths */
+
+      for (prnI = resNodeDirNew(NULL); i < argc; i++) {
+
+	PrintFormatLog(4, "%s\n", argv[i]);
+
+	if (resNodeReset(prnI, BAD_CAST argv[i]) == FALSE) {
+	  PrintFormatLog(1, "%s\n", resNodeGetErrorMsg(prnI));
+	}
+	else if (resNodeReadStatus(prnI) == FALSE) {
+	  PrintFormatLog(1, "%s\n", resNodeGetErrorMsg(prnI));
+	}
+	else {
+	  resNodeListDumpRecursively(stdout, prnI, iArgOptions, resNodeToSQL);
+	}
+      }
+      resNodeListFree(prnI);
+    }
+    else {
+      /* read paths from stdin */
+      int j;
+      char mcLine[BUFFER_LENGTH];
+
+      for (prnI = resNodeDirNew(NULL); fgets(mcLine, BUFFER_LENGTH, stdin) == mcLine; ) {
+
+	for (j = strlen(mcLine); j > 0 && (isend(mcLine[j]) || islinebreak(mcLine[j])); j--) {
+	  mcLine[j] = '\0';
+	}
+	PrintFormatLog(4,"%s\n",mcLine);
+
+	if (resNodeReset(prnI, BAD_CAST mcLine) == FALSE) {
+	  PrintFormatLog(1, "%s\n", resNodeGetErrorMsg(prnI));
+	}
+	else if (resNodeReadStatus(prnI) == FALSE) {
+	  PrintFormatLog(1, "%s\n", resNodeGetErrorMsg(prnI));
+	}
+	else {
+	  resNodeListDumpRecursively(stdout, prnI, iArgOptions, resNodeToSQL);
+	}
+	fflush(stdout);
+      }
+      resNodeListFree(prnI);
+    }
+
+    time(&system_zeit_1);
+    fprintf(stdout,
+	    "INSERT INTO 'meta' VALUES (%li,\"%s\",\"%s\");\n",
+	    (long int)system_zeit_1, "parse/end", "");
+  }
+  
+  exit(EXIT_SUCCESS);
+}
+

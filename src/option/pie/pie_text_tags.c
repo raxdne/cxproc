@@ -1,7 +1,7 @@
 /*
   cxproc - Configurable Xml PROCessor
 
-  Copyright (C) 2006..2020 by Alexander Tenbusch
+  Copyright (C) 2006..2024 by Alexander Tenbusch
 
   This program is free software; you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -31,9 +31,8 @@
 #ifdef HAVE_PETRINET
 #include <cxp/cxp.h>
 #include <petrinet/petrinet.h>
-#else
-#include "dom.h"
 #endif
+#include "dom.h"
 #include <pie/pie_dtd.h>
 #include <pie/pie_text_tags.h>
 
@@ -41,18 +40,21 @@
 /* multibyte characters */
 #define UTF8_UMLAUT "\xC3\xA4" "\xC3\x84" "\xC3\xB6" "\xC3\x96" "\xC3\xBC" "\xC3\x9C" "\xC3\x9F"
 
-/* core regexp for hashtags, can be extended by a XML processing instruction 'regexp-tag' */
-#define RE_HASHTAG "[#@][A-Za-z0-9_" UTF8_UMLAUT "]+"
+/* core regexp for hashtags, can be extended by a XML processing instruction NAME_PIE_PI_TAG */
+#define RE_HASHTAG "[#@][A-Za-z0-9_\\-" UTF8_UMLAUT "]+"
 
 
 static xmlNodePtr
 AddTagNodeNew(xmlNodePtr pndArg, const xmlChar* pucArg);
 
 static xmlNodePtr
-SplitStringToTagNodes2(const xmlChar* pucArg, pcre2_code* preArg, const xmlChar* pucArgName);
+SplitStringToTagNodes(const xmlChar* pucArg, pcre2_code* preArg, const xmlChar* pucArgName);
 
 static xmlNodePtr
-SplitStringToTagNodes(const xmlChar* pucArg, pcre2_code* preArgHashTag, pcre2_code* preArgBlockTag);
+SplitNodeListToTagNodes(xmlNodePtr pndArg, pcre2_code* preArg, const xmlChar* pucArgName);
+
+static xmlNodePtr
+SplitToTagNodes(const xmlChar* pucArg, pcre2_code* preArgHashTag, pcre2_code* preArgBlockTag);
 
 static BOOL_T
 TagStrIsCovered(xmlChar* pucArgTag, xmlChar* pucArgTagNeedle);
@@ -64,106 +66,6 @@ static BOOL_T
 RecognizeNodeTags(xmlNodePtr pndTags, xmlNodePtr pndArg, pcre2_code* preArg);
 
 
-#ifdef LEGACY
-
-static xmlChar*
-StringUpdateMarkupNew(xmlChar* pucArg, int* piArg);
-
-/*! update legacy markup in pucArg
-
-\param pucArg
-\return updated copy of pucArg or NULL in case of errors
-
-\deprecated for legacy markup only
-*/
-xmlChar*
-StringUpdateMarkupNew(xmlChar* pucArg, int* piArg)
-{
-  xmlChar* pucResult = NULL;
-
-  if (pucArg) {
-    int i, j, k;
-    xmlChar* pucT;
-
-    /* try to find backwards an 'ending' separator */
-    for (j=xmlStrlen(pucArg), k=0; j>0; j--) {
-      if (pucArg[j]==(xmlChar)'|') {
-	/* count separators backwards */
-	k++;
-      }
-      else if (k > 0) {
-	if (isspace(pucArg[j])) {
-	}
-	else {
-	  k = 0; /* to be ignored */
-	}
-	break;
-      }
-    }
-
-    if (k > 0) { /* there is more than one separator and a space char before */
-
-      j++;
-
-      pucResult = xmlStrndup(pucArg, j);
-
-      for (i=j+k; pucArg[i]; ) {
-	int l;
-
-	for (; isspace(pucArg[i]); i++);
-
-	for (j=i; ishashtag(&pucArg[i], &l); i += l);
-
-	if (i > j) { /* there are hashtag chars */
-
-	  if (pucArg[j] == (xmlChar)'#' || pucArg[j] == (xmlChar)'@') {
-	    /* there is hashtag markup already */
-	  }
-	  else {
-	    pucResult = xmlStrcat(pucResult, BAD_CAST" @");
-	    pucResult = xmlStrncat(pucResult, &pucArg[j], i-j);
-#if 1
-	    if ((pucT = BAD_CAST StringEndsWith((char*)pucResult, "_org")) != NULL
-	      || (pucT = BAD_CAST StringEndsWith((char*)pucResult, "_do")) != NULL
-	      || (pucT = BAD_CAST StringEndsWith((char*)pucResult, "_review")) != NULL
-	      || (pucT = BAD_CAST StringEndsWith((char*)pucResult, "_rejected")) != NULL) {
-	      /* split GTD categories '_org', '_do', '_review', '_rejected' */
-	      pucT[0] = (xmlChar)'#';
-	    }
-#endif
-	  }
-	}
-	else if (isend(pucArg[i])) { /* neither space nor hashtag chars */
-	  break;
-	}
-	else {
-	  i++;
-	}
-      }
-
-      if (piArg) {
-	*piArg = (k > 2) ? 1 : ((k > 1) ? 2 : 0);
-      }
-    }
-    else {
-      pucResult = xmlStrdup(pucArg);
-    }
-
-    if ((pucT = BAD_CAST StringEndsWith((char*)pucResult, "+++")) != NULL) {
-      if (piArg) *piArg = 1;
-      pucT[0] = (xmlChar)'\0';
-    }
-    else if ((pucT = BAD_CAST StringEndsWith((char*)pucResult, "++")) != NULL) {
-      if (piArg) *piArg = 2;
-      pucT[0] = (xmlChar)'\0';
-    }
-  }
-  return pucResult;
-} /* end of StringUpdateMarkupNew() */
-
-#endif
-
-
 /*! add a new 'tag' element to pndArg if not yet exists
 */
 xmlNodePtr
@@ -172,42 +74,37 @@ AddTagNodeNew(xmlNodePtr pndArg, const xmlChar* pucArg)
   xmlNodePtr pndResult = NULL;
 
   if (pndArg != NULL && STR_IS_NOT_EMPTY(pucArg)) {
-    xmlNodePtr pndT;
-    //xmlChar* pucT;
+    xmlNodePtr pndIter;
 
     /* find an existing htag node with same content */
-    for (pndT = pndArg->children; pndT; pndT = pndT->next) {
-      if (IS_NODE_PIE_TTAG(pndT) && xmlStrEqual(pucArg, domNodeGetContentPtr(pndT))) {
+    for (pndIter = pndArg->children; pndIter; pndIter = pndIter->next) {
+      if (IS_NODE_PIE_TTAG(pndIter) && xmlStrEqual(pucArg, domNodeGetContentPtr(pndIter))) {
 	/* it's there already */
 	break;
       }
     }
 
-    if (pndT == NULL) {
-      pndResult = xmlNewTextChild(pndArg, NULL, NAME_PIE_TTAG, pucArg);
+    if (pndIter == NULL) {
+      pndResult = xmlNewTextChild(pndArg, NULL, BAD_CAST NAME_PIE_TTAG, pucArg);
     }
     else {
-      domIncrProp(pndT, BAD_CAST"count", 1);
+      domIncrProp(pndIter, BAD_CAST"count", 1);
     }
-
-#if 0
-    /*! check if there are German Umlaute in pucArg
-     */
-    if ((pucT = StringReplaceUmlauteNew(pucArg)) != NULL) {
-      pndResult = AddTagNodeNew(pndArg, pucT);
-      xmlFree(pucT);
-    }
-#endif
-    
   }
   return pndResult;
 } /* End of AddTagNodeNew() */
 
 
-/*! splits an UTF-8 string into a list of text and 'htag' element nodes
+/*! splits an UTF-8 string into a list of text and new tag element nodes
+* 
+* \param pucArg pointer to string to be splitted
+* \param preArg pointer to regexp to be used
+* \param pucArgName pointer to name string for new tag node
+* 
+* \return a fresh node list, which is standalone or NULL in case of error
 */
 xmlNodePtr
-SplitStringToTagNodes2(const xmlChar* pucArg, pcre2_code* preArg, const xmlChar* pucArgName)
+SplitStringToTagNodes(const xmlChar* pucArg, pcre2_code* preArg, const xmlChar* pucArgName)
 {
   size_t ducOrigin;
   xmlNodePtr pndResult = NULL;
@@ -242,6 +139,7 @@ SplitStringToTagNodes2(const xmlChar* pucArg, pcre2_code* preArg, const xmlChar*
 	the regexp match, assemble node list with a common dummy
 	element node
 	*/
+
 	xmlChar* pucHashtag;
 	xmlChar* pucA = (xmlChar*)pucArg + ovector[0];
 
@@ -263,7 +161,7 @@ SplitStringToTagNodes2(const xmlChar* pucArg, pcre2_code* preArg, const xmlChar*
 
 	if (ducOrigin > ovector[1]) {
 	  /* the content ends with text, recursion */
-	  pndPostfix = SplitStringToTagNodes2(pucArg + ovector[1], preArg, pucArgName);
+	  pndPostfix = SplitStringToTagNodes(pucArg + ovector[1], preArg, pucArgName);
 	  if (pndPostfix) {
 	    pndT = pndPostfix->children;
 	    domUnlinkNodeList(pndT);
@@ -284,76 +182,100 @@ SplitStringToTagNodes2(const xmlChar* pucArg, pcre2_code* preArg, const xmlChar*
     pcre2_match_data_free(match_data);   /* Release memory used for the match */
   }
   return pndResult;
-} /* end of SplitStringToTagNodes2() */
+} /* end of SplitStringToTagNodes() */
 
 
-/*! splits an UTF-8 string into a list of text and 'htag' element nodes
+/*! splits a list of nodes into a list of text and 'htag' element nodes
+
+* \param pndArg pointer to a node list to be splitted
+* \param preArg pointer to regexp to be used
+* \param pucArgName pointer to name string for new tag node
+*
+* \return a pointer to given node list or NULL in case of error
 */
 xmlNodePtr
-SplitStringToTagNodes(const xmlChar* pucArg, pcre2_code* preArgHashTag, pcre2_code* preArgBlockTag)
+SplitNodeListToTagNodes(xmlNodePtr pndArg, pcre2_code* preArg, const xmlChar* pucArgName)
+{
+  xmlNodePtr pndResult = pndArg;
+
+  if (pndArg != NULL && preArg != NULL && STR_IS_NOT_EMPTY(pucArgName)) {
+    xmlNodePtr pndIter;
+
+    for (pndIter = pndArg; pndIter != NULL; ) {
+      xmlNodePtr pndNext;
+
+      pndNext = pndIter->next;
+      if (xmlNodeIsText(pndIter)) { /* pndIter is a text node */
+	xmlNodePtr pndReplace;
+
+	pndReplace = SplitStringToTagNodes(pndIter->content, preArg, pucArgName);
+	if (pndReplace) {
+	  /* there is a result list */
+	  if (domReplaceNodeList(pndIter, pndReplace->children) == pndIter) {
+	    xmlFreeNodeList(pndIter);
+	  }
+	  xmlFreeNode(pndReplace);
+	}
+      }
+      pndIter = pndNext;
+    }
+  }
+  return pndResult;
+} /* end of SplitNodeListToTagNodes() */
+
+
+/*! splits an UTF-8 string into a list of text and tag element nodes
+
+* \param pucArg pointer to string to be splitted
+* \param preArgHashTag pointer to regexp to be used for hashtags
+* \param preArgBlockTag pointer to regexp to be used for block-specific tags
+*
+* \return a fresh node list, which is standalone or NULL in case of error
+*/
+xmlNodePtr
+SplitToTagNodes(const xmlChar* pucArg, pcre2_code* preArgHashTag, pcre2_code* preArgBlockTag)
 {
   size_t ducOrigin;
   xmlNodePtr pndResult = NULL;
 
   if (pucArg != NULL && (ducOrigin = xmlStrlen(pucArg)) > 0) {
 
-    pndResult = SplitStringToTagNodes2(pucArg, preArgHashTag, NAME_PIE_HTAG);
-#if 1
-    if (preArgBlockTag) {
-      if (pndResult) {
-	xmlNodePtr pndChild;
+    if (StringBeginsWith((char*)pucArg, "#include")
+      || StringBeginsWith((char*)pucArg, "#import")
+      || StringBeginsWith((char*)pucArg, "#subst")) {
+      /* to be ignored */
+    }
+    else {
+      pndResult = SplitStringToTagNodes(pucArg, preArgHashTag, BAD_CAST NAME_PIE_HTAG); /* general hash tags */
 
-	for (pndChild = pndResult->children;
-	  pndChild != NULL;
-	  pndChild = (pndChild != NULL) ? pndChild->next : NULL) {
-
-	  if (xmlNodeIsText(pndChild)) { /* pndChild is a text node */
-	    xmlNodePtr pndReplace;
-
-	    pndReplace = SplitStringToTagNodes2(pndChild->content, preArgBlockTag, NAME_PIE_ETAG);
-	    if (pndReplace) {
-	      /* there is a result list */
-	      xmlNodePtr pndT;
-
-	      pndT = pndChild->next;
-	      if (domReplaceNodeList(pndChild, pndReplace->children) == pndChild) {
-		xmlFreeNodeList(pndChild);
-	      }
-	      xmlFreeNode(pndReplace);
-	      /*  */
-	      if (pndT != NULL && pndT->prev != NULL) {
-		pndChild = pndT->prev;
-	      }
-	      else {
-		pndChild = NULL;
-	      }
-	    }
-	  }
-	  else {
-	  }
+      if (preArgBlockTag) { /* there is also a block-specific tag regexp */
+	if (pndResult) {
+	  /* pucArg was splitted to a node list already, top element is dummy only */
+	  SplitNodeListToTagNodes(pndResult->children, preArgBlockTag, BAD_CAST NAME_PIE_ETAG);
+	}
+	else {
+	  pndResult = SplitStringToTagNodes(pucArg, preArgBlockTag, BAD_CAST NAME_PIE_ETAG);
 	}
       }
-      else {
-	pndResult = SplitStringToTagNodes2(pucArg, preArgBlockTag, NAME_PIE_ETAG);
-      }
     }
-#endif
   }
   return pndResult;
-} /* end of SplitStringToTagNodes() */
+} /* end of SplitToTagNodes() */
 
 
-/*! find all explicit Hashtags '#' and '@'
+/*! find all explicit Hashtags '#' and '@' and tags matching to preArgBlockTag
 
 http://microformats.org/wiki/twitter-syntax
+
+\return TRUE by default
 */
 BOOL_T
 RecognizeHashtags(xmlNodePtr pndArg, pcre2_code* preArgHashTag, pcre2_code* preArgBlockTag)
 {
   BOOL_T fResult = TRUE;
-  xmlNodePtr pndChild;
   int errornumber = 0;
   size_t erroroffset;
+  xmlNodePtr pndIter = NULL;
 
   if (preArgHashTag == NULL) {
     /* build default regexp */
@@ -376,112 +298,94 @@ RecognizeHashtags(xmlNodePtr pndArg, pcre2_code* preArgHashTag, pcre2_code* preA
       fResult = FALSE;
     }
   }
+  else if (IS_VALID_NODE(pndArg) == FALSE || xmlHasProp(pndArg,BAD_CAST"hidden") != NULL) {
+    /* skip */
+  }
   else if (IS_NODE_PIE_PIE(pndArg) || IS_NODE_PIE_BLOCK(pndArg)) {
+    xmlChar* pucTT = NULL;
     xmlChar* pucRegExpTag = NULL;
+    pcre2_code* preBlock = preArgBlockTag;
 
-    if ((pucRegExpTag = GetBlockTagRegExpStr(pndArg,NULL,FALSE)) != NULL) {
+    if ((pucRegExpTag = GetBlockTagRegExpStr(pndArg, NULL, FALSE)) != NULL
+	&& (pucTT = StringDecodeNumericCharsNew(pucRegExpTag)) != NULL) {
       /* there is a local regexp string for tags */
-      pcre2_code* preBlock = NULL;
 
       /*!\todo avoid multiple recursion if preArgBlockTag == NULL */
 
       /*!\todo check string to avoid regular expression injection */
 
       PrintFormatLog(2, "Initialize tag regexp '%s' for current block", pucRegExpTag);
+      
       preBlock = pcre2_compile(
-	(PCRE2_SPTR8)pucRegExpTag, /* the pattern */
+	(PCRE2_SPTR8)pucTT, /* the pattern */
 	PCRE2_ZERO_TERMINATED, /* indicates pattern is zero-terminated */
 	PCRE2_UTF|PCRE2_CASELESS,        /* default options */
 	&errornumber,          /* for error number */
 	&erroroffset,          /* for error offset */
 	NULL);                 /* use default compile context */
 
-      if (preBlock) {
-	for (pndChild = pndArg->children; fResult && pndChild != NULL; pndChild = pndChild->next) {
-	  fResult = RecognizeHashtags(pndChild, preArgHashTag, preBlock);
-	}
-	pcre2_code_free(preBlock);
+      if (preBlock == NULL) {
+	PCRE2_UCHAR buffer[256];
+	
+	pcre2_get_error_message(errornumber, buffer, sizeof(buffer));
+	PrintFormatLog(1,"PCRE2 compilation failed at offset %d: %s", (int)erroroffset, buffer);
       }
-      else {
-	/* regexp error handling */
-	PrintFormatLog(1, "hashtag regexp '%s' error: '%i'", pucRegExpTag, errornumber);
-	fResult = FALSE;
-      }
+
+      /*!\todo merge preBlock and preArgBlockTag ? */
+      
+      xmlFree(pucTT);
+    }
+
+    for (pndIter = pndArg->children; fResult && pndIter != NULL; pndIter = pndIter->next) {
+      fResult = RecognizeHashtags(pndIter, preArgHashTag, preBlock);
+    }
+
+    if (preBlock != NULL && preBlock != preArgBlockTag) {
+      pcre2_code_free(preBlock);
+    }
+    
+    if (pucRegExpTag) {
       xmlFree(pucRegExpTag);
     }
-    else {
-      for (pndChild = pndArg->children; fResult && pndChild != NULL; pndChild = pndChild->next) {
-	fResult = RecognizeHashtags(pndChild, preArgHashTag, preArgBlockTag);
-      }
-    }
   }
-  else if (pndArg == NULL || IS_NODE_META(pndArg) || IS_NODE_PIE_PRE(pndArg) || IS_NODE_PIE_TT(pndArg) || IS_NODE_PIE_DATE(pndArg) || IS_NODE_PIE_LINK(pndArg)) {
+  else if (IS_NODE_PIE_IGNORE_TAGS(pndArg)) {
     /* skip */
   }
-  else if (IS_NODE_PIE_ETAG(pndArg) || IS_NODE_PIE_HTAG(pndArg) || IS_NODE_PIE_TTAG(pndArg)) {
+  else if (IS_NODE_PIE_TAGS(pndArg)) {
     /* skip existing tag elements */
   }
-  else if (IS_ENODE(pndArg) && (pndArg->ns==NULL)) { //  || pndArg->ns==pnsPie
+  else if ((IS_ENODE(pndArg) && (pndArg->ns==NULL /* || pndArg->ns==pnsPie */ )
+	    && (IS_NODE_PIE_LINK(pndArg) == FALSE || domGetPropValuePtr(pndArg, BAD_CAST"href") != NULL || domGetPropValuePtr(pndArg, BAD_CAST"id") != NULL))) {
 
-    for (pndChild = pndArg->children;
-      fResult && pndChild != NULL;
-      pndChild = (pndChild != NULL) ? pndChild->next : NULL) {
-      int iWeight = 0;
+    for (pndIter = pndArg->children; fResult && pndIter != NULL; ) {
       xmlChar* pucT;
+      xmlNodePtr pndNext;
 
-      if (xmlNodeIsText(pndChild)
-#ifdef LEGACY
-	  && (pucT = StringUpdateMarkupNew(pndChild->content, &iWeight)) != NULL
-#else
-	  && (pucT = pndChild->content) != NULL
-#endif
-	  ) { /* pndChild is a text node */
+      pndNext = (pndIter != NULL) ? pndIter->next : NULL;
+
+      if (xmlNodeIsText(pndIter) && (pucT = pndIter->content) != NULL) { /* pndIter is a text node */
 	xmlNodePtr pndReplace;
 
-	pndReplace = SplitStringToTagNodes(pucT, preArgHashTag, preArgBlockTag);
+	pndReplace = SplitToTagNodes(pucT, preArgHashTag, preArgBlockTag);
 	if (pndReplace) {
 	  /* there is a result list */
-	  xmlNodePtr pndT;
-
-	  pndT = pndChild->next;
-	  if (domReplaceNodeList(pndChild, pndReplace->children) == pndChild) {
-	    xmlFreeNodeList(pndChild);
+	  if (domReplaceNodeList(pndIter, pndReplace->children) == pndIter) {
+	    xmlFreeNodeList(pndIter);
 	  }
 	  xmlFreeNode(pndReplace);
-	  /*  */
-	  if (pndT != NULL && pndT->prev != NULL) {
-	    pndChild = pndT->prev;
-	  }
-	  else {
-	    pndChild = NULL;
-	  }
-	}
-#ifdef LEGACY
-	else {
-	  xmlNodeSetContent(pndChild,pucT); /* set updated string as content */
-	}
-	xmlFree(pucT);
-#endif
-
-	if (iWeight > 0 && iWeight < 3) {
-	  if (IS_NODE_PIE_LINK(pndArg)) {
-	    xmlSetProp(pndArg->parent, BAD_CAST"impact", BAD_CAST((iWeight < 2) ? "1" : "2"));
-	  }
-	  else {
-	    xmlSetProp(pndArg, BAD_CAST"impact", BAD_CAST((iWeight < 2) ? "1" : "2"));
-	  }
 	}
       }
       else {
-	fResult = RecognizeHashtags(pndChild, preArgHashTag, preArgBlockTag);
+	fResult = RecognizeHashtags(pndIter, preArgHashTag, preArgBlockTag);
       }
+      pndIter = pndNext;
     }
   }
   return fResult;
 } /* End of RecognizeHashtags() */
 
 
-/*! \return a pointer to the non-empty value of processing instruction node "regexp-tag"
+/*! \return a pointer to the non-empty value of processing instruction node NAME_PIE_PI_TAG
 */
 xmlChar*
 GetBlockTagRegExpStr(xmlNodePtr pndArg, xmlChar *pucArg, BOOL_T fArgRecursion)
@@ -489,13 +393,15 @@ GetBlockTagRegExpStr(xmlNodePtr pndArg, xmlChar *pucArg, BOOL_T fArgRecursion)
   xmlChar* pucResult = pucArg;
 
   if (IS_NODE(pndArg,NULL)) {
-    xmlNodePtr pndI;
+    xmlNodePtr pndIter;
     xmlChar* pucT = NULL;
     
-    for (pndI = pndArg->children; pndI != NULL; pndI = pndI->next) {
-      if (pndI->type == XML_PI_NODE && xmlStrEqual(pndI->name, BAD_CAST"regexp-tag") && (pucT = domNodeGetContentPtr(pndI)) != NULL) {
+    for (pndIter = pndArg->children; pndIter != NULL; pndIter = pndIter->next) {
+      if (pndIter->type == XML_PI_NODE && xmlStrEqual(pndIter->name, BAD_CAST NAME_PIE_PI_TAG) && (pucT = domNodeGetContentPtr(pndIter)) != NULL) {
 	if (pucResult) {
-	  pucResult = xmlStrcat(pucResult,BAD_CAST"|");
+	  if (pucT[0] != (xmlChar)'|') {
+	    pucResult = xmlStrcat(pucResult,BAD_CAST"|");
+	  }
 	  pucResult = xmlStrcat(pucResult,pucT);
 	}
 	else {
@@ -504,7 +410,7 @@ GetBlockTagRegExpStr(xmlNodePtr pndArg, xmlChar *pucArg, BOOL_T fArgRecursion)
 	/*!\todo check regexp */
       }
       else if (fArgRecursion) {
-	pucResult = GetBlockTagRegExpStr(pndI, pucResult, fArgRecursion);
+	pucResult = GetBlockTagRegExpStr(pndIter, pucResult, fArgRecursion);
       }
     }
   }
@@ -512,68 +418,107 @@ GetBlockTagRegExpStr(xmlNodePtr pndArg, xmlChar *pucArg, BOOL_T fArgRecursion)
 } /* End of GetBlockTagRegExpStr() */
 
 
-/*! inherit the impact attribute and htag nodes from an ancestor node
+/*! recognize all remarkable text tags and append them as childs to pndArgTop
 */
 BOOL_T
-InheritHashtags(xmlDocPtr pdocArg)
+InheritHashtags(xmlNodePtr pndArgTop, xmlNodePtr pndArg)
 {
-  BOOL_T fResult = FALSE;
+  BOOL_T fResult = TRUE;
 
-  if (pdocArg != NULL) {
-    xmlNodePtr pndRoot;
+  if (IS_NODE_PIE_IGNORE_TAGS(pndArg)) {
+    /* skip */
+  }
+  else if (IS_NODE_PIE_ETAG(pndArg) || IS_NODE_PIE_HTAG(pndArg) || IS_NODE_PIE_TTAG(pndArg)) {
+    /* skip existing tag elements */
+  }
+  else if (IS_ENODE(pndArg) && (pndArg->ns == NULL)) { //  || pndArg->ns==pnsPie
+    xmlNodePtr pndT;
+    xmlNodePtr pndChild;
 
-    if ((pndRoot = xmlDocGetRootElement(pdocArg))) {
-      xmlXPathObjectPtr result;
+    for (pndChild = pndArg->children; pndChild; pndChild = pndChild->next) {
 
-      if ((result = domGetXPathNodeset(pdocArg, BAD_CAST"//*[name() = 'task' or name() = 'p' or name() = 'h' or name() = 'link' or name() = 'th' or name() = 'td']")) != NULL) {
-	int i;
-	xmlNodeSetPtr nodeset;
+      if (xmlNodeIsText(pndChild)) {
+      }
+      else if (IS_NODE_PIE_LINK(pndChild)
+	&& IS_NODE_PIE_HEADER(pndChild->parent)
+	&& (IS_NODE_PIE_SECTION(pndChild->parent->parent) || IS_NODE_PIE_TASK(pndChild->parent->parent))) {
 
-	nodeset = result->nodesetval;
-	if (nodeset->nodeNr > 0) {
-	  for (i=0; i < nodeset->nodeNr; i++) {
-	    xmlNodePtr pndT;
+	/* append tags to parent node */
+	for (pndT = pndChild->children; pndT; pndT = pndT->next) {
+	  if ((IS_NODE_PIE_HTAG(pndT) || IS_NODE_PIE_ETAG(pndT)) && pndT->children != NULL) {
+	    AddTagNodeNew(pndChild->parent->parent, pndT->children->content);
+	  }
+	}
+      }
 #if 0
-	    if (domGetPropValuePtr(nodeset->nodeTab[i], BAD_CAST"impact") == NULL) {
-	      /* try to find this attribute at a ancestor node */
-	      for (pndT=nodeset->nodeTab[i]->parent; pndT; pndT=pndT->parent) {
-		xmlChar* pucT;
+      else if (IS_NODE_PIE_LINK(pndChild)) {
 
-		if ((pucT = domGetPropValuePtr(pndT, BAD_CAST"impact"))) {
-		  xmlSetProp(nodeset->nodeTab[i], BAD_CAST"impact", pucT);
-		  break;
-		}
-	      }
-	    }
+	/* append tags to parent node */
+	for (pndT = pndChild->children; pndT; pndT = pndT->next) {
+	  if ((IS_NODE_PIE_HTAG(pndT) || IS_NODE_PIE_ETAG(pndT)) && pndT->children != NULL) {
+	    AddTagNodeNew(pndChild->parent, pndT->children->content);
+	  }
+	}
+      }
 #endif
-	    if (IS_NODE_PIE_HEADER(nodeset->nodeTab[i]) || IS_NODE_PIE_LINK(nodeset->nodeTab[i]) || IS_NODE_PIE_TH(nodeset->nodeTab[i]) || IS_NODE_PIE_TD(nodeset->nodeTab[i])) {
-	      for (pndT=nodeset->nodeTab[i]->children; pndT; pndT=pndT->next) {
-		if ((IS_NODE_PIE_HTAG(pndT) || IS_NODE_PIE_ETAG(pndT)) && pndT->children != NULL) {
-		  AddTagNodeNew(nodeset->nodeTab[i]->parent, pndT->children->content);
-		}
-	      }
-	    }
-	    else if (IS_NODE_PIE_PAR(nodeset->nodeTab[i])) {
-	      if (IS_NODE_PIE_LIST(nodeset->nodeTab[i]->parent)) {
-		/* append this tags to parent element 'list' */
-		for (pndT=nodeset->nodeTab[i]->children; pndT; pndT=pndT->next) {
-		  if ((IS_NODE_PIE_HTAG(pndT) || IS_NODE_PIE_ETAG(pndT)) && pndT->children != NULL) {
-		    AddTagNodeNew(nodeset->nodeTab[i]->parent, pndT->children->content);
-		  }
-		}
-	      }
-	      else {
-		for (pndT=nodeset->nodeTab[i]->children; pndT; pndT=pndT->next) {
-		  if ((IS_NODE_PIE_HTAG(pndT) || IS_NODE_PIE_ETAG(pndT)) && pndT->children != NULL) {
-		    AddTagNodeNew(nodeset->nodeTab[i], pndT->children->content);
-		  }
-		}
+      else if (IS_NODE_PIE_HEADER(pndChild) && IS_NODE_PIE_SECTION(pndChild->parent)) {
+
+	/* append all tags of this 'section/h' to all 'task' sibling nodes */
+	for (pndT = pndChild->children; pndT; pndT = pndT->next) {
+	  xmlNodePtr pndTT;
+	  
+	  if (IS_NODE_PIE_LINK(pndT)) {
+	    /* append tags to parent node */
+	    for (pndTT = pndT->children; pndTT; pndTT = pndTT->next) {
+	      if ((IS_NODE_PIE_HTAG(pndTT) || IS_NODE_PIE_ETAG(pndTT)) && pndTT->children != NULL) {
+		AddTagNodeNew(pndChild->parent, pndTT->children->content);
 	      }
 	    }
 	  }
-	  fResult = TRUE;
+	  else if ((IS_NODE_PIE_HTAG(pndT) || IS_NODE_PIE_ETAG(pndT)) && pndT->children != NULL) {
+	    for (pndTT = pndChild->parent->children; pndTT; pndTT = pndTT->next) {
+	      if (IS_NODE(pndTT,NULL) && IS_NODE_PIE_PRE(pndTT) == FALSE && IS_NODE_PIE_TT(pndTT) == FALSE) {
+		AddTagNodeNew(pndTT, pndT->children->content);
+	      }
+	    }
+	  }
 	}
-	xmlXPathFreeObject(result);
+	//fResult = InheritHashtags(pndArgTop, pndChild);
+      }
+      else if (IS_NODE_PIE_HEADER(pndChild) || IS_NODE_PIE_LINK(pndChild)
+	|| IS_NODE_PIE_TH(pndChild) || IS_NODE_PIE_TD(pndChild)) {
+
+	/* append tags to parent node */
+	for (pndT = pndChild->children; pndT; pndT = pndT->next) {
+	  if ((IS_NODE_PIE_HTAG(pndT) || IS_NODE_PIE_ETAG(pndT)) && pndT->children != NULL) {
+	    AddTagNodeNew(pndChild->parent, pndT->children->content);
+	  }
+	}
+	//fResult = InheritHashtags(pndArgTop, pndChild);
+      }
+      else if (IS_NODE_PIE_PAR(pndChild) && IS_NODE_PIE_LIST(pndChild->parent)) {
+	/* append this tags to parent element 'list' */
+	for (pndT = pndChild->children; pndT; pndT = pndT->next) {
+	  if ((IS_NODE_PIE_HTAG(pndT) || IS_NODE_PIE_ETAG(pndT)) && pndT->children != NULL) {
+	    AddTagNodeNew(pndChild->parent, pndT->children->content);
+	  }
+	  else {
+	  }
+	}
+	fResult = InheritHashtags(pndArgTop, pndChild);
+      }
+      else if (IS_NODE_PIE_PAR(pndChild)) {
+	for (pndT = pndChild->children; pndT; pndT = pndT->next) {
+	  if ((IS_NODE_PIE_HTAG(pndT) || IS_NODE_PIE_ETAG(pndT)) && pndT->children != NULL) {
+	    AddTagNodeNew(pndChild, pndT->children->content);
+	  }
+	  else {
+	  }
+	}
+	fResult = InheritHashtags(pndArgTop, pndChild);
+      }
+      else {
+	fResult = InheritHashtags(pndArgTop, pndChild);
       }
     }
   }
@@ -604,25 +549,25 @@ CleanListTag(xmlNodePtr pndArg, BOOL_T fArgMerge)
       pndTagNext = pndTag->next;
 
       if (pndTag->children != NULL && pndTag->children->type == XML_TEXT_NODE && (pucTag = pndTag->children->content) != NULL) { /* there is text content */
-	xmlNodePtr pndI;
-	xmlNodePtr pndINext;
+	xmlNodePtr pndIter;
+	xmlNodePtr pndIterNext;
 
-	for (pndI = pndArg->children; pndI; pndI = pndINext) {
+	for (pndIter = pndArg->children; pndIter; pndIter = pndIterNext) {
 	  xmlChar* pucI;
 
-	  pndINext = pndI->next;
+	  pndIterNext = pndIter->next;
 
-	  if (pndI != pndTag
-	      && pndI->children != NULL && pndI->children->type == XML_TEXT_NODE && (pucI = pndI->children->content) != NULL
-	      && (fArgMerge && (pucI[0] != (xmlChar)'@' && pucI[0] != (xmlChar)'#' && StringBeginsWith((char*)pucI, (char*)pucTag)) || xmlStrEqual(pucI, pucTag))) {
+	  if (pndIter != pndTag
+	      && pndIter->children != NULL && pndIter->children->type == XML_TEXT_NODE && (pucI = pndIter->children->content) != NULL
+	      && ((fArgMerge && (pucI[0] != (xmlChar)'@' && pucI[0] != (xmlChar)'#' && StringBeginsWith((char*)pucI, (char*)pucTag))) || xmlStrEqual(pucI, pucTag))) {
 	    /*!
-	      merge similar node pndI to pndTag
+	      merge similar node pndIter to pndTag
 	    */
 
 	    int iCountNeedle;
 	    xmlChar* pucAttrCount;
 
-	    if ((pucAttrCount = domGetPropValuePtr(pndI, BAD_CAST"count"))) {
+	    if ((pucAttrCount = domGetPropValuePtr(pndIter, BAD_CAST"count"))) {
 	      iCountNeedle = atoi((char*)pucAttrCount);
 	    }
 	    else {
@@ -630,11 +575,11 @@ CleanListTag(xmlNodePtr pndArg, BOOL_T fArgMerge)
 	    }
 	    domIncrProp(pndTag, BAD_CAST"count", iCountNeedle);
 
-	    if (pndI == pndTagNext) {
-	      pndTagNext = pndINext; /* fix pndTagNext before node will be removed */
+	    if (pndIter == pndTagNext) {
+	      pndTagNext = pndIterNext; /* fix pndTagNext before node will be removed */
 	    }
-	    xmlUnlinkNode(pndI);
-	    xmlFreeNode(pndI);
+	    xmlUnlinkNode(pndIter);
+	    xmlFreeNode(pndIter);
 	  }
 	}
       }
@@ -664,7 +609,7 @@ AppendListTag(xmlNodePtr pndTags, xmlChar* pucArg)
   if (STR_IS_NOT_EMPTY(pucArg)) {
     if (pndResult == NULL) {
       /* very first new tag element */
-      pndResult = xmlNewNode(NULL, NAME_PIE_TTAG);
+      pndResult = xmlNewNode(NULL, BAD_CAST NAME_PIE_TTAG);
       if (pndResult) {
 	xmlNodeSetContent(pndResult, pucArg);
       }
@@ -683,7 +628,7 @@ AppendListTag(xmlNodePtr pndTags, xmlChar* pucArg)
 	  /* new tag element */
 	  xmlNodePtr pndTagNew;
 
-	  pndTagNew = xmlNewNode(NULL, NAME_PIE_TTAG);
+	  pndTagNew = xmlNewNode(NULL, BAD_CAST NAME_PIE_TTAG);
 	  if (pndTagNew) {
 	    xmlNodeSetContent(pndTagNew, pucArg);
 	    pndT->next = pndTagNew;
@@ -709,7 +654,13 @@ RecognizeNodeTags(xmlNodePtr pndTags, xmlNodePtr pndArg, pcre2_code* preArg)
 {
   BOOL_T fResult = TRUE;
 
-  if (IS_NODE_META(pndArg) || IS_NODE_PIE_PRE(pndArg) || IS_NODE_PIE_TT(pndArg) || IS_NODE_PIE_LINK(pndArg) || IS_NODE_PIE_DATE(pndArg)) {
+  if (preArg == NULL) {
+    /* skip */
+  }
+  else if (IS_VALID_NODE(pndArg) == FALSE || xmlHasProp(pndArg,BAD_CAST"hidden") != NULL) {
+    /* skip */
+  }
+  else if (IS_NODE_PIE_IGNORE_TAGS(pndArg)) {
     /* skip */
   }
   else if (IS_NODE_PIE_ETAG(pndArg) || IS_NODE_PIE_HTAG(pndArg) || IS_NODE_PIE_TTAG(pndArg)) {
@@ -719,30 +670,6 @@ RecognizeNodeTags(xmlNodePtr pndTags, xmlNodePtr pndArg, pcre2_code* preArg)
     xmlChar* pucTag;
     xmlNodePtr pndListTag = NULL;
     xmlNodePtr pndChild;
-
-    /*!\todo add tags also if PIE/XML is the input */
-#if 0
-    /*! append element name value as an additional tag */
-    if (IS_NODE_PIE_TASK(pndArg) || IS_NODE_PIE_FIG(pndArg)) {
-      xmlChar* pucT;
-
-      pucT = xmlStrdup(BAD_CAST"#");
-      pucT = xmlStrcat(pucT, pndArg->name);
-      pndListTag = AppendListTag(pndListTag, pucT);
-      xmlFree(pucT);
-    }
-
-    /*! append class attribute value as an additional tag */
-    pucTag = domGetPropValuePtr(pndArg, BAD_CAST"class");
-    if (STR_IS_NOT_EMPTY(pucTag)) {
-      xmlChar* pucT;
-
-      pucT = xmlStrdup(BAD_CAST"#");
-      pucT = xmlStrcat(pucT, pucTag);
-      pndListTag = AppendListTag(pndListTag, pucT);
-      xmlFree(pucT);
-    }
-#endif
 
     for (pndChild = pndArg->children; pndChild; pndChild=pndChild->next) {
       xmlChar* pucSubstr;
@@ -791,7 +718,7 @@ RecognizeNodeTags(xmlNodePtr pndTags, xmlNodePtr pndArg, pcre2_code* preArg)
 	|| IS_NODE_PIE_TASK(pndChild)
 	|| IS_NODE_PIE_FIG(pndChild)
 #ifdef HAVE_PETRINET
-	|| IS_NODE_PKG2_STELLE(pndChild)
+	|| IS_NODE_PKG2_STATE(pndChild)
 	|| IS_NODE_PKG2_TRANSITION(pndChild)
 	|| IS_NODE_PKG2_REQUIREMENT(pndChild)
 #endif
@@ -815,7 +742,7 @@ RecognizeNodeTags(xmlNodePtr pndTags, xmlNodePtr pndArg, pcre2_code* preArg)
 
 
 /*! process the
-
+\todo handle "<import tags="[A-Z]{7}">"
 \todo optimize performance of RecognizeNodeTags(), CleanListTag() and use it
  */
 xmlNodePtr
@@ -825,12 +752,11 @@ ProcessTags(xmlDocPtr pdocPie, xmlChar* pucAttrTags)
   xmlNodePtr pndRoot;
 
   if (pdocPie != NULL && (pndRoot = xmlDocGetRootElement(pdocPie)) != NULL) {
-    int errornumber = 0;
     xmlNodePtr pndMeta;
     xmlNodePtr pndTags = NULL;
 
-    if ((pndMeta = domGetFirstChild(pndRoot, NAME_META)) != NULL
-      && (pndTags = domGetFirstChild(pndMeta, NAME_PIE_TTAG)) != NULL) {
+    if ((pndMeta = domGetFirstChild(pndRoot, BAD_CAST NAME_META)) != NULL
+      && (pndTags = domGetFirstChild(pndMeta, BAD_CAST NAME_PIE_TTAG)) != NULL) {
       /* there is a tags element already */
       PrintFormatLog(2, "Remove old tags");
       xmlUnlinkNode(pndTags);
@@ -839,12 +765,12 @@ ProcessTags(xmlDocPtr pdocPie, xmlChar* pucAttrTags)
     }
 
     RecognizeHashtags(pndRoot, NULL, NULL);
-    InheritHashtags(pdocPie);
-      
-    if ((pndMeta = domGetFirstChild(pndRoot, NAME_META)) == NULL) {
-      pndMeta = xmlNewChild(pndRoot, NULL, NAME_PIE_META, NULL);
+    InheritHashtags(pndRoot, pndRoot);
+
+    if ((pndMeta = domGetFirstChild(pndRoot, BAD_CAST NAME_META)) == NULL) {
+      pndMeta = xmlNewChild(pndRoot, NULL, BAD_CAST NAME_PIE_META, NULL);
     }
-    pndTags = xmlNewChild(pndMeta, NULL, NAME_PIE_TAGLIST, NULL);
+    pndTags = xmlNewChild(pndMeta, NULL, BAD_CAST NAME_PIE_TAGLIST, NULL);
 
 #if 0
     PrintFormatLog(3, "Recognize Tags");
@@ -854,6 +780,7 @@ ProcessTags(xmlDocPtr pdocPie, xmlChar* pucAttrTags)
     else if (xmlStrlen(pucAttrTags) > 1) {
       /* use default regexp */
       size_t erroroffset;
+      int errornumber = 0;
 
       pcre2_code* re_tag_local = NULL;
 
@@ -891,10 +818,10 @@ ProcessTags(xmlDocPtr pdocPie, xmlChar* pucAttrTags)
 xmlNodePtr
 RecognizeGlobalTags(xmlNodePtr pndTags, xmlNodePtr pndArg)
 {
-  if (IS_NODE_META(pndArg) || IS_NODE_PIE_PRE(pndArg) || IS_NODE_PIE_TT(pndArg) || IS_NODE_PIE_LINK(pndArg)) {
+  if (IS_NODE_META(pndArg) || IS_NODE_PIE_PRE(pndArg) || IS_NODE_PIE_TT(pndArg)) {
     /* skip */
   }
-  else if (xmlHasProp(pndArg,BAD_CAST"hidden") != NULL) {
+  else if (IS_VALID_NODE(pndArg) == FALSE || xmlHasProp(pndArg,BAD_CAST"hidden") != NULL) {
     /* skip */
   }
   else if (IS_ENODE(pndArg) && (pndArg->ns==NULL)) { //  || pndArg->ns==pnsPie
@@ -907,7 +834,7 @@ RecognizeGlobalTags(xmlNodePtr pndTags, xmlNodePtr pndArg)
 
 	pndT = xmlCopyNode(pndChild, 1);
 	if (pndT) {
-	  xmlNodeSetName(pndT, NAME_PIE_TTAG);
+	  xmlNodeSetName(pndT, BAD_CAST NAME_PIE_TTAG);
 	  xmlAddChild(pndTags, pndT);
 	}
       }

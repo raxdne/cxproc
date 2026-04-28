@@ -1,7 +1,7 @@
 /*
   cxproc - Configurable Xml PROCessor
   
-  Copyright (C) 2006..2020 by Alexander Tenbusch
+  Copyright (C) 2006..2024 by Alexander Tenbusch
 
   This program is free software; you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -20,12 +20,17 @@
 
 #define LEVEL_MAX 4
 
+/* maximum value for ISO8601 recurrences */
+#define ISO_RECURRENCE_MAX 99
+
 /* 
    common header
 
 */
 
 #define isend(C) (C == (xmlChar)'\0')
+
+#define islinebreak(C) (C == (xmlChar)'\n' || C == (xmlChar)'\r')
 
 /****************************************************************************
 
@@ -39,10 +44,16 @@ extern int
 GetPositionISO6709(const char *pchArg,double *pdArgLatitude,double *pdArgLongitude);
 
 extern int
+base64removespaces(const void *data_buf);
+
+extern int
 base64encode(const void* data_buf, size_t dataLength, char* result, size_t resultSize);
 
 extern int
 base64decode(char *in, size_t inLen, unsigned char *out, size_t *outLen);
+
+extern xmlChar *
+ReadUTF8ToBufferNew(FILE* argin);
 
 extern BOOL_T
 StringToLower(char *pchArg);
@@ -63,7 +74,13 @@ extern xmlChar *
 StringReplaceUmlauteNew(const xmlChar *pucArg);
 
 extern BOOL_T
+StringRemoveDoubleDoubleQuotes(xmlChar *pucArg);
+
+extern BOOL_T
 StringRemovePairQuotes(xmlChar *pucArg);
+
+extern BOOL_T
+StringRemovePairOfChars(xmlChar *pucArg, xmlChar ucArgA, xmlChar ucArgB);
 
 extern BOOL_T
 StringRemoveBackslashes(xmlChar* pucArg);
@@ -79,6 +96,9 @@ StringDecodeNumericCharsNew(xmlChar* pucArg);
 
 extern xmlChar*
 StringEncodeXmlDefaultEntitiesNew(xmlChar* pucArg);
+
+extern void
+getXmlBody(xmlChar *pucSource, int *piA, int *piB);
 
 extern xmlChar *
 Strnstr(const xmlChar *str, const int l, const xmlChar *val);
@@ -132,18 +152,8 @@ chomp(unsigned char *c);
 extern xmlChar *
 GetUTF8Bytes(int val);
 
-
 extern long int
-GetDayAbsolute(int year, int mon, int mday, int week, int wday);
-
-extern long int
-GetEasterSunday(int iArgYear, int *piArgMonth, int *piArgDay);
-
-extern int
-GetDayOfWeek(int day, int month, int year);
-
-extern int
-GetWeekOfYear(int day, int month, int year);
+GetDayAbsoluteStr(xmlChar *pucGcal);
 
 extern xmlChar *
 GetNowFormatStr(xmlChar *pucArgFormat);
@@ -151,14 +161,41 @@ GetNowFormatStr(xmlChar *pucArgFormat);
 extern xmlChar *
 GetDateIsoString(time_t ArgTime);
 
+extern dt_t
+dt_today_date(void);
+
+extern size_t
+dt_parse_eternal_date(const char *str, size_t len, dt_t *dtp);
+
+extern size_t
+dt_parse_iso_recurrence(const char *str, size_t len, int* deltad);
+
+extern size_t
+dt_parse_iso_offset(const char *str, size_t len, double *yp, double *mp, double *dp, double *wp, double *hp, double *mip, double *sp);
+
+extern size_t
+dt_parse_iso_period(const char* str, size_t len, double* yp, double* mp, double* dp, double* wp, double* hp, double* mip, double* sp);
+
+extern size_t
+dt_parse_iso_date_time_zone(const char* str, size_t len, dt_t *dtp, int *sp);
+
+extern size_t
+dt_parse_iso_hours_decimal(const char *str, size_t len, int *sod);
+
+extern size_t
+dt_parse_unix(const char *str, size_t len, dt_t *dtp, int *sp);
+
+extern size_t
+dt_parse_german_date(const char *str, size_t len, dt_t *dtp);
+
 extern int
 ishashtag(xmlChar* pucArg, int* piArg);
 
 extern BOOL_T
-iscal(xmlChar c);
+isiso8601(xmlChar c);
 
-extern BOOL_T
-iscalx(xmlChar c);
+extern xmlChar*
+_StringConcatNextDate(xmlChar* pucArgGcal);
 
 #ifdef TESTCODE
 extern int

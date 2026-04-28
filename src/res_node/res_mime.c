@@ -1,7 +1,7 @@
 /*
   cxproc - Configurable Xml PROCessor
 
-  Copyright (C) 2006..2020 by Alexander Tenbusch
+  Copyright (C) 2006..2024 by Alexander Tenbusch
 
   This program is free software; you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -22,12 +22,14 @@
 #include <libxml/parser.h>
 
 #include "basics.h"
+#include "utils.h"
 #include <res_node/res_mime.h>
 
 /* s. http://en.wikipedia.org/wiki/List_of_file_formats_%28alphabetical%29 */
 static const char* resMimeTypeStr[] = {
-  /* MIME_UNDDEFINED */ "type/undefined",
+  /* MIME_UNDEFINED */ "type/undefined",
   /* MIME_UNKNOWN */ "type/unknown",
+  /* MIME_EMPTY */ "type/empty",
   /*
     Microsoft Office
   */
@@ -74,6 +76,12 @@ static const char* resMimeTypeStr[] = {
   /* MIME_APPLICATION_VND_PTC_CAD_CONFIGURATION */ "application/vnd.ptc.cad.configuration",
   /* MIME_APPLICATION_VND_PTC_CAD_XYZ */ "application/vnd.ptc.cad.XYZ",
   /*
+    GARMIN formats
+  */
+  /* MIME_APPLICATION_VND_GARMIN_FIT */  "application/vnd.garmin.fit",
+  /* MIME_APPLICATION_VND_GARMIN_FITX */ "application/vnd.garmin.fit+xml",
+  /* MIME_APPLICATION_VND_GARMIN_TCX */  "application/vnd.garmin.tcx+xml",
+  /*
     Application formats
   */
   /* MIME_APPLICATION_CAD_2D */ "application/cad+2d",
@@ -82,14 +90,16 @@ static const char* resMimeTypeStr[] = {
   /* MIME_APPLICATION_COMMAND */ "application/command",
   /* MIME_APPLICATION_CXP_XML */ "application/cxp+xml",
   /* MIME_APPLICATION_MMAP_XML */ "application/mmap+xml",
+  /* MIME_APPLICATION_XMMAP_XML */ "application/xmmap+xml",
   /* MIME_APPLICATION_MM_XML */ "application/mm+xml",
   /* MIME_APPLICATION_X_BYTECODE_ELISP */ "application/x-bytecode.elisp",
   /* MIME_APPLICATION_JSON */ "application/json",
   /* MIME_APPLICATION_X_JAVASCRIPT */ "application/x-javascript",
   /* MIME_APPLICATION_X_JAVA_VM */ "application/x-java-vm",
   /* MIME_APPLICATION_XMIND_XML */ "application/xmind+xml",
-  /* MIME_APPLICATION_XMMAP_XML */ "application/xmmap+xml",
   /* MIME_APPLICATION_RDF_XML */ "application/rdf+xml",
+  /* MIME_APPLICATION_XSD_XML */ "application/xsd+xml",
+  /* MIME_APPLICATION_RNG_XML */ "application/rng+xml",
 #ifdef HAVE_PIE
   /* MIME_APPLICATION_PIE_XML */ "application/pie+xml",
   /* MIME_APPLICATION_PIE_XML_INDEX */ "application/pie+xml+index",
@@ -121,10 +131,16 @@ static const char* resMimeTypeStr[] = {
     Image formats
   */
   /* MIME_IMAGE_GIF */ "image/gif",
+  /* MIME_IMAGE_BMP */ "image/bmp",
   /* MIME_IMAGE_JPEG */ "image/jpeg",
   /* MIME_IMAGE_PNG */ "image/png",
+  /* MIME_IMAGE_SVG_XML */ "image/svg+xml",
   /* MIME_IMAGE_TIFF */ "image/tiff",
+  /* MIME_IMAGE_AVIF */ "image/avif",
   /* MIME_IMAGE_WMF */ "image/x-wmf",
+  /* MIME_IMAGE_X_CANON_CRW */ "image/x-canon-crw",
+  /* MIME_IMAGE_X_PANASONIC_RAW */ "image/x-panasonic-raw",
+  /*!\todo add other raw formats https://raw.githubusercontent.com/angryziber/gnome-raw-thumbnailer/master/data/raw-thumbnailer.xml */
   /*
     Filesystem elements
   */
@@ -139,7 +155,6 @@ static const char* resMimeTypeStr[] = {
   /* MIME_TEXT_CSV */ "text/csv",
   /* MIME_TEXT_HTML */ "text/html",
   /* MIME_TEXT_PLAIN */ "text/plain",
-  /* MIME_TEXT_PLAIN_CALENDAR */ "text/plain+calendar",
   /* MIME_TEXT_MARKDOWN */ "text/markdown",
   /* MIME_TEXT_VCARD */ "text/vcard",
   /* MIME_TEXT_XML */ "text/xml",
@@ -165,13 +180,13 @@ static const char* resMimeTypeStr[] = {
 
 /*! \return a pointer to string of iArg or NULL in case of errors
 */
-char *
+const char *
 resMimeGetTypeStr(int iArg)
 {
-  if (iArg >= MIME_UNKNOWN && iArg < MIME_END) {
+  if (iArg >= MIME_UNDEFINED && iArg < MIME_END) {
     return (char *) resMimeTypeStr[iArg];
   }
-  return NULL;
+  return resMimeTypeStr[MIME_UNDEFINED];
 }
 /* end of resMimeGetTypeStr() */
 
@@ -220,16 +235,10 @@ resMimeIsXml(int iMimeType)
       || iMimeType == MIME_APPLICATION_PIE_XML
       || iMimeType == MIME_APPLICATION_PIE_XML_INDEX
 #endif
-#ifdef HAVE_ZLIB
-      || iMimeType == MIME_APPLICATION_MMAP_XML
-#ifndef HAVE_LIBARCHIVE
-      /* */
-      || iMimeType ==  MIME_APPLICATION_VND_OPENXMLFORMATS_OFFICEDOCUMENT_WORDPROCESSINGML_DOCUMENT
-      || iMimeType ==  MIME_APPLICATION_VND_OASIS_OPENDOCUMENT_SPREADSHEET
-      || iMimeType ==  MIME_APPLICATION_VND_OASIS_OPENDOCUMENT_TEXT
-#endif
-#endif
+      || iMimeType == MIME_APPLICATION_VND_GARMIN_FITX
+      || iMimeType == MIME_APPLICATION_VND_GARMIN_TCX
       || iMimeType == MIME_APPLICATION_XSPF_XML
+      || iMimeType == MIME_APPLICATION_XSD_XML
       || iMimeType == MIME_TEXT_XML
       || iMimeType == MIME_TEXT_XSL);
 } /* end of resMimeIsXml() */
@@ -251,12 +260,28 @@ BOOL_T
 resMimeIsPicture(int iMimeType)
 {
   return (iMimeType == MIME_IMAGE_GIF
+	  || iMimeType == MIME_IMAGE_BMP
 	  || iMimeType == MIME_IMAGE_JPEG
 	  || iMimeType == MIME_IMAGE_PNG
+	  || iMimeType == MIME_IMAGE_SVG_XML
 	  || iMimeType == MIME_IMAGE_TIFF
+	  || iMimeType == MIME_IMAGE_AVIF
 	  || iMimeType == MIME_IMAGE_WMF
+	  || iMimeType == MIME_IMAGE_X_CANON_CRW
+	  || iMimeType == MIME_IMAGE_X_PANASONIC_RAW
 	  );
 } /* end of resMimeIsPicture() */
+
+
+/*! \return TRUE if iMimeType is a video format
+*/
+BOOL_T
+resMimeIsVideo(int iMimeType)
+{
+  return (iMimeType == MIME_VIDEO_MP4
+	  || iMimeType == MIME_VIDEO_AVI
+	  );
+} /* end of resMimeIsVideo() */
 
 
 /*! \return TRUE if iMimeType is an archive format
@@ -269,9 +294,17 @@ resMimeIsArchive(int iMimeType)
     || iMimeType ==  MIME_APPLICATION_X_BZIP
     || iMimeType ==  MIME_APPLICATION_X_TAR
     || iMimeType ==  MIME_APPLICATION_X_ISO9660_IMAGE
-    // || iMimeType == MIME_APPLICATION_MMAP_XML
+    );
+} /* end of resMimeIsArchive() */
+
+
+/*! \return TRUE if iMimeType is a document in zip format
+*/
+BOOL_T
+resMimeIsZipDocument(int iMimeType)
+{
+  return (iMimeType == MIME_APPLICATION_MMAP_XML
     || iMimeType == MIME_APPLICATION_XMIND_XML
-#ifdef HAVE_LIBARCHIVE
     || iMimeType ==  MIME_APPLICATION_VND_OPENXMLFORMATS_OFFICEDOCUMENT_PRESENTATIONML_PRESENTATION
     || iMimeType ==  MIME_APPLICATION_VND_OPENXMLFORMATS_OFFICEDOCUMENT_SPREADSHEETML_SHEET
     || iMimeType ==  MIME_APPLICATION_VND_OPENXMLFORMATS_OFFICEDOCUMENT_WORDPROCESSINGML_DOCUMENT
@@ -285,9 +318,8 @@ resMimeIsArchive(int iMimeType)
     || iMimeType ==  MIME_APPLICATION_VND_STARDIVISION_WRITER
     || iMimeType ==  MIME_APPLICATION_VND_STARDIVISION_CALC
     || iMimeType ==  MIME_APPLICATION_VND_STARDIVISION_IMPRESS
-#endif
     );
-} /* end of resMimeIsArchive() */
+} /* end of resMimeIsZipDocument() */
 
 
 /*! \return TRUE if iMimeType is a plain text format
@@ -300,15 +332,48 @@ resMimeIsPlain(int iMimeType)
     || iMimeType == MIME_TEXT_CALENDAR
     || iMimeType == MIME_TEXT_CSS
     || iMimeType == MIME_TEXT_CSV
-    || iMimeType == MIME_TEXT_PLAIN_CALENDAR
-#ifdef WITH_MARKDOWN
     || iMimeType == MIME_TEXT_MARKDOWN
-#endif
     || iMimeType == MIME_TEXT_VCARD
     || iMimeType == MIME_TEXT_X_SCRIPT_TCL
     || iMimeType == MIME_TEXT_X_SCRIPT_PERL
     );
 } /* end of resMimeIsPlain() */
+
+
+/*! \return TRUE if iMimeType is a viewable in web browser
+*/
+BOOL_T
+resMimeIsBrowserViewable(int iMimeType)
+{
+  return (resMimeIsPlain(iMimeType)|| iMimeType == MIME_TEXT_XML || resMimeIsPicture(iMimeType));
+} /* end of resMimeIsBrowserViewable() */
+
+
+/*! Read and sets the file MIME type of this context.
+
+  \param prnArg the context
+ */
+RN_MIME_TYPE
+resMimeGetTypeFromDataBase64(const xmlChar *pucArg)
+{
+  RN_MIME_TYPE eMimeTypeResult = MIME_UNDEFINED;
+
+  if (pucArg != NULL && pucArg[0] == 'd' && pucArg[1] == 'a' && pucArg[2] == 't' && pucArg[3] == 'a' && pucArg[4] == ':' && pucArg[5] != '\0') {
+    int i;
+    int j;
+
+    for (i = MIME_END - 1, j = 5; i > MIME_UNDEFINED; i--) {
+      if (StringBeginsWith((char *)&pucArg[j], resMimeTypeStr[i])) {
+	j += xmlStrlen(BAD_CAST resMimeTypeStr[i]);
+	if (StringBeginsWith((char *)&pucArg[j], ";base64,") && pucArg[j + 8] != '\0') {
+	  return (RN_MIME_TYPE)i;
+	}
+	break;
+      }
+    }
+  }
+  return eMimeTypeResult;
+} /* end of resMimeGetTypeFromDataBase64() */
 
 
 /*! Read and sets the file MIME type of this context.
@@ -326,42 +391,37 @@ resMimeGetTypeFromExt(const xmlChar *pucArg)
   else if (pucArg[xmlStrlen(pucArg) - 1] == '~') {
     eMimeTypeResult = MIME_APPLICATION_X_BACKUP_EDITOR;
   }
-  else if (xmlStrcasecmp(pucArg, BAD_CAST"txt") == 0) {
+  else if (xmlStrcasecmp(pucArg, BAD_CAST "txt") == 0) {
     eMimeTypeResult = MIME_TEXT_PLAIN;
   }
-  else if (xmlStrcasecmp(pucArg, BAD_CAST"md") == 0) {
+  else if (xmlStrcasecmp(pucArg, BAD_CAST "md") == 0) {
     eMimeTypeResult = MIME_TEXT_MARKDOWN;
   }
-  else if (xmlStrcasecmp(pucArg, BAD_CAST"csv") == 0) {
+  else if (xmlStrcasecmp(pucArg, BAD_CAST "csv") == 0) {
     eMimeTypeResult = MIME_TEXT_CSV;
   }
-  else if (xmlStrcasecmp(pucArg, BAD_CAST"cal") == 0
-    || xmlStrcasecmp(pucArg, BAD_CAST"gcal") == 0
-    || xmlStrcasecmp(pucArg, BAD_CAST"tdv") == 0) {
-    eMimeTypeResult = MIME_TEXT_PLAIN_CALENDAR;
-  }
-  else if (xmlStrcasecmp(pucArg, BAD_CAST"pie") == 0) {
+  else if (xmlStrcasecmp(pucArg, BAD_CAST "pie") == 0) {
 #ifdef HAVE_PIE
     eMimeTypeResult = MIME_APPLICATION_PIE_XML;
 #else
     eMimeTypeResult = MIME_TEXT_XML;
 #endif
   }
-  else if (xmlStrcasecmp(pucArg, BAD_CAST"rdf") == 0 || xmlStrcasecmp(pucArg, BAD_CAST"rss") == 0) {
+  else if (xmlStrcasecmp(pucArg, BAD_CAST "rdf") == 0 || xmlStrcasecmp(pucArg, BAD_CAST "rss") == 0) {
     eMimeTypeResult = MIME_APPLICATION_RDF_XML;
   }
-  else if (xmlStrcasecmp(pucArg, BAD_CAST"ics") == 0) {
+  else if (xmlStrcasecmp(pucArg, BAD_CAST "ics") == 0) {
     eMimeTypeResult = MIME_TEXT_CALENDAR;
   }
-  else if (xmlStrcasecmp(pucArg, BAD_CAST"vcf") == 0) {
+  else if (xmlStrcasecmp(pucArg, BAD_CAST "vcf") == 0) {
     eMimeTypeResult = MIME_TEXT_VCARD;
   }
   /* Microsoft Office
    */
-  else if (xmlStrcasecmp(pucArg, BAD_CAST"mdb") == 0) {
+  else if (xmlStrcasecmp(pucArg, BAD_CAST "mdb") == 0) {
     eMimeTypeResult = MIME_APPLICATION_MSACCESS;
   }
-  else if (xmlStrcasecmp(pucArg, BAD_CAST"xls") == 0) {
+  else if (xmlStrcasecmp(pucArg, BAD_CAST "xls") == 0) {
     eMimeTypeResult = MIME_APPLICATION_MSEXCEL;
   }
   else if (xmlStrcasecmp(pucArg, BAD_CAST"ppt") == 0) {
@@ -392,6 +452,9 @@ resMimeGetTypeFromExt(const xmlChar *pucArg)
   }
   else if (xmlStrcasecmp(pucArg, BAD_CAST"docx") == 0) {
     eMimeTypeResult = MIME_APPLICATION_VND_OPENXMLFORMATS_OFFICEDOCUMENT_WORDPROCESSINGML_DOCUMENT;
+  }
+  else if (xmlStrcasecmp(pucArg, BAD_CAST"rels") == 0) { /* relations in Microsoft Office XML formats "abc.docx/word/_rels/document.xml.rels" */
+    eMimeTypeResult = MIME_TEXT_XML;
   }
   else if (xmlStrcasecmp(pucArg, BAD_CAST"vsdx") == 0) {
     eMimeTypeResult = MIME_APPLICATION_VND_MS_VISIO_DRAWING_MAIN_XML_2013;
@@ -459,6 +522,12 @@ resMimeGetTypeFromExt(const xmlChar *pucArg)
   else if (xmlStrcasecmp(pucArg, BAD_CAST"xspf") == 0) {
     eMimeTypeResult = MIME_APPLICATION_XSPF_XML;
   }
+  else if (xmlStrcasecmp(pucArg, BAD_CAST"xsd") == 0) {
+    eMimeTypeResult = MIME_APPLICATION_XSD_XML;
+  }
+  else if (xmlStrcasecmp(pucArg, BAD_CAST"rng") == 0) {
+    eMimeTypeResult = MIME_APPLICATION_RNG_XML;
+  }
   else if (xmlStrcasecmp(pucArg, BAD_CAST"xsl") == 0) {
     eMimeTypeResult = MIME_TEXT_XSL;
   }
@@ -503,14 +572,29 @@ resMimeGetTypeFromExt(const xmlChar *pucArg)
   else if (xmlStrcasecmp(pucArg, BAD_CAST"gif") == 0) {
     eMimeTypeResult = MIME_IMAGE_GIF;
   }
-  else if (xmlStrcasecmp(pucArg, BAD_CAST"tif") == 0) {
+  else if (xmlStrcasecmp(pucArg, BAD_CAST"bmp") == 0) {
+    eMimeTypeResult = MIME_IMAGE_BMP;
+  }
+  else if (xmlStrcasecmp(pucArg, BAD_CAST"tif") == 0 || xmlStrcasecmp(pucArg, BAD_CAST"tiff") == 0) {
     eMimeTypeResult = MIME_IMAGE_TIFF;
+  }
+  else if (xmlStrcasecmp(pucArg, BAD_CAST"avif") == 0) {
+    eMimeTypeResult = MIME_IMAGE_AVIF;
+  }
+  else if (xmlStrcasecmp(pucArg, BAD_CAST"crw") == 0 || xmlStrcasecmp(pucArg, BAD_CAST"cr2") == 0) {
+    eMimeTypeResult = MIME_IMAGE_X_CANON_CRW;
+  }
+  else if (xmlStrcasecmp(pucArg, BAD_CAST"raw") == 0 || xmlStrcasecmp(pucArg, BAD_CAST"rw2") == 0) {
+    eMimeTypeResult = MIME_IMAGE_X_PANASONIC_RAW;
   }
   else if (xmlStrcasecmp(pucArg, BAD_CAST"wim") == 0 || xmlStrcasecmp(pucArg, BAD_CAST"swm") == 0) {
     eMimeTypeResult = MIME_IMAGE_WMF;
   }
   else if (xmlStrcasecmp(pucArg, BAD_CAST"png") == 0) {
     eMimeTypeResult = MIME_IMAGE_PNG;
+  }
+  else if (xmlStrcasecmp(pucArg, BAD_CAST"svg") == 0) {
+    eMimeTypeResult = MIME_IMAGE_SVG_XML;
   }
   else if (xmlStrcasecmp(pucArg, BAD_CAST"pro") == 0
     || xmlStrcasecmp(pucArg, BAD_CAST"dtl") == 0
@@ -523,6 +607,15 @@ resMimeGetTypeFromExt(const xmlChar *pucArg)
     || xmlStrcasecmp(pucArg, BAD_CAST"mfg") == 0
     || xmlStrcasecmp(pucArg, BAD_CAST"gph") == 0) {
     eMimeTypeResult = MIME_APPLICATION_VND_PTC_CAD_3D;
+  }
+  else if (xmlStrcasecmp(pucArg, BAD_CAST"fit") == 0) {
+    eMimeTypeResult = MIME_APPLICATION_VND_GARMIN_FIT;
+  }
+  else if (xmlStrcasecmp(pucArg, BAD_CAST"fitx") == 0) {
+    eMimeTypeResult = MIME_APPLICATION_VND_GARMIN_FITX;
+  }
+  else if (xmlStrcasecmp(pucArg, BAD_CAST"tcx") == 0) {
+    eMimeTypeResult = MIME_APPLICATION_VND_GARMIN_TCX;
   }
   else if (xmlStrcasecmp(pucArg, BAD_CAST"drw") == 0
     || xmlStrcasecmp(pucArg, BAD_CAST"lay") == 0

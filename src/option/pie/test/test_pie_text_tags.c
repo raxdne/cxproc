@@ -1,7 +1,7 @@
 /*
   cxproc - Configurable Xml PROCessor
 
-  Copyright (C) 2006..2020 by Alexander Tenbusch
+  Copyright (C) 2006..2024 by Alexander Tenbusch
 
   This program is free software; you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -33,45 +33,51 @@ pieTextTagsTest(void)
 
   ProcessTags(NULL,NULL);
   
-#ifdef LEGACY
-
   if (RUNTEST) {
-    int w;
-    xmlChar* pucT;
-    xmlChar* pucTT = NULL;
-    xmlChar* pucTTT = NULL;
-    xmlChar* pucTTTT = NULL;
+    xmlNodePtr pndPie = NULL;
+    xmlNodePtr pndT = NULL;
+    xmlNodePtr pndTest;
+    xmlNodePtr pndResult;
+    xmlNodePtr pndBlock;
+    xmlChar *pucT = NULL;
 
     i++;
-    printf("TEST %i in '%s:%i': update legacy markup in string = ", i, __FILE__, __LINE__);
+    printf("TEST %i in '%s:%i': GetBlockTagRegExpStr() = ", i, __FILE__, __LINE__);
 
-    if ((pucT = StringUpdateMarkupNew(NULL,NULL)) != NULL) {
+    pndPie = xmlNewNode(NULL, BAD_CAST NAME_PIE_PIE);
+
+    pndBlock = xmlNewChild(pndPie, NULL, BAD_CAST NAME_PIE_BLOCK, NULL);
+    xmlAddChild(pndBlock, xmlNewPI(BAD_CAST NAME_PIE_PI_TAG, BAD_CAST"ABC|DEF|HIJ"));
+  
+    pndTest = xmlNewChild(pndBlock, NULL, BAD_CAST NAME_PIE_SECTION, NULL);
+    pndTest = xmlNewChild(pndTest, NULL, BAD_CAST NAME_PIE_HEADER, BAD_CAST"header");
+
+    pndBlock = xmlNewChild(pndBlock, NULL, BAD_CAST NAME_PIE_BLOCK, NULL);
+    xmlAddChild(pndBlock, xmlNewPI(BAD_CAST NAME_PIE_PI_TAG, BAD_CAST"(KLM|NOP|QRS)"));
+  
+    pndTest = xmlNewChild(pndBlock, NULL, BAD_CAST NAME_PIE_SECTION, NULL);
+    pndTest = xmlNewChild(pndTest, NULL, BAD_CAST NAME_PIE_HEADER, BAD_CAST"header");
+    xmlAddChild(pndBlock, xmlNewPI(BAD_CAST NAME_PIE_PI_TAG, BAD_CAST"|UVW|XYZ"));
+
+    if (GetBlockTagRegExpStr(NULL, NULL, FALSE) != NULL) {
+      printf("Error 1 GetBlockTagRegExpStr()\n");
     }
-    else if ((pucTT = StringUpdateMarkupNew(BAD_CAST"",&w)) == NULL
-      || xmlStrEqual(pucTT, BAD_CAST"") == FALSE) {
+    else if ((pucT = GetBlockTagRegExpStr(pndPie, NULL, TRUE)) == NULL) {
+      printf("Error 2 GetBlockTagRegExpStr()\n");
     }
-    else if ((pucTTT = StringUpdateMarkupNew(BAD_CAST"TODO: aaa |||",&w)) == NULL
-      || xmlStrEqual(pucTTT, BAD_CAST"TODO: aaa ") == FALSE
-      || w != 1) {
-      printf("Error '%s'\n",pucTTT);
-    }
-    else if ((pucTTTT = StringUpdateMarkupNew(BAD_CAST"TODO: aaa || meyer doe_john",&w)) == NULL
-      || xmlStrEqual(pucTTTT, BAD_CAST"TODO: aaa  @meyer @doe_john") == FALSE
-      || w != 2) {
-      printf("Error '%s'\n",pucTTTT);
+    else if (xmlStrEqual(pucT, BAD_CAST"ABC|DEF|HIJ|(KLM|NOP|QRS)|UVW|XYZ") == FALSE) {
+      printf("Error 4 GetBlockTagRegExpStr(): '%s'\n",pucT);
     }
     else {
       n_ok++;
       printf("OK\n");
     }
-    //puts((const char *)pucTTT);
-    xmlFree(pucTTTT);
-    xmlFree(pucTTT);
-    xmlFree(pucTT);
+    
+    //domPutNodeString(stderr, BAD_CAST"GetBlockTagRegExpStr() result", pndPie);
     xmlFree(pucT);
+    xmlFreeNode(pndPie);
   }
-#endif
-  
+
 
 #if 0
   if (RUNTEST) {
@@ -81,7 +87,7 @@ pieTextTagsTest(void)
     i++;
     printf("TEST %i in '%s:%i': SplitStringToHashTagNodes() = ", i, __FILE__, __LINE__);
 
-    if ((pndPie = xmlNewNode(NULL, NAME_PIE_PIE)) == NULL) {
+    if ((pndPie = xmlNewNode(NULL, BAD_CAST NAME_PIE_PIE)) == NULL) {
       printf("Error xmlNewNode()\n");
     }
     else if ((pndT = SplitStringToHashTagNodes(NULL,NULL))) {
@@ -93,22 +99,22 @@ pieTextTagsTest(void)
       xmlFreeNode(pndT);
     }
     else if ((pndT = SplitStringToHashTagNodes(BAD_CAST"AAA @BBB CCC",re_hashtag)) == NULL
-      || domNumberOfChild(pndT, NAME_PIE_HTAG) != 1
+      || domNumberOfChild(pndT, BAD_CAST NAME_PIE_HTAG) != 1
       || xmlAddChild(pndPie, pndT) == NULL) {
       printf("Error 3 SplitStringToHashTagNodes()\n");
     }
     else if ((pndT = SplitStringToHashTagNodes(BAD_CAST"@abc123", re_hashtag)) == NULL
-      || domNumberOfChild(pndT, NAME_PIE_HTAG) != 1
+      || domNumberOfChild(pndT, BAD_CAST NAME_PIE_HTAG) != 1
       || xmlAddChild(pndPie, pndT) == NULL) {
       printf("Error 3 SplitStringToHashTagNodes()\n");
     }
     else if ((pndT = SplitStringToHashTagNodes(BAD_CAST"@abc123 xyz @abc123", re_hashtag)) == NULL
-      || domNumberOfChild(pndT, NAME_PIE_HTAG) != 2
+      || domNumberOfChild(pndT, BAD_CAST NAME_PIE_HTAG) != 2
       || xmlAddChild(pndPie, pndT) == NULL) {
       printf("Error 3 SplitStringToHashTagNodes()\n");
     }
     else if ((pndT = SplitStringToHashTagNodes(BAD_CAST"#abc123", re_hashtag)) == NULL
-      || domNumberOfChild(pndT, NAME_PIE_HTAG) != 1
+      || domNumberOfChild(pndT, BAD_CAST NAME_PIE_HTAG) != 1
       || xmlAddChild(pndPie, pndT) == NULL) {
       printf("Error 3 SplitStringToHashTagNodes()\n");
     }
@@ -146,7 +152,7 @@ pieTextTagsTest(void)
       printf("Error 4 ProcessTags()\n");
     }
 #if 0
-    else if (domNumberOfChild(pndPie, NAME_PIE_TTAG) != 1) {
+    else if (domNumberOfChild(pndPie, BAD_CAST NAME_PIE_TTAG) != 1) {
       printf("Error 5 ProcessTags()\n");
     }
 #endif
@@ -172,22 +178,22 @@ pieTextTagsTest(void)
     else if (RecognizeNodeTags(NULL, NULL) == FALSE) {
       printf("Error 1 RecognizeNodeTags()\n");
     }
-    else if ((pndPie = xmlNewNode(NULL, NAME_PIE_PIE)) == NULL) {
+    else if ((pndPie = xmlNewNode(NULL, BAD_CAST NAME_PIE_PIE)) == NULL) {
       printf("Error 1 xmlNewNode()\n");
     }
-    else if ((pndT = xmlNewChild(pndPie, NULL, NAME_PIE_PAR, BAD_CAST"TEST test @test #test ATEST test")) == NULL) {
+    else if ((pndT = xmlNewChild(pndPie, NULL, BAD_CAST NAME_PIE_PAR, BAD_CAST"TEST test @test #test ATEST test")) == NULL) {
       printf("Error 2 xmlNewChild()\n");
     }
     else if (RecognizeNodeTags(pndPie, pndT) == FALSE) {
       printf("Error 2 RecognizeNodeTags()\n");
     }
-    else if ((pndT = xmlNewChild(pndPie, NULL, NAME_PIE_PAR, BAD_CAST"A BC DEF HIjk lmn op q")) == NULL) {
+    else if ((pndT = xmlNewChild(pndPie, NULL, BAD_CAST NAME_PIE_PAR, BAD_CAST"A BC DEF HIjk lmn op q")) == NULL) {
       printf("Error 3 xmlNewChild()\n");
     }
     else if (RecognizeNodeTags(pndPie, pndT) == FALSE) {
       printf("Error 3 RecognizeNodeTags()\n");
     }
-    else if (domNumberOfChild(pndPie, NAME_PIE_TTAG) != 2) {
+    else if (domNumberOfChild(pndPie, BAD_CAST NAME_PIE_TTAG) != 2) {
       printf("Error 4 ProcessTags()\n");
     }
     else {
@@ -210,37 +216,37 @@ pieTextTagsTest(void)
     if (CleanListTag(NULL,FALSE)) {
       printf("Error 1 CleanListTag()\n");
     }
-    else if ((pndPie = xmlNewNode(NULL, NAME_PIE_TAGLIST)) == NULL) {
+    else if ((pndPie = xmlNewNode(NULL, BAD_CAST NAME_PIE_TAGLIST)) == NULL) {
       printf("Error 1 xmlNewNode()\n");
     }
-    else if ((pndT = xmlNewChild(pndPie, NULL, NAME_PIE_TTAG, BAD_CAST"")) == NULL) {
+    else if ((pndT = xmlNewChild(pndPie, NULL, BAD_CAST NAME_PIE_TTAG, BAD_CAST"")) == NULL) {
       printf("Error 2 xmlNewChild()\n");
     }
     else if (CleanListTag(pndPie,FALSE) == FALSE) {
       printf("Error 2 CleanListTag()\n");
     }
-    else if ((pndT = xmlNewChild(pndPie, NULL, NAME_PIE_TTAG, BAD_CAST"Abc")) == NULL) {
+    else if ((pndT = xmlNewChild(pndPie, NULL, BAD_CAST NAME_PIE_TTAG, BAD_CAST"Abc")) == NULL) {
       printf("Error 3 xmlNewChild()\n");
     }
-    else if ((pndT = xmlNewChild(pndPie, NULL, NAME_PIE_TTAG, BAD_CAST"")) == NULL) {
+    else if ((pndT = xmlNewChild(pndPie, NULL, BAD_CAST NAME_PIE_TTAG, BAD_CAST"")) == NULL) {
       printf("Error 4 xmlNewChild()\n");
     }
-    else if ((pndT = xmlNewChild(pndPie, NULL, NAME_PIE_TTAG, BAD_CAST"Abcdef")) == NULL) {
+    else if ((pndT = xmlNewChild(pndPie, NULL, BAD_CAST NAME_PIE_TTAG, BAD_CAST"Abcdef")) == NULL) {
       printf("Error 5 xmlNewChild()\n");
     }
-    else if ((pndT = xmlNewChild(pndPie, NULL, NAME_PIE_TTAG, BAD_CAST"ABCDEF")) == NULL) {
+    else if ((pndT = xmlNewChild(pndPie, NULL, BAD_CAST NAME_PIE_TTAG, BAD_CAST"ABCDEF")) == NULL) {
       printf("Error 6 xmlNewChild()\n");
     }
     else if (CleanListTag(pndPie,FALSE) == FALSE) {
       printf("Error 3 CleanListTag()\n");
     }
-    else if (domNumberOfChild(pndPie, NAME_PIE_TTAG) != 3) {
+    else if (domNumberOfChild(pndPie, BAD_CAST NAME_PIE_TTAG) != 3) {
       printf("Error 4 CleanListTag()\n");
     }
     else if (CleanListTag(pndPie,TRUE) == FALSE) {
       printf("Error 5 CleanListTag()\n");
     }
-    else if (domNumberOfChild(pndPie, NAME_PIE_TTAG) != 2) {
+    else if (domNumberOfChild(pndPie, BAD_CAST NAME_PIE_TTAG) != 2) {
       printf("Error 6 CleanListTag()\n");
     }
     else {

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <cxp:make xmlns:cxp="http://www.tenbusch.info/cxproc">
-  <cxp:system mkdir="result"/>
+  <cxp:system mkdir="result/"/>
   <cxp:system message="*** Test 1a: compressing of existing files ***"/>
   <cxp:zip name="result/test-zip-001a.zip" level="3" context="../..">
     <dir name="plain">
@@ -114,12 +114,17 @@ plain/test-unicode16-bom.txt
     <cxp:file name="result/test-zip-002a.zip" verbosity="4"/>
   </cxp:xml>
   <cxp:system message="*** TODO Test 4: compressing of script generated path ***"/>
-  <cxp:zip name="result/test-zip-004.zip" level="3" valid="no">
-    <cxp:script>
-	var strPath = 'ajax/' + 'ClassTester.js';
+  <cxp:zip name="result/test-zip-004.zip" level="3" context="..">
+    <cxp:plain>
+      <cxp:script>
+	var strPath = 'script/' + 'test-js-10.js\n';
 
-	strPath;
-    </cxp:script>
+for (i=0; i &lt; 256;i++) {
+	strPath += i.toString() + '/';
+}
+	strPath + '\n';
+      </cxp:script>
+    </cxp:plain>
   </cxp:zip>
   <cxp:system message="*** TODO Test 5: compressing of script generated content ***"/>
 

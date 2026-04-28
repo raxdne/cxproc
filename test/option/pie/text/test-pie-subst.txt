@@ -1,0 +1,8 @@
+
+#subst('TTT','UUU')
+
+#subst(r'(Task)','Ksat <- $1')
+
+This is a Task!
+
+löaskdöa TTTTTT rowpeirwpeor

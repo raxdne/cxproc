@@ -1,7 +1,7 @@
 /*
   cxproc - Configurable Xml PROCessor
 
-  Copyright (C) 2006..2020 by Alexander Tenbusch
+  Copyright (C) 2006..2024 by Alexander Tenbusch
 
   This program is free software; you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -48,28 +48,28 @@ extern void
 resPathCleanup(void);
 
 extern xmlChar *
-resPathEncode(const char *pchArg);
+resPathEncodeStr(const char *pchArg);
 
 extern char *
-resPathDecode(xmlChar *pucArg);
+resPathDecodeStr(xmlChar *pucArg);
 
 extern xmlChar *
-resPathGetQuoted(xmlChar *pucArgNameFile);
+resPathGetQuotedStr(xmlChar *pucArgNameFile);
 
 extern int
 resPathGetDepth(xmlChar *pucArgPath);
 
 extern xmlChar *
-resPathGetExtension(xmlChar *pucArg);
+resPathGetExtensionStr(xmlChar *pucArg);
 
 extern xmlChar *
-resPathConcat(xmlChar *pucArgA, xmlChar *pucArgB);
+resPathConcatStr(xmlChar *pucArgA, xmlChar *pucArgB);
 
 extern xmlChar *
-resPathConcatNormalized(xmlChar *pucArgA, xmlChar *pucArgB);
+resPathConcatNormalizedStr(xmlChar *pucArgA, xmlChar *pucArgB);
 
 extern xmlChar *
-resPathNormalize(xmlChar *pucArg);
+_resPathNormalize(xmlChar *pucArg);
 
 #define FS_PATH_NUL  (0)
 #define FS_PATH_SELF (1)
@@ -79,19 +79,19 @@ resPathNormalize(xmlChar *pucArg);
 #define FS_PATH_FULL (FS_PATH_SELF | FS_PATH_UP | FS_PATH_SEP)
 
 extern xmlChar *
-resPathCollapse(xmlChar *pucArg, int iArgOpts);
+resPathCollapseStr(xmlChar *pucArg, int iArgOpts);
 
 extern xmlChar *
-resPathGetCwd(void);
+resPathGetCwdStr(void);
 
 extern xmlChar *
 resPathRemoveQuotes(xmlChar *pucArg);
 
 extern xmlChar *
-resPathGetBasedir(xmlChar *str_filename);
+resPathGetBasedirStr(xmlChar *str_filename);
 
 extern xmlChar *
-resPathGetRootname(xmlChar *pucArgNameFile);
+resPathGetRootnameStr(xmlChar *pucArgNameFile);
 
 extern BOOL_T
 resPathIsMatchingBegin(xmlChar *pucArgPath, xmlChar *pucArgNameFile);
@@ -103,10 +103,13 @@ extern BOOL_T
 resPathIsDescendant(xmlChar *pucArgPath, xmlChar *pucArgPathDescendant);
 
 extern xmlChar *
+resPathSkipPrefixFilePtr(xmlChar *pucArgPath);
+
+extern xmlChar *
 resPathDiffPtr(xmlChar *pucArgPath, xmlChar *pucArgPathDescendant);
 
 extern xmlChar *
-resPathGetBasename(xmlChar *pucArgNameFile);
+resPathGetBasenameStr(xmlChar *pucArgNameFile);
 
 extern xmlChar *
 resPathCutTrailingChars(xmlChar *pucArgPath);
@@ -115,10 +118,13 @@ extern xmlChar *
 resPathChangeToSlashes(xmlChar *pucArgPath);
 
 extern xmlChar *
-resPathGetNextSeparator(xmlChar *pucArgPath);
+resPathGetNextPathPtr(xmlChar *pucArgPath);
 
 extern xmlChar *
-resPathGetDirFind(xmlChar *pucArgPath, xmlChar *pucArgNeedle);
+resPathGetNextSeparatorPtr(xmlChar *pucArgPath);
+
+extern xmlChar *
+resPathFindDirStr(xmlChar *pucArgPath, xmlChar *pucArgNeedle);
 
 extern BOOL_T
 resPathIsDir(xmlChar *pucArg);
@@ -162,7 +168,10 @@ resPathGetPathInNextArchivePtr(xmlChar *pucArg);
 #define resPathIsInArchive(P) (resPathGetPathInNextArchivePtr(P) != NULL)
 
 extern xmlChar *
-resPathGetPathOfArchive(xmlChar *pucArg);
+resPathGetPathOfArchiveStr(xmlChar *pucArg);
+
+extern BOOL_T
+resPathIsTemp(xmlChar *pucArg);
 
 extern BOOL_T
 resPathIsRelative(xmlChar *pucArg);

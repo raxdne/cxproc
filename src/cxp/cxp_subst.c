@@ -1,7 +1,7 @@
 /*
   cxproc - Configurable Xml PROCessor
 
-  Copyright (C) 2006..2020 by Alexander Tenbusch
+  Copyright (C) 2006..2024 by Alexander Tenbusch
 
   This program is free software; you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -43,25 +43,24 @@
 #include <petrinet/petrinet.h>
 #endif
 
-#ifdef HAVE_JS
-#include <script/script.h>
-#endif
-
 #ifdef HAVE_CGI
 #include <cxp/cxp_context_cgi.h>
 #endif
 
 static BOOL_T
-ApplySubstText(const xmlNodePtr node, const xmlChar *pucFrom, const xmlChar *pucTo);
+ApplySubstText(const xmlNodePtr node, const xmlChar *pucFrom, const xmlChar *pucTo, BOOL_T(*pSkip)(xmlNodePtr pndArg));
+
+static BOOL_T
+ApplySubstRegExp(const xmlNodePtr pndArg, const pcre2_code* preArgFrom, const xmlChar* pucTo, BOOL_T(*pSkip)(xmlNodePtr pndArg));
+
+static BOOL_T
+cxpSubstSkip(xmlNodePtr pndArg);
 
 static cxpSubstPtr
 cxpSubstNew(void);
 
 static BOOL_T
 cxpSubstPrint(cxpSubstPtr pcxpSubstArg, cxpContextPtr pccArg);
-
-static BOOL_T
-cxpSubstApply(xmlNodePtr pndArgTop, cxpSubstPtr pcxpSubstArg, cxpContextPtr pccArg);
 
 
 /*! apply all substitutions recursively
@@ -73,12 +72,15 @@ cxpSubstApply(xmlNodePtr pndArgTop, cxpSubstPtr pcxpSubstArg, cxpContextPtr pccA
 \return TRUE if successful
 */
 BOOL_T
-ApplySubstText(const xmlNodePtr pndArg, const xmlChar *pucFrom, const xmlChar *pucTo)
+ApplySubstText(const xmlNodePtr pndArg, const xmlChar *pucFrom, const xmlChar *pucTo, BOOL_T (* pSkip)(xmlNodePtr pndArg))
 {
   BOOL_T fResult = FALSE;
 
   if (pndArg) {
-    if (pndArg->type == XML_TEXT_NODE || pndArg->type == XML_PI_NODE || pndArg->type == XML_COMMENT_NODE) {
+    if (pSkip != NULL && (*pSkip)(pndArg)) {
+      /* skip this branch */
+    }
+    else if (pndArg->type == XML_TEXT_NODE) {
       if (pndArg->content) {
 	xmlChar *pucNew;
 
@@ -92,16 +94,75 @@ ApplySubstText(const xmlNodePtr pndArg, const xmlChar *pucFrom, const xmlChar *p
       }
     }
     else if (pndArg->type == XML_ELEMENT_NODE || pndArg->type == XML_ATTRIBUTE_NODE) {
-      ApplySubstText((xmlNode *)pndArg->properties, pucFrom, pucTo);
-      ApplySubstText(pndArg->children, pucFrom, pucTo);
+      ApplySubstText((xmlNode *)pndArg->properties, pucFrom, pucTo, pSkip);
+      ApplySubstText(pndArg->children, pucFrom, pucTo,pSkip);
     }
     else {
       /* ignore */
     }
-    ApplySubstText(pndArg->next, pucFrom, pucTo);
+    ApplySubstText(pndArg->next, pucFrom, pucTo, pSkip);
   }
   return fResult;
 } /* end of ApplySubstText() */
+
+
+#ifdef HAVE_PCRE2
+
+/*! apply all substitutions recursively
+
+\param pndArg a xmlNodePtr to substitute node and its childs
+\param pucFrom
+\param pucTo
+
+\return TRUE if successful
+*/
+BOOL_T
+ApplySubstRegExp(const xmlNodePtr pndArg, const pcre2_code* preArgFrom, const xmlChar* pucTo, BOOL_T(*pSkip)(xmlNodePtr pndArg))
+{
+  BOOL_T fResult = FALSE;
+
+  if (pndArg) {
+    if (pSkip != NULL && (*pSkip)(pndArg)) {
+      /* skip this branch */
+    }
+    else if (pndArg->type == XML_TEXT_NODE || pndArg->type == XML_PI_NODE || pndArg->type == XML_COMMENT_NODE) {
+      int rc;
+      size_t sInput;
+
+      sInput = xmlStrlen(pndArg->content);
+      if (sInput > 0) {
+	size_t sOutput;
+	size_t sOutputMax;
+	xmlChar* pucOutput;
+
+	sOutput = sOutputMax = ((sInput < 256) ? 256 : sInput) * 8;
+	
+	if ((pucOutput = BAD_CAST xmlMalloc(sOutputMax)) != NULL) {
+
+	  if ((rc = pcre2_substitute(preArgFrom, (PCRE2_SPTR8)pndArg->content, sInput, 0, PCRE2_SUBSTITUTE_GLOBAL,
+	    NULL, NULL, (PCRE2_SPTR8)pucTo, xmlStrlen(pucTo), pucOutput, &sOutput)) > 0) {
+
+	    assert(sOutput < sOutputMax);
+	    xmlNodeSetContent(pndArg, BAD_CAST pucOutput);
+	    fResult = TRUE;
+	  }
+	  xmlFree(pucOutput);
+	}
+      }
+    }
+    else if (pndArg->type == XML_ELEMENT_NODE || pndArg->type == XML_ATTRIBUTE_NODE) {
+      ApplySubstRegExp((xmlNode*)pndArg->properties, preArgFrom, pucTo, pSkip);
+      ApplySubstRegExp(pndArg->children, preArgFrom, pucTo, pSkip);
+    }
+    else {
+      /* ignore */
+    }
+    ApplySubstRegExp(pndArg->next, preArgFrom, pucTo, pSkip);
+  }
+  return fResult;
+} /* end of ApplySubstRegExp() */
+
+#endif
 
 
 /*! process the childs of top element MAKE (non-recursive!)
@@ -154,19 +215,28 @@ cxpSubstIncludeNodes(xmlNodePtr pndArg,cxpContextPtr pccArg)
 	    /* replace pndArg with a copy of pndRootInclude */
 	    xmlNodePtr pndCopy;
 
-	    pndCopy = xmlCopyNode(pndRootInclude,1);
+	    pndCopy = xmlCopyNode(pndRootInclude, 1);
 	    if (pndCopy) {
 	      xmlNodePtr pndOld;
 
-	      /*!\todo use cxpSubstApply(pndCopy) */
-	      pndOld = xmlReplaceNode(pndArg,pndCopy);
+	      if (IS_NODE_MAKE(pndRootInclude) && IS_NODE_MAKE(pndArg->parent) && IS_ENODE(pndCopy->children)) {
+		cxpCtxtLogPrint(pccArg, 3, "replace subst node by childs");
+		pndOld = domReplaceNodeList(pndArg,pndCopy->children);
+		xmlFreeNode(pndCopy);
+	      }
+	      else {
+		/*!\todo use cxpSubstApply(pndCopy) */
+		pndOld = xmlReplaceNode(pndArg, pndCopy);
+	      }
+
 	      if (pndOld) {
 		xmlFreeNode(pndOld);
 	      }
 	    }
 	  }
 	  xmlFreeDoc(pdocInclude);
-	} else {
+	}
+	else {
 	  xmlAddChild(pndArg,xmlNewComment(BAD_CAST" XML parser error "));
 	}
 	cxpSubstFree(pcxpSubstT);
@@ -244,6 +314,29 @@ cxpSubstDetect(xmlNodePtr pndArgSubst, cxpContextPtr pccArg)
       else if ((pucT = domGetPropValuePtr(pndArgSubst, BAD_CAST "string"))) {
 	pcxpSubstResult->pucName  = xmlStrdup(pucT);
       }
+#ifdef HAVE_PCRE2
+      else if ((pucT = domGetPropValuePtr(pndArgSubst, BAD_CAST "regexp"))) {
+	int errornumber = 0;
+	size_t erroroffset;
+	
+	pcxpSubstResult->preFrom = pcre2_compile(
+						 (PCRE2_SPTR8)pucT, /* the pattern */
+						 PCRE2_ZERO_TERMINATED, /* indicates pattern is zero-terminated */
+						 PCRE2_UTF|PCRE2_CASELESS,        /* default options */
+						 &errornumber,          /* for error number */
+						 &erroroffset,          /* for error offset */
+						 NULL);                 /* use default compile context */
+	
+	if (pcxpSubstResult->preFrom == NULL) {
+	  PCRE2_UCHAR buffer[256];
+	
+	  pcre2_get_error_message(errornumber, buffer, sizeof(buffer));
+	  cxpCtxtLogPrint(pccArg,1,"PCRE2 compilation failed at offset %d: %s", (int)erroroffset, buffer);
+	}
+
+	/*!\todo check pcre2_compile() of pucTo once ??? */
+      }
+#endif
 
       if ((pucT = domGetPropValuePtr(pndArgSubst, BAD_CAST "default"))) {
 	/* detect a possible default value */
@@ -252,10 +345,10 @@ cxpSubstDetect(xmlNodePtr pndArgSubst, cxpContextPtr pccArg)
       else if ((pucT = domGetPropValuePtr(pndArgSubst, BAD_CAST "select"))) {
 	pcxpSubstResult->pucDefault = xmlStrdup(pucT);
       }
-      else if (pndArgSubst->children != NULL && pndArgSubst->children == pndArgSubst->last && xmlNodeIsText(pndArgSubst->children)
-	  && (pucT = xmlNodeGetContent(pndArgSubst->children)) != NULL) {
+      else if (pndArgSubst->children != NULL && pndArgSubst->children == pndArgSubst->last
+	       && xmlNodeIsText(pndArgSubst->children) && STR_IS_NOT_EMPTY(pndArgSubst->children->content)) {
 	/* detect a possible default value */
-	pcxpSubstResult->pucDefault = xmlStrdup(pucT);
+	pcxpSubstResult->pucDefault = xmlStrdup(pndArgSubst->children->content);
       }
       
       if (((pucT = domGetPropValuePtr(pndArgSubst, BAD_CAST "to")) != NULL
@@ -271,7 +364,7 @@ cxpSubstDetect(xmlNodePtr pndArgSubst, cxpContextPtr pccArg)
       /*!\todo use text node content also */
 
 #ifdef HAVE_JS
-      if ((pcxpSubstResult->pucScriptResult = scriptProcessScriptAttribute(pndArgSubst,pccArg)) != NULL) {
+      if ((pcxpSubstResult->pucScriptResult = cxpScriptProcessText(domGetPropValuePtr(pndArgSubst,BAD_CAST NAME_SCRIPT),pccArg)) != NULL) {
 	/* this is a substitution with script result */
 	if (pcxpSubstResult->eEncoding == rfc1738) {
 	  pucTT = pcxpSubstResult->pucScriptResult;
@@ -286,7 +379,7 @@ cxpSubstDetect(xmlNodePtr pndArgSubst, cxpContextPtr pccArg)
   	       this is a substitution with current directories
 	 */
 	if (xmlStrcasecmp(pucT, BAD_CAST "pwd")==0) {
-	  pcxpSubstResult->pucDir = resPathGetCwd();
+	  pcxpSubstResult->pucDir = resPathGetCwdStr();
 	}
 	else if (xmlStrcasecmp(pucT, BAD_CAST "ofFile")==0) {
 	  if (pccArg) {
@@ -303,15 +396,17 @@ cxpSubstDetect(xmlNodePtr pndArgSubst, cxpContextPtr pccArg)
 	  /*! basedir of given file detected */
 	  resNodePtr prnDir;
 
-	  prnDir = resNodeFromNodeNew(cxpCtxtLocationGet(pccArg),pucT);
-	  if (prnDir) {
 #ifdef HAVE_CGI
-	      pcxpSubstResult->pucDir = resPathGetBasedir(resNodeGetNameRelative(cxpCtxtRootGet(pccArg),prnDir));
-#else
-	      pcxpSubstResult->pucDir = xmlStrdup(resNodeGetNameBaseDir(prnDir));
-#endif
+	  if ((prnDir = resNodeFromNodeNew(cxpCtxtRootGet(pccArg),pucT)) != NULL) {
+	    pcxpSubstResult->pucDir = resPathGetBasedirStr(resNodeGetNameRelative(cxpCtxtRootGet(pccArg),prnDir));
 	    resNodeFree(prnDir);
 	  }
+#else
+	  if ((prnDir = resNodeFromNodeNew(cxpCtxtLocationGet(pccArg),pucT)) != NULL) {
+	    pcxpSubstResult->pucDir = xmlStrdup(resNodeGetNameBaseDir(prnDir));
+	    resNodeFree(prnDir);
+	  }
+#endif
 	  else {
 	    cxpCtxtLogPrint(pccArg,1, "No filename registered");
 	  }
@@ -331,7 +426,7 @@ cxpSubstDetect(xmlNodePtr pndArgSubst, cxpContextPtr pccArg)
           this is a substitution with file name
 	 */
 	if (xmlStrEqual(pucT,BAD_CAST".") && pccArg != NULL && pndArgSubst->doc != NULL) {
-	  pcxpSubstResult->pucFilename = resPathGetBasename(BAD_CAST pndArgSubst->doc->URL);
+	  pcxpSubstResult->pucFilename = resPathGetBasenameStr(BAD_CAST pndArgSubst->doc->URL);
 	}
 #ifdef HAVE_CGI
 #else
@@ -340,7 +435,7 @@ cxpSubstDetect(xmlNodePtr pndArgSubst, cxpContextPtr pccArg)
 	}
 #endif
 	else {
-	  pcxpSubstResult->pucFilename = resPathGetBasename(pucT);
+	  pcxpSubstResult->pucFilename = resPathGetBasenameStr(pucT);
 	}
 
 	if (pcxpSubstResult->pucFilename != NULL && pcxpSubstResult->eEncoding == rfc1738) {
@@ -357,10 +452,10 @@ cxpSubstDetect(xmlNodePtr pndArgSubst, cxpContextPtr pccArg)
           this is a substitution with file extension
 	 */
 	if (xmlStrEqual(pucT,BAD_CAST".") && pccArg != NULL && pndArgSubst->doc != NULL) {
-	  pcxpSubstResult->pucExt = resPathGetExtension(BAD_CAST pndArgSubst->doc->URL);
+	  pcxpSubstResult->pucExt = resPathGetExtensionStr(BAD_CAST pndArgSubst->doc->URL);
 	}
 	else {
-	  pcxpSubstResult->pucExt = resPathGetExtension(pucT);
+	  pcxpSubstResult->pucExt = resPathGetExtensionStr(pucT);
 	}
 
 	if (pcxpSubstResult->pucExt != NULL && pcxpSubstResult->eEncoding == rfc1738) {
@@ -375,10 +470,10 @@ cxpSubstDetect(xmlNodePtr pndArgSubst, cxpContextPtr pccArg)
   	    this is a substitution with symbolic MIME type string
 	 */
 	if (xmlStrEqual(pucT,BAD_CAST".") && pccArg != NULL && pndArgSubst->doc != NULL) {
-	  pucTT = resPathGetExtension(BAD_CAST pndArgSubst->doc->URL);
+	  pucTT = resPathGetExtensionStr(BAD_CAST pndArgSubst->doc->URL);
 	}
 	else {
-	  pucTT = resPathGetExtension(pucT);
+	  pucTT = resPathGetExtensionStr(pucT);
 	}
 
 	if (STR_IS_NOT_EMPTY(pucTT)) {
@@ -409,42 +504,40 @@ cxpSubstDetect(xmlNodePtr pndArgSubst, cxpContextPtr pccArg)
 	pcxpSubstResult->pucHost = cxpCtxtGetHostValueNamed(pccArg,pucT);
       }
 
-#ifdef HAVE_CGI
       if ((pucT = domGetPropValuePtr(pndArgSubst, BAD_CAST "cgi"))) {
-	/* dont restrict to cxpContextRunmodeIsCgi() because offline testing */
-	//fAccess = FALSE;
+	/* there is an according named value, check access permission to value of "file" or "dir" and map the path */
 	if ((pcxpSubstResult->pucCgi = cxpCtxtCgiGetValueByName(pccArg,pucT)) == NULL && (pcxpSubstResult->pucCgi = cxpCtxtCliGetValueByName(pccArg, pucT)) == NULL) {
 	  cxpCtxtLogPrint(pccArg,2,"No value for '%s'",pucT);
 	}
-	else {
-	  /* there is an according named value, check access
-  		 permission to value of "file" or "dir" and map the
-  		 path */
-	  if (xmlStrEqual(pucT,BAD_CAST"dir") || xmlStrEqual(pucT,BAD_CAST"file")) {
-	    resNodePtr prnT;
+	else if (xmlStrEqual(pucT,BAD_CAST"dir") || xmlStrEqual(pucT,BAD_CAST"file") || xmlStrEqual(pucT,BAD_CAST"path")) {
+	  resNodePtr prnTest;
 
-	    prnT = resNodeRootNew(cxpCtxtRootGet(pccArg),pcxpSubstResult->pucCgi);
-	    if (cxpCtxtAccessIsPermitted(pccArg,prnT)) {
-	      //fAccess = TRUE;
-	      xmlFree(pcxpSubstResult->pucCgi);
+	  prnTest = resNodeRootNew(cxpCtxtRootGet(pccArg), pcxpSubstResult->pucCgi);
 
-	      if (domGetPropFlag(pndArgSubst, BAD_CAST "normalize", FALSE)) {
-		pcxpSubstResult->pucCgi = xmlStrdup(resNodeGetNameNormalized(prnT));
-	      }
-	      else {
-		pcxpSubstResult->pucCgi = xmlStrdup(resNodeGetNameRelative(cxpCtxtRootGet(pccArg),prnT)); // file access is checked, use CGI value without path
-	      }
-	      resPathChangeToSlashes(pcxpSubstResult->pucCgi);
+	  if ((prnTest == NULL || resNodeIsReadable(prnTest) == FALSE) && domGetPropFlag(pndArgSubst, BAD_CAST "search", FALSE)) {
+	    prnTest = resNodeListFindPath(cxpCtxtRootGet(pccArg), pcxpSubstResult->pucCgi, (RN_FIND_FILE | RN_FIND_IN_SUBDIR | RN_FIND_REGEXP));
+	  }
+	  
+	  if (cxpCtxtAccessIsPermitted(pccArg,prnTest)) {
+	    xmlFree(pcxpSubstResult->pucCgi);
+
+	    if (domGetPropFlag(pndArgSubst, BAD_CAST "normalize", FALSE)) {
+	      pcxpSubstResult->pucCgi = xmlStrdup(resNodeGetNameNormalized(prnTest));
 	    }
 	    else {
-	      cxpCtxtLogPrint(pccArg,2,"No file '%s'",pcxpSubstResult->pucCgi);
+	      pcxpSubstResult->pucCgi = xmlStrdup(resNodeGetNameRelative(cxpCtxtRootGet(pccArg),prnTest)); // file access is checked, use CGI value without path
 	    }
-	    resNodeFree(prnT);
+	    resPathChangeToSlashes(pcxpSubstResult->pucCgi);
 	  }
-	  NormalizeStringNewLines((char *) pcxpSubstResult->pucCgi);
+	  else {
+	    cxpCtxtLogPrint(pccArg,2,"No file '%s'",pcxpSubstResult->pucCgi);
+	  }
+	  resNodeFree(prnTest);
+	}
+	else {
+	  //NormalizeStringNewLines((char *) pcxpSubstResult->pucCgi);
 	}
       }
-#endif
 
       if ((IS_NODE_SUBST(pndArgSubst) || IS_NODE_VARIABLE(pndArgSubst)) && pcxpSubstResult->pucDefault != NULL) {
 	/*
@@ -584,6 +677,15 @@ cxpSubstDetect(xmlNodePtr pndArgSubst, cxpContextPtr pccArg)
 /* end of cxpSubstDetect() */
 
 
+/*! \return TRUE if subtree of pndArg has to be skipped
+ */
+BOOL_T
+cxpSubstSkip(xmlNodePtr pndArg)
+{
+  return (pndArg == NULL || pndArg->type == XML_PI_NODE || pndArg->type == XML_COMMENT_NODE || IS_NODE_META(pndArg));
+} /* End of cxpSubstSkip() */
+
+
 /*! Apply the pArgcxpSubst.
 
 \param pArgcxpSubst the context to apply
@@ -595,109 +697,19 @@ cxpSubstApply(xmlNodePtr pndArgTop, cxpSubstPtr pcxpSubstArg, cxpContextPtr pccA
   BOOL_T fResult = TRUE;
 
   if (pcxpSubstArg) {
-    /*!\todo substitute searchpath="pie.css" to whole filename */
-
-#if 1
-    ApplySubstText(pndArgTop, cxpSubstGetNamePtr(pcxpSubstArg), cxpSubstGetPtr(pcxpSubstArg));
-#else
-    if (pcxpSubstArg->pucTo) {
-      if (pcxpSubstArg->pucName) {
-	ApplySubstText(pndArgTop, pcxpSubstArg->pucName, pcxpSubstArg->pucTo);
+#ifdef HAVE_PCRE2
+    if (cxpSubstGetRegExp(pcxpSubstArg)) {
+      if (cxpSubstGetPtr(pcxpSubstArg)) {
+	ApplySubstRegExp(pndArgTop, cxpSubstGetRegExp(pcxpSubstArg), cxpSubstGetPtr(pcxpSubstArg), pcxpSubstArg->pPredicateSkip);
       }
       else {
-	xmlNodePtr pndNew;
-
-	pndNew = xmlNewText(pcxpSubstArg->pucTo);
-	xmlReplaceNode(pndArgTop,pndNew);
       }
-    }
-    else if (pcxpSubstArg->pucCgi) {
-      ApplySubstText(pndArgTop, pcxpSubstArg->pucName, pcxpSubstArg->pucCgi);
-    }
-    else if (pcxpSubstArg->pucArgv) {
-      ApplySubstText(pndArgTop, pcxpSubstArg->pucName, pcxpSubstArg->pucArgv);
-    }
-    else if (pcxpSubstArg->pucEnv) {
-      if (pcxpSubstArg->pucName) {
-	ApplySubstText(pndArgTop, pcxpSubstArg->pucName, pcxpSubstArg->pucEnv);
-      }
-      else {
-	xmlNodePtr pndNew;
-
-	pndNew = xmlNewText(pcxpSubstArg->pucEnv);
-	xmlReplaceNode(pndArgTop,pndNew);
-      }
-    }
-    else if (pcxpSubstArg->pucHost) {
-      ApplySubstText(pndArgTop, pcxpSubstArg->pucName, pcxpSubstArg->pucHost);
-    }
-#ifdef HAVE_JS
-    else if (pcxpSubstArg->pucScriptResult) {
-      if (pcxpSubstArg->pucName) {
-	ApplySubstText(pndArgTop,pcxpSubstArg->pucName,pcxpSubstArg->pucScriptResult);
-      }
-      else {
-	xmlNodePtr pndNew;
-
-	pndNew = xmlNewText(pcxpSubstArg->pucScriptResult);
-	xmlReplaceNode(pndArgTop,pndNew);
-      }
-    }
-#endif
-    else if (pcxpSubstArg->pucNow) {
-      if (pcxpSubstArg->pucName) {
-	ApplySubstText(pndArgTop, pcxpSubstArg->pucName, pcxpSubstArg->pucNow);
-      }
-      else {
-	xmlNodePtr pndNew;
-
-	pndNew = xmlNewText(pcxpSubstArg->pucNow);
-	xmlReplaceNode(pndArgTop,pndNew);
-      }
-    }
-    else if (pcxpSubstArg->pucDir) {
-      ApplySubstText(pndArgTop, pcxpSubstArg->pucName, pcxpSubstArg->pucDir);
-    }
-    else if (pcxpSubstArg->pucFilename) {
-      ApplySubstText(pndArgTop, pcxpSubstArg->pucName, pcxpSubstArg->pucFilename);
-    }
-    else if (pcxpSubstArg->pucExt) {
-      ApplySubstText(pndArgTop, pcxpSubstArg->pucName, pcxpSubstArg->pucExt);
-    }
-    else if (pcxpSubstArg->pucType) {
-      ApplySubstText(pndArgTop, pcxpSubstArg->pucName, pcxpSubstArg->pucType);
-    }
-    else if (pcxpSubstArg->pucFile) {
-      xmlChar *pucTT;
-      xmlChar *pucT;
-      resNodePtr prnT;
-
-      prnT = resNodeFromNodeNew(cxpCtxtLocationGet(pccArg),pcxpSubstArg->pucFile);
-      if (prnT != NULL && resNodeIsFile(prnT)) {
-	pucT = BAD_CAST plainGetContextTextEat(prnT,16);
-	pucTT = xmlEncodeEntitiesReentrant(pndArgTop->doc,pucT);
-	xmlFree(pucT);
-	ApplySubstText(pndArgTop, pcxpSubstArg->pucName, pucTT);
-	xmlFree(pucTT);
-      }
-      resNodeFree(prnT);
-    }
-    else if (pcxpSubstArg->pucDefault) {
-      ApplySubstText(pndArgTop, pcxpSubstArg->pucName, pcxpSubstArg->pucDefault);
     }
     else {
+      ApplySubstText(pndArgTop, cxpSubstGetNamePtr(pcxpSubstArg), cxpSubstGetPtr(pcxpSubstArg), pcxpSubstArg->pPredicateSkip);
     }
-
-    /* substitute attribute values too */
-    if (pcxpSubstArg->fReplaceInAttr) {
-      xmlNodePtr pndProp;
-
-      for (pndProp = (xmlNodePtr)pndArgTop->properties; pndProp; pndProp = pndProp->next) {
-	cxpSubstApply(pndProp, pcxpSubstArg, pccArg);
-      }
-    }
-
-    /*!\todo remove processed subst node? */
+#else
+    ApplySubstText(pndArgTop, cxpSubstGetNamePtr(pcxpSubstArg), cxpSubstGetPtr(pcxpSubstArg), pcxpSubstArg->pPredicateSkip);
 #endif
   }
   else {
@@ -705,8 +717,7 @@ cxpSubstApply(xmlNodePtr pndArgTop, cxpSubstPtr pcxpSubstArg, cxpContextPtr pccA
   }
 
   return fResult;
-}
-/* end of cxpSubstApply() */
+} /* end of cxpSubstApply() */
 
 
 /*! \return a pointer to name if successful or NULL
@@ -729,23 +740,6 @@ cxpSubstGetNamePtr(cxpSubstPtr pcxpSubstArg)
 /*! \return a pointer to subst value if successful or NULL
 */
 xmlChar *
-_cxpSubstGetDefaultPtr(cxpSubstPtr pcxpSubstArg)
-{
-  xmlChar *pucResult = NULL;
-
-  if ((pcxpSubstArg != NULL)
-    &&
-    ((pucResult = pcxpSubstArg->pucDefault))) {
-    /* OK */
-  }
-  return pucResult;
-}
-/* end of cxpSubstGetDefaultPtr() */
-
-
-/*! \return a pointer to subst value if successful or NULL
-*/
-xmlChar *
 cxpSubstGetPtr(cxpSubstPtr pcxpSubstArg)
 {
   xmlChar *pucResult = NULL;
@@ -753,9 +747,9 @@ cxpSubstGetPtr(cxpSubstPtr pcxpSubstArg)
   if ((pcxpSubstArg != NULL)
     &&
     ((pucResult = pcxpSubstArg->pucTo) != NULL
-    || (pucResult = pcxpSubstArg->pucNow) != NULL
-    || (pucResult = pcxpSubstArg->pucArgv) != NULL
     || (pucResult = pcxpSubstArg->pucCgi) != NULL
+    || (pucResult = pcxpSubstArg->pucArgv) != NULL
+    || (pucResult = pcxpSubstArg->pucNow) != NULL
     || (pucResult = pcxpSubstArg->pucDir) != NULL
     || (pucResult = pcxpSubstArg->pucFile) != NULL
     || (pucResult = pcxpSubstArg->pucExt) != NULL
@@ -776,6 +770,22 @@ cxpSubstGetPtr(cxpSubstPtr pcxpSubstArg)
 /* end of cxpSubstGetPtr() */
 
 
+#ifdef HAVE_PCRE2
+
+/*! \return a pointer to name if successful or NULL
+*/
+pcre2_code *
+cxpSubstGetRegExp(cxpSubstPtr pcxpSubstArg)
+{
+  if (pcxpSubstArg) {
+    return pcxpSubstArg->preFrom;
+  }
+  return NULL;
+} /* end of cxpSubstGetRegExp() */
+
+#endif
+
+
 /*! prints all data of pcxpSubstArg.
 
 \return a TRUE if successful
@@ -786,7 +796,17 @@ cxpSubstPrint(cxpSubstPtr pcxpSubstArg, cxpContextPtr pccArg)
   if (pcxpSubstArg) {
     xmlChar *pucT = NULL;
 
-    cxpCtxtLogPrint(pccArg,1,"String Substitution '%s':",pcxpSubstArg->pucName);
+    if (pcxpSubstArg->pucName) {
+      cxpCtxtLogPrint(pccArg, 1, "String Substitution '%s':", pcxpSubstArg->pucName);
+    }
+#if HAVE_PCRE2
+    else if (pcxpSubstArg->preFrom) {
+      cxpCtxtLogPrint(pccArg, 1, "Regexp Substitution");
+    }
+#endif
+    else {
+      cxpCtxtLogPrint(pccArg, 1, "No valid Substitution");
+    }
 
     if (pcxpSubstArg->pucTo) {
       cxpCtxtLogPrint(pccArg,1,"\tpucTo       = '%s'",pcxpSubstArg->pucTo);
@@ -838,7 +858,7 @@ cxpSubstPrint(cxpSubstPtr pcxpSubstArg, cxpContextPtr pccArg)
       cxpCtxtLogPrint(pccArg,1,"\tpucNow      = '%s'",pcxpSubstArg->pucNow);
     }
 
-#if 0
+#ifdef HAVE_JS
     if (pcxpSubstArg->pucScriptResult) {
       pucT = xmlStrndup(pcxpSubstArg->pucScriptResult,128);
       cxpCtxtLogPrint(pccArg,1,"\tpucScriptResult  = '%s'",pucT);
@@ -847,22 +867,7 @@ cxpSubstPrint(cxpSubstPtr pcxpSubstArg, cxpContextPtr pccArg)
 #endif
 
     if (pcxpSubstArg->pucDefault) {
-#if 0
       cxpCtxtLogPrint(pccArg,1,"\tpucDefault  = '%s'",pcxpSubstArg->pucDefault);
-#else
-  #if 1
-      pucT = NULL;
-  #elif 1
-      pucT = xmlStrndup(pcxpSubstArg->pucDefault,128);
-  #else
-      pucT = xmlStrdup(pcxpSubstArg->pucDefault);
-      if (xmlStrlen(pucT) > 127) {
-	pucT[127] = '\0';
-      }
-  #endif
-      //cxpCtxtLogPrint(pccArg,1,"\tpucDefault  = '%s'",pucT);
-      xmlFree(pucT);
-#endif
     }
     
     return TRUE;
@@ -897,6 +902,9 @@ cxpSubstFree(cxpSubstPtr pcxpSubstArg)
     xmlFree(pcxpSubstArg->pucName);
 #ifdef HAVE_JS
     xmlFree(pcxpSubstArg->pucScriptResult);
+#endif
+#ifdef HAVE_PCRE2
+    pcre2_code_free(pcxpSubstArg->preFrom);
 #endif
 
     //resNodeFree(pccArg->prnLocation);
@@ -934,19 +942,11 @@ cxpSubstInChildNodes(xmlNodePtr pndArgTop, xmlNodePtr pndArgSubst, cxpContextPtr
       pndNextChild = pndChild->next;
 
       if (IS_NODE_SUBST(pndChild)) {
-	fResult |= cxpSubstInChildNodes(pndChild, pndChild, pccArg);
+	cxpCtxtLogPrint(pccArg, 2, "New substitution found ''");
+	fResult |= cxpSubstInChildNodes(pndArgTop, pndChild, pccArg);
       }
-#ifdef HAVE_PIE
-      else if (IS_NODE_PIE_BLOCK(pndChild)
-	|| IS_NODE_PIE_SECTION(pndChild)
-	|| IS_NODE_PIE_LIST(pndChild)
-	|| IS_NODE_PIE_TASK(pndChild)
-	) {
-	fResult |= cxpSubstInChildNodes(pndChild, NULL, pccArg);
-      }
-#endif
 #ifdef HAVE_PETRINET
-      else if (IS_NODE_PKG2_STELLE(pndChild)
+      else if (IS_NODE_PKG2_STATE(pndChild)
 	|| IS_NODE_PKG2_TRANSITION(pndChild)
 	|| IS_NODE_PKG2_REQUIREMENT(pndChild)
 	) {
@@ -960,19 +960,23 @@ cxpSubstInChildNodes(xmlNodePtr pndArgTop, xmlNodePtr pndArgSubst, cxpContextPtr
 
     if ((pcxpSubstT = cxpSubstDetect(pndArgSubst, pccArg))) {
       fResult = TRUE;
-      if (cxpSubstGetNamePtr(pcxpSubstT)) {
-	xmlNodePtr pndFollowing;
+      pcxpSubstT->pPredicateSkip = cxpSubstSkip;
+
+      if (
+#ifdef HAVE_PCRE2
+	cxpSubstGetRegExp(pcxpSubstT) != NULL ||
+#endif
+	cxpSubstGetNamePtr(pcxpSubstT) != NULL
+	) {
 
 	if (pndArgTop->parent != NULL && pndArgTop->parent->type == XML_DOCUMENT_NODE) {
-	  pndFollowing = pndArgTop;
+	  if (IS_VALID_NODE(pndArgTop)) {
+	    cxpSubstApply(pndArgTop, pcxpSubstT, pccArg);
+	  }
 	}
 	else {
-	  pndFollowing = pndArgSubst->next;
-	}
-
-	for (; pndFollowing; pndFollowing = pndFollowing->next) {
-	  if (IS_VALID_NODE(pndFollowing)) {
-	    cxpSubstApply(pndFollowing, pcxpSubstT, pccArg);
+	  if (IS_VALID_NODE(pndArgSubst->next)) {
+	    cxpSubstApply(pndArgSubst->next, pcxpSubstT, pccArg);
 	  }
 	}
 	xmlUnlinkNode(pndArgSubst);
@@ -1006,8 +1010,6 @@ cxpSubstReplaceNodes(xmlNodePtr pndArg, cxpContextPtr pccArg)
     pcxpSubstT = cxpSubstDetect(pndArg, pccArg);
     if (pcxpSubstT) {
       xmlChar *pucT;
-
-      assert(cxpSubstGetNamePtr(pcxpSubstT) == NULL);
       
       if ((pucT = cxpSubstGetPtr(pcxpSubstT)) != NULL) { /* replace this subst node by result */
 	xmlNodePtr pndReplace;
@@ -1045,87 +1047,7 @@ cxpSubstInStringNew(xmlChar *pucArg, cxpSubstPtr pcxpSubstArg, cxpContextPtr pcc
   xmlChar *pucResult = NULL;
 
   if (pcxpSubstArg) {
-    /*!\todo substitute searchpath="pie.css" to whole filename */
-
-#if 1
     pucResult = ReplaceStr(pucArg, cxpSubstGetNamePtr(pcxpSubstArg), cxpSubstGetPtr(pcxpSubstArg));
-#else
-    if (pcxpSubstArg->pucTo) {
-      if (pcxpSubstArg->pucName) {
-	pucResult = ReplaceStr(pucArg, pcxpSubstArg->pucName, pcxpSubstArg->pucTo);
-      }
-      else {
-	pucResult = xmlStrdup(pcxpSubstArg->pucTo);
-      }
-    }
-    else if (pcxpSubstArg->pucCgi) {
-      pucResult = ReplaceStr(pucArg, pcxpSubstArg->pucName, pcxpSubstArg->pucCgi);
-    }
-    else if (pcxpSubstArg->pucArgv) {
-      pucResult = ReplaceStr(pucArg, pcxpSubstArg->pucName, pcxpSubstArg->pucArgv);
-    }
-    else if (pcxpSubstArg->pucEnv) {
-      if (pcxpSubstArg->pucName) {
-	pucResult = ReplaceStr(pucArg, pcxpSubstArg->pucName, pcxpSubstArg->pucEnv);
-      }
-      else {
-	pucResult = xmlStrdup(pcxpSubstArg->pucEnv);
-      }
-    }
-    else if (pcxpSubstArg->pucHost) {
-      pucResult = ReplaceStr(pucArg, pcxpSubstArg->pucName, pcxpSubstArg->pucHost);
-    }
-#ifdef HAVE_JS
-    else if (pcxpSubstArg->pucScriptResult) {
-      if (pcxpSubstArg->pucName) {
-	pucResult = ReplaceStr(pucArg, pcxpSubstArg->pucName, pcxpSubstArg->pucScriptResult);
-      }
-      else {
-	pucResult = xmlStrdup(pcxpSubstArg->pucScriptResult);
-      }
-    }
-#endif
-    else if (pcxpSubstArg->pucNow) {
-      if (pcxpSubstArg->pucName) {
-	pucResult = ReplaceStr(pucArg, pcxpSubstArg->pucName, pcxpSubstArg->pucNow);
-      }
-      else {
-	pucResult = xmlStrdup(pcxpSubstArg->pucNow);
-      }
-    }
-    else if (pcxpSubstArg->pucDir) {
-      pucResult = ReplaceStr(pucArg, pcxpSubstArg->pucName, pcxpSubstArg->pucDir);
-    }
-    else if (pcxpSubstArg->pucFilename) {
-      pucResult = ReplaceStr(pucArg, pcxpSubstArg->pucName, pcxpSubstArg->pucFilename);
-    }
-    else if (pcxpSubstArg->pucExt) {
-      pucResult = ReplaceStr(pucArg, pcxpSubstArg->pucName, pcxpSubstArg->pucExt);
-    }
-    else if (pcxpSubstArg->pucType) {
-      pucResult = ReplaceStr(pucArg, pcxpSubstArg->pucName, pcxpSubstArg->pucType);
-    }
-    else if (pcxpSubstArg->pucFile) {
-      xmlChar *pucTT;
-      xmlChar *pucT;
-      resNodePtr prnT;
-
-      prnT = resNodeFromNodeNew(cxpCtxtLocationGet(pccArg), pcxpSubstArg->pucFile);
-      if (prnT != NULL && resNodeIsFile(prnT)) {
-	pucT = BAD_CAST plainGetContextTextEat(prnT, 16);
-	pucTT = xmlEncodeEntitiesReentrant(NULL, pucT);
-	xmlFree(pucT);
-	pucResult = ReplaceStr(pucArg, pcxpSubstArg->pucName, pucTT);
-	xmlFree(pucTT);
-      }
-      resNodeFree(prnT);
-    }
-    else if (pcxpSubstArg->pucDefault) {
-      pucResult = ReplaceStr(pucArg, pcxpSubstArg->pucName, pcxpSubstArg->pucDefault);
-    }
-    else {
-    }
-#endif
   }
   return pucResult;
 } /* end of cxpSubstInStringNew() */

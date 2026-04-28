@@ -1,7 +1,7 @@
 /*
   cxproc - Configurable Xml PROCessor
 
-  Copyright (C) 2006..2020 by Alexander Tenbusch
+  Copyright (C) 2006..2024 by Alexander Tenbusch
 
   This program is free software; you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -23,7 +23,6 @@
 /* 
  */
 #include <libxml/tree.h>
-#include <libxml/uri.h>
 
 #include "basics.h"
 #include <res_node/res_node_ops.h>
@@ -43,12 +42,6 @@
 #endif
 #ifdef HAVE_RP
 #include <rp/rp.h>
-#endif
-#ifdef HAVE_JSON
-#include <json/json.h>
-#endif
-#ifdef HAVE_LIBARCHIVE
-#include <archive/archive.h>
 #endif
 
 static BOOL_T
@@ -87,6 +80,8 @@ AddNameSpaces(xmlNodePtr pndPie)
 
 /*! \return enum value according to attribute "verbosity" of pndArgFile
 
+\todo update documentation
+
 - "0" -- directory elements only
 
 - "1" -- directory elements and file elements (default)
@@ -101,7 +96,7 @@ AddNameSpaces(xmlNodePtr pndPie)
 int
 dirMapInfoVerbosity(xmlNodePtr pndArgFile, cxpContextPtr pccArg)
 {
-  int iResult = RN_INFO_INFO;
+  int iResult = RN_INFO_STAT;
   xmlChar *pucAttrVerbosity;
 
   /* map integer attribute to info level */
@@ -109,11 +104,11 @@ dirMapInfoVerbosity(xmlNodePtr pndArgFile, cxpContextPtr pccArg)
 
   if (domGetPropValuePtr(pndArgFile, BAD_CAST "igrep") != NULL
       || domGetPropValuePtr(pndArgFile, BAD_CAST "grep") != NULL) {
-    iResult |= RN_INFO_CONTENT;
+    SET_OPTION_CONTENT(iResult);
   }
 #ifdef HAVE_PIE
   else if (STR_IS_EMPTY(pucAttrVerbosity)) {
-    if (domNodeHasAncestor(pndArgFile, NAME_PIE_IMPORT)) {
+    if (domNodeHasAncestor(pndArgFile, BAD_CAST NAME_PIE_IMPORT)) {
       iResult = RN_INFO_MAX;
     }
     else {
@@ -122,20 +117,22 @@ dirMapInfoVerbosity(xmlNodePtr pndArgFile, cxpContextPtr pccArg)
   }
 #endif
   else if (xmlStrEqual(pucAttrVerbosity, BAD_CAST "5")) {
-    iResult = RN_INFO_MAX;
+    iResult = RN_OUT_MAX;
   }
   else if (xmlStrEqual(pucAttrVerbosity, BAD_CAST "4")) {
-    iResult =  RN_INFO_META | RN_INFO_STRUCT | RN_INFO_XML | RN_INFO_PIE | RN_INFO_CONTENT;
+    iResult = RN_OUT_NAME | RN_OUT_ATTR | RN_OUT_SIZE | RN_OUT_TIME | RN_OUT_TYPE | RN_OUT_OWNER | RN_OUT_PATH | RN_OUT_XML | RN_OUT_STRUCT | RN_OUT_CONTENT;
   }
   else if (xmlStrEqual(pucAttrVerbosity, BAD_CAST "3")) {
-    iResult =  RN_INFO_META | RN_INFO_STRUCT | RN_INFO_XML | RN_INFO_INDEX;
+    iResult = RN_OUT_NAME | RN_OUT_ATTR | RN_OUT_SIZE | RN_OUT_TIME | RN_OUT_TYPE | RN_OUT_OWNER | RN_OUT_PATH | RN_OUT_XML;
   }
   else if (xmlStrEqual(pucAttrVerbosity, BAD_CAST "2")) {
-    iResult = RN_INFO_META | RN_INFO_STRUCT;
+    iResult = RN_OUT_NAME | RN_OUT_ATTR | RN_OUT_SIZE | RN_OUT_TIME | RN_OUT_TYPE | RN_OUT_OWNER | RN_OUT_PATH;
   }
   else {
     /* keep default */
+    iResult = RN_OUT_NAME | RN_OUT_ATTR | RN_OUT_SIZE | RN_OUT_TIME | RN_OUT_TYPE | RN_OUT_PATH;
   }
+  //iResult = RN_OUT_MAX;
 
   cxpCtxtLogPrint(pccArg,2,"Using '%s' verbosity '%i'", pndArgFile->name, iResult);
 
@@ -167,7 +164,7 @@ GrepDirNew(xmlNodePtr pndArg, const pcre2_code *re_grep, cxpContextPtr pccArg)
     pndContent = pndArg->children;
     xmlUnlinkNode(pndContent);
 
-    pndGrep = xmlNewNode(NULL,NAME_GREP);
+    pndGrep = xmlNewNode(NULL,BAD_CAST NAME_GREP);
     if (pndGrep) {
 #ifdef HAVE_PCRE2
 #if 1
@@ -219,8 +216,6 @@ dirProcessDirNode(xmlNodePtr pndArgDir, resNodePtr prnArgContext, cxpContextPtr 
   int iDepth;
   int iVerbosity;
   int iOptions = FS_PARSE_DEFAULT;
-
-  xmlChar mpucT[BUFFER_LENGTH];
   xmlDocPtr pdocResult = NULL;
   xmlNodePtr pndPie = NULL;
   xmlNodePtr pndMeta = NULL;
@@ -233,6 +228,7 @@ dirProcessDirNode(xmlNodePtr pndArgDir, resNodePtr prnArgContext, cxpContextPtr 
   int opt_match_pcre = PCRE2_UTF;
 #endif
   BOOL_T fLocator;
+  BOOL_T fDirChilds = (domNodeHasChild(pndArgDir,BAD_CAST NAME_DIR) || domNodeHasChild(pndArgDir,BAD_CAST NAME_FILE));
   
 #ifdef HAVE_CGI
   fLocator = TRUE;
@@ -246,15 +242,9 @@ dirProcessDirNode(xmlNodePtr pndArgDir, resNodePtr prnArgContext, cxpContextPtr 
 
   iVerbosity = dirMapInfoVerbosity(pndArgDir, pccArg);
 
-  /* get default depth from attribute */
-  if ((pucAttrDepth = domGetPropValuePtr(pndArgDir,BAD_CAST "depth"))!=NULL
-      && ((iDepth = atoi((char *)pucAttrDepth)) > -1)) {
-  }
-  else {
-    iDepth = 999;
-  }
-  cxpCtxtLogPrint(pccArg,2,"Set default DIR depth to '%i'", iDepth);
-  
+  iDepth = domGetPropInt(pndArgDir, BAD_CAST "depth", 999);
+  cxpCtxtLogPrint(pccArg, 2, "Set default DIR depth to '%i'", iDepth);
+
 #ifdef HAVE_PCRE2
   if (((pucAttrGrep = domGetPropValuePtr(pndArgDir, BAD_CAST "igrep")) != NULL
     && xmlStrlen(pucAttrGrep) > 0)
@@ -265,11 +255,11 @@ dirProcessDirNode(xmlNodePtr pndArgDir, resNodePtr prnArgContext, cxpContextPtr 
     int errornumber;
 
     if (xmlHasProp(pndArgDir, BAD_CAST "igrep")) {
-      cxpCtxtLogPrint(pccArg,2, "Use caseless file grep '%s' in %s with depth '%i'", pucAttrGrep, NAME_DIR, iDepth);
+      cxpCtxtLogPrint(pccArg,2, "Use caseless file grep '%s' in %s with depth '%i'", pucAttrGrep, BAD_CAST NAME_DIR, iDepth);
       opt_grep_pcre |= PCRE2_CASELESS;
     }
     else {
-      cxpCtxtLogPrint(pccArg,2, "Use file grep '%s' in %s with depth '%i'", pucAttrGrep, NAME_DIR, iDepth);
+      cxpCtxtLogPrint(pccArg,2, "Use file grep '%s' in %s with depth '%i'", pucAttrGrep, BAD_CAST NAME_DIR, iDepth);
     }
 
     re_grep = pcre2_compile(
@@ -287,6 +277,13 @@ dirProcessDirNode(xmlNodePtr pndArgDir, resNodePtr prnArgContext, cxpContextPtr 
     }
   }
 
+#ifdef EXPERIMENTAL
+  if (((pucAttrMatch = domGetPropValuePtr(pndArgDir, BAD_CAST "tmatch")) != NULL && xmlStrlen(pucAttrMatch) > 0)) {
+    /*!\todo File type matching tmatch="^image/" */
+    cxpCtxtLogPrint(pccArg, 1, "File type matching regexp '%s'", pucAttrMatch);
+  }
+#endif
+
   if (((pucAttrMatch = domGetPropValuePtr(pndArgDir, BAD_CAST "imatch")) != NULL
     && xmlStrlen(pucAttrMatch) > 0)
     ||
@@ -296,11 +293,11 @@ dirProcessDirNode(xmlNodePtr pndArgDir, resNodePtr prnArgContext, cxpContextPtr 
     int errornumber;
 
     if (xmlHasProp(pndArgDir, BAD_CAST "imatch")) {
-      cxpCtxtLogPrint(pccArg,2, "Use caseless file match '%s' in %s with depth '%i'", pucAttrMatch, NAME_DIR, iDepth);
+      cxpCtxtLogPrint(pccArg,2, "Use caseless file match '%s' in %s with depth '%i'", pucAttrMatch, BAD_CAST NAME_DIR, iDepth);
       opt_match_pcre |= PCRE2_CASELESS;
     }
     else {
-      cxpCtxtLogPrint(pccArg,2, "Use file match '%s' in %s with depth '%i'", pucAttrMatch, NAME_DIR, iDepth);
+      cxpCtxtLogPrint(pccArg,2, "Use file match '%s' in %s with depth '%i'", pucAttrMatch, BAD_CAST NAME_DIR, iDepth);
     }
 
     re_match = pcre2_compile(
@@ -331,43 +328,36 @@ dirProcessDirNode(xmlNodePtr pndArgDir, resNodePtr prnArgContext, cxpContextPtr 
 
   pdocResult = xmlNewDoc(BAD_CAST "1.0");
   /*!\todo use dir as root node */
-  pndPie = xmlNewDocNode(pdocResult, NULL, NAME_PIE, NULL);
+  pndPie = xmlNewDocNode(pdocResult, NULL, BAD_CAST NAME_PIE, NULL);
   xmlSetProp(pndPie, BAD_CAST "class", BAD_CAST "directory");
   xmlDocSetRootElement(pdocResult, pndPie);
   /* this is default namespace */
   /*!\todo xmlNewNs(pndPie, "http://", NULL); */ /* no prefix string for this ns */
 
 #ifdef HAVE_LIBMAGICK
-  if (iLevelVerbose > 2) {
+  if (iVerbosity > 2) {
     AddNameSpaces(pndPie);
   }
 #endif
 
-  pndMeta = xmlNewChild(pndPie, NULL, NAME_META, NULL);
+  pndMeta = xmlNewChild(pndPie, NULL, BAD_CAST NAME_META, NULL);
   cxpInfoProgram(pndMeta, pccArg);
   xmlAddChild(pndMeta, xmlCopyNode(pndArgDir, 1));
   /* Get the current time. */
   domSetPropEat(pndMeta, BAD_CAST "ctime", GetNowFormatStr(BAD_CAST "%s"));
   domSetPropEat(pndMeta,BAD_CAST "ctime2", GetDateIsoString(0));
 
-  for (pndEntry = ((pndArgDir->children) ? pndArgDir->children : pndArgDir); pndEntry; pndEntry = pndEntry->next) {
-    int iVerbosityChild = iVerbosity;
+  for (pndEntry = (fDirChilds ? pndArgDir->children : pndArgDir); pndEntry; pndEntry = (fDirChilds ? pndEntry->next : NULL)) {
+    int iVerbosityChild;
     int iDepthChild;
     resNodePtr prnT;
     xmlNodePtr pndT;
 
-    if (domGetPropValuePtr(pndEntry, BAD_CAST "verbosity")) {
-      iVerbosityChild = dirMapInfoVerbosity(pndArgDir, pccArg);
-    }
+    iVerbosityChild = domGetPropValuePtr(pndEntry, BAD_CAST "verbosity") ? dirMapInfoVerbosity(pndEntry, pccArg) : iVerbosity;
 
     /*! get depth attribute per single dir element, instead of global */
-    if ((pucAttrDepth = domGetPropValuePtr(pndEntry,BAD_CAST "depth"))!=NULL
-	&& ((iDepthChild = atoi((char *)pucAttrDepth)) > -1)) {
-    }
-    else {
-      iDepthChild = iDepth;
-    }
-    cxpCtxtLogPrint(pccArg,2,"Set DIR depth to '%i'", iDepthChild);
+    iDepthChild = domGetPropInt(pndEntry, BAD_CAST "depth", iDepth);
+    cxpCtxtLogPrint(pccArg,3,"Set DIR depth to '%i'", iDepthChild);
   
     prnT = NULL;
     
@@ -384,9 +374,11 @@ dirProcessDirNode(xmlNodePtr pndArgDir, resNodePtr prnArgContext, cxpContextPtr 
     else if (resNodeListParse(prnT, iDepthChild, re_match) == FALSE) { /*! read Resource Node as list of childs */
       xmlNewChild(pndPie, NULL, BAD_CAST"error", BAD_CAST"parse");
     }
+#if 0
     else if (resNodeUpdate(prnT, iVerbosityChild, NULL, NULL) == FALSE) { /*! read Resource Node as list of childs */
       xmlNewChild(pndPie, NULL, BAD_CAST"error", BAD_CAST"parse");
     }
+#endif
     else if ((pndT = resNodeListToDOM(prnT, iVerbosityChild)) != NULL) {
       if (re_grep) {
 	GrepDirNew(pndT,re_grep,pccArg); /*! replace content DOM of pndT by grep result DOM */
@@ -424,12 +416,12 @@ addUrlEncoding(xmlNodePtr pndArg)
   xmlChar *pucAttrName;
   xmlNodePtr pndChild;
 
-  if (IS_NODE_PIE(pndArg) || IS_NODE_ARCHIVE(pndArg)) {
+  if (IS_NODE_PIE(pndArg)) {
     for (pndChild=pndArg->children; pndChild; pndChild=pndChild->next) {
       addUrlEncoding(pndChild);
     }
   }
-  else if (IS_NODE_DIR(pndArg)) {
+  else if (IS_NODE_DIR(pndArg) || IS_NODE_ARCHIVE(pndArg) || IS_NODE_SYMLINK(pndArg)) {
     if ((pucAttrName = domGetPropValuePtr(pndArg,BAD_CAST "name")) != NULL) {
       domSetPropEat(pndArg, BAD_CAST "urlname", EncodeRFC1738(pucAttrName));
     }
@@ -551,24 +543,33 @@ dirNodeToResNodeList(xmlNodePtr pndArg)
     if (resPathIsRelative(pucAttrMap)) {
       resNodeSetNameAlias(prnNew, pucAttrMap);
     }
-    for (pndI=pndArg->children; pndI; pndI=pndI->next) {
-      resNodeAddChild(prnNew, dirNodeToResNodeList(pndI));
-    }
 
-    if ((pucPrefix = domGetPropValuePtr(pndArg, BAD_CAST"prefix"))) {
-      //prnResult = resNodeSplitStrNew(pucPrefix);
-      //resNodeAddChild(resNodeGetLastDescendant(prnResult), prnNew);
-      if (resNodeSetNameBaseDir(prnNew, pucPrefix)) {
+    if (pndArg->children) {
+      for (pndI = pndArg->children; pndI; pndI = pndI->next) {
+	resNodeAddChild(prnNew, dirNodeToResNodeList(pndI)); 
       }
     }
+    else if (resNodeListParse(prnNew, 9, NULL)) {
+    }
+    else {
+      printf("Error resNodeListParse() ...\n");
+    }
     prnResult = prnNew;
+
+    if ((pucPrefix = domGetPropValuePtr(pndArg, BAD_CAST"prefix"))) {
+      prnResult = resNodeSplitStrNew(pucPrefix);
+      resNodeAddChild(prnResult, prnNew);
+      //resNodeAddChild(resNodeGetLastDescendant(prnResult), prnNew);
+      //if (resNodeSetNameBaseDir(prnNew, pucPrefix)) {
+      //}
+    }
   }
   else if (IS_NODE_FILE(pndArg) && STR_IS_NOT_EMPTY(pucName)) {
     /*!\bug handle URL etc */
     prnNew = resNodeSplitStrNew(pucName);
     resNodeSetType(prnNew, rn_type_file);
     if (resPathIsRelative(pucAttrMap)) {
-      resNodeSetNameAlias(prnNew, pucAttrMap);
+      resNodeSetNameAlias(resNodeGetLastDescendant(prnNew), pucAttrMap);
     }
     prnResult = prnNew;
   }

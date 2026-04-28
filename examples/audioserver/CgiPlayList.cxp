@@ -1,0 +1,46 @@
+<?xml version="1.0"?>
+<cxp:make xmlns:cxp="http://www.tenbusch.info/cxproc" log="2">
+  <cxp:subst string="%SERVER_NAME%" env="HTTP_HOST" default="localhost" />
+  <cxp:subst string="%DOCDIR%" env="CXP_ROOT" />
+  <cxp:subst string="%CGIPATH%" cgi="path" />
+  <cxp:subst string="%CGITITLE%" cgi="title" default="cxproc"/>
+  <cxp:system message="Playlist in '%CGIPATH%'" />
+  <cxp:plain name='-' type='audio/x-mpegurl' disposition='attachement; filename="%CGITITLE%.m3u"'>
+    <!--  -->
+    <cxp:xml>
+      <cxp:dir name="%CGIPATH%" urlencode="yes" index="read" depth="10" verbosity="4" imatch="\.(mp3|ogg|wav)$" />
+    </cxp:xml>
+    <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.0">
+      <xsl:output method="text" encoding="UTF-8" />
+      <!-- s. http://www.xspf.org/ -->
+      <xsl:template match="/">
+        <xsl:for-each select="//file[@size &gt; 0]">
+          <xsl:sort order="ascending" data-type="text" case-order="lower-first" select="info/artist" />
+          <xsl:sort order="ascending" data-type="text" case-order="lower-first" select="parent::dir/@name" />
+          <xsl:sort order="ascending" data-type="number" select="info/track" />
+          <xsl:sort order="ascending" data-type="text" case-order="lower-first" select="info/title" />
+          <xsl:sort order="ascending" data-type="text" case-order="lower-first" select="@name" />
+          <xsl:sort order="ascending" data-type="number" select="@t" />
+          <!-- -->
+          <xsl:value-of select="concat('http://','%SERVER_NAME%')" />
+	  <xsl:choose>
+	    <xsl:when test="ancestor::dir">
+              <xsl:for-each select="ancestor::dir">
+		<xsl:if test="@urlprefix">
+		  <xsl:value-of select="concat('/',@urlprefix)" />
+		</xsl:if>
+		<xsl:value-of select="concat('/',@urlname)" />
+              </xsl:for-each>
+	    </xsl:when>
+	    <xsl:when test="@urlprefix">
+	      <xsl:value-of select="concat('/',@urlprefix)" />
+	    </xsl:when>
+	    <xsl:otherwise>
+	    </xsl:otherwise>
+	  </xsl:choose>
+          <xsl:value-of select="concat('/',@urlname,'&#10;')" />
+        </xsl:for-each>
+      </xsl:template>
+    </xsl:stylesheet>
+  </cxp:plain>
+</cxp:make>

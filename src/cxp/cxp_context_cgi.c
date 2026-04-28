@@ -1,7 +1,7 @@
 /*
 cxproc - Configurable Xml PROCessor
 
-Copyright (C) 2006..2020 by Alexander Tenbusch
+Copyright (C) 2006..2024 by Alexander Tenbusch
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -56,7 +56,6 @@ RFC3875 CGI 1.1 <http://tools.ietf.org/html/rfc3875#page-10>
 #include <libxml/xmlversion.h>
 #include <libxml/HTMLtree.h>
 #include <libxml/parser.h>
-#include <libxml/uri.h>
 
 #ifdef LIBXML_THREAD_ENABLED
 #include <libxml/globals.h>
@@ -79,21 +78,15 @@ RFC3875 CGI 1.1 <http://tools.ietf.org/html/rfc3875#page-10>
 
 #ifdef HAVE_PIE
 #include <pie/pie_text.h>
-#include <pie/pie_calendar.h>
+#include <cxp/cxp_calendar.h>
 #include <petrinet/petrinet.h>
 #endif
 #ifdef HAVE_LIBSQLITE3
 #include <database/database.h>
 #endif
 
-#ifdef HAVE_JSON
-#include <json/json.h>
-#endif
-#ifdef HAVE_JS
-#include <script/script.h>
-#endif
 #ifdef HAVE_LIBARCHIVE
-#include <archive/cxp_archive.h>
+#include <cxp/cxp_archive.h>
 #endif
 
 
@@ -112,30 +105,44 @@ cxpCtxtCgiNew(int argc, char *argv[], char *envp[])
 
   pccResult = cxpCtxtNew();
   if (pccResult) {
+    xmlChar* pucPathValue = NULL;
+    resNodePtr prnT = NULL;
+
     pccResult->iCountArgv = argc;
     pccResult->ppcArgv = argv;
 
     cxpCtxtEnvDup(pccResult,envp);
+
+    cxpCtxtSetReadonly(pccResult, cxpCtxtEnvGetBoolByName(pccResult, BAD_CAST "CXP_READONLY", FALSE));
 
     pucT = cxpCtxtEnvGetValueByName(pccResult, BAD_CAST "CXP_LOG");
     if (cxpCtxtLogSetLevelStr(pccResult, pucT) == 0) {
       /* level value from environment */
     }
     else {
+      cxpCtxtLogSetLevel(pccResult,
 #if defined(DEBUG) || defined(TESTCODE)
-      cxpCtxtLogSetLevel(pccResult, 3);
+			 LEVEL_MAX - 1
 #else
-      cxpCtxtLogSetLevel(pccResult, 4);
+			 2
 #endif
+      );
     }
     xmlFree(pucT);
 
     cxpCtxtLogPrint(pccResult,1,"Based on %s %s",CXP_VER_FILE_VERSION_STR,CXP_VER_FILE_BRANCH_STR);
 
-    if (cxpCtxtRootSet(pccResult,NULL)) {
-      cxpCtxtSearchSet(pccResult, NULL);
+    if (cxpCtxtRootSet(pccResult, NULL)) {
       cxpCtxtLocationSet(pccResult, cxpCtxtRootGet(pccResult));
-      cxpCtxtSetReadonly(pccResult, cxpCtxtEnvGetBoolByName(pccResult, BAD_CAST "CXP_READONLY", FALSE));
+
+      if ((pucPathValue = cxpCtxtEnvGetValueByName(pccResult, BAD_CAST "CXP_PATH")) != NULL) {
+	cxpCtxtLogPrint(pccResult, 2, "Use value '%s' of environment variable 'CXP_PATH'", pucPathValue);
+	if ((prnT = resNodeStrNew(pucPathValue))) {
+	  cxpCtxtSearchSet(pccResult, prnT);
+	  resNodeListFree(prnT);
+	}
+	xmlFree(pucPathValue);
+      }
     }
     else {
       cxpCtxtFree(pccResult);
@@ -154,28 +161,18 @@ cxpCtxtCgiNew(int argc, char *argv[], char *envp[])
 xmlDocPtr
 cxpCtxtCgiParse(cxpContextPtr pccArg)
 {
-  int iMimeType = 0;
   resNodePtr prnExecutable;
-  resNodePtr prnFile = NULL;
-  resNodePtr prnDir = NULL;
-  resNodePtr prnContent = NULL;
-  resNodePtr prnPathTranslated = NULL;
-  xmlChar *pucNameNormalizedDir = NULL;
-  xmlChar *pucNameNormalizedFile = NULL;
   xmlChar mpucNameFile[BUFFER_LENGTH];
   xmlChar *pucCgiCxp = NULL;
-  xmlChar *pucCgiAjax = NULL;
-  xmlChar *pucCgiEncoding = NULL;
-  xmlChar *pucCgiDir = NULL;
-  xmlChar *pucCgiFile = NULL;
-  xmlChar *pucCgiPath = NULL;
+  xmlChar *pucCgiRedir = NULL;
   xmlChar *pucCgiPathTranslated = NULL;
-  xmlChar *pucCgiXpath = NULL;
-  xmlChar *pucCgiXsl = NULL;
   xmlChar *pucT;
+  xmlChar *pucCgiPath = NULL;
+  xmlChar *pucCgiEncoding = NULL;
   xmlNodePtr pndMake = NULL;
   xmlNodePtr pndPlain = NULL;
   xmlNodePtr pndXml = NULL;
+  xmlNodePtr pndXsl;
   xmlNsPtr pnsCxp;
 
   mpucNameFile[0] = (xmlChar)'\0';
@@ -194,399 +191,384 @@ cxpCtxtCgiParse(cxpContextPtr pccArg)
   xmlSetNs(pndMake, pnsCxp);
 
   /*
-  detect all CGI variables
+    detect all CGI variables
   */
-  pucCgiPathTranslated = cxpCtxtEnvGetValueByName(pccArg, BAD_CAST"PATH_TRANSLATED");
-  if (pucCgiPathTranslated) {
+  pucCgiEncoding = cxpCtxtCgiGetValueByName(pccArg, BAD_CAST "encoding");
+
+  if ((pucCgiPathTranslated = cxpCtxtEnvGetValueByName(pccArg, BAD_CAST "PATH_TRANSLATED")) != NULL) {
+    resNodePtr prnPathTranslated = NULL;
+
     prnPathTranslated = resNodeRootNew(cxpCtxtRootGet(pccArg),pucCgiPathTranslated);
-    if (resNodeIsReadable(prnPathTranslated)) {
+    if (resNodeIsReadable(prnPathTranslated) && resNodeGetMimeType(prnPathTranslated) == MIME_APPLICATION_CXP_XML) {
       cxpCtxtLogPrint(pccArg, 1, "Use value of CGI 'PATH_TRANSLATED' '%s'", pucCgiPathTranslated);
+      /* in this case use the translated path */
+      
+      pndXml = xmlNewChild(pndMake,pnsCxp,NAME_XML,NULL);
+      xmlSetProp(pndXml, BAD_CAST "name", BAD_CAST "-");
+
+      /* deliver the file content via CXP configuration */
+      xmlSetProp(pndXml, BAD_CAST "name", resNodeGetNameNormalized(prnPathTranslated));
+      xmlSetProp(pndXml, BAD_CAST "schema", BAD_CAST "cxp.rng");
+      xmlSetProp(pndXml, BAD_CAST "eval", BAD_CAST "yes");
+      xmlSetProp(pndMake, BAD_CAST "dir", resNodeGetNameBaseDir(prnPathTranslated));
     }
     else {
-      resNodeFree(prnPathTranslated);
-      prnPathTranslated = NULL;
     }
+    resNodeFree(prnPathTranslated);
   }
-
-  pucCgiCxp = cxpCtxtCgiGetValueByName(pccArg,BAD_CAST"cxp");
-  if (pucCgiCxp == NULL && resNodeGetMimeType(prnPathTranslated) == MIME_APPLICATION_CXP_XML) {
-    /* in this case use the translated path */
-    pucCgiCxp = xmlStrdup(pucCgiPathTranslated);
-    xmlStrPrintf(mpucNameFile, BUFFER_LENGTH, (const char *)pucCgiCxp);
-  }
-
-  pucCgiEncoding = cxpCtxtCgiGetValueByName(pccArg,BAD_CAST"encoding");
-
-  pucCgiAjax = cxpCtxtCgiGetValueByName(pccArg,BAD_CAST"ajax");
-
-  pucCgiXsl = cxpCtxtCgiGetValueByName(pccArg,BAD_CAST"xsl");
-
-  pucCgiXpath = cxpCtxtCgiGetValueByName(pccArg,BAD_CAST"xpath");
-
-  pucCgiPath = cxpCtxtCgiGetValueByName(pccArg,BAD_CAST"path");
-  if (pucCgiPath) {
+  else if ((pucCgiRedir = cxpCtxtCgiGetValueByName(pccArg, BAD_CAST "redir")) != NULL) {
     /*!
-    map pucCgiPath either to pucCgiDir OR pucCgiFile
+      search for this file name in CXP_ROOT using 'pucCgiRedir' as regexp and redirect client to this URI
     */
     resNodePtr prnTest = NULL;
+    xmlChar *pucRedir = NULL;
 
-    prnTest = resNodeRootNew(cxpCtxtRootGet(pccArg),pucCgiPath);
-    if (resNodeReadStatus(prnTest) && resNodeIsDir(prnTest)) {
-      cxpCtxtLogPrint(pccArg, 2, "Copy value '%s' of 'path' to 'dir'", resNodeGetNameNormalized(prnTest));
-      pucCgiDir = xmlStrdup(pucCgiPath);
-      pucCgiFile = NULL;
-    }
-    else {
-      cxpCtxtLogPrint(pccArg, 2, "Copy value '%s' of 'path' to 'file'", pucCgiPath);
-      pucCgiDir = NULL;
-      pucCgiFile = xmlStrdup(pucCgiPath);
-    }
-    resNodeFree(prnTest);
-  }
-  else {
-    pucCgiDir = cxpCtxtCgiGetValueByName(pccArg,BAD_CAST"dir");
-    if (pucCgiDir) {
-      /* ignoring "file" */
-    }
-    else {
-      pucCgiFile = cxpCtxtCgiGetValueByName(pccArg,BAD_CAST"file");
-    }
-  }
+    xmlStrPrintf(mpucNameFile, BUFFER_LENGTH, "Location: \"%s\" not found\r\n\r\n", (char *)pucCgiRedir);
+    pndPlain = xmlNewChild(pndMake, NULL, NAME_PLAIN, mpucNameFile);
+    xmlSetProp(pndPlain, BAD_CAST "name", BAD_CAST "-");
+    xmlSetProp(pndPlain, BAD_CAST "status", BAD_CAST "404 Not Found"); /* default status */
 
-#ifdef HAVE_CGI
-  if (pucCgiAjax != NULL && xmlStrlen(pucCgiAjax) > 0) {
-    /*!\bug security risk? */
-    if (pucCgiXsl) {
-      xmlFree(pucCgiXsl);
-      pucCgiXsl = NULL;
-    }
-    if (pucCgiCxp) {
-      xmlFree(pucCgiCxp);
-      pucCgiCxp = NULL;
-    }
-  }
-  else if (pucCgiCxp != NULL && xmlStrlen(pucCgiCxp) > 0) {
-    /*
-    for security reasons add prefix "Cgi" to filename
-    */
+    while ((prnTest = resNodeListFindPath(cxpCtxtRootGet(pccArg), pucCgiRedir, (RN_FIND_FILE | RN_FIND_IN_SUBDIR))) != NULL) {
 
-    if (xmlStrlen(mpucNameFile) > 0) {
-      /* the CGI translated path is used */
-    }
-    else {
-      xmlStrPrintf(mpucNameFile, BUFFER_LENGTH, "Cgi%s.cxp", pucCgiCxp);
-    }
+      if (cxpCtxtAccessIsPermitted(pccArg, prnTest) == FALSE || resNodeIsReadable(prnTest) == FALSE) {
+	// access error, continue
+      }
+      else if ((pucRedir = resNodeGetNameRelative(cxpCtxtLocationGet(pccArg), prnTest)) != NULL && STR_IS_NOT_EMPTY(pucRedir)) {
+	if (cxpCtxtCgiGetCount(pccArg) > 1) {
+	  /*!
+	    concat a new URL and redirect client to this URL
+	  */
 
-    if (pucCgiXsl) {
-      xmlFree(pucCgiXsl);
-      pucCgiXsl = NULL;
-    }
-  }
-  else if (pucCgiXsl != NULL && xmlStrlen(pucCgiXsl) > 0) {
-    /*!\todo for security add prefix "Cgi" to XSL filename */
-    xmlStrPrintf(mpucNameFile, BUFFER_LENGTH, "%s.xsl", pucCgiXsl);
-    if (pucCgiCxp) {
-      xmlFree(pucCgiCxp);
-      pucCgiCxp = NULL;
-    }
-  }
-#else
-#ifdef DEBUG
-  xmlStrPrintf(mpucNameFile, BUFFER_LENGTH, "Cgiinfo.cxp");
-#else
-  xmlStrPrintf(mpucNameFile, BUFFER_LENGTH, "CgiPieUiPowered.cxp");
-#endif
-  pucCgiCxp = xmlStrdup(mpucNameFile);
-  if (pucCgiXsl) {
-    xmlFree(pucCgiXsl);
-    pucCgiXsl = NULL;
-  }
-#endif
+	  /*! update CGI arguments for a redirection */
+	  int i;
+	  xmlChar *pucUrlNew = NULL;
+	  xmlChar *pucCgiName = NULL;
+	  xmlChar *pucCgiValue = NULL;
 
-  if (pucCgiDir) {
-    prnDir = resNodeRootNew(cxpCtxtRootGet(pccArg), pucCgiDir);
-    pucNameNormalizedDir = resNodeGetNameNormalized(prnDir);
-  }
-  else if (pucCgiFile) {
-    prnFile = resNodeRootNew(cxpCtxtRootGet(pccArg), pucCgiFile);
-    if (resNodeReadStatus(prnFile)) {
-      prnContent = resNodeGetLastDescendant(prnFile);
-      iMimeType = resNodeGetMimeType(prnContent);
-      pucNameNormalizedFile = resNodeGetNameNormalized(prnFile);
-    }
-  }
+	  /*! CGI arguments */
+	  for (i = 0; (pucCgiName = cxpCtxtCgiGetName(pccArg, i)); i++) {
 
-  if (pucCgiAjax) {
-    /*
-    deliver the result as plain text via AJAX
-    */
-    xmlChar *pucRelease;
-    xmlNodePtr pndT;
-    xmlDocPtr pdocT;
+	    if (i > 0) {
+	      pucUrlNew = xmlStrcat(pucUrlNew, BAD_CAST "&amp;");
+	    }
 
-#if WITH_AJAX
-    pucRelease = xmlStrdup(BAD_CAST"<make log='3'><plain name='-'>");
-    pucRelease = xmlStrcat(pucRelease, pucCgiAjax);
-    pucRelease = xmlStrcat(pucRelease, BAD_CAST"</plain>");
-    pucRelease = xmlStrcat(pucRelease, BAD_CAST"<plain name='-'>OK</plain></make>");
-    cxpCtxtLogPrint(pccArg, 3, "Parse AJAX '%s'", pucRelease);
-
-    pdocT = xmlParseMemory((const char *)pucRelease, xmlStrlen(pucRelease));
-    if (pdocT) {
-      xmlNodePtr pndCopy;
-
-      pndT = xmlDocGetRootElement(pdocT);
-      if (pndT) {
-	pndCopy = xmlCopyNode(pndT->children, 1);
-	if (pndCopy) {
-	  xmlAddChild(pndMake, pndCopy);
+	    pucCgiValue = cxpCtxtCgiGetValue(pccArg, i);
+	    if (STR_IS_NOT_EMPTY(pucCgiValue) && xmlStrEqual(BAD_CAST "redir", pucCgiName)) {
+	      /* map 'redir' to 'path' */
+	      pucUrlNew = xmlStrcat(pucUrlNew, BAD_CAST "path");
+	      pucUrlNew = xmlStrcat(pucUrlNew, BAD_CAST "=");
+	      pucRedir = xmlStrdup(pucRedir);
+	      resPathChangeToSlashes(pucRedir);
+	      pucUrlNew = xmlStrcat(pucUrlNew, pucRedir);
+	      xmlFree(pucRedir);
+	      pucRedir = NULL;
+	    }
+	    else {
+	      pucUrlNew = xmlStrcat(pucUrlNew, pucCgiName);
+	      pucUrlNew = xmlStrcat(pucUrlNew, BAD_CAST "=");
+	      pucUrlNew = xmlStrcat(pucUrlNew, pucCgiValue);
+	    }
+	  }
+	  xmlStrPrintf(mpucNameFile, BUFFER_LENGTH, "Location: ?%s\r\n\r\n", (char *)pucUrlNew);
+	  xmlNodeSetContent(pndPlain, (const xmlChar *)mpucNameFile);
+	  xmlSetProp(pndPlain, BAD_CAST "status", BAD_CAST "302 Found");
+	  xmlFree(pucUrlNew);
 	}
 	else {
-	  cxpCtxtLogPrint(pccArg, 1, "No usable children");
+	  xmlStrPrintf(mpucNameFile, BUFFER_LENGTH, "Location: /%s\r\n\r\n", (char *)pucRedir);
+	  xmlNodeSetContent(pndPlain, mpucNameFile);
+	  xmlSetProp(pndPlain, BAD_CAST "status", BAD_CAST "302 Found");
+	  // xmlFree(pucRedir);
 	}
+	break;
       }
-      xmlFreeDoc(pdocT);
+      xmlFree(pucRedir);
+    }
 
-      cxpCtxtLogPrintDoc(pccArg, 4, "cxpParseCgi()", pccArg->pdocContextNode);
+    resNodeFree(prnTest);
+  }
+  else if ((pucCgiPath = cxpCtxtCgiGetValueByName(pccArg, BAD_CAST "spath")) != NULL) {
+    /*!
+      search for this file name in CXP_PATH
+    */
+    resNodePtr prnFound = NULL;
+
+    prnFound = cxpCtxtSearchFind(pccArg, pucCgiPath);
+    if (resNodeReadStatus(prnFound)) {
+      /* deliver the file content via CXP configuration */
+      pndPlain = xmlNewChild(pndMake, NULL, NAME_FILECOPY, NULL);
+      xmlSetProp(pndPlain, BAD_CAST "from", resNodeGetNameNormalized(prnFound));
+      xmlSetProp(pndPlain, BAD_CAST "to", BAD_CAST"-");
     }
     else {
-      cxpCtxtLogPrint(pccArg, 1, "Cant parse AJAX '%s'", pucRelease);
+      cxpCtxtLogPrint(pccArg, 1, "File '%s' not found", pucCgiPath);
     }
-    xmlFree(pucRelease);
-#else
-    cxpCtxtLogPrint(pccArg, 1, "Compiled without AJAX, ignoring");
+    resNodeFree(prnFound);
+  }
+#ifdef HAVE_JS
+  else if ((pucCgiPath = cxpCtxtCgiGetValueByName(pccArg, BAD_CAST "script")) != NULL) {
+    /*!
+     */
+    resNodePtr prnTest = NULL;
+
+    pndPlain = xmlNewChild(pndMake, NULL, NAME_PLAIN, NULL);
+    xmlSetProp(pndPlain, BAD_CAST "name", BAD_CAST "-");
+    if (STR_IS_NOT_EMPTY(pucCgiEncoding)) {
+      xmlSetProp(pndPlain, BAD_CAST "encoding", pucCgiEncoding);
+    }
+
+    if ((prnTest = resNodeRootNew(cxpCtxtRootGet(pccArg), pucCgiPath)) == NULL || resNodeIsReadable(prnTest) == FALSE) {
+      prnTest =
+	  resNodeListFindPath(cxpCtxtRootGet(pccArg), pucCgiPath, (RN_FIND_FILE | RN_FIND_IN_SUBDIR | RN_FIND_REGEXP));
+    }
+
+    if (resNodeReadStatus(prnTest) && resNodeIsFile(prnTest) && cxpCtxtAccessIsPermitted(pccArg, prnTest) &&
+	resNodeGetMimeType(prnTest) == MIME_APPLICATION_X_JAVASCRIPT && resNodeGetSize(prnTest) > 0) {
+      /* path is a name of an existing script */
+      xmlNodePtr pndScript;
+
+      pndScript = xmlNewChild(pndPlain, NULL, NAME_SCRIPT, NULL);
+      xmlSetProp(pndScript, BAD_CAST "name", resNodeGetNameRelative(cxpCtxtRootGet(pccArg), prnTest));
+      xmlSetProp(pndScript, BAD_CAST "eval", BAD_CAST "yes");
+    }
+    else {
+      xmlAddChild(pndPlain, xmlNewText(BAD_CAST "\n\n\nThe requested script was not found!"));
+    }
+    /*!\todo append additional arguments for simple initial values of variables */
+
+    resNodeFree(prnTest);
+  }
 #endif
-  }
-  else if (prnPathTranslated) {
-    /* deliver the file content via CXP configuration */
-    pndXml = xmlNewChild(pndMake, NULL, NAME_XML, NULL);
-    xmlSetProp(pndXml, BAD_CAST "name", resNodeGetNameNormalized(prnPathTranslated));
-    xmlSetProp(pndXml, BAD_CAST "schema", BAD_CAST "cxp.rng");
-    xmlSetProp(pndXml, BAD_CAST "eval", BAD_CAST "yes");
-  }
-  else if (pucCgiCxp) {
+  else if ((pucCgiCxp = cxpCtxtCgiGetValueByName(pccArg,BAD_CAST"cxp")) != NULL && STR_IS_NOT_EMPTY(pucCgiCxp)) {
     /* deliver the file content via CXP configuration */
     resNodePtr prnCgiCxp;
 
+    pndXml = xmlNewChild(pndMake, pnsCxp, NAME_XML, NULL);
+
+    /* for security reasons add prefix "Cgi" to filename */
+    xmlStrPrintf(mpucNameFile, BUFFER_LENGTH, "Cgi%s.cxp", pucCgiCxp);
+
     if ((prnCgiCxp = cxpResNodeResolveNew(pccArg, NULL, mpucNameFile, CXP_O_SEARCH | CXP_O_READ)) != NULL) {
       /* found */
-      pndXml = xmlNewChild(pndMake, NULL, NAME_XML, NULL);
       xmlSetProp(pndXml, BAD_CAST "name", resNodeGetNameNormalized(prnCgiCxp));
       //xmlSetProp(pndXml, BAD_CAST "schema", BAD_CAST "cxp.rng");
       xmlSetProp(pndXml, BAD_CAST "eval", BAD_CAST "yes");
       resNodeFree(prnCgiCxp);
     }
     else {
-      pndXml = xmlNewChild(pndMake, NULL, NAME_PLAIN, BAD_CAST"File not found");
-      xmlSetProp(pndXml, BAD_CAST "name", BAD_CAST"-");
+      //pndXml = xmlNewChild(pndMake, NULL, NAME_PLAIN, BAD_CAST"File not found");
     }
   }
-  else if (pucCgiXsl) {
-    /*
-    deliver the file content with XSL transformation
-    */
-    xmlNodePtr pndXsl;
-    xmlNodePtr pndFile;
-    xmlNodePtr pndDir;
-    resNodePtr prnCgiXsl;
+  else if ((pucT = cxpCtxtEnvGetValueByName(pccArg, BAD_CAST "QUERY_STRING")) != NULL && STR_IS_NOT_EMPTY(pucT) && xmlStrchr(pucT, '=') == NULL) { /*!\todo define a more stable criteria than '=' */
+    /* copy file content to client */
+    xmlNodePtr pndCopy = NULL;
+    resNodePtr prnFrom = NULL;
 
-    /* detect output type of XSL */
-
-    if ((prnCgiXsl = cxpResNodeResolveNew(pccArg, NULL, mpucNameFile, CXP_O_SEARCH)) != NULL) {
-      xmlDocPtr pdocXsl;
-
-      pdocXsl = resNodeReadDoc(prnCgiXsl);
-      if (pdocXsl) {
-	xmlNodePtr pndRoot = xmlDocGetRootElement(pdocXsl);
-	xmlNodePtr pndOutput = domGetFirstChild(pndRoot, BAD_CAST "output");
-	xmlChar *pucAttrMethod = domGetPropValuePtr(pndOutput, BAD_CAST "method");
-
-	if (xmlStrEqual(pucAttrMethod, BAD_CAST "html")) {
-	  pndOutput = xmlNewChild(pndMake, NULL, NAME_XHTML, NULL);
-	}
-	else if (xmlStrEqual(pucAttrMethod, BAD_CAST "text")) {
-	  pndOutput = xmlNewChild(pndMake, NULL, NAME_PLAIN, NULL);
-	}
-	else {
-	  pndOutput = xmlNewChild(pndMake, NULL, NAME_XML, NULL);
-	}
-
-	xmlSetProp(pndOutput, BAD_CAST "name", BAD_CAST "-");
-	pndXml = xmlNewChild(pndOutput, NULL, NAME_XML, NULL);
-	if (pucCgiFile) {
-	  if (iMimeType == MIME_TEXT_PLAIN) {
-#ifdef HAVE_PIE
-	    pndFile = xmlNewChild(pndXml, NULL, NAME_PIE, NULL);
-	    pndFile = xmlNewChild(pndFile, NULL, NAME_PIE_IMPORT, NULL);
-	    xmlSetProp(pndFile, BAD_CAST "name", resNodeGetNameNormalized(prnContent));
-#endif
-	  }
-	  else if (iMimeType == MIME_TEXT_HTML) {
-	    pndFile = xmlNewChild(pndXml, NULL, NAME_XHTML, NULL);
-	    xmlSetProp(pndFile, BAD_CAST "name", resNodeGetNameNormalized(prnContent));
-	  }
-	  else {
-	    pndFile = xmlNewChild(pndXml, NULL, NAME_XML, NULL);
-	    xmlSetProp(pndFile, BAD_CAST "name", resNodeGetNameNormalized(prnContent));
-	  }
-	}
-	else if (pucCgiDir) {
-	  pndDir = xmlNewChild(pndXml, NULL, NAME_DIR, NULL);
-	  xmlSetProp(pndDir, BAD_CAST "name", resNodeGetNameNormalized(prnDir));
-	  xmlSetProp(pndDir, BAD_CAST "verbosity", BAD_CAST "3");
-	  xmlSetProp(pndDir, BAD_CAST "depth", BAD_CAST "1");
-	  xmlSetProp(pndDir, BAD_CAST "urlencode", BAD_CAST "yes");
-	}
-	else {
-	  /* this results in a empty PIE DOM */
-	  xmlNewChild(pndXml, NULL, NAME_PIE, NULL);
-	}
-	pndXsl = xmlNewChild(pndOutput, NULL, NAME_XSL, NULL);
-	xmlSetProp(pndXsl, BAD_CAST "name", resNodeGetNameNormalized(prnCgiXsl));
-
-	cxpCtxtCacheAppendDoc(pccArg, pdocXsl, resNodeGetNameNormalized(prnCgiXsl));
-	xmlFreeDoc(pdocXsl);
-      }
-    }
-    else {
-      cxpCtxtLogPrint(pccArg, 1, "Stylesheet '%s' not found in current search DOM", mpucNameFile);
-      pndPlain = xmlNewChild(pndMake, NULL, NAME_PLAIN, BAD_CAST "\n\n\nUnknown XML Stylesheet!");
-      xmlSetProp(pndPlain, BAD_CAST "name", BAD_CAST "-");
-    }
-  }
-  else if (pucCgiDir) {
-    if (cxpCtxtAccessIsPermitted(pccArg,prnDir) == FALSE) {
-      // access error
-    }
-    else {
-      /*
-      deliver the directory XML listing
-      */
-      xmlNodePtr pndDir;
-
-      pndXml = xmlNewChild(pndMake, NULL, NAME_XML, NULL);
-      xmlSetProp(pndXml, BAD_CAST "name", BAD_CAST "-");
-      pndDir = xmlNewChild(pndXml, NULL, NAME_DIR, NULL);
-      xmlSetProp(pndDir, BAD_CAST "verbosity", BAD_CAST "3");
-      xmlSetProp(pndDir, BAD_CAST "depth", BAD_CAST "1");
-      xmlSetProp(pndDir, BAD_CAST "urlencode", BAD_CAST "yes");
-      pndDir = xmlNewChild(pndDir, NULL, NAME_DIR, NULL);
-      xmlSetProp(pndDir, BAD_CAST "name", pucNameNormalizedDir);
-    }
-  }
-  else if (pucCgiFile) {
-    if (cxpCtxtAccessIsPermitted(pccArg,prnFile) == FALSE) {
-      // access error
-    }
-    else {
-      if (pucCgiXpath) {
-	/*
-	deliver the XML file content of Xpath
-	*/
-	xmlNodePtr pndXsl;
-	xmlNodePtr pndImport;
-
-	pndXml = xmlNewChild(pndMake, NULL, NAME_XML, NULL);
-	xmlSetProp(pndXml, BAD_CAST "name", BAD_CAST "-");
-	xmlSetProp(pndXml, BAD_CAST "encoding", pucCgiEncoding);
-
-	if (iMimeType == MIME_TEXT_PLAIN) {
-	  xmlNodePtr pndPie;
-
-#ifdef HAVE_PIE
-	  pndPie = xmlNewChild(pndXml, NULL, NAME_PIE, NULL);
-	  pndImport = xmlNewChild(pndPie, NULL, NAME_PIE_IMPORT, NULL);
-	  xmlSetProp(pndImport, BAD_CAST "locator", BAD_CAST "yes");
-	  xmlSetProp(pndImport, BAD_CAST "name", pucNameNormalizedFile);
-#endif
-	}
-	else if (iMimeType == MIME_TEXT_HTML) {
-	  xmlNodePtr pndXhtml;
-
-	  pndXhtml = xmlNewChild(pndXml, NULL, NAME_XHTML, NULL);
-	  xmlSetProp(pndXhtml, BAD_CAST "name", pucNameNormalizedFile);
-	}
-	else {
-	  xmlNodePtr pndXmlChild;
-
-	  pndXmlChild = xmlNewChild(pndXml, NULL, NAME_XML, NULL);
-	  xmlSetProp(pndXmlChild, BAD_CAST "name", pucNameNormalizedFile);
-	}
-	pndXsl = xmlNewChild(pndXml, NULL, NAME_XSL, NULL);
-	xmlSetProp(pndXsl, BAD_CAST "xpath", pucCgiXpath);
-      }
-#ifdef HAVE_JS
-      else if (iMimeType == MIME_APPLICATION_X_JAVASCRIPT) {
-	/* path is a name of a script */
-	xmlNodePtr pndScript;
-
-	pndPlain = xmlNewChild(pndMake, NULL, NAME_PLAIN, NULL);
-	xmlSetProp(pndPlain, BAD_CAST "name", BAD_CAST"-");
-	xmlSetProp(pndPlain, BAD_CAST "encoding", pucCgiEncoding);
-	pndScript = xmlNewChild(pndPlain, NULL, NAME_SCRIPT, NULL);
-
-	if (resNodeIsFile(prnFile)) {
-	  xmlSetProp(pndScript, BAD_CAST "name", pucCgiPath);
-	}
-	else {
-	  xmlSetProp(pndScript, BAD_CAST "name", pucCgiPath);
-	  xmlSetProp(pndScript, BAD_CAST "search", BAD_CAST "yes");
-	  cxpCtxtLogPrint(pccArg, 2, "Search later for '%s'", pucCgiPath);
-	}
-	/*!\todo append additional arguments */
-      }
-#endif
-      else {
-	/*
-	deliver the file content without CXP or XSL
-	*/
-	xmlNodePtr pndCopy;
-	pndCopy = xmlNewChild(pndMake, NULL, NAME_FILECOPY, NULL);
-	if (resNodeIsFileInArchive(prnContent)) {
-	  xmlSetProp(pndCopy, BAD_CAST "from", resNodeGetNameNormalized(prnContent));
-	}
-	else {
-	  xmlSetProp(pndCopy, BAD_CAST "from", pucNameNormalizedFile);
-	}
-	xmlSetProp(pndCopy, BAD_CAST "to", BAD_CAST "-");
-	xmlSetProp(pndCopy, BAD_CAST "encoding", pucCgiEncoding);
-      }
+    if ((prnFrom = resNodeRootNew(cxpCtxtRootGet(pccArg), pucT)) != NULL && resNodeIsReadable(prnFrom)) {
+      pndCopy = xmlNewChild(pndMake, NULL, NAME_FILECOPY, NULL);
+      //xmlSetProp(pndCopy, BAD_CAST "from", resNodeGetNameNormalized(prnFrom));
+      xmlSetProp(pndCopy, BAD_CAST "from", pucT);
+      xmlSetProp(pndCopy, BAD_CAST "to", BAD_CAST "-");
+      resNodeFree(prnFrom);
     }
   }
   else {
+    xmlChar *pucCgiXsl = NULL;
+    xmlChar *pucCgiXpath = NULL;
+    xmlChar *pucCgiYear = NULL;
+    xmlChar *pucCgiEmbedd = NULL;
+
+    pucCgiXpath = cxpCtxtCgiGetValueByName(pccArg, BAD_CAST "xpath");
+    pucCgiXsl = cxpCtxtCgiGetValueByName(pccArg, BAD_CAST "xsl");
+    pucCgiEmbedd = cxpCtxtCgiGetValueByName(pccArg, BAD_CAST "embedd");
+
+    pndXml = xmlNewNode(pnsCxp, NAME_XML);
+
+    if ((pucCgiPath = cxpCtxtCgiGetValueByName(pccArg, BAD_CAST"path")) != NULL
+	|| (pucCgiPath = cxpCtxtCgiGetValueByName(pccArg, BAD_CAST"dir")) != NULL
+	|| (pucCgiPath = cxpCtxtCgiGetValueByName(pccArg, BAD_CAST"file")) != NULL) {
+      /*!
+	map pucCgiPath either to pucCgiDir OR pucCgiFile
+      */
+      resNodePtr prnTest = NULL;
+
+      if ((prnTest = resNodeRootNew(cxpCtxtRootGet(pccArg), pucCgiPath)) == NULL || resNodeIsReadable(prnTest) == FALSE) {
+	prnTest = resNodeListFindPath(cxpCtxtRootGet(pccArg), pucCgiPath, (RN_FIND_FILE | RN_FIND_IN_SUBDIR | RN_FIND_REGEXP));
+      }
+
+      if (resNodeReadStatus(prnTest) && resNodeIsDir(prnTest)) {
+	if (cxpCtxtAccessIsPermitted(pccArg, prnTest) == FALSE) {
+	  // access error
+	}
+	else {
+	  /*
+	    deliver the directory XML listing
+	  */
+	  xmlNodePtr pndDir;
+
+	  pndDir = xmlNewChild(pndXml, NULL, NAME_DIR, NULL);
+	  xmlSetProp(pndDir, BAD_CAST "verbosity", BAD_CAST "3");
+	  xmlSetProp(pndDir, BAD_CAST "depth", BAD_CAST(resNodeIsRecursive(prnTest) ? "99" : "1"));
+	  xmlSetProp(pndDir, BAD_CAST "urlencode", BAD_CAST "yes");
+	  pndDir = xmlNewChild(pndDir, NULL, NAME_DIR, NULL);
+	  xmlSetProp(pndDir, BAD_CAST "name", resNodeGetNameRelative(cxpCtxtRootGet(pccArg), prnTest));
+	}
+      }
+      else if (resNodeReadStatus(prnTest) && resNodeIsFile(prnTest)) {
+	if (cxpCtxtAccessIsPermitted(pccArg, prnTest) == FALSE) {
+	  // access error
+	}
+	else {
+	  /*
+	    deliver the file XML
+	  */
+	  xmlNodePtr pndFile;
+
+	  pndFile = xmlNewChild(pndXml, NULL, NAME_FILE, NULL);
+	  xmlSetProp(pndFile, BAD_CAST "verbosity", BAD_CAST "4");
+	  xmlSetProp(pndFile, BAD_CAST "name", resNodeGetNameRelative(cxpCtxtRootGet(pccArg), prnTest));
+	}
+      }
+      else {
+	xmlStrPrintf(mpucNameFile, BUFFER_LENGTH, "Location: \"%s\" not found\r\n\r\n", (char *)pucCgiPath);
+	pndPlain = xmlNewChild(pndMake, NULL, NAME_PLAIN, mpucNameFile);
+	xmlSetProp(pndPlain, BAD_CAST "name", BAD_CAST "-");
+	xmlSetProp(pndPlain, BAD_CAST "status", BAD_CAST "404 Not Found"); /* default status */
+      }
+      resNodeFree(prnTest);
+    }
+    else if ((pucCgiYear = cxpCtxtCgiGetValueByName(pccArg, BAD_CAST "year")) != NULL) {
+      /*! output of XML calendar */
+      xmlNodePtr pndCalendar;
+
+      pndCalendar = xmlNewChild(pndXml, NULL, NAME_CALENDAR, NULL);
+      domSetPropEat(pndCalendar, BAD_CAST "year", pucCgiYear);
+    }
+    else {
 #if 1
-    pndXml = xmlNewChild(pndMake, NULL, NAME_XML, NULL);
-    xmlSetProp(pndXml, BAD_CAST "name", BAD_CAST "-");
-    xmlNewChild(pndXml, NULL, BAD_CAST "info", NULL);
+      xmlNewChild(pndXml, NULL, BAD_CAST "info", NULL);
 #else
-    /*
-    show a plain error message only
-    */
-    pndPlain = xmlNewChild(pndMake, NULL, NAME_PLAIN, BAD_CAST "\n\n\nThe requested action ist not yet supported!");
-    xmlSetProp(pndPlain, BAD_CAST "name", BAD_CAST "-");
+      /*
+	show a plain error message only
+      */
+      pndPlain = xmlNewChild(pndMake, NULL, NAME_PLAIN, BAD_CAST "\n\n\nThe requested action ist not yet supported!");
+      xmlSetProp(pndPlain, BAD_CAST "name", BAD_CAST "-");
 #endif
+    }
+
+    if (pucCgiXpath) {
+      /*
+	deliver the file content with XSL transformation
+      */
+      xmlNodePtr pndT;
+
+      pndT = xmlNewNode(pnsCxp, NAME_XML);
+      xmlAddChild(pndT,pndXml);
+      pndXsl = xmlNewChild(pndT, NULL, NAME_XSL, NULL);
+      xmlSetProp(pndXsl, BAD_CAST "xpath", pucCgiXpath);
+      pndXml = pndT;
+    }
+#ifdef EXPERIMENTAL
+    else if (STR_IS_NOT_EMPTY(pucCgiEmbedd)) {
+      xmlNodePtr pndOutput = NULL;
+
+      pndOutput = xmlNewChild(pndMake, NULL, NAME_XML, NULL);
+
+      xmlSetProp(pndOutput, BAD_CAST "name", BAD_CAST "-");
+      xmlAddChild(pndOutput, pndXml);
+
+      pndXsl = xmlNewChild(pndOutput, NULL, NAME_XSL, NULL);
+      xmlSetProp(pndXsl, BAD_CAST "embedd", pucCgiEmbedd);
+    }
+#endif
+    else if (pucCgiXsl) {
+      /*
+	deliver the file content with XSL transformation
+      */
+      resNodePtr prnCgiXsl;
+
+      /*!\todo for security add prefix "Cgi" to XSL filename */
+      xmlStrPrintf(mpucNameFile, BUFFER_LENGTH, "%s.xsl", pucCgiXsl);
+
+      /* detect output type of XSL */
+
+      if ((prnCgiXsl = cxpResNodeResolveNew(pccArg, NULL, mpucNameFile, CXP_O_READ | CXP_O_SEARCH)) != NULL) {
+	xmlDocPtr pdocXsl;
+
+	if ((pdocXsl = resNodeReadDoc(prnCgiXsl)) != NULL) {
+	  int i;
+	  xmlNodePtr pndRoot = xmlDocGetRootElement(pdocXsl);
+	  xmlNodePtr pndOutput = domGetFirstChild(pndRoot, BAD_CAST "output");
+	  xmlChar *pucAttrMethod = domGetPropValuePtr(pndOutput, BAD_CAST "method");
+
+	  if (xmlStrEqual(pucAttrMethod, BAD_CAST "html")) {
+	    pndOutput = xmlNewChild(pndMake, NULL, NAME_XHTML, NULL);
+	  }
+	  else if (xmlStrEqual(pucAttrMethod, BAD_CAST "text")) {
+	    pndOutput = xmlNewChild(pndMake, NULL, NAME_PLAIN, NULL);
+	  }
+	  else {
+	    pndOutput = xmlNewChild(pndMake, NULL, NAME_XML, NULL);
+	  }
+
+	  xmlSetProp(pndOutput, BAD_CAST "name", BAD_CAST "-");
+	  xmlAddChild(pndOutput, pndXml);
+
+	  pndXsl = xmlNewChild(pndOutput, NULL, NAME_XSL, NULL);
+	  xmlSetProp(pndXsl, BAD_CAST "name", resNodeGetNameNormalized(prnCgiXsl));
+
+	  for (i = 0; i < cxpCtxtCgiGetCount(pccArg); i++) { /* append CGI params as variables to pndXsl */
+	    xmlChar *pucName;
+
+	    pucName = cxpCtxtCgiGetName(pccArg, i);
+	    if (STR_IS_EMPTY(pucName) || xmlStrEqual(pucName, BAD_CAST "xpath") || xmlStrEqual(pucName, BAD_CAST "xsl") || xmlStrEqual(pucName, BAD_CAST "path") ||
+		xmlStrEqual(pucName, BAD_CAST "file") || xmlStrEqual(pucName, BAD_CAST "dir")) {
+	      /* ignoring this parameter */
+	    }
+	    else {
+	      xmlChar *pucValue;
+
+	      pucValue = cxpCtxtCgiGetValue(pccArg, i);
+	      if (STR_IS_NOT_EMPTY(pucValue)) {
+		xmlNodePtr pndVariable = NULL;
+
+		// cxpCtxtLogPrint(pccArg, 1, "CGI: '%s' = '%s'", pucName, pucValue);
+		pndVariable = xmlNewChild(pndXsl, NULL, BAD_CAST "variable", NULL);
+		xmlSetProp(pndVariable, BAD_CAST "name", pucName);
+		xmlSetProp(pndVariable, BAD_CAST "select", pucValue);
+	      }
+	      xmlFree(pucValue);
+	    }
+	    xmlFree(pucName);
+	  }
+
+	  cxpCtxtCacheAppendDoc(pccArg, pdocXsl, resNodeGetNameNormalized(prnCgiXsl));
+	  xmlFreeDoc(pdocXsl);
+	}
+      }
+      else {
+	cxpCtxtLogPrint(pccArg, 1, "Stylesheet '%s' not found in current search DOM", mpucNameFile);
+	pndPlain = xmlNewChild(pndMake, NULL, NAME_PLAIN, BAD_CAST "\n\n\nUnknown XML Stylesheet!");
+	xmlSetProp(pndPlain, BAD_CAST "name", BAD_CAST "-");
+      }
+    }
+    else {
+      xmlAddChild(pndMake,pndXml);
+      xmlSetProp(pndXml, BAD_CAST "name", BAD_CAST "-");
+    }
+
+    /*
+      release the allocated CGI values
+    */
+    xmlFree(pucCgiCxp);
+    xmlFree(pucCgiEmbedd);
+    xmlFree(pucCgiXsl);
+    xmlFree(pucCgiXpath);
+    xmlFree(pucCgiPathTranslated);
+    xmlFree(pucCgiPath);
   }
 
-  /*
-  release the allocated resNode's
-  */
-  resNodeFree(prnPathTranslated);
-  resNodeFree(prnDir);
-  resNodeFree(prnFile);
-  /*
-  release the allocated CGI values
-  */
-  xmlFree(pucCgiAjax);
-  xmlFree(pucCgiCxp);
-  xmlFree(pucCgiXsl);
-  xmlFree(pucCgiXpath);
-  xmlFree(pucCgiDir);
-  xmlFree(pucCgiFile);
-  xmlFree(pucCgiPathTranslated);
-  xmlFree(pucCgiPath);
-
   return pccArg->pdocContextNode;
-  //return pcxpContextResult->;
 } /* end of cxpCtxtCgiParse() */
 
 
@@ -599,16 +581,129 @@ BOOL_T
 cxpCtxtCgiProcess(cxpContextPtr pccArg)
 {
   BOOL_T fResult = FALSE;
-  xmlChar *pucT;
+  xmlNodePtr pndRoot;
 
-#ifdef DEBUG
-  cxpCtxtLogPrint(pccArg,2, "cxpCtxtCgiProcess(cxpContextPtr pccArg)");
-#endif
-
-  cxpProcessMakeNode(xmlDocGetRootElement(pccArg->pdocContextNode), pccArg);
-
+  if (pccArg != NULL 
+    && pccArg->pdocContextNode != NULL
+    && (pndRoot = xmlDocGetRootElement(pccArg->pdocContextNode)) != NULL) {
+      cxpProcessMakeNode(pndRoot, pccArg);
+      fResult = TRUE;
+  }
   return fResult;
 } /* end of cxpCtxtCgiProcess() */
+
+
+/*! \return 
+*/
+BOOL_T
+cxpProcessCGICopyNode(xmlNodePtr pndArgCopy, cxpContextPtr pccArg)
+{
+  BOOL_T fResult = FALSE;
+
+  if (IS_NODE_FILECOPY(pndArgCopy)) {
+    BOOL_T fMove = FALSE;
+    BOOL_T fSearch = FALSE;
+    xmlChar *pucFrom = NULL;
+    xmlChar *pucTo = NULL;
+    resNodePtr prnFrom = NULL;
+    resNodePtr prnContent = NULL;
+    resNodePtr prnTo = NULL;
+
+    pucFrom = domGetPropValuePtr(pndArgCopy, BAD_CAST "from");
+    pucTo = domGetPropValuePtr(pndArgCopy, BAD_CAST "to");
+    fMove = domGetPropFlag(pndArgCopy, BAD_CAST "delete", FALSE);
+    fSearch = domGetPropFlag(pndArgCopy, BAD_CAST "search", FALSE);
+
+    if (STR_IS_EMPTY(pucTo) || (prnTo = resNodeFromNodeNew(cxpCtxtRootGet(pccArg), pucTo)) == NULL || cxpCtxtAccessIsPermitted(pccArg, prnTo) == FALSE) {
+      printf("Status: 507\r\n"
+	     "Content-Type: text/plain\r\n\r\n"
+	     "Cxproc write error '%s = '%s''\r\n",
+	     pucTo, resNodeGetErrorMsg(prnTo));
+      cxpCtxtLogPrint(pccArg, 1, "DIR '%s'", resNodeGetNameNormalized(prnTo));
+    }
+    else if (STR_IS_EMPTY(pucFrom) ||
+	     (prnFrom = cxpResNodeResolveNew(pccArg, pndArgCopy, pucFrom, (fSearch ? CXP_O_SEARCH | CXP_O_READ : CXP_O_READ))) == NULL
+					     || cxpCtxtAccessIsPermitted(pccArg, prnFrom) == FALSE) {
+      printf("Status: 507\r\n"
+	     "Content-Type: text/plain\r\n\r\n"
+	     "Cxproc read error '%s' = '%s'\r\n",
+	     pucFrom, resNodeGetErrorMsg(prnFrom));
+      cxpCtxtLogPrint(pccArg, 1, "No valid source name '%s'", pucFrom);
+    }
+    else if ((prnContent = resNodeGetLastDescendant(prnFrom)) == NULL || resNodeIsDir(prnContent) || resNodeIsDirInArchive(prnContent)) {
+      printf("Status: 503\r\n"
+	     "Content-Type: text/plain\r\n\r\n"
+	     "Cxproc access error '%s' '%s' = '%s'\r\n",
+	     pucFrom, pucTo, resNodeGetErrorMsg(prnContent));
+      cxpCtxtLogPrint(pccArg, 1, "Cxproc access error '%s' '%s'\r\n", pucFrom, pucTo);
+    }
+    else if (resNodeIsStd(prnTo)) {
+      /* s. RFC 1806 */
+      xmlChar *pucAttrType = domGetPropValuePtr(pndArgCopy, BAD_CAST "type");
+      xmlChar *pucAttrDisposition = domGetPropValuePtr(pndArgCopy, BAD_CAST "disposition");
+
+      printf("Content-Type: %s\n", (pucAttrType && xmlStrlen(pucAttrType) > 5) ? pucAttrType : BAD_CAST resNodeGetMimeTypeStr(prnContent));
+      if ( ! resMimeIsBrowserViewable(resNodeGetMimeType(prnContent)) || STR_IS_NOT_EMPTY(pucAttrDisposition)) {
+	printf("Content-Disposition: attachment; filename=%s\n",
+	       (pucAttrDisposition && xmlStrlen(pucAttrDisposition) > 5) ? pucAttrDisposition : resNodeGetNameBase(prnContent));
+      }
+      printf("Content-Description: Dynamic cxproc content\n\n");
+
+      if (resNodeTransfer(prnContent, prnTo, FALSE) != rn_error_none) {
+	printf("Status: 503\r\n"
+	       "Content-Type: text/plain\r\n\r\n"
+	       "Cxproc copy error '%s' '%s' = '%s'\r\n",
+	       pucFrom, pucTo, resNodeGetErrorMsg(prnFrom));
+      }
+      else {
+	fResult = TRUE;
+      }
+    }
+    else if (resNodeTransfer(prnContent, prnTo, fMove) != rn_error_none) {
+      printf("Status: 503\r\n"
+	     "Content-Type: text/plain\r\n\r\n"
+	     "Cxproc %s error:\r\n  '%s' = '%s'\r\n  '%s' = '%s'\r\n",
+	     fMove ? "move" : "copy",
+	     pucFrom, (resNodeGetErrorMsg(prnFrom) != NULL) ? resNodeGetErrorMsg(prnFrom) : BAD_CAST "",
+	     pucTo, (resNodeGetErrorMsg(prnTo) != NULL) ? resNodeGetErrorMsg(prnTo) : BAD_CAST "");
+    }
+    else {
+      fResult = TRUE;
+      printf("Status: 200 OK\r\n"
+	     "Content-Type: text/plain;\r\n\r\n"
+	     "Cxproc %s '%s' '%s' OK\r\n",
+	     fMove ? "move" : "copy",
+	     pucFrom, pucTo);
+    }
+
+#if 0
+    if (fResult == FALSE) {
+      printf("Status: 503 OK\r\n"
+	     "Content-Type: text/plain;\r\n\r\n"
+	     "Cxproc '%s' '%s' = '%s'\r\n",
+	     pucFrom, pucTo, resNodeGetErrorMsg(prnTo));
+    }
+    else if ((pucAttrResponse = domGetPropValuePtr(pndArgCopy, BAD_CAST "response"))) {
+      printf("Status: 200 OK\r\n"
+	     "Content-Type: text/plain;\r\n\r\n"
+	     "Cxproc '%s' '%s' = '%s' OK\r\n",
+	     pucFrom, pucTo, pucAttrResponse);
+    }
+    else {
+      printf("Status: 200 OK\r\n"
+	     "Content-Type: text/plain;\r\n\r\n"
+	     "Cxproc '%s' '%s' OK\r\n",
+	     pucFrom, pucTo);
+    }
+#endif
+
+    fflush(stdout); /*! because problems with VC++ (reverse order in stdout) */
+
+    resNodeFree(prnTo);
+    resNodeFree(prnFrom);
+  }
+  return fResult;
+} /* end of cxpProcessCGICopyNode() */
 
 
 #ifdef TESTCODE

@@ -1,7 +1,7 @@
 /*
   cxproc - Configurable Xml PROCessor
 
-  Copyright (C) 2006..2020 by Alexander Tenbusch
+  Copyright (C) 2006..2024 by Alexander Tenbusch
 
   This program is free software; you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -41,6 +41,8 @@
 #include "utils.h"
 
 #ifdef HAVE_LIBID3TAG
+
+#include <audio/audio.h>
 
 static xmlChar *
 input_id3_get_string(struct id3_tag *tag, char *frame_name);

@@ -1,0 +1,104 @@
+
+################################################################################
+#
+# libexif
+#
+
+FIND_PACKAGE( Exif )
+
+IF (LIBEXIF_LIBRARY)
+  OPTION (CXPROC_LIBEXIF "Enable support for linking cxproc with libexif." OFF)
+ENDIF (LIBEXIF_LIBRARY)
+
+
+IF (CXPROC_LIBEXIF)
+
+  SET(EXIF_FILES
+    ${CXPROC_SRC_DIR}/option/image/image_exif.h
+    ${CXPROC_SRC_DIR}/option/image/image_exif.c
+    )
+
+  target_sources(filex PUBLIC ${EXIF_FILES})
+
+  target_sources(cxproc PUBLIC ${EXIF_FILES})
+
+  target_sources(cxproc-cgi PUBLIC ${EXIF_FILES})
+
+  IF(CXPROC_TESTS)
+    target_sources(cxproc-test PUBLIC ${EXIF_FILES})
+  ENDIF ()
+
+  INCLUDE_DIRECTORIES(${LIBEXIF_INCLUDE_DIR})
+
+  target_compile_definitions(filex       PUBLIC HAVE_LIBEXIF)
+  target_compile_definitions(cxproc      PUBLIC HAVE_LIBEXIF)
+  target_compile_definitions(cxproc-cgi  PUBLIC HAVE_LIBEXIF)
+  IF(CXPROC_TESTS)
+    target_compile_definitions(cxproc-test PUBLIC HAVE_LIBEXIF)
+  ENDIF ()
+
+  target_link_libraries(filex ${LIBEXIF_LIBRARY})
+  target_link_libraries(cxproc ${LIBEXIF_LIBRARY})
+  target_link_libraries(cxproc-cgi  ${LIBEXIF_LIBRARY})
+  IF(CXPROC_TESTS)
+    target_link_libraries(cxproc-test ${LIBEXIF_LIBRARY})
+  ENDIF ()
+  #IF (LIBMICROHTTPD_FOUND)
+  #  target_link_libraries(cxproc-httpd ${LIBEXIF_LIBRARY})
+  #ENDIF ()
+
+  IF(BUILD_TESTING)
+  
+add_test(NAME image-cxp
+    WORKING_DIRECTORY ${CXPROC_TEST_DIR}/option/image
+    COMMAND ${CXPROC_PREFIX}/bin/cxproc config.cxp)
+ENDIF(BUILD_TESTING)
+  
+ENDIF ()
+
+################################################################################
+#
+# libmagick
+#
+
+FIND_PACKAGE( ImageMagick COMPONENTS MagickCore )
+
+IF (ImageMagick_FOUND)
+
+  OPTION(CXPROC_LIBMAGICK "Include ImageMagick code" OFF)
+  #SET(CXPROC_LIBMAGICK OFF)
+
+  IF (CXPROC_LIBMAGICK)
+    SET(IMAGE_FILES
+      ${CXPROC_SRC_DIR}/option/image/image.h
+      ${CXPROC_SRC_DIR}/option/image/image.c
+      )
+
+    #target_sources(filex PUBLIC ${IMAGE_FILES})
+
+    target_sources(cxproc PUBLIC ${IMAGE_FILES})
+
+    target_sources(cxproc-cgi PUBLIC ${IMAGE_FILES})
+
+    IF(CXPROC_TESTS)
+      target_sources(cxproc-test PUBLIC ${IMAGE_FILES})
+    ENDIF ()
+
+    INCLUDE_DIRECTORIES(${ImageMagick_INCLUDE_DIRS})
+    
+    target_compile_definitions(cxproc      PUBLIC HAVE_LIBMAGICK)
+    target_compile_definitions(cxproc-cgi  PUBLIC HAVE_LIBMAGICK)
+    IF(CXPROC_TESTS)
+      target_compile_definitions(cxproc-test PUBLIC HAVE_LIBMAGICK)
+    ENDIF ()
+    
+    target_link_libraries(cxproc      ${ImageMagick_LIBRARIES})
+    target_link_libraries(cxproc-cgi  ${ImageMagick_LIBRARIES})
+    IF(CXPROC_TESTS)
+      target_link_libraries(cxproc-test ${ImageMagick_LIBRARIES})
+    ENDIF ()
+    
+  ENDIF (CXPROC_LIBMAGICK)
+
+ENDIF ()
+

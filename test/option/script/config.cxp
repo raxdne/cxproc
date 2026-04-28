@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <cxp:make xmlns:cxp="http://www.tenbusch.info/cxproc">
-  <cxp:system mkdir="result"/>
+  <cxp:system mkdir="result/"/>
   <cxp:system message="**** test-js-001: Run embedded Js code"/>
   <cxp:plain name="result/test-js-001.txt">
     <cxp:plain script="'Now is ' + Date();"/>

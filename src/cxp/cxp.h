@@ -1,7 +1,7 @@
 /*
   cxproc - Configurable Xml PROCessor
 
-  Copyright (C) 2006..2020 by Alexander Tenbusch
+  Copyright (C) 2006..2024 by Alexander Tenbusch
 
   This program is free software; you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -18,12 +18,12 @@
   Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 */
 
-#define WITH_AJAX 1
-
-#include "dom.h"
-
 #include "cxp_dtd.h"
+#ifdef HAVE_JS
+#include <script/cxp_script.h>
+#else
 #include "cxp_context.h"
+#endif
 #include "cxp_context_cache.h"
 #include "cxp_context_enc.h"
 #include "cxp_subst.h"
@@ -50,12 +50,6 @@ cxpCleanup(void);
 extern BOOL_T
 cxpProcessTransformations(const xmlDocPtr pdocArgXml, const xmlNodePtr pndArgParent, xmlDocPtr *ppdocArgResult, xmlChar **ppucArgResult, cxpContextPtr pccArg);
 
-extern xmlChar **
-cxpXslParamProcess(xmlNodePtr pndArg, cxpContextPtr pccArg);
-
-extern void
-cxpXslParamFree(char ** ppchArg);
-
 extern xmlDocPtr
 cxpXslRetrieve(const xmlNodePtr pndArgXsl, cxpContextPtr pccArg);
 
@@ -64,6 +58,9 @@ cxpProcessMakeNode(xmlNodePtr pndArg, cxpContextPtr pccArg);
 
 extern xmlDocPtr
 cxpProcessXmlNode(xmlNodePtr pndArg, cxpContextPtr pccArg);
+
+extern xmlChar *
+cxpProcessPlainNode(xmlNodePtr pndArg, cxpContextPtr pccArg);
 
 extern BOOL_T
 cxpProcessCopyNode(xmlNodePtr pndArgCopy, cxpContextPtr pccArg);
@@ -80,8 +77,12 @@ cxpResNodeResolveNew(cxpContextPtr pccArg, xmlNodePtr pndArg, xmlChar *pucArg, i
 extern resNodePtr
 cxpAttributeLocatorResNodeNew(cxpContextPtr pccArg, xmlNodePtr pndArg, xmlChar *pucArg);
 
-extern xmlChar *
-cxpProcessPlainNode(xmlNodePtr pndArg, cxpContextPtr pccArg);
+extern BOOL_T
+cxpValidateTree(xmlNodePtr pndArg, cxpContextPtr pccArg);
+
+extern xmlNodePtr
+cxpRemoveInvalidsFromTree(xmlNodePtr pndArg);
+
 
 #ifdef TESTCODE
 extern int

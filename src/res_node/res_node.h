@@ -1,7 +1,7 @@
  /*
   cxproc - Configurable Xml PROCessor
 
-  Copyright (C) 2006..2020 by Alexander Tenbusch
+  Copyright (C) 2006..2024 by Alexander Tenbusch
 
   This program is free software; you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -26,6 +26,8 @@
 #define NAME_SYMLINK BAD_CAST "link"
 
 #define IS_NODE_DIR(NODE) (IS_NODE(NODE,NAME_DIR))
+
+#define IS_NODE_SYMLINK(NODE) (IS_NODE(NODE,NAME_SYMLINK))
 
 #define IS_NODE_FILE(NODE) (IS_NODE(NODE,NAME_FILE))
 
@@ -68,7 +70,17 @@
 #include <res_node/res_path.h>
 #include <res_node/res_mime.h>
 
-/*! bits for duplicating of resource nodes
+#define CSV_SEP_STR ","
+
+#define NAME_FILE_INDEX ".index.pie"
+
+#define NAME_TMP_INDEX "#index.pie#"
+
+#define NAME_CONFIG_INDEX ".index.cxp"
+
+#define NAME_FILE_SHORTCUTS "shortcuts"
+
+/*! option bits for duplicating of resource nodes
  */
 #define RN_DUP_THIS    (0)
 
@@ -78,17 +90,25 @@
 
 #define RN_DUP_NEXT    (4)
 
-/*! bits for parsing of resource nodes
+#define RN_DUP_EXIST   (8)
+
+#define RN_DUP_READ    (16 | RN_DUP_EXIST)
+
+#define RN_DUP_WRITE   (32 | RN_DUP_EXIST)
+
+
+ /*! option bits for parsing of resource nodes
  */
 #define RN_INFO_MIN     (0)
 
-#define RN_INFO_META    (1)
+/*! all info from stat() are available */
+#define RN_INFO_STAT    (1)
 
 #define RN_INFO_INFO    (2)
 
 #define RN_INFO_XML     (4)
 
-#define RN_INFO_PIE     (8)
+#define RN_INFO_OWNER   (8)
 
 #define RN_INFO_STRUCT  (16)
 
@@ -97,7 +117,7 @@
 /*
 "PICTURE.JPG.TXT"
 */
-#define RN_INFO_COMMENT (64)
+#define RN_INFO_COMMENT (64) /*! read comment file to buffer */
 
 /*
 ".index.txt"
@@ -106,12 +126,43 @@
 */
 #define RN_INFO_INDEX   (128)
 
-/*
-re-build full list of contextxts
-*/
 #define RN_INFO_LIST    (256)
 
-#define RN_INFO_MAX     (RN_INFO_META | RN_INFO_INFO | RN_INFO_XML | RN_INFO_PIE | RN_INFO_STRUCT | RN_INFO_CONTENT | RN_INFO_COMMENT | RN_INFO_LIST)
+#define RN_INFO_MAX     (RN_INFO_STAT | RN_INFO_INFO | RN_INFO_XML | RN_INFO_OWNER | RN_INFO_STRUCT | RN_INFO_CONTENT | RN_INFO_COMMENT | RN_INFO_INDEX | RN_INFO_LIST)
+
+/*! macros for bit logic 
+*/
+#define IS_OPTION_STAT(I) ((I & RN_INFO_STAT) != 0)
+
+#define IS_OPTION_INFO(I) ((I & RN_INFO_INFO) != 0)
+
+#define IS_OPTION_XML(I) ((I & RN_INFO_XML) != 0)
+
+#define IS_OPTION_OWNER(I) ((I & RN_INFO_OWNER) != 0)
+
+#define IS_OPTION_STRUCT(I) ((I & RN_INFO_STRUCT) != 0)
+
+#define IS_OPTION_CONTENT(I) ((I & RN_INFO_CONTENT) != 0)
+
+#define IS_OPTION_COMMENT(I) ((I & RN_INFO_COMMENT) != 0)
+
+#define IS_OPTION_INDEX(I) ((I & RN_INFO_INDEX) != 0)
+
+#define SET_OPTION_STAT(I) I |= RN_INFO_STAT
+
+#define SET_OPTION_INFO(I) I |= RN_INFO_INFO
+
+#define SET_OPTION_XML(I) I |= RN_INFO_XML
+
+#define SET_OPTION_OWNER(I) I |= RN_INFO_OWNER
+
+#define SET_OPTION_STRUCT(I) I |= RN_INFO_STRUCT
+
+#define SET_OPTION_CONTENT(I) I |= RN_INFO_CONTENT
+
+#define SET_OPTION_COMMENT(I) I |= RN_INFO_COMMENT
+
+#define SET_OPTION_INDEX(I) I |= RN_INFO_INDEX
 
 
 typedef enum {
@@ -132,6 +183,9 @@ typedef enum {
   rn_type_archive,
   rn_type_dir_in_archive,
   rn_type_file_in_archive,
+  rn_type_zip,
+  rn_type_dir_in_zip,
+  rn_type_file_in_zip,
   rn_type_database,
   rn_type_file_in_database,
   rn_type_symlink,
@@ -159,7 +213,8 @@ typedef enum {
   rn_access_sqlite,			/*               SQLite */
   rn_access_image,			/*               image */
   rn_access_audio,			/*               audio */
-  rn_access_archive			/*               archive */
+  rn_access_archive,			/*               libarchive */
+  rn_access_zip				/*               libzip */
 } RN_ACCESS; /*! indicates the way it was opened (type of IO handle) */
 
 typedef enum {
@@ -172,10 +227,13 @@ typedef enum {
   rn_error_owner,
   rn_error_access,
   rn_error_copy,
+  rn_error_source,
+  rn_error_target,
   rn_error_write,
   rn_error_busy,
   rn_error_parse,
   rn_error_archive,
+  rn_error_zip,
   rn_error_encoding,
   rn_error_max_path,
   rn_error_find,
@@ -206,7 +264,7 @@ struct _resNode {
 
   xmlChar *pucExtension;        /*! UTF-8 encoded entry extension */
 
-  xmlChar *pucNameAncestor;	/*! UTF-8 encoded ancestor path of entry name */
+  xmlChar *pucNameShort;	/*! UTF-8 encoded short path of entry name */
 
   xmlChar *pucQuery;	        /*! UTF-8 encoded entry query */
 
@@ -222,7 +280,6 @@ struct _resNode {
 
   /*! flags 
    */
-  BOOL_T fStat;			/*! TRUE if this context was stat'd already */
   BOOL_T fExist;
   BOOL_T fRead;
   BOOL_T fWrite;
@@ -241,6 +298,10 @@ struct _resNode {
 
   size_t liSize;			/*! size _info_ in Bytes (meta datum!) */
   size_t liRecursiveSize;
+
+  size_t liChilds;			/*! number of childs */
+
+  time_t tAtime;            /*! access time value of context */
 
   time_t tMtime;            /*! modification time value of context */
   xmlChar *pucMtime;        /*! UTF-8 encoded entry mtime string */
@@ -301,7 +362,17 @@ struct _resNode {
 
   xmlDocPtr pdocContent;	/*! pointer to read DOM */
 
+  /*!\todo time_t tContent;              time stamp of context content */
+
   int iCountUse;  		/*! usage counter for this context (caching) */
+
+  int iDetails;			/*! bit mask of details (s. RN_INFO_*) */
+
+#ifdef _MSC_VER
+  struct _stat s;
+#else
+  struct stat s;
+#endif
 
   struct _resNode *parent;   /*! parent context of list */
   struct _resNode *children; /*! children context in list */
@@ -310,8 +381,20 @@ struct _resNode {
   struct _resNode *prev;     /*! next context in list */
 };
 
+extern resNodePtr
+resNodeNew(void);
+
 extern BOOL_T
 resNodeReset(resNodePtr prnArg, xmlChar *pucArgPath);
+
+extern BOOL_T
+resNodeResetDetails(resNodePtr prnArg);
+
+extern BOOL_T
+resNodeAddDetails(resNodePtr prnArg, int iArgOptions);
+
+extern BOOL_T
+resNodeHasDetails(resNodePtr prnArg, int iArgOptions);
 
 extern BOOL_T
 resNodeUpdate(resNodePtr prnArg, int iArgOptions, const pcre2_code *re_match, const pcre2_code *re_grep);
@@ -330,6 +413,19 @@ resNodeDup(resNodePtr prnArg, int iArgOptions);
 
 extern resNodePtr
 resNodeStrNew(xmlChar *pucArgPath);
+
+extern BOOL_T
+resNodeTestDirStr(xmlChar *pucArgPath);
+
+extern BOOL_T
+resNodeTestFileStr(xmlChar *pucArgPath);
+
+#ifdef HAVE_LIBCURL
+
+resNodePtr
+resNodeCurlNew(xmlChar *pucArgPath);
+
+#endif
 
 extern resNodePtr
 resNodeDirNew(xmlChar *pucArgPath);
@@ -385,6 +481,9 @@ resNodeGetRoot(resNodePtr prnArg);
 extern resNodePtr
 resNodeGetAncestorArchive(resNodePtr prnArg);
 
+extern resNodePtr
+resNodeGetAncestorZip(resNodePtr prnArg);
+
 extern xmlChar*
 resNodeGetAncestorPathStr(resNodePtr prnArg);
 
@@ -402,6 +501,9 @@ resNodeGetCountDescendants(resNodePtr prnArgList);
 
 extern xmlChar *
 resNodeGetNameAlias(resNodePtr prnArg);
+
+extern xmlChar*
+resNodeGetNameShort(resNodePtr prnArg);
 
 extern resNodePtr
 resNodeResolveLinkChildNew(resNodePtr prnArg);
@@ -421,6 +523,9 @@ resNodeSetNameBase(resNodePtr prnArg, xmlChar *pucArgPath);
 extern BOOL_T
 resNodeSetNameBaseDir(resNodePtr prnArg, xmlChar *pucArgPath);
 
+extern BOOL_T
+resNodeSetNameShort(resNodePtr prnArg, xmlChar* pucArgShort);
+
 extern void
 resNodeFree(resNodePtr prnArg);
 
@@ -429,6 +534,9 @@ resNodeIsStd(resNodePtr prnArg);
 
 extern BOOL_T
 resNodeIsDir(resNodePtr prnArg);
+
+extern BOOL_T
+resNodeIsRoot(resNodePtr prnArg);
 
 extern BOOL_T
 resNodeIsRecursive(resNodePtr prnArg);
@@ -455,6 +563,12 @@ extern BOOL_T
 resNodeIsDatabase(resNodePtr prnArg);
 
 extern BOOL_T
+resNodeIsPicture(resNodePtr prnArg);
+
+extern BOOL_T
+resNodeIsVideo(resNodePtr prnArg);
+
+extern BOOL_T
 resNodeIsArchive(resNodePtr prnArg);
 
 extern BOOL_T
@@ -462,6 +576,15 @@ resNodeIsFileInArchive(resNodePtr prnArg);
 
 extern BOOL_T
 resNodeIsDirInArchive(resNodePtr prnArg);
+
+extern BOOL_T
+resNodeIsZipDocument(resNodePtr prnArg);
+
+extern BOOL_T
+resNodeIsFileInZip(resNodePtr prnArg);
+
+extern BOOL_T
+resNodeIsDirInZip(resNodePtr prnArg);
 
 extern BOOL_T
 resNodeIsExist(resNodePtr prnArg);
@@ -479,10 +602,16 @@ extern BOOL_T
 resNodeIsWriteable(resNodePtr prnArg);
 
 extern BOOL_T
+resNodeParentIsWriteable(resNodePtr prnArg);
+
+extern BOOL_T
 resNodeIsCreateable(resNodePtr prnArg);
 
 extern BOOL_T
 resNodeIsHidden(resNodePtr prnArg);
+
+extern BOOL_T
+resNodeIsShortcut(resNodePtr prnArg);
 
 extern RN_ERROR
 resNodeSetError(resNodePtr prnArg, RN_ERROR eArg, const char *fmt, ...);
@@ -501,9 +630,6 @@ resNodeIsError(resNodePtr prnArg);
 
 extern BOOL_T
 resNodeReadStatus(resNodePtr prnArg);
-
-extern BOOL_T
-resNodeSetOwner(resNodePtr prnArg);
 
 extern xmlChar *
 resNodeGetURI(resNodePtr prnArg);
@@ -548,6 +674,9 @@ extern RN_TYPE
 resNodeGetType(resNodePtr prnArg);
 
 extern xmlChar *
+resNodeGetTypeStr(resNodePtr prnArg);
+
+extern xmlChar *
 resNodeGetNameNormalized(resNodePtr prnArg);
 
 extern char *
@@ -565,11 +694,23 @@ resNodeGetMtime(resNodePtr prnArg);
 extern xmlChar *
 resNodeGetMtimeStr(resNodePtr prnArg);
 
+extern long
+resNodeGetMtimeDiff(resNodePtr prnArg);
+
+extern size_t
+resNodeIncrChilds(resNodePtr prnArg, size_t iArg);
+
+extern size_t
+resNodeGetCountChilds(resNodePtr prnArg);
+
 extern size_t
 resNodeGetSize(resNodePtr prnArg);
 
 extern size_t
 resNodeSetSize(resNodePtr prnArg, size_t iArg);
+
+extern size_t
+resNodeIncrSize(resNodePtr prnArg, size_t iArg);
 
 extern size_t
 resNodeGetRecursiveSize(resNodePtr prnArg);
@@ -592,26 +733,11 @@ resNodeStepInTo(resNodePtr prnArg);
 extern BOOL_T
 resNodeDirAppendEntries(resNodePtr prnArgDir, const pcre2_code *re_match);
 
-extern xmlNodePtr
-resNodeToDOM(resNodePtr prnArg, int iArgOptions);
-
-extern xmlChar *
-resNodeToPlain(resNodePtr prnArg, int iArgOptions);
-
-extern xmlChar *
-resNodeToJSON(resNodePtr prnArg, int iArgOptions);
-
-extern xmlChar *
-resNodeToSql(resNodePtr prnArg, int iArgOptions);
-
 extern xmlChar *
 resNodeSetProp(resNodePtr prnArg, xmlChar *pucArgKey, xmlChar *pucArgValue);
 
 extern xmlChar *
 resNodeGetProp(resNodePtr prnArg, xmlChar *pucArgKey);
-
-extern BOOL_T
-resNodeContentToDOM(xmlNodePtr pndArg, resNodePtr prnArg);
 
 #ifdef TESTCODE
 extern int
@@ -619,6 +745,19 @@ resNodeTest(void);
 
 extern int
 resNodeTestProp(void);
+
+#ifdef HAVE_LIBARCHIVE
+extern int
+arcTestResNodeRead(void);
+
+extern int
+arcTestResNodeWrite(void);
+#endif
+
+#endif
+
+#ifdef HAVE_LIBARCHIVE
+#include <res_node/res_node_archive.h>
 #endif
 
 #include <res_node/res_node_list.h>

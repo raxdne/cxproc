@@ -1,7 +1,7 @@
 /*
   cxproc - Configurable Xml PROCessor
 
-  Copyright (C) 2006..2020 by Alexander Tenbusch
+  Copyright (C) 2006..2024 by Alexander Tenbusch
 
   This program is free software; you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -18,13 +18,13 @@
   Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 */
 
-#ifdef TESTCODE
-extern int
-jsonTest(cxpContextPtr pccArg);
-#endif
-
-extern xmlDocPtr
-jsonProcessJsonNode(xmlNodePtr pndArgJson, cxpContextPtr pccArg);
-
 extern xmlNodePtr
 jsonParseFile(xmlNodePtr pndParent, resNodePtr prnArg);
+
+extern BOOL_T
+jsonParseBuffer(xmlNodePtr pndParent, xmlChar *pucArg);
+
+#ifdef TESTCODE
+extern int
+jsonTest(void);
+#endif

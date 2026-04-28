@@ -1,0 +1,46 @@
+
+################################################################################
+#
+# PETRINET
+#
+OPTION(CXPROC_PETRINET "Include Petrinet code" ON)
+
+
+IF (CXPROC_PETRINET)
+
+  SET(PETRINET_FILES
+    ${CXPROC_SRC_DIR}/option/petrinet/petrinet_dtd.h
+    ${CXPROC_SRC_DIR}/option/petrinet/petrinet.h
+    ${CXPROC_SRC_DIR}/option/petrinet/petrinet.c
+    )
+
+  target_sources(cxproc PUBLIC ${PETRINET_FILES})
+  target_compile_definitions(cxproc PUBLIC HAVE_PETRINET)
+
+  target_sources(cxproc-cgi PUBLIC ${PETRINET_FILES})
+  target_compile_definitions(cxproc-cgi PUBLIC HAVE_PETRINET)
+
+  IF(CXPROC_TESTS)
+    target_sources(cxproc-test PUBLIC ${PETRINET_FILES})
+    target_compile_definitions(cxproc-test PUBLIC HAVE_PETRINET)
+  ENDIF ()
+
+IF(BUILD_TESTING)
+  
+  IF(CXPROC_TESTS)
+    add_test(NAME petrinet-code
+      WORKING_DIRECTORY ${CXPROC_PREFIX}
+      COMMAND ${CXPROC_PREFIX}/bin/cxproc-test -t petrinet)
+  ENDIF ()
+
+  add_test(NAME petrinet-cxp
+    WORKING_DIRECTORY ${CXPROC_TEST_DIR}/option/petrinet
+    COMMAND ${CXPROC_PREFIX}/bin/cxproc config.cxp)
+
+  set_tests_properties(petrinet-cxp PROPERTIES
+    ENVIRONMENT "CXP_PATH=${PROJECT_SOURCE_DIR}//")
+
+ENDIF (BUILD_TESTING)
+
+ENDIF (CXPROC_PETRINET)
+

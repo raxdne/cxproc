@@ -20,17 +20,23 @@
        Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
        
        -->
+
   <xsl:output method="text"/>
+
   <xsl:variable name="separator" select="'/'"/>
+
   <xsl:template match="/">
     <xsl:for-each select="//file[not(@name='')]">
+      <xsl:value-of select="ancestor::dir/attribute::prefix"/>
       <xsl:for-each select="ancestor::dir[not(@name='')]">
         <xsl:value-of select="concat(@name,$separator)"/>
       </xsl:for-each>
-      <xsl:value-of select="@name"/>
+      <xsl:value-of select="concat(@name,'  ',@size,'  ',@mtime2)"/>
       <xsl:text>
 </xsl:text>
     </xsl:for-each>
   </xsl:template>
+
   <xsl:template match="*"/>
+
 </xsl:stylesheet>

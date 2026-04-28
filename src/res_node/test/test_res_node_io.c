@@ -1,7 +1,7 @@
 /*
   cxproc - Configurable Xml PROCessor
 
-  Copyright (C) 2006..2020 by Alexander Tenbusch
+  Copyright (C) 2006..2024 by Alexander Tenbusch
 
   This program is free software; you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -139,94 +139,6 @@ resNodeTestInOut(void)
 #endif
 
 
-#ifdef HAVE_LIBARCHIVE
-  if (RUNTEST) {
-    resNodePtr prnT = NULL;
-
-    i++;
-    printf("TEST %i in '%s:%i': open and close an existing ZIP file context = ",i,__FILE__,__LINE__);
-
-    if ((prnT = resNodeDirNew(BAD_CAST TESTPREFIX "option/archive/test-zip-7.zip")) == NULL) {
-      printf("Error resNodeDirNew()\n");
-    }
-    else if (resNodeIsArchive(prnT) == FALSE) {
-      printf("Error resNodeIsArchive()\n");
-    }
-    else if (resNodeOpen(prnT,"ra") == FALSE) {
-      printf("Error resNodeOpen()\n");
-    }
-    else if (prnT->eMode != mode_read) {
-      printf("Error eAccess\n");
-    }
-    else if (resNodeIsOpen(prnT) == FALSE) {
-      printf("Error resNodeIsOpen()\n");
-    }
-    else if (resNodeGetChild(prnT) != NULL) {
-      printf("Error resNodeOpen()\n");
-    }
-#if 0
-    else if (resNodeGetLength(prnT) != 1) {
-      printf("Error resNodeGetLength() ...\n");
-    }
-#endif
-    else if (prnT->eAccess != rn_access_archive) {
-      printf("Error eAccess\n");
-    }
-    else if (resNodeClose(prnT) == FALSE) {
-      printf("Error resNodeClose()\n");
-    }
-    else if (resNodeIsOpen(prnT) == TRUE) {
-      printf("Error resNodeIsOpen()\n");
-    }
-    else {
-      n_ok++;
-      printf("OK\n");
-    }
-    
-    resNodeFree(prnT);
-  }
-
-  if (SKIPTEST) {
-    resNodePtr prnT = NULL;
-
-    i++;
-    printf("TEST %i in '%s:%i': create and close a non-existing ZIP file context = ",i,__FILE__,__LINE__);
-
-    if ((prnT = resNodeDirNew(BAD_CAST"tmp/created.zip")) == NULL) {
-      printf("Error resNodeDirNew()\n");
-    }
-    else if (resNodeOpen(prnT,"wa") == FALSE) {
-      printf("Error resNodeOpen()\n");
-    }
-    else if (resNodeIsOpen(prnT) == FALSE) {
-      printf("Error resNodeIsOpen()\n");
-    }
-    else if (resNodeGetChild(prnT) != NULL) {
-      printf("Error resNodeOpen()\n");
-    }
-    else if (prnT->eAccess != rn_access_archive) {
-      printf("Error eAccess\n");
-    }
-    else if (prnT->eMode != mode_write) {
-      printf("Error eAccess\n");
-    }
-    else if (resNodeClose(prnT) == FALSE) {
-      printf("Error resNodeClose()\n");
-    }
-    else if (resNodeIsOpen(prnT) == TRUE) {
-      printf("Error resNodeIsOpen()\n");
-    }
-    else {
-      n_ok++;
-      printf("OK\n");
-    }
-    
-    resNodeUnlink(prnT,FALSE);
-    resNodeFree(prnT);
-  }
-#endif
-
-
   if (RUNTEST) {
     resNodePtr prnT = NULL;
 
@@ -284,8 +196,63 @@ resNodeTestInOut(void)
 	printf("OK\n");
       }
 
+      resNodeUnlink(prnT,FALSE);
       resNodeFree(prnT);
-      resNodeUnlinkStr(BAD_CAST pucNameFile);
+    }
+  }
+
+  if (RUNTEST) {
+    resNodePtr prnT = NULL;
+
+    void *pContent;
+    size_t liLengthLarge = 1 * SIZE_MEGA;
+    xmlChar *pucNameFile = BAD_CAST TEMPPREFIX "sub/sub/sub/2MB.dat";
+
+    i++;
+    printf("TEST %i in '%s:%i': write content of a resource node with non-existing path = ",i,__FILE__,__LINE__);
+
+    if ((pContent = xmlMalloc(liLengthLarge)) != NULL) {
+      memset(pContent, 0x0F, liLengthLarge);
+
+      if ((prnT = resNodeDirNew(pucNameFile)) == NULL) {
+	printf("Error resNodeDirNew()\n");
+      }
+      else if (resNodeResetContentPtr(prnT) != NULL) {
+	printf("Error resNodeResetContentPtr()\n");
+      }
+      else if (resNodeGetContentPtr(prnT) != NULL) {
+	printf("Error resNodeGetContentPtr()\n");
+      }
+      else if (resNodeGetSize(prnT) != 0) {
+	printf("Error 1 resNodeGetSize()\n");
+      }
+      else if (resNodeAppendContent(prnT,pContent,liLengthLarge) != resNodeGetContentPtr(prnT)) {
+	printf("Error resNodeAppendContent()\n");
+      }
+      else if (resNodeGetSize(prnT) != 1 * SIZE_MEGA) {
+	printf("Error 2 resNodeGetSize()\n");
+      }
+      else if (resNodeAppendContent(prnT,pContent,liLengthLarge) != resNodeGetContentPtr(prnT)) {
+	printf("Error resNodeAppendContent()\n");
+      }
+      else if (resNodeGetSize(prnT) != 2 * SIZE_MEGA) {
+	printf("Error 2 resNodeGetSize()\n");
+      }
+      else if (resNodePutContent(prnT) == FALSE) {
+	printf("Error resNodePutContent()\n");
+      }      
+      else if (resNodeTestFileStr(pucNameFile) == FALSE) {
+	printf("Error resNodeTestFileStr()\n");
+      }      
+      else {
+	n_ok++;
+	printf("OK\n");
+      }
+
+      resNodeUnlink(prnT,FALSE);
+      resNodeFree(prnT);
+      resNodeUnlinkRecursivelyStr(BAD_CAST TEMPPREFIX "sub/");
+      xmlFree(pContent);
     }
   }
 
@@ -391,9 +358,11 @@ resNodeTestInOut(void)
     else if (resNodeOpen(prnT, "r") == TRUE) {
       printf("Error resNodeOpen()\n");
     }
+#if 0
     else if (resNodeIsOpen(prnT) == TRUE) {
       printf("Error resNodeIsOpen()\n");
     }
+#endif
     else if (resNodeClose(prnT) == TRUE) {
       printf("Error resNodeClose()\n");
     }
@@ -404,23 +373,22 @@ resNodeTestInOut(void)
     resNodeFree(prnT);
   }
 
+#ifdef HTTPPREFIX
+
   if (RUNTEST) {
     resNodePtr prnT = NULL;
     xmlChar *pucContent = NULL;
 
     i++;
-    printf("TEST %i in '%s:%i': open and close an local HTTP file context = ",i,__FILE__,__LINE__);
+    printf("TEST %i in '%s:%i': open and close a local HTTP file context on low level = ",i,__FILE__,__LINE__);
 
-    if ((prnT = resNodeDirNew(BAD_CAST HTTPPREFIX)) == NULL) {
+    if ((prnT = resNodeCurlNew(BAD_CAST HTTPPREFIX)) == NULL) {
       printf("Error resNodeDirNew()\n");
     }
     else if (resNodeIsURL(prnT) == FALSE) {
       printf("Error resNodeIsURL()\n");
     }
-    else if (resNodeOpen(prnT, "w") == TRUE) {
-      printf("Error resNodeOpen()\n");
-    }
-    else if (resNodeOpen(prnT, "r") == FALSE) {
+    else if (OpenURL(prnT) == FALSE) {
       printf("Error resNodeOpen()\n");
     }
     else if (resNodeIsExist(prnT) == FALSE) {
@@ -435,7 +403,7 @@ resNodeTestInOut(void)
     else if (resNodeGetError(prnT) == TRUE) {
       printf("Error resNodeGetError(): %s\n",resNodeGetErrorMsg(prnT));
     }
-    else if (resNodeClose(prnT) == FALSE) {
+    else if (CloseURL(prnT) == FALSE) {
       printf("Error resNodeClose()\n");
     }
     else if ((pucContent = plainGetContextTextEat(prnT,8)) == NULL || xmlUTF8Strlen(pucContent) < 40) {
@@ -449,14 +417,64 @@ resNodeTestInOut(void)
     resNodeFree(prnT);
   }
 
+
+  if (RUNTEST) {
+    resNodePtr prnT = NULL;
+    xmlChar *pucContent = NULL;
+    size_t s = 2895;
+
+    i++;
+    printf("TEST %i in '%s:%i': open and close a local HTTP file context on high level  = ",i,__FILE__,__LINE__);
+
+    if ((prnT = resNodeDirNew(BAD_CAST HTTPPREFIX "Test/Documents/TestContent.txt")) == NULL) {
+      printf("Error resNodeDirNew()\n");
+    }
+    else if (resNodeGetContent(prnT,1024) == NULL) {
+      printf("Error resNodeReadContent(): there is no content\n");
+    }
+    else if (resNodeGetSize(prnT) != s) {
+      printf("Error size: %i\n", s);
+    }
+    else {
+      n_ok++;
+      printf("OK\n");
+    }
+    xmlFree(pucContent);
+    resNodeFree(prnT);
+  }
+
+
   if (RUNTEST) {
     resNodePtr prnT = NULL;
     xmlDocPtr pdocT = NULL;
 
     i++;
-    printf("TEST %i in '%s:%i': read a global HTTP file context as DOM = ",i,__FILE__,__LINE__);
+    printf("TEST %i in '%s:%i': read a local HTTP file context as DOM = ",i,__FILE__,__LINE__);
 
-    if ((prnT = resNodeDirNew(BAD_CAST "http://www.tagesschau.de/newsticker.rdf")) == NULL) {
+    if ((prnT = resNodeDirNew(BAD_CAST HTTPPREFIX "Test/Documents/TestContent.pie")) == NULL) {
+      printf("Error resNodeDirNew()\n");
+    }
+    else if ((pdocT = resNodeGetContentDoc(prnT)) == NULL) {
+      printf("Error resNodeGetContentDoc()\n");
+    }
+    else {
+      n_ok++;
+      printf("OK\n");
+    }
+    //domPutDocString(stderr, BAD_CAST "PIE ", pdocT);
+    resNodeFree(prnT);
+  }
+
+#endif
+
+  if (SKIPTEST) {
+    resNodePtr prnT = NULL;
+    xmlDocPtr pdocT = NULL;
+
+    i++;
+    printf("TEST %i in '%s:%i': read a global HTTPS file context as DOM = ",i,__FILE__,__LINE__);
+
+    if ((prnT = resNodeDirNew(BAD_CAST "https://www.tagesschau.de/infoservices/alle-meldungen-100~rdf.xml")) == NULL) {
       printf("Error resNodeDirNew()\n");
     }
     else if ((pdocT = resNodeGetContentDoc(prnT)) == NULL) {
@@ -475,7 +493,7 @@ resNodeTestInOut(void)
     xmlChar *pucContent = NULL;
 
     i++;
-    printf("TEST %i in '%s:%i': open and close an local file context = ",i,__FILE__,__LINE__);
+    printf("TEST %i in '%s:%i': open and close a local file context = ",i,__FILE__,__LINE__);
 
     if ((prnT = resNodeDirNew(BAD_CAST "file://" TESTPREFIX "plain/Length_128.txt")) == NULL) {
       printf("Error resNodeDirNew()\n");
@@ -513,23 +531,31 @@ resNodeTestInOut(void)
   }
 
 
-  if (RUNTEST) {
+#if HAVE_LIBARCHIVE
+  
+  if (SKIPTEST) {
     resNodePtr prnT = NULL;
     resNodePtr prnChild = NULL;
 
     i++;
-    printf("TEST %i in '%s:%i': open, read and close a HTTP archive resource (resNodeGetContent) = ", i, __FILE__, __LINE__);
+    printf("TEST %i in '%s:%i': open, read and close a HTTP archive resource (" HTTPPREFIX ") = ", i, __FILE__, __LINE__);
 
-    if ((prnT = resNodeDirNew(BAD_CAST HTTPPREFIX "test-zip-7.zip/sub/plain.txt")) == NULL) {
+    if ((prnT = resNodeDirNew(BAD_CAST HTTPPREFIX "Test/Archive/TestArchive.zip/Test/TestContent.txt")) == NULL || resNodeIsURL(prnT) == FALSE) {
       printf("Error resNodeDirNew()\n");
     }
-    else if ((prnChild = resNodeGetChild(prnT)) == NULL || (prnChild = resNodeGetChild(prnChild)) == NULL) {
-      printf("Error 1 resNodeGetSize()\n");
+    else if ((prnChild = resNodeGetChild(prnT)) == NULL || resNodeIsArchive(prnChild) == FALSE) {
+      printf("Error 1 resNodeGetChild()\n");
+    }
+    else if ((prnChild = resNodeGetChild(prnChild)) == NULL || resNodeIsDirInArchive(prnChild) == FALSE) {
+    printf("Error 1 resNodeGetChild()\n");
+    }
+    else if ((prnChild = resNodeGetChild(prnChild)) == NULL || resNodeIsFileInArchive(prnChild) == FALSE) {
+      printf("Error 1 resNodeGetChild()\n");
     }
     else if (resNodeGetContent(prnChild, 1024) == NULL) {
       printf("Error resNodeGetContent(): there is no content\n");
     }
-    else if (resNodeGetSize(prnChild) != 49) {
+    else if (resNodeGetSize(prnChild) != 45) {
       printf("Error 2 resNodeGetSize()\n");
     }
     else {
@@ -542,26 +568,59 @@ resNodeTestInOut(void)
 
 #endif
 
+#endif
+
   if (RUNTEST) {
     resNodePtr prnT = NULL;
     xmlDocPtr pdocT = NULL;
 
     i++;
-    printf("TEST %i in '%s:%i': resNodeReadDoc() = ",i,__FILE__,__LINE__);
+    printf("TEST %i in '%s:%i': resNodeReadDoc() = ", i, __FILE__, __LINE__);
 
-    prnT = resNodeDirNew(BAD_CAST TESTPREFIX "option/pie/text/config.cxp");
-    if (resNodeReadDoc(NULL) == NULL
-	&& (pdocT = resNodeReadDoc(prnT)) != NULL) {
-      n_ok++;
-      printf("OK\n");
+    if ((prnT = resNodeDirNew(BAD_CAST TESTPREFIX "option/pie/text/config.cxp")) == NULL) {
+      printf("Error\n");
+    }
+    else if (resNodeReadDoc(NULL) != NULL) {
+      printf("Error 1 resNodeReadDoc()\n");
+    }
+    else if ((pdocT = resNodeReadDoc(prnT)) == NULL) {
+      printf("Error 2 resNodeReadDoc()\n");
     }
     else {
-      printf("Error\n");
+      n_ok++;
+      printf("OK\n");
     }
     xmlFreeDoc(pdocT);
     resNodeFree(prnT);
   }
 
+
+  if (RUNTEST) {
+    xmlDocPtr pdocTest;
+    resNodePtr prnT = NULL;
+
+    i++;
+    printf("TEST %i in '%s:%i': resNodeChangeDomURL() = ", i, __FILE__, __LINE__);
+
+    prnT = resNodeDirNew(BAD_CAST TESTPREFIX "xml/");
+    pdocTest = xmlParseFile(TESTPREFIX "xsl/TestValidate.xsl");
+    if (pdocTest) {
+      resNodeChangeDomURL(pdocTest, prnT);
+      if (xmlStrEqual(pdocTest->URL, resNodeGetURI(prnT))) {
+	n_ok++;
+	printf("OK\n");
+      }
+      else {
+	printf("Error\n");
+      }
+    }
+    else {
+      printf("Error\n");
+    }
+
+    xmlFreeDoc(pdocTest);
+    resNodeFree(prnT);
+  }
 
   printf("\nResult in '%s': %i/%i OK\n\n",__FILE__,n_ok,i);
 

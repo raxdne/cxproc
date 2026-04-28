@@ -1,7 +1,7 @@
 /*
   cxproc - Configurable Xml PROCessor
 
-  Copyright (C) 2006..2020 by Alexander Tenbusch
+  Copyright (C) 2006..2024 by Alexander Tenbusch
 
   This program is free software; you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -64,6 +64,8 @@ curlTest(void)
 
   n_ok=0;
   i=0;
+
+#ifdef HAVE_LIBCURL
 
   if (RUNTEST) {
     /* TEST:
@@ -151,6 +153,8 @@ curlTest(void)
     
     curl_free(host);
     curl_free(path);
+    curl_free(query);
+    curl_free(fragment);
     curl_free(path2);
     curl_url_cleanup(h); /* free url handle */
   }
@@ -160,6 +164,7 @@ curlTest(void)
      */
     CURLU *h;
     CURLUcode uc;
+    char *scheme = NULL;
     char *host = NULL;
     char *path = NULL;
     char *query = NULL;
@@ -172,8 +177,11 @@ curlTest(void)
     if ((h = curl_url()) == NULL) { /* get a handle to work with */
       printf("Error curl_url()\n");
     }
-    else if ((uc = curl_url_set(h, CURLUPART_URL, "file://C:/tmp/test%20-%2022.txt", 0)) != CURLE_OK) { /* parse a full URL */
+    else if ((uc = curl_url_set(h, CURLUPART_PATH, "file://C:/tmp/test - 22.txt", 0)) != CURLE_OK) { /* parse a full URL */
       printf("Error curl_url_set() ...\n");
+    }
+    else if ((uc = curl_url_get(h, CURLUPART_SCHEME, &scheme, 0)) != CURLUE_NO_SCHEME) { /* no scheme name from the parsed URL */
+      printf("Error () ...\n");
     }
     else if ((uc = curl_url_get(h, CURLUPART_HOST, &host, 0)) != CURLUE_NO_HOST) { /* no host name from the parsed URL */
       printf("Error () ...\n");
@@ -181,10 +189,10 @@ curlTest(void)
     else if ((uc = curl_url_get(h, CURLUPART_PATH, &path, 0)) != CURLE_OK) { /* extract the path from the parsed URL */
       printf("Error () ...\n");
     }
-    else if ((uc = curl_url_get(h, CURLUPART_QUERY, &query, 0)) != CURLE_OK) { /* extract the query from the parsed URL */
+    else if ((uc = curl_url_get(h, CURLUPART_QUERY, &query, 0)) != CURLUE_NO_QUERY) { /* extract the query from the parsed URL */
       printf("Error () ...\n");
     }
-    else if ((uc = curl_url_get(h, CURLUPART_FRAGMENT, &fragment, 0)) != CURLE_OK) { /* extract the fragment from the parsed URL */
+    else if ((uc = curl_url_get(h, CURLUPART_FRAGMENT, &fragment, 0)) != CURLUE_NO_FRAGMENT) { /* extract the fragment from the parsed URL */
       printf("Error () ...\n");
     }
     else if ((uc = curl_url_set(h, CURLUPART_URL, "../another/second.html", 0)) != CURLE_OK) { /* redirect with a relative URL */
@@ -198,14 +206,71 @@ curlTest(void)
       printf("OK\n");
     }
     
+    curl_free(scheme);
     curl_free(host);
     curl_free(path);
     curl_free(path2);
     curl_url_cleanup(h); /* free url handle */
   }
 
-  
+
   if (RUNTEST) {
+    /* TEST: https://curl.se/libcurl/c/curl_easy_init.html
+     */
+    CURL *curl;
+    CURLcode res;
+    resNodePtr prnT;
+    size_t s = 70275;
+
+    i++;
+    printf("TEST %i in '%s:%i': ", i, __FILE__, __LINE__);
+
+    if ((prnT = resNodeNew()) == NULL) { /* get a handle to work with */
+      printf("Error resNodeNew()\n");
+    }
+    else if ((curl = curl_easy_init()) == NULL) { /* get a handle to work with */
+      printf("Error curl_easy_init()\n");
+    }
+    else if ((res = curl_easy_setopt(curl, CURLOPT_URL, HTTPPREFIX "Test/Pictures/Tux.png")) != CURLE_OK) { /* parse a full URL */
+      printf("Error curl_easy_setopt(CURLOPT_URL) ...\n");
+    }
+    else if ((res = curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, CurlWriteToMemoryCallback)) != CURLE_OK) { /*  */
+      printf("Error curl_easy_setopt(CURLOPT_WRITEFUNCTION) ...\n");
+    }
+    else if ((res = curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)prnT)) != CURLE_OK) { /*  */
+      printf("Error curl_easy_setopt(CURLOPT_WRITEDATA) ...\n");
+    }
+    else if ((res = curl_easy_setopt(curl, CURLOPT_CONNECT_ONLY, 1L)) != CURLE_OK) { /*  */
+      printf("Error curl_easy_setopt(CURLOPT_CONNECT_ONLY) ...\n");
+    }
+    else if ((res = curl_easy_setopt(curl, CURLOPT_TIMEOUT, 2L)) != CURLE_OK) { /*  */
+      printf("Error curl_easy_setopt(CURLOPT_CONNECT_ONLY) ...\n");
+    }
+    else if ((res = curl_easy_perform(curl)) != CURLE_OK) { /* parse a full URL */
+      printf("Error curl_easy_perform() ...\n");
+    }
+    else if (resNodeGetSize(prnT) != 0) {
+      printf("Error file size %i ...\n", resNodeGetSize(prnT));
+    }
+    else if ((res = curl_easy_setopt(curl, CURLOPT_CONNECT_ONLY, 0L)) != CURLE_OK) { /*  */
+      printf("Error curl_easy_setopt() ...\n");
+    }
+    else if ((res = curl_easy_perform(curl)) != CURLE_OK) { /* parse a full URL */
+      printf("Error curl_easy_perform() ...\n");
+    }
+    else if (resNodeGetSize(prnT) != s) {
+      printf("Error file size %i ...\n", s - resNodeGetSize(prnT));
+    }
+    else {
+      n_ok++;
+      printf("OK\n");
+    }
+    curl_easy_cleanup(curl);
+    resNodeFree(prnT);
+  }
+
+
+  if (SKIPTEST) {
     /* TEST:
      */
     CURLU *h;
@@ -245,6 +310,10 @@ curlTest(void)
     curl_free(path);
     curl_url_cleanup(h); /* free url handle */
   }
+
+#endif
+
+  printf("Result in '%s': %i/%i OK\n\n", __FILE__, n_ok, i);
 
   return (i - n_ok);
 }

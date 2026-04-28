@@ -1,7 +1,7 @@
 /*
   cxproc - Configurable Xml PROCessor
 
-  Copyright (C) 2006..2020 by Alexander Tenbusch
+  Copyright (C) 2006..2024 by Alexander Tenbusch
 
   This program is free software; you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -19,13 +19,17 @@
 
 */
 
+#ifdef _MSC_VER
+#else
+#include <unistd.h>
+#endif
+
 /* 
  */
 #include <libxml/xmlversion.h>
 #include <libxml/HTMLtree.h>
 #include <libxml/parser.h>
 #include <libxml/relaxng.h>
-#include <libxml/uri.h>
 
 #ifdef LIBXML_THREAD_ENABLED
 #include <libxml/globals.h>
@@ -38,6 +42,10 @@
 
 #ifdef HAVE_ZLIB
 #include <zlib.h>
+#endif
+
+#ifdef HAVE_LIBCURL
+#include <curl/curl.h>
 #endif
 
 #ifdef HAVE_PCRE2
@@ -71,10 +79,16 @@
 #include <cxp/cxp.h>
 #include <cxp/cxp_threadp.h>
 #include "dom.h"
+#include "plain_text.h"
 #include <cxp/cxp_dir.h>
-#include <pie/pie_text.h>
+#include <cxp/cxp_calendar.h>
 #ifdef HAVE_PIE
-#include <pie/pie_calendar.h>
+#include <pie/pie_text.h>
+#ifdef WITH_MARKDOWN
+#include <cmark.h>
+#endif
+#else
+#include <pie/pie_dtd.h>
 #endif
 #ifdef HAVE_PETRINET
 #include <petrinet/petrinet.h>
@@ -90,13 +104,10 @@
 #include <image/image.h>
 #endif
 #ifdef HAVE_JSON
-#include <json/json.h>
-#endif
-#ifdef HAVE_JS
-#include <script/script.h>
+#include <json/cxp_json.h>
 #endif
 #ifdef HAVE_LIBARCHIVE
-#include <archive/cxp_archive.h>
+#include <cxp/cxp_archive.h>
 #endif
 #ifdef HAVE_CGI
 #include <cxp/cxp_context_cgi.h>
@@ -113,22 +124,13 @@ xmlNsPtr pnsCxp = NULL; /*!\todo use defined namespace "cxp" */
 #define IS_NODE_SOURCE(NODE) (IS_NODE_XML(NODE) || IS_NODE_XSL(NODE) || IS_NODE_INFO(NODE) || IS_NODE_XHTML(NODE) || IS_NODE_PLAIN(NODE) || IS_NODE_ZIP(NODE) || IS_NODE_IMAGE(NODE) || IS_NODE_DIR(NODE) || IS_NODE_FILE(NODE) || IS_NODE_PIE(NODE))
 
 static BOOL_T
-ValidateCxpTree(xmlNodePtr pndArg, cxpContextPtr pccArg);
-
-static BOOL_T
 ValidateSchema(const xmlDocPtr pdocArgXml, const xmlChar *pucArg, cxpContextPtr pccArg);
 
-static BOOL_T
-ChangeXslParam(xmlDocPtr pdocResult, char **param, cxpContextPtr pccArg);
-
-static BOOL_T
-UpdateXslVariable(xmlNodePtr pndArg, char *pcValue, cxpContextPtr pccArg);
-
 static xmlDocPtr
-cxpXslTransformToDom(const xmlDocPtr pdocArgXml, const xmlDocPtr pdocArgXsl, char **ppchArgParam, cxpContextPtr pccArg);
+cxpXslTransformToDom(const xmlDocPtr pdocArgXml, const xmlDocPtr pdocArgXsl, cxpContextPtr pccArg);
 
 static xmlChar *
-cxpXslTransformToText(const xmlDocPtr pdocArgXml, const xmlDocPtr pdocArgXsl, char **ppchArgParam, cxpContextPtr pccArg);
+cxpXslTransformToText(const xmlDocPtr pdocArgXml, const xmlDocPtr pdocArgXsl, cxpContextPtr pccArg);
 
 static xmlNodePtr
 cxpProcessXmlNodeEmbedded(xmlNodePtr pndArg, cxpContextPtr pccArg);
@@ -174,7 +176,7 @@ ValidateSchema(const xmlDocPtr pdocArgXml, const xmlChar *pucArg, cxpContextPtr 
   resNodePtr prnFile = NULL; /* resource node according to pucAttrFile */
 
 #ifdef DEBUG
-  PrintFormatLog(3, "ValidateSchema(pdocArgXml=%0x,pucArg=\"%s\",pccArg=%0x);", pdocArgXml, pucArg, pccArg);
+  cxpCtxtLogPrint(pccArg, 3, "ValidateSchema(pdocArgXml=%0x,pucArg=\"%s\",pccArg=%0x);", pdocArgXml, pucArg, pccArg);
 #endif
 
   /*! find according relaxng file */
@@ -197,10 +199,10 @@ ValidateSchema(const xmlDocPtr pdocArgXml, const xmlChar *pucArg, cxpContextPtr 
 	    /*! validate DOM */
 	    fResult = (xmlRelaxNGValidateDoc(validctxt, pdocArgXml) == 0);
 	    if (fResult) {
-	      PrintFormatLog(2, "Validation against '%s' successful", resNodeGetNameNormalizedNative(prnFile));
+	      cxpCtxtLogPrint(pccArg, 2, "Validation against '%s' successful", resNodeGetNameNormalizedNative(prnFile));
 	    }
 	    else {
-	      PrintFormatLog(2, "Validation against '%s' failed", resNodeGetNameNormalizedNative(prnFile));
+	      cxpCtxtLogPrint(pccArg, 2, "Validation against '%s' failed", resNodeGetNameNormalizedNative(prnFile));
 	    }
 	    /*!\todo cache schema? */
 	    xmlRelaxNGFreeValidCtxt(validctxt);
@@ -284,7 +286,7 @@ cxpProcessEachNode(xmlNodePtr pndArg, cxpContextPtr pccArg)
   }
   else if ((pucAttrName = domGetPropValuePtr(pndArg,BAD_CAST "name"))!=NULL
       && (xmlStrlen(pucAttrName) > 0)
-      && (pndFrom = domGetFirstChild(pndArg,NAME_FROM))!=NULL ) {
+      && (pndFrom = domGetFirstChild(pndArg,BAD_CAST NAME_FROM))!=NULL ) {
     if (pndFrom->children) {
       /*
 	FROM element
@@ -317,7 +319,7 @@ cxpProcessEachNode(xmlNodePtr pndArg, cxpContextPtr pccArg)
 #endif
 
       pdocResult = xmlNewDoc(BAD_CAST "1.0");
-      pndMake = xmlNewDocNode(pdocResult, NULL, NAME_MAKE, NULL); 
+      pndMake = xmlNewDocNode(pdocResult, NULL, BAD_CAST NAME_MAKE, NULL); 
       xmlDocSetRootElement(pdocResult,pndMake);
       /* pdocResult->encoding = xmlStrdup(BAD_CAST "ISO-8859-1"); */
       pdocResult->encoding = xmlStrdup(BAD_CAST "UTF-8"); /* according to conversion in ParseImportNodePlainContent() */
@@ -445,8 +447,7 @@ cxpProcessXmlNodeEmbedded(xmlNodePtr pndArg, cxpContextPtr pccArg)
   assert(pndArg);
   
   if (IS_NODE_XML(pndArg)) {
-    if (IS_VALID_NODE(pndArg)
-      && domGetPropFlag(pndArg, BAD_CAST "eval", TRUE) == TRUE) {
+    if (IS_VALID_NODE(pndArg) && domGetPropFlag(pndArg, BAD_CAST "eval", TRUE) == TRUE) {
       /*! 'pndArg' is a processing node 'xml', not marked as eval="no"  */
       xmlDocPtr pdocT;
 
@@ -485,6 +486,18 @@ cxpProcessXmlNodeEmbedded(xmlNodePtr pndArg, cxpContextPtr pccArg)
 	}
 	xmlFreeDoc(pdocT);
       }
+    }
+  }
+  else if (IS_NODE_PLAIN(pndArg)) {
+    if (IS_VALID_NODE(pndArg) && domGetPropFlag(pndArg, BAD_CAST "eval", TRUE) == TRUE) {
+      xmlChar *pucT;
+
+      pucT = cxpProcessPlainNode(pndArg, pccArg);
+      if (STR_IS_NOT_EMPTY(pucT)) {
+	xmlReplaceNode(pndArg, xmlNewText(pucT));
+	xmlFreeNode(pndArg);
+      }
+      xmlFree(pucT);
     }
   }
   else if (pndArg != NULL && pndArg->children != NULL) {
@@ -541,8 +554,8 @@ cxpAttributeLocatorResNodeNew(cxpContextPtr pccArg, xmlNodePtr pndArg, xmlChar *
     if (IS_NODE_MAKE(pndArg)) {
       pucAttrValue = domGetPropValuePtr(pndArg, BAD_CAST "dir");
       if (STR_IS_EMPTY(pucAttrValue) || xmlStrEqual(pucAttrValue,BAD_CAST"pwd")) {
-	/* keep location of pccArg */
-	prnT = cxpCtxtLocationDup(pccArg);
+	prnT = resNodeCwdNew();
+	cxpCtxtLogPrint(pccArg, 3, "Get Context '%s' from cwd", resNodeGetNameNormalized(prnT));
       }
       else if (resPathIsAbsolute(pucAttrValue)) {
 	prnT = resNodeDirNew(pucAttrValue);
@@ -553,7 +566,17 @@ cxpAttributeLocatorResNodeNew(cxpContextPtr pccArg, xmlNodePtr pndArg, xmlChar *
 	cxpCtxtLogPrint(pccArg, 3, "Get Context '%s' from attribute 'dir' relative", resNodeGetNameNormalized(prnT));
       }
     }
-    
+    else if ((pucAttrValue = domGetPropValuePtr(pndArg, BAD_CAST "context")) != NULL ||
+	     (pucAttrValue = domGetAncestorPropValuePtr(pndArg, BAD_CAST "context")) != NULL) {
+      /*  */
+      prnT = resNodeConcatNew(cxpCtxtLocationGetStr(pccArg), pucAttrValue);
+      cxpCtxtLogPrint(pccArg, 3, "Get Context '%s' from attribute 'dir' relative", resNodeGetNameNormalized(prnT));
+    }
+    else if (resPathIsStd(domGetPropValuePtr(pndArg, BAD_CAST "name"))) {
+      /*  */
+      return prnResult;
+    }
+
 #ifdef HAVE_PIE
     if (prnT == NULL && (pucAttrValue = pieGetAncestorContextStr(pndArg)) != NULL) {
       prnT = resNodeDirNew(pucAttrValue);
@@ -600,25 +623,25 @@ cxpResNodeResolveNew(cxpContextPtr pccArg, xmlNodePtr pndArg, xmlChar *pucArg, i
     xmlChar *pucDocUrlDir = NULL;
     xmlChar *pucLocation = NULL;
     xmlChar *pucRootPath = NULL;
-    xmlChar *pucParentPath = NULL;
     xmlChar *pucAttrName = NULL;
+    resNodePtr prnParent = NULL;
 
     if (pndArg != NULL) {
       pucAttrName = domGetPropValuePtr(pndArg, BAD_CAST "name");
-      if (pucAttrName == NULL) { /* no attribute 'name' */
-      }
-      else if (STR_IS_EMPTY(pucAttrName) || xmlStrEqual(pucAttrName, BAD_CAST".")) { /* valid but empty attribute 'name' */
+      if (STR_IS_EMPTY(pucAttrName) || xmlStrEqual(pucAttrName, BAD_CAST".")) { /* valid but empty attribute 'name' */
 #ifdef HAVE_CGI
-	pucAttrName = resNodeGetNameNormalized(cxpCtxtRootGet(pccArg));
+	pucAttrName = cxpCtxtEnvGetValueByName(pccArg, BAD_CAST"DOCUMENT_ROOT"); /* set all empty paths to server's document root */
+	DecodeRFC1738((char *)pucAttrName);
 #else
-	/*\todo TBD */
-#endif	
+	pucAttrName = resNodeGetNameNormalized(cxpCtxtLocationGet(pccArg));
+#endif
       }
       else if (iArgOptions == CXP_O_NONE) {
 	/* no special focus */
       }
       else {
 	/* valid attribute 'name' */
+	DecodeRFC1738((char *)pucAttrName);
 	if (cxpIsStorageNode(pndArg)) { /* => target node, must be writable */
 	  iArgOptions = CXP_O_WRITE;
 	  assert((iArgOptions & CXP_O_SEARCH) == 0); /* searching is not allowed */
@@ -635,7 +658,7 @@ cxpResNodeResolveNew(cxpContextPtr pccArg, xmlNodePtr pndArg, xmlChar *pucArg, i
 
       if (pndArg->doc != NULL && STR_IS_NOT_EMPTY(pndArg->doc->URL)) {
 	/* derive path prefix from DOM */
-	pucDocUrlDir = resPathGetBasedir(BAD_CAST pndArg->doc->URL);
+	pucDocUrlDir = resPathGetBasedirStr(BAD_CAST pndArg->doc->URL);
       }
     }
 
@@ -643,33 +666,28 @@ cxpResNodeResolveNew(cxpContextPtr pccArg, xmlNodePtr pndArg, xmlChar *pucArg, i
       pucShortcut = pucAttrName;
     }
 
-    if (cxpCtxtLocationGet(pccArg)) {
-      pucLocation = resNodeGetNameNormalized(cxpCtxtLocationGet(pccArg));
+#if 1
+#ifdef HAVE_CGI
+    if ((pucLocation = domGetPropValuePtr(pndArg, BAD_CAST "context")) != NULL) {
+      /*  */
     }
+#else
+    if ((pucLocation = domGetAncestorPropValuePtr(pndArg, BAD_CAST "context")) != NULL) {
+      /*  */
+    }
+#endif
+    else if ((pucLocation = resNodeGetNameNormalized(cxpCtxtLocationGet(pccArg))) != NULL) {
+      /*  */
+    }
+#else
+    if ((pucLocation = resNodeGetNameNormalized(cxpCtxtLocationGet(pccArg))) != NULL) {
+      /*  */
+    }
+#endif
 
     if (cxpCtxtRootGet(pccArg)) {
       pucRootPath = resNodeGetNameNormalized(cxpCtxtRootGet(pccArg));
     }
-
-#ifdef HAVE_PIE
-    if ((pucParentPath = pieGetAncestorContextStr(pndArg)) != NULL) {
-#ifdef HAVE_CGI
-#elif 0
-      if (resPathIsAbsolute(pucShortcut)) {
-      }
-      else if (resPathIsAbsolute(pucParentPath)) {
-	pucShortcut = resPathConcat(pucParentPath, pucShortcut);
-      }
-      else {
-	xmlChar *pucT;
-
-	pucT = resPathConcat(pucLocation, pucParentPath);
-	pucShortcut = resPathConcat(pucT, pucShortcut);
-	xmlFree(pucT);
-      }
-#endif
-    }
-#endif
 
     // resPathIsInArchive(pucShortcut)
 
@@ -689,7 +707,7 @@ cxpResNodeResolveNew(cxpContextPtr pccArg, xmlNodePtr pndArg, xmlChar *pucArg, i
     else if (resPathIsInArchive(pucShortcut)) {
       xmlChar *pucRelease;
 
-      pucRelease = resPathGetPathOfArchive(pucShortcut);
+      pucRelease = resPathGetPathOfArchiveStr(pucShortcut);
       if (STR_IS_NOT_EMPTY(pucRelease)) {
 	xmlChar *pucT;
 
@@ -707,30 +725,34 @@ cxpResNodeResolveNew(cxpContextPtr pccArg, xmlNodePtr pndArg, xmlChar *pucArg, i
     }
     else if (resPathIsAbsolute(pucShortcut)) {
       prnResult = resNodeDirNew(pucShortcut);
-      if (IS_NODE_DIR(pndArg)) {
-	resNodeSetType(prnResult, rn_type_dir);
-      }
     }
     else if ((iArgOptions & CXP_O_READ)) { /* find a readable ressource */
 
       /*\todo use context attribute too */
 
-      if (STR_IS_NOT_EMPTY(pucParentPath)) {
-	if (resPathIsDescendant(pucParentPath, pucShortcut)) {
+      if (prnParent) {
+	if (resPathIsDescendant(resNodeGetNameNormalized(prnParent), pucShortcut)) {
+	  resNodeFree(prnParent);
 	  prnResult = resNodeDirNew(pucShortcut);
 	}
 	else {
-	  prnResult = resNodeConcatNew(pucParentPath, pucShortcut);
+	  resNodeConcat(prnParent, pucShortcut);
+	  prnResult = prnParent;
+	  prnParent = NULL;
 	}
       }
 
-      if (resNodeIsReadable(prnResult) == FALSE && STR_IS_NOT_EMPTY(pucRootPath)) {
+      if (resNodeIsReadable(prnResult) == FALSE && STR_IS_NOT_EMPTY(pucLocation)) {
 	resNodeFree(prnResult);
-	if (resPathIsDescendant(pucRootPath, pucShortcut)) {
+	if (resPathIsDescendant(pucLocation, pucShortcut)) {
 	  prnResult = resNodeDirNew(pucShortcut);
 	}
 	else {
-	  prnResult = resNodeConcatNew(pucRootPath, pucShortcut);
+	  prnResult = resNodeDirNew(pucLocation);
+	  if (resNodeReadStatus(prnResult) && resNodeIsFile(prnResult)) { /*  */
+	    resNodeSetToParent(prnResult);
+	  }
+	  resNodeConcat(prnResult, pucShortcut);
 	}
       }
 
@@ -744,29 +766,24 @@ cxpResNodeResolveNew(cxpContextPtr pccArg, xmlNodePtr pndArg, xmlChar *pucArg, i
 	}
       }
 
-      if (resNodeIsReadable(prnResult) == FALSE && STR_IS_NOT_EMPTY(pucLocation)) {
+      if (resNodeIsReadable(prnResult) == FALSE && STR_IS_NOT_EMPTY(pucRootPath)) {
 	resNodeFree(prnResult);
-	if (resPathIsDescendant(pucLocation, pucShortcut)) {
+	if (resPathIsDescendant(pucRootPath, pucShortcut)) {
 	  prnResult = resNodeDirNew(pucShortcut);
 	}
 	else {
-	  prnResult = resNodeConcatNew(pucLocation, pucShortcut);
+	  prnResult = resNodeConcatNew(pucRootPath, pucShortcut);
 	}
       }
 
       if (resNodeIsReadable(prnResult) == FALSE && (iArgOptions & CXP_O_SEARCH)) {
-	resNodePtr prnI;
+	resNodePtr prnT;
 
 	resNodeFree(prnResult);
 	prnResult = NULL;
 
-	for (prnI = cxpCtxtSearchGet(pccArg); prnI; prnI = resNodeGetNext(prnI)) {
-	  resNodePtr prnT;
-
-	  if ((prnT = resNodeListFindPath(prnI, pucShortcut, (RN_FIND_FILE | RN_FIND_IN_SUBDIR))) != NULL) {
-	    prnResult = resNodeDup(prnT, RN_DUP_THIS); /* found in search DOM */
-	    break;
-	  }
+	if ((prnT = cxpCtxtSearchFind(pccArg, pucShortcut)) != NULL) {
+	  prnResult = resNodeDup(prnT, RN_DUP_THIS); /* found in search DOM */
 	}
       }
 
@@ -791,7 +808,7 @@ cxpResNodeResolveNew(cxpContextPtr pccArg, xmlNodePtr pndArg, xmlChar *pucArg, i
 	  prnResult = resNodeConcatNew(pucDocUrlDir, pucShortcut);
 	}
       }
-      else if ((pucRootPath = resNodeGetNameNormalized(cxpCtxtRootGet(pccArg)))) {
+      else if (STR_IS_NOT_EMPTY(pucRootPath)) {
 	if (resPathIsDescendant(pucRootPath, pucShortcut)) {
 	  prnResult = resNodeDirNew(pucShortcut);
 	}
@@ -818,8 +835,13 @@ cxpResNodeResolveNew(cxpContextPtr pccArg, xmlNodePtr pndArg, xmlChar *pucArg, i
 #endif
     }
 
-    if (IS_NODE_DIR(pndArg)) {
-      resNodeSetType(prnResult, rn_type_dir);
+    if (resNodeGetType(prnResult) == rn_type_undef) { /* fallback assumtions */
+      if (IS_NODE_DIR(pndArg)) {
+	resNodeSetType(prnResult, rn_type_dir);
+      }
+      else if (IS_NODE_FILE(pndArg)) {
+	resNodeSetType(prnResult, rn_type_file);
+      }
     }
 
     // resNodeGetMimeType(prnResult)
@@ -866,9 +888,24 @@ cxpResNodeResolveNew(cxpContextPtr pccArg, xmlNodePtr pndArg, xmlChar *pucArg, i
       if (STR_IS_NOT_EMPTY(pucAttrNameCacheAs)) {
 	resNodeSetNameAlias(prnResult, pucAttrNameCacheAs);
       }
+      
+#if HAVE_CGI
+      if (pccArg) {
+	xmlChar* pucT;
+	xmlChar* pucAttrPrefix;
+
+	/* cut a named root path from prefix attribute values */
+	if (((pucAttrPrefix = resNodeGetNameNormalized(cxpCtxtRootGet(pccArg))) != NULL)
+	    && (pucT = resPathDiffPtr(pucAttrPrefix, resNodeGetNameNormalized(prnResult))) != NULL) {
+	  resNodeSetNameShort(prnResult,pucT);
+	}
+	else {
+	  /* no prefix required */
+	}
+      }
+#endif
     }
     xmlFree(pucDocUrlDir);
-    xmlFree(pucParentPath);
   }
   return prnResult;
 } /* end of cxpResNodeResolveNew() */
@@ -887,7 +924,7 @@ cxpProcessPlainNode(xmlNodePtr pndArg, cxpContextPtr pccArg)
   //xmlChar *pucAttrNameCacheAs;
 
 #ifdef DEBUG
-  cxpCtxtLogPrint(pccArg,1,"pieProcessPlainNode(pndArg=%0x,pccArg=%0x)",pndArg,pccArg);
+  cxpCtxtLogPrint(pccArg,1,"cxpProcessPlainNode(pndArg=%0x,pccArg=%0x)",pndArg,pccArg);
 #endif
 
   if (IS_VALID_NODE(pndArg) == FALSE) {
@@ -938,7 +975,7 @@ cxpProcessPlainNode(xmlNodePtr pndArg, cxpContextPtr pccArg)
 #endif
 #ifdef HAVE_JS
 	else if (IS_NODE_SCRIPT(pndChild)) {
-	  pucChildResult = scriptProcessScriptNode(pndChild,pccHere);
+	  pucChildResult = cxpScriptProcessNode(pndChild,pccHere);
 	}
 #endif
 	else if (IS_NODE_IMAGE(pndChild)) {
@@ -999,7 +1036,7 @@ cxpProcessPlainNode(xmlNodePtr pndArg, cxpContextPtr pccArg)
 	pucResult = xmlStrdup(pucResult);
       }
       else if ((prnFile = cxpResNodeResolveNew(pccArg, pndArg, NULL, CXP_O_READ)) != NULL) {
-	pucResult = xmlStrdup(BAD_CAST resNodeGetContent(prnFile,1024));
+	pucResult = xmlStrndup(BAD_CAST resNodeGetContent(prnFile,1024),(int) resNodeGetSize(prnFile));
 	cxpCtxtCacheAppendResNodeEat(pccArg,prnFile);
       }
     }
@@ -1244,6 +1281,11 @@ cxpProcessXmlNode(xmlNodePtr pndArg, cxpContextPtr pccArg)
   if (IS_VALID_NODE(pndArg) == FALSE) {
     /* ignore NULL and invalid elements */
   }
+  else if (IS_NODE_XML(pndArg) && domGetPropFlag(pndArg,BAD_CAST"eval",TRUE) == FALSE) {
+    /* make a recursive copy of pndArg */
+    pdocResult = domDocFromNodeNew(pndArg);
+    xmlUnsetProp(xmlDocGetRootElement(pdocResult),BAD_CAST"eval");
+  }
   else if (IS_NODE_XML(pndArg)) {
     xmlChar *pucSchema;
     xmlChar *pucT = NULL;
@@ -1270,11 +1312,9 @@ cxpProcessXmlNode(xmlNodePtr pndArg, cxpContextPtr pccArg)
       else if (IS_NODE_PIE(pndChildSource)) {
 	pdocT = pieProcessPieNode(pndChildSource,pccHere);
       }
-#ifdef HAVE_PIE
       else if (IS_NODE_CALENDAR(pndChildSource)) {
 	pdocT = calProcessCalendarNode(pndChildSource,pccHere);
       }
-#endif
 #ifdef HAVE_PETRINET
       else if (IS_NODE_PATHNET(pndChildSource) || IS_NODE_PATHTABLE(pndChildSource)) {
 	pdocT = pnetProcessNode(pndChildSource,pccHere);
@@ -1312,7 +1352,7 @@ cxpProcessXmlNode(xmlNodePtr pndArg, cxpContextPtr pccArg)
       else if (IS_NODE_SCRIPT(pndChildSource)) {
 	int iLen;
 
-	pucT = scriptProcessScriptNode(pndChildSource,pccHere);
+	pucT = cxpScriptProcessNode(pndChildSource,pccHere);
 	if (pucT!=NULL && (iLen = xmlStrlen(pucT)) > 10) {
 	  pdocT = xmlParseMemory((const char *)pucT,iLen);
 	}
@@ -1557,7 +1597,7 @@ cxpProcessSystemNode(xmlNodePtr pndArg, cxpContextPtr pccArg)
 
       if ((prnMkdir = resNodeConcatNew(cxpCtxtLocationGetStr(pccHere),pucAttrT))) {
         /*!\todo use umask for MODE_DIR_CREATE */
-        fResult = resNodeMakeDirectoryStr(resNodeGetNameNormalized(prnMkdir),MODE_DIR_CREATE);
+        fResult = (resNodeMakeDirectoryStr(resNodeGetNameNormalized(prnMkdir),MODE_DIR_CREATE) == rn_error_none);
         resNodeFree(prnMkdir);
         cxpViewNodeResult(pndArg, pccHere);
       }
@@ -1568,7 +1608,7 @@ cxpProcessSystemNode(xmlNodePtr pndArg, cxpContextPtr pccArg)
 
       prnRmdir = resNodeConcatNew(cxpCtxtLocationGetStr(pccHere),pucAttrT);
       /*!\todo test if cxpCtxtLocationGet(pccHere) != prnRmdir */
-      fResult = resNodeUnlink(prnRmdir,domGetPropFlag(pndArg,BAD_CAST "recursive",FALSE));
+      fResult = (resNodeUnlink(prnRmdir,domGetPropFlag(pndArg,BAD_CAST "recursive",FALSE)) == rn_error_none);
       resNodeFree(prnRmdir);
     }
     else {
@@ -1606,7 +1646,7 @@ cxpProcessMakeNode(xmlNodePtr pndArg,cxpContextPtr pccArg)
     if (fValidation == FALSE) {
       cxpCtxtLogPrint(pccArg, 3, "Skipping XML pre-substitution validation");
     }
-    else if (ValidateCxpTree(pndArg, pccArg)) {
+    else if (cxpValidateTree(pndArg, pccArg)) {
       cxpCtxtLogPrint(pccArg, 3, "pre-substitution validation of '%s' successful", pndArg->name);
     }
     else {
@@ -1614,7 +1654,11 @@ cxpProcessMakeNode(xmlNodePtr pndArg,cxpContextPtr pccArg)
       return;
     }
 
+#ifdef HAVE_CGI
+    pccHere = pccArg;
+#else
     pccHere = cxpCtxtFromAttr(pccArg, pndArg);
+#endif
 
     if (IS_NODE_MAKE(pndArg)) {
       /*
@@ -1646,7 +1690,7 @@ cxpProcessMakeNode(xmlNodePtr pndArg,cxpContextPtr pccArg)
       if (fValidation == FALSE) {
 	cxpCtxtLogPrint(pccArg, 4, "Skipping XML post-substitution validation");
       }
-      else if (ValidateCxpTree(pndArg, pccArg)) {
+      else if (cxpValidateTree(pndArg, pccArg)) {
 	cxpCtxtLogPrint(pccArg, 3, "post-substitution validation of '%s' successful", pndArg->name);
       }
       else {
@@ -1670,7 +1714,11 @@ cxpProcessMakeNode(xmlNodePtr pndArg,cxpContextPtr pccArg)
 	  continue; /* ignore all non-valid element nodes */
 	}
 	else if (IS_NODE_FILECOPY(pndChild)) {
+#ifdef HAVE_CGI
+	  cxpProcessCGICopyNode(pndChild, pccHere);
+#else
 	  cxpProcessCopyNode(pndChild, pccHere);
+#endif
 	}
 	else if (IS_NODE_EACH(pndChild)) {
 	  xmlDocPtr pdocMake;
@@ -1719,7 +1767,7 @@ cxpProcessMakeNode(xmlNodePtr pndArg,cxpContextPtr pccArg)
 	      if (pndEval) {
 		cxpContextPtr pccEval;
 
-		pccEval = cxpCtxtFromAttr(pccHere, pndEval); /* use context of Doc URL */
+		pccEval = cxpCtxtFromAttr(pccHere, pndChild); /* use context of Doc URL */
 		cxpProcessMakeNode(pndEval, pccEval);
 	      }
 	    }
@@ -1736,7 +1784,7 @@ cxpProcessMakeNode(xmlNodePtr pndArg,cxpContextPtr pccArg)
 #endif
 #ifdef HAVE_LIBMAGICK
 	else if (IS_NODE_IMAGE(pndChild)) {
-	  imgMain(pndChild,pccHere);
+	  imgProcessImageNode(pndChild,pccHere);
 	}
 #endif
 #ifdef HAVE_LIBSQLITE3
@@ -1778,7 +1826,7 @@ cxpProcessMakeNode(xmlNodePtr pndArg,cxpContextPtr pccArg)
     }
 #ifdef HAVE_LIBMAGICK
     else if (IS_NODE_IMAGE(pndArg)) {
-      imgMain(pndArg,pccHere);
+      imgProcessImageNode(pndArg,pccHere);
     }
 #endif
     else if (IS_NODE_PLAIN(pndArg)) {
@@ -1798,139 +1846,7 @@ cxpProcessMakeNode(xmlNodePtr pndArg,cxpContextPtr pccArg)
 /* end of cxpProcessMakeNode() */
 
 
-/*! apply all sibling PARAM elements, non recursive!!
-
-\param pndArg a xmlNodePtr to append data
-\param pccArg the resource node
-
-\deprecated replaced by UpdateXslVariables()
-
-\return
-*/
-xmlChar **
-cxpXslParamProcess(xmlNodePtr pndArg, cxpContextPtr pccArg)
-{
-  cxpContextPtr pccHere = pccArg;
-  xmlChar **ppucResult = NULL;
-  size_t ciNodeVariable;
-
-  if (pndArg == NULL) {
-    return ppucResult;
-  }
-
-  //pccHere = cxpCtxtFromAttr(pccArg,pndArg);
-
-  if (domGetPropFlag(pndArg, BAD_CAST "appendcgi", FALSE)) {
-#ifdef HAVE_CGI
-    /* CGI environment */
-    index_t i;
-
-    cxpCtxtLogPrint(pccArg, 2, "Appending %i CGI values", cxpCtxtCgiGetCount(pccArg));
-
-    for (i = 0; i < cxpCtxtCgiGetCount(pccArg); i++) {
-      xmlNodePtr pndVariable;
-      pndVariable = xmlNewChild(pndArg, NULL, BAD_CAST"variable", NULL);
-      domSetPropEat(pndVariable, BAD_CAST "name", cxpCtxtCgiGetName(pccArg, i));
-      domSetPropEat(pndVariable, BAD_CAST "select", cxpCtxtCgiGetValue(pccArg, i));
-    }
-#else
-  cxpCtxtLogPrint(pccArg, 2, "Can append CGI values in CGI mode only");
-#endif
-  }
-
-  ciNodeVariable = domNumberOf(pndArg->children, BAD_CAST "variable", 0);
-  if (ciNodeVariable > 0) {
-    xmlNodePtr pndChildParam;
-    xmlNodePtr pndPlain;
-    xmlNodePtr pndXml;
-    xmlChar *pucAttrSelect;
-    index_t i;
-
-    ppucResult = (xmlChar **)xmlMemMalloc((ciNodeVariable * 2 + 1) * sizeof(xmlChar *));
-    ppucResult[0] = NULL;		/* end markup */
-    for (i=0,pndChildParam=pndArg->children; ppucResult!=NULL && pndChildParam!=NULL; pndChildParam=pndChildParam->next) {
-      /* all PARAM siblings */
-      if (IS_NODE_VARIABLE(pndChildParam)) {
-	/* this is an PARAM */
-	xmlChar *pucName = domGetPropValuePtr(pndChildParam,BAD_CAST "name");
-	xmlChar *pucSelect = NULL;
-	xmlChar *pucSelectTest = NULL;
-	cxpSubstPtr pcxpSubstT;
-
-	if (STR_IS_NOT_EMPTY(pucName)) {
-	  if ((pndPlain = domGetFirstChild(pndChildParam,NAME_PLAIN))) {
-	    /* there are child nodes (cxp:plain only!!), read as value */
-	    cxpCtxtLogPrint(pccArg,3,"VARIABLE '%s' from plain",pucName);
-	    pucSelect = cxpProcessPlainNode(pndPlain,pccHere);
-	  }
-	  else if ((pndXml = domGetFirstChild(pndChildParam,NAME_XML))) {
-	    /* there are child nodes, read as value */
-	    xmlDocPtr pdocT;
-	    cxpCtxtLogPrint(pccArg,3,"VARIABLE '%s' from XML",pucName);
-	    pdocT = cxpProcessXmlNode(pndXml,pccHere);
-	    if (pdocT) {
-	      int iLength = 0;
-	      cxpCtxtLogPrint(pccArg,2,"Replacing");
-	      xmlDocDumpMemory(pdocT,&pucSelect,&iLength);
-	      xmlFreeDoc(pdocT);
-	    }
-	  }
-	  else if ((pucAttrSelect = domGetPropValuePtr(pndChildParam,BAD_CAST "select"))) {
-	    /* use attribute value */
-	    cxpCtxtLogPrint(pccArg,3,"VARIABLE '%s' from attribute 'select'",pucName);
-	    pucSelect = xmlStrdup(pucAttrSelect);
-	  }
-	  else if ((pucSelectTest = domNodeGetContentPtr(pndChildParam))) {
-	    /* use text node */
-	    cxpCtxtLogPrint(pccArg,3,"VARIABLE '%s' from content",pucName);
-	    pucSelect = xmlStrdup(pucSelectTest);
-	  }
-	  else if ((pcxpSubstT = cxpSubstDetect(pndChildParam,pccArg))) {
-	    if ((pucSelectTest = cxpSubstGetPtr(pcxpSubstT))) {
-	      /* use attribute value */
-	      cxpCtxtLogPrint(pccArg,3,"VARIABLE value '%s' from attribute",pucSelectTest);
-	      pucSelect = xmlStrdup(pucSelectTest);
-	    }
-	    cxpSubstFree(pcxpSubstT);
-	  }
-
-	  if (pucSelect) {
-	    ppucResult[i] = xmlStrdup(pucName);
-	    i++;
-	    ppucResult[i] = pucSelect;
-	    i++;
-	  }
-	  else {
-	    cxpCtxtLogPrint(pccArg,1,"Ignoring empty VARIABLE '%s'",pucName);
-	  }
-	}
-      }
-      ppucResult[i] = NULL;		/* end markup */
-    }
-  }
-  return ppucResult;
-}
-/* end of cxpXslParamProcess() */
-
-
-/*! release all entries in param array
-*/
-void
-cxpXslParamFree(char **ppchArg)
-{
-  if (ppchArg) {
-    int i;
-    for (i=0; ppchArg[i]; i++) {
-      xmlFree(ppchArg[i]);
-    }
-    xmlMemFree(ppchArg);
-  }
-  return;
-}
-/* end of cxpXslParamFree() */
-
-
-/*! cxp Ctxt Search Set
+/*! get current cxpContext's search node
 
 \param pccArg -- pointer to context
 \param prnArg -- new resNode to set as location
@@ -1942,22 +1858,18 @@ cxpCtxtSearchGet(cxpContextPtr pccArg)
   resNodePtr prnResult = NULL;
 
   if (pccArg) {
-    cxpContextPtr pccParent;
-
     if (pccArg->prnSearch) {
       prnResult = pccArg->prnSearch;
     }
-    else if ((pccParent = cxpCtxtGetParent(pccArg))) {
-      prnResult = cxpCtxtSearchGet(pccParent);
-    }
     else {
+      prnResult = cxpCtxtSearchGet(pccArg->parent);
     }
   }
   return prnResult;
 } /* end of cxpCtxtSearchGet() */
 
 
-/*! cxp Ctxt Search Set
+/*! set new cxpContext's search node
 
 search path is not a single context, because of symbolic path '...//'
 and multiple directories (like env PATH). Reading of files and
@@ -1975,72 +1887,24 @@ cxpCtxtSearchSet(cxpContextPtr pccArg, resNodePtr prnArg)
   BOOL_T fResult = FALSE;
 
   if (pccArg) {
-    xmlChar *pucPathValue = NULL;
 
 #ifdef DEBUG
     cxpCtxtLogPrint(pccArg, 2, "cxpCtxtSearchSet(cxpContextPtr pccArg, resNodePtr prnArg)");
 #endif
 
-    pucPathValue = cxpCtxtEnvGetValueByName(pccArg, BAD_CAST "CXP_PATH");
-    if (STR_IS_NOT_EMPTY(pucPathValue)) {
-      cxpCtxtLogPrint(pccArg, 2, "Use value '%s' of environment variable 'CXP_PATH'", pucPathValue);
-    }
-#ifdef HAVE_CGI
-    /* the only way in CGI mode!! */
-#else
-    else {
-      /*
-      some additional tricks to set the default search path
-      */
-      xmlChar *pucRelease;
-      xmlChar *pucExecutablePath;
-
-      pucRelease = cxpCtxtCliGetValue(pccArg, 0);
-      pucExecutablePath = resPathNormalize(pucRelease);
-      xmlFree(pucRelease);
-
-#ifdef _MSC_VER
-      /* find "cxproc" in argv[0] */
-      pucPathValue = resPathGetDirFind(pucExecutablePath, BAD_CAST"bin");
-      if (pucPathValue) {
-	cxpCtxtLogPrint(pccArg, 2, "Use executable directory '%s' in '%s'", pucPathValue, pucExecutablePath);
-	pucRelease = resPathGetBasedir(pucPathValue);
-	xmlFree(pucPathValue);
-	pucPathValue = xmlStrncatNew(pucRelease, BAD_CAST"//", -1);
-	xmlFree(pucRelease);
-      }
-      else {
-	pucPathValue = resPathGetDirFind(pucExecutablePath, BAD_CAST"cxproc");
-	if (pucPathValue) {
-	  cxpCtxtLogPrint(pccArg, 2, "Use executable directory '%s' in '%s'", pucPathValue, pucExecutablePath);
-	  pucRelease = pucPathValue;
-	  pucPathValue = xmlStrncatNew(pucRelease, BAD_CAST"//", -1);
-	  xmlFree(pucRelease);
-	}
-	else {
-	}
-      }
-#endif
-      xmlFree(pucExecutablePath);
-    }
-#endif
-    /*!\todo improve speed by using index files 'NAME_FILE_INDEX' */
-
     /*! release old search list first */
     resNodeListFree(pccArg->prnSearch);
+    pccArg->prnSearch = NULL;
+
+    if (prnArg) {
+      /*!\todo check readability of list first */
+      pccArg->prnSearch = resNodeDup(prnArg, (RN_DUP_NEXT | RN_DUP_READ));
+    }
+
+    /*!\todo improve speed by using index files 'NAME_FILE_INDEX' */
 
     /*! check search path context */
-    if (STR_IS_NOT_EMPTY(pucPathValue)) {
-      pccArg->prnSearch = resNodeStrNew(pucPathValue);
-      resNodeSetRecursion(pccArg->prnSearch,resPathIsDirRecursive(pucPathValue));
-      xmlFree(pucPathValue);
-    }
-    else if (prnArg) {
-      pccArg->prnSearch = resNodeDup(prnArg, (RN_DUP_CHILDS | RN_DUP_NEXT));
-    }
-    else {
-      pccArg->prnSearch = NULL;
-    }
+
     if (resPathIsDescendant(resNodeGetNameNormalized(cxpCtxtRootGet(pccArg)), resNodeGetNameNormalized(cxpCtxtSearchGet(pccArg)))) {
       cxpCtxtLogPrint(pccArg, 1, "WARNING: Value '%s' is a descendant directory of search path '%s'",
 	resNodeGetNameNormalized(cxpCtxtRootGet(pccArg)), resNodeGetNameNormalized(cxpCtxtSearchGet(pccArg)));
@@ -2057,85 +1921,33 @@ cxpCtxtSearchSet(cxpContextPtr pccArg, resNodePtr prnArg)
 } /* end of cxpCtxtSearchSet() */
 
 
-/*! update value of xsl:variable node, if a string value is required then append it as new text child
+/*! find resNode in current cxpContext's search node
 
-\deprecated ???
+\param pccArg -- pointer to context
+\param prnArg -- new resNode to set as location
+\return 
 */
-BOOL_T
-UpdateXslVariable(xmlNodePtr pndArg, char *pcValue, cxpContextPtr pccArg)
+resNodePtr
+cxpCtxtSearchFind(cxpContextPtr pccArg, xmlChar *pucArgPath)
 {
-  BOOL_T fResult = FALSE;
+  resNodePtr prnResult = NULL;
 
-  if (pndArg != NULL && STR_IS_NOT_EMPTY(pcValue)) {
-    xmlChar *pucAttrSelect;
+  if (pccArg) {
+    cxpContextPtr pccI;
 
-    if ((pucAttrSelect = domGetPropValuePtr(pndArg, BAD_CAST "select")) == NULL || pucAttrSelect[0]==(xmlChar)'\'') {
-      /* it's a string variable */
-      xmlChar *pucValueNew = NULL;
-      
-      if ((pucValueNew = xmlStrdup(BAD_CAST pcValue)) != NULL) {
-	xmlNodePtr pndRelease;
+    for (pccI = pccArg; pccI; pccI = pccI->parent) {
+      resNodePtr prnI;
 
-	pndRelease = pndArg->children;
-	pndArg->children = NULL;
-	pndArg->last = NULL;
-	xmlFreeNodeList(pndRelease);
-
-	xmlUnsetProp(pndArg, BAD_CAST "select");
-	StringRemovePairQuotes(pucValueNew);
-	fResult = (xmlAddChild(pndArg,xmlNewText(pucValueNew)) != NULL);
-	xmlFree(pucValueNew);
-      }
-    }
-    else {
-      xmlSetProp(pndArg, BAD_CAST "select", BAD_CAST pcValue);
-      fResult = TRUE;
-    }
-  }
-  return fResult;
-} /* end of UpdateXslVariable() */
-
-
-/*! global XSL variables only (between RootElement and first xsl:template element)
-*/
-BOOL_T
-ChangeXslParam(xmlDocPtr pdocResult, char **param, cxpContextPtr pccArg)
-{
-  BOOL_T fResult = FALSE;
-
-  if (pdocResult != NULL && param != NULL && param[0] != NULL) {
-    index_t i;
-
-    for (i=0; param[i]; i+=2) {	/* all name/value pairs */
-      xmlNodePtr pndRoot = xmlDocGetRootElement(pdocResult);
-      xmlNodePtr pndCurrent;
-      
-      for (pndCurrent = pndRoot->children;
-	   pndCurrent != NULL && IS_NODE_XSL_TEMPLATE(pndCurrent) == FALSE;
-	   pndCurrent = pndCurrent->next) {
-	
-	/* exit when the first xsl:template element is reached */
-	
-	if (IS_NODE_XSL_VARIABLE(pndCurrent)) {
-	  xmlChar *pucAttrName;
-
-	  if ((pucAttrName = domGetPropValuePtr(pndCurrent, BAD_CAST "name")) != NULL
-	    && xmlStrEqual(pucAttrName, BAD_CAST param[i])) {
-	    /* according xsl:variable found */
-	    cxpCtxtLogPrint(pccArg, 3, "Updating VARIABLE '%s' with value '%s'", param[i], param[i+1]);
-	    fResult = UpdateXslVariable(pndCurrent, param[i+1], pccArg);
-	    break;
-	  }
-	  else {
-	    /*!\todo handle child tree of xsl:variable */
-	    cxpCtxtLogPrint(pccArg, 4, "Skipping VARIABLE '%s'", pucAttrName);
-	  }
+      for (prnI = pccI->prnSearch; prnI; prnI = prnI->next) {
+	if ((prnResult = resNodeListFindPath(prnI, pucArgPath, RN_FIND_ALL)) != NULL) {
+	  return prnResult;
 	}
       }
     }
   }
-  return fResult;
-} /* end of ChangeXslParam() */
+
+  return NULL;
+} /* end of cxpCtxtSearchFind() */
 
 
 /*! global XSL variables only (between RootElement and first xsl:template element)
@@ -2354,9 +2166,29 @@ cxpProcessTransformations(const xmlDocPtr pdocArgXml, const xmlNodePtr pndArgPar
 	    break;
 	  }
 	  else if (pdocResult) {
-	    char **ppchParam = NULL;
 	    xmlChar *pucNameFileXsl = NULL;
+	    xmlChar *pucEmbedd = NULL;
 	    xmlDocPtr pdocXsl;
+
+#ifdef EXPERIMENTAL
+	    pucEmbedd = xmlGetProp(pndChild, BAD_CAST "embedd");
+	    if (STR_IS_NOT_EMPTY(pucEmbedd)) { /* embedd the XSL as PI in pdocResult */
+	      xmlNodePtr pndPI = NULL;
+	      xmlChar mucT[BUFFER_LENGTH];
+
+	      assert(xmlStrlen(pucEmbedd) < 128);
+	      /*!\todo check cross-site references */
+
+#ifdef HAVE_CGI
+	      xmlStrPrintf(mucT, BUFFER_LENGTH, "href=\"?spath=%s\" type=\"text/xsl\"", pucEmbedd);
+#else
+	      xmlStrPrintf(mucT, BUFFER_LENGTH, "href=\"%s\" type=\"text/xsl\"", pucEmbedd);
+#endif
+	      pndPI = xmlNewDocPI(pdocResult, BAD_CAST "xml-stylesheet", mucT);
+	      xmlAddPrevSibling(xmlDocGetRootElement(pdocResult), pndPI);
+	      break;
+	    }
+#endif
 
 	    pdocXsl = cxpXslRetrieve(pndChild, pccHere);
 	    if (pdocXsl == NULL) {
@@ -2366,16 +2198,8 @@ cxpProcessTransformations(const xmlDocPtr pdocArgXml, const xmlNodePtr pndArgPar
 	      break;
 	    }
 
-#if 1
 	    UpdateXslVariables(pdocXsl, pndChild, pccHere); /* update values of listed variables in stylesheet DOM */
-#else
-	    ppchParam = (char **)cxpXslParamProcess(pndChild, pccHere);
-	    if (ppchParam) {
-	      /*!\todo handle ppchParam[] as Global Vars ? (but see comment at libxslt/variables.c:947) */
-	      ChangeXslParam(pdocXsl, ppchParam, pccArg);
-	    }
-#endif
-	    
+
 	    //cxpCtxtLogPrintDoc(pccArg,1,NULL,pdocArgXml);
 	    //cxpCtxtLogPrintDoc(pccArg,1,NULL,pdocXsl);
 	    //xmlSaveFormatFileEnc("t-1.xsl",pdocXsl, "UTF-8", 1);
@@ -2384,7 +2208,7 @@ cxpProcessTransformations(const xmlDocPtr pdocArgXml, const xmlNodePtr pndArgPar
 	      || xmlStrEqual(domGetXslOutputMethod(pdocXsl), BAD_CAST"html")) {
 	      xmlDocPtr pdocT;	/* preliminary result DOM */
 
-	      pdocT = cxpXslTransformToDom(pdocResult, pdocXsl, ppchParam, pccHere);
+	      pdocT = cxpXslTransformToDom(pdocResult, pdocXsl, pccHere);
 	      if (pdocT != NULL && pdocT != pdocResult) {
 		xmlFreeDoc(pdocResult);
 		pdocResult = pdocT; /* new result DOM */
@@ -2397,7 +2221,7 @@ cxpProcessTransformations(const xmlDocPtr pdocArgXml, const xmlNodePtr pndArgPar
 	    }
 	    else if (xmlStrEqual(domGetXslOutputMethod(pdocXsl), BAD_CAST"text")) {
 	      /*!\todo test on following XSL nodes */
-	      pucResult = cxpXslTransformToText(pdocResult, pdocXsl, ppchParam, pccHere);
+	      pucResult = cxpXslTransformToText(pdocResult, pdocXsl, pccHere);
 	      xmlFreeDoc(pdocResult);
 	      pdocResult = NULL; /* loop ends when pdocResult is NULL */
 	    }
@@ -2406,8 +2230,6 @@ cxpProcessTransformations(const xmlDocPtr pdocArgXml, const xmlNodePtr pndArgPar
 	      pdocResult = NULL;
 	      cxpCtxtLogPrint(pccArg, 1, "No <xsl:output> defined");
 	    }
-
-	    cxpXslParamFree(ppchParam);
 	    xmlFreeDoc(pdocXsl);
 	  }
 	  else {
@@ -2484,7 +2306,7 @@ cxpXslRetrieve(const xmlNodePtr pndArgXsl, cxpContextPtr pccArg)
 
     //pccHere = cxpCtxtFromAttr(pccArg,pndArgXsl);
 
-    if ((pndChild = domGetFirstChild(pndArgXsl,NAME_XML))) {
+    if ((pndChild = domGetFirstChild(pndArgXsl,BAD_CAST NAME_XML))) {
       /* the XSL DOM has to be transformed first */
       pdocResult = cxpProcessXmlNode(pndChild,pccArg);
       if (pdocResult != NULL && (pndRootXsl = xmlDocGetRootElement(pdocResult)) != NULL && IS_NODE(pndRootXsl,BAD_CAST"stylesheet")) {
@@ -2528,7 +2350,7 @@ cxpXslRetrieve(const xmlNodePtr pndArgXsl, cxpContextPtr pccArg)
 	      prnContext = resNodeConcatNew(cxpCtxtLocationGetStr(pccArg),pucAttrContext);
 	      if (prnContext != NULL && resNodeIsReadable(prnContext)) {
 		/* relocate the DOM URI to */
-		domChangeURL(pdocResult,prnContext);
+		resNodeChangeDomURL(pdocResult,prnContext);
 	      }
 	      resNodeFree(prnContext);
 	    }
@@ -2574,7 +2396,6 @@ cxpXslRetrieve(const xmlNodePtr pndArgXsl, cxpContextPtr pccArg)
 
   \param pdocArgXml pointer to DOM to transform
   \param pdocArgXsl pointer to DOM of XSL
-  \param ppchArgParam pointer to XSL parameter array
   \param pccArg pointer to current resource node
 
   \return pdocArgXml if no transformations are done, else a new created xmlDocPtr
@@ -2583,7 +2404,7 @@ cxpXslRetrieve(const xmlNodePtr pndArgXsl, cxpContextPtr pccArg)
   \todo define result DOM encoding
 */
 xmlDocPtr
-cxpXslTransformToDom(const xmlDocPtr pdocArgXml, const xmlDocPtr pdocArgXsl, char **ppchArgParam, cxpContextPtr pccArg)
+cxpXslTransformToDom(const xmlDocPtr pdocArgXml, const xmlDocPtr pdocArgXsl, cxpContextPtr pccArg)
 {
   xmlDocPtr pdocResult = pdocArgXml;
   xmlDocPtr pdocXslCopy;
@@ -2592,7 +2413,7 @@ cxpXslTransformToDom(const xmlDocPtr pdocArgXml, const xmlDocPtr pdocArgXsl, cha
   assert(pdocArgXml != NULL);
   assert(pdocArgXsl != NULL);
 
-#ifdef DEBUG
+#if 0
   cxpCtxtLogPrintDoc(pccArg, 4, "cxpXslTransformToDom() XML:", pdocArgXml);
   cxpCtxtLogPrintDoc(pccArg, 4, "cxpXslTransformToDom() XSL:", pdocArgXsl);
 #endif
@@ -2606,7 +2427,7 @@ cxpXslTransformToDom(const xmlDocPtr pdocArgXml, const xmlDocPtr pdocArgXsl, cha
       /*!\bug xsltParseStylesheetDoc() doesnt set pxslT->omitXmlDeclaration correct */
       xmlDocPtr pdocT;
 
-      pdocT = xsltApplyStylesheet(pxslT, pdocArgXml, (const char **)ppchArgParam);
+      pdocT = xsltApplyStylesheet(pxslT, pdocArgXml, NULL);
       if (pdocT == NULL) {
 	cxpCtxtLogPrint(pccArg,1,"No result with this Stylesheet");
       }
@@ -2641,7 +2462,6 @@ cxpXslTransformToDom(const xmlDocPtr pdocArgXml, const xmlDocPtr pdocArgXsl, cha
 
   \param pdocArgXml pointer to DOM to transform
   \param pdocArgXsl pointer to DOM of XSL
-  \param ppchArgParam pointer to XSL parameter array
   \param pccArg pointer to current resource node
 
   \return pointer to result string
@@ -2649,7 +2469,7 @@ cxpXslTransformToDom(const xmlDocPtr pdocArgXml, const xmlDocPtr pdocArgXsl, cha
   \todo use DOM caching for XSL
 */
 xmlChar *
-cxpXslTransformToText(const xmlDocPtr pdocArgXml, const xmlDocPtr pdocArgXsl, char **ppchArgParam, cxpContextPtr pccArg)
+cxpXslTransformToText(const xmlDocPtr pdocArgXml, const xmlDocPtr pdocArgXsl, cxpContextPtr pccArg)
 {
   int l;
   xmlDocPtr pdocXslCopy;
@@ -2660,7 +2480,7 @@ cxpXslTransformToText(const xmlDocPtr pdocArgXml, const xmlDocPtr pdocArgXsl, ch
   assert(pdocArgXml != NULL);
   assert(pdocArgXsl != NULL);
 
-#ifdef DEBUG
+#if 0
   cxpCtxtLogPrintDoc(pccArg, 4, "cxpXslTransformToDom() XML:", pdocArgXml);
   cxpCtxtLogPrintDoc(pccArg, 4, "cxpXslTransformToDom() XSL:", pdocArgXsl);
 #endif
@@ -2679,7 +2499,7 @@ cxpXslTransformToText(const xmlDocPtr pdocArgXml, const xmlDocPtr pdocArgXsl, ch
 
   /* apply the stylesheet, check the result
    */
-  pdocT = xsltApplyStylesheet(pxslT, pdocArgXml, (const char **)ppchArgParam);
+  pdocT = xsltApplyStylesheet(pxslT, pdocArgXml, NULL);
   if (pdocT) {
     /* dump the result into a buffer */
     xsltSaveResultToString(&pucResult,&l,pdocT,pxslT);
@@ -2711,7 +2531,7 @@ cxpXslTransformToText(const xmlDocPtr pdocArgXml, const xmlDocPtr pdocArgXsl, ch
   for complete DOM see ValidateSchema()
   */
 BOOL_T
-ValidateCxpTree(xmlNodePtr pndArg, cxpContextPtr pccArg)
+cxpValidateTree(xmlNodePtr pndArg, cxpContextPtr pccArg)
 {
   BOOL_T fResult = TRUE;
   xmlNodePtr pndChild;
@@ -2746,7 +2566,7 @@ ValidateCxpTree(xmlNodePtr pndArg, cxpContextPtr pccArg)
 	/* e.g. placeholder for substitution */
       }
       else if (IS_NODE_MAKE_CHILD(pndChild)) {
-	fResult &= ValidateCxpTree(pndChild, pccArg);
+	fResult &= cxpValidateTree(pndChild, pccArg);
       }
       else {
 	cxpCtxtLogPrint(pccArg,1,"Validation error: '%s/%s[@name=\"%s\"]' is not allowed",
@@ -2785,7 +2605,7 @@ ValidateCxpTree(xmlNodePtr pndArg, cxpContextPtr pccArg)
       if (pndChild->type == XML_ELEMENT_NODE) {
 
 	if (IS_NODE_XSL(pndChild)) {
-	  fResult &= ValidateCxpTree(pndChild);
+	  fResult &= cxpValidateTree(pndChild);
 	}
 	else if (IS_NODE_MAKE(pndChild) || IS_NODE_THREAD(pndChild)
 	  || IS_NODE_FROM(pndChild) || IS_NODE_EACH(pndChild)) {
@@ -2794,7 +2614,7 @@ ValidateCxpTree(xmlNodePtr pndArg, cxpContextPtr pccArg)
 	  fResult = FALSE;
 	}
 	else {
-	  fResult &= ValidateCxpTree(pndChild);
+	  fResult &= cxpValidateTree(pndChild);
 	}
       }
     }
@@ -2809,7 +2629,7 @@ ValidateCxpTree(xmlNodePtr pndArg, cxpContextPtr pccArg)
 	}
 
 	if (IS_NODE_XSL(pndChild) || IS_NODE_SUBST(pndChild)) {
-	  fResult &= ValidateCxpTree(pndChild, pccArg);
+	  fResult &= cxpValidateTree(pndChild, pccArg);
 	}
 	else if (IS_NODE_MAKE(pndChild)
 	  || IS_NODE_FROM(pndChild) || IS_NODE_EACH(pndChild)) {
@@ -2820,7 +2640,7 @@ ValidateCxpTree(xmlNodePtr pndArg, cxpContextPtr pccArg)
 	}
 	else {
 	  iChildCount++;
-	  fResult &= ValidateCxpTree(pndChild, pccArg);
+	  fResult &= cxpValidateTree(pndChild, pccArg);
 	}
       }
       pndChild = pndChild->next;
@@ -2844,13 +2664,6 @@ ValidateCxpTree(xmlNodePtr pndArg, cxpContextPtr pccArg)
       pndAttr = pndAttr->next;
     }
 
-#if 0
-#elif 0
-    if (pndArg->children != NULL && cxpGetXmlSourceNode(pndArg) == NULL) {
-      cxpCtxtLogPrint(pccArg,1,"Validation error: cant find the source child of xml node");
-      fResult = FALSE;
-    }
-#else
     for (pndChild = pndArg->children; pndChild;) {
       if (IS_NODE_MAKE(pndChild)
 	|| IS_NODE_FROM(pndChild) || IS_NODE_EACH(pndChild)) {
@@ -2859,11 +2672,10 @@ ValidateCxpTree(xmlNodePtr pndArg, cxpContextPtr pccArg)
 	fResult = FALSE;
       }
       else {
-	fResult &= ValidateCxpTree(pndChild, pccArg);
+	fResult &= cxpValidateTree(pndChild, pccArg);
       }
       pndChild = pndChild->next;
     }
-#endif
   }
   else if (IS_NODE_PLAIN(pndArg)) {
     /* main format nodes (with foreign content) */
@@ -2872,7 +2684,7 @@ ValidateCxpTree(xmlNodePtr pndArg, cxpContextPtr pccArg)
       if (xmlStrEqual(pndAttr->name,BAD_CAST"valid") || xmlStrEqual(pndAttr->name,BAD_CAST"context")
 	|| xmlStrEqual(pndAttr->name,BAD_CAST"name") || xmlStrEqual(pndAttr->name,BAD_CAST"mode")
 	|| xmlStrEqual(pndAttr->name,BAD_CAST"type") || xmlStrEqual(pndAttr->name,BAD_CAST"disposition")
-	|| xmlStrEqual(pndAttr->name, BAD_CAST"xpath")
+	|| xmlStrEqual(pndAttr->name, BAD_CAST"xpath") || xmlStrEqual(pndAttr->name,BAD_CAST"status")
 	|| xmlStrEqual(pndAttr->name,BAD_CAST"encoding") || xmlStrEqual(pndAttr->name,BAD_CAST"cache") || xmlStrEqual(pndAttr->name,BAD_CAST"cacheas")
 	|| xmlStrEqual(pndAttr->name,BAD_CAST"search") || xmlStrEqual(pndAttr->name,BAD_CAST"view") || xmlStrEqual(pndAttr->name,BAD_CAST"text")) {
       }
@@ -2886,7 +2698,7 @@ ValidateCxpTree(xmlNodePtr pndArg, cxpContextPtr pccArg)
       if (pndChild->type == XML_ELEMENT_NODE) {
 	if (IS_NODE_XML(pndChild) || IS_NODE_XSL(pndChild) || IS_NODE_PLAIN(pndChild) || IS_NODE_IMAGE(pndChild) || IS_NODE_SCRIPT(pndChild)
 	  || IS_NODE_DB(pndChild) || IS_NODE_QUERY(pndChild)) {
-	  fResult &= ValidateCxpTree(pndChild, pccArg);
+	  fResult &= cxpValidateTree(pndChild, pccArg);
 	}
 	else {
 		cxpCtxtLogPrint(pccArg,1,"Validation error: '%s/%s[@name=\"%s\"]' is not allowed",
@@ -2920,7 +2732,7 @@ ValidateCxpTree(xmlNodePtr pndArg, cxpContextPtr pccArg)
     for (pndChild = pndArg->children; pndChild;) {
       if (IS_NODE_XML(pndChild) || IS_NODE_XSL(pndChild) || IS_NODE_VARIABLE(pndChild) || xmlNodeIsText(pndChild) || IS_COMMENT(pndChild)) {
 	/* valid */
-	fResult &= ValidateCxpTree(pndChild, pccArg);
+	fResult &= cxpValidateTree(pndChild, pccArg);
       }
       else if (pndChild->type == XML_TEXT_NODE) {
 	/* valid */
@@ -2965,7 +2777,7 @@ ValidateCxpTree(xmlNodePtr pndArg, cxpContextPtr pccArg)
     for (pndChild = pndArg->children; pndChild;) {
       if (IS_NODE_FILE(pndChild) || IS_NODE_DIR(pndChild) || IS_COMMENT(pndChild)) {
 	/* valid */
-	fResult &= ValidateCxpTree(pndChild, pccArg);
+	fResult &= cxpValidateTree(pndChild, pccArg);
       }
       else if (pndChild->type == XML_TEXT_NODE) {
 	/* valid */
@@ -2993,7 +2805,7 @@ ValidateCxpTree(xmlNodePtr pndArg, cxpContextPtr pccArg)
     for (pndChild = pndArg->children; pndChild;) {
       if (IS_NODE_FROM(pndChild) || IS_NODE_MAKE_CHILD(pndChild) || IS_COMMENT(pndChild)) {
 	/* valid */
-	fResult &= ValidateCxpTree(pndChild, pccArg);
+	fResult &= cxpValidateTree(pndChild, pccArg);
       }
       else if (pndChild->type == XML_TEXT_NODE) {
 	/* valid */
@@ -3022,7 +2834,7 @@ ValidateCxpTree(xmlNodePtr pndArg, cxpContextPtr pccArg)
     for (pndChild = pndArg->children; NULL && pndChild;) {
       if (IS_NODE_PLAIN(pndChild) || IS_NODE_FILE(pndChild) || IS_NODE_DIR(pndChild) || IS_NODE_SCRIPT(pndChild) || IS_COMMENT(pndChild)) {
 	/* valid */
-	fResult &= ValidateCxpTree(pndChild, pccArg);
+	fResult &= cxpValidateTree(pndChild, pccArg);
       }
       else if (pndChild->type == XML_TEXT_NODE) {
 	/* valid */
@@ -3051,7 +2863,7 @@ ValidateCxpTree(xmlNodePtr pndArg, cxpContextPtr pccArg)
     for (pndChild = pndArg->children; pndChild;) {
       if (IS_NODE_XML(pndChild) || IS_NODE_PLAIN(pndChild) || IS_NODE_FILE(pndChild) || IS_NODE_DIR(pndChild) || IS_NODE_SCRIPT(pndChild) || IS_COMMENT(pndChild)) {
 	/* valid */
-	fResult &= ValidateCxpTree(pndChild, pccArg);
+	fResult &= cxpValidateTree(pndChild, pccArg);
       }
       else if(pndChild->type == XML_TEXT_NODE) {
 	/* valid */
@@ -3079,7 +2891,7 @@ ValidateCxpTree(xmlNodePtr pndArg, cxpContextPtr pccArg)
     for (pndChild = pndArg->children; pndChild;) {
       if (xmlNodeIsText(pndChild) || IS_COMMENT(pndChild) || IS_NODE_PLAIN(pndChild) || IS_NODE_QUERY(pndChild)) {
 	/* valid */
-	fResult &= ValidateCxpTree(pndChild, pccArg);
+	fResult &= cxpValidateTree(pndChild, pccArg);
       }
       else if (pndChild->type == XML_TEXT_NODE) {
 	/* valid */
@@ -3109,7 +2921,7 @@ ValidateCxpTree(xmlNodePtr pndArg, cxpContextPtr pccArg)
     for (pndChild = pndArg->children; pndChild;) {
       if (IS_NODE_COL(pndChild) || IS_COMMENT(pndChild)) {
 	/* valid */
-	fResult &= ValidateCxpTree(pndChild, pccArg);
+	fResult &= cxpValidateTree(pndChild, pccArg);
       }
       else if (pndChild->type == XML_TEXT_NODE) {
 	/* valid */
@@ -3137,7 +2949,7 @@ ValidateCxpTree(xmlNodePtr pndArg, cxpContextPtr pccArg)
     for (pndChild = pndArg->children; pndChild;) {
       if (IS_NODE_XML(pndChild) || IS_NODE_PIE(pndChild) || IS_COMMENT(pndChild)) {
 	/* valid */
-	fResult &= ValidateCxpTree(pndChild, pccArg);
+	fResult &= cxpValidateTree(pndChild, pccArg);
       }
       else if (pndChild->type == XML_TEXT_NODE) {
 	/* valid */
@@ -3152,7 +2964,7 @@ ValidateCxpTree(xmlNodePtr pndArg, cxpContextPtr pccArg)
   }
   return fResult;
 }
-/* end of ValidateCxpTree() */
+/* end of cxpValidateTree() */
 
 
 /*! test a node if \@view is set to "yes" and call the named file or directory
@@ -3215,6 +3027,7 @@ cxpViewNodeResult(xmlNodePtr pndArg, cxpContextPtr pccArg)
 
 
 /*! \return 
+see also "cxp_context_cgi.c/cxpProcessCGICopyNode()"
 */
 BOOL_T
 cxpProcessCopyNode(xmlNodePtr pndArgCopy, cxpContextPtr pccArg)
@@ -3222,91 +3035,45 @@ cxpProcessCopyNode(xmlNodePtr pndArgCopy, cxpContextPtr pccArg)
   BOOL_T fResult = FALSE;
 
   if (IS_NODE_FILECOPY(pndArgCopy)) {
+    BOOL_T fMove = FALSE;
+    BOOL_T fSearch = FALSE;
     xmlChar *pucFrom = NULL;
     xmlChar *pucTo = NULL;
-    xmlChar *pucAttrResponse = NULL;
     resNodePtr prnFrom = NULL;
     resNodePtr prnContent = NULL;
     resNodePtr prnTo = NULL;
 
-    if ((pucTo = domGetPropValuePtr(pndArgCopy, BAD_CAST "to")) == NULL || STR_IS_EMPTY(pucTo)
-      || (prnTo = cxpResNodeResolveNew(pccArg, pndArgCopy, pucTo, CXP_O_WRITE)) == NULL) {
-#ifdef HAVE_CGI
-      printf("Status: 501\r\n"
-	"Content-Type: text/plain\r\n\r\n"
-	"Cxproc write error '%s'\r\n", pucTo);
-#endif
+    pucFrom = domGetPropValuePtr(pndArgCopy, BAD_CAST "from");
+    pucTo = domGetPropValuePtr(pndArgCopy, BAD_CAST "to");
+    fMove = domGetPropFlag(pndArgCopy, BAD_CAST "delete", FALSE);
+    fSearch = domGetPropFlag(pndArgCopy, BAD_CAST "search", FALSE);
+
+    if (STR_IS_EMPTY(pucTo) || (prnTo = cxpResNodeResolveNew(pccArg, pndArgCopy, pucTo, CXP_O_WRITE)) == NULL || cxpCtxtAccessIsPermitted(pccArg, prnTo) == FALSE) {
       cxpCtxtLogPrint(pccArg, 1, "No valid target name");
     }
-    else if ((pucFrom = domGetPropValuePtr(pndArgCopy, BAD_CAST "from")) == NULL || STR_IS_EMPTY(pucFrom)
-      || (prnFrom = cxpResNodeResolveNew(pccArg, pndArgCopy, pucFrom, ((domGetPropFlag(pndArgCopy, BAD_CAST"search", FALSE)) ? CXP_O_SEARCH | CXP_O_READ : CXP_O_READ))) == NULL) {
-#ifdef HAVE_CGI
-      printf("Status: 501\r\n"
-	"Content-Type: text/plain\r\n\r\n"
-	"Cxproc read error '%s'\r\n", pucFrom);
-#endif
+    else if (STR_IS_EMPTY(pucFrom) ||
+	     (prnFrom = cxpResNodeResolveNew(pccArg, pndArgCopy, pucFrom, (fSearch ? CXP_O_SEARCH | CXP_O_READ : CXP_O_READ))) == NULL
+					     || cxpCtxtAccessIsPermitted(pccArg, prnFrom) == FALSE) {
       cxpCtxtLogPrint(pccArg, 1, "No valid source name '%s'", pucFrom);
     }
-    else if (cxpCtxtAccessIsPermitted(pccArg, prnFrom) == FALSE
-      || cxpCtxtAccessIsPermitted(pccArg, prnTo) == FALSE) {
-#ifdef HAVE_CGI
-      printf("Status: 503\r\n"
-	"Content-Type: text/plain\r\n\r\n"
-	"Cxproc access error '%s' '%s'\r\n", pucFrom, pucTo);
-#endif
-      cxpCtxtLogPrint(pccArg, 1, "Cxproc access error '%s' '%s'\r\n", pucFrom, pucTo);
-    }
-    else if ((prnContent = resNodeGetLastDescendant(prnFrom)) == NULL
-      || resNodeIsDir(prnContent) || resNodeIsDirInArchive(prnContent)) {
-#ifdef HAVE_CGI
-      printf("Status: 503\r\n"
-	"Content-Type: text/plain\r\n\r\n"
-	"Cxproc access error '%s' '%s'\r\n", pucFrom, pucTo);
-#endif
+    else if ((prnContent = resNodeGetLastDescendant(prnFrom)) == NULL || resNodeIsDir(prnContent) || resNodeIsDirInArchive(prnContent)) {
       cxpCtxtLogPrint(pccArg, 1, "Cxproc access error '%s' '%s'\r\n", pucFrom, pucTo);
     }
     else if (resNodeIsStd(prnTo)) {
-#ifdef HAVE_CGI
-      /* s. RFC 1806 */
-      xmlChar *pucAttrType = domGetPropValuePtr(pndArgCopy, BAD_CAST "type");
-      xmlChar *pucAttrDisposition = domGetPropValuePtr(pndArgCopy, BAD_CAST "disposition");
-
-      printf("Content-Type: %s\n", (pucAttrType && xmlStrlen(pucAttrType)>5) ? pucAttrType : BAD_CAST resNodeGetMimeTypeStr(prnContent));
-      printf("Content-Disposition: attachment; filename=%s\n", (pucAttrDisposition && xmlStrlen(pucAttrDisposition)>5) ? pucAttrDisposition : resNodeGetNameBase(prnContent));
-      printf("Content-Description: Dynamic cxproc content\n\n");
-#endif
-      if (resNodeTransfer(prnContent, prnTo, FALSE) == FALSE) {
-#ifdef HAVE_CGI
-	printf("Status: 503\r\n"
-	  "Content-Type: text/plain\r\n\r\n"
-	  "Cxproc copy error '%s' '%s'\r\n", pucFrom, pucTo);
-#endif
+      if (resNodeTransfer(prnContent, prnTo, FALSE) != rn_error_none) {
       }
       else {
 	fResult = TRUE;
       }
     }
-    else if (resNodeTransfer(prnContent, prnTo, domGetPropFlag(pndArgCopy, BAD_CAST "delete", FALSE)) == FALSE) {
-#ifdef HAVE_CGI
-      printf("Status: 503\r\n"
-	"Content-Type: text/plain\r\n\r\n"
-	"Cxproc copy error '%s' '%s'\r\n", pucFrom, pucTo);
-#endif
+    else if (resNodeTransfer(prnContent, prnTo, fMove) != rn_error_none) {
     }
     else {
       fResult = TRUE;
     }
 
-#ifdef HAVE_CGI
-    if ((pucAttrResponse = domGetPropValuePtr(pndArgCopy, BAD_CAST "response"))) {
-      printf("Status: 200 OK\r\n"
-	"Content-Type: text/plain;\r\n\r\n"
-	"Cxproc '%s' '%s' = '%s' OK\r\n", pucFrom, pucTo, pucAttrResponse);
-    }
-#endif
-    
     fflush(stdout); /*! because problems with VC++ (reverse order in stdout) */
-    
+
     resNodeFree(prnTo);
     resNodeFree(prnFrom);
     cxpViewNodeResult(pndArgCopy, pccArg);
@@ -3330,19 +3097,24 @@ cxpInfoProgram(xmlNodePtr pndArg, cxpContextPtr pccArg)
   }
 
   if (pndResult) {
-    xmlNodePtr nodeOption;
-    xmlNodePtr nodeSource;
+    xmlNodePtr pndOption;
+    xmlNodePtr pndSource;
 
+    xmlSetNs(pndResult,cxpGetNs());
     xmlSetProp(pndResult, BAD_CAST "name", BAD_CAST CXP_VER_PRODUCTNAME_STR);
 
-    nodeSource = xmlNewChild(pndResult, NULL, BAD_CAST"source", NULL);
-    xmlSetProp(nodeSource, BAD_CAST "url", BAD_CAST CXP_VERSION_URL);
-    xmlSetProp(nodeSource, BAD_CAST "version", BAD_CAST CXP_VER_FILE_VERSION_STR);
-    xmlSetProp(nodeSource, BAD_CAST "branch", BAD_CAST CXP_VER_FILE_BRANCH_STR);
-
-    nodeOption = xmlNewChild(pndResult, NULL, BAD_CAST"compilation", NULL);
-    xmlSetProp(nodeOption, BAD_CAST "build", BAD_CAST CXP_VERSION_BUILD_STR);
-    xmlSetProp(nodeOption, BAD_CAST "platform", BAD_CAST
+    pndSource = xmlNewChild(pndResult, NULL, BAD_CAST"source", NULL);
+    xmlSetProp(pndSource, BAD_CAST "url", BAD_CAST CXP_VERSION_URL);
+#ifdef DEBUG
+    xmlSetProp(pndSource, BAD_CAST "version", BAD_CAST CXP_VER_FILE_DEVELOP_STR);
+    xmlSetProp(pndSource, BAD_CAST "branch", BAD_CAST CXP_VER_FILE_BRANCH_STR);
+#else
+    xmlSetProp(pndSource, BAD_CAST "version", BAD_CAST CXP_VER_FILE_VERSION_STR);
+#endif
+    pndOption = xmlNewChild(pndResult, NULL, BAD_CAST"compilation", NULL);
+    //xmlSetProp(pndOption, BAD_CAST "build", BAD_CAST CXP_VERSION_BUILD_STR);
+    /* https://stackoverflow.com/questions/152016/detecting-cpu-architecture-compile-time */
+    xmlSetProp(pndOption, BAD_CAST "platform", BAD_CAST
 #ifdef _MSC_VER
 #ifdef _WIN64
       "Windows 64bit"
@@ -3357,6 +3129,8 @@ cxpInfoProgram(xmlNodePtr pndArg, cxpContextPtr pccArg)
       "GNU/Linux 32bit"
 #elif defined (__x86_64__)
       "GNU/Linux 64bit"
+#elif defined(__ARM_ARCH_6__) || defined(__ARM_ARCH_6J__) || defined(__ARM_ARCH_6K__) || defined(__ARM_ARCH_6Z__) || defined(__ARM_ARCH_6ZK__)
+      "GNU/Linux ARM6 32bit"
 #elif defined(__ARM_ARCH_7A__) || defined(__ARM_ARCH_7R__) || defined(__ARM_ARCH_7S__)
       "GNU/Linux ARM7 32bit"
 #else
@@ -3364,19 +3138,19 @@ cxpInfoProgram(xmlNodePtr pndArg, cxpContextPtr pccArg)
 #endif
       );
 
-#ifdef __TIMESTAMP__
-    xmlSetProp(nodeOption, BAD_CAST "date", BAD_CAST __TIMESTAMP__);
-#endif
+    xmlSetProp(pndOption, BAD_CAST "date", BAD_CAST CXP_TIMESTAMP_BUILD);
 
-    xmlSetProp(nodeOption, BAD_CAST "lang",
+#if 0
+    xmlSetProp(pndOption, BAD_CAST "lang",
 #ifdef __cplusplus
 	       BAD_CAST"C++"
 #else
 	       BAD_CAST"C"
 #endif
 	       );
+#endif
 
-    xmlSetProp(nodeOption, BAD_CAST "legacy",
+    xmlSetProp(pndOption, BAD_CAST "legacy",
 #ifdef LEGACY
 	       BAD_CAST"yes"
 #else
@@ -3384,7 +3158,7 @@ cxpInfoProgram(xmlNodePtr pndArg, cxpContextPtr pccArg)
 #endif
 	       );
 
-    xmlSetProp(nodeOption, BAD_CAST "experimental",
+    xmlSetProp(pndOption, BAD_CAST "experimental",
 #ifdef EXPERIMENTAL
 	       BAD_CAST"yes"
 #else
@@ -3392,7 +3166,7 @@ cxpInfoProgram(xmlNodePtr pndArg, cxpContextPtr pccArg)
 #endif
 	       );
 
-    xmlSetProp(nodeOption, BAD_CAST "debug",
+    xmlSetProp(pndOption, BAD_CAST "debug",
 #ifdef DEBUG
 	       BAD_CAST"yes"
 #else
@@ -3414,227 +3188,242 @@ cxpProcessInfoNode(xmlNodePtr pndInfo, cxpContextPtr pccArg)
   xmlChar mpucOut[BUFFER_LENGTH];
   xmlChar *pucArgv;
   xmlDocPtr pdocResult;
-  xmlNodePtr nodeProgram;
-  xmlNodePtr nodeRuntime;
-  xmlNodePtr nodeOption;
+  xmlNodePtr pndProgram;
+  xmlNodePtr pndRuntime;
+  xmlNodePtr pndOption;
   xmlNodePtr pndRoot;
 
   pdocResult = xmlNewDoc(BAD_CAST "1.0");
-  pndRoot = xmlNewDocNode(pdocResult, NULL, NAME_INFO, NULL); 
+  pndRoot = xmlNewDocNode(pdocResult, NULL, BAD_CAST NAME_INFO, NULL); 
   xmlDocSetRootElement(pdocResult, pndRoot);
   xmlSetNs(pndRoot,cxpGetNs());
 
-  nodeProgram = cxpInfoProgram(pndRoot, pccArg);
-  if (nodeProgram) {
+  pndProgram = cxpInfoProgram(pndRoot, pccArg);
+  if (pndProgram) {
 #ifdef __GLIBC__
-    nodeOption = xmlNewChild(nodeProgram, NULL, BAD_CAST"lib", NULL);
-    xmlSetProp(nodeOption,BAD_CAST "name",BAD_CAST"libc");
-    xmlSetProp(nodeOption,BAD_CAST "ns",BAD_CAST"http://www.gnu.org/software/libc/");
+    pndOption = xmlNewChild(pndProgram, NULL, BAD_CAST"lib", NULL);
+    xmlSetProp(pndOption,BAD_CAST "name",BAD_CAST"libc");
+    xmlSetProp(pndOption,BAD_CAST "ns",BAD_CAST"http://www.gnu.org/software/libc/");
     xmlStrPrintf(mpucOut,BUFFER_LENGTH, "%i.%i", __GLIBC__, __GLIBC_MINOR__);
-    xmlSetProp(nodeOption,BAD_CAST "version",mpucOut);
+    xmlSetProp(pndOption,BAD_CAST "version",mpucOut);
 #endif
 
 #ifdef _LIBICONV_VERSION
-    nodeOption = xmlNewChild(nodeProgram, NULL, BAD_CAST"lib", NULL);
-    xmlSetProp(nodeOption,BAD_CAST "name",BAD_CAST"libiconv");
-    xmlSetProp(nodeOption,BAD_CAST "ns",BAD_CAST"http://www.gnu.org/software/libiconv/");
+    pndOption = xmlNewChild(pndProgram, NULL, BAD_CAST"lib", NULL);
+    xmlSetProp(pndOption,BAD_CAST "name",BAD_CAST"libiconv");
+    xmlSetProp(pndOption,BAD_CAST "ns",BAD_CAST"http://www.gnu.org/software/libiconv/");
     xmlStrPrintf(mpucOut,BUFFER_LENGTH,"%i.%i", (_LIBICONV_VERSION >> 8), (_LIBICONV_VERSION & 0xFF));
-    xmlSetProp(nodeOption,BAD_CAST "version",mpucOut);
+    xmlSetProp(pndOption,BAD_CAST "version",mpucOut);
 #endif
 
     /* configured options */
-    nodeOption = xmlNewChild(nodeProgram, NULL, BAD_CAST"lib", NULL);
-    xmlSetProp(nodeOption,BAD_CAST "name",BAD_CAST"libxml2");
-    xmlSetProp(nodeOption,BAD_CAST "ns",BAD_CAST"http://xmlsoft.org/");
-    xmlSetProp(nodeOption,BAD_CAST "version",BAD_CAST LIBXML_DOTTED_VERSION);
+    pndOption = xmlNewChild(pndProgram, NULL, BAD_CAST"lib", NULL);
+    xmlSetProp(pndOption,BAD_CAST "name",BAD_CAST"libxml2");
+    xmlSetProp(pndOption,BAD_CAST "ns",BAD_CAST"http://xmlsoft.org/");
+    xmlSetProp(pndOption,BAD_CAST "version",BAD_CAST LIBXML_DOTTED_VERSION);
 
-    nodeOption = xmlNewChild(nodeProgram, NULL, BAD_CAST"lib", NULL);
-    xmlSetProp(nodeOption,BAD_CAST "name",BAD_CAST"libxslt");
-    xmlSetProp(nodeOption,BAD_CAST "ns",BAD_CAST"http://xmlsoft.org/XSLT/");
-    xmlSetProp(nodeOption,BAD_CAST "version",BAD_CAST LIBXSLT_DOTTED_VERSION);
+    pndOption = xmlNewChild(pndProgram, NULL, BAD_CAST"lib", NULL);
+    xmlSetProp(pndOption,BAD_CAST "name",BAD_CAST"libxslt");
+    xmlSetProp(pndOption,BAD_CAST "ns",BAD_CAST"http://xmlsoft.org/XSLT/");
+    xmlSetProp(pndOption,BAD_CAST "version",BAD_CAST LIBXSLT_DOTTED_VERSION);
+
+    pndOption = xmlNewChild(pndProgram, NULL, BAD_CAST"lib", NULL);
+    xmlSetProp(pndOption,BAD_CAST "name",BAD_CAST"libzip");
+    xmlSetProp(pndOption,BAD_CAST "ns",BAD_CAST"https://libzip.org/");
+    xmlSetProp(pndOption,BAD_CAST "version",BAD_CAST zip_libzip_version());
 
 #ifdef HAVE_PCRE2
-    nodeOption = xmlNewChild(nodeProgram, NULL, BAD_CAST"lib", NULL);
-    xmlSetProp(nodeOption,BAD_CAST "name",BAD_CAST"libpcre2");
-    xmlSetProp(nodeOption,BAD_CAST "ns",BAD_CAST"http://www.pcre.org/");
+    pndOption = xmlNewChild(pndProgram, NULL, BAD_CAST"lib", NULL);
+    xmlSetProp(pndOption,BAD_CAST "name",BAD_CAST"libpcre2");
+    xmlSetProp(pndOption,BAD_CAST "ns",BAD_CAST"http://www.pcre.org/");
     xmlStrPrintf(mpucOut,BUFFER_LENGTH, "%i.%i",PCRE2_MAJOR,PCRE2_MINOR);
-    xmlSetProp(nodeOption,BAD_CAST "version",mpucOut);
+    xmlSetProp(pndOption,BAD_CAST "version",mpucOut);
 #endif
 
 #ifdef HAVE_ZLIB
-    nodeOption = xmlNewChild(nodeProgram, NULL, BAD_CAST"lib", NULL);
-    xmlSetProp(nodeOption, BAD_CAST "name", BAD_CAST"zlib");
-    xmlSetProp(nodeOption, BAD_CAST "ns", BAD_CAST"http://zlib.net/");
-    xmlSetProp(nodeOption, BAD_CAST "version", BAD_CAST ZLIB_VERSION);
+    pndOption = xmlNewChild(pndProgram, NULL, BAD_CAST"lib", NULL);
+    xmlSetProp(pndOption, BAD_CAST "name", BAD_CAST"zlib");
+    xmlSetProp(pndOption, BAD_CAST "ns", BAD_CAST"http://zlib.net/");
+    xmlSetProp(pndOption, BAD_CAST "version", BAD_CAST ZLIB_VERSION);
 #endif
 
-    nodeOption = xmlNewChild(nodeProgram,NULL,BAD_CAST"module",NULL);
-    xmlSetProp(nodeOption,BAD_CAST "name",BAD_CAST"petrinet");
+    pndOption = xmlNewChild(pndProgram, NULL, BAD_CAST"lib", NULL);
+    xmlSetProp(pndOption,BAD_CAST "name",BAD_CAST"c-dt");
+    xmlSetProp(pndOption,BAD_CAST "ns",BAD_CAST"https://github.com/chansen/c-dt");
+    xmlSetProp(pndOption,BAD_CAST "select", BAD_CAST "yes");
+
+    pndOption = xmlNewChild(pndProgram,NULL,BAD_CAST"module",NULL);
+    xmlSetProp(pndOption,BAD_CAST "name",BAD_CAST"petrinet");
 #ifdef HAVE_PETRINET
-    xmlSetProp(nodeOption, BAD_CAST "ns", BAD_CAST CXP_PETRINET_URL);
-    xmlSetProp(nodeOption,BAD_CAST "select",BAD_CAST "yes");
+    xmlSetProp(pndOption, BAD_CAST "ns", BAD_CAST PKG2_NAMESPACE_URL);
+    xmlSetProp(pndOption,BAD_CAST "select",BAD_CAST "yes");
 #else
-    xmlSetProp(nodeOption,BAD_CAST "select",BAD_CAST "no");
+    xmlSetProp(pndOption,BAD_CAST "select",BAD_CAST "no");
 #endif
 
-    nodeOption = xmlNewChild(nodeProgram,NULL,BAD_CAST"module",NULL);
-    xmlSetProp(nodeOption,BAD_CAST "name",BAD_CAST"pie");
 #ifdef HAVE_PIE
-    xmlSetProp(nodeOption, BAD_CAST "ns", BAD_CAST CXP_PIE_URL);
-    xmlSetProp(nodeOption,BAD_CAST "select",BAD_CAST "yes");
+    pndOption = xmlNewChild(pndProgram,NULL,BAD_CAST"module",NULL);
+    pieTextInfo(pndOption);
+
+    pndOption = xmlNewChild(pndProgram, NULL, BAD_CAST"option", NULL);
+    xmlSetProp(pndOption,BAD_CAST "name",BAD_CAST"cmark");
+    xmlSetProp(pndOption,BAD_CAST "ns",BAD_CAST"https://github.com/commonmark/cmark");
+#ifdef WITH_MARKDOWN
+    xmlSetProp(pndOption,BAD_CAST "select", BAD_CAST "yes");
+    xmlSetProp(pndOption,BAD_CAST "version", BAD_CAST cmark_version_string());
 #else
-    xmlSetProp(nodeOption,BAD_CAST "select",BAD_CAST "no");
+    xmlSetProp(pndOption,BAD_CAST "select", BAD_CAST "no");
 #endif
 
-    nodeOption = xmlNewChild(nodeProgram, NULL, BAD_CAST"module", NULL);
-    xmlSetProp(nodeOption,BAD_CAST "name",BAD_CAST"admesh");
-    xmlSetProp(nodeOption,BAD_CAST "ns",BAD_CAST"http://www.varlog.com/");
-#ifdef WITH_RP
-    xmlSetProp(nodeOption,BAD_CAST "select", BAD_CAST "yes");
-    //xmlSetProp(nodeOption,BAD_CAST "version",BAD_CAST SQLITE_VERSION);
-#else
-    xmlSetProp(nodeOption,BAD_CAST "select", BAD_CAST "no");
 #endif
 
-    nodeOption = xmlNewChild(nodeProgram, NULL, BAD_CAST"module", NULL);
-    xmlSetProp(nodeOption, BAD_CAST "name", BAD_CAST"xmlzipio");
-    xmlSetProp(nodeOption, BAD_CAST "ns", BAD_CAST"http://hal.iwr.uni-heidelberg.de/~christi/projects/xmlzipio.html");
-#ifdef HAVE_ZLIB
-    xmlSetProp(nodeOption,BAD_CAST "select",BAD_CAST "yes");
-#else
-    xmlSetProp(nodeOption, BAD_CAST "select", BAD_CAST "no");
-#endif
-
-
-    nodeOption = xmlNewChild(nodeProgram,NULL,BAD_CAST"module",NULL);
-    xmlSetProp(nodeOption,BAD_CAST "name",BAD_CAST"jsmn");
-    xmlSetProp(nodeOption,BAD_CAST "ns",BAD_CAST"https://github.com/zserge/jsmn/");
+    pndOption = xmlNewChild(pndProgram,NULL,BAD_CAST"module",NULL);
+    xmlSetProp(pndOption,BAD_CAST "name",BAD_CAST"jsmn");
+    xmlSetProp(pndOption,BAD_CAST "ns",BAD_CAST"https://github.com/zserge/jsmn/");
 #ifdef HAVE_JSON
-    xmlSetProp(nodeOption,BAD_CAST "select",BAD_CAST "yes");
-    //xmlSetProp(nodeOption,BAD_CAST "version",BAD_CAST "");
+    xmlSetProp(pndOption,BAD_CAST "select",BAD_CAST "yes");
+    //xmlSetProp(pndOption,BAD_CAST "version",BAD_CAST "");
 #else
-    xmlSetProp(nodeOption,BAD_CAST "select",BAD_CAST "no");
+    xmlSetProp(pndOption,BAD_CAST "select",BAD_CAST "no");
 #endif
 
-    nodeOption = xmlNewChild(nodeProgram,NULL,BAD_CAST"option",NULL);
-    xmlSetProp(nodeOption,BAD_CAST "name",BAD_CAST"libarchive");
-    xmlSetProp(nodeOption,BAD_CAST "ns",BAD_CAST"http://www.libarchive.org/");
+    pndOption = xmlNewChild(pndProgram,NULL,BAD_CAST"option",NULL);
+    xmlSetProp(pndOption,BAD_CAST "name",BAD_CAST"libarchive");
+    xmlSetProp(pndOption,BAD_CAST "ns",BAD_CAST"http://www.libarchive.org/");
 #ifdef HAVE_LIBARCHIVE
-    xmlSetProp(nodeOption,BAD_CAST "select", BAD_CAST "yes");
+    xmlSetProp(pndOption,BAD_CAST "select", BAD_CAST "yes");
     xmlStrPrintf(mpucOut, BUFFER_LENGTH, "%i.%i.%i", 
       (int)ARCHIVE_VERSION_NUMBER / (int)1e6,
       ((int)ARCHIVE_VERSION_NUMBER % (int)1e6) / (int)1e3, 
       (int)ARCHIVE_VERSION_NUMBER % (int)1e3);
-    xmlSetProp(nodeOption, BAD_CAST "version", BAD_CAST mpucOut);
+    xmlSetProp(pndOption, BAD_CAST "version", BAD_CAST mpucOut);
 
 #else
-    xmlSetProp(nodeOption,BAD_CAST "select", BAD_CAST "no");
+    xmlSetProp(pndOption,BAD_CAST "select", BAD_CAST "no");
 #endif
 
-    nodeOption = xmlNewChild(nodeProgram, NULL, BAD_CAST"option", NULL);
-    xmlSetProp(nodeOption, BAD_CAST "name", BAD_CAST"sqlite");
-    xmlSetProp(nodeOption, BAD_CAST "ns", BAD_CAST"http://www.sqlite.org/");
+    pndOption = xmlNewChild(pndProgram, NULL, BAD_CAST"option", NULL);
+    xmlSetProp(pndOption, BAD_CAST "name", BAD_CAST"libcurl");
+    xmlSetProp(pndOption, BAD_CAST "ns", BAD_CAST"https://curl.se/");
+#ifdef HAVE_LIBCURL
+    xmlSetProp(pndOption, BAD_CAST "select", BAD_CAST "yes");
+    xmlSetProp(pndOption, BAD_CAST "version", BAD_CAST curl_version());
+#else
+    xmlSetProp(pndOption, BAD_CAST "select", BAD_CAST "no");
+#endif
+
+    pndOption = xmlNewChild(pndProgram, NULL, BAD_CAST"option", NULL);
+    xmlSetProp(pndOption, BAD_CAST "name", BAD_CAST"sqlite");
+    xmlSetProp(pndOption, BAD_CAST "ns", BAD_CAST"http://www.sqlite.org/");
 #ifdef HAVE_LIBSQLITE3
-    xmlSetProp(nodeOption, BAD_CAST "select", BAD_CAST "yes");
-    xmlSetProp(nodeOption, BAD_CAST "version", BAD_CAST SQLITE_VERSION);
+    xmlSetProp(pndOption, BAD_CAST "select", BAD_CAST "yes");
+    xmlSetProp(pndOption, BAD_CAST "version", BAD_CAST SQLITE_VERSION);
 #else
-    xmlSetProp(nodeOption, BAD_CAST "select", BAD_CAST "no");
+    xmlSetProp(pndOption, BAD_CAST "select", BAD_CAST "no");
 #endif
 
-    nodeOption = xmlNewChild(nodeProgram, NULL, BAD_CAST"option", NULL);
-    xmlSetProp(nodeOption,BAD_CAST "name",BAD_CAST"libexif");
-    xmlSetProp(nodeOption,BAD_CAST "ns",BAD_CAST"https://github.com/libexif");
+    pndOption = xmlNewChild(pndProgram, NULL, BAD_CAST"option", NULL);
+    xmlSetProp(pndOption,BAD_CAST "name",BAD_CAST"libexif");
+    xmlSetProp(pndOption,BAD_CAST "ns",BAD_CAST"https://github.com/libexif");
 #ifdef HAVE_LIBEXIF
-    xmlSetProp(nodeOption,BAD_CAST "select", BAD_CAST "yes");
-    xmlSetProp(nodeOption,BAD_CAST "version",BAD_CAST "0.6.21");
+    xmlSetProp(pndOption,BAD_CAST "select", BAD_CAST "yes");
+    xmlSetProp(pndOption,BAD_CAST "version",BAD_CAST "0.6.21");
 #else
-    xmlSetProp(nodeOption,BAD_CAST "select", BAD_CAST "no");
+    xmlSetProp(pndOption,BAD_CAST "select", BAD_CAST "no");
 #endif
 
-    nodeOption = xmlNewChild(nodeProgram, NULL, BAD_CAST"option", NULL);
-    xmlSetProp(nodeOption,BAD_CAST "name",BAD_CAST"libmagick");
-    xmlSetProp(nodeOption,BAD_CAST "ns",BAD_CAST"http://www.imagemagick.org/");
+    pndOption = xmlNewChild(pndProgram, NULL, BAD_CAST"option", NULL);
+    xmlSetProp(pndOption,BAD_CAST "name",BAD_CAST"libmagick");
+    xmlSetProp(pndOption,BAD_CAST "ns",BAD_CAST"http://www.imagemagick.org/");
 #ifdef HAVE_LIBMAGICK
-    xmlSetProp(nodeOption,BAD_CAST "select", BAD_CAST "yes");
-    xmlSetProp(nodeOption,BAD_CAST "version",BAD_CAST MagickLibVersionText);
+    xmlSetProp(pndOption,BAD_CAST "select", BAD_CAST "yes");
+    xmlSetProp(pndOption,BAD_CAST "version",BAD_CAST MagickLibVersionText);
 #else
-    xmlSetProp(nodeOption,BAD_CAST "select", BAD_CAST "no");
+    xmlSetProp(pndOption,BAD_CAST "select", BAD_CAST "no");
 #endif
 
-    nodeOption = xmlNewChild(nodeProgram, NULL, BAD_CAST"option", NULL);
-    xmlSetProp(nodeOption,BAD_CAST "name",BAD_CAST"libvorbis");
-    xmlSetProp(nodeOption,BAD_CAST "ns",BAD_CAST"http://www.xiph.org/");
+    pndOption = xmlNewChild(pndProgram, NULL, BAD_CAST"option", NULL);
+    xmlSetProp(pndOption,BAD_CAST "name",BAD_CAST"libvorbis");
+    xmlSetProp(pndOption,BAD_CAST "ns",BAD_CAST"http://www.xiph.org/");
 #ifdef HAVE_LIBVORBIS
-    xmlSetProp(nodeOption,BAD_CAST "select", BAD_CAST "yes");
-    xmlSetProp(nodeOption,BAD_CAST "version", BAD_CAST vorbis_version_string());
+    xmlSetProp(pndOption,BAD_CAST "select", BAD_CAST "yes");
+    xmlSetProp(pndOption,BAD_CAST "version", BAD_CAST vorbis_version_string());
 #else
-    xmlSetProp(nodeOption,BAD_CAST "select", BAD_CAST "no");
+    xmlSetProp(pndOption,BAD_CAST "select", BAD_CAST "no");
 #endif
 
-    nodeOption = xmlNewChild(nodeProgram, NULL, BAD_CAST"option", NULL);
-    xmlSetProp(nodeOption,BAD_CAST "name",BAD_CAST"vorbiscomment");
-    xmlSetProp(nodeOption,BAD_CAST "ns",BAD_CAST"http://www.vorbis.com/");
+    pndOption = xmlNewChild(pndProgram, NULL, BAD_CAST"option", NULL);
+    xmlSetProp(pndOption,BAD_CAST "name",BAD_CAST"vorbiscomment");
+    xmlSetProp(pndOption,BAD_CAST "ns",BAD_CAST"http://www.vorbis.com/");
 #ifdef HAVE_LIBVORBIS
-    xmlSetProp(nodeOption,BAD_CAST "select", BAD_CAST "yes");
+    xmlSetProp(pndOption,BAD_CAST "select", BAD_CAST "yes");
 #else
-    xmlSetProp(nodeOption,BAD_CAST "select", BAD_CAST "no");
+    xmlSetProp(pndOption,BAD_CAST "select", BAD_CAST "no");
 #endif
 
-    nodeOption = xmlNewChild(nodeProgram, NULL, BAD_CAST"option", NULL);
-    xmlSetProp(nodeOption,BAD_CAST "name",BAD_CAST"libid3tag");
-    xmlSetProp(nodeOption,BAD_CAST "ns",BAD_CAST"http://www.underbit.com/products/mad/");
+    pndOption = xmlNewChild(pndProgram, NULL, BAD_CAST"option", NULL);
+    xmlSetProp(pndOption,BAD_CAST "name",BAD_CAST"libid3tag");
+    xmlSetProp(pndOption,BAD_CAST "ns",BAD_CAST"http://www.underbit.com/products/mad/");
 #ifdef HAVE_LIBID3TAG
-    xmlSetProp(nodeOption,BAD_CAST "select", BAD_CAST "yes");
-    xmlSetProp(nodeOption,BAD_CAST "version", BAD_CAST ID3_VERSION);
+    xmlSetProp(pndOption,BAD_CAST "select", BAD_CAST "yes");
+    xmlSetProp(pndOption,BAD_CAST "version", BAD_CAST ID3_VERSION);
 #else
-    xmlSetProp(nodeOption,BAD_CAST "select", BAD_CAST "no");
+    xmlSetProp(pndOption,BAD_CAST "select", BAD_CAST "no");
 #endif
 
-    nodeOption = xmlNewChild(nodeProgram, NULL, BAD_CAST"option", NULL);
-    xmlSetProp(nodeOption,BAD_CAST "name",BAD_CAST"threading");
+    pndOption = xmlNewChild(pndProgram, NULL, BAD_CAST"option", NULL);
+    xmlSetProp(pndOption,BAD_CAST "name",BAD_CAST"multithreading");
 #if WITH_THREAD
-    xmlSetProp(nodeOption,BAD_CAST "select", BAD_CAST "yes");
+    xmlSetProp(pndOption,BAD_CAST "select", BAD_CAST "yes");
 #else
-    xmlSetProp(nodeOption,BAD_CAST "select", BAD_CAST "no");
+    xmlSetProp(pndOption,BAD_CAST "select", BAD_CAST "no");
 #endif
 
 #ifdef HAVE_JS
-    nodeOption = xmlNewChild(nodeProgram, NULL, BAD_CAST"option", NULL);
-    scriptInfo(nodeOption);
+    pndOption = xmlNewChild(pndProgram, NULL, BAD_CAST"option", NULL);
+    cxpScriptInfo(pndOption, pccArg);
 #endif
 
-    nodeOption = xmlNewChild(nodeProgram,NULL,BAD_CAST"module",NULL);
-    xmlSetProp(nodeOption,BAD_CAST "name",BAD_CAST"cgi");
-    xmlSetProp(nodeOption,BAD_CAST "ns",BAD_CAST"http://www.newbreedsoftware.com/cgi-util/");
+    pndOption = xmlNewChild(pndProgram,NULL,BAD_CAST"module",NULL);
+    xmlSetProp(pndOption,BAD_CAST "name",BAD_CAST"cgi");
+    xmlSetProp(pndOption,BAD_CAST "ns",BAD_CAST"http://www.newbreedsoftware.com/cgi-util/");
 #ifdef HAVE_CGI
-    xmlSetProp(nodeOption,BAD_CAST "select",BAD_CAST "yes");
-    xmlSetProp(nodeOption,BAD_CAST "version",BAD_CAST CGIUTILVER);
+    xmlSetProp(pndOption,BAD_CAST "select",BAD_CAST "yes");
+    xmlSetProp(pndOption,BAD_CAST "version",BAD_CAST CGIUTILVER);
 #else
-    xmlSetProp(nodeOption,BAD_CAST "select",BAD_CAST "no");
+    xmlSetProp(pndOption,BAD_CAST "select",BAD_CAST "no");
 #endif
 }
 
-  nodeRuntime = xmlNewChild(pndRoot, NULL, BAD_CAST"runtime", NULL);
-  if (nodeRuntime) {
+  pndRuntime = xmlNewChild(pndRoot, NULL, BAD_CAST"runtime", NULL);
+  if (pndRuntime) {
     xmlChar *pucT;
-    xmlNodePtr nodeDate;
+    xmlChar mpucIndex[BUFFER_LENGTH];
     resNodePtr prnTest;
+    cxpContextPtr pccI;
+#ifdef _MSC_VER
+#else
+    uid_t u;
 
-    //domSetPropEat(nodeRuntime,BAD_CAST "platform",GetHostValueNamed(BAD_CAST "os"));
+    u = geteuid();
+    xmlStrPrintf(mpucIndex,BUFFER_LENGTH,"%i",u);
+    xmlSetProp(pndRuntime,BAD_CAST "uid",mpucIndex);
+#endif
+
+    //domSetPropEat(pndRuntime,BAD_CAST "platform",GetHostValueNamed(BAD_CAST "os"));
     /* working dir */
-    domSetPropEat(nodeRuntime,BAD_CAST "cwd",resPathGetCwd());
-    xmlSetProp(nodeRuntime, BAD_CAST "context", cxpCtxtLocationGetStr(pccArg));
+    domSetPropEat(pndRuntime,BAD_CAST "cwd",resPathGetCwdStr());
+    xmlSetProp(pndRuntime, BAD_CAST "context", cxpCtxtLocationGetStr(pccArg));
 
     pucT = GetDateIsoString(0);
-    nodeDate = xmlNewChild(nodeRuntime, NULL, BAD_CAST"date", pucT);
+    xmlNewChild(pndRuntime, NULL, BAD_CAST"date", pucT);
     xmlFree(pucT);
 
     /*! program arguments */
     for (i = 0; (pucArgv = cxpCtxtCliGetValue(pccArg, i)); i++) {
-      xmlChar mpucIndex[BUFFER_LENGTH];
       xmlNodePtr pndArgv;
-      pndArgv = xmlNewChild(nodeRuntime, NULL, BAD_CAST"arg", NULL);
-      xmlStrPrintf(mpucIndex,BUFFER_LENGTH-1,"%i",i);
+      pndArgv = xmlNewChild(pndRuntime, NULL, BAD_CAST"arg", NULL);
+      xmlStrPrintf(mpucIndex,BUFFER_LENGTH,"%i",i);
       xmlSetProp(pndArgv,BAD_CAST "name",mpucIndex);
       domSetPropEat(pndArgv,BAD_CAST "select",pucArgv);
     }
@@ -3643,7 +3432,7 @@ cxpProcessInfoNode(xmlNodePtr pndInfo, cxpContextPtr pccArg)
     for (i = 0; i < cxpCtxtCliGetCount(pccArg); i++) {
       xmlNodePtr pndArgv;
       if ((pucArgv = cxpCtxtCliGetName(pccArg, i))) {
-	pndArgv = xmlNewChild(nodeRuntime, NULL, BAD_CAST"arg", NULL);
+	pndArgv = xmlNewChild(pndRuntime, NULL, BAD_CAST"arg", NULL);
 	xmlSetProp(pndArgv,BAD_CAST "name", pucArgv);
 	domSetPropEat(pndArgv, BAD_CAST "select", cxpCtxtCliGetValueByName(pccArg, pucArgv));
 	xmlFree(pucArgv);
@@ -3654,7 +3443,7 @@ cxpProcessInfoNode(xmlNodePtr pndInfo, cxpContextPtr pccArg)
     /*! CGI arguments */
     for (i = 0; (pucArgv = cxpCtxtCgiGetName(pccArg, i)); i++) {
       xmlNodePtr pndCgi;
-      pndCgi = xmlNewChild(nodeRuntime, NULL, BAD_CAST"cgi", NULL);
+      pndCgi = xmlNewChild(pndRuntime, NULL, BAD_CAST"cgi", NULL);
       domSetPropEat(pndCgi,BAD_CAST "name",pucArgv);
       domSetPropEat(pndCgi, BAD_CAST "select", cxpCtxtCgiGetValue(pccArg, i));
     }
@@ -3663,23 +3452,51 @@ cxpProcessInfoNode(xmlNodePtr pndInfo, cxpContextPtr pccArg)
     /*! Environment */
     for (i = 0; (pucArgv = cxpCtxtEnvGetName(pccArg, i)); i++) {
       xmlNodePtr pndEnv;
-      pndEnv = xmlNewChild(nodeRuntime, NULL, NAME_ENV, NULL);
+      pndEnv = xmlNewChild(pndRuntime, NULL, BAD_CAST NAME_ENV, NULL);
       domSetPropEat(pndEnv,BAD_CAST "name",pucArgv);
       domSetPropEat(pndEnv,BAD_CAST "select",cxpCtxtEnvGetValue(pccArg,i));
     }
 
-    /*! Search path directories */
-    for (prnTest = cxpCtxtSearchGet(pccArg); prnTest; prnTest = resNodeGetNext(prnTest)) {
-      xmlNodePtr pndSearch;
-      pndSearch = xmlNewChild(nodeRuntime, NULL, BAD_CAST "search", NULL);
-      xmlSetProp(pndSearch,BAD_CAST "select",resNodeGetNameNormalized(prnTest));
-      xmlSetProp(pndSearch,BAD_CAST "recursive", BAD_CAST (resNodeIsRecursive(prnTest) ? "yes" : "no"));
+    /*! List all path directories */
+    for (pccI = pccArg; pccI; pccI = cxpCtxtGetParent(pccI)) {
+      for (prnTest = cxpCtxtSearchGet(pccI); prnTest; prnTest = resNodeGetNext(prnTest)) {
+	xmlNodePtr pndSearch;
+	pndSearch = xmlNewChild(pndRuntime, NULL, BAD_CAST "search", NULL);
+	xmlSetProp(pndSearch, BAD_CAST "select", resNodeGetNameNormalized(prnTest));
+	xmlSetProp(pndSearch, BAD_CAST "recursive", BAD_CAST(resNodeIsRecursive(prnTest) ? "yes" : "no"));
+      }
     }
   }
 
   return pdocResult;
 }
 /* end of cxpProcessInfoNode() */
+
+
+/*! unlinks all element trees containing attribute valid="no" (see also pieRemoveInvalidsFromTree())
+ */
+xmlNodePtr
+cxpRemoveInvalidsFromTree(xmlNodePtr pndArg)
+{
+  if (IS_ENODE(pndArg)) {
+    if (IS_VALID_NODE(pndArg) == FALSE) {
+      xmlNodePtr pndRelease = pndArg;
+
+      xmlUnlinkNode(pndRelease);
+      xmlFreeNode(pndRelease);
+    }
+    else {
+      xmlNodePtr pndChild;
+      xmlNodePtr pndNext = NULL;
+
+      for (pndChild = pndArg->children; pndChild != NULL; pndChild = pndNext) {
+	pndNext = pndChild->next;
+	cxpRemoveInvalidsFromTree(pndChild);
+      }
+    }
+  }
+  return NULL;
+} /* end of cxpRemoveInvalidsFromTree() */
 
 
 #ifndef HAVE_PIE
@@ -3711,16 +3528,16 @@ pieProcessPieNode(xmlNodePtr pndArgPie, cxpContextPtr pccArg)
     pdocResult = xmlNewDoc(BAD_CAST "1.0");
     pdocResult->encoding = xmlStrdup(BAD_CAST "UTF-8");
 
-    pndPieRoot = xmlNewNode(NULL,NAME_PIE_PIE);
+    pndPieRoot = xmlNewNode(NULL,BAD_CAST NAME_PIE_PIE);
     xmlSetTreeDoc(pndPieRoot,pdocResult);
     xmlDocSetRootElement(pdocResult, pndPieRoot);
       
     pndPiePre = xmlCopyNode(pndArgPie, 1); /* first copy for import processing */
-    xmlNodeSetName(pndPiePre,NAME_PIE_PRE);
+    xmlNodeSetName(pndPiePre,BAD_CAST NAME_PIE_PRE);
     xmlSetTreeDoc(pndPiePre, pdocResult);
     xmlAddChild(pndPieRoot, pndPiePre);
     
-    pndMeta = xmlNewChild(pndPieRoot,NULL,NAME_PIE_META,NULL);
+    pndMeta = xmlNewChild(pndPieRoot,NULL,BAD_CAST NAME_PIE_META,NULL);
     /* Get the current time. */
     domSetPropEat(pndMeta, BAD_CAST "ctime", GetNowFormatStr(BAD_CAST "%s"));
     domSetPropEat(pndMeta, BAD_CAST "ctime2", GetDateIsoString(0));

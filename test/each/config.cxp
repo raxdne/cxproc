@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <cxp:make xmlns:cxp="http://www.tenbusch.info/cxproc">
-  <cxp:system mkdir="result"/>
+  <cxp:system mkdir="result/"/>
   <cxp:system message="*** Test 1: iteration keys from string ***"/>
   <cxp:each name="%N%">
     <cxp:from> 1 2 3 4 5 6  </cxp:from>

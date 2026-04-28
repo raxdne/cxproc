@@ -1,7 +1,7 @@
 /*
   cxproc - Configurable Xml PROCessor
 
-  Copyright (C) 2006..2020 by Alexander Tenbusch
+  Copyright (C) 2006..2024 by Alexander Tenbusch
 
   This program is free software; you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -56,7 +56,7 @@ cxpSubstTest(cxpContextPtr pccArg)
     i++;
     printf("TEST %i in '%s:%i': ApplySubstText() = ",i,__FILE__,__LINE__);
 
-    if (ApplySubstText(NULL,BAD_CAST"",NULL)) {
+    if (ApplySubstText(NULL,BAD_CAST"",NULL,NULL)) {
       printf("Error ApplySubstText()\n");
     }
     else {
@@ -80,6 +80,32 @@ cxpSubstTest(cxpContextPtr pccArg)
       printf("Error 1 cxpSubstIncludeNodes()\n");
     }
     else if (cxpSubstIncludeNodes(pndTest,pccArg) == FALSE) {
+      printf("Error 2 cxpSubstIncludeNodes()\n");
+    }
+    else {
+      n_ok++;
+      printf("OK\n");
+    }
+    //domPutNodeString(stderr, BAD_CAST"include", pndTest);
+    xmlFreeNode(pndTest);
+  }
+
+  if (RUNTEST) {
+    xmlNodePtr pndTest;
+    xmlNodePtr pndInclude;
+
+    i++;
+    printf("TEST %i in '%s:%i': cxpSubstIncludeNodes() = ",i,__FILE__,__LINE__);
+
+    pndTest = xmlNewNode(NULL,NAME_MAKE);
+    pndInclude = xmlNewChild(pndTest,NULL,NAME_INCLUDE,NULL);
+    xmlSetProp(pndInclude,BAD_CAST "name",BAD_CAST TESTPREFIX "xml/config-xml-subst.cxp");
+    pndInclude = xmlNewChild(pndTest,NULL,NAME_INCLUDE,NULL);
+    xmlSetProp(pndInclude,BAD_CAST "name",BAD_CAST TESTPREFIX "xml/config-xml-cache.cxp");
+    xmlNewChild(pndTest,NULL,NAME_DIR,NULL);
+    //domPutNodeString(stderr, BAD_CAST"include", pndTest);
+
+    if (cxpSubstIncludeNodes(pndTest,pccArg) == FALSE) {
       printf("Error 2 cxpSubstIncludeNodes()\n");
     }
     else {
@@ -180,6 +206,39 @@ cxpSubstTest(cxpContextPtr pccArg)
     xmlFreeNode(pndSubst);
   }
 
+#ifdef HAVE_PCRE2
+  
+  if (RUNTEST) {
+    cxpSubstPtr pT;
+    xmlNodePtr pndSubst;
+
+    i++;
+    printf("TEST %i in '%s:%i': cxpSubstDetect() = ",i,__FILE__,__LINE__);
+
+    pndSubst = xmlNewNode(NULL,NAME_SUBST);
+    xmlSetProp(pndSubst,BAD_CAST "regexp",BAD_CAST"[A-Z]{1,3}");
+    xmlSetProp(pndSubst,BAD_CAST "to",BAD_CAST"YYY");
+
+    if ((pT = cxpSubstDetect(pndSubst,pccArg)) == NULL) {
+      printf("Error cxpSubstDetect()\n");
+    }
+    else if (pT->preFrom == NULL) {
+      printf("Error preFrom\n");
+    }
+    else if (pT->pucTo == NULL) {
+      printf("Error preTo\n");
+    }
+    else {
+      n_ok++;
+      printf("OK\n");
+    }
+    //domPutNodeString(stderr, BAD_CAST"subst", pndSubst);
+    cxpSubstFree(pT);
+    xmlFreeNode(pndSubst);
+  }
+
+#endif
+  
   if (RUNTEST) {
     i++;
     printf("TEST %i in '%s:%i': cxpSubstApply() = ",i,__FILE__,__LINE__);
@@ -307,6 +366,40 @@ cxpSubstTest(cxpContextPtr pccArg)
 
 
   if (RUNTEST) {
+    xmlNodePtr pndTest;
+    xmlNodePtr pndT;
+    xmlNodePtr pndTT;
+    xmlNodePtr pndTTT;
+    xmlNodePtr pndSubst;
+
+    i++;
+    printf("TEST %i in '%s:%i': cxpSubstInChildNodes() regexp = ",i,__FILE__,__LINE__);
+
+    pndTest = xmlNewNode(NULL,NAME_XML);
+    pndSubst = xmlNewChild(pndTest,NULL,NAME_SUBST,NULL);
+    xmlSetProp(pndSubst,BAD_CAST "regexp",BAD_CAST "([A-Z]{3})");
+    xmlSetProp(pndSubst,BAD_CAST "to",BAD_CAST " :: $1/$1 :: ");
+    pndSubst = xmlNewChild(pndTest,NULL,NAME_SUBST,NULL);
+    xmlSetProp(pndSubst,BAD_CAST "regexp",BAD_CAST "Z{3}");
+    xmlNewChild(pndTest,NULL,NAME_PLAIN,BAD_CAST "BBBB");
+    xmlNewChild(pndTest,NULL,NAME_PLAIN,BAD_CAST "AAAA");
+    xmlNewChild(pndTest,NULL,NAME_PLAIN,BAD_CAST "%%CCC%%");
+
+    //domPutNodeString(stderr, BAD_CAST"pre subst", pndTest);
+
+    if (cxpSubstInChildNodes(pndTest,NULL,pccArg) == FALSE) {
+      printf("Error 3\n");
+    }
+    else {
+      n_ok++;
+      printf("OK\n");
+    }
+    //domPutNodeString(stderr, BAD_CAST"post subst", pndTest);
+    xmlFreeNode(pndTest);
+  }
+
+
+  if (RUNTEST) {
     xmlChar *pucT;
     cxpSubstPtr pT;
 
@@ -319,11 +412,6 @@ cxpSubstTest(cxpContextPtr pccArg)
     else if ((pucT = cxpSubstInStringNew(BAD_CAST"Abc Def hij", NULL, pccArg)) != NULL) {
       printf("Error 2 cxpSubstInStringNew()\n");
     }
-#if 0
-    else if ((pucT = cxpSubstInStringNew(BAD_CAST"Abc Def hij", pT, pccArg)) != NULL) {
-      printf("Error 2 cxpSubstInStringNew()\n");
-    }
-#endif
     else {
       n_ok++;
       printf("OK\n");

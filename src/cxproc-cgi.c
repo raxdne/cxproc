@@ -1,7 +1,7 @@
 /* 
    cxproc - Configurable Xml PROCessor
 
-   Copyright (C) 2006..2020 by Alexander Tenbusch
+   Copyright (C) 2006..2024 by Alexander Tenbusch
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -45,12 +45,16 @@ CXP_ROOT=.../www/html/Documents
 #include <libxslt/transform.h>
 #include <libxslt/variables.h>
 
+#include <libexslt/exslt.h>
+#include <libexslt/exsltconfig.h>
+
 /* 
  */
 #include "basics.h"
 #include "utils.h"
 #include <res_node/res_node_ops.h>
 #include <cxp/cxp.h>
+#include <cxp/cxp_calendar.h>
 #include <cxp/cxp_context_cgi.h>
 #include "plain_text.h"
 #include <cxp/cxp_dir.h>
@@ -59,15 +63,14 @@ CXP_ROOT=.../www/html/Documents
 
 #ifdef HAVE_PIE
 #include <pie/pie_text.h>
-#include <pie/pie_calendar.h>
-#endif
-
-#ifdef HAVE_JS
-#include <script/script.h>
 #endif
 
 #ifdef HAVE_LIBARCHIVE
-#include <archive/cxp_archive.h>
+#include <cxp/cxp_archive.h>
+#endif
+
+#ifdef HAVE_LIBMAGICK
+#include <magick/ImageMagick.h>
 #endif
 
 
@@ -79,20 +82,43 @@ main(int argc, char *argv[], char *envp[])
   */
   int res;
   cxpContextPtr pccMain = NULL;
-  xmlChar *pucT;
-  resNodePtr prnNew = NULL;
+  xmlChar *pucT = NULL;
+  xmlChar *pucTT = NULL;
   FILE *cxperr = NULL;
 
-#if 1
-  pucT = BAD_CAST getenv("CXP_LOGFILE");
-  if ((STR_IS_NOT_EMPTY(pucT) && (prnNew = resNodeDirNew(pucT)))
-      ||
-      (prnNew = resNodeDirNew(BAD_CAST "cxproc.err"))) {
-    /*!\todo check file permission */
-    cxperr = freopen(resNodeGetNameNormalizedNative(prnNew),"w",stderr);
+  if ((pucTT = BAD_CAST getenv("CXP_LOGFILE")) != NULL) {
+    /* use defined value as log file location */
+    pucT = xmlStrdup(pucTT);
   }
-  resNodeFree(prnNew);
-#endif
+  else if ((pucTT = BAD_CAST getenv("DOCUMENT_ROOT")) != NULL) {
+    /* derive log file location from HTTP server configuration */
+    pucT = resPathConcatNormalizedStr(pucTT, BAD_CAST "/cxproc-cgi.log");
+  }
+  else if ((pucTT = resPathGetCwdStr()) != NULL) {
+    /* try a default value */
+    pucT = resPathConcatNormalizedStr(pucTT, BAD_CAST "/cxproc-cgi.log");
+    xmlFree(pucTT);
+  }
+  else {
+    fprintf(stderr, "using stderr\n");
+  }
+
+  if (STR_IS_NOT_EMPTY(pucT)) {
+    resNodePtr prnNew;
+
+    if ((prnNew = resNodeDirNew(pucT)) != NULL) {
+      if (resNodeIsWriteable(prnNew) && (cxperr = freopen((const char *)resNodeGetNameNormalizedNative(prnNew), "w", stderr)) != NULL) {
+	fprintf(stderr, "using '%s' as error output\n", pucT);
+      }
+      else {
+	//fprintf(stderr, "using stderr\n");
+      }
+      resNodeFree(prnNew);
+    }
+  }
+  xmlFree(pucT);
+
+  SetLogLevel(2); /* default value */
 
 #ifdef _MSC_VER
   if (_setmode(_fileno(stdout), _O_BINARY) == -1) {
@@ -137,29 +163,33 @@ main(int argc, char *argv[], char *envp[])
 #ifdef HAVE_PIE
       || atexit(pieTextCleanup) != 0
 #endif
+#ifdef HAVE_LIBMAGICK
+      || atexit(MagickCoreTerminus) != 0
+#endif
+#ifdef HAVE_LIBCURL
+      || atexit(curl_global_cleanup) != 0
+#endif
+      || atexit(zipIconvCleanup) != 0
     ) {
     exit(EXIT_FAILURE);
   }
 
+#ifdef HAVE_LIBCURL
+  curl_global_init(CURL_GLOBAL_DEFAULT);
+  /* log all details, except SSL handling */
+  //curl_global_trace("all,-ssl");
+#endif
+
   xmlInitParser();
   LIBXML_TEST_VERSION
 
-  if (xmlInitMemory()==0) {
-    exit(EXIT_FAILURE);
-  }
   xmlKeepBlanksDefault(0);
   xmlRegisterDefaultInputCallbacks();
   xmlRegisterDefaultOutputCallbacks();
-#ifdef HAVE_ZLIB
-  /* code for xmlzipio http://hal.iwr.uni-heidelberg.de/~christi/projects/xmlzipio.html */
-  xmlZipRegisterInputCallback();
-  /* it's importend to xmlzipio after the default handlers, so xmlzipio is asked first. */
-  xmlZipRegisterOutputCallback();
-#endif
+  exsltRegisterAll();
 
-#ifdef HAVE_PIE
   ceInit();
-#endif
+  zipIconvInit();
 
 #ifdef _WIN32
   resPathSetNativeEncoding("ISO-8859-1");
@@ -168,10 +198,6 @@ main(int argc, char *argv[], char *envp[])
   pccMain = cxpCtxtCgiNew(argc,argv,envp);
   if (pccMain) {
     int iExit = EXIT_SUCCESS;
-
-#ifdef HAVE_JS
-    scriptInit(pccMain);
-#endif
 
     //cxpCtxtCacheEnable(pccMain, TRUE);
 
@@ -185,13 +211,15 @@ main(int argc, char *argv[], char *envp[])
 
     cxpCtxtCacheEnable(pccMain, TRUE);
     cxpCtxtCgiParse(pccMain);
-    //cxpCtxtLogInfo(pccMain);
+    // cxpCtxtLogInfo(pccMain);
     cxpCtxtCgiProcess(pccMain);    /*!\todo use thread */
     iExit = cxpCtxtGetExitCode(pccMain);
     cxpCtxtFree(pccMain);
-    if (cxperr) {
+
+    if (cxperr != NULL && cxperr != stderr) {
       fclose(cxperr);
     }
+
     exit(iExit);
   }
 

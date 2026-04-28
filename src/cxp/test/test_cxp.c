@@ -1,7 +1,7 @@
 /*
   cxproc - Configurable Xml PROCessor
 
-  Copyright (C) 2006..2020 by Alexander Tenbusch
+  Copyright (C) 2006..2024 by Alexander Tenbusch
 
   This program is free software; you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -76,8 +76,8 @@ cxpTest(cxpContextPtr pccArg)
     pndRoot = xmlNewNode(NULL,NAME_PLAIN);
     xmlSetProp(pndRoot,BAD_CAST"context",BAD_CAST TESTPREFIX);
 
-    if ((pucT = resPathCollapse(BAD_CAST TESTPREFIX,FS_PATH_SEP | FS_PATH_SELF | FS_PATH_UP)) == NULL) {
-      printf("Error resPathCollapse()\n");
+    if ((pucT = resPathCollapseStr(BAD_CAST TESTPREFIX,FS_PATH_SEP | FS_PATH_SELF | FS_PATH_UP)) == NULL) {
+      printf("Error resPathCollapseStr()\n");
     }
     else if ((prnT = cxpAttributeLocatorResNodeNew(pccArg,pndRoot,NULL)) == NULL) {
       printf("Error cxpAttributeLocatorResNodeNew()\n");
@@ -562,8 +562,8 @@ cxpTest(cxpContextPtr pccArg)
     printf("TEST %i in '%s:%i': set cxp context search path to multiple directories = ", i, __FILE__, __LINE__);
 
     pccT = cxpCtxtDup(pccArg);
-    xmlStrPrintf(mucT, BUFFER_LENGTH-1, "%s/xml/sub1/sub11//%c%s/option/pie/text//%c/tmp/%c%c%s//%c",
-      TESTPREFIX, PATHLIST_SEPARATOR, TESTPREFIX, PATHLIST_SEPARATOR, PATHLIST_SEPARATOR, PATHLIST_SEPARATOR, TEMPPREFIX, PATHLIST_SEPARATOR);
+    xmlStrPrintf(mucT, BUFFER_LENGTH-1, "%s/xml/sub1/sub11//%c%s/option/pie/text//%c/tmp/%c%c%s//%c%s//%c",
+      TESTPREFIX, PATHLIST_SEPARATOR, TESTPREFIX, PATHLIST_SEPARATOR, PATHLIST_SEPARATOR, PATHLIST_SEPARATOR, TEMPPREFIX, PATHLIST_SEPARATOR, TESTPREFIX, PATHLIST_SEPARATOR);
 
     if ((prnT = resNodeStrNew(mucT)) == NULL) {
       printf("Error resNodeStrNew()\n");
@@ -624,6 +624,18 @@ cxpTest(cxpContextPtr pccArg)
     else if (resNodeTestFileStr(BAD_CAST TEMPPREFIX "dummy/abc.pie") == FALSE) {
       printf("Error 9\n");
     }
+    else if ((xmlSetProp(pndCopy, BAD_CAST"to", BAD_CAST TEMPPREFIX "dummy/")) == NULL) {
+      printf("Error 10\n");
+    }
+    else if (cxpProcessCopyNode(pndCopy,pccTest) == FALSE) {
+      printf("Error 11\n");
+    }
+    else if (resNodeTestDirStr(BAD_CAST TEMPPREFIX "dummy") == FALSE) {
+      printf("Error 12\n");
+    }
+    else if (resNodeTestFileStr(BAD_CAST TEMPPREFIX "dummy/abc.pie") == FALSE) {
+      printf("Error 13\n");
+    }
     else {
       n_ok++;
       printf("OK\n");
@@ -639,7 +651,7 @@ cxpTest(cxpContextPtr pccArg)
     i++;
     printf("TEST %i in '%s:%i': process system node", i, __FILE__, __LINE__);
 
-    if ((pndSystem = xmlNewNode(NULL, NAME_SYSTEM)) == NULL) {
+    if ((pndSystem = xmlNewNode(NULL, BAD_CAST NAME_SYSTEM)) == NULL) {
       printf("Error 1\n");
     }
     else if (cxpProcessSystemNode(pndSystem, pccTest) == TRUE) {
@@ -689,16 +701,13 @@ cxpTest(cxpContextPtr pccArg)
     else if ((xmlSetProp(pndCopy, BAD_CAST"to", BAD_CAST TEMPPREFIX "def/hij.pie")) == NULL) {
       printf("Error 3\n");
     }
-    else if ((xmlSetProp(pndCopy, BAD_CAST"delete", BAD_CAST "yes")) == NULL) {
-      printf("Error 4\n");
-    }
     else if (cxpProcessCopyNode(pndCopy,pccTest) == FALSE) {
       printf("Error 5\n");
     }
     else if (resNodeTestDirStr(BAD_CAST TEMPPREFIX "dummy") == FALSE) {
       printf("Error 6\n");
     }
-    else if (resNodeTestFileStr(BAD_CAST TEMPPREFIX "dummy/abc.pie") == TRUE) {
+    else if (resNodeTestFileStr(BAD_CAST TEMPPREFIX "dummy/abc.pie") == FALSE) {
       printf("Error 7\n");
     }
     else if (resNodeTestFileStr(BAD_CAST TEMPPREFIX "def/hij.pie") == FALSE) {
@@ -749,7 +758,7 @@ cxpTest(cxpContextPtr pccArg)
     printf("TEST %i in '%s:%i': cxpProcessXml() using URL = ", i, __FILE__, __LINE__);
 
     if ((pndRoot = xmlNewNode(NULL, NAME_XML)) == NULL
-      || (xmlSetProp(pndRoot, BAD_CAST"name", BAD_CAST"http://www.tagesschau.de/newsticker.rdf")) == NULL) {
+      || (xmlSetProp(pndRoot, BAD_CAST"name", BAD_CAST HTTPPREFIX "cxproc/exe?path=")) == NULL) {
       printf("Error 1\n");
     }
     else if ((pdocT = cxpProcessXmlNode(pndRoot, pccArg)) == NULL) {
@@ -788,13 +797,13 @@ cxpTest(cxpContextPtr pccArg)
     else if (cxpCtxtSearchSet(pccTop, prnT) == FALSE) {
       printf("Error cxpCtxtSearchSet()\n");
     }
-    else if((pccT = cxpCtxtNew()) == NULL || cxpCtxtAddChild(pccTop, pccT) == FALSE) {
+    else if((pccT = cxpCtxtNew()) == NULL || cxpCtxtAddChild(pccTop, pccT) == NULL) {
       printf("Error cxpCtxtAddChild()\n");
     }
-    else if ((pccTT = cxpCtxtNew()) == NULL || cxpCtxtAddChild(pccTop, pccTT) == FALSE) {
+    else if ((pccTT = cxpCtxtNew()) == NULL || cxpCtxtAddChild(pccTop, pccTT) == NULL) {
       printf("Error cxpCtxtAddChild()\n");
     }
-    else if ((prnTT = resNodeListFindPath(cxpCtxtSearchGet(pccTT), BAD_CAST"config.cxp", (RN_FIND_FILE | RN_FIND_IN_SUBDIR))) == NULL) {
+    else if ((prnTT = cxpCtxtSearchFind(pccTT, BAD_CAST"config.cxp")) == NULL) {
       printf("Error resNodeListFindPath()\n");
     }
     else if (resNodeIsFile(prnTT) == FALSE) {
@@ -811,7 +820,7 @@ cxpTest(cxpContextPtr pccArg)
 
 
   if (RUNTEST) {
-    xmlDocPtr pdocT;
+    xmlDocPtr pdocT = NULL;
     xmlNodePtr pndRoot;
 
     i++;
@@ -838,7 +847,7 @@ cxpTest(cxpContextPtr pccArg)
 
 
   if (RUNTEST) {
-    xmlDocPtr pdocT;
+    xmlDocPtr pdocT = NULL;
     xmlNodePtr pndRoot;
 
     i++;
@@ -946,50 +955,6 @@ cxpTest(cxpContextPtr pccArg)
       n_ok++;
       printf("OK\n");
     }
-    cxpCtxtLogPrintDoc(pccArg, 1, "XML result", pdocXsl);
-
-    cxpCtxtFree(pccT);
-    xmlFree(pucT);
-    if (pxslT) {
-      xsltFreeStylesheet(pxslT);  /* xsltFreeStylesheet() releases the DOM also */
-    }
-    else {
-      xmlFreeDoc(pdocXsl);
-    }
-    xmlFreeNode(pndVariable);
-  }
-
-
-  if (SKIPTEST) {
-    xmlChar *pucT = NULL;
-    xmlDocPtr pdocXsl = NULL;
-    xsltStylesheetPtr pxslT = NULL;
-    cxpContextPtr pccT;
-    char *param[] = { "str_path_1", "'/rst.txt'", "str_path_2", "'uvw.txt'", "str_path_3", "'xyz.txt'", "pattern", "'htag = 'muller''", "int_a", "123", "flag", "false()", NULL };
-
-    i++;
-    printf("TEST %i in '%s:%i': ChangeXslParam() = ", i, __FILE__, __LINE__);
-
-    pccT = cxpCtxtDup(pccArg);
-
-    pdocXsl = xmlReadFile(TESTPREFIX "xsl/TestVariableChange.xsl", NULL, 0);
-
-    if (ChangeXslParam(NULL, NULL, NULL)) {
-      printf("Error 1 ChangeXslParam()\n");
-    }
-    else if (ChangeXslParam(pdocXsl, NULL, pccT)) {
-      printf("Error 2 ChangeXslParam()\n");
-    }
-    else if (ChangeXslParam(pdocXsl, param, pccT) == FALSE) {
-      printf("Error 3 ChangeXslParam()\n");
-    }
-    else if ((pxslT = xsltParseStylesheetDoc(pdocXsl)) == NULL) {
-      printf("ERROR 'Cant parse this Stylesheet'\n");
-    }
-    else {
-      n_ok++;
-      printf("OK\n");
-    }
     //cxpCtxtLogPrintDoc(pccArg, 1, "XML result", pdocXsl);
 
     cxpCtxtFree(pccT);
@@ -1000,6 +965,7 @@ cxpTest(cxpContextPtr pccArg)
     else {
       xmlFreeDoc(pdocXsl);
     }
+    xmlFreeNode(pndXsl);
   }
 
 
@@ -1014,7 +980,7 @@ cxpTest(cxpContextPtr pccArg)
     pdocXml = xmlReadFile(TESTPREFIX "xml/config.cxp",NULL,0);
     pdocXsl = xmlReadFile(TESTPREFIX "xsl/TestValidate.xsl",NULL,0);
 
-    if ((pdocT = cxpXslTransformToDom(pdocXml, pdocXsl, NULL, pccArg)) == NULL) {
+    if ((pdocT = cxpXslTransformToDom(pdocXml, pdocXsl, pccArg)) == NULL) {
       printf("Error cxpXslTransformToDom()\n");
     }
     else {

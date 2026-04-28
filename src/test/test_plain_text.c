@@ -1,7 +1,7 @@
 /*
   cxproc - Configurable Xml PROCessor
 
-  Copyright (C) 2006..2020 by Alexander Tenbusch
+  Copyright (C) 2006..2024 by Alexander Tenbusch
 
   This program is free software; you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -58,22 +58,24 @@ plainTextTest(void)
   }
 
   
-#if TESTHTTP
+#if defined(HAVE_LIBCURL) && defined(TESTHTTP) && defined(HTTPPREFIX)
   if (RUNTEST) {
+    xmlChar *pucURL = BAD_CAST HTTPPREFIX "Test/Documents/TestMarkupUnicode.txt";
     xmlChar *pucContent = NULL;
     index_t iLength;
     resNodePtr prnT = NULL;
 
     i++;
-    printf("TEST %i in '%s:%i': reads plain text http content = ",i,__FILE__,__LINE__);
+    printf("TEST %i in '%s:%i': reads plain text content of '%s' = ",i,__FILE__,__LINE__,pucURL);
+    /* curl 'http://localhost:8183/Test/Documents/TestMarkupUnicode.txt' */
 
-    if ((prnT = resNodeDirNew(BAD_CAST HTTPPREFIX "Test/Documents/TestContent.txt")) == NULL) {
-      printf("Error resNodeDirNew()\n");
+    if ((prnT = resNodeDirNew(pucURL)) == NULL) {
+      printf("Error resNodeDirNew(%s)\n",pucURL);
     }
     else if ((pucContent = plainGetContextTextEat(prnT, -1)) == NULL) {
-      printf("Error plainGetContextTextEat()\n");
+      printf("Error plainGetContextTextEat(%s)\n",pucURL);
     }
-    else if ((iLength = xmlStrlen(BAD_CAST pucContent)) != 219) {
+    else if ((iLength = xmlStrlen(BAD_CAST pucContent)) != 1417) {
       printf("Error xmlStrlen(): %i\n", iLength);
     }
     else {

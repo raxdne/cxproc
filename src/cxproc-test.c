@@ -1,7 +1,7 @@
 /* 
    cxproc - Configurable Xml PROCessor
 
-   Copyright (C) 2006..2020 by Alexander Tenbusch
+   Copyright (C) 2006..2024 by Alexander Tenbusch
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -21,6 +21,8 @@
 
 /*! cxproc test frontend
 */
+
+#include <zip.h>
 
 /*
  */
@@ -45,6 +47,9 @@
 #include <libxslt/transform.h>
 #include <libxslt/variables.h>
 
+#include <libexslt/exslt.h>
+#include <libexslt/exsltconfig.h>
+
 #ifdef LIBXML_THREAD_ENABLED
 #include <libxml/globals.h>
 #include <libxml/threads.h>
@@ -60,6 +65,8 @@
 #include "utils.h"
 #include <res_node/res_node_ops.h>
 #include <cxp/cxp.h>
+#include <cxp/cxp_archive.h>
+#include <cxp/cxp_calendar.h>
 #include <cxp/cxp_threadp.h>
 #include "dom.h"
 #include "plain_text.h"
@@ -69,7 +76,6 @@
 #include <pie/pie_text.h>
 #include <ics/ics.h>
 #include <vcf/vcf.h>
-#include <pie/pie_calendar.h>
 #endif
 #ifdef HAVE_PETRINET
 #include <petrinet/petrinet.h>
@@ -80,14 +86,15 @@
 #ifdef HAVE_LIBSQLITE3
 #include <database/cxp_database.h>
 #endif
-#ifdef HAVE_JS
-#include <script/script.h>
-#endif
 #ifdef HAVE_JSON
-#include <json/json.h>
+#include <json/cxp_json.h>
 #endif
 #ifdef HAVE_LIBARCHIVE
-#include <archive/cxp_archive.h>
+#include <res_node/res_node_archive.h>
+#include <cxp/cxp_archive.h>
+#endif
+#ifdef HAVE_LIBMAGICK
+#include <magick/ImageMagick.h>
 #endif
 #ifdef HAVE_LIBEXIF
 #include <image/image_exif.h>
@@ -101,10 +108,16 @@
 #ifdef HAVE_LIBCURL
 #include "test/test_libcurl.c"
 #endif
+#include "test/test_libzip.c"
 #include "test/test_libxml.c"
 #include "test/test_libxslt.c"
 #include "test/test_pcre.c"
 #include "test/test_threads.c"
+#include "test/test_dt.c"
+#include "test/test_io.c"
+#ifdef HAVE_LIBARCHIVE
+#include "test/test_libarchive.c"
+#endif
 
 
 int
@@ -115,7 +128,7 @@ main(int argc, char** argv, char** envp)
   int iErrorCode = 0;
   int i;
 
-  SetLogLevel(2);
+  SetLogLevel(LEVEL_MAX - 2);
 
   for (i = 1; i < argc; i++) {
     if (xmlStrEqual(BAD_CAST argv[i], BAD_CAST "-t") && i < argc - 1) {
@@ -150,29 +163,33 @@ main(int argc, char** argv, char** envp)
 #ifdef HAVE_PIE
       || atexit(pieTextCleanup) != 0
 #endif
+#ifdef HAVE_LIBMAGICK
+      || atexit(MagickCoreTerminus) != 0
+#endif
+#ifdef HAVE_LIBCURL
+      || atexit(curl_global_cleanup) != 0
+#endif
+      || atexit(zipIconvCleanup) != 0
     ) {
     exit(EXIT_FAILURE);
   }
 
+#ifdef HAVE_LIBCURL
+  curl_global_init(CURL_GLOBAL_DEFAULT);
+  /* log all details, except SSL handling */
+  //curl_global_trace("all,-ssl");
+#endif
+
   xmlInitParser();
   LIBXML_TEST_VERSION
 
-  if (xmlInitMemory() == 0) {
-    exit(EXIT_FAILURE);
-  }
   xmlKeepBlanksDefault(0);
   xmlRegisterDefaultInputCallbacks();
   xmlRegisterDefaultOutputCallbacks();
-#ifdef HAVE_ZLIB
-  /* code for xmlzipio http://hal.iwr.uni-heidelberg.de/~christi/projects/xmlzipio.html */
-  xmlZipRegisterInputCallback();
-  /* it's importend to xmlzipio after the default handlers, so xmlzipio is asked first. */
-  xmlZipRegisterOutputCallback();
-#endif
+  exsltRegisterAll();
 
-#ifdef HAVE_PIE
   ceInit();
-#endif
+  zipIconvInit();
 
 #ifdef _WIN32
   resPathSetNativeEncoding("ISO-8859-1");
@@ -182,15 +199,12 @@ main(int argc, char** argv, char** envp)
   if (pccTest) {
     int iExit = EXIT_SUCCESS;
 
-#ifdef HAVE_JS
-    scriptInit(pccTest);
-#endif
-
     cxpCtxtCacheEnable(pccTest, FALSE);
 
-    resNodeUnlinkRecursivelyStr(BAD_CAST TEMPPREFIX);
-    if (resNodeMakeDirectoryStr(BAD_CAST TEMPPREFIX, MODE_DIR_CREATE)
-        && resNodeTestDirStr(BAD_CAST TEMPPREFIX)) {
+    assert(resNodeTestDirStr(BAD_CAST TESTPREFIX));
+
+    // !!! DANGER !!! resNodeUnlinkRecursivelyStr(BAD_CAST TEMPPREFIX); has deleted 2 home directories 2021-12-05 :-(
+    if (resNodeMakeDirectoryStr(BAD_CAST TEMPPREFIX, MODE_DIR_CREATE) == rn_error_none) {
 
       if (pcTest == NULL || xmlStrEqual(BAD_CAST pcTest, BAD_CAST "basics")) {
 #ifdef HAVE_LIBCURL
@@ -200,7 +214,15 @@ main(int argc, char** argv, char** envp)
 	iErrorCode += xslTest();
 	iErrorCode += pcreTest();
 	iErrorCode += threadTest();
+	iErrorCode += dtTest();
+	iErrorCode += ioTest();
 	iErrorCode += utilsTest();
+	iErrorCode += ceTest();
+	iErrorCode += zipTest();
+#ifdef HAVE_LIBARCHIVE
+	iErrorCode += arcTestRead();
+	iErrorCode += arcTestWrite();
+#endif
       }
 
       if (pcTest == NULL || xmlStrEqual(BAD_CAST pcTest, BAD_CAST "res_node")) {
@@ -208,9 +230,15 @@ main(int argc, char** argv, char** envp)
 	iErrorCode += resNodeTestMime();
 	iErrorCode += resNodeTest();
 	iErrorCode += resNodeTestList();
-	iErrorCode += resNodeTestProp();
-	iErrorCode += resNodeTestInOut();
+	iErrorCode += resNodeTestFormats();
+	//iErrorCode += resNodeTestProp();
 	iErrorCode += resNodeTestOperations();
+	iErrorCode += resNodeTestInOut();
+	iErrorCode += resNodeTestZip();
+#ifdef HAVE_LIBARCHIVE
+	iErrorCode += arcTestResNodeRead();
+	iErrorCode += arcTestResNodeWrite();
+#endif
       }
 
       if (pcTest == NULL || xmlStrEqual(BAD_CAST pcTest, BAD_CAST "dom")) {
@@ -227,10 +255,17 @@ main(int argc, char** argv, char** envp)
 	pccT = cxpCtxtDup(pccTest);
 	if (pccT) {
 	  iErrorCode += cxpCtxtTest(pccT);
-	  iErrorCode += cxpCtxtEncTest(pccT);
+	  iErrorCode += cxpCtxtEncTest(pccT, argv, envp);
 	  iErrorCode += cxpCtxtCacheTest(pccT);
 	  iErrorCode += cxpSubstTest(pccT);
+	  iErrorCode += calTest(pccT);
 	  iErrorCode += cxpTest(pccT);
+#ifdef HAVE_LIBARCHIVE
+	  iErrorCode += cxpArcTest(pccTest);
+#endif
+#ifdef HAVE_JS
+	  iErrorCode += cxpScriptTest(pccTest);
+#endif
 
 	  cxpCtxtIncrExitCode(pccTest, cxpCtxtGetExitCode(pccT));
 	  cxpCtxtFree(pccT);
@@ -240,13 +275,6 @@ main(int argc, char** argv, char** envp)
 #if defined(HAVE_LIBPTHREAD) || defined(WITH_THREAD)
       if (pcTest == NULL || xmlStrEqual(BAD_CAST pcTest, BAD_CAST "thread")) {
 	  iErrorCode += cxpThreadPoolTest(pccTest);
-      }
-#endif
-
-#ifdef HAVE_LIBARCHIVE
-      if (pcTest == NULL || xmlStrEqual(BAD_CAST pcTest, BAD_CAST "archive")) {
-	iErrorCode += arcTest();
-	iErrorCode += cxpArcTest(pccTest);
       }
 #endif
 
@@ -301,9 +329,9 @@ main(int argc, char** argv, char** envp)
 	  iErrorCode += pieTextTagsTest();
 	  iErrorCode += pieTextBlocksTest();
 	  iErrorCode += pieTextTest(pccT);
-	  iErrorCode += pieTimezoneTest();
-	  iErrorCode += ceTest();
-	  iErrorCode += pieCalendarTest(pccT);
+#ifdef WITH_MARKDOWN
+	  iErrorCode += pieCmarkTest();
+#endif
 
 	  cxpCtxtIncrExitCode(pccTest,cxpCtxtGetExitCode(pccT));
 	  cxpCtxtFree(pccT);
@@ -354,13 +382,11 @@ main(int argc, char** argv, char** envp)
 #endif
 
 #ifdef HAVE_JSON
-	iErrorCode += jsonTest(pccTest);
-#endif
-
-#ifdef HAVE_JS
-	iErrorCode += scriptTest(pccTest);
+	iErrorCode += jsonTest();
+	iErrorCode += jsonCxpTest(pccTest);
 #endif
       }
+
       /*!\todo generate a more verbose error summary */
     }
     else {
@@ -369,6 +395,7 @@ main(int argc, char** argv, char** envp)
 
     iExit = cxpCtxtGetExitCode(pccTest);
     cxpCtxtLogPrint(pccTest,1,"Test error code = %i\n", iErrorCode + iExit);
+    //cxpCtxtLogInfo(pccTest);
     cxpCtxtFree(pccTest);
     
     exit(iErrorCode + iExit);

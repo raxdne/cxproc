@@ -1,7 +1,7 @@
 /*
   cxproc - Configurable Xml PROCessor
 
-  Copyright (C) 2006..2020 by Alexander Tenbusch
+  Copyright (C) 2006..2024 by Alexander Tenbusch
 
   This program is free software; you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -67,6 +67,8 @@ xslTest(void)
       xsltFreeStylesheet(pxslT);  /* xsltFreeStylesheet() releases the DOM also */
       xmlFreeDoc(pdocXml);
   }
+
+  printf("Result in '%s': %i/%i OK\n\n", __FILE__, n_ok, i);
 
   return (i - n_ok);
 }

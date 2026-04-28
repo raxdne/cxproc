@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <cxp:make xmlns:cxp="http://www.tenbusch.info/cxproc">
-  <cxp:system mkdir="result"/>
+  <cxp:system mkdir="result/"/>
   <cxp:system message="test-calendar-001-001: one calendar for specified single minimum year (depends on system)"/>
   <cxp:xml name="result/test-calendar-001-001.xml">
     <cxp:calendar year="1969">

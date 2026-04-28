@@ -1,7 +1,7 @@
 /*
   cxproc - Configurable Xml PROCessor
 
-  Copyright (C) 2006..2020 by Alexander Tenbusch
+  Copyright (C) 2006..2024 by Alexander Tenbusch
 
   This program is free software; you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -25,7 +25,7 @@ extern BOOL_T
 imgParseFile(xmlNodePtr pndArg, resNodePtr prnArg);
 
 extern void
-imgMain(xmlNodePtr nodePath, cxpContextPtr pccArg);
+imgProcessImageNode(xmlNodePtr nodePath, cxpContextPtr pccArg);
 
 #ifdef TESTCODE
 extern int

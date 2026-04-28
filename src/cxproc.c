@@ -1,7 +1,7 @@
 /* 
    cxproc - Configurable Xml PROCessor
 
-   Copyright (C) 2006..2020 by Alexander Tenbusch
+   Copyright (C) 2006..2024 by Alexander Tenbusch
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -35,28 +35,35 @@
 #include <libxslt/transform.h>
 #include <libxslt/variables.h>
 
+#include <libexslt/exslt.h>
+#include <libexslt/exsltconfig.h>
+
 /* 
  */
 #include "basics.h"
 #include "utils.h"
 #include <res_node/res_node_ops.h>
 #include <cxp/cxp.h>
+#include <cxp/cxp_calendar.h>
 #include "plain_text.h"
 #include <cxp/cxp_dir.h>
 #include <rp/rp.h>
 #include "dom.h"
 
-#ifdef HAVE_JS
-#include <script/script.h>
+#ifdef HAVE_LIBARCHIVE
+#include <cxp/cxp_archive.h>
 #endif
 
-#ifdef HAVE_LIBARCHIVE
-#include <archive/cxp_archive.h>
+#ifdef HAVE_LIBMAGICK
+#include <magick/ImageMagick.h>
+#endif
+
+#ifdef HAVE_PETRINET
+#include <petrinet/petrinet.h>
 #endif
 
 #ifdef HAVE_PIE
 #include <pie/pie_text.h>
-#include <pie/pie_calendar.h>
 #endif
 
 /*!\todo named args */
@@ -109,32 +116,39 @@ main(int argc, char *argv[], char *envp[])
       || atexit(xmlMemoryDump) != 0
       || atexit(domCleanup) != 0
       || atexit(cxpCleanup) != 0
+#ifdef HAVE_PETRINET
+      || atexit(pkgCleanup) != 0
+#endif
 #ifdef HAVE_PIE
       || atexit(pieTextCleanup) != 0
 #endif
+#ifdef HAVE_LIBMAGICK
+      || atexit(MagickCoreTerminus) != 0
+#endif
+#ifdef HAVE_LIBCURL
+      || atexit(curl_global_cleanup) != 0
+#endif
+      || atexit(zipIconvCleanup) != 0
     ) {
     exit(EXIT_FAILURE);
   }
 
+#ifdef HAVE_LIBCURL
+  curl_global_init(CURL_GLOBAL_DEFAULT);
+  /* log all details, except SSL handling */
+  //curl_global_trace("all,-ssl");
+#endif
+
   xmlInitParser();
   LIBXML_TEST_VERSION
 
-  if (xmlInitMemory()==0) {
-    exit(EXIT_FAILURE);
-  }
   xmlKeepBlanksDefault(0);
   xmlRegisterDefaultInputCallbacks();
   xmlRegisterDefaultOutputCallbacks();
-#ifdef HAVE_ZLIB
-  /* code for xmlzipio http://hal.iwr.uni-heidelberg.de/~christi/projects/xmlzipio.html */
-  xmlZipRegisterInputCallback();
-  /* it's importend to xmlzipio after the default handlers, so xmlzipio is asked first. */
-  xmlZipRegisterOutputCallback();
-#endif
-
-#ifdef HAVE_PIE
+  exsltRegisterAll();
+  
   ceInit();
-#endif
+  zipIconvInit();
 
 #ifdef _WIN32
   resPathSetNativeEncoding("ISO-8859-1");
@@ -143,10 +157,6 @@ main(int argc, char *argv[], char *envp[])
   pccMain = cxpCtxtCliNew(argc, argv, envp);
   if (pccMain) {
     int iExit = EXIT_SUCCESS;
-
-#ifdef HAVE_JS
-    scriptInit(pccMain);
-#endif
 
     //cxpCtxtCacheEnable(pccMain, TRUE);
 
@@ -161,10 +171,6 @@ main(int argc, char *argv[], char *envp[])
     cxpCtxtEncSetArgv(pccMain, BAD_CAST "ISO-8859-1");
 #endif
     cxpCtxtEncSetPlain(pccMain, BAD_CAST "ISO-8859-1"); // TODO: use value of CXP_PLAIN_ENC
-
-    if (cxpCtxtSearchSet(pccMain, NULL) == FALSE) {
-      cxpCtxtLogPrint(pccMain,1,"Error cxpCtxtSearchSet()");
-    }
 
     cxpCtxtCacheEnable(pccMain, TRUE);
     

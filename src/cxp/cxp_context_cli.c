@@ -1,7 +1,7 @@
 /*
 cxproc - Configurable Xml PROCessor
 
-Copyright (C) 2006..2020 by Alexander Tenbusch
+Copyright (C) 2006..2024 by Alexander Tenbusch
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -25,7 +25,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 #include <libxml/xmlversion.h>
 #include <libxml/HTMLtree.h>
 #include <libxml/parser.h>
-#include <libxml/uri.h>
 
 #ifdef LIBXML_THREAD_ENABLED
 #include <libxml/globals.h>
@@ -48,21 +47,17 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 #ifdef HAVE_PIE
 #include <pie/pie_text.h>
-#include <pie/pie_calendar.h>
+#include <cxp/cxp_calendar.h>
 #include <petrinet/petrinet.h>
+#else
+#include <pie/pie_dtd.h>
 #endif
 #ifdef HAVE_LIBSQLITE3
 #include <database/database.h>
 #endif
 
-#ifdef HAVE_JSON
-#include <json/json.h>
-#endif
-#ifdef HAVE_JS
-#include <script/script.h>
-#endif
 #ifdef HAVE_LIBARCHIVE
-#include <archive/cxp_archive.h>
+#include <cxp/cxp_archive.h>
 #endif
 
 static void
@@ -71,7 +66,7 @@ cxpCtxtCliPrintHelp(cxpContextPtr pccArg);
 static BOOL_T
 cxpCtxtCliAddXsl(xmlNodePtr pndArgParent, cxpContextPtr pccArg);
 
-/*! creates a new cxproc Context for a command line request
+/*! creates a new 'root' cxproc Context for a command line request
 
 \param argc -- count of program arguments
 \param **argv -- pointer to array of program arguments
@@ -85,6 +80,8 @@ cxpCtxtCliNew(int argc, char *argv[], char *envp[])
 
   pccResult = cxpCtxtNew();
   if (pccResult) {
+    xmlChar* pucPathValue = NULL;
+    resNodePtr prnT = NULL;
     resNodePtr prnNew;
 
     pccResult->iCountArgv = argc;
@@ -99,7 +96,7 @@ cxpCtxtCliNew(int argc, char *argv[], char *envp[])
 
     /*! set initial context locator to current working directory (startup directory)
     */
-    prnNew = resNodeDirNew(NULL);
+    prnNew = resNodeCwdNew();
     cxpCtxtLocationSet(pccResult, prnNew);
     resNodeFree(prnNew);
 
@@ -114,8 +111,47 @@ cxpCtxtCliNew(int argc, char *argv[], char *envp[])
       FALSE));
 #endif
 
+    if ((pucPathValue = cxpCtxtEnvGetValueByName(pccResult, BAD_CAST "CXP_PATH")) != NULL) {
+      cxpCtxtLogPrint(pccResult, 2, "Use value '%s' of environment variable 'CXP_PATH'", pucPathValue);
+      if ((prnT = resNodeStrNew(pucPathValue))) {
+	cxpCtxtSearchSet(pccResult, prnT);
+	resNodeListFree(prnT);
+      }
+      xmlFree(pucPathValue);
+    }
 #if 0
-    fsSetSearch(pucArgSearch);
+    else {
+      /*
+      some additional tricks to set the default search path
+      */
+      xmlChar* pucT;
+      xmlChar* pucExecutablePath;
+
+      pucT = cxpCtxtCliGetValue(pccResult, 0);
+      pucExecutablePath = resPathCollapseStr(pucT, FS_PATH_FULL);
+      xmlFree(pucT);
+
+      pucT = resPathFindDirStr(pucExecutablePath, BAD_CAST"bin");
+      if (STR_IS_NOT_EMPTY(pucT)) {
+	cxpCtxtLogPrint(pccResult, 2, "Use executable directory '%s' in '%s'", pucT, pucExecutablePath);
+	pucPathValue = resPathGetBasedirStr(pucT);
+	xmlFree(pucT);
+      }
+      else {
+	pucT = resPathFindDirStr(pucExecutablePath, BAD_CAST"cxproc");
+	if (STR_IS_NOT_EMPTY(pucT)) {
+	  cxpCtxtLogPrint(pccResult, 2, "Use executable directory '%s' in '%s'", pucT, pucExecutablePath);
+	  pucPathValue = pucT;
+	}
+      }
+
+      if ((prnT = resNodeStrNew(pucPathValue))) {
+	resNodeSetRecursion(prnT, TRUE);
+	cxpCtxtSearchSet(pccResult, prnT);
+      }
+      xmlFree(pucPathValue);
+      xmlFree(pucExecutablePath);
+    }
 #endif
   }
   return pccResult;
@@ -166,12 +202,12 @@ cxpCtxtCliPrintHelp(cxpContextPtr pccArg)
   xmlChar *pucExecutable = NULL;
 
   if ((pucValue = cxpCtxtCliGetValue(pccArg, 0)) != NULL) {
-    pucExecutable = resPathGetBasename(pucValue);
+    pucExecutable = resPathGetBasenameStr(pucValue);
     assert(pucExecutable);
     xmlFree(pucValue);
   }
   
-  cxpCtxtLogPrint(pccArg, 1,"\n%s - " CXP_VER_FILE_DESCRIPTION_STR " " CXP_VER_FILE_VERSION_STR "\n", pucExecutable);
+  cxpCtxtLogPrint(pccArg, 1,"\n%s " CXP_VER_FILE_VERSION_STR " - " CXP_VER_FILE_DESCRIPTION_STR "\n", pucExecutable);
 
   cxpCtxtLogPrint(pccArg, 1,"Copyright " CXP_VER_COPYRIGHT_STR "\n");
 
@@ -283,7 +319,7 @@ cxpCtxtCliParse(cxpContextPtr pccArg)
       cxpCtxtLogPutsExit(pccArg,1,"Mem cxpCtxtCliParse()");
     }
 
-    pndMake = xmlNewDocNode(pccArg->pdocContextNode, NULL, NAME_MAKE, NULL);
+    pndMake = xmlNewDocNode(pccArg->pdocContextNode, NULL, BAD_CAST NAME_MAKE, NULL);
     xmlDocSetRootElement(pccArg->pdocContextNode, pndMake);
     pccArg->pdocContextNode->encoding = xmlStrdup(BAD_CAST "UTF-8"); /* according to conversion in ParseImportNodePlainContent() */
 
@@ -294,13 +330,14 @@ cxpCtxtCliParse(cxpContextPtr pccArg)
 
     if ((pucLevelDirVerbosity = cxpCtxtEnvGetValueByName(pccArg,BAD_CAST "CXP_DIR_VERBOSITY")) != NULL
 	&& (xmlStrEqual(pucLevelDirVerbosity, BAD_CAST "1")
+	    || xmlStrEqual(pucLevelDirVerbosity, BAD_CAST "2")
 	    || xmlStrEqual(pucLevelDirVerbosity, BAD_CAST "3")
-	    || xmlStrEqual(pucLevelDirVerbosity, BAD_CAST "4")
 	    || xmlStrEqual(pucLevelDirVerbosity, BAD_CAST "5"))) {
       /* OK */
     }
     else {
-      pucLevelDirVerbosity = xmlStrdup(BAD_CAST "3");
+      xmlFree(pucLevelDirVerbosity);
+      pucLevelDirVerbosity = xmlStrdup(BAD_CAST "4");
     }
 
     /*! build internal DOM
@@ -326,12 +363,12 @@ cxpCtxtCliParse(cxpContextPtr pccArg)
 	if (xmlStrstr(pucArgvNext, BAD_CAST ".cxp")) {
 	  xmlNodePtr pndT;
 
-	  pndT = xmlNewChild(pndMake, NULL, NAME_XML, NULL);
+	  pndT = xmlNewChild(pndMake, NULL, BAD_CAST NAME_XML, NULL);
 	  xmlSetProp(pndT, BAD_CAST "name", BAD_CAST "-");
-	  pndXml = xmlNewChild(pndT, NULL, NAME_XML, NULL);
+	  pndXml = xmlNewChild(pndT, NULL, BAD_CAST NAME_XML, NULL);
 	  xmlSetProp(pndXml, BAD_CAST "name", pucArgvNext);
 	  xmlSetProp(pndXml, BAD_CAST "search", BAD_CAST"yes");
-	  pndXsl = xmlNewChild(pndT, NULL, NAME_XPATH, NULL);
+	  pndXsl = xmlNewChild(pndT, NULL, BAD_CAST NAME_XPATH, NULL);
 	  xmlSetProp(pndXsl, BAD_CAST "select", BAD_CAST"//descendant::*[local-name() = 'description']");
 	  /*!\todo handle result as plain text */
 	  //cxpCtxtLogPrintDoc(pccArg, 1, "XML arg result", pccArg->pdocContextNode);
@@ -348,7 +385,7 @@ cxpCtxtCliParse(cxpContextPtr pccArg)
 	}
       }
       else if (xmlStrEqual(pucArgvFirst, BAD_CAST"-p")) {
-	pndPause = xmlNewNode(NULL, NAME_SYSTEM);
+	pndPause = xmlNewNode(NULL, BAD_CAST NAME_SYSTEM);
 	xmlSetProp(pndPause, BAD_CAST "message", BAD_CAST "PAUSE, Type <ENTER> to continue");
 	xmlSetProp(pndPause, BAD_CAST "pause", BAD_CAST "yes");
 	j++;
@@ -395,24 +432,11 @@ cxpCtxtCliParse(cxpContextPtr pccArg)
 
 	if (pucYear) {
 	  xmlNodePtr pndCalendar;
-	  xmlNodePtr pndT;
 
-	  pndXml = xmlNewChild(pndMake, NULL, NAME_XML, NULL);
+	  pndXml = xmlNewChild(pndMake, NULL, BAD_CAST NAME_XML, NULL);
 	  xmlSetProp(pndXml, BAD_CAST "name", BAD_CAST "-");
-	  pndCalendar = xmlNewChild(pndXml, NULL, NAME_CALENDAR, NULL);
+	  pndCalendar = xmlNewChild(pndXml, NULL, BAD_CAST NAME_CALENDAR, NULL);
 	  domSetPropEat(pndCalendar, BAD_CAST "year", pucYear);
-	  xmlSetProp(pndCalendar, BAD_CAST"subst", BAD_CAST "yes");
-
-	  pndT = xmlNewChild(pndCalendar, NULL, NAME_PIE_COL, NULL);
-	  xmlSetProp(pndT, BAD_CAST"id", BAD_CAST "legend");
-	  xmlSetProp(pndT, BAD_CAST"name", BAD_CAST"Legend");
-	  pndT = xmlNewChild(pndT, NULL, NAME_XML, NULL);
-	  pndT = xmlNewChild(pndT, NULL, NAME_PIE_PIE, NULL);
-	  domUnsetNs(pndT);
-	  pndT = xmlNewChild(pndT, NULL, NAME_PIE_PAR, BAD_CAST"%Y-%m-%d %a (%j)");
-	  pndT = xmlNewChild(pndT, NULL, NAME_PIE_DATE, NULL);
-	  xmlSetProp(pndT, BAD_CAST"ref", BAD_CAST"00000000");
-
 	  cxpCtxtCliAddXsl(pndXml, pccArg);
 
 	  if (pndPause) {
@@ -423,9 +447,9 @@ cxpCtxtCliParse(cxpContextPtr pccArg)
       else if (xmlStrEqual(pucArgvFirst, BAD_CAST"-e")) {
 	/*! print program environment
 	 */
-	pndXml = xmlNewChild(pndMake, NULL, NAME_XML, NULL);
+	pndXml = xmlNewChild(pndMake, NULL, BAD_CAST NAME_XML, NULL);
 	xmlSetProp(pndXml, BAD_CAST "name", BAD_CAST "-");
-	xmlNewChild(pndXml, NULL, NAME_INFO, NULL);
+	xmlNewChild(pndXml, NULL, BAD_CAST NAME_INFO, NULL);
       }
       else if (xmlStrEqual(pucArgvFirst, BAD_CAST"-x")) {
 	/*! process following string as CXP
@@ -466,14 +490,14 @@ cxpCtxtCliParse(cxpContextPtr pccArg)
 	xmlNodePtr pndT;
 	xmlChar *pucDir;
 
-	pndT = xmlNewChild(pndMake, NULL, NAME_XML, NULL);
-	pndT = xmlNewChild(pndT, NULL, NAME_DIR, NULL);
+	pndT = xmlNewChild(pndMake, NULL, BAD_CAST NAME_XML, NULL);
+	pndT = xmlNewChild(pndT, NULL, BAD_CAST NAME_DIR, NULL);
 	xmlSetProp(pndT, BAD_CAST "index", BAD_CAST (xmlStrEqual(pucArgvFirst, BAD_CAST"-d") ? "delete" : "write"));
 	xmlSetProp(pndT, BAD_CAST "verbosity", pucLevelDirVerbosity);
 	if ((pucDir = cxpCtxtCliGetValue(pccArg,j + 1))) {
 	  if (xmlStrlen(pucDir) > 0) {
-	    //cxpCtxtLogPrint(pccArg, 2, "Indexing '%s'", resPathNormalize(pucDir));
-	    xmlSetProp(pndT, BAD_CAST "name", resPathNormalize(pucDir));
+	    //cxpCtxtLogPrint(pccArg, 2, "Indexing '%s'", resPathCollapseStr(pucDir, FS_PATH_FULL));
+	    xmlSetProp(pndT, BAD_CAST "name", resPathCollapseStr(pucDir, FS_PATH_FULL));
 	    //xmlSetProp(pndT, BAD_CAST "depth", BAD_CAST(resNodeIsRecursive(pucDir) ? "99" : "1"));
 	  }
 	  xmlFree(pucDir);
@@ -489,13 +513,13 @@ cxpCtxtCliParse(cxpContextPtr pccArg)
 	  xmlNodePtr pndPlain;
 
 	  j += 2;
-	  pndPlain = xmlNewChild(pndMake, NULL, NAME_PLAIN, NULL);
+	  pndPlain = xmlNewChild(pndMake, NULL, BAD_CAST NAME_PLAIN, NULL);
 	  xmlSetProp(pndPlain, BAD_CAST "name", BAD_CAST "-");
 
-	  pndXml = xmlNewChild(pndPlain, NULL, NAME_XML, NULL);
-	  pndXml = xmlNewChild(pndXml, NULL, NAME_DIR, NULL);
+	  pndXml = xmlNewChild(pndPlain, NULL, BAD_CAST NAME_XML, NULL);
+	  pndXml = xmlNewChild(pndXml, NULL, BAD_CAST NAME_DIR, NULL);
 	  if (STR_IS_NOT_EMPTY(pucPattern)) {
-	    xmlSetProp(pndXml, BAD_CAST "verbosity", pucLevelDirVerbosity);
+	    xmlSetProp(pndXml, BAD_CAST "verbosity", BAD_CAST"1");
 	    xmlSetProp(pndXml, BAD_CAST "imatch", pucPattern);
 
 	    if (j < iArgCount) {
@@ -503,8 +527,8 @@ cxpCtxtCliParse(cxpContextPtr pccArg)
 	      int i;
 	      for (i = j; i < iArgCount; i++) {
 		pucRelease = cxpCtxtCliGetValue(pccArg,i);
-		if ((pucT = resPathNormalize(pucRelease))) {
-		  pndDir = xmlNewChild(pndXml, NULL, NAME_DIR, NULL);
+		if ((pucT = resPathCollapseStr(pucRelease, FS_PATH_FULL))) {
+		  pndDir = xmlNewChild(pndXml, NULL, BAD_CAST NAME_DIR, NULL);
 		  domSetPropEat(pndDir, BAD_CAST "name", pucT);
 		  xmlSetProp(pndDir, BAD_CAST "depth", BAD_CAST"99");
 		}
@@ -517,15 +541,19 @@ cxpCtxtCliParse(cxpContextPtr pccArg)
 	    else {
 	      /* there is no name of directories to search, use internal search paths */
 	      resNodePtr prnT;
+	      cxpContextPtr pccI;
 
-	      pndDir = xmlNewChild(pndXml, NULL, NAME_DIR, NULL);
+
 	      /* handle multiple search dir names */
-	      for (prnT = cxpCtxtSearchGet(pccArg); prnT; prnT = resNodeGetNext(prnT)) {
-		xmlSetProp(pndDir, BAD_CAST "name", resNodeGetNameNormalized(prnT));
-		xmlSetProp(pndDir, BAD_CAST "depth", BAD_CAST(resNodeIsRecursive(prnT) ? "99" : "1"));
+	      for (pccI = pccArg; pccI; pccI = cxpCtxtGetParent(pccI)) {
+		for (prnT = cxpCtxtSearchGet(pccI); prnT; prnT = resNodeGetNext(prnT)) {
+		  pndDir = xmlNewChild(pndXml, NULL, BAD_CAST NAME_DIR, NULL);
+		  xmlSetProp(pndDir, BAD_CAST "name", resNodeGetNameNormalized(prnT));
+		  xmlSetProp(pndDir, BAD_CAST "depth", BAD_CAST(resNodeIsRecursive(prnT) ? "99" : "1"));
+		}
 	      }
 	    }
-	    pndXsl = xmlNewChild(pndPlain, NULL, NAME_XSL, NULL);
+	    pndXsl = xmlNewChild(pndPlain, NULL, BAD_CAST NAME_XSL, NULL);
 	    xmlSetProp(pndXsl, BAD_CAST "name", BAD_CAST "dir/ListFiles.xsl");
 	  }
 	  xmlFree(pucPattern);
@@ -547,9 +575,9 @@ cxpCtxtCliParse(cxpContextPtr pccArg)
 	      resNodeReadStatus(prnT);
 	      resNodeResetMimeType(prnT);
 	      if (resNodeGetMimeType(prnT) == MIME_APPLICATION_CXP_XML) {
-		//pndPause = xmlNewChild(pndMake, NULL, NAME_SYSTEM, NULL);
+		//pndPause = xmlNewChild(pndMake, NULL, BAD_CAST NAME_SYSTEM, NULL);
 		//xmlSetProp(pndPause, BAD_CAST "message", BAD_CAST resNodeGetNameNormalized(prnT));
-		pndXml = xmlNewChild(pndMake, NULL, NAME_XML, NULL);
+		pndXml = xmlNewChild(pndMake, NULL, BAD_CAST NAME_XML, NULL);
 		xmlSetProp(pndXml, BAD_CAST "eval", BAD_CAST "no");
 		if (resNodeIsReadable(prnT)) {
 		  xmlSetProp(pndXml, BAD_CAST "name", BAD_CAST resNodeGetNameNormalized(prnT));
@@ -573,17 +601,17 @@ cxpCtxtCliParse(cxpContextPtr pccArg)
 	/*
 	  Plain text filter for stdin and XSL names in argv[]
 	*/
-	pndXml = xmlNewChild(pndMake, NULL, NAME_XML, NULL);
+	pndXml = xmlNewChild(pndMake, NULL, BAD_CAST NAME_XML, NULL);
 	xmlSetProp(pndXml, BAD_CAST "name", BAD_CAST "-");
 	xmlSetProp(pndXml, BAD_CAST "schema", BAD_CAST "pie.rng");
 
-	pndPie = xmlNewChild(pndXml, NULL, NAME_PIE, NULL);
+	pndPie = xmlNewChild(pndXml, pieGetNs(), BAD_CAST NAME_PIE, NULL);
 	xmlSetProp(pndPie, BAD_CAST "url", BAD_CAST "yes");
 	xmlSetProp(pndPie, BAD_CAST "figure", BAD_CAST "yes");
 	/* there is no file context when reading from stdin */
 	xmlSetProp(pndPie, BAD_CAST "import", BAD_CAST "yes");
 
-	pndImport = xmlNewChild(pndPie, NULL, NAME_PIE_IMPORT, NULL);
+	pndImport = xmlNewChild(pndPie, NULL, BAD_CAST NAME_PIE_IMPORT, NULL);
 	xmlSetProp(pndImport, BAD_CAST "name", BAD_CAST "-");
 
 	cxpCtxtCliAddXsl(pndXml, pccArg);
@@ -613,12 +641,13 @@ cxpCtxtCliParse(cxpContextPtr pccArg)
 	      argv[1] is a valid name of a directory
 	    */
 	    int i;
-	    xmlNodePtr pndPlain;
+	    xmlNodePtr pndT;
 
-	    pndPlain = xmlNewChild(pndMake, NULL, NAME_PLAIN, NULL);
-	    xmlSetProp(pndPlain, BAD_CAST "name", BAD_CAST "-");
-	    pndXml = xmlNewChild(pndPlain, NULL, NAME_XML, NULL);
-	    pndDir = xmlNewChild(pndXml, NULL, NAME_DIR, NULL);
+	    pndXml = xmlNewChild(pndMake, NULL, BAD_CAST NAME_XML, NULL);
+	    xmlSetProp(pndXml, BAD_CAST "name", BAD_CAST"-");
+	    
+	    pndT = xmlNewChild(pndXml, NULL, BAD_CAST NAME_XML, NULL); /* because pndXml will be changed to "plain" if XSLT stylesheet it requires */
+	    pndDir = xmlNewChild(pndT, NULL, BAD_CAST NAME_DIR, NULL);
 	    xmlSetProp(pndDir, BAD_CAST "verbosity", pucLevelDirVerbosity);
 	    //xmlSetProp(pndDir, BAD_CAST "index", BAD_CAST "skip"); /* skip index files in command line mode */
 	    xmlSetProp(pndDir, BAD_CAST "hidden", BAD_CAST "no"); /* skip hidden files in command line mode */
@@ -630,7 +659,7 @@ cxpCtxtCliParse(cxpContextPtr pccArg)
 	      resNodeReadStatus(prnArgValue);
 	      if (resNodeIsDir(prnArgValue)) {
 		cxpCtxtLogPrint(pccArg, 2, "Try DIR '%s'", resNodeGetNameNormalized(prnArgValue));
-		pndPie = xmlNewChild(pndDir, NULL, NAME_DIR, NULL);
+		pndPie = xmlNewChild(pndDir, NULL, BAD_CAST NAME_DIR, NULL);
 		xmlSetProp(pndPie, BAD_CAST "name", resNodeGetNameNormalized(prnArgValue));
 		xmlSetProp(pndPie, BAD_CAST "depth", BAD_CAST(resNodeIsRecursive(prnArgValue) ? "999" : "1"));
 	      }
@@ -640,7 +669,7 @@ cxpCtxtCliParse(cxpContextPtr pccArg)
 	      resNodeFree(prnArgValue);
 	      xmlFree(pucRelease);
 	    }
-	    cxpCtxtCliAddXsl(pndPlain, pccArg);
+	    cxpCtxtCliAddXsl(pndXml, pccArg);
 	  }
 	  else if (resNodeIsURL(prnContent)) {
 	    /*
@@ -648,9 +677,10 @@ cxpCtxtCliParse(cxpContextPtr pccArg)
 	    */
 	    xmlNodePtr pndT;
 
-	    pndXml = xmlNewChild(pndMake, NULL, NAME_XML, NULL);
+	    pndXml = xmlNewChild(pndMake, NULL, BAD_CAST NAME_XML, NULL);
 	    xmlSetProp(pndXml, BAD_CAST "name", BAD_CAST"-");
-	    pndT = xmlNewChild(pndXml, NULL, NAME_FILE, NULL);
+	    pndT = xmlNewChild(pndXml, NULL, BAD_CAST NAME_XML, NULL); /* because pndXml will be changed to "plain" if XSLT stylesheet it requires */
+	    pndT = xmlNewChild(pndT, NULL, BAD_CAST NAME_FILE, NULL);
 	    xmlSetProp(pndT, BAD_CAST "name", resNodeGetNameNormalized(prnContent));
 	    xmlSetProp(pndT, BAD_CAST "verbosity", pucLevelDirVerbosity);
 	    cxpCtxtCliAddXsl(pndXml, pccArg);
@@ -659,7 +689,7 @@ cxpCtxtCliParse(cxpContextPtr pccArg)
 	    /*
 	      argv[1] is a name of a config XML, existing or not!
 	    */
-	    pndXml = xmlNewChild(pndMake, NULL, NAME_XML, NULL);
+	    pndXml = xmlNewChild(pndMake, NULL, BAD_CAST NAME_XML, NULL);
 	    xmlSetProp(pndXml, BAD_CAST "eval", BAD_CAST "yes");
 	    xmlSetProp(pndXml, BAD_CAST "schema", BAD_CAST "cxp.rng");
 
@@ -672,6 +702,41 @@ cxpCtxtCliParse(cxpContextPtr pccArg)
 	      cxpCtxtLogPrint(pccArg, 2, "Search later for '%s'", resNodeGetNameBase(prnContent));
 	    }
 	  }
+#ifdef HAVE_PIE
+	  else if (iMimeType == MIME_APPLICATION_PIE_XML || iMimeType == MIME_TEXT_PLAIN || iMimeType == MIME_TEXT_MARKDOWN) {
+	    /*
+	      argv[1] is a name of a pie file, existing or not!
+	    */
+	    xmlNodePtr pndT;
+
+	    pndXml = xmlNewChild(pndMake, NULL, BAD_CAST NAME_XML, NULL);
+	    xmlSetProp(pndXml, BAD_CAST "name", BAD_CAST "-");
+	    //xmlSetProp(pndXml, BAD_CAST "schema", BAD_CAST "pie.rng");
+
+	    pndT = xmlNewChild(pndXml, NULL, BAD_CAST NAME_XML, NULL); /* because pndXml will be changed to "plain" if XSLT stylesheet it requires */
+	    pndPie = xmlNewChild(pndT, pieGetNs(), BAD_CAST NAME_PIE, NULL);
+	    xmlSetProp(pndPie, BAD_CAST "tags", BAD_CAST "yes");
+	    xmlSetProp(pndPie, BAD_CAST "date", BAD_CAST "yes");
+	    xmlSetProp(pndPie, BAD_CAST "todo", BAD_CAST "yes");
+	    xmlSetProp(pndPie, BAD_CAST "offset", BAD_CAST "yes");
+	    xmlSetProp(pndPie, BAD_CAST "url", BAD_CAST "yes");
+	    xmlSetProp(pndPie, BAD_CAST "figure", BAD_CAST "yes");
+	    xmlSetProp(pndPie, BAD_CAST "import", BAD_CAST "yes");
+	    xmlSetProp(pndPie, BAD_CAST "script", BAD_CAST "yes");
+	    xmlSetProp(pndPie, BAD_CAST "locators", BAD_CAST "no");
+	    
+	    pndImport = xmlNewChild(pndPie, NULL, BAD_CAST NAME_PIE_IMPORT, NULL);
+	    if (resNodeIsFile(prnContent) && resNodeIsExist(prnContent)) {
+	      xmlSetProp(pndImport, BAD_CAST "name", resNodeGetNameNormalized(prnContent));
+	    }
+	    else {
+	      xmlSetProp(pndImport, BAD_CAST "name", resNodeGetNameBase(prnContent));
+	      xmlSetProp(pndImport, BAD_CAST "search", BAD_CAST "yes");
+	      cxpCtxtLogPrint(pccArg, 2, "Search later for '%s'", resNodeGetNameBase(prnContent));
+	    }
+	    cxpCtxtCliAddXsl(pndXml, pccArg);
+	  }
+#endif
 #ifdef HAVE_LIBARCHIVE
 	  else if (iMimeType == MIME_APPLICATION_ZIP
 		   || iMimeType == MIME_APPLICATION_X_TAR
@@ -689,12 +754,12 @@ cxpCtxtCliParse(cxpContextPtr pccArg)
 	      if (resNodeIsDir(prnArgNextValue) || resNodeIsFile(prnArgNextValue)) {
 		int i;
 
-		pndZip = xmlNewChild(pndMake, NULL, NAME_ZIP, NULL); /*!\todo derive node name from resNodeGetExtension(prnContent) */
+		pndZip = xmlNewChild(pndMake, NULL, BAD_CAST NAME_ZIP, NULL); /*!\todo derive node name from resNodeGetExtension(prnContent) */
 		xmlSetProp(pndZip, BAD_CAST "name", resNodeGetNameNormalized(prnContent));
 		xmlSetProp(pndZip, BAD_CAST "append", BAD_CAST"yes");
 		xmlSetProp(pndZip, BAD_CAST "write", BAD_CAST"yes");
-		pndChild = xmlNewChild(pndZip, NULL, NAME_XML, NULL);
-		pndDir = xmlNewChild(pndChild, NULL, NAME_DIR, NULL);
+		pndChild = xmlNewChild(pndZip, NULL, BAD_CAST NAME_XML, NULL);
+		pndDir = xmlNewChild(pndChild, NULL, BAD_CAST NAME_DIR, NULL);
 		xmlSetProp(pndDir, BAD_CAST "verbosity", pucLevelDirVerbosity);
 		xmlSetProp(pndDir, BAD_CAST "index", BAD_CAST "skip"); /* skip index files in command line mode */
 		xmlSetProp(pndDir, BAD_CAST "hidden", BAD_CAST "no"); /* skip hidden files in command line mode */
@@ -714,13 +779,13 @@ cxpCtxtCliParse(cxpContextPtr pccArg)
 		      /* ignoring XSL files */
 		    }
 		    else {
-		      pndPie = xmlNewChild(pndDir, NULL, NAME_FILE, NULL);
+		      pndPie = xmlNewChild(pndDir, NULL, BAD_CAST NAME_FILE, NULL);
 		      xmlSetProp(pndPie, BAD_CAST "name", resNodeGetNameNormalized(prnArgValue));
 		    }
 		  }
 		  else if (resNodeIsDir(prnArgValue)) {
 		    cxpCtxtLogPrint(pccArg, 2, "Try DIR '%s'", resNodeGetNameNormalized(prnArgValue));
-		    pndPie = xmlNewChild(pndDir, NULL, NAME_DIR, NULL);
+		    pndPie = xmlNewChild(pndDir, NULL, BAD_CAST NAME_DIR, NULL);
 		    xmlSetProp(pndPie, BAD_CAST "depth", BAD_CAST(fRecursion ? "999" : "1"));
 		    xmlSetProp(pndPie, BAD_CAST "name", resNodeGetNameNormalized(prnArgValue));
 		    xmlSetProp(pndZip, BAD_CAST "context", resNodeGetNameBaseDir(prnArgValue));
@@ -740,10 +805,10 @@ cxpCtxtCliParse(cxpContextPtr pccArg)
 	      xmlFree(pucRelease);
 	    }
 	    else {
-	      pndXml = xmlNewChild(pndMake, NULL, NAME_XML, NULL);
+	      pndXml = xmlNewChild(pndMake, NULL, BAD_CAST NAME_XML, NULL);
 	      xmlSetProp(pndXml, BAD_CAST "name", BAD_CAST "-");
 
-	      pndZip = xmlNewChild(pndXml, NULL, NAME_FILE, NULL);
+	      pndZip = xmlNewChild(pndXml, NULL, BAD_CAST NAME_FILE, NULL);
 	      xmlSetProp(pndZip, BAD_CAST "name", resNodeGetNameNormalized(prnContent));
 	      xmlSetProp(pndZip, BAD_CAST "verbosity", pucLevelDirVerbosity);
 	    }
@@ -766,14 +831,14 @@ cxpCtxtCliParse(cxpContextPtr pccArg)
 	      int i;
 	      xmlNodePtr pndDatabase;
 
-	      pndDatabase = xmlNewChild(pndMake, NULL, NAME_DB, NULL);
+	      pndDatabase = xmlNewChild(pndMake, NULL, BAD_CAST NAME_DB, NULL);
 	      xmlSetProp(pndDatabase, BAD_CAST "name", resNodeGetNameNormalized(prnContent));
 	      xmlSetProp(pndDatabase, BAD_CAST "append", BAD_CAST"yes");
 	      xmlSetProp(pndDatabase, BAD_CAST "write", BAD_CAST"yes");
-	      pndDir = xmlNewChild(pndDatabase, NULL, NAME_DIR, NULL);
-	      xmlSetProp(pndDir, BAD_CAST "verbosity", pucLevelDirVerbosity);
-	      xmlSetProp(pndDir, BAD_CAST "index", BAD_CAST "skip"); /* skip index files in command line mode */
-	      xmlSetProp(pndDir, BAD_CAST "hidden", BAD_CAST "no"); /* skip hidden files in command line mode */
+	      pndDir = xmlNewChild(pndDatabase, NULL, BAD_CAST NAME_DIR, NULL);
+	      //xmlSetProp(pndDir, BAD_CAST "verbosity", pucLevelDirVerbosity);
+	      //xmlSetProp(pndDir, BAD_CAST "index", BAD_CAST "skip"); /* skip index files in command line mode */
+	      xmlSetProp(pndDir, BAD_CAST "hidden", BAD_CAST "no"); /* skip hidden files in command line mode (due to Git, SVN etc) */
 
 	      for (i = j + 1; (pucRelease = cxpCtxtCliGetValue(pccArg,i)); i++) {
 		BOOL_T fRecursion;
@@ -790,13 +855,13 @@ cxpCtxtCliParse(cxpContextPtr pccArg)
 		    /* ignoring XSL files */
 		  }
 		  else {
-		    pndPie = xmlNewChild(pndDir, NULL, NAME_FILE, NULL);
+		    pndPie = xmlNewChild(pndDir, NULL, BAD_CAST NAME_FILE, NULL);
 		    xmlSetProp(pndPie, BAD_CAST "name", resNodeGetNameNormalized(prnArgValue));
 		  }
 		}
 		else if (resNodeIsDir(prnArgValue)) {
 		  cxpCtxtLogPrint(pccArg, 2, "Try DIR '%s'", resNodeGetNameNormalized(prnArgValue));
-		  pndPie = xmlNewChild(pndDir, NULL, NAME_DIR, NULL);
+		  pndPie = xmlNewChild(pndDir, NULL, BAD_CAST NAME_DIR, NULL);
 		  xmlSetProp(pndPie, BAD_CAST "depth", BAD_CAST(fRecursion ? "999" : "1"));
 		  xmlSetProp(pndPie, BAD_CAST "name", resNodeGetNameNormalized(prnArgValue));
 		}
@@ -814,20 +879,20 @@ cxpCtxtCliParse(cxpContextPtr pccArg)
 	      xmlNodePtr pndFile;
 	      xmlNodePtr pndXmlChild;
 
-	      pndXml = xmlNewChild(pndMake, NULL, NAME_XML, NULL);
+	      pndXml = xmlNewChild(pndMake, NULL, BAD_CAST NAME_XML, NULL);
 	      xmlSetProp(pndXml, BAD_CAST "name", BAD_CAST"-");
-	      pndXmlChild = xmlNewChild(pndXml, NULL, NAME_XML, NULL);
+	      pndXmlChild = xmlNewChild(pndXml, NULL, BAD_CAST NAME_XML, NULL);
 
 	      pucQuery = cxpCtxtCliGetValue(pccArg,j + 1);
 	      if (dbTextReadStatement(pucQuery)) {
 		/* the next argument is an usable SQL query */
-		pndFile = xmlNewChild(pndXmlChild, NULL, NAME_DB, NULL);
+		pndFile = xmlNewChild(pndXmlChild, NULL, BAD_CAST NAME_DB, NULL);
 		xmlSetProp(pndFile, BAD_CAST "name", resNodeGetNameNormalized(prnContent));
-		pndFile = xmlNewChild(pndXmlChild, NULL, NAME_QUERY, pucQuery);
+		pndFile = xmlNewChild(pndXmlChild, NULL, BAD_CAST NAME_QUERY, pucQuery);
 	      }
 	      else {
 		/* use next arguments for XSL names only */
-		pndFile = xmlNewChild(pndXmlChild, NULL, NAME_FILE, NULL);
+		pndFile = xmlNewChild(pndXmlChild, NULL, BAD_CAST NAME_FILE, NULL);
 		xmlSetProp(pndFile, BAD_CAST "name", resNodeGetNameNormalized(prnContent));
 		xmlSetProp(pndFile, BAD_CAST "verbosity", pucLevelDirVerbosity);
 		cxpCtxtCliAddXsl(pndXml, pccArg);
@@ -843,26 +908,25 @@ cxpCtxtCliParse(cxpContextPtr pccArg)
 	    xmlNodePtr pndFile;
 	    xmlNodePtr pndXmlChild;
 
-	    pndXml = xmlNewChild(pndMake, NULL, NAME_XML, NULL);
+	    pndXml = xmlNewChild(pndMake, NULL, BAD_CAST NAME_XML, NULL);
 	    xmlSetProp(pndXml, BAD_CAST "name", BAD_CAST"-");
-	    pndXmlChild = xmlNewChild(pndXml, NULL, NAME_XML, NULL);
-	    pndDir = xmlNewChild(pndXmlChild, NULL, NAME_DIR, NULL);
+	    pndXmlChild = xmlNewChild(pndXml, NULL, BAD_CAST NAME_XML, NULL);
+	    pndDir = xmlNewChild(pndXmlChild, NULL, BAD_CAST NAME_DIR, NULL);
 	    xmlSetProp(pndDir, BAD_CAST "verbosity", pucLevelDirVerbosity);
-	    pndFile = xmlNewChild(pndDir, NULL, NAME_FILE, NULL);
+	    pndFile = xmlNewChild(pndDir, NULL, BAD_CAST NAME_FILE, NULL);
 	    xmlSetProp(pndFile, BAD_CAST "name", resNodeGetNameNormalized(prnContent));
 	  }
 	  else if (resNodeIsURL(prnT) || resNodeIsFile(prnT) || resNodeIsArchive(prnContent)) {
 	    /*
 	      argv[1] exists as file, return detailed information meta an content
 	    */
-	    xmlNodePtr pndXmlChild;
 	    int i;
+	    xmlNodePtr pndT;
 
-	    pndXml = xmlNewChild(pndMake, NULL, NAME_XML, NULL);
-	    xmlSetProp(pndXml, BAD_CAST "name", BAD_CAST"-");
-	    xmlSetProp(pndXml, BAD_CAST "encoding", BAD_CAST"UTF-8");
-	    pndXmlChild = xmlNewChild(pndXml, NULL, NAME_XML, NULL);
-	    pndDir = xmlNewChild(pndXmlChild, NULL, NAME_DIR, NULL);
+	    pndXml = xmlNewChild(pndMake, NULL, BAD_CAST NAME_XML, NULL);
+	    xmlSetProp(pndXml, BAD_CAST "name", BAD_CAST "-");
+	    pndT = xmlNewChild(pndXml, NULL, BAD_CAST NAME_XML, NULL); /* because pndXml will be changed to "plain" if XSLT stylesheet it requires */
+	    pndDir = xmlNewChild(pndT, NULL, BAD_CAST NAME_DIR, NULL);
 	    xmlSetProp(pndDir, BAD_CAST "verbosity", pucLevelDirVerbosity);
 
 	    for (i = j; (pucRelease = cxpCtxtCliGetValue(pccArg, i)); i++) {
@@ -880,7 +944,7 @@ cxpCtxtCliParse(cxpContextPtr pccArg)
 		cxpCtxtLogPrint(pccArg, 2, "Ignoring XSL file '%s'", pucRelease);
 	      }
 	      else {
-		pndFile = xmlNewChild(pndDir, NULL, NAME_FILE, NULL);
+		pndFile = xmlNewChild(pndDir, NULL, BAD_CAST NAME_FILE, NULL);
 		xmlSetProp(pndFile, BAD_CAST "name", resNodeGetNameNormalized(prnArgValue));
 	      }
 	      resNodeFree(prnArgValue);
@@ -927,20 +991,20 @@ cxpCtxtCliAddXsl(xmlNodePtr pndArgParent, cxpContextPtr pccArg)
     assert(k < 256);
     pucArgvN = cxpCtxtCliGetValue(pccArg,k);
     if (STR_IS_NOT_EMPTY(pucArgvN)) {
-      prnT = resNodeConcatNew(cxpCtxtLocationGetStr(pccArg), pucArgvN);
+      prnT = cxpResNodeResolveNew(pccArg, NULL, pucArgvN, CXP_O_FILE | CXP_O_READ | CXP_O_SEARCH);
       if (resNodeGetMimeType(prnT) == MIME_TEXT_XSL) {
 	xmlNodePtr pndXsl;
 	xmlDocPtr pdocXsl;
 
 	cxpCtxtLogPrint(pccArg, 2, "Adding XSL argument '%s'", resNodeGetNameBase(prnT));
-	pndXsl = xmlNewChild(pndArgParent, NULL, NAME_XSL, NULL);
+	pndXsl = xmlNewChild(pndArgParent, NULL, BAD_CAST NAME_XSL, NULL);
 	if (resNodeReadStatus(prnT)) {
 	  xmlSetProp(pndXsl, BAD_CAST "name", resNodeGetNameNormalized(prnT));
 	}
 	else {
 	  resNodePtr prnXslFound;
 
-	  prnXslFound = resNodeListFindPath(cxpCtxtSearchGet(pccArg), pucArgvN, (RN_FIND_FILE | RN_FIND_IN_SUBDIR));
+	  prnXslFound = cxpCtxtSearchFind(pccArg, pucArgvN);
 	  if (resNodeReadStatus(prnXslFound)) {
 	    xmlSetProp(pndXsl, BAD_CAST "name", resNodeGetNameNormalized(prnXslFound));
 	  }
@@ -958,12 +1022,12 @@ cxpCtxtCliAddXsl(xmlNodePtr pndArgParent, cxpContextPtr pccArg)
 	    fBreak = TRUE;
 	  }
 	  else if (xmlStrEqual(pucT, BAD_CAST"text")) {
-	    xmlNodeSetName(pndArgParent, NAME_PLAIN);
+	    xmlNodeSetName(pndArgParent, BAD_CAST NAME_PLAIN);
 	    cxpCtxtLogPrint(pccArg, 1, "XSL pipeline ends with plain text output");
 	    fBreak = TRUE;
 	  }
 	  else if (xmlStrEqual(pucT, BAD_CAST"html")) {
-	    xmlNodeSetName(pndArgParent, NAME_XHTML);
+	    xmlNodeSetName(pndArgParent, BAD_CAST NAME_XHTML);
 	    cxpCtxtLogPrint(pccArg, 1, "XSL pipeline contains XHTML output");
 	  }
 	  xmlFreeDoc(pdocXsl);
@@ -1008,10 +1072,6 @@ cxpCtxtCliProcess(cxpContextPtr pccArg)
       /* level value from environment */
     }
     xmlFree(pucT);
-  }
-
-  if (cxpCtxtSearchSet(pccArg, NULL) == FALSE) {
-    cxpCtxtLogPrint(pccArg, 2, "No default search path directory found");
   }
 
   if (pccArg->pdocContextNode) {

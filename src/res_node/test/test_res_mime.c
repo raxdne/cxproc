@@ -1,7 +1,7 @@
 /*
   cxproc - Configurable Xml PROCessor
 
-  Copyright (C) 2006..2020 by Alexander Tenbusch
+  Copyright (C) 2006..2024 by Alexander Tenbusch
 
   This program is free software; you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -66,6 +66,32 @@ resNodeTestMime(void)
     }
     else {
       printf("Error resMimeGetType() ...\n");
+    }
+  }
+
+  if (RUNTEST) {
+
+    i++;
+    printf("TEST %i in '%s:%i': MIME Content-type = ", i, __FILE__, __LINE__);
+
+    if (resMimeGetTypeFromDataBase64(NULL) != MIME_UNDEFINED) {
+      printf("Error 1 resMimeGetTypeFromDataBase64() ...\n");
+    }
+    else if (resMimeGetTypeFromDataBase64(BAD_CAST "data:") != MIME_UNDEFINED) {
+      printf("Error 2a resMimeGetTypeFromDataBase64() ...\n");
+    }
+    else if (resMimeGetTypeFromDataBase64(BAD_CAST "data:blabla ...") != MIME_UNDEFINED) {
+      printf("Error 2b resMimeGetTypeFromDataBase64() ...\n");
+    }
+    else if (resMimeGetTypeFromDataBase64(BAD_CAST "data:text/x-script.tcl;base64,") != MIME_UNDEFINED) {
+      printf("Error 2c resMimeGetTypeFromDataBase64() ...\n");
+    }
+    else if (resMimeGetTypeFromDataBase64(BAD_CAST "data:text/x-script.tcl;base64,ABCDE") != MIME_TEXT_X_SCRIPT_TCL) {
+      printf("Error 3 resMimeGetTypeFromDataBase64() ...\n");
+    }
+    else {
+      n_ok++;
+      printf("OK\n");
     }
   }
 

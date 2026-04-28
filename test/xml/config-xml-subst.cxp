@@ -41,7 +41,7 @@
   <cxp:subst string="%M" now="Minute"/>
   <cxp:subst string="%SEC" now="Second"/>
   <!--  -->
-  <cxp:system mkdir="result"/>
+  <cxp:system mkdir="result/"/>
   <cxp:system message="*** test-xml-subst-001: all substitutions in Plain ***"/>
   <cxp:plain name="result/test-xml-subst-001.txt">
 argv[0] is 'AA'

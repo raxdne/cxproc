@@ -6,7 +6,7 @@
   <cxp:subst string="%CONTENT16%">
     <cxp:plain name="test-content-utf16be.txt"/>
   </cxp:subst>
-  <cxp:system mkdir="result"/>
+  <cxp:system mkdir="result/"/>
   <cxp:system message="*** Test 0a: Set a cache BUFFER ***"/>
   <cxp:plain name="result/test-plain-0a.txt" cache="yes">
     TEST CACHE

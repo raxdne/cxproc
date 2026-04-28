@@ -1,7 +1,7 @@
 /*
   cxproc - Configurable Xml PROCessor
 
-  Copyright (C) 2006..2020 by Alexander Tenbusch
+  Copyright (C) 2006..2024 by Alexander Tenbusch
 
   This program is free software; you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -28,11 +28,7 @@
 
 #define NAME_MAKE BAD_CAST "make"
 
-#define NAME_META BAD_CAST "meta"
-
 #define NAME_DESCRIPTION BAD_CAST "description"
-
-#define NAME_ERROR BAD_CAST "error"
 
 #define NAME_FROM BAD_CAST "from"
 
@@ -97,6 +93,21 @@
 #define NAME_MATCH BAD_CAST "match"
 
 
+#define NAME_CXP_CALENDAR NAME_CALENDAR
+
+#define NAME_CXP_YEAR BAD_CAST "year"
+
+#define NAME_CXP_WEEK BAD_CAST "week"
+
+#define NAME_CXP_MONTH BAD_CAST "month"
+
+#define NAME_CXP_DAY BAD_CAST "day"
+
+#define NAME_CXP_HOUR BAD_CAST "hour"
+
+#define NAME_CXP_COL BAD_CAST "col"
+
+
 #define NAME_PATHNET BAD_CAST "pathnet"
 
 #define NAME_PATHTABLE BAD_CAST "pathtable"
@@ -113,7 +124,7 @@
    comparison of element names
 */
 
-#define IS_NODE(NODE,NAME) (NODE != NULL && NODE->type == XML_ELEMENT_NODE && NODE->name != NULL && (NAME==NULL || xmlStrEqual(NODE->name,BAD_CAST NAME)))
+#define IS_NODE(NODE,NAME) (NODE != NULL && NODE->type == XML_ELEMENT_NODE && NODE->name != NULL && (BAD_CAST NAME==NULL || xmlStrEqual(NODE->name,BAD_CAST NAME)))
 
 #define IS_TEXT(NODE) (NODE != NULL && NODE->type == XML_TEXT_NODE && NODE->content != NULL)
 
@@ -122,8 +133,6 @@
 #define IS_COMMENT(NODE) (NODE != NULL && NODE->type == XML_COMMENT_NODE && NODE->content != NULL)
 
 #define IS_NODE_MAKE(NODE) (IS_NODE(NODE,NAME_MAKE))
-
-#define IS_NODE_META(NODE) (IS_NODE(NODE,NAME_META))
 
 #define IS_NODE_DESCRIPTION(NODE) (IS_NODE(NODE,NAME_DESCRIPTION))
 
@@ -186,6 +195,19 @@
 #define IS_NODE_FILECOPY(NODE) (IS_NODE(NODE,NAME_FILECOPY))
 
 #define IS_NODE_SYMLINK(NODE) (IS_NODE(NODE,NAME_SYMLINK))
+
+
+#define IS_NODE_CXP_CALENDAR(NODE) (IS_NODE(NODE,NAME_CXP_CALENDAR))
+
+#define IS_NODE_CXP_YEAR(NODE) (IS_NODE(NODE,NAME_CXP_YEAR))
+
+#define IS_NODE_CXP_WEEK(NODE) (IS_NODE(NODE,NAME_CXP_WEEK))
+
+#define IS_NODE_CXP_MONTH(NODE) (IS_NODE(NODE,NAME_CXP_MONTH))
+
+#define IS_NODE_CXP_DAY(NODE) (IS_NODE(NODE,NAME_CXP_DAY))
+
+#define IS_NODE_CXP_COL(NODE) (IS_NODE(NODE,NAME_CXP_COL))
 
 
 #define IS_NODE_PATHNET(NODE) (IS_NODE(NODE,NAME_PATHNET))

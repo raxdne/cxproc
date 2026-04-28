@@ -1,7 +1,7 @@
 /* 
    cxproc - Configurable Xml PROCessor
 
-   Copyright (C) 2006..2020 by Alexander Tenbusch
+   Copyright (C) 2006..2024 by Alexander Tenbusch
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -34,8 +34,8 @@
 #include <res_node/res_node_io.h>
 #include "dom.h"
 
-#ifdef HAVE_LIBARCHIVE
-#include <archive/archive.h>
+#ifdef HAVE_PIE
+#include <pie/pie_text_blocks.h>
 #endif
 
 
@@ -43,10 +43,6 @@ int
 main(int argc, char *argv[], char *envp[])
 {
   int e = EXIT_FAILURE;
-  int i;
-  xmlChar *pucT;
-  xmlDocPtr pdocT = NULL;
-  xmlNodePtr pndT = NULL;
 
   SetLogLevel(1);
 
@@ -54,6 +50,10 @@ main(int argc, char *argv[], char *envp[])
   if (atexit(xmlCleanupParser) != 0
       || atexit(xmlMemoryDump) != 0
       || atexit(domCleanup) != 0
+#ifdef HAVE_PIE
+      || atexit(pieTextBlocksCleanup) != 0
+#endif
+      || atexit(zipIconvCleanup) != 0
     ) {
     exit(EXIT_FAILURE);
   }
@@ -62,24 +62,16 @@ main(int argc, char *argv[], char *envp[])
   xmlInitParser();
   LIBXML_TEST_VERSION
 
-  if (xmlInitMemory()==0) {
-    exit(EXIT_FAILURE);
-  }
-
   /* code for xmlzipio http://hal.iwr.uni-heidelberg.de/~christi/projects/xmlzipio.html */
   xmlKeepBlanksDefault(0);
   xmlRegisterDefaultInputCallbacks();
   xmlRegisterDefaultOutputCallbacks();
-#ifdef HAVE_ZLIB
-  /* code for xmlzipio http://hal.iwr.uni-heidelberg.de/~christi/projects/xmlzipio.html */
-  xmlZipRegisterInputCallback();
-  /* it's importend to xmlzipio after the default handlers, so xmlzipio is asked first. */
-  xmlZipRegisterOutputCallback();
-#endif
 
 #ifdef _WIN32
   resPathSetNativeEncoding("ISO-8859-1");
 #endif
+
+  zipIconvInit();
 
   if (argc > 1) {
     resNodePtr prnNew = NULL;
@@ -113,39 +105,34 @@ main(int argc, char *argv[], char *envp[])
     }
 
     if (prnNew) {
+      xmlDocPtr pdocResult;
       resNodePtr prnT;
 
-      /*!\todo append separate result DOM to a common result DOM? */
+      /*! append separate result DOMs to result DOM */
       
-      for (prnT=prnNew; prnT; prnT = resNodeGetNext(prnT)) {
-	xmlNodePtr pndT;
-
-	if (resNodeReadStatus(prnT) && (pndT = resNodeToDOM(prnT, RN_INFO_MAX)) != NULL) {
-	  xmlBufferPtr buffer;
-
-	  buffer = xmlBufferCreate();
-	  if (buffer) {
-	    int iLength = 0;
-
-	    iLength = xmlNodeDump(buffer, pndT->doc, pndT, 0, 1);
-	    if (iLength > 0) {
-	      xmlChar* pucT;
-
-	      pucT = xmlBufferDetach(buffer);
-	      fputs((const char*)pucT, stdout);
-	      xmlFree(pucT);
-	      e = EXIT_SUCCESS;
+      pdocResult = xmlNewDoc(BAD_CAST "1.0");
+      if (pdocResult) {
+	xmlNodePtr pndRootNew;
+      
+	pndRootNew = xmlNewNode(NULL, BAD_CAST"dir");
+	if (pndRootNew) {
+	  xmlDocSetRootElement(pdocResult,pndRootNew);
+	
+	  for (prnT=prnNew; prnT; prnT = resNodeGetNext(prnT)) {
+	    if (resNodeUpdate(prnT, RN_INFO_MAX, NULL, NULL)) {
+	      xmlAddChild(pndRootNew, resNodeToDOM(prnT, RN_OUT_MAX));
 	    }
-	    xmlBufferFree(buffer);
 	  }
-	  xmlFreeNode(pndT);
+	  e = EXIT_SUCCESS;
 	}
+	xmlSaveFormatFileEnc("-", pdocResult, "UTF-8", 1);
+	xmlFreeDoc(pdocResult);
       }
       resNodeListFree(prnNew);
     }
   }
   else {
-    e = EXIT_SUCCESS;
+    /*!\todo read paths from stdin (e.g. output of find) */
   }
 
   exit(e);

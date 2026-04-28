@@ -1,0 +1,22 @@
+
+* Calendar
+
+control via environment
+
+#begin_of_pre
+CXP_DATE=20141224
+# according to ISO 6709
+CXP_COORDINATE=5225+01234/
+CXP_TZ=CET
+TZ=CET
+#end_of_pre
+
+offset
+
+#begin_of_pre
+#end_of_pre
+
+columns
+
+type
+

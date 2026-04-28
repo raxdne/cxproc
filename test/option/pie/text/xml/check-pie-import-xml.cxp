@@ -3,7 +3,7 @@
   <cxp:subst string="%SOURCEDIR%" argv="2" default="result"/>
   <cxp:subst string="%BASENAME%" dir="%SOURCEDIR%"/>
   <cxp:subst string="%TAG%" now="%Y%m%d"/>
-  <cxp:system mkdir="result"/>
+  <cxp:system mkdir="result/"/>
   <cxp:system message="Checking results in '%SOURCEDIR%'"/>
   <!--  -->
   <cxp:plain name="%SOURCEDIR%/check.csv">

@@ -23,17 +23,17 @@ ABC
 
 ; hidden
 
-#begin_of_csv
+<csv>
 sep=,
 
 ABC
 ABC,ABC
 ABC
-#end_of_csv
+</csv>
 
-#begin_of_script
+<script>
 2*2*2
-#end_of_script
+</script>
 
 *** Section 1.1.1
 

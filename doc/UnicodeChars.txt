@@ -1,0 +1,65 @@
+
+* Zeichen
+
+http://www.unicode.org/standard/standard.html
+http://www.unicode.org/charts/PDF/U2700.pdf
+
+http://www.utf8-chartable.de/
+
+http://www.fileformat.info/info/unicode/char/search.htm
+
+----
+
+Interpretiert -- , -
+
+- A
+
+-- B
+
+--- C
+
+---- 
+
+;#begin_of_pre
+
+Festnetz \u260E Tel. \u1F4DE Headset \u1F3A7 Mail \u1F4E7 Blitz \u26A1
+
+Checkboxes \u2610  \u2611  \u2612
+
+⨉
+
+“” ‘’
+
+„“ ‚‘
+
+>><<  ><  ->
+
+← ↑ → ↓ ↔ ↕ ↖ ↗ ↘ ↙ ⇐ ⇑ ⇒ ⇓ ⇔ ⇕ ⇖ ⇗ ⇘ ⇙ ⇚ ⇛
+
+≠ ≢ ≣ ≤ ≥ ≦ ≧
+
+❗
+
+✓ ✔  ❓  
+
+✘
+
+\u2596 \u259E \u259F
+
+• 
+
+  –
+
+    ⚬
+
+≅
+
+★☆
+
+➽
+
+Block Elements \u258A
+
+\u1F4E7 \u1F5EA �
+
+ �

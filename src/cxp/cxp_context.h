@@ -1,7 +1,7 @@
 /*
   cxproc - Configurable Xml PROCessor
 
-  Copyright (C) 2006..2020 by Alexander Tenbusch
+  Copyright (C) 2006..2024 by Alexander Tenbusch
 
   This program is free software; you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -17,6 +17,10 @@
   along with this program; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 */
+
+#ifdef HAVE_JS
+#include <duktape.h>
+#endif
 
 #include <res_node/res_node.h>
 
@@ -111,11 +115,16 @@ struct _cxpContext {
   pcre2_code *re_each; /*! internal regular expression for separation of 'each' values */
 #endif
 
+#ifdef HAVE_JS
+  duk_context *pDukContext;
+#endif
+
   struct _cxpContext *next; /*! next context in list */
   struct _cxpContext *children; /*! children context in list */
   struct _cxpContext *parent; /*! parent context in list */
 };
 
+#define NAME_ROOT (BAD_CAST "CXP_ROOT")
 
 extern cxpContextPtr
 cxpCtxtNew(void);
@@ -193,6 +202,10 @@ cxpCtxtSearchSet(cxpContextPtr pccArg, resNodePtr prnArg);
 extern resNodePtr
 cxpCtxtSearchGet(cxpContextPtr pccArg);
 
+extern resNodePtr
+cxpCtxtSearchFind(cxpContextPtr pccArg, xmlChar* pucArgPath);
+
+
 extern xmlChar *
 cxpCtxtLocationGetStr(cxpContextPtr pccArg);
 
@@ -257,6 +270,9 @@ cxpCtxtAddChild(cxpContextPtr pccArgParent, cxpContextPtr pccArgChild);
 
 extern xmlChar *
 cxpCtxtGetHostValueNamed(cxpContextPtr pccArgParent, const xmlChar *pucName);
+
+extern int
+GetRunningTime();
 
 
 #ifdef TESTCODE

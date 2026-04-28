@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<cxp:make xmlns:cxp="http://www.tenbusch.info/cxproc" log="2">
-  <cxp:plain name="-" encoding="UTF-8">
+<cxp:make xmlns:cxp="http://www.tenbusch.info/cxproc" log="2" searchpath="../../x86_64-gnu-linux/www/html/pie//">
+  <cxp:xhtml name="-" encoding="UTF-8">
     <cxp:xml>
       <pie>
         <import name="main.txt"/>
       </pie>
     </cxp:xml>
-    <cxp:xsl name="/srv/www/html/pie/xml/xsl/plain/pie2html.xsl"/>
-  </cxp:plain>
+    <cxp:xsl name="pie2html.xsl"/>
+  </cxp:xhtml>
 </cxp:make>

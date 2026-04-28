@@ -1,7 +1,7 @@
 /*
   cxproc - Configurable Xml PROCessor
    
-  Copyright (C) 2006..2020 by Alexander Tenbusch
+  Copyright (C) 2006..2024 by Alexander Tenbusch
 
   This program is free software; you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -21,15 +21,25 @@
 
 #include <math.h>
 #include <inttypes.h>
+#include <float.h>
+#include <limits.h>
+
 #include <libxml/parser.h>
 #include <libxml/parserInternals.h>
 
 #include "basics.h"
 #include "utils.h"
 
+static size_t
+dt_parse_easter_date(const char *str, size_t len, dt_t *dtp);
+
+static int
+localtime_offset(void);
 
 /*! internal level for debug messages */
 static int level_set = -1;
+
+static dt_t dt_today = 0;
 
 /*! set the internal debug level
 
@@ -85,6 +95,37 @@ SetLogLevelStr(xmlChar *pucArg)
 /* end of SetLogLevelStr() */
 
 
+/*! reads blockwise content from input stream 'argin'
+  \todo UTF8Check() encoding of input should be UTF-8
+  \return pointer to a dynamically allocated buffer or NULL in case of errors
+*/
+xmlChar *
+ReadUTF8ToBufferNew(FILE* argin) 
+{
+  xmlChar* pucResult = NULL;
+
+  if (argin != NULL) {
+    size_t b;
+    size_t l;
+
+    for (b = 0, l = BUFFER_LENGTH; (pucResult = BAD_CAST xmlRealloc((void *)pucResult, l)) != NULL; b += BUFFER_LENGTH, l += BUFFER_LENGTH) {
+      size_t k;
+
+      PrintFormatLog(4, "%i Byte allocated", l);
+
+      if ((k = fread(&pucResult[b], 1, BUFFER_LENGTH, argin)) < BUFFER_LENGTH) {
+	/* end of input reached */
+	l = b + k;
+	pucResult[l] = '\0';
+	PrintFormatLog(2, "%i Byte read", l);
+	break;
+      }
+    }
+  }
+  return pucResult;
+} /* end of ReadUTF8ToBufferNew() */
+
+
 /*! \return TRUE if pchArg was converted to lowercases successfully
   Stops at the string end or line end of pchArg, works properly when pchArg contains ASCII chars only!
 */
@@ -98,7 +139,7 @@ StringToLower(char *pchArg)
 
     /*! convert to wide char -> to lower -> UTF-8 */
 
-    for (pchT=pchArg; *pchT != '\0' && *pchT != '\n' && *pchT != '\r'; pchT++) {
+    for (pchT=pchArg; ! isend(*pchT) && ! islinebreak(*pchT); pchT++) {
       *pchT = (char)tolower(*pchT);
     }
 
@@ -125,7 +166,7 @@ StringToId(char *pchArg)
 {
   char *pchT;
 
-  for (pchT=pchArg; *pchT != '\0' && *pchT != '\n' && *pchT != '\r'; pchT++) {
+  for (pchT=pchArg; ! isend(*pchT) && ! islinebreak(*pchT); pchT++) {
     if (isalnum(*pchT)) {
       *pchT = (char)tolower(*pchT);
     }
@@ -153,7 +194,7 @@ StringToUpper(char *pchArg)
 
     /*! convert to wide char -> to upper -> UTF-8 */
 
-    for (pchT=pchArg; *pchT != '\0' && *pchT != '\n' && *pchT != '\r'; pchT++) {
+    for (pchT=pchArg; ! isend(*pchT) && ! islinebreak(*pchT); pchT++) {
       *pchT = (char)toupper(*pchT);
     }
 
@@ -164,6 +205,7 @@ StringToUpper(char *pchArg)
 
 
 /*! \return TRUE if all chars of pchArgNeedle are the begin of pchArgBegin
+* \todo implement skipping of leading isspace(), returns pointer to begin of match
 */
 BOOL_T
 StringBeginsWith(char *pchArgBegin, const char *pchArgNeedle)
@@ -193,7 +235,7 @@ StringBeginsWith(char *pchArgBegin, const char *pchArgNeedle)
 } /* end of StringBeginsWith() */
 
 
-/*! \return TRUE if all chars of pchArgNeedle are the end of pchArgEnd
+/*! \return TRUE if all chars of pchArgNeedle are the end of pchArgEnd, ignoring trailing space chars
 */
 char *
 StringEndsWith(char* pchArgEnd, const char* pchArgNeedle)
@@ -205,7 +247,9 @@ StringEndsWith(char* pchArgEnd, const char* pchArgNeedle)
 
     assert(pchArgEnd != pchArgNeedle);
 
-    for (i = (int)strlen(pchArgEnd), j = (int)strlen(pchArgNeedle); i > -1 && j > -1; i--, j--) {
+    for (i = (int)strlen(pchArgEnd) - 1; i > -1 && (isspace(pchArgEnd[i]) || isblank(pchArgEnd[i]) || islinebreak(pchArgEnd[i])); i--);
+
+    for (j = (int)strlen(pchArgNeedle) - 1; i > -1 && j > -1; i--, j--) {
       if (pchArgNeedle[j] == pchArgEnd[i]) {
 	if (j == 0) {
 	  pcResult = &pchArgEnd[i];
@@ -292,6 +336,8 @@ StringDecodeNumericCharsNew(xmlChar *pucArg)
 /*! \return pointer pucArg, all '&', '<', '>' characters replaced by valid XML entity
 
 simplified replacement for xmlEncodeEntitiesReentrant() for basic entities only
+
+\todo replace by use of xmlText();
 */
 xmlChar*
 StringEncodeXmlDefaultEntitiesNew(xmlChar* pucArg)
@@ -394,6 +440,31 @@ StringReplaceUmlauteNew(const xmlChar *pucArg)
 } /* end of StringReplaceUmlauteNew() */
 
 
+/*! removes all double apostrophs in pucArg
+
+\return TRUE if there is a pair of apostrophs in pucArg (and string is modified)
+*/
+BOOL_T
+StringRemoveDoubleDoubleQuotes(xmlChar *pucArg)
+{
+  BOOL_T fResult = FALSE;
+
+  if (STR_IS_NOT_EMPTY(pucArg)) {
+    int l;
+    xmlChar *pucI;
+
+    for (l = xmlStrlen(pucArg), pucI = pucArg; !isend(*pucI); pucI++, l--) {
+      if (pucI[0] == (xmlChar)'\"' && pucI[1] == (xmlChar)'\"') {
+	memmove(pucI, &pucI[1], l);
+	l--;
+	fResult = TRUE;
+      }
+    }
+  }
+  return fResult;
+} /* end of StringRemoveDoubleDoubleQuotes() */
+
+
 /*! removes all pair of apostrophs in pucArg
 
 \return TRUE if there is a pair of apostrophs in pucArg (and string is modified)
@@ -407,10 +478,20 @@ StringRemovePairQuotes(xmlChar *pucArg)
     xmlChar *pucA;
     xmlChar *pucB;
 
-    for (pucA = pucArg; isspace(*pucA); pucA++);
+    for (pucA = pucArg; isspace(*pucA) || isblank(*pucA) || islinebreak(*pucA); pucA++);
 
-    if (*pucA == (xmlChar)'\'' || *pucA == (xmlChar)'\"') {
-      for (pucB = pucArg + xmlStrlen(pucArg) - 1; pucB > pucArg && isspace(*pucB); pucB--);
+    for (pucB = pucArg + xmlStrlen(pucArg) - 1; pucB > pucA && (isspace(*pucB) || isblank(*pucB) || islinebreak(*pucB)); pucB--) ;
+
+    if (isend(*pucA)) {
+      /* only spaces, string is empty */
+      pucArg[0] = (xmlChar)'\0';
+    }
+    else if (pucA == pucB) {
+      /* string is one char only */
+      pucArg[0] = *pucA;
+      pucArg[1] = (xmlChar)'\0';
+    }
+    else if (*pucA == (xmlChar)'\'' || *pucA == (xmlChar)'\"') {
       if (*pucB == *pucA) {
 	/* there is a pair of apostrophs in pucArg */
 	if (pucB - pucA > 1) {
@@ -418,14 +499,80 @@ StringRemovePairQuotes(xmlChar *pucArg)
 	  pucArg[pucB - pucA - 1] = (xmlChar)'\0';
 	}
 	else {
+	  /* the quotes are neighbours, string empty */
 	  pucArg[0] = (xmlChar)'\0';
 	}
 	fResult = TRUE;
       }
     }
+    else if (pucB - pucA > 1) {
+      /* there is no pair of quotes, but eliminate the leading and trailing spaces */
+      if (pucA > pucArg) {
+	memmove(pucArg, pucA, pucB - pucA + 2);
+	pucArg[pucB - pucA + 1] = (xmlChar)'\0';
+      }
+      else {
+	/* terminate pucArg before trailing spaces */
+	pucB[1] = (xmlChar)'\0';
+      }
+    }
   }
   return fResult;
 } /* end of StringRemovePairQuotes() */
+
+
+/*! removes all pair of apostrophs in pucArg
+
+\return TRUE if there is a pair of apostrophs in pucArg (and string is modified)
+*/
+BOOL_T
+StringRemovePairOfChars(xmlChar *pucArg, xmlChar ucArgA, xmlChar ucArgB)
+{
+  BOOL_T fResult = FALSE;
+
+  if (STR_IS_NOT_EMPTY(pucArg)) {
+    xmlChar *pucA;
+    xmlChar *pucB;
+
+    for (pucA = pucArg; isspace(*pucA) || isblank(*pucA) || islinebreak(*pucA); pucA++);
+
+    for (pucB = pucArg + xmlStrlen(pucArg) - 1; pucB > pucA && (isspace(*pucB) || isblank(*pucB) || islinebreak(*pucB)); pucB--) ;
+
+    if (isend(*pucA)) {
+      /* only spaces, string is empty */
+      pucArg[0] = (xmlChar)'\0';
+    }
+    else if (pucA == pucB) {
+      /* string is one char only */
+      pucArg[0] = *pucA;
+      pucArg[1] = (xmlChar)'\0';
+    }
+    else if (*pucA == ucArgA && *pucB == ucArgB) {
+      /* there is a pair of chars in pucArg */
+      if (pucB - pucA > 1) {
+	memmove(pucArg, pucA + 1, pucB - pucA - 1);
+	pucArg[pucB - pucA - 1] = (xmlChar)'\0';
+      }
+      else {
+	/* the quotes are neighbours, string empty */
+	pucArg[0] = (xmlChar)'\0';
+      }
+      fResult = TRUE;
+    }
+    else if (pucB - pucA > 1) {
+      /* there is no pair of quotes, but eliminate the leading and trailing spaces */
+      if (pucA > pucArg) {
+	memmove(pucArg, pucA, pucB - pucA + 2);
+	pucArg[pucB - pucA + 1] = (xmlChar)'\0';
+      }
+      else {
+	/* terminate pucArg before trailing spaces */
+	pucB[1] = (xmlChar)'\0';
+      }
+    }
+  }
+  return fResult;
+} /* end of StringRemovePairOfChars() */
 
 
 /*! removes all pair quote in pucArg
@@ -506,6 +653,69 @@ HasStringPairQuotes(xmlChar *pucArg)
 } /* end of HasStringPairQuotes() */
 
 
+/*! tries to find an XML tagged body at pucSource and sets *piA to
+    index of first element '<' and *piB to last '>' of last element.
+
+\param pucSource
+\param piA
+\param piB
+
+ */
+void
+getXmlBody(xmlChar *pucSource, int *piA, int *piB)
+{
+  int i;
+  int iDepth;
+
+  for (*piA=-1, *piB=-1, i=0, iDepth=0; pucSource[i]!='\0'; i++) {
+
+    if (pucSource[i]=='<') {
+      /* this is a tag */
+      if (pucSource[i+1]=='/') {
+	/* this is a closing tag */
+	for (i++; pucSource[i]!='\0' && pucSource[i]!='>'; i++) {}
+	*piB = i;
+	iDepth--;
+      }
+      else if (isalpha(pucSource[i+1])) {
+	/* this is a opening tag */
+	if (*piA==-1) {
+	  /* first element */
+	  *piA = i;
+	}
+	for ( i+=2; pucSource[i]!='\0'; i++) {
+	  /* search for closing '>' */
+	  if (pucSource[i]=='>') {
+	    if (i>0) {
+	      if (pucSource[i-1]=='/') {
+		*piB = i;
+	      }
+	      else {
+		iDepth++;
+	      }
+	    }
+	    break;
+	  }
+	}
+      }
+      else {
+	/* processing instruction or comment */
+	for ( ; pucSource[i]!='\0' && pucSource[i]!='>'; i++) {
+	  /* search for closing '>' */
+	}
+      }
+    }
+  }
+  if (*piA>-1 && *piA < *piB && iDepth==0) {
+    /* OK */
+  }
+  else {
+    *piB = -1;
+  }
+}
+/* end of getXmlBody() */
+
+
 /**
  * xmlStrnstr:
  * @str:  the xmlChar * array (haystack)
@@ -518,22 +728,116 @@ HasStringPairQuotes(xmlChar *pucArg)
  */
 
 xmlChar *
-Strnstr(const xmlChar *str, const int l, const xmlChar *val) {
+Strnstr(const xmlChar *str, const int l, const xmlChar *val)
+{
+#if 0
+  int i;
+  int m;
+
+  if (str == NULL || val == NULL) {
+    return (NULL);
+  }
+
+  if (*val == '\0') {
+    return (BAD_CAST str);
+  }
+
+  m = (l < 0) ? xmlStrlen(str) : l;
+
+  for (i = 0; i < m; i++) { /*  */
+    if (*str == '\0') {
+      return (NULL);
+    }
+    else if (*val == *str) {
+      int j;
+      int k;
+
+      k = i;
+      for (j = 0;; i++, j++) { /*  */
+	if (*val == '\0') {
+	  return (BAD_CAST str);
+	}
+	else if (*str == '\0') {
+	  return (NULL);
+	}
+	else if (i == m) {
+	  return (NULL);
+	}
+	else if (*val == *str) {
+	  // continue
+	  val++;
+	  str++;
+	}
+	else {
+	  break;
+	}
+      }
+    }
+    else {
+      str++;
+    }
+  }
+#elif 0
+  int i;
+  int m;
+
+  if (str == NULL || val == NULL) {
+    return (NULL);
+  }
+
+  if (*val == '\0') {
+    return (BAD_CAST str);
+  }
+
+  m = (l < 0) ? xmlStrlen(str) : l;
+
+  for (i = 0; i < m; i++) { /*  */
+    if (str[i] == '\0') {
+      return (NULL);
+    }
+    else if (val[0] == str[i]) {
+      int j;
+      int k;
+
+      k = i;
+      for (j = 0;; i++, j++) { /*  */
+	if (val[j] == '\0') {
+	  return (BAD_CAST & str[k]);
+	}
+	else if (str[i] == '\0') {
+	  return (NULL);
+	}
+	else if (i == m) {
+	  return (NULL);
+	}
+	else if (val[j] == str[i]) {
+	  // continue
+	}
+	else {
+	  break;
+	}
+      }
+    }
+  }
+#else
+    int m;
     int n;
     int i;
     
     if (str == NULL) return(NULL);
     if (val == NULL) return(NULL);
+    m = (l < 0) ? xmlStrlen(str) : l;
     n = xmlStrlen(val);
 
     if (n == 0) return(BAD_CAST str);
-    for (i=0; i<l && *str != 0; i++ ) { /* non input consuming */
+    for (i=0; i<m && *str != 0; i++ ) { /* non input consuming */
 	if (*str == *val) {
 	  if (!xmlStrncmp(str, val, n)) return(BAD_CAST str);
 	}
 	str++;
     }
-    return(BAD_CAST NULL);
+#endif
+  return (BAD_CAST NULL);
 }
 
 
@@ -735,6 +1039,35 @@ chomp(unsigned char *c)
 /* end of chomp() */
 
 /*
+ * https://base64.guru/learn/base64-characters
+ * */
+int
+base64removespaces(const void *data_buf)
+{
+  int iResult = 0;
+
+  if (data_buf) {
+    char *pcBegin = (char *)data_buf;
+    int i;
+    int j;
+
+    for (i = j = 0;; i++) {
+      if (pcBegin[i] == '\0') {
+	iResult = j;
+	pcBegin[iResult] = '\0';
+	break;
+      }
+      if (isalnum(pcBegin[i]) || pcBegin[i] == '+' || pcBegin[i] == '/' || pcBegin[i] == '=') {
+	pcBegin[j] = pcBegin[i];
+	j++;
+      }
+    }
+  }
+  return iResult;
+} /* end of base64removespaces() */
+
+
+/*
  * Base 64 encoding/decoding (s. http://en.wikibooks.org/wiki/Algorithm_Implementation/Miscellaneous/Base64)
  *
  * */
@@ -827,7 +1160,7 @@ base64encode(const void* data_buf, size_t dataLength, char* result, size_t resul
 #define EQUALS     65
 #define INVALID    66
 
-static const unsigned char d[] = {
+static const unsigned char mucD[] = {
     66,66,66,66,66,66,66,66,66,64,66,66,66,66,66,66,66,66,66,66,66,66,66,66,66,
     66,66,66,66,66,66,66,66,66,66,66,66,66,66,66,66,66,66,62,66,66,66,63,52,53,
     54,55,56,57,58,59,60,61,66,66,66,65,66,66,66, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9,
@@ -854,7 +1187,7 @@ base64decode(char *in, size_t inLen, unsigned char *out, size_t *outLen)
     if(outLen == NULL ) return 0;   /* indicate failure: no result length pointer */
 
     while (in < end) {
-        unsigned char c = d[*in++];
+        unsigned char c = mucD[*in++];
 
         switch (c) {
         case WHITESPACE: continue;   /* skip whitespace */
@@ -1661,7 +1994,7 @@ GetSelectedFileName(xmlChar *pucArgMsg, xmlChar *pucArgPath)
     ofn.lpstrFileTitle = (LPSTR)pucArgMsg;
   }
   else {
-    ofn.lpstrFileTitle = TEXT("Please select a File");
+    ofn.lpstrFileTitle = (LPSTR)TEXT("Please select a File");
   }
   ofn.nMaxFileTitle = 0;
   ofn.lpstrInitialDir = (LPSTR)pucArgPath;
@@ -1682,93 +2015,33 @@ GetSelectedFileName(xmlChar *pucArgMsg, xmlChar *pucArgPath)
 }
 /* end of GetSelectedFileName() */
 
+/*! Decodes the given string and returns the according result of GetDayAbsolute()
 
-/*! computes the number of days since 1970-01-01 as an absolute value
+\param pucGcal date string
 */
 long int
-GetDayAbsolute(int year, int mon, int mday, int week, int wday)
+GetDayAbsoluteStr(xmlChar *pucGcal)
 {
-  long int result = 0;
+  long int liResult = -1;
 
-  if (year>1969) {
-    struct tm t;
-    t.tm_year = year - 1900;
+  if (pucGcal != NULL && xmlStrlen(pucGcal) > 4) {
+    dt_t dtp;
+    int sod, nsec;
+    int l, t;
 
-    if (mon > 0 && mday > 0 && mday < 32) {
-      t.tm_yday = 0;
-      t.tm_mon = mon - 1;
-      t.tm_mday = mday;
-      t.tm_wday = 0;
-      t.tm_hour = 0;
-      t.tm_min = 0;
-      t.tm_sec = 0;
-      t.tm_isdst = 0;
-      result = (long int)(mktime(&t) / (time_t)(60 * 60 * 24));
+    if ((l = dt_parse_iso_date((const char *)pucGcal, 20, &dtp)) > 4) {
+      if ((t = dt_parse_iso_time_extended((const char *)&pucGcal[l+1], 20, &sod, &nsec)) > l) {
+      }
+      else {
+      }
+      liResult = dtp;
     }
-    else if (week > -1 && week < 54 && wday > -1 && wday < 7) {
-
-      /* starting with the very first day of year */
-      t.tm_yday = 0;
-      t.tm_mon = 0;
-      t.tm_mday = 1;
-      t.tm_wday = 0;
-      t.tm_hour = 0;
-      t.tm_min = 0;
-      t.tm_sec = 0;
-      t.tm_isdst = 0;
-      result = (long int)(mktime(&t) / (time_t)(60 * 60 * 24));
-
-      if (week == 0 && t.tm_wday > 0 && t.tm_wday < 5) {
-	PrintFormatLog(1, "There is no week '0' in year '%i'", year);
-	return -1;
-      }
-
-      /* offset for very first week of year */
-      switch (t.tm_wday) {
-      case 0: 		/* sun */
-	result += 1;
-	break;
-      case 1: 		/* mon */
-	break;
-      case 2: 		/* tue */
-	result -= 1;
-	break;
-      case 3: 		/* wed */
-	result -= 2;
-	break;
-      case 4: 		/* thu */
-	result -= 3;
-	break;
-      case 5: 		/* fri */
-	result += 3;
-	break;
-      case 6: 		/* sat */
-	result += 2;
-	break;
-      }
-
-      /* add days of all complete weeks */
-      result += (week - 1) * 7;
-
-      /* add days of according week */
-      switch (wday) {
-      case 0: 		/* sun */
-	result += 6;
-	break;
-      case 1: 		/* mon */
-      case 2: 		/* tue */
-      case 3: 		/* wed */
-      case 4: 		/* thu */
-      case 5: 		/* fri */
-      case 6: 		/* sat */
-	result += wday - 1;
-	break;
-      }
+    else {
     }
   }
-  return result;
+  return liResult;
 }
-/* end of GetDayAbsolute() */
+/* end of GetDayAbsoluteStr() */
 
 
 /* compute the sequential number of a day in the year
@@ -1776,7 +2049,7 @@ GetDayAbsolute(int year, int mon, int mday, int week, int wday)
 J.D. Robertson: Remark on Algorithm 398,
 Comm. ACM 13, 10 (Oct. 1972), p. 918
 */
-int GetDayOfYear(int day, int month, int year)
+int _GetDayOfYear(int day, int month, int year)
 {
   int  lmon; /* derived from month */
 
@@ -1789,162 +2062,6 @@ int GetDayOfYear(int day, int month, int year)
     ) * lmon + day);
 }
 /* end of GetDayOfYear() */
-
-
-/* compute the day in the week,
-1 = Monday, 7 = Sunday
-J.D. Robertson: Remark on Algorithm 398,
-Comm. ACM 13, 10 (Oct. 1972), p. 918
-"Zeller's congruence"
-*/
-int GetDayOfWeek(int day, int month, int year)
-{
-  int  lmon; /* derived from month */
-  int  mmon; /* derived from month */
-
-  lmon = month + 10;
-  mmon = (month - 14) / 12 + year;
-  return ((((13 * (lmon - (lmon /  13) *  12) - 1) / 5 + day + 77
-    + 5 * (mmon - (mmon / 100) * 100) / 4
-    + mmon / 400 - (mmon / 100) *   2)
-    - 1) % 7 + 1
-    );
-}
-/* end of GetDayOfWeek() */
-
-
-/* Compute the week number (0..52) for a given date.
-The weeks start at monday, and some days at the beginning
-of January may be in week "0"
-which means week 52 of the previous year.
-*/
-int
-GetWeekOfYear(int day, int month, int year)
-{
-#if 1
-  // http://www.nord-com.net/h-g.mekelburg/kalender/kal-64.htm
-  int Woche = 0;
-  int Wchtag1Jan = GetDayOfWeek(1, 1, year) - 1;
-  int Tage = GetDayOfYear(day, month, year) - 1;
-
-  if (Wchtag1Jan > 3)
-    Tage = Tage - (7 - Wchtag1Jan);
-  else Tage = Tage + Wchtag1Jan;
-
-  if (Tage < 0)
-    if ((Wchtag1Jan == 4)
-      || (GetDayOfWeek(1, 1, year - 1) - 1 == 3))
-      Woche = 53;
-    else Woche = 52;
-  else Woche = (int)floor((float)Tage / 7.0f) + 1;
-
-  if ((Tage > 360) && (Woche > 52)) {
-    if (Wchtag1Jan == 3)
-      Woche = 53;
-    else if (GetDayOfWeek(1, 1, year + 1) - 1 == 4)
-      Woche = 53;
-    else Woche = 1;
-  }
-  return Woche;
-#else
-  int  wjan1; /* week day of January 1st */
-  int  day_num; /* number of day in year */
-
-  wjan1 = GetDayOfWeek(1, 1, year);
-  day_num = GetDayOfYear(day, month, year);
-  if (wjan1 > 1)
-    day_num -= (8 - wjan1);
-  if (day_num <= 0)
-    return 0; /* before 1st Monday in January */
-  else
-    return (day_num - 1) / 7 + 1;
-#endif
-}
-/* end of GetWeekOfYear() */
-
-
-/*! \return the date of easter sunday in given year
-
-  s.http://www.ptb.de/cms/fachabteilungen/abt4/fb-44/ag-441/darstellung-der-gesetzlichen-zeit/wann-ist-ostern.html
-
-  (1)  K = INT(X / 100);
-
-  (2)  M = 15 + INT((3K + 3) / 4) - INT((8K + 13) / 25);
-
-  (3)  S = 2 - INT((3K + 3) / 4);
-
-  (4)  A = MOD(X, 19);
-
-  (5)  D = MOD(19A + M, 30);
-
-  (6)  R = INT(D / 29) + (INT(D / 28) - INT(D / 29)) * INT(A / 11);
-
-  (7)  OG = 21 + D - R;
-
-  (8)  SZ = 7 - MOD(X + INT(X / 4) + S, 7);
-
-  (9)  OE = 7 - MOD(OG - SZ, 7);
-
-  OG ist das Märzdatum des Ostervollmonds.Dies entspricht dem 14. Tag des ersten Monats im Mondkalender, genannt Nisanu. SZ ist das Datum des ersten Sonntags im März.
-
-  OS = OG + OE ist das Datum des Ostersonntags, als Datum im Monat März dargestellt. (Der 32. März entspricht also dem 1. April, usw.)
-
-*/
-long int
-GetEasterSunday(int iArgYear, int *piArgMonth, int *piArgDay)
-{
-#if 1
-  long int result = -1;
-  struct tm t;
-
-  int X = iArgYear;
-
-  int K = (int)floor(X / 100.0f);
-
-  int M = 15 + (int)floor((3 * K + 3) / 4.0f) - (int)floor((8 * K + 13) / 25.0f);
-
-  int S = 2 - (int)floor((3 * K + 3) / 4.0f);
-
-  int A = X % 19;
-
-  int D = (19 * A + M) % 30;
-
-  int R = (int)floor(D / 29.0f) + ((int)floor(D / 28.0f) - (int)floor(D / 29.0f)) * (int)floor(A / 11.0f);
-
-  int OG = 21 + D - R;
-
-  int SZ = 7 - ((X + (int)floor(X / 4.0f) + S) % 7);
-
-  int OE = 7 - ((OG - SZ) % 7);
-
-  t.tm_year = X - 1900;
-  t.tm_yday = 0;
-  t.tm_mon = 2;
-  t.tm_mday = OG + OE;
-  t.tm_wday = 0;
-  t.tm_hour = 0;
-  t.tm_min = 0;
-  t.tm_sec = 0;
-  t.tm_isdst = 0;
-  result = (long int)(mktime(&t) / (time_t)(60 * 60 * 24));
-
-  if (piArgMonth) {
-    *piArgMonth = t.tm_mon + 1;
-  }
-
-  if (piArgDay) {
-    *piArgDay = t.tm_mday;
-  }
-
-  return result;
-#else
-  int y, m, w, d, d_week;
-
-  easter1(iArgYear, &d, &m);
-  return GetDayAbsolute(iArgYear, m, d, -1, -1);
-#endif
-}
-/* end of GetEasterSunday() */
 
 
 /*! a subset of linux date command format
@@ -1969,6 +2086,8 @@ GetEasterSunday(int iArgYear, int *piArgMonth, int *piArgDay)
 
 \param pucArgFormat pointer to a date like format string
 \return pointer to a new allocated copy of pucArgFormat, format sequences replaced by its values
+
+\todo check use of c-dt code
 */
 xmlChar *
 GetNowFormatStr(xmlChar *pucArgFormat)
@@ -2022,6 +2141,7 @@ GetNowFormatStr(xmlChar *pucArgFormat)
 	pucResult = xmlStrdup(pucArgFormat);
 	if (pucResult) {
 	  int i;
+	  int y, w, d;
 	  xmlChar mucBuffer[BUFFER_LENGTH];
 
 	  for (i = 0, mucBuffer[0] = 0; pucResult[i]; i++) {
@@ -2060,7 +2180,8 @@ GetNowFormatStr(xmlChar *pucArgFormat)
 		break;
 
 	      case 'V':
-		xmlStrPrintf(mucBuffer, BUFFER_LENGTH, "%02i", GetWeekOfYear(pTime->tm_mday, pTime->tm_mon + 1, pTime->tm_year + 1900));
+		dt_to_ywd(dt_from_ymd(pTime->tm_year + 1900, pTime->tm_mon + 1, pTime->tm_mday), &y, &w, &d);
+		xmlStrPrintf(mucBuffer, BUFFER_LENGTH, "%02i", w);
 		break;
 
 	      case 'H':
@@ -2119,6 +2240,7 @@ interchange formats – Information interchange – Representation of
 dates and times" (http://en.wikipedia.org/wiki/ISO_8601)
 
 \todo append timezone id
+\todo check use of c-dt code
 */
 xmlChar *
 GetDateIsoString(time_t ArgTime)
@@ -2186,39 +2308,701 @@ ishashtag(xmlChar* pucArg, int* piArg)
 } /* End of ishashtag() */
 
 
-/*! \return true if c is a valid char for a date string.
-The separator chars '#' and ',' are handled separately in iscalx()
+/*! \return true if c is a valid char for a date string according to ISO 8601
+
+\todo time zone identificators?
+
+\bug handle STR_UTF8_MINUS "\xE2\x88\x92" 
 */
 BOOL_T
-iscal(xmlChar c)
+isiso8601(xmlChar c)
 {
-  if (isdigit((int)c)
-    || (c == '*') || (c == ':') || (c == '.') || (c == '+') || (c == '-') || (c == '@')
-    || (c == 'm') || (c == 'o') || (c == 'n')
-    || (c == 't') || (c == 'u') || (c == 'e')
-    || (c == 'w') || (c == 'd')
-    || (c == 'h')
-    || (c == 'f') || (c == 'r') || (c == 'i')
-    || (c == 's') || (c == 'a')
-    ) {
+  if (isdigit((int)c)) {
     return TRUE;
   }
+  else {
+    switch (c) {
+    case ':':
+    //case ',': /* ignoring this decimal separator to avoid confusion with lists of dates */
+    case '.':
+    case '+':
+    case '-':
+    case '/':
+    case 'Y':
+    case 'M':
+    case 'Q':
+    case 'D':
+    case 'T':
+    case 'H':
+    case 'P':
+    //case 'O': /* non-standard for Date/Time Offset */
+    case 'R':
+    case 'S':
+    case 'W':
+      return TRUE;
+      break;
+    default:
+      break;
+    }
+  }
   return FALSE;
-}
-/* end of iscal() */
+} /* end of isiso8601() */
 
 
-/*! \return true if c is a extended valid char for a date string.
+/*! Assembles the next date part, only compact ISO date 'YYYYMMDD,MMDD,DD'.
+
+  \param pucArgGcal pointer to comma separated list of date strings
+  \return pointer to a the modified pucGcal or NULL if no date string follows,
+  \deprecated due to legacy syntax
 */
-BOOL_T
-iscalx(xmlChar c)
+xmlChar*
+_StringConcatNextDate(xmlChar* pucArgGcal)
 {
-  if ((c == ',') || (c == '#')) {
-    return TRUE;
+  xmlChar* pucE;
+  xmlChar* pucB;		/* begin of next string */
+  xmlChar* pucTmp;
+  int l_new;
+  int l_old;
+
+  for (pucB = pucArgGcal, l_old = 0; isdigit(*pucB); pucB++, l_old++) {
+    /*
+      skip all chars in first calendar string
+    */
   }
-  return FALSE;
+
+  if (*pucB == ',') {
+
+    for (pucB++, pucE = pucB; isdigit(*pucE); pucE++) {
+      /* skip all chars in second calendar string */
+    }
+
+    l_new = (int)(pucE - pucB);
+
+    if (l_new > 0) {
+      if (isdigit(*pucB)) {
+	if (l_new < 3) {
+	  pucTmp = xmlStrndup(pucArgGcal, 6);
+	  if (l_new < 2)  /* insert leading zero */
+	    pucTmp = xmlStrcat(pucTmp, BAD_CAST "0");
+	}
+	else if (l_new < 5) {
+	  pucTmp = xmlStrndup(pucArgGcal, 4);
+	  if (l_new < 4)  /* insert leading zero */
+	    pucTmp = xmlStrcat(pucTmp, BAD_CAST "0");
+	}
+	else if (l_new > 7) {
+	  /* this is a complete new 'yyyymmdd' */
+	  /* 	memmove(pucArgGcal,pucB,xmlStrlen(pucB)+1); */
+	  pucTmp = xmlStrndup(pucArgGcal, 0);
+	}
+	else {
+	  PrintFormatLog(2, "no valid extension '%s' in '%s'", pucB, pucArgGcal);
+	  return NULL;
+	}
+      }
+      else {
+	PrintFormatLog(2, "Different types between '%s' in '%s'", pucB, pucArgGcal);
+	return NULL;
+      }
+      pucTmp = xmlStrcat(pucTmp, pucB);
+      memcpy(pucArgGcal, pucTmp, (size_t)xmlStrlen(pucTmp) + 1);
+      xmlFree(pucTmp);
+      return pucArgGcal;
+    }
+    else {
+      return NULL;
+    }
+  }
+  return NULL;
 }
-/* end of iscal() */
+/* end of _StringConcatNextDate() */
+
+
+/*
+ *  "R5/" Calendar date recurrence (ISO 8601)
+ * https://en.wikipedia.org/wiki/ISO_8601#Repeating_intervals
+ * \bug floating values not used
+ */
+size_t
+dt_parse_iso_recurrence(const char *str, size_t len, int* deltad) {
+  size_t n = 0;
+
+  if (str != NULL && *str == 'R' && len > 0) {
+    int d;
+    char *p;
+
+    d = strtol(&str[1], &p, 10);
+    
+    if (*p == '/') {
+      if (p == &str[1] || d == -1) {
+	/* unbounded number of repetitions */
+	if (deltad) {
+	  *deltad = ISO_RECURRENCE_MAX;
+	}
+	n = p - str;
+      }
+      else if (d == 0) {
+	/* no repetition */
+	if (deltad) {
+	  *deltad = 0;
+	}
+	n = p - str;
+      }
+      else if (d > 0 && d < ISO_RECURRENCE_MAX + 1) {
+	if (deltad) {
+	  *deltad = d;
+	}
+	n = p - str;
+      }
+      else {
+      }
+    }
+    else {
+    }
+  }
+
+  return n;
+} /* end of dt_parse_iso_recurrence() */
+
+
+#if 0
+
+/*! \return a double float value for str (decimal separators '.' and ',')
+\deprecated
+*/
+double
+_dt_parse_iso_strtod(const char *str, size_t len, char **str1)
+{
+  double dResult = 0.0;
+
+  if (str != NULL && *str != '\0' && len > 0) {
+    char *pcI = str;
+    char *pcII;
+
+    if (*pcI == 'T') {
+      pcI++;
+    }
+
+    dResult = strtod(pcI, &pcI);
+#if 0
+    if ((pcI != NULL && pcI - str < len) && *pcI == ',') {
+      double divisor;
+
+      for (pcI++, divisor = 10.0; (pcI - str) < len && isdigit(*pcI); pcI++, divisor *= 10.0) {
+	 dResult += ((double)(*pcI - '0')) / divisor; 
+	}
+    }
+#endif
+
+    if (str1) {
+      *str1 = pcI;
+    }
+  }
+  return dResult;
+}
+
+#endif
+
+/*
+ *  Basic
+ *  T12
+ *  T12.5
+ *
+ *  The time designator [T] may be omitted.
+ */
+
+size_t
+dt_parse_iso_hours_decimal(const char *str, size_t len, int *sod)
+{
+  if (str != NULL && *str != '\0' && len > 0) {
+   double dT = 0.0;
+   char *pcI = (char *)str;
+    char *pcII;
+
+    if (*pcI == 'T') {
+      pcI++;
+    }
+
+    dT = strtod(pcI, &pcII);
+    if (*pcII == ':') {
+      /* not a decimal value */
+    }
+    else if (dT < DBL_EPSILON || dT > 24.0f - DBL_EPSILON) {
+      /* decimal value out of range */
+    }
+    else {
+      size_t n;
+
+      n = (pcII - str);
+      if (n > 0) {
+	if (sod != NULL) {
+	  *sod = (int)(dT * 3600.0f);
+	}
+	return n;
+      }
+    }
+  }
+  return 0;
+}
+
+
+#ifdef USE_ALT_DATETIME
+
+/*! parses a UNIX epoch value
+ */
+size_t
+dt_parse_unix(const char *str, size_t len, dt_t *dtp, int *sp)
+{
+  size_t n = 0;
+  char *pucT = (char *)str;
+
+  if (str != NULL && len > 0 && isdigit(pucT[0]) && isdigit(pucT[1]) && isdigit(pucT[2]) && isdigit(pucT[3]) && isdigit(pucT[4]) && isdigit(pucT[5]) &&
+      isdigit(pucT[6]) && isdigit(pucT[7]) && isdigit(pucT[8]) && isdigit(pucT[9]) && !isdigit(pucT[10])) {
+
+    unsigned long iT;
+
+    /* ignoring millisecs */
+    iT = strtoul((const char *)pucT, &pucT, 10);
+    n = (pucT - str);
+
+    if (iT > 1e5 && n == 10) {
+      time_t tT;
+      struct tm *tm_struct;
+
+      tT = (time_t)iT;
+      tm_struct = localtime((const time_t *)(&tT));
+
+      if (dtp != NULL) {
+	*dtp = dt_from_struct_tm(tm_struct);
+#ifdef USE_ISO_TIME
+	if (sp != NULL) {
+	  *sp = tm_struct->tm_hour * 3600 + tm_struct->tm_min * 60 + tm_struct->tm_sec;
+	}
+#endif
+      }
+    }
+    else {
+      n = 0;
+    }
+  }
+  return n;
+}
+
+
+/*! parses a usual German Date "D.M.YYYY"
+ */
+size_t
+dt_parse_german_date(const char *str, size_t len, dt_t *dtp)
+{
+  size_t n = 0;
+
+  if (str != NULL && len > 0) {
+    char *pucT = (char *)str;
+    int iYear, iMonth, iDay;
+
+    iDay = (int)strtol(pucT, &pucT, 10);
+    if (*pucT == '.' && iDay > 0 && iDay < 32) {
+      iMonth = (int)strtol(++pucT, &pucT, 10);
+      if (*pucT == '.' && iMonth > 0 && iMonth < 13) {
+	iYear = (int)strtol(++pucT, &pucT, 10);
+	n = (pucT - str);
+	if (n <= len && iYear > 0 && dtp != NULL) {
+	  if (iYear < 50) {
+	    *dtp = dt_from_ymd(iYear + 2000, iMonth, iDay);
+	  }
+	  else if (iYear < 100) {
+	    *dtp = dt_from_ymd(iYear + 1900, iMonth, iDay);
+	  }
+	  else if (iYear < 3000) {
+	    *dtp = dt_from_ymd(iYear, iMonth, iDay);
+	  }
+	  else {
+	    n = 0;
+	  }
+	  /* neither period nor recurrance */
+	}
+      }
+    }
+  }
+  return n;
+}
+
+#endif
+
+
+/*! parses an eternal date starting with "0000"
+ */
+size_t
+dt_parse_eternal_date(const char *str, size_t len, dt_t *dtp)
+{
+  size_t n = 0;
+
+  if (str != NULL && len > 7 && str[0] == '0' && str[1] == '0' && str[2] == '0' && str[3] == '0') {
+    int y;
+    char *pcT;
+
+    pcT = (char*) malloc(len + 1);
+    if (pcT != NULL) {
+      strncpy(pcT, str, len);
+      y = dt_year(dt_today_date());
+
+      pcT[0] = (char)('0' + (y / 1000));
+      pcT[1] = (char)('0' + (y % 1000 / 100));
+      pcT[2] = (char)('0' + (y % 100 / 10));
+      pcT[3] = (char)('0' + (y % 10));
+
+      if ((n = dt_parse_easter_date(pcT, len, dtp)) > 7 || (n = dt_parse_iso_date(pcT, len, dtp)) > 3) {
+	/* valid date */
+      }
+      else {
+	n = 0;
+      }
+      free(pcT);
+    }
+  }
+  return n;
+} /* end of dt_parse_eternal_date() */
+
+
+/*
+ *  Basic      Extended
+ *  2012WEA7   2012-WEA-7   Easter date
+ * 
+ */
+size_t
+dt_parse_easter_date(const char *str, size_t len, dt_t *dtp)
+{
+  char *p;
+  int y, d;
+  size_t n = 0;
+
+  if (str != NULL && len > 7) {
+    y = (int)strtol(str, &p, 10);
+
+    if (y < 1900 || y > 2999) {
+      return 0;
+    }
+
+    if (*p == '-') {
+      p++;
+    }
+
+    if (p[0] == 'W' && p[1] == 'E' && p[2] == 'A') {
+      p += 3;
+    }
+    else {
+      return 0;
+    }
+
+    if (*p == '-') {
+      p++;
+    }
+
+    if (isdigit(*p) && (d = *p - '0') < 8) {
+      assert(d > 0);
+      p++;
+    }
+    else {
+      return 0;
+    }
+
+    n = p - str;
+    if (n > len) {
+      return 0;
+    }
+
+    if (dtp) {
+      *dtp = dt_from_easter(y, DT_WESTERN) - (7 - d);
+    }
+  }
+
+  return n;
+} /* end of dt_parse_easter_date() */
+
+
+/*! parses a combined "YYYY-MM-DDTHH:MM:SS+hh:mm"
+ */
+size_t
+dt_parse_iso_date_time_zone(const char *str, size_t len, dt_t *dtp, int *sp)
+{
+  size_t n = 0;
+
+  if (str != NULL && len > 0) {
+    size_t j;
+    char *p = (char *)str;
+
+    if ((j = dt_parse_eternal_date(p, len, dtp)) > 7 || (j = dt_parse_easter_date(p, len, dtp)) > 7 || (j = dt_parse_iso_date(p, len, dtp)) > 3) {
+      n += j;
+
+      if (p[n] == 'T') {
+	int s;
+
+	n++;
+	if (((j = dt_parse_iso_hours_decimal(&p[n], len - n, &s)) > 0 || (j = dt_parse_iso_time(&p[n], len - n, &s, NULL)) > 3) && s > -1) {
+	  int t = s;
+	  int m = 0;
+	  int o = 0;
+	  dt_zone_t *pz;
+
+	  n += j;
+
+	  if (StringBeginsWith(&p[n], "Z")) {
+	    n += 1;
+	  }
+	  else if (StringBeginsWith(&p[n], "CST")) {
+	    /* assumption "China Standard Time UTC+08:00" */
+	    o = 8 * 60 * 60;
+	    n += 3;
+	  }
+	  else if (StringBeginsWith(&p[n], "IST")) {
+	    /* assumption "Indian Standard Time" UTC+05:30 */
+	    o = (5 * 60 + 30) * 60;
+	    n += 3;
+	  }
+	  else if ((j = dt_zone_lookup(&p[n], len - n, (const dt_zone_t **)&pz))) {
+	    if (j > 0 && j < 4 && pz->offset > -12 * 60 && pz->offset < 14 * 60) {
+	      o = pz->offset * 60;
+	    }
+	    n += j;
+	  }
+	  else if ((j = dt_parse_iso_zone(&p[n], len - n, &m)) > 0) {
+	    if (m > -12 * 60 && m < 14 * 60) {
+	      o = m * 60;
+	    }
+	    n += j;
+	  }
+	  else {
+	    /* assumption is local time zone */
+	    o = localtime_offset();
+	  }
+
+#ifdef USE_ISO_TIME
+	  t -= o;
+
+	  if (t < 0) {
+	    (*dtp)--;
+	    *sp = (24 * 60 * 60) + t;
+	  }
+	  else if (t > (24 * 60 * 60)) {
+	    (*dtp)++;
+	    *sp = t - (24 * 60 * 60);
+	  }
+	  else {
+	    *sp = t;
+	  }
+#endif
+	}
+      }
+    }
+  }
+
+  return n;
+} /* end of dt_parse_iso_date_time_zone() */
+
+
+/*
+ *  "O3Y6M4D" Calendar date offset  (non-conformant to ISO 8601 !!)
+ * 
+ */
+size_t
+dt_parse_iso_offset(const char *str, size_t len, double *yp, double *mp, double *dp, double *wp, double *hp, double *mip, double *sp)
+{
+  size_t n = 0;
+
+  if (str != NULL && *str == 'O' && len > 0) {
+    n = dt_parse_iso_period(str, len, yp, mp, dp, wp, hp, mip, sp);
+  }
+
+  return n;
+} /* end of dt_parse_iso_offset() */
+
+
+/*
+ *  "P3Y6M4DT12H30M5S" Calendar date period  (ISO 8601)
+ * 
+ * \bug floating values to be handled
+ */
+size_t
+dt_parse_iso_period(const char* str, size_t len, double* yp, double* mp, double* dp, double* wp, double* hp, double* mip, double* sp)
+{
+  size_t n = 0;
+
+  if (str != NULL && ((*str == 'P' || *str == 'O') && len > 0)) {
+    double y, m, d, w, h, mi, s;
+    double i;
+    char* p;
+    bool v, t;
+
+    for (p = (char *)str + 1, v = (*p != '\0'), t = FALSE, y = m = d = w = h = mi = s = 0.0f; *p != '\0' && v; p++) {
+      char *p1;
+
+      if ((n = p - str) < len) {
+      }
+      else {
+	break;
+      }
+
+      if (*p == 'T') {
+	if (t) {
+	  v = FALSE; /* redundant 'T' */
+	  n = 0;
+	  break;
+	}
+	else {
+	  t = true;
+	  continue;
+	}
+      }
+
+      i = strtod(p, &p1);
+
+      /*!\todo check order of Y M D */
+
+      if (p1 == p) {
+	break;
+      }
+      p = p1;
+      
+      if (fabs(i) < DBL_EPSILON) {
+	continue; /* value is zero */
+      }
+
+      if (t) {
+	/*! time parsing */
+
+	if (*p == 'H') {
+	  if (fabs(h) < DBL_EPSILON) {
+	    h = i;
+	  }
+	  else {
+	    v = false;
+	  }
+	}
+	else if (*p == 'M') {
+	  if (fabs(mi) < DBL_EPSILON) {
+	    mi = i;
+	  }
+	  else {
+	    v = false;
+	  }
+	}
+	else if (*p == 'S') {
+	  if (fabs(s) < DBL_EPSILON) {
+	    s = i;
+	  }
+	  else {
+	    v = false;
+	  }
+	}
+	else {
+	  /* end of period string */
+	    v = false;
+	  break;
+	}
+      }
+      else { /* date parsing only */
+	if (*p == 'W') {
+	  if (fabs(w) < DBL_EPSILON) {
+	    w = i;
+	  }
+	  else {
+	    v = false;
+	  }
+	}
+	else if (*p == 'Y') {
+	  if (fabs(y) < DBL_EPSILON) {
+	    y = i;
+	  }
+	  else {
+	    v = false;
+	  }
+	}
+	else if (*p == 'M') {
+	  if (fabs(m) < DBL_EPSILON) {
+	    m = i;
+	  }
+	  else {
+	    v = false;
+	  }
+	}
+	else if (*p == 'D') {
+	  if (fabs(d) < DBL_EPSILON) {
+	    d = i;
+	  }
+	  else {
+	    v = false;
+	  }
+	}
+	else {
+	  /* end of period string */
+	  v = false;
+	  break;
+	}
+      }
+    }
+
+    if (v) {
+      if (yp)
+	*yp = y;
+      if (mp)
+	*mp = m;
+      if (dp)
+	*dp = d;
+      if (wp)
+	*wp = w;
+#ifdef USE_ISO_TIME
+      if (hp)
+	*hp = h;
+      if (mip)
+	*mip = mi;
+      if (sp)
+	*sp = s;
+#endif
+      n = p - str;
+    }
+    else {
+      n = 0;
+    }
+  }
+
+  return n;
+} /* end of dt_parse_iso_period() */
+
+
+/*! */
+dt_t
+dt_today_date(void)
+{
+  if (dt_today < 1) {
+    time_t nowTime;
+
+    time(&nowTime);
+    dt_today = dt_from_struct_tm(localtime(&nowTime));
+  }
+  return dt_today;
+} /* end of dt_today_date() */
+
+
+/* https://stackoverflow.com/questions/13804095/get-the-time-zone-gmt-offset-in-c 
+*/
+int
+localtime_offset(void)
+{
+    time_t gmt, rawtime = time(NULL);
+    struct tm *ptm;
+
+#if !defined(WIN32)
+    struct tm gbuf;
+    ptm = gmtime_r(&rawtime, &gbuf);
+#else
+    ptm = gmtime(&rawtime);
+#endif
+    // Request that mktime() looksup dst in timezone database
+    ptm->tm_isdst = -1;
+    gmt = mktime(ptm);
+
+    return (int)difftime(rawtime, gmt);
+} /* end of localtime_offset() */
 
 
 #ifdef TESTCODE

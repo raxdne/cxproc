@@ -1,7 +1,7 @@
 /*
   cxproc - Configurable Xml PROCessor
 
-  Copyright (C) 2006..2020 by Alexander Tenbusch
+  Copyright (C) 2006..2024 by Alexander Tenbusch
 
   This program is free software; you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -21,18 +21,26 @@
 
 #include <pie/pie_text_blocks.h>
 
-#define PARENTSTRING_LENGTH_MAX 20 /* maximum string length for generated parent header string */
-
-#define CXP_PIE_URL (BAD_CAST "http://www.tenbusch.info/pie")
-
 extern xmlDocPtr
 pieProcessPieNode(xmlNodePtr pndMakePie, cxpContextPtr pccArg);
 
-extern xmlChar *
-pieGetParentHeaderStr(xmlNodePtr pndN);
+extern xmlNodePtr
+pieGetSelfAncestorNodeList(xmlNodePtr pndArg, xmlChar *pucArgId);
 
 extern xmlChar *
 pieGetAncestorContextStr(xmlNodePtr pndArg);
+
+extern BOOL_T
+pieWeightXPathInDoc(xmlDocPtr pdocArg, xmlChar *pucArg);
+
+extern BOOL_T
+pieWeightRegExpInDoc(xmlDocPtr pdocArg, xmlChar *pucArg);
+
+extern BOOL_T
+pieWeightWordsInBlocks(xmlDocPtr pdocArg, xmlChar *pucArg);
+
+extern xmlNodePtr
+pieTextInfo(xmlNodePtr pndParent);
 
 extern void
 pieTextCleanup(void);

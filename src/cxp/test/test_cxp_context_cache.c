@@ -1,7 +1,7 @@
 /*
   cxproc - Configurable Xml PROCessor
 
-  Copyright (C) 2006..2020 by Alexander Tenbusch
+  Copyright (C) 2006..2024 by Alexander Tenbusch
 
   This program is free software; you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -122,10 +122,10 @@ cxpCtxtCacheTest(cxpContextPtr pccArg)
     else if (cxpCtxtCacheGetResNode(pccT,BAD_CAST"cache-12") != prnTT) {
       printf("Error 12\n");
     }
-    else if (xmlStrEqual(cxpCtxtCacheGetBuffer(pccT, BAD_CAST "cache-12"), pucTextAlpha) == FALSE) {
+    else if (xmlStrEqual(cxpCtxtCacheGetBuffer(pccT, BAD_CAST "cache-12"), pucTextAlpha) == 0) {
       printf("Error 13\n");
     }
-    else if (xmlStrEqual(cxpCtxtCacheGetBuffer(pccT, BAD_CAST "cache-11"), pucTextAlpha) == TRUE) {
+    else if (xmlStrEqual(cxpCtxtCacheGetBuffer(pccT, BAD_CAST "cache-11"), pucTextAlpha) == 1) {
       printf("Error 15\n");
     }
     else if (cxpCtxtCacheEnable(pccT, FALSE) == TRUE) {

@@ -33,8 +33,16 @@ Debug Runtime (Redistribution **is not** permitted)
 
 Release Runtime (s. `C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Redist\MSVC\v142`)
 
-    robocopy "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Redist\MSVC\14.26.28720\onecore\x86\Microsoft.VC142.CRT" "C:\UserData\Develop\cxproc-build\trunk\x86-windows-dynamic\bin" vcruntime140.dll
-    robocopy "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Redist\MSVC\14.26.28720\onecore\x86\Microsoft.VC142.CRT" "%CXP_TARGET%\www\cgi-bin" vcruntime140.dll
+    robocopy "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Redist\MSVC\14.29.30133\x64\Microsoft.VC142.CRT" "%CXP_TARGET%\bin" *.*
+    robocopy "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Redist\MSVC\14.29.30133\x64\Microsoft.VC142.CRT" "%CXP_TARGET%\www\cgi-bin" *.*
+
+### Library Front Ends
+
+	robocopy "C:\UserData\Develop\vcpkg\packages\sqlite3_x64-windows\bin" "%DIR_BIN%" *.exe
+	robocopy "C:\UserData\Develop\vcpkg\packages\cmark_x64-windows\tools\cmark" "%DIR_BIN%" *.exe
+	robocopy "C:\UserData\Develop\vcpkg\packages\libxslt_x64-windows\tools\libxslt" "%DIR_BIN%" *.exe
+	robocopy "C:\UserData\Develop\vcpkg\packages\libxml2_x64-windows\bin" "%DIR_BIN%" *.exe
+	robocopy "C:\UserData\Develop\vcpkg\packages\curl_x64-windows\bin" "%DIR_BIN%" *.exe
 
 ## Apache 2.4
 

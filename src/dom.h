@@ -1,7 +1,7 @@
 /*
   cxproc - Configurable Xml PROCessor
 
-  Copyright (C) 2006..2020 by Alexander Tenbusch
+  Copyright (C) 2006..2024 by Alexander Tenbusch
 
   This program is free software; you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -22,7 +22,19 @@
 
 #include <res_node/res_node.h>
 
-#define IS_NODE__XSL(NODE,NAME) (NODE != NULL && NODE->type == XML_ELEMENT_NODE && NODE->ns != NULL && NODE->ns->prefix != NULL && xmlStrEqual(NODE->ns->prefix,BAD_CAST "xsl") && NODE->name != NULL && (NAME==NULL || xmlStrEqual(NODE->name,BAD_CAST NAME)))
+#define NAME_META BAD_CAST "meta"
+
+#define NAME_ERROR BAD_CAST "error"
+
+#define NAME_INFO BAD_CAST "info"
+
+#define IS_NODE_META(NODE) (IS_NODE(NODE,NAME_META))
+
+#define IS_NODE_ERROR(NODE) (IS_NODE(NODE,NAME_ERROR))
+
+#define IS_NODE_INFO(NODE) (IS_NODE(NODE,NAME_INFO))
+
+#define IS_NODE__XSL(NODE,NAME) (NODE != NULL && NODE->type == XML_ELEMENT_NODE && NODE->ns != NULL && NODE->ns->prefix != NULL && xmlStrEqual(NODE->ns->prefix,BAD_CAST "xsl") && NODE->name != NULL && xmlStrEqual(NODE->name,BAD_CAST NAME))
 
 #define IS_NODE_XSL_STYLESHEET(NODE) (IS_NODE__XSL(NODE,"stylesheet"))
 
@@ -40,17 +52,11 @@ domDocFromNodeNew(xmlNodePtr pndArg);
 extern RN_MIME_TYPE
 domMimeType(xmlDocPtr pdocArg);
 
-extern xmlNodePtr
-domGetFollowingNode(xmlNodePtr pndArg, xmlChar *pucName);
-
 extern xmlXPathObjectPtr
 domGetXPathNodeset(xmlDocPtr pdocArg, xmlChar *pucArg);
 
 extern xmlDocPtr
 domGetXPathDoc(xmlDocPtr pdocArg, xmlChar *pucArg);
-
-extern BOOL_T
-domWeightXPathInDoc(xmlDocPtr pdocArg, xmlChar *pucArg);
 
 extern void
 domUnsetPropFileLocator(xmlNodePtr pndArg);
@@ -61,18 +67,26 @@ domSetPropFileLocator(xmlNodePtr pndArg, xmlChar *pucArg);
 extern void
 domSetPropFileXpath(xmlNodePtr pndArg, xmlChar *pucArgName, xmlChar *pucArgPrefix);
 
+#ifdef DEBUG
 extern int
 domPutNodeString(FILE *out, xmlChar *pucArgMessage, xmlNodePtr pndArg);
 
 extern int
 domPutDocString(FILE *out, xmlChar *pucArgMessage, xmlDocPtr pdocArg);
 
-#ifdef DEBUG
 extern BOOL_T
 domPutNodeGraphvizString(char *pchNameFile, xmlNodePtr pndArg, int iArgDepth);
 
 extern void
 domPutNodeGraphvizStringRecursive(FILE *out, xmlNodePtr pndArg, int iArgDepth);
+#else
+
+/* some dummy macros */
+
+#define domPutNodeString(F, M, N)
+
+#define domPutDocString(F, M, D)
+
 #endif
 
 extern index_t 
@@ -86,6 +100,9 @@ domGetFirstChild(xmlNodePtr pndArg, xmlChar *pucNameElement);
 
 extern xmlChar *
 domGetPropValuePtr(xmlNodePtr pndArg, xmlChar *pucNameAttr);
+
+extern xmlChar *
+domGetAncestorPropValuePtr(xmlNodePtr pndArg, xmlChar *pucNameAttr);
 
 extern void
 domUnsetPropAll(xmlNodePtr pndArg);
@@ -105,11 +122,26 @@ domNodeIsAttribute(xmlNodePtr pndArg);
 extern BOOL_T
 domNodeIsDescendant(xmlNodePtr pndArgTop, xmlNodePtr pndArg);
 
+extern xmlChar*
+domNodeListGetString(xmlNodePtr pndArg, xmlChar* pucArg);
+
+extern void 
+domNodeDumpMemoryEnc(xmlNodePtr pndArg, xmlChar **ppucArg, int *piArg, const char *pcArg);
+
+extern int
+domGetPropInt(xmlNodePtr pndArg, xmlChar *pucNameAttr, int iDefault);
+
 extern BOOL_T
 domGetPropFlag(xmlNodePtr pndArg, xmlChar *pucNameAttr, BOOL_T fDefault);
 
 extern BOOL_T
+domGetAncestorsPropFlag(xmlNodePtr pndArg, xmlChar *pucNameAttr, BOOL_T fDefault);
+
+extern BOOL_T
 domPropIsEqual(xmlNodePtr pndArg, xmlChar *pucNameAttr, xmlChar *pucValueAttr);
+
+extern xmlAttrPtr
+domCopyPropList(xmlNodePtr target, xmlNodePtr cur);
 
 extern xmlNodePtr
 domGetNextNode(xmlNodePtr pndArg, xmlChar *pucNameElement);
@@ -122,9 +154,6 @@ domSetNsRecursive(xmlNodePtr pndArg, xmlNsPtr ns);
 
 extern void
 domUnsetNs(xmlNodePtr pndArg);
-
-extern BOOL_T
-_domTransferNsTo(xmlNodePtr pndArg, xmlDocPtr pdocArg);
 
 extern BOOL_T
 domNodesAreEqual(xmlNodePtr pndA, xmlNodePtr pndB);
@@ -140,9 +169,6 @@ domSetPropEat(xmlNodePtr pndArg, xmlChar *pucArg, xmlChar *pucValue);
 
 extern void
 domIncrProp(xmlNodePtr pndArg, xmlChar *pucArg, int iValue);
-
-extern void
-domIncrPropRecursive(xmlNodePtr pndArg, xmlChar *pucArg, int iArg);
 
 extern xmlChar *
 domGetXslOutputMethod(xmlDocPtr pdocArg);
@@ -160,20 +186,17 @@ domIsTreeOverlapping(xmlNodePtr pndArgA, xmlNodePtr pndArgB);
 extern BOOL_T
 domNodeHasAncestor(xmlNodePtr pndArg, xmlChar* pucArg);
 
+extern BOOL_T
+domNodeHasChild(xmlNodePtr pndArg, xmlChar* pucArg);
+
 extern xmlNodePtr
 domValidateTree(xmlNodePtr pndArg);
 
 extern xmlNodePtr
 domAddNodeToError(xmlDocPtr pdocArg, xmlNodePtr pndArg);
 
-extern void
-domChangeURL(xmlDocPtr pdocArg, resNodePtr pccArg);
-
 extern BOOL_T
 domDocIsHtml(xmlDocPtr pdocArg);
-
-extern BOOL_T
-isEmptyTextNode(xmlNodePtr pndArg);
 
 extern xmlNodePtr
 domNodeGrepNew(xmlNodePtr pndArg, xmlChar *pucArgGrep);

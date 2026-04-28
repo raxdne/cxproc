@@ -1,7 +1,7 @@
 /*
   cxproc - Configurable Xml PROCessor
 
-  Copyright (C) 2006..2020 by Alexander Tenbusch
+  Copyright (C) 2006..2024 by Alexander Tenbusch
 
   This program is free software; you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -29,7 +29,6 @@
 #include <libxml/xmlversion.h>
 #include <libxml/HTMLtree.h>
 #include <libxml/parser.h>
-#include <libxml/uri.h>
 
 #include <libxslt/xslt.h>
 #include <libxslt/xsltutils.h>
@@ -55,8 +54,6 @@
 #include <cxp/cxp_dir.h>
 #include "dom.h"
 
-#define NAME_ROOT (BAD_CAST "CXP_ROOT")
-
 /*! creates a new empty cxproc Context
 
 \return pointer to new allocated context
@@ -78,40 +75,6 @@ cxpCtxtNew(void)
     pccResult->level_set = -1;
     cxpCtxtCacheEnable(pccResult,FALSE);
     time(&(pccResult->system_zeit));
-
-    /*!\todo cxpCtxtEnvGetValueByName(NULL, BAD_CAST"CXP_DATE")*/
-#if 0
-    pucEnvDate = cxpCtxtEnvGetValueByName(pccArg, BAD_CAST"CXP_DATE");
-    fResult = (UpdateToday(pucEnvDate) > 0);
-    xmlFree(pucEnvDate);
-
-    if (tzOffsetToUTC == 9999) {
-      xmlChar *pucEnv;
-
-      /* default timezone of runtime environment (shell, HTTP Server) */
-      if ((pucEnv = cxpCtxtEnvGetValueByName(pccArg, BAD_CAST "CXP_TZ")) || (pucEnv = cxpCtxtEnvGetValueByName(pccArg, BAD_CAST "TZ"))) {
-	tzOffsetToUTC = (int)(60.0f * tzGetOffset(tzGetNumber(pucEnv)));
-      }
-      else {
-#ifdef _MSC_VER
-	// s. http://stackoverflow.com/questions/12112419/getting-windows-time-zone-information-c-mfc
-	// Get the timezone info.
-	//    TIME_ZONE_INFORMATION TimeZoneInfo;
-	//    GetTimeZoneInformation(&TimeZoneInfo);
-
-	// https://msdn.microsoft.com/en-us/library/windows/desktop/ms724318(v=vs.85).aspx
-	//PDYNAMIC_TIME_ZONE_INFORMATION pTimeZoneInformation;
-	DYNAMIC_TIME_ZONE_INFORMATION TimeZoneInformation;
-	GetDynamicTimeZoneInformation(&TimeZoneInformation);
-
-	tzOffsetToUTC = -TimeZoneInformation.Bias;
-#else
-	tzOffsetToUTC = 0;
-#endif
-      }
-    }
-
-#endif
   }
   else {
     //cxpCtxtLogPrint(pccArg, 0, "Out of memory at cxpCtxtDup()");
@@ -175,7 +138,7 @@ cxpCtxtOutputSaveFormat(cxpContextPtr pccArg,resNodePtr prnOut,xmlDocPtr pdocArg
       */
       if (domDocIsHtml(pdocArgOutput)) {
 	/* workaround because htmlSaveFileFormat() skips the DTD nodes */
-	/*!\todo HTML Doctype fputs("<!DOCTYPE html>\n", stdout); problems with XHTTP request CgiPiejQEditor.cxp */
+	/*!\bug HTML Doctype fputs("<!DOCTYPE html>\n", stdout); problems with XHTTP request CgiPiejQEditor.cxp */
 #ifdef HAVE_CGI
 	if (resNodeIsStd(prnOut)) {
 	  fflush(stdout);
@@ -362,25 +325,34 @@ cxpCtxtSaveFileNode(cxpContextPtr pccArg,xmlNodePtr pndArg,xmlDocPtr pdocArgOutp
     }
   }
   else if (resNodeGetType(prnOutput) == rn_type_stdout) {
-    /* s. RFC 1806 */
-    xmlChar *pucAttrType = domGetPropValuePtr(pndArg,BAD_CAST "type");
-    xmlChar *pucAttrDisposition = domGetPropValuePtr(pndArg,BAD_CAST "disposition");
-    printf("Content-Type: ");
-    if (pucAttrType && xmlStrlen(pucAttrType)>5) {
-      printf("%s;",pucAttrType);
-    }
-    else if (IS_NODE_XML(pndArg)) {
-      printf(domDocIsHtml(pdocArgOutput) ? "text/html;" : "text/xml;");
+    xmlChar *pucAttrStatus = domGetPropValuePtr(pndArg,BAD_CAST "status");
+    if (STR_IS_NOT_EMPTY(pucAttrStatus)) {
+      printf("Status: %s\r\n",pucAttrStatus);
+      if (STR_IS_NOT_EMPTY(pucArgOutput)) {
+	puts((const char *)pucArgOutput);
+      }
     }
     else {
-      printf("text/plain;");
-    }
-    printf(" charset=UTF-8\n");
+      /* s. RFC 1806 */
+      xmlChar *pucAttrType = domGetPropValuePtr(pndArg,BAD_CAST "type");
+      xmlChar *pucAttrDisposition = domGetPropValuePtr(pndArg,BAD_CAST "disposition");
+      printf("Content-Type: ");
+      if (pucAttrType && xmlStrlen(pucAttrType)>5) {
+	printf("%s;",pucAttrType);
+      }
+      else if (IS_NODE_XML(pndArg)) {
+	printf(domDocIsHtml(pdocArgOutput) ? "text/html;" : "text/xml;");
+      }
+      else {
+	printf("text/plain;");
+      }
+      printf(" charset=UTF-8\n");
 
-    if (pucAttrDisposition && xmlStrlen(pucAttrDisposition)>5) {
-      printf("Content-Disposition: %s\n",pucAttrDisposition);
+      if (pucAttrDisposition && xmlStrlen(pucAttrDisposition)>5) {
+	printf("Content-Disposition: %s\n",pucAttrDisposition);
+      }
+      printf("Content-Description: Dynamic cxproc content\n\n");
     }
-    printf("Content-Description: Dynamic cxproc content\n\n");
   }
   fflush(stdout); /*! because problems with VC++ (reverse order in stdout) */
 #else
@@ -575,10 +547,14 @@ cxpCtxtLogPrintDoc(cxpContextPtr pccArg, int level, const char *pucArgLabel, xml
     else if (pdocArg != NULL && pdocArg->URL != NULL) {
       cxpCtxtLogPrint(pccArg,level, (const char *)pdocArg->URL);
     }
+#ifdef DEBUG
     domPutDocString(stderr,NULL,pdocArg); /*!\todo use pccArg->fhLog for output */
+#endif
   }
   else {
+#ifdef DEBUG
     domPutDocString(stderr,BAD_CAST pucArgLabel,pdocArg);
+#endif
   }
 } /* end of cxpCtxtLogPrintDoc() */
 
@@ -600,6 +576,7 @@ cxpCtxtFromAttr(cxpContextPtr pccArg, xmlNodePtr pndArg)
   prnT = cxpAttributeLocatorResNodeNew(pccArg, pndArg, NULL);
   if (prnT) { /* new locator context found */
     if (resPathIsEquivalent(resNodeGetNameNormalized(cxpCtxtLocationGet(pccArg)), resNodeGetNameNormalized(prnT)) == FALSE) {
+      cxpCtxtLogPrint(pccArg, 3, "New context due to location '%s'", resNodeGetNameNormalized(prnT));
       pccResult = cxpCtxtNew();
       cxpCtxtLocationSet(pccResult, prnT);
     }
@@ -615,12 +592,24 @@ cxpCtxtFromAttr(cxpContextPtr pccArg, xmlNodePtr pndArg)
     else {
       if (pccResult == pccArg) {
 	pccResult = cxpCtxtNew();
+	cxpCtxtLogPrint(pccArg, 3, "New context due to log level '%s'", pucAttr);
       }
       cxpCtxtLogSetLevel(pccResult, iAttr);
     }
   }
 
-  /*\todo detect searchpath */
+#ifdef HAVE_CGI
+  cxpCtxtLogPrint(pccArg, 1, "WARN: '%s' NOT to be used in CGI mode (CXP_PATH only) !!!", pucAttr);
+#else
+  pucAttr = domGetPropValuePtr(pndArg, BAD_CAST "searchpath");
+  if (STR_IS_NOT_EMPTY(pucAttr)) {
+    /* detect additional searchpath */
+    if ((prnT = resNodeStrNew(pucAttr))) {
+      cxpCtxtSearchSet(pccArg, prnT);
+      resNodeListFree(prnT);
+    }
+  }
+#endif
 
   //    cxpCtxtSetReadonly(pccResult,domGetPropFlag(pndArg,BAD_CAST "readonly",FALSE));
 
@@ -665,15 +654,12 @@ cxpCtxtFree(cxpContextPtr pccArg)
   if (pccArg) {
     cxpContextPtr pccT;
 
-    if ((pccT = cxpCtxtGetChild(pccArg))) {
-      cxpContextPtr pccNext = NULL;
+    if ((pccT = cxpCtxtGetNext(pccArg))) {
+      cxpCtxtFree(pccT);
+    }
 
-      while (pccT) {
-	pccNext = pccT->next;
-	cxpCtxtFree(pccT);
-	pccT = pccNext;
-      }
-      pccArg->children = NULL;
+    if ((pccT = cxpCtxtGetChild(pccArg))) {
+      cxpCtxtFree(pccT);
     }
 
     if (pccArg->ppcEnv) {
@@ -709,6 +695,12 @@ cxpCtxtFree(cxpContextPtr pccArg)
 #ifdef HAVE_PCRE2
     if (pccArg->re_each) {
       pcre2_code_free(pccArg->re_each);
+    }
+#endif
+
+#ifdef HAVE_JS
+    if (pccArg->pDukContext) {
+      duk_destroy_heap(pccArg->pDukContext);
     }
 #endif
 
@@ -783,10 +775,8 @@ cxpCtxtRootSet(cxpContextPtr pccArg, resNodePtr prnArg)
       pccArg->prnRoot = NULL;
     }
 
-    pucRoot = cxpCtxtEnvGetValueByName(pccArg,NAME_ROOT);
 #ifdef HAVE_CGI
-    if (((pucDocumentRoot = cxpCtxtEnvGetValueByName(pccArg, BAD_CAST"DOCUMENT_ROOT")) == NULL || xmlStrlen(pucDocumentRoot) < 1)
-      && ((pucDocumentRoot = cxpCtxtEnvGetValueByName(pccArg, NAME_ROOT)) == NULL || xmlStrlen(pucDocumentRoot) < 1)) {
+    if ((pucDocumentRoot = cxpCtxtEnvGetValueByName(pccArg, BAD_CAST"DOCUMENT_ROOT")) == NULL || xmlStrlen(pucDocumentRoot) < 1) {
       cxpCtxtLogPrint(pccArg, 1, "No usable value of '%s' '%s'", BAD_CAST"DOCUMENT_ROOT", pucDocumentRoot);
     }
     else if (resPathIsRelative(pucDocumentRoot)) {
@@ -803,8 +793,8 @@ cxpCtxtRootSet(cxpContextPtr pccArg, resNodePtr prnArg)
       resNodeFree(prnDocumentRoot);
       prnDocumentRoot = NULL;
     }
-    else if (STR_IS_EMPTY(pucRoot)) {
-      cxpCtxtLogPrint(pccArg, 4, "No usable value of '%s' using value of '%s'", NAME_ROOT, BAD_CAST"DOCUMENT_ROOT");
+    else if ((pucRoot = cxpCtxtEnvGetValueByName(pccArg,NAME_ROOT)) == NULL || xmlStrlen(pucRoot) < 1) {
+      cxpCtxtLogPrint(pccArg, 4, "No usable value of '%s', using value of '%s'", NAME_ROOT, BAD_CAST"DOCUMENT_ROOT");
       prnRoot = resNodeDup(prnDocumentRoot, RN_DUP_THIS);
     }
     else if ((prnRoot = resNodeRootNew(NULL,pucRoot)) == NULL) {
@@ -820,6 +810,7 @@ cxpCtxtRootSet(cxpContextPtr pccArg, resNodePtr prnArg)
     /*!\todo handle single file CXP_ROOT */
     resNodeFree(prnDocumentRoot);
 #else
+    pucRoot = cxpCtxtEnvGetValueByName(pccArg,NAME_ROOT);
     if (STR_IS_EMPTY(pucRoot)) {
       cxpCtxtLogPrint(pccArg, 3, "No usable value of '%s'", NAME_ROOT);
       prnRoot = prnArg;
@@ -906,6 +897,7 @@ cxpCtxtAccessIsPermitted(cxpContextPtr pccArg, resNodePtr prnArg)
 {
   if (prnArg) {
     resNodePtr prnT;
+    cxpContextPtr pccI;
 
     switch (resNodeGetType(prnArg)) {
     case rn_type_stdout:
@@ -966,20 +958,22 @@ cxpCtxtAccessIsPermitted(cxpContextPtr pccArg, resNodePtr prnArg)
 
     /* check for search directory context */
 
-    for (prnT = cxpCtxtSearchGet(pccArg); prnT; prnT = resNodeGetNext(prnT)) {
-      if (resNodeIsDir(prnT)
-	&& resPathIsDescendant(resNodeGetNameNormalized(prnT), resNodeGetNameNormalized(prnArg))) {
-	/* OK */
+    for (pccI = pccArg; pccI; pccI = cxpCtxtGetParent(pccI)) {
+      for (prnT = cxpCtxtSearchGet(pccI); prnT; prnT = resNodeGetNext(prnT)) {
+	if (resNodeIsDir(prnT)
+	  && resPathIsDescendant(resNodeGetNameNormalized(prnT), resNodeGetNameNormalized(prnArg))) {
+	  /* OK */
 #ifdef DEBUG
-	cxpCtxtLogPrint(pccArg, 1, "Access to '%s' as descendant of search directory '%s' allowed", resNodeGetNameNormalized(prnArg), resNodeGetNameNormalized(prnT));
+	  cxpCtxtLogPrint(pccArg, 1, "Access to '%s' as descendant of search directory '%s' allowed", resNodeGetNameNormalized(prnArg), resNodeGetNameNormalized(prnT));
 #endif
-	return TRUE;
-      }
+	  return TRUE;
+	}
 #ifdef DEBUG
-      else {
-	cxpCtxtLogPrint(pccArg, 1, "Access to '%s' as descendant of search directory '%s' denied", resNodeGetNameNormalized(prnArg), resNodeGetNameNormalized(prnT));
-      }
+	else {
+	  cxpCtxtLogPrint(pccArg, 1, "Access to '%s' as descendant of search directory '%s' denied", resNodeGetNameNormalized(prnArg), resNodeGetNameNormalized(prnT));
+	}
 #endif
+      }
     }
     resNodeSetError(prnArg, rn_error_access,"access"); /* by default */
   }
@@ -1119,37 +1113,28 @@ cxpCtxtProcessGetNode(cxpContextPtr pccArg)
 xmlChar*
 cxpCtxtProcessDump(cxpContextPtr pccArg)
 {
-  xmlChar* pucResult = NULL;
+  xmlChar *pucResult = NULL;
 
   if (pccArg) {
-    xmlNodePtr pndT = NULL;
+    int iLength = 0;
 
     if (pccArg->pndContextNode) {
-      pndT = pccArg->pndContextNode;
+      domNodeDumpMemoryEnc(pccArg->pndContextNode, &pucResult, &iLength, "UTF-8");
     }
     else if (pccArg->pdocContextNode) {
-      pndT = xmlDocGetRootElement(pccArg->pdocContextNode);
+      xmlDocDumpMemoryEnc(pccArg->pdocContextNode, &pucResult, &iLength, "UTF-8");
     }
 
-    if (pndT) {
-      xmlBufferPtr buffer;
-
-      buffer = xmlBufferCreate();
-      if (buffer) {
-        int size;
-
-        size = xmlNodeDump(buffer, NULL, pndT, 0, 1);
-        if (size > 0) {
-	  pucResult = xmlBufferDetach(buffer);
-        }
-        xmlBufferFree(buffer);
-      }
+    if (iLength > 0 && pucResult != NULL) {
+      /* success */
     }
     else {
-      printf("Error cxpCtxtProcessDump() ...\n");
+      cxpCtxtLogPrint(pccArg, 1, "Error xmlDocDumpMemoryEnc()");
     }
   }
-
+  else {
+    cxpCtxtLogPrint(pccArg, 1, "Error cxpCtxtProcessDump() ...\n");
+  }
   return pucResult;
 } /* end of cxpCtxtProcessDump() */
 
@@ -1218,60 +1203,50 @@ cxpCtxtLogInfo(cxpContextPtr pccArg)
 {
   if (pccArg) {
     int i;
+    int j;
+    cxpContextPtr pccIter;
 
     cxpCtxtLogPrint(pccArg, 1, "Location: '%s'", resNodeGetNameNormalized(pccArg->prnLocation));
 
-      for (i = 0; i < cxpCtxtCliGetCount(pccArg); i++) {
-	cxpCtxtLogPrint(pccArg, 1, "Arg %i: '%s'", i, cxpCtxtCliGetValue(pccArg,i));
-      }
-
-      for (i = 0; i < cxpCtxtEnvGetCount(pccArg); i++) {
-	xmlChar *pucN;
-	xmlChar *pucV;
-
-	pucN = cxpCtxtEnvGetName(pccArg, i);
-	pucV = cxpCtxtEnvGetValue(pccArg, i);
-	cxpCtxtLogPrint(pccArg, 1, "Env: '%s' = '%s'", pucN, pucV);
-	xmlFree(pucV);
-	xmlFree(pucN);
-      }
-
-#if 0
-    if (pccArg->in == stdin) {
-      cxpCtxtLogPrint(pccArg, 1, "\t in = 'stdin'");
-    }
-    else {
-      cxpCtxtLogPrint(pccArg, 1, "\t in = '%0x'", pccArg->in);
+    j = cxpCtxtCliGetCount(pccArg);
+    cxpCtxtLogPrint(pccArg, 1, "%i program arguments", j);
+    for (i = 0; i < j; i++) { 
+      cxpCtxtLogPrint(pccArg, 1, "Arg %i: '%s'", i, cxpCtxtCliGetValue(pccArg, i)); 
     }
 
-    if (pccArg->out == stdout) {
-      cxpCtxtLogPrint(pccArg, 1, "\tout = 'stdout'");
-    }
-    else {
-      cxpCtxtLogPrint(pccArg, 1, "\tout = '%0x'", pccArg->out);
+    j = cxpCtxtEnvGetCount(pccArg);
+    cxpCtxtLogPrint(pccArg, 1, "%i environment variables", j);
+    for (i = 0; i < j; i++) {
+      xmlChar *pucN;
+      xmlChar *pucV;
+
+      pucN = cxpCtxtEnvGetName(pccArg, i);
+      pucV = cxpCtxtEnvGetValue(pccArg, i);
+      cxpCtxtLogPrint(pccArg, 1, "Env: '%s' = '%s'", pucN, pucV);
+      xmlFree(pucV);
+      xmlFree(pucN);
     }
 
-    if (pccArg->log == stdout) {
-      cxpCtxtLogPrint(pccArg, 1, "\tlog = 'stdout'");
-    }
-    else {
-      cxpCtxtLogPrint(pccArg, 1, "\tlog = '%0x'", pccArg->log);
-    }
+    j = cxpCtxtCgiGetCount(pccArg);
+    cxpCtxtLogPrint(pccArg, 1, "%i CGI parameters", j);
+    for (i = 0; i < j; i++) {
+      xmlChar *pucN;
+      xmlChar *pucV;
 
-    if (pccArg->err == stderr) {
-      cxpCtxtLogPrint(pccArg, 1, "\terr = 'stderr'");
+      pucN = cxpCtxtCgiGetName(pccArg, i);
+      pucV = cxpCtxtCgiGetValue(pccArg, i);
+      cxpCtxtLogPrint(pccArg, 1, "CGI: '%s' = '%s'", pucN, pucV);
+      xmlFree(pucV);
+      xmlFree(pucN);
     }
-    else {
-      cxpCtxtLogPrint(pccArg, 1, "\terr = '%0x'", pccArg->err);
-    }
-#endif
 
     cxpCtxtLogPrintDoc(pccArg, 1, "\nContext DOM:", pccArg->pdocContextNode);
 
-    //cxpCtxtLogPrintDoc(pccArg, 1, "Context DOM:", pccArg->pndContextNode);
-
-    cxpCtxtLogPrintDoc(pccArg, 1, "Context DOM:", NULL);
-
+    cxpCtxtLogPrint(pccArg, 1, "childs are: ");
+    for (pccIter = pccArg->children; pccIter; pccIter = pccIter->children) {
+      cxpCtxtLogPrint(pccArg, 1, " '%0x'", pccIter);
+    }
+    
     return TRUE;
   }
   return FALSE;
@@ -1381,11 +1356,11 @@ cxpCtxtGetHostValueNamed(cxpContextPtr pccArgParent, const xmlChar *pucName)
 
   if (pucResult) {
 #ifdef DEBUG
-    PrintFormatLog(4, "host[%s]='%s'", pucName, pucResult);
+    cxpCtxtLogPrint(pccArgParent, 4, "host[%s]='%s'", pucName, pucResult);
 #endif
   }
   else {
-    PrintFormatLog(2, "No valid host variable named '%s'", pucName);
+    cxpCtxtLogPrint(pccArgParent, 2, "No valid host variable named '%s'", pucName);
   }
 
   return pucResult;

@@ -10,7 +10,7 @@
 </cxp:plain>
     <cxp:plain>
       <cxp:xml>
-	<cxp:dir verbosity="2" index="skip">
+	<cxp:dir verbosity="1" index="skip">
           <cxp:dir name="%DIR%"/>
 	</cxp:dir>
       </cxp:xml>

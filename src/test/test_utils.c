@@ -1,7 +1,7 @@
 /*
   cxproc - Configurable Xml PROCessor
    
-  Copyright (C) 2006..2020 by Alexander Tenbusch
+  Copyright (C) 2006..2024 by Alexander Tenbusch
 
   This program is free software; you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -27,6 +27,7 @@ utilsTest(void)
   int i;
   int n_ok;
   xmlChar *pucTest;
+  xmlChar buffer[BUFFER_LENGTH];
 
   n_ok=0;
   i=0;
@@ -175,6 +176,28 @@ utilsTest(void)
 
 
   if (RUNTEST) {
+    xmlChar mucBase64[BUFFER_LENGTH];
+    xmlChar mucResult[BUFFER_LENGTH];
+    size_t l = BUFFER_LENGTH;
+
+    i++;
+    printf("TEST %i in '%s:%i': base64 as block = ",i,__FILE__,__LINE__);
+    pucTest = xmlStrdup(BAD_CAST"iVBORw0K GgoAAAAN\nSUhEUgAA\r\nAfQAA\t\tAJEC ");
+
+    if (base64removespaces((char *)pucTest) != 33) {
+      printf("ERROR '%s'\n", pucTest);
+    }
+    else if (xmlStrEqual(BAD_CAST "iVBORw0KGgoAAAANSUhEUgAAAfQAAAJEC",pucTest) == FALSE) {
+      printf("ERROR '%s'\n", pucTest);
+    }
+    else {
+      n_ok++;
+      printf("OK\n");
+    }
+    xmlFree(pucTest);
+  }
+
+  if (RUNTEST) {
     xmlChar* pucError = xmlStrdup(BAD_CAST"=47=08=1=6H=7a=74 ");
     xmlChar* pucT = xmlStrdup(BAD_CAST"Der Almsee ist ein Bergsee im ober=F6sterreichischen Teil des Salzkammergutes im Gemeindegebiet von Gr=FCnau im Almtal, am Nordfu=DF des Toten Gebirges und liegt auf 589 m =FC. A.");
 
@@ -236,13 +259,13 @@ utilsTest(void)
     if (StringBeginsWith(NULL,NULL) == TRUE) {
       printf("ERROR 1\n");
     }
-    else if (StringBeginsWith("","") == TRUE) {
+    else if (StringBeginsWith((char *)"","") == TRUE) {
       printf("ERROR 2\n");
     }
-    else if (StringBeginsWith("Abc def ","Ab") == FALSE) {
+    else if (StringBeginsWith((char *)"Abc def ","Ab") == FALSE) {
       printf("ERROR 3\n");
     }
-    else if (StringBeginsWith(" AAA Abc def ","Ab") == TRUE) {
+    else if (StringBeginsWith((char *)" AAA Abc def ","Ab") == TRUE) {
       printf("ERROR 4\n");
     }
     else {
@@ -260,14 +283,17 @@ utilsTest(void)
     if (StringEndsWith(NULL,NULL) != NULL) {
       printf("ERROR 1\n");
     }
-    else if (StringEndsWith("","") != NULL) {
+    else if (StringEndsWith((char *)"","") != NULL) {
       printf("ERROR 2\n");
     }
-    else if (StringEndsWith("Abc def ","Ab") != NULL) {
+    else if (StringEndsWith((char *)"Abc def ","Ab") != NULL) {
       printf("ERROR 3\n");
     }
-    else if (StringEndsWith(" AAA Abc def"," def") == NULL) {
+    else if (StringEndsWith((char *)" AAA Abc def"," def") == NULL) {
       printf("ERROR 4\n");
+    }
+    else if (StringEndsWith((char *)" AAA Abc def hij  \t\t\n  ","ij") == NULL) {
+      printf("ERROR 5\n");
     }
     else {
       n_ok++;
@@ -305,6 +331,36 @@ utilsTest(void)
 
 
   if (RUNTEST) {
+
+    i++;
+    printf("TEST %i in '%s:%i': Strnstr() = ", i, __FILE__, __LINE__);
+
+    if (Strnstr(NULL,-1,NULL) != NULL) {
+      printf("ERROR 1\n");
+    }
+    else if (Strnstr(BAD_CAST "ABC", 3, BAD_CAST "") == NULL) {
+      printf("ERROR 2\n");
+    }
+    else if (Strnstr(BAD_CAST "ABC DEF", 7, BAD_CAST "DE") == NULL) {
+      printf("ERROR 3\n");
+    }
+    else if (Strnstr(BAD_CAST "AB AB ABC", -1, BAD_CAST "ABC") == NULL) {
+      printf("ERROR 3\n");
+    }
+    else if (Strnstr(BAD_CAST "AB:ABC", -1, BAD_CAST ":") == NULL) {
+      printf("ERROR 3\n");
+    }
+    else if (Strnstr(BAD_CAST "DE", 2, BAD_CAST "ABC DEF") != NULL) {
+      printf("ERROR 3\n");
+    }
+    else {
+      n_ok++;
+      printf("OK\n");
+    }
+  }
+
+
+  if (RUNTEST) {
     /* static references */
     xmlChar* pucTestA = BAD_CAST"invalid: &#; or &#x; or \\u \\U &#144;";
     xmlChar* pucTestB = BAD_CAST"valid: &#13; <= &#x21D2; <=> \\u21D2 => &#x2014; \\U2014";
@@ -326,7 +382,7 @@ utilsTest(void)
     else if ((pucResult2 = StringDecodeNumericCharsNew(pucTestA)) == NULL || xmlStrEqual(pucResult2, pucTestA) == FALSE) {
       printf("ERROR 3\n");
     }
-    else if ((pucResult3 = StringDecodeNumericCharsNew(pucTestB)) == NULL || xmlStrEqual(pucResult3, pucTestB) == TRUE || xmlStrlen(pucResult3) > xmlStrlen(pucTestB)) {
+    else if ((pucResult3 = StringDecodeNumericCharsNew(pucTestB)) == NULL || xmlStrEqual(pucResult3, pucTestB) != 0 || xmlStrlen(pucResult3) > xmlStrlen(pucTestB)) {
       printf("ERROR 4\n");
     }
     else {
@@ -411,6 +467,98 @@ utilsTest(void)
     xmlChar *pucTestB = xmlStrdup(BAD_CAST"'''");
     xmlChar *pucTestC = xmlStrdup(BAD_CAST"'abCüöä'kKkk\"");
     xmlChar *pucTestD = xmlStrdup(BAD_CAST"'abCüöäkKkk'");
+    xmlChar *pucTestE = xmlStrdup(BAD_CAST"  <abCüöäkKkk> \t   ");
+    xmlChar *pucTestF = xmlStrdup(BAD_CAST"   <A>\n   ");
+
+    i++;
+    printf("TEST %i in '%s:%i':  = ", i, __FILE__, __LINE__);
+
+    if (StringRemovePairOfChars(NULL,'\0','\&') == TRUE) {
+      printf("ERROR 1\n");
+    }
+    else if (StringRemovePairOfChars(pucTest0,'\0','\&') == TRUE) {
+      printf("ERROR 2\n");
+    }
+    else if (StringRemovePairOfChars(pucTestA,'\'','\'') == FALSE || xmlStrlen(pucTestA) > 0) {
+      printf("ERROR 3\n");
+    }
+    else if (StringRemovePairOfChars(pucTestB,'\'','\'') == FALSE || xmlStrEqual(pucTestB, BAD_CAST"'") == FALSE) {
+      printf("ERROR 4\n");
+    }
+    else if (StringRemovePairOfChars(pucTestC,'\'','\'') == TRUE) {
+      printf("ERROR 5\n");
+    }
+    else if (StringRemovePairOfChars(pucTestD,'\'','\'') == FALSE || xmlStrEqual(pucTestD, BAD_CAST"abCüöäkKkk") == FALSE) {
+      printf("ERROR 6\n");
+    }
+    else if (StringRemovePairOfChars(pucTestE,'<','>') == FALSE || xmlStrEqual(pucTestE, BAD_CAST"abCüöäkKkk") == FALSE) {
+      printf("ERROR 7\n");
+    }
+    else if (StringRemovePairOfChars(pucTestF,'<','>') == FALSE || xmlStrlen(pucTestF) != 1) {
+      printf("ERROR 8\n");
+    }
+    else {
+      n_ok++;
+      printf("OK\n");
+    }
+    xmlFree(pucTestF);
+    xmlFree(pucTestE);
+    xmlFree(pucTestD);
+    xmlFree(pucTestC);
+    xmlFree(pucTestB);
+    xmlFree(pucTestA);
+    xmlFree(pucTest0);
+  }
+
+
+  if (RUNTEST) {
+    xmlChar *pucTest0 = xmlStrdup(BAD_CAST"");
+    xmlChar *pucTestA = xmlStrdup(BAD_CAST"\"\"");
+    xmlChar *pucTestB = xmlStrdup(BAD_CAST"\"A\"");
+    xmlChar *pucTestC = xmlStrdup(BAD_CAST"\"\"A\"\"");
+    xmlChar *pucTestD = xmlStrdup(BAD_CAST"\"AB\"\"CDE\"\" FGH\"");
+
+    i++;
+    printf("TEST %i in '%s:%i':  = ", i, __FILE__, __LINE__);
+
+    if (StringRemoveDoubleDoubleQuotes(NULL) == TRUE) {
+      printf("ERROR 1\n");
+    }
+    else if (StringRemoveDoubleDoubleQuotes(pucTest0) == TRUE) {
+      printf("ERROR 2\n");
+    }
+    else if (StringRemoveDoubleDoubleQuotes(pucTestA) == FALSE || xmlStrlen(pucTestA) != 1) {
+      printf("ERROR 3\n");
+    }
+    else if (StringRemoveDoubleDoubleQuotes(pucTestB) == TRUE || xmlStrlen(pucTestB) != 3) {
+      printf("ERROR 3\n");
+    }
+    else if (StringRemoveDoubleDoubleQuotes(pucTestC) == FALSE || xmlStrlen(pucTestC) != 3) {
+      printf("ERROR 3\n");
+    }
+    else if (StringRemoveDoubleDoubleQuotes(pucTestD) == FALSE || xmlStrlen(pucTestD) != 13) {
+      printf("ERROR 3\n");
+    }
+    else {
+      n_ok++;
+      printf("OK\n");
+    }
+    xmlFree(pucTestD);
+    xmlFree(pucTestC);
+    xmlFree(pucTestB);
+    xmlFree(pucTestA);
+    xmlFree(pucTest0);
+  }
+
+
+  if (RUNTEST) {
+    xmlChar *pucTest0 = xmlStrdup(BAD_CAST"");
+    xmlChar *pucTestA = xmlStrdup(BAD_CAST"''");
+    xmlChar *pucTestB = xmlStrdup(BAD_CAST"'''");
+    xmlChar *pucTestC = xmlStrdup(BAD_CAST"'abCüöä'kKkk\"");
+    xmlChar *pucTestD = xmlStrdup(BAD_CAST"'abCüöäkKkk'");
+    xmlChar *pucTestE = xmlStrdup(BAD_CAST"  abCüöäkKkk \t   ");
+    xmlChar *pucTestF = xmlStrdup(BAD_CAST"   A   ");
 
     i++;
     printf("TEST %i in '%s:%i':  = ", i, __FILE__, __LINE__);
@@ -433,10 +581,18 @@ utilsTest(void)
     else if (StringRemovePairQuotes(pucTestD) == FALSE || xmlStrEqual(pucTestD, BAD_CAST"abCüöäkKkk") == FALSE) {
       printf("ERROR 6\n");
     }
+    else if (StringRemovePairQuotes(pucTestE) == TRUE || xmlStrEqual(pucTestE, BAD_CAST"abCüöäkKkk") == FALSE) {
+      printf("ERROR 7\n");
+    }
+    else if (StringRemovePairQuotes(pucTestF) == TRUE || xmlStrlen(pucTestF) != 1) {
+      printf("ERROR 8\n");
+    }
     else {
       n_ok++;
       printf("OK\n");
     }
+    xmlFree(pucTestF);
+    xmlFree(pucTestE);
     xmlFree(pucTestD);
     xmlFree(pucTestC);
     xmlFree(pucTestB);
@@ -444,6 +600,70 @@ utilsTest(void)
     xmlFree(pucTest0);
   }
 
+
+  if (RUNTEST) {
+    int iA, iB;
+
+    i++;
+    printf("TEST %i in '%s:%i': ",i,__FILE__,__LINE__);
+    
+    getXmlBody(BAD_CAST"<abc/>",&iA,&iB);
+    if (iA==0 && iB==5) {
+      n_ok++;
+      printf("OK\n");
+    }
+    else {
+      printf("ERROR\n");
+    }
+  }
+
+  if (RUNTEST) {
+    int iA, iB;
+
+    i++;
+    printf("TEST %i in '%s:%i': ",i,__FILE__,__LINE__);
+    
+    getXmlBody(BAD_CAST"<abc>ABC</abc>", &iA, &iB);
+    if (iA==0 && iB==13) {
+      n_ok++;
+      printf("OK\n");
+    }
+    else {
+      printf("ERROR\n");
+    }
+  }
+
+  if (RUNTEST) {
+    int iA, iB;
+
+    i++;
+    printf("TEST %i in '%s:%i': ",i,__FILE__,__LINE__);
+    
+    getXmlBody(BAD_CAST"<abc>A<qers/>A</abc>", &iA, &iB);
+    if (iA==0 && iB==19) {
+      n_ok++;
+      printf("OK\n");
+    }
+    else {
+      printf("ERROR\n");
+    }
+  }
+
+  if (RUNTEST) {
+    int iA, iB;
+
+    i++;
+    printf("TEST %i in '%s:%i': ",i,__FILE__,__LINE__);
+    
+    getXmlBody(BAD_CAST"<?xml version=\"1.0\" encoding=\"UTF-8\"?>  <abc>A<qers/>A</abc>", &iA, &iB);
+    if (iA==40 && iB==59) {
+      n_ok++;
+      printf("OK\n");
+    }
+    else {
+      printf("ERROR\n");
+    }
+  }
 
   if (RUNTEST) {
     xmlChar *pucTest0 = NULL;
@@ -477,21 +697,421 @@ utilsTest(void)
     double longit;
 
     i++;
-    printf("TEST %i in '%s:%i': GetPositionISO6709() ",i,__FILE__,__LINE__);
-    if (GetPositionISO6709("993911.2+1909029.3/",&latit,&longit) != 0
-	&& GetPositionISO6709("473911.2+00929.3/",&latit,&longit)==0
-	&& GetPositionISO6709("+4739+00929/",&latit,&longit)==0 && fabs(latit - 47.65) < 0.001 && fabs(longit - 9.483) < 0.001
-	&& GetPositionISO6709("+3112+12130/",&latit,&longit)==0 && fabs(latit - 31.2) < 0.001 && fabs(longit - 121.5) < 0.001) {
+    printf("TEST %i in '%s:%i': ",i,__FILE__,__LINE__);
+
+    if (GetPositionISO6709("993911.2+1909029.3/",&latit,&longit) == 0) {
+      printf("ERROR GetPositionISO6709(): range invalid\n");
+    }
+    else if (GetPositionISO6709("+4851+00221",&latit,&longit) != 0 || fabs(latit - 48.850) > 0.001 || fabs(longit - 2.350) > 0.001) {
+      printf("ERROR GetPositionISO6709(): format %.3f %.3f\n", latit, longit);
+    }
+    else if (GetPositionISO6709("+4851-00221",&latit,&longit) != 0 || fabs(latit - 48.850) > 0.001 || fabs(longit + 2.350) > 0.001) {
+      printf("ERROR GetPositionISO6709(): format %.3f %.3f\n", latit, longit);
+    }
+    else {
       n_ok++;
       printf("OK\n");
     }
-    else {
+  }
+
+#if 0
+  if (RUNTEST) {
+    i++;
+    printf("TEST %i in '%s:%i': ", i, __FILE__, __LINE__);
+
+    xmlStrPrintf(buffer, BUFFER_LENGTH, "20091011,17,1122,33");
+
+    if (_StringConcatNextDate(buffer) == NULL || xmlStrEqual(buffer, BAD_CAST"20091017,1122,33") == FALSE) {
       printf("ERROR\n");
+    }
+    else if (_StringConcatNextDate(buffer) == NULL || xmlStrEqual(buffer, BAD_CAST"20091122,33") == FALSE) {
+      printf("ERROR\n");
+    }
+    else if (_StringConcatNextDate(buffer) == NULL || xmlStrEqual(buffer, BAD_CAST"20091133") == FALSE) {
+      printf("ERROR\n");
+    }
+    else {
+      n_ok++;
+      printf("OK\n");
     }
   }
 
   if (RUNTEST) {
-    xmlChar *pucTest;
+    i++;
+    printf("TEST %i in '%s:%i': ", i, __FILE__, __LINE__);
+
+    xmlStrPrintf(buffer, BUFFER_LENGTH, "20091011,20101011");
+
+    if (xmlStrEqual(_StringConcatNextDate(buffer), BAD_CAST"20101011") == FALSE) {
+      printf("ERROR\n");
+    }
+    else {
+      n_ok++;
+      printf("OK\n");
+    }
+  }
+
+  if (RUNTEST) {
+    i++;
+    printf("TEST %i in '%s:%i': ", i, __FILE__, __LINE__);
+
+    xmlStrPrintf(buffer, BUFFER_LENGTH, "20121015,20130613,0701,05");
+
+    if (xmlStrEqual(_StringConcatNextDate(buffer), BAD_CAST"20130613,0701,05") == FALSE) {
+      printf("ERROR\n");
+    }
+    else if (xmlStrEqual(_StringConcatNextDate(buffer), BAD_CAST"20130701,05") == FALSE) {
+      printf("ERROR\n");
+    }
+    else if (xmlStrEqual(_StringConcatNextDate(buffer), BAD_CAST"20130705") == FALSE) {
+      printf("ERROR\n");
+    }
+    else {
+      n_ok++;
+      printf("OK\n");
+    }
+  }
+
+  if (RUNTEST) {
+    i++;
+    printf("TEST %i in '%s:%i': ", i, __FILE__, __LINE__);
+
+    xmlStrPrintf(buffer, BUFFER_LENGTH, "20121208,201306");
+
+    if (_StringConcatNextDate(buffer) != NULL) {
+      printf("ERROR\n");
+    }
+    else {
+      n_ok++;
+      printf("OK\n");
+    }
+  }
+
+  if (RUNTEST) {
+    i++;
+    printf("TEST %i in '%s:%i': trailing separator ", i, __FILE__, __LINE__);
+
+    xmlStrPrintf(buffer, BUFFER_LENGTH, "20091011,1112,");
+
+    if (xmlStrEqual(_StringConcatNextDate(buffer), BAD_CAST"20091112,") == FALSE) {
+      printf("ERROR\n");
+    }
+    else if (_StringConcatNextDate(buffer) != NULL) {
+      printf("ERROR\n");
+    }
+    else {
+      n_ok++;
+      printf("OK\n");
+    }
+  }
+
+
+  /* ISO 8601 Decimal values */
+  
+  if (RUNTEST) {
+    char *s;
+    
+    i++;
+    printf("TEST %i in '%s:%i': ",i,__FILE__,__LINE__);
+
+    if (_dt_parse_iso_strtod(NULL, 20, NULL) != 0) {
+      printf("ERROR 1 _dt_parse_iso_strtod()\n");
+    }
+    else if (fabs(_dt_parse_iso_strtod("T10 ", 4, &s) - 10.0) > DBL_EPSILON) {
+      printf("ERROR 2 _dt_parse_iso_strtod()\n");
+    }
+    else if (fabs(_dt_parse_iso_strtod("0.25Z ", 5, &s) - 0.25) > DBL_EPSILON) {
+      printf("ERROR 2 _dt_parse_iso_strtod()\n");
+    }
+    else if (fabs(_dt_parse_iso_strtod("T12.75", 6, &s) - 12.75) > DBL_EPSILON) {
+      printf("ERROR 2 _dt_parse_iso_strtod()\n");
+    }
+    else if (fabs(_dt_parse_iso_strtod("T12:15:00", 9, &s) - 12.0) > DBL_EPSILON) {
+      printf("ERROR 2 _dt_parse_iso_strtod()\n");
+    }
+    else {
+      n_ok++;
+      printf("OK\n");
+    }
+  }
+
+#endif
+
+ /* ISO 8601 Decimal hours */
+  
+  if (RUNTEST) {
+    int s;
+    
+    i++;
+    printf("TEST %i in '%s:%i': ",i,__FILE__,__LINE__);
+
+    if (dt_parse_iso_hours_decimal(NULL, 20, NULL) != 0) {
+      printf("ERROR 1 dt_parse_iso_hours_decimal()\n");
+    }
+    else if (dt_parse_iso_hours_decimal("T10 ", 4, &s) != 3) {
+      printf("ERROR 2 dt_parse_iso_hours_decimal()\n");
+    }
+    else if (s != 36000) {
+      printf("ERROR 4 dt_parse_iso_hours_decimal()\n");
+    }
+    else if (dt_parse_iso_hours_decimal("0.25Z", 4, &s) != 4) {
+      printf("ERROR 5 dt_parse_iso_hours_decimal()\n");
+    }
+    else if (s != 900) {
+      printf("ERROR 6 dt_parse_iso_hours_decimal()\n");
+    }
+    else if (dt_parse_iso_hours_decimal("T12.75", 5, &s) != 6) {
+      printf("ERROR 7 dt_parse_iso_hours_decimal()\n");
+    }
+    else if (s != 45900) {
+      printf("ERROR 8 dt_parse_iso_hours_decimal()\n");
+    }
+    else if (dt_parse_iso_hours_decimal("0,25Z", 4, &s) != 0) {
+      printf("ERROR 5 dt_parse_iso_hours_decimal()\n");
+    }
+    else if (dt_parse_iso_hours_decimal("T12:15", 5, &s) != 0) {
+      printf("ERROR 7 dt_parse_iso_hours_decimal()\n");
+    }
+    else {
+      n_ok++;
+      printf("OK\n");
+    }
+  }
+
+  /* ISO 8601 Durations */
+  
+  if (RUNTEST) {
+    double y, m, d, w, h, mi, s;
+    
+    i++;
+    printf("TEST %i in '%s:%i': ",i,__FILE__,__LINE__);
+
+    if (dt_parse_iso_period(NULL, 20, NULL, NULL, NULL, NULL, NULL, NULL, NULL) != 0) {
+      printf("ERROR 1 dt_parse_iso_period()\n");
+    }
+    else if (dt_parse_iso_period("", 2, &y, &m, &d, &w, &h, &mi, &s) != 0) {
+      printf("ERROR 2 dt_parse_iso_period()\n");
+    }
+    else if (dt_parse_iso_period("P", 2, &y, &m, &d, &w, &h, &mi, &s) != 0) {
+      printf("ERROR 2 dt_parse_iso_period()\n");
+    }
+    else if (y > DBL_EPSILON || m > DBL_EPSILON || d > DBL_EPSILON || h > DBL_EPSILON || mi > DBL_EPSILON || s > DBL_EPSILON) {
+      printf("ERROR 6 dt_parse_iso_period()\n");
+    }
+    else if (dt_parse_iso_period("P1Y2M-4DT", 20, &y, &m, &d, NULL, NULL, NULL, NULL) != 9) {
+      printf("ERROR 2 dt_parse_iso_period()\n");
+    }
+    else if (fabs(y - 1.0f) > DBL_EPSILON || fabs(m - 2.0f) > DBL_EPSILON || fabs(d + 4.0f) > DBL_EPSILON || h > DBL_EPSILON || mi > DBL_EPSILON || s > DBL_EPSILON) {
+      printf("ERROR 6 dt_parse_iso_period()\n");
+    }
+    else if (dt_parse_iso_period("P3Y6M4DT12H30M5S", BUFFER_LENGTH, &y, &m, &d, NULL, &h, &mi, &s) != 16) {
+      printf("ERROR 3 dt_parse_iso_period()\n");
+    }
+    else if (fabs(y - 3.0f) > DBL_EPSILON || fabs(m - 6.0f) > DBL_EPSILON || fabs(d - 4.0f) > DBL_EPSILON) {
+      printf("ERROR 4 dt_parse_iso_period()\n");
+    }
+#ifdef USE_ISO_TIME
+    else if (fabs(h - 12.0f) > DBL_EPSILON || fabs(mi - 30.0f) > DBL_EPSILON || fabs(s - 5.0f) > DBL_EPSILON) {
+      printf("ERROR 4b dt_parse_iso_period()\n");
+    }
+    else if (dt_parse_iso_period("PT30M", BUFFER_LENGTH, &y, &m, &d, NULL, &h, &mi, &s) != 5) {
+      printf("ERROR 5 dt_parse_iso_period()\n");
+    }
+    else if (y > DBL_EPSILON || m > DBL_EPSILON || d > DBL_EPSILON || h > DBL_EPSILON || fabs(mi - 30.0f) > DBL_EPSILON || s > DBL_EPSILON) {
+      printf("ERROR 6 dt_parse_iso_period()\n");
+    }
+#endif
+    else if (dt_parse_iso_period("P7Y", BUFFER_LENGTH, &y, &m, &d, NULL, &h, &mi, &s) != 3) {
+      printf("ERROR 7 dt_parse_iso_period()\n");
+    }
+    else if (fabs(y - 7.0f) > DBL_EPSILON || m > DBL_EPSILON || d > DBL_EPSILON || h > DBL_EPSILON || mi > DBL_EPSILON || s > DBL_EPSILON) {
+      printf("ERROR 6 dt_parse_iso_period()\n");
+    }
+    else if (dt_parse_iso_period("P-2W", BUFFER_LENGTH, &y, &m, &d, &w, &h, &mi, &s) != 4) {
+      printf("ERROR 9 dt_parse_iso_period()\n");
+    }
+    else if (y > DBL_EPSILON || m > DBL_EPSILON || d > DBL_EPSILON || fabs(w + 2.0f) > DBL_EPSILON || h > DBL_EPSILON || mi > DBL_EPSILON || s > DBL_EPSILON) {
+      printf("ERROR 6 dt_parse_iso_period()\n");
+    }
+    else {
+      n_ok++;
+      printf("OK\n");
+    }
+  }
+
+   /* ISO 8601 Repeating intervals */
+ 
+  if (RUNTEST) {
+    int y, m, d, r;
+    
+    i++;
+    printf("TEST %i in '%s:%i': ",i,__FILE__,__LINE__);
+
+    r = 0;
+    if (dt_parse_iso_recurrence(NULL, 20, NULL) != 0) {
+      printf("ERROR 1 dt_parse_iso_recurrence()\n");
+    }
+    else if (dt_parse_iso_recurrence("R-21/", 20, &r) != 0 || r != 0) {
+      printf("ERROR 2 dt_parse_iso_recurrence()\n");
+    }
+    else if (dt_parse_iso_recurrence("R3/20110703/P3M2DT12H30M5S", BUFFER_LENGTH, &r) != 2 || r != 3) {
+      printf("ERROR 3 repetitions\n");
+    }
+    else if (dt_parse_iso_recurrence("R/20110803/P3M", BUFFER_LENGTH, &r) != 1 || r != ISO_RECURRENCE_MAX) {
+      printf("ERROR unbounded number of repetitions\n");
+    } 
+    else if (dt_parse_iso_recurrence("R-1/20110804/P3M", BUFFER_LENGTH, &r) != 3 || r != ISO_RECURRENCE_MAX) {
+      printf("ERROR unbounded number of repetitions\n");
+    } 
+    else if (dt_parse_iso_recurrence("R0/20110803/P3M", BUFFER_LENGTH, &r) != 2 || r != 0) {
+      printf("ERROR no repetitions\n");
+    } 
+    else if (dt_parse_iso_recurrence("R1999/20110803/P3M", BUFFER_LENGTH, &r) != 0 || r != 0) {
+      printf("ERROR no repetitions\n");
+    }
+    else {
+      n_ok++;
+      printf("OK\n");
+    }
+  }
+
+
+  if (RUNTEST) {
+    dt_t dt;
+
+    i++;
+    printf("TEST %i in '%s:%i': ", i, __FILE__, __LINE__);
+
+    if (dt_parse_easter_date(NULL, 20, NULL) != 0) {
+      printf("ERROR 1 dt_parse_easter_date()\n");
+    }
+    else if (dt_parse_easter_date("2022WEA5", 4, &dt) != 0) {
+      printf("ERROR 2 dt_parse_easter_date()\n");
+    }
+    else if (dt_parse_easter_date("2012-WEA-5", 40, &dt) != 10 || dt != 734599) {
+      printf("ERROR 2 dt_parse_easter_date()\n");
+    }
+    else {
+      n_ok++;
+      printf("OK\n");
+    }
+  }
+
+
+#ifdef USE_ISO_TIME
+  /* ISO 8601 combined 
+  
+  https://en.wikipedia.org/wiki/Time_zone#List_of_UTC_offsets
+  */
+
+  if (RUNTEST) {
+    int y, m, d, r;
+    dt_t dt;
+
+    i++;
+    printf("TEST %i in '%s:%i': ", i, __FILE__, __LINE__);
+
+    if (dt_parse_iso_date_time_zone(NULL, 20, NULL, NULL) != 0) {
+      printf("ERROR 1 dt_parse_iso_date_time_zone()\n");
+    }
+    else if (dt_parse_iso_date_time_zone("2012-10-15T08:00:00", 40, &dt, &r) != 19 || (r != 25200 && r != 25200 - 3600)) {
+      printf("ERROR 2 dt_parse_iso_date_time_zone()\n");
+    }
+    else if (dt_parse_iso_date_time_zone("2012-10-15T08:00:00+05:00", 40, &dt, &r) != 25 || r != 10800) {
+      printf("ERROR 3 dt_parse_iso_date_time_zone()\n");
+    }
+    else if (dt_parse_iso_date_time_zone("2012-10-15T08:00:00−05:00", 40, &dt, &r) != 22 || r != 46800) {
+      printf("ERROR 4 dt_parse_iso_date_time_zone()\n");
+    }
+    else if (dt_parse_iso_date_time_zone("20121015T080000−0500", 40, &dt, &r) != 20 || r != 46800) {
+      printf("ERROR 4 dt_parse_iso_date_time_zone()\n");
+    }
+    else if (dt_parse_iso_date_time_zone("2012-10-15T08:00:00CST", 40, &dt, &r) != 22 || r != 0) {
+      printf("ERROR 5 dt_parse_iso_date_time_zone()\n");
+    }
+    else if (dt_parse_iso_date_time_zone("2012-10-15T08:00:00PET", 40, &dt, &r) != 22 || r != 46800) {
+      printf("ERROR 6 dt_parse_iso_date_time_zone()\n");
+    }
+    else if (dt_parse_iso_date_time_zone("2012-10-15T08:00:00Z", 40, &dt, &r) != 20 || r != 28800) {
+      printf("ERROR 7 dt_parse_iso_date_time_zone()\n");
+    }
+    else {
+      n_ok++;
+      printf("OK\n");
+    }
+  }
+
+
+  if (RUNTEST) {
+    int y, m, d;
+    dt_t dt;
+
+    i++;
+    printf("TEST %i in '%s:%i': ", i, __FILE__, __LINE__);
+
+    if (dt_parse_eternal_date("0000-10-15", 40, &dt) != 10) {
+      printf("ERROR 1 dt_parse_eternal_date()\n");
+    }
+    else if (dt_parse_eternal_date("0000-WEA-7", 40, &dt) != 10) {
+      printf("ERROR 2 dt_parse_eternal_date()\n");
+    }
+    else if (dt_parse_eternal_date("0000-WEA-7/O1D", 40, &dt) != 10) {
+      printf("ERROR 3 dt_parse_eternal_date()\n");
+    }
+    else {
+      n_ok++;
+      printf("OK\n");
+    }
+  }
+#endif
+
+
+#ifdef USE_ALT_DATETIME
+  if (RUNTEST) {
+    dt_t dt;
+
+    i++;
+    printf("TEST %i in '%s:%i': German Date Formats", i, __FILE__, __LINE__);
+
+    if (dt_parse_german_date(NULL, 20, NULL) != 0) {
+      printf("ERROR 1 dt_parse_german_date()\n");
+    }
+    else if (dt_parse_german_date("15.10.2012", 40, &dt) != 10 || dt != dt_from_ymd(2012, 10, 15)) {
+      printf("ERROR 2 dt_parse_german_date()\n");
+    }
+    else if (dt_parse_german_date("1.2.98", 40, &dt) != 6 || dt != dt_from_ymd(1998, 2, 1)) {
+      printf("ERROR 3 dt_parse_german_date()\n");
+    }
+    else {
+      n_ok++;
+      printf("OK\n");
+    }
+  }
+
+  if (RUNTEST) {
+    dt_t dt;
+
+    i++;
+    printf("TEST %i in '%s:%i': UNIX Epoch Format", i, __FILE__, __LINE__);
+
+    if (dt_parse_unix(NULL, 20, NULL, NULL) != 0) {
+      printf("ERROR 1 dt_parse_unix()\n");
+    }
+    else if (dt_parse_unix("1300000000", 40, &dt, NULL) != 10 || dt != dt_from_ymd(2011, 3, 13)) {
+      printf("ERROR 2 dt_parse_unix()\n");
+    }
+    else if (dt_parse_unix("1234567890123", 40, &dt, NULL) != 0) {
+      printf("ERROR 3 dt_parse_unix()\n");
+    }
+    else {
+      n_ok++;
+      printf("OK\n");
+    }
+  }
+#endif
+
+
+  if (RUNTEST) {
 
     i++;
     printf("TEST %i in '%s:%i': ", i, __FILE__, __LINE__);
@@ -507,7 +1127,6 @@ utilsTest(void)
   }
 
   if (RUNTEST) {
-    xmlChar *pucTest;
 
     i++;
     printf("TEST %i in '%s:%i': ", i, __FILE__, __LINE__);

@@ -1,31 +1,14 @@
 
-/*
- s. http://www.zachburlingame.com/2011/02/versioning-a-native-cc-binary-with-visual-studio/ 
-    http://www.zachburlingame.com/2011/03/integrating-the-subversion-revision-into-the-version-automatically-with-native-cc/
-*/
+/* https://docs.microsoft.com/en-us/cpp/preprocessor/predefined-macros */
 
-#define STR_INDIR(x) #x
-#define STR(x) STR_INDIR(x)
+#ifndef CXP_TIMESTAMP_BUILD
+  #ifndef __DATE__
+    #define CXP_TIMESTAMP_BUILD "---"
+  #else
+    #define CXP_TIMESTAMP_BUILD __DATE__
+  #endif
+#endif
 
-#define CXP_VERSION_MAJOR    1
-
-#define CXP_VERSION_MINOR    3
-
-#define CXP_VERSION_STR      "v" STR(CXP_VERSION_MAJOR) "." STR(CXP_VERSION_MINOR)
-
-#define CXP_VERSION_REVISION 0
-
-#define CXP_REVISION_STR     "0"
-
-#define CXP_VERSION_BUILD    0000
-
-#define CXP_VERSION_BUILD_STR "0000"
-
-/*!\todo define permanent namespace URL */
-
-#define CXP_VERSION_URL      "https://github.com/raxdne/cxproc"
-
-#define CXP_VER_FILE_DESCRIPTION_STR    "A Configurable Xml PROCessor."
 #define CXP_VER_FILE_VERSION            CXP_VERSION_MAJOR, CXP_VERSION_MINOR, CXP_VERSION_REVISION, CXP_VERSION_BUILD
 #ifndef CXP_VER_FILE_VERSION_STR
   #define CXP_VER_FILE_VERSION_STR        CXP_VERSION_STR
@@ -36,7 +19,6 @@
 #define CXP_VER_PRODUCT_VERSION_STR     CXP_VER_FILE_VERSION_STR
 #define CXP_VER_ORIGINAL_FILENAME_STR   CXP_VER_PRODUCTNAME_STR ".exe"
 #define CXP_VER_INTERNAL_NAME_STR       CXP_VER_ORIGINAL_FILENAME_STR
-#define CXP_VER_COPYRIGHT_STR           "(C) 2006..2021 by Alexander Tenbusch"
 
 #define CXP_VER_URL			CXP_VERSION_URL
 

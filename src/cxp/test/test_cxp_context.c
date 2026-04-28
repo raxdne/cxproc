@@ -1,7 +1,7 @@
 /*
   cxproc - Configurable Xml PROCessor
 
-  Copyright (C) 2006..2020 by Alexander Tenbusch
+  Copyright (C) 2006..2024 by Alexander Tenbusch
 
   This program is free software; you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -260,7 +260,6 @@ cxpCtxtTest(cxpContextPtr pccArg)
   if (RUNTEST) {
     xmlDocPtr pdocTest;
     xmlNodePtr pndXml;
-    xmlNodePtr pndPie;
     resNodePtr prnT = NULL;
     cxpContextPtr pccT;
 
@@ -274,7 +273,7 @@ cxpCtxtTest(cxpContextPtr pccArg)
     xmlDocSetRootElement(pdocTest,pndXml);
 
     prnT = resNodeConcatNew(BAD_CAST TESTPREFIX,BAD_CAST "xsl/test-xsl-4.xml");
-    domChangeURL(pdocTest,prnT);
+    resNodeChangeDomURL(pdocTest,prnT);
 
     pccT = cxpCtxtFromAttr(pccArg,pndXml);
     if (resPathIsEquivalent(resNodeGetNameNormalized(cxpCtxtLocationGet(pccT)), BAD_CAST TESTPREFIX)) {
@@ -292,12 +291,11 @@ cxpCtxtTest(cxpContextPtr pccArg)
   if (RUNTEST) {
     xmlChar* pucTT = NULL;
     xmlChar* pucTTT = NULL;
+    xmlChar* pucTTTT = NULL;
     xmlDocPtr pdocTest;
     xmlNodePtr pndMake;
-    xmlNodePtr pndPie;
     xmlNodePtr pndT;
     xmlNodePtr pndXml;
-    resNodePtr prnT = NULL;
     cxpContextPtr pccT = NULL;
     cxpContextPtr pccTT = NULL;
 
@@ -314,11 +312,15 @@ cxpCtxtTest(cxpContextPtr pccArg)
     xmlSetProp(pndXml, BAD_CAST "context", BAD_CAST "../..");
     xmlSetProp(pndXml, BAD_CAST "log", BAD_CAST "3");
     pndT = xmlNewChild(pndMake, NULL, NAME_PLAIN, NULL);
+    //domPutDocString(stderr,BAD_CAST"",pdocTest);
 
     if ((pccT = cxpCtxtFromAttr(pccArg, pndMake)) == NULL) {
       printf("Error 1\n");
     }
-    else if ((pucTTT = resPathCollapse(BAD_CAST BUILDPREFIX, FS_PATH_FULL)) == NULL) {
+    else if (cxpCtxtProcessSetNodeCopy(pccT,pndMake) == FALSE) {
+      printf("Error 4\n");
+    }
+    else if ((pucTTT = resPathCollapseStr(BAD_CAST BUILDPREFIX, FS_PATH_FULL)) == NULL) {
       printf("Error 4\n");
     }
     else if (resPathIsEquivalent(resNodeGetNameNormalized(cxpCtxtLocationGet(pccT)), pucTTT) == FALSE) {
@@ -327,11 +329,14 @@ cxpCtxtTest(cxpContextPtr pccArg)
     else if ((pccTT = cxpCtxtFromAttr(pccT, pndXml)) == NULL) {
       printf("Error 3\n");
     }
-    else if ((pucTT = resPathCollapse(BAD_CAST BUILDPREFIX "../..", FS_PATH_FULL)) == NULL) {
+    else if ((pucTT = resPathCollapseStr(BAD_CAST BUILDPREFIX "../..", FS_PATH_FULL)) == NULL) {
       printf("Error 4\n");
     }
     else if (resPathIsEquivalent(resNodeGetNameNormalized(cxpCtxtLocationGet(pccTT)), pucTT) == FALSE) {
       printf("Error 5\n");
+    }
+    else if ((pucTTTT = cxpCtxtProcessDump(pccT)) == NULL) {
+      printf("Error 4\n");
     }
     else if (cxpCtxtFromAttr(pccT, pndT) != pccT) {
       printf("Error 6\n");
@@ -341,7 +346,7 @@ cxpCtxtTest(cxpContextPtr pccArg)
       printf("OK\n");
     }
 
-    //domPutDocString(stderr,BAD_CAST"",pdocTest);
+    xmlFree(pucTTTT);
     xmlFree(pucTTT);
     xmlFree(pucTT);
     xmlFreeDoc(pdocTest);

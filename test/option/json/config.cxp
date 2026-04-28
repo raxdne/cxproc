@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <cxp:make xmlns:cxp="http://www.tenbusch.info/cxproc">
-  <cxp:system mkdir="result"/>
+  <cxp:system mkdir="result/"/>
   <cxp:system message="TEST 1: parse simple JSON file"/>
   <cxp:xml name="result/test-json-1.xml">
     <cxp:json name="test-js-1.json"/>

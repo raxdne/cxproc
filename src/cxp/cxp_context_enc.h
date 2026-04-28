@@ -1,7 +1,7 @@
 /*
   cxproc - Configurable Xml PROCessor
 
-  Copyright (C) 2006..2020 by Alexander Tenbusch
+  Copyright (C) 2006..2024 by Alexander Tenbusch
 
   This program is free software; you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -86,8 +86,14 @@ cxpCtxtEnvGetValue(cxpContextPtr pccArg, index_t iIndex);
 extern xmlChar*
 cxpCtxtEnvGetValueByName(cxpContextPtr pccArg, xmlChar *pucArgName);
 
+extern int
+cxpCtxtEnvGetIndexByName(cxpContextPtr pccArg, xmlChar *pucArgName);
+
 extern BOOL_T
 cxpCtxtEnvGetBoolByName(cxpContextPtr pccArg, xmlChar *pucArgName, BOOL_T fDefault);
+
+extern int
+cxpCtxtEnvSet(cxpContextPtr pccArg, xmlChar *pucArgName, xmlChar *pucArgValue);
 
 
 extern char*
@@ -125,6 +131,12 @@ cxpCtxtCgiGetValue(cxpContextPtr pccArg, index_t iIndex);
 extern xmlChar*
 cxpCtxtCgiGetValueByName(cxpContextPtr pccArg, xmlChar *pucArgName);
 
+extern xmlChar*
+cxpCtxtCgiGetNameByValue(cxpContextPtr pccArg, xmlChar *pucArgValue);
+
+extern BOOL_T
+cxpCtxtCgiHasName(cxpContextPtr pccArg, xmlChar *pucArgName);
+
 
 extern void
 cxpCtxtEncFree(cxpContextPtr pccArg);
@@ -135,5 +147,5 @@ cxpCtxtEncError(cxpContextPtr pccArg, int int_errno, size_t nconv);
 
 #ifdef TESTCODE
 extern int
-cxpCtxtEncTest(cxpContextPtr pccArg);
+cxpCtxtEncTest(cxpContextPtr pccArg, char** argv, char** envp);
 #endif
