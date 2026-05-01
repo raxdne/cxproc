@@ -47,7 +47,7 @@ extern int
 base64removespaces(const void *data_buf);
 
 extern int
-base64encode(const void* data_buf, size_t dataLength, char* result, size_t resultSize);
+base64encode(const void* data_buf, size_t dataLength, char* result, size_t *resultSize);
 
 extern int
 base64decode(char *in, size_t inLen, unsigned char *out, size_t *outLen);
@@ -129,12 +129,6 @@ EncodeRFC1738(const xmlChar *input);
 
 extern void
 DecodeRFC1738(char *s);
-
-extern xmlChar *
-EncodeBase64(const xmlChar *input);
-
-extern xmlChar *
-DecodeBase64(const xmlChar *input);
 
 extern int
 DecodeQuotedPrintable(xmlChar* pucArg);

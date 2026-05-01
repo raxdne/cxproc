@@ -26,6 +26,8 @@
 #include <libxml/uri.h>
 #include <libxml/parser.h>
 
+#include <libbase64.h>
+
 #include "basics.h"
 #include "utils.h"
 #include <res_node/res_node_io.h>
@@ -425,20 +427,7 @@ resNodeContentToDOM(xmlNodePtr pndArg, resNodePtr prnArg)
       
     default: /* no addtitional file information details */
       {
-	xmlChar *pucContent;
-
-	pucContent = resNodeGetContentBase64Eat(prnArg,1024);
-	if (pucContent) {
-	  RN_MIME_TYPE t;
-	  xmlChar *pucTT;
-
-	  t = resMimeGetTypeFromDataBase64(pucContent, &pucTT);
-	  if (resMimeIsPicture(t) && STR_IS_NOT_EMPTY(pucTT)) {
-	    /* embedded base64-encoded image */
-	    domAddChildBase64(pndArg, pucContent);
-	  }
-	  xmlFree(pucContent);
-	}
+	xmlAddChild(pndArg, domGetBase64Nodes(resNodeGetContentPtr(prnArg),resNodeGetSize(prnArg)));
       }
     }
     xmlAddChild(pndArg, xmlNewPI(BAD_CAST "end-of", resNodeGetNameBase(prnArg)));
@@ -497,7 +486,8 @@ check/merge code of dirNodeToResNodeList()
       pchT = (char *)xmlMalloc(inlen * sizeof(char *));
       outlen = inlen;
 
-      ret = base64decode((char *)pucT, inlen, BAD_CAST pchT, &outlen);
+      //ret = base64decode((char *)pucT, inlen, BAD_CAST pchT, &outlen);
+      ret = base64_decode((char *) pucT, inlen, pchT, &outlen, BASE64_FORCE_SSE42);
       if (ret==0) {
 	PrintFormatLog(3, "Decoded '%i' byte to '%i'", inlen, outlen);
 	prnResult->pContent = pchT;

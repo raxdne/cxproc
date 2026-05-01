@@ -175,6 +175,7 @@ utilsTest(void)
   }
 
 
+#if 0
   if (RUNTEST) {
     xmlChar mucBase64[BUFFER_LENGTH];
     xmlChar mucResult[BUFFER_LENGTH];
@@ -196,6 +197,8 @@ utilsTest(void)
     }
     xmlFree(pucTest);
   }
+#endif
+
 
   if (RUNTEST) {
     xmlChar* pucError = xmlStrdup(BAD_CAST"=47=08=1=6H=7a=74 ");

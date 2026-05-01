@@ -39,7 +39,6 @@
 
 #include "utils.h"
 
-#include <cmark.h>
 #include <node.h>
 
 
@@ -64,6 +63,9 @@ cmarkTreeToDOM(xmlNodePtr pndArgBlock, xmlNodePtr pndArg, cmark_node* pcmnArg);
 
 static xmlNodePtr
 GetParentElement(cmark_node* pcmnArg, xmlNodePtr pndArgParent);
+
+static xmlNodePtr
+AddChildBase64(xmlNodePtr pndArg, cmark_node *pcmnArg);
 
 
 /*! \return the xmlNodePtr to an according section or block pcmnArg
@@ -149,6 +151,36 @@ GetParentElement(cmark_node* pcmnArg, xmlNodePtr pndArgParent)
 	}
       }
     }
+  }
+  return pndResult;
+} /* end of GetParentElement() */
+
+
+/*! makes elements content XML-conformant and
+  \param pcmnArg element to use
+  \return a new node pointer or NULL if failed
+*/
+xmlNodePtr
+AddChildBase64(xmlNodePtr pndArg, cmark_node *pcmnArg)
+{
+  xmlNodePtr pndResult = NULL;
+
+  if (pndArg != NULL && pcmnArg != NULL && pcmnArg->data != NULL && pcmnArg->len > 0) {
+    RN_MIME_TYPE t = MIME_UNKNOWN;
+    size_t l;
+    char *pcBuffer, *pc0, *pc1;
+
+    l = pcmnArg->len;
+    pc0 = pc1 = (char *)pcmnArg->data;
+    if (l > 16) {
+      t = resMimeGetTypeFromDataBase64(BAD_CAST pc0, &pc1);
+      if (pc1) {
+	l -= pc1 - pc0;
+      }
+    }
+    pndResult = xmlNewTextChild(pndArg, NULL, BAD_CAST NAME_BASE64, BAD_CAST pc1);
+    xmlSetProp(pndResult, BAD_CAST "type", BAD_CAST resMimeGetTypeStr(t));
+    domSetPropInt(pndResult, BAD_CAST "size", l);
   }
   return pndResult;
 } /* end of GetParentElement() */
@@ -313,7 +345,7 @@ cmarkTreeToDOM(xmlNodePtr pndArgBlock, xmlNodePtr pndArg, cmark_node* pcmnArg)
       else if (pcmnArg->first_child != NULL && pcmnArg->first_child == pcmnArg->last_child && pcmnArg->first_child->data != NULL &&
 	       StringBeginsWith((char *)pcmnArg->first_child->data, "data:")) {
         pndT = xmlNewChild(pndArg, NULL, BAD_CAST NAME_PIE_PAR, NULL);
-	domAddChildBase64(pndT, pcmnArg->first_child->data);
+	AddChildBase64(pndT, pcmnArg->first_child);
       }
       else {
         pndT = xmlNewChild(pndArg, NULL, BAD_CAST NAME_PIE_PAR, NULL);
@@ -381,15 +413,13 @@ cmarkTreeToDOM(xmlNodePtr pndArgBlock, xmlNodePtr pndArg, cmark_node* pcmnArg)
     }
     else if (pcmnArg->type == CMARK_NODE_IMAGE) {
       RN_MIME_TYPE t;
-      xmlChar *pucTT;
       xmlNodePtr pndImage;
 
       pndImage = xmlNewChild(pndArg, NULL, BAD_CAST NAME_PIE_IMG, NULL);
 
-      t = resMimeGetTypeFromDataBase64(pcmnArg->as.link.url,&pucTT);
-      if (resMimeIsPicture(t) && STR_IS_NOT_EMPTY(pucTT)) {
-	xmlSetProp(pndImage, BAD_CAST "type", BAD_CAST resMimeGetTypeStr(t));
-	domAddChildBase64(pndImage, pucTT);
+      t = resMimeGetTypeFromDataBase64(pcmnArg->as.link.url, NULL);
+      if (resMimeIsPicture(t)) {
+	AddChildBase64(pndImage, pcmnArg->first_child);
       }
       else {
 	xmlSetProp(pndImage, BAD_CAST "src", pcmnArg->as.link.url);

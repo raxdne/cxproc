@@ -134,6 +134,20 @@ select `~/cxproc-build/cxproc/third-party/duktape-src` as value for `DUKTAPE_INC
 
 ### sqlite as Source code
 
+### libbase64
+
+	cd ~/cxproc-build/cxproc
+	. misc/prepare-cmake.sh
+	cd ~/cxproc-build/
+	git clone https://github.com/aklomp/base64.git
+	cd ~/cxproc-build/base64/
+	git checkout v0.5.2
+	mkdir -p ~/cxproc-build/base64/build
+	(cd ~/cxproc-build/base64/build && cmake .. "-GUnix Makefiles" -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=NO)
+	cmake --build ~/cxproc-build/base64/build
+	cmake --install ~/cxproc-build/base64/build --prefix $PREFIX/
+
+
 ## Debugging
 
 ### libxml2

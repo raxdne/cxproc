@@ -1038,41 +1038,12 @@ chomp(unsigned char *c)
 /* end of chomp() */
 
 /*
- * https://base64.guru/learn/base64-characters
- * */
-int
-base64removespaces(const void *data_buf)
-{
-  int iResult = 0;
-
-  if (data_buf) {
-    char *pcBegin = (char *)data_buf;
-    int i;
-    int j;
-
-    for (i = j = 0;; i++) {
-      if (pcBegin[i] == '\0') {
-	iResult = j;
-	pcBegin[iResult] = '\0';
-	break;
-      }
-      if (isalnum(pcBegin[i]) || pcBegin[i] == '+' || pcBegin[i] == '/' || pcBegin[i] == '=') {
-	pcBegin[j] = pcBegin[i];
-	j++;
-      }
-    }
-  }
-  return iResult;
-} /* end of base64removespaces() */
-
-
-/*
  * Base 64 encoding/decoding (s. http://en.wikibooks.org/wiki/Algorithm_Implementation/Miscellaneous/Base64)
  *
  * */
 
 int
-base64encode(const void* data_buf, size_t dataLength, char* result, size_t resultSize)
+base64encode(const void* data_buf, size_t dataLength, char* result, size_t *resultSize)
 {
    const char base64chars[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
    const uint8_t *data = (const uint8_t *)data_buf;
@@ -1107,29 +1078,35 @@ base64encode(const void* data_buf, size_t dataLength, char* result, size_t resul
        * if we have one byte available, then its encoding is spread
        * out over two characters
        */
-      if(resultIndex >= resultSize) return 0;   /* indicate failure: buffer too small */
+      if (resultIndex >= *resultSize) {
+	return 0; /* indicate failure: buffer too small */
+      }
       result[resultIndex++] = base64chars[n0];
-      if(resultIndex >= resultSize) return 0;   /* indicate failure: buffer too small */
+      if (resultIndex >= *resultSize) {
+	return 0; /* indicate failure: buffer too small */
+      }
       result[resultIndex++] = base64chars[n1];
 
       /*
        * if we have only two bytes available, then their encoding is
        * spread out over three chars
        */
-      if((x+1) < dataLength)
-      {
-         if(resultIndex >= resultSize) return 0;   /* indicate failure: buffer too small */
-         result[resultIndex++] = base64chars[n2];
+      if ((x + 1) < dataLength) {
+	if (resultIndex >= *resultSize) {
+	  return 0; /* indicate failure: buffer too small */
+	}
+	result[resultIndex++] = base64chars[n2];
       }
 
       /*
        * if we have all three bytes available, then their encoding is spread
        * out over four characters
        */
-      if((x+2) < dataLength)
-      {
-         if(resultIndex >= resultSize) return 0;   /* indicate failure: buffer too small */
-         result[resultIndex++] = base64chars[n3];
+      if ((x + 2) < dataLength) {
+	if (resultIndex >= *resultSize) {
+	  return 0; /* indicate failure: buffer too small */
+	}
+	result[resultIndex++] = base64chars[n3];
       }
    }
 
@@ -1137,16 +1114,20 @@ base64encode(const void* data_buf, size_t dataLength, char* result, size_t resul
     * create and add padding that is required if we did not have a multiple of 3
     * number of characters available
     */
-   if (padCount > 0)
-   {
-      for (; padCount < 3; padCount++)
-      {
-         if(resultIndex >= resultSize) return 0;   /* indicate failure: buffer too small */
-         result[resultIndex++] = '=';
-      }
+   if (padCount > 0) {
+     for (; padCount < 3; padCount++) {
+       if (resultIndex >= *resultSize) {
+	 return 0; /* indicate failure: buffer too small */
+       }
+       result[resultIndex++] = '=';
+     }
    }
-   if(resultIndex >= resultSize) return 0;   /* indicate failure: buffer too small */
+   if (resultIndex >= *resultSize) {
+     return 0; /* indicate failure: buffer too small */
+   }
    result[resultIndex] = 0;
+   *resultSize = resultIndex;
+
    return 1;   /* indicate success */
 }
 
@@ -1810,44 +1791,6 @@ EncodeRFC1738(const xmlChar *input) {
   return buffer;
 }
 /* end of EncodeRFC1738() */
-
-
-/*! \return
-*/
-xmlChar *
-EncodeBase64(const xmlChar *pucArg)
-{
-  return NULL;
-}
-/* end of EncodeBase64() */
-
-
-/*! \return
-*/
-xmlChar *
-DecodeBase64(const xmlChar *pucArg)
-{
-  int ret;
-  char *pchT;
-  size_t inlen;
-  size_t outlen;
-
-  inlen = xmlStrlen(pucArg);
-  pchT = (char*)xmlMalloc(inlen * sizeof(char*));
-  outlen = inlen;
-
-  ret = base64decode((char*)pucArg, inlen, BAD_CAST pchT, &outlen);
-  if (ret == 0) {
-    PrintFormatLog(3, "Decoded '%i' byte to '%i'", inlen, outlen);
-  }
-  else {
-    return NULL;
-  }
-  pchT[outlen] = '\0';	/* string termination? */
-
-  return BAD_CAST pchT;
-}
-/* end of DecodeBase64() */
 
 
 /*

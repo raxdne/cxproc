@@ -25,6 +25,8 @@
 #include <libxml/HTMLtree.h>
 #include <libxml/parser.h>
 
+#include <libbase64.h>
+
 /*
  */
 #include "basics.h"
@@ -58,6 +60,9 @@ cxpSubstSkip(xmlNodePtr pndArg);
 
 static cxpSubstPtr
 cxpSubstNew(void);
+
+static xmlChar *
+DecodeBase64(const xmlChar *input);
 
 static BOOL_T
 cxpSubstPrint(cxpSubstPtr pcxpSubstArg, cxpContextPtr pccArg);
@@ -256,6 +261,34 @@ cxpSubstNew(void)
   return pcxpSubstResult;
 }
 /* end of cxpSubstNew() */
+
+
+/*! \return
+*/
+xmlChar *
+DecodeBase64(const xmlChar *pucArg)
+{
+  int ret;
+  char *pchT;
+  size_t inlen;
+  size_t outlen;
+
+  inlen = strlen((char *) pucArg);
+  pchT = (char*)xmlMalloc(inlen * sizeof(char*));
+  outlen = inlen;
+  
+  //ret = base64decode((char*)pucArg, inlen, BAD_CAST pchT, &outlen);
+  ret = base64_decode((char *) pucArg, inlen, pchT, &outlen, BASE64_FORCE_SSE42);
+  if (ret == 0) {
+    PrintFormatLog(3, "Decoded '%i' byte to '%i'", inlen, outlen);
+  }
+  else {
+    return NULL;
+  }
+  pchT[outlen] = '\0';	/* string termination? */
+
+  return BAD_CAST pchT;
+} /* end of DecodeBase64() */
 
 
 /*!\return a new cxp subst

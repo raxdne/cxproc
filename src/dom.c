@@ -29,6 +29,8 @@
 
 #include <libxslt/xslt.h>
     
+#include <libbase64.h>
+
 /* 
  */
 #include "basics.h"
@@ -36,6 +38,7 @@
 #include <res_node/res_node_io.h>
 #include <pie/pie_dtd.h>
 #include "dom.h"
+#include <cxp/cxp_dtd.h>
 
 #ifdef HAVE_PETRINET
 #include <petrinet/petrinet_dtd.h>
@@ -1745,13 +1748,13 @@ domValidateTree(xmlNodePtr pndArg)
 
 \todo implement decoding from base64 node to blob
  */
-xmlNodePtr
-domGetChildBase64(xmlNodePtr pndArg, xmlChar* pucArg)
+resNodePtr
+resNodeBase64FromDOM(xmlNodePtr pndArg)
 {
-  xmlNodePtr pndResult = NULL;
+  resNodePtr prnResult = NULL;
 
-  return pndResult;
-} /* end of domGetChildBase64() */
+  return prnResult;
+} /* end of resNodeBase64FromDOM() */
 
 
 /*! add base64-encoded text as child to pndArg
@@ -1764,61 +1767,80 @@ domAddChildBase64(xmlNodePtr pndArg, xmlChar* pucArg)
 {
   xmlNodePtr pndResult = NULL;
 
-#define LINELENGTH 76
-
-  if (pndArg != NULL && domGetAncestorsPropFlag(pndArg, BAD_CAST "embed", FALSE)) {
-    RN_MIME_TYPE t;
-    unsigned int i;
-    unsigned int l;
-    xmlChar *pucTT = NULL;
-#if 0
-    pndResult = xmlNewChild(pndArg, NULL, BAD_CAST NAME_BASE64, NULL);
-#elif 1
-    /* line text nodes for base64 */
-    const unsigned int k = LINELENGTH;
-    char mcLine[LINELENGTH + 1];
-
-    mcLine[k] = '\0';
-    pndResult = xmlNewChild(pndArg, NULL, BAD_CAST NAME_BASE64, NULL);
-    if (pndResult) {
-      xmlChar *pucT;
-
-      t = resMimeGetTypeFromDataBase64(pucArg,&pucTT);
-      xmlSetProp(pndResult, BAD_CAST "type", BAD_CAST resMimeGetTypeStr(t));
-      
-      pucT = xmlMemStrdup(pucTT);
-      l = base64removespaces(pucT);
-      domSetPropInt(pndResult, BAD_CAST "size", l);
-
-      for (i = 0; i < l; i += k) {
-	xmlNodePtr pndT;
-
-	if (l - i < k) {
-	  memccpy(mcLine, &pucT[i], 1, l - i);
-	  mcLine[l - i] = '\0';
-	}
-	else {
-	  memccpy(mcLine, &pucT[i], 1, k);
-	}
-	xmlNewChild(pndResult, NULL, BAD_CAST "l", mcLine);
-      }
-      xmlFree(pucT);
-      }
-#else
-    /* single text node for base64 */
-    t = resMimeGetTypeFromDataBase64(pucArg, &pucTT);
-    if (STR_IS_NOT_EMPTY(pucTT)) {
-      pndResult = xmlNewChild(pndArg, NULL, BAD_CAST NAME_BASE64, pucTT);
-      if (pndResult != NULL && pndResult->children != NULL && STR_IS_NOT_EMPTY(pndResult->children->content)) {
-	l = base64removespaces(pndResult->children->content);
-	xmlSetProp(pndResult, BAD_CAST "type", BAD_CAST resMimeGetTypeStr(t));
-	domSetPropInt(pndResult, BAD_CAST "size", l);
-      }
+  if (pndArg != NULL && STR_IS_NOT_EMPTY(pucArg) && domGetAncestorsPropFlag(pndArg, BAD_CAST "embed", FALSE)) {
+    pndResult = domGetBase64Nodes((void *)pucArg, strlen((const char *)pucArg) + 1);
+    if (pndResult != NULL) {
+	xmlAddChild(pndArg, pndResult);
     }
-#endif
   }
   return pndResult;
 } /* end of domAddChildBase64() */
+
+
+/*!\return a node with base64-encoded text childs
+
+https://datatracker.ietf.org/doc/html/rfc2045
+
+ */
+xmlNodePtr
+domGetBase64Nodes(void *pArg, size_t iArgLen)
+{
+  xmlNodePtr pndResult = NULL;
+
+  if (pArg != NULL && iArgLen > 0) {
+
+    pndResult = xmlNewNode(NULL, BAD_CAST NAME_BASE64);
+    if (pndResult) {
+      size_t cbBuffer;
+      char *pcBuffer;
+
+      domSetPropInt(pndResult, BAD_CAST "size", iArgLen);
+      cbBuffer = iArgLen * 2;
+      pcBuffer = (char *)xmlMalloc(cbBuffer);
+      if (pcBuffer) {
+	//base64encode((char *) pArg, iArgLen, pcBuffer, &cbBuffer);
+	base64_encode((char *) pArg, iArgLen, pcBuffer, &cbBuffer, BASE64_FORCE_SSE42);
+	/*!\todo zero-termination of pcBuffer ? */
+      }
+
+#if 0
+      {
+#define LINELENGTH 76
+
+	/* line text nodes for base64 */
+	const unsigned int k = LINELENGTH;
+	unsigned int i;
+
+	for (i = 0; i < cbBuffer; i += k) {
+	  xmlNodePtr pndT;
+	  char mcLine[2 * LINELENGTH + 1];
+
+	  if (cbBuffer - i < k) {
+	    memccpy(mcLine, &pcBuffer[i], 1, cbBuffer - i);
+	    mcLine[cbBuffer - i] = '\0';
+	  }
+	  else {
+	    memccpy(mcLine, &pcBuffer[i], 1, k);
+	    mcLine[k] = '\0';
+	  }
+	  xmlNewChild(pndResult, NULL, BAD_CAST "l", mcLine);
+	}
+	xmlFree(pcBuffer);
+      }
+#else
+      {
+	/* use the base64 buffer direct as node content */
+	xmlNodePtr pndT;
+
+	pndT = xmlNewText(NULL);
+	pndT->content = BAD_CAST pcBuffer;
+	xmlAddChild(pndResult, pndT);
+      }
+#endif
+    }
+  }
+  return pndResult;
+} /* end of domGetBase64Nodes() */
 
 
 /*! unlinks all element trees containing attribute valid="no"

@@ -918,6 +918,35 @@ domTest(void)
   }
 #endif
 
+  if (RUNTEST) {
+    /* TEST:
+     */
+    xmlDocPtr pdocResult = NULL;
+    xmlNodePtr pndT;
+    char mT[BUFFER_LENGTH];
+
+    i++;
+    printf("TEST %i in '%s:%i': domGetBase64Nodes() ", i, __FILE__, __LINE__);
+
+    if ((pndT = domGetBase64Nodes(NULL, 10)) != NULL) {
+      printf("Error domGetBase64Nodes()\n");
+    }
+    /*
+    else if ((pndT = domGetBase64Nodes((void *)"1234567890", 10)) == NULL) {
+      printf("Error domGetBase64Nodes()\n");
+    }
+    */
+    else if ((pndT = domGetBase64Nodes((void *)mT, BUFFER_LENGTH)) == NULL) {
+      printf("Error domGetBase64Nodes()\n");
+    }
+    else {
+      n_ok++;
+      printf("OK\n");
+    }
+
+    //domPutNodeString(stderr, BAD_CAST "domGetBase64Nodes()", pndT);
+    xmlFreeNode(pndT);
+  }
 
   printf("Result in '%s': %i/%i OK\n\n", __FILE__, n_ok, i);
 

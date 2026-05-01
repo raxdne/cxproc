@@ -153,6 +153,9 @@ domGetNextNode(xmlNodePtr pndArg, xmlChar *pucNameElement);
 extern xmlNodePtr
 domGetFirstChildTextNodePtr(xmlNodePtr pndArg);
 
+extern xmlNodePtr
+domGetBase64Nodes(void *pArg, size_t iArgLen);
+
 extern xmlNsPtr
 domGetNsXsl(void);
 

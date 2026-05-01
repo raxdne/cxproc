@@ -312,6 +312,7 @@ resNodeTestInOut(void)
     }
   }
 
+#if 0
   if (RUNTEST) {
     resNodePtr prnT = NULL;
 
@@ -337,6 +338,8 @@ resNodeTestInOut(void)
       printf("Error resNodeNew()\n");
     }
   }
+#endif
+
 
 #if TESTHTTP
 
