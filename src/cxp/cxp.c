@@ -3403,6 +3403,12 @@ cxpProcessInfoNode(xmlNodePtr pndInfo, cxpContextPtr pccArg)
 #endif
 
     pndOption = xmlNewChild(pndProgram, NULL, BAD_CAST"option", NULL);
+    xmlSetProp(pndOption, BAD_CAST "name", BAD_CAST"libbase64");
+    xmlSetProp(pndOption, BAD_CAST "ns", BAD_CAST"https://github.com/aklomp/base64");
+    xmlSetProp(pndOption, BAD_CAST "select", BAD_CAST "yes");
+    xmlSetProp(pndOption, BAD_CAST "version", BAD_CAST "v0.5.2");
+
+    pndOption = xmlNewChild(pndProgram, NULL, BAD_CAST"option", NULL);
     xmlSetProp(pndOption, BAD_CAST "name", BAD_CAST"sqlite");
     xmlSetProp(pndOption, BAD_CAST "ns", BAD_CAST"http://www.sqlite.org/");
 #ifdef HAVE_LIBSQLITE3
