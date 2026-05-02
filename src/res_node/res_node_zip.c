@@ -462,12 +462,17 @@ zipDocumentRead(resNodePtr prnArgZip, int iArgOptions)
 	  resNodeResetMimeType(prnInZip);
 	}
 
+	/*!\bug iArgOptions uses RN_OUT_* or RN_INFO_* ??? */
+
 	if (IS_OPTION_CONTENT(iArgOptions) == FALSE) {
-	  PrintFormatLog(3, "skip content zip[%i] '%s'", i, sb.name);
+	  PrintFormatLog(3, "skipping content zip[%i] '%s'", i, sb.name);
 	}
 	else if (sb.size > 1e7 || sum > 1e8) {
 	  resNodeSetError(prnInZip, rn_error_undef, "skip big zip[%i] '%s'", i, sb.name);
-	  PrintFormatLog(3, "skip big zip[%i] '%s'", i, sb.name);
+	  PrintFormatLog(3, "skipping huge zip[%i] '%s'", i, sb.name);
+	}
+	else if ((iArgOptions & RN_OUT_BASE64) == 0 && resMimeIsPlain(resNodeGetMimeType(prnInZip)) == FALSE && resMimeIsXml(resNodeGetMimeType(prnInZip)) == FALSE) {
+	  PrintFormatLog(3, "skipping binary zip[%i] '%s'", i, sb.name);
 	}
 	else if ((zf = zip_fopen_index((struct zip *)resNodeGetHandleIO(prnArgZip), i, 0)) != NULL) {
 	  zip_uint64_t size;

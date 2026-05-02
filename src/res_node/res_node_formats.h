@@ -42,10 +42,12 @@
 
 #define RN_OUT_CONTENT (RN_OUT_STRUCT * 2) /*! read content to buffer */
 
+#define RN_OUT_BASE64  (RN_OUT_CONTENT * 2) /*! read binary content to buffer */
+
 
 #define RN_OUT_MIN     (RN_OUT_NAME)
 
-#define RN_OUT_MAX     (RN_OUT_NAME | RN_OUT_ATTR | RN_OUT_SIZE | RN_OUT_TIME | RN_OUT_TYPE | RN_OUT_OWNER | RN_OUT_PATH | RN_OUT_XML | RN_OUT_STRUCT | RN_OUT_CONTENT)
+#define RN_OUT_MAX     (RN_OUT_NAME | RN_OUT_ATTR | RN_OUT_SIZE | RN_OUT_TIME | RN_OUT_TYPE | RN_OUT_OWNER | RN_OUT_PATH | RN_OUT_XML | RN_OUT_STRUCT | RN_OUT_CONTENT | RN_OUT_BASE64)
 
 
 #define IS_OUT_NAME(I)    ((I & RN_OUT_NAME) != 0)
