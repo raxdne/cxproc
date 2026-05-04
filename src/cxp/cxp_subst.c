@@ -527,7 +527,7 @@ cxpSubstDetect(xmlNodePtr pndArgSubst, cxpContextPtr pccArg)
 	  prnTest = resNodeRootNew(cxpCtxtRootGet(pccArg), pcxpSubstResult->pucCgi);
 
 	  if ((prnTest == NULL || resNodeIsReadable(prnTest) == FALSE) && domGetPropFlag(pndArgSubst, BAD_CAST "search", FALSE)) {
-	    prnTest = resNodeListFindPath(cxpCtxtRootGet(pccArg), pcxpSubstResult->pucCgi, (RN_FIND_FILE | RN_FIND_IN_SUBDIR | RN_FIND_REGEXP));
+	    prnTest = resNodeListFindPath(cxpCtxtRootGet(pccArg), pcxpSubstResult->pucCgi, (RN_FIND_FILE | RN_FIND_SYMLINK | RN_FIND_IN_SUBDIR | RN_FIND_REGEXP));
 	  }
 	  
 	  if (cxpCtxtAccessIsPermitted(pccArg,prnTest)) {

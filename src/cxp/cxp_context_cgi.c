@@ -229,7 +229,7 @@ cxpCtxtCgiParse(cxpContextPtr pccArg)
     xmlSetProp(pndPlain, BAD_CAST "name", BAD_CAST "-");
     xmlSetProp(pndPlain, BAD_CAST "status", BAD_CAST "404 Not Found"); /* default status */
 
-    while ((prnTest = resNodeListFindPath(cxpCtxtRootGet(pccArg), pucCgiRedir, (RN_FIND_FILE | RN_FIND_IN_SUBDIR))) != NULL) {
+    while ((prnTest = resNodeListFindPath(cxpCtxtRootGet(pccArg), pucCgiRedir, (RN_FIND_FILE | RN_FIND_SYMLINK | RN_FIND_DIR | RN_FIND_IN_SUBDIR))) != NULL) {
 
       if (cxpCtxtAccessIsPermitted(pccArg, prnTest) == FALSE || resNodeIsReadable(prnTest) == FALSE) {
 	// access error, continue
@@ -320,7 +320,7 @@ cxpCtxtCgiParse(cxpContextPtr pccArg)
 
     if ((prnTest = resNodeRootNew(cxpCtxtRootGet(pccArg), pucCgiPath)) == NULL || resNodeIsReadable(prnTest) == FALSE) {
       prnTest =
-	  resNodeListFindPath(cxpCtxtRootGet(pccArg), pucCgiPath, (RN_FIND_FILE | RN_FIND_IN_SUBDIR | RN_FIND_REGEXP));
+	  resNodeListFindPath(cxpCtxtRootGet(pccArg), pucCgiPath, (RN_FIND_FILE | RN_FIND_SYMLINK | RN_FIND_IN_SUBDIR | RN_FIND_REGEXP));
     }
 
     if (resNodeReadStatus(prnTest) && resNodeIsFile(prnTest) && cxpCtxtAccessIsPermitted(pccArg, prnTest) &&
@@ -394,7 +394,7 @@ cxpCtxtCgiParse(cxpContextPtr pccArg)
       resNodePtr prnTest = NULL;
 
       if ((prnTest = resNodeRootNew(cxpCtxtRootGet(pccArg), pucCgiPath)) == NULL || resNodeIsReadable(prnTest) == FALSE) {
-	prnTest = resNodeListFindPath(cxpCtxtRootGet(pccArg), pucCgiPath, (RN_FIND_FILE | RN_FIND_IN_SUBDIR | RN_FIND_REGEXP));
+	prnTest = resNodeListFindPath(cxpCtxtRootGet(pccArg), pucCgiPath, (RN_FIND_FILE | RN_FIND_SYMLINK | RN_FIND_IN_SUBDIR | RN_FIND_REGEXP));
       }
 
       if (resNodeReadStatus(prnTest) && resNodeIsDir(prnTest)) {
@@ -415,7 +415,7 @@ cxpCtxtCgiParse(cxpContextPtr pccArg)
 	  xmlSetProp(pndDir, BAD_CAST "name", resNodeGetNameRelative(cxpCtxtRootGet(pccArg), prnTest));
 	}
       }
-      else if (resNodeReadStatus(prnTest) && resNodeIsFile(prnTest)) {
+      else if (resNodeReadStatus(prnTest) && (resNodeIsFile(prnTest) || resNodeIsLink(prnTest))) {
 	if (cxpCtxtAccessIsPermitted(pccArg, prnTest) == FALSE) {
 	  // access error
 	}
