@@ -142,7 +142,7 @@ utilsTest(void)
     printf("TEST %i in '%s:%i': base64 encoding and decoding = ",i,__FILE__,__LINE__);
     pucTest = xmlStrdup(BAD_CAST"ABCÜÖÄKKKK");
 
-    if (base64encode(pucTest,strlen((char *)pucTest)+1,(char *)mucBase64,BUFFER_LENGTH) == 1 && strlen((char *)mucBase64) == 20) {
+    if (base64encode(pucTest,strlen((char *)pucTest)+1,(char *)mucBase64,&l) == 1 && strlen((char *)mucBase64) == 20) {
       if (base64decode((char *)mucBase64,strlen((char *)mucBase64),mucResult,&l)==0 && xmlStrEqual(mucResult,pucTest)) {
         n_ok++;
         printf("OK\n");
@@ -165,7 +165,7 @@ utilsTest(void)
     i++;
     printf("TEST %i in '%s:%i': base64 error handling = ",i,__FILE__,__LINE__);
 
-    if (base64encode(NULL,10,(char *)mucBase64,BUFFER_LENGTH) == 0 && base64decode(NULL,0,mucResult,&l) == 0) {
+    if (base64encode(NULL,10,(char *)mucBase64,&l) == 0 && base64decode(NULL,0,mucResult,&l) == 0) {
       n_ok++;
       printf("OK\n");
     }

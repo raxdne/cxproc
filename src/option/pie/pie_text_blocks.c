@@ -1012,6 +1012,7 @@ SplitTupelToLinkNodesMd(const xmlChar *pucArg)
 	    pndLink = xmlNewNode(NULL, BAD_CAST NAME_PIE_IMG);
 	    //xmlNodeSetContent(pndLink, pucUrlDisplay);
 	    xmlSetProp(pndLink, BAD_CAST "title", pucUrlDisplay);
+	    xmlNewTextChild(pndLink, NULL, BAD_CAST NAME_PIE_TTAG, BAD_CAST "#img");
 	  }
 	  else {
 	    PrintFormatLog(4, "URL display text '%s' (%i..%i) in '%s'", pucUrlDisplay, ovector[i * 2], ovector[i * 2 + 1], pucArg);
@@ -2768,6 +2769,7 @@ TransformToFigureNode(xmlNodePtr pndArg)
       /* embedded base64-encoded image */
       pndImage = xmlNewChild(pndArg, NULL, BAD_CAST NAME_PIE_IMG, NULL);
       domAddChildBase64(pndImage, pndFirst->content);
+      xmlNewTextChild(pndImage, NULL, BAD_CAST NAME_PIE_TTAG, BAD_CAST "#img");
       xmlNodeSetContent(pndFirst, NULL);
     }
     else if (pndFirst->content != NULL && (iLengthStr = xmlStrlen(pndFirst->content)) > 0) {
@@ -2826,6 +2828,7 @@ TransformToFigureNode(xmlNodePtr pndArg)
 	      xmlNodeSetContent(pndFirst, pucT);
 	    }
 	    domSetPropEat(pndImage, BAD_CAST "src", pucRelease);
+	    xmlNewTextChild(pndImage, NULL, BAD_CAST NAME_PIE_TTAG, BAD_CAST "#img");
 	    xmlNodeSetName(pndArg, BAD_CAST NAME_PIE_HEADER);
 	  }
 

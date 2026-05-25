@@ -344,8 +344,13 @@ cmarkTreeToDOM(xmlNodePtr pndArgBlock, xmlNodePtr pndArg, cmark_node* pcmnArg)
       }
       else if (pcmnArg->first_child != NULL && pcmnArg->first_child == pcmnArg->last_child && pcmnArg->first_child->data != NULL &&
 	       StringBeginsWith((char *)pcmnArg->first_child->data, "data:")) {
-        pndT = xmlNewChild(pndArg, NULL, BAD_CAST NAME_PIE_PAR, NULL);
-	AddChildBase64(pndT, pcmnArg->first_child);
+	xmlNodePtr pndTT = NULL;
+
+	pndT = xmlNewChild(pndArg, NULL, BAD_CAST NAME_PIE_PAR, NULL);
+	pndTT = AddChildBase64(pndT, pcmnArg->first_child);
+	if (StringBeginsWith(domGetPropValuePtr(pndTT, BAD_CAST "type"), BAD_CAST "image/")) {
+	  xmlNewTextChild(pndT, NULL, BAD_CAST NAME_PIE_TTAG, BAD_CAST "#img");
+	}
       }
       else {
         pndT = xmlNewChild(pndArg, NULL, BAD_CAST NAME_PIE_PAR, NULL);
@@ -428,8 +433,9 @@ cmarkTreeToDOM(xmlNodePtr pndArgBlock, xmlNodePtr pndArg, cmark_node* pcmnArg)
       if (pcmnArg->first_child != NULL && STR_IS_NOT_EMPTY(pcmnArg->first_child->data)) {
 	xmlSetProp(pndImage, BAD_CAST "title", pcmnArg->first_child->data);
       }
-	/* the image is inline (prefix and/or postfix text) */
-	xmlAddChild(pndArg, pndImage);
+      xmlNewTextChild(pndImage, NULL, BAD_CAST NAME_PIE_TTAG, BAD_CAST "#img");
+      /* the image is inline (prefix and/or postfix text) */
+      xmlAddChild(pndArg, pndImage);
     }
     else if (pcmnArg->type == CMARK_NODE_LINK) {
       pndT = xmlNewChild(pndArg, NULL, BAD_CAST NAME_PIE_LINK, NULL);

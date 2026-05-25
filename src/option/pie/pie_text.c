@@ -407,6 +407,7 @@ pieEmbeddInChildNodes(xmlNodePtr pndArg, cxpContextPtr pccArg)
 	//xmlUnsetProp(pndArg, BAD_CAST "src");
       }
       resNodeFree(prnSrc);
+      xmlNewTextChild(pndArg, NULL, BAD_CAST NAME_PIE_TTAG, BAD_CAST "#img");
     }
   }
   else if (IS_ENODE(pndArg)) {
