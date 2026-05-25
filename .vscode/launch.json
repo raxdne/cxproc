@@ -1,0 +1,359 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+	{ // cgi
+	    "name": "(gdb) cxproc-cgi",
+	    "type": "cppdbg",
+	    "request": "launch",
+	    "program": "${command:cmake.buildDirectory}/../www/cgi-bin/cxproc-cgi",
+	    "args": [],
+	    "stopAtEntry": false,
+	    "cwd": "${command:cmake.buildDirectory}/../www/cgi-bin",
+	    "environment": [
+		{"name": "REQUEST_METHOD", "value": "GET"}, 
+		{"name": "DOCUMENT_ROOT", "value": "${command:cmake.buildDirectory}/../www/html/develop"},
+		{"name": "CXP_PATH", "value": "${command:cmake.buildDirectory}/../www/html/pie/local/:${command:cmake.buildDirectory}/../www/html/pie//"},
+		{"name": "CXP_LOG", "value": "4"},
+		//{"name": "CXP_LOGFILE", "value": "${command:cmake.buildDirectory}/../cxproc.log"},
+		//{"name": "PATH_TRANSLATED", "value": "${command:cmake.buildDirectory}/../www/html/develop/Newsfeeds.cxp"},
+		{"name": "QUERY_STRING", "value": 
+		 //"cxp=info"
+		 //"cxp=PieUiDir"
+		 //"cxp=PieUiPowered"
+		 //"path="
+		 //"path=Dummy%202"
+		 //"path=Project.md&cxp=PiejQDefault"
+		 //"path=Test/"
+		 //"path=Test/Archive/TestArchive.zip/Test/SubTest/folder.png"
+		 //"path=Test/Directory&cxp=PieUiDir"
+		 //"path=Test/Documents/TestContent.txt&cxp=PiejQDefault"
+		 "path=Test/Documents/TestImport.txt&cxp=Format&b=application/pie%2Bproc%2Bxml"
+		 //"path=Test/Documents/TestTable.txt"
+		 //"path=Test/Scripts/TestScriptImport.pie&cxp=PiejQDefault"
+		 //"path=Test/Scripts/TestScript.pie&cxp=PiejQImport"
+		 //"path=Test/TestEdit.txt&xsl=pie2tree&str_tagtime=ABC"
+		 //"path=test-zip-7.zip/sub/a.txt"
+		 //"redir=Tux.png"
+		 //"script=TestScriptPlainFile.js"
+		 //"Test/Archive/TestArchive.zip/Test/SubTest/folder.png"
+		 //"Test/TestGood.txt"
+		 //"year=2020"
+		}
+	    ],
+	    "externalConsole": false,
+	    "MIMode": "gdb",
+	    "setupCommands": [
+		{
+		    "description": "Enable pretty-printing for gdb",
+		    "text": "-enable-pretty-printing",
+		    "ignoreFailures": true
+		},
+		{
+		    "description": "Set Disassembly Flavor to Intel",
+		    "text": "-gdb-set disassembly-flavor intel",
+		    "ignoreFailures": true
+		}
+	    ]
+	},
+	{ // test
+	    "name": "(gdb) cxproc-test",
+	    "type": "cppdbg",
+	    "request": "launch",
+	    "program": "${command:cmake.buildDirectory}/../bin/cxproc-test",
+	    "args": ["-t", 
+		     //"basics"
+		     //"res_node"
+		     "dom"
+		     //"cxp"
+		     //"pie"
+		     //"sql"
+		     //"dir"
+		     //"plain"
+		     //"ics"
+		     //"vcf"
+		    ],
+	    "stopAtEntry": false,
+	    "cwd": "${command:cmake.buildDirectory}/..",
+	    "environment": [],
+	    "externalConsole": false,
+	    "MIMode": "gdb",
+	    "setupCommands": [
+		{
+		    "description": "Enable pretty-printing for gdb",
+		    "text": "-enable-pretty-printing",
+		    "ignoreFailures": true
+		},
+		{
+		    "description": "Set Disassembly Flavor to Intel",
+		    "text": "-gdb-set disassembly-flavor intel",
+		    "ignoreFailures": true
+		}
+	    ]
+	},
+	{ // cxp
+	    "name": "(gdb) cxproc cxp",
+	    "type": "cppdbg",
+	    "request": "launch",
+	    "program": "${command:cmake.buildDirectory}/../bin/cxproc",
+	    "args": [
+		//"-t",
+		//"config.cxp"
+		//"${command:cmake.buildDirectory}/../www/html/develop/Newsfeeds.cxp"
+		//"${command:cmake.buildDirectory}/../www/html/develop/Test/Calendars/TestCalendarIcs.cxp"
+		//"${command:cmake.buildDirectory}/../www/html/develop/Test/Scripts/TestScript.pie"
+		//"${workspaceFolder}/examples/xzip.cxp", "~/cxproc-build/t-1.zip", "test/xml/"
+		//"examples/DiskUsage/DiskUsage.cxp"
+		//"examples/exifmover.cxp", "${command:cmake.buildDirectory}/../www/html/develop/Pictures"
+		//"-s", "Validate.xsl"
+		//"test-pie-import-cmark-001.cxp"
+		//"test-pie-import-xml-006.cxp"
+		//"test-pie-include-001.cxp"
+		//"test-xhtml-002.cxp"
+		//"-x", "<xml name='-'><info/></xml>"
+	    ],
+	    "stopAtEntry": false,
+	    "cwd": "${workspaceFolder}",
+	    "environment": [
+		{"name": "CXP_PATH", "value": "${workspaceFolder}/xml//:${command:cmake.buildDirectory}/../www/html/pie//:${command:cmake.buildDirectory}/../share/doc/cxproc/examples//"},
+	    ],
+	    "externalConsole": false,
+	    "MIMode": "gdb",
+	    "setupCommands": [
+		{
+		    "description": "Enable pretty-printing for gdb",
+		    "text": "-enable-pretty-printing",
+		    "ignoreFailures": true
+		},
+		{
+		    "description": "Set Disassembly Flavor to Intel",
+		    "text": "-gdb-set disassembly-flavor intel",
+		    "ignoreFailures": true
+		}
+	    ]
+	},
+	{ // info
+	    "name": "(gdb) cxproc info",
+	    "type": "cppdbg",
+	    "request": "launch",
+	    "program": "${command:cmake.buildDirectory}/../bin/cxproc",
+	    "args": [
+		"-e", 
+		//"${command:cmake.buildDirectory}/../../t-22.db3", 
+		//"${workspaceFolder}/test//"
+	    ],
+	    "stopAtEntry": false,
+	    "cwd": "${workspaceFolder}",
+	    "environment": [],
+	    "externalConsole": false,
+	    "MIMode": "gdb",
+	    "setupCommands": [
+		{
+		    "description": "Enable pretty-printing for gdb",
+		    "text": "-enable-pretty-printing",
+		    "ignoreFailures": true
+		},
+		{
+		    "description": "Set Disassembly Flavor to Intel",
+		    "text": "-gdb-set disassembly-flavor intel",
+		    "ignoreFailures": true
+		}
+	    ]
+	},
+	{ // sqlite
+	    "name": "(gdb) cxproc sqlite",
+	    "type": "cppdbg",
+	    "request": "launch",
+	    "program": "${command:cmake.buildDirectory}/../bin/cxproc",
+	    "args": [
+		//"-t", 
+		"${command:cmake.buildDirectory}/../t-22.db3", "${command:cmake.buildDirectory}//"
+		//"${workspaceFolder}/test/option/sql/config.cxp",
+	    ],
+	    "stopAtEntry": false,
+	    // "cwd": "${fileDirname}",
+	    "cwd": "${workspaceFolder}/test/option/sql",
+	    "environment": [],
+	    "externalConsole": false,
+	    "MIMode": "gdb",
+	    "setupCommands": [
+		{
+		    "description": "Enable pretty-printing for gdb",
+		    "text": "-enable-pretty-printing",
+		    "ignoreFailures": true
+		},
+		{
+		    "description": "Set Disassembly Flavor to Intel",
+		    "text": "-gdb-set disassembly-flavor intel",
+		    "ignoreFailures": true
+		}
+	    ]
+	},
+	{ // file
+	    "name": "(gdb) cxproc file",
+	    "type": "cppdbg",
+	    "request": "launch",
+	    "program": "${command:cmake.buildDirectory}/../bin/cxproc",
+	    "args": [
+		//"-t",
+		//"${command:cmake.buildDirectory}/../www/html/develop/rfc5545.ics"
+		//"${command:cmake.buildDirectory}/../www/html/develop/Test/Archive/TestArchive.zip"
+		//"${command:cmake.buildDirectory}/../www/html/develop/Test/BLOBs/TestScriptBlob.cxp"
+		//"${command:cmake.buildDirectory}/../www/html/develop/Test/Calendars/2446.ics"
+		"${command:cmake.buildDirectory}/../www/html/develop/Test/Directory"
+		//"${command:cmake.buildDirectory}/../www/html/develop/Test/Documents/TestBlocks.txt"
+		//"${command:cmake.buildDirectory}/../www/html/develop/Test/Documents/TestContentCoding.md"
+		//"${command:cmake.buildDirectory}/../www/html/develop/Test/Documents/TestContent.csv"
+		//"${command:cmake.buildDirectory}/../www/html/develop/Test/Documents/TestContentDate.txt"
+		//"${command:cmake.buildDirectory}/../www/html/develop/Test/Documents/TestContentFigure.md"
+		//"${command:cmake.buildDirectory}/../www/html/develop/Test/Documents/TestContent.md"
+		//"${command:cmake.buildDirectory}/../www/html/develop/Test/Documents/TestContent.pie"
+		//"${command:cmake.buildDirectory}/../www/html/develop/Test/Documents/TestContentSubst.md"
+		//"${command:cmake.buildDirectory}/../www/html/develop/Test/Documents/TestContent.txt"
+		//"${command:cmake.buildDirectory}/../www/html/develop/Test/Documents/TestFigure.md"
+		//"${command:cmake.buildDirectory}/../www/html/develop/Test/Documents/TestFigure.txt"
+		//"${command:cmake.buildDirectory}/../www/html/develop/Test/Documents/TestImage.txt"
+		//"${command:cmake.buildDirectory}/../www/html/develop/Test/Documents/TestLinks.md"
+		//"${command:cmake.buildDirectory}/../www/html/develop/Test/Documents/TestTable.csv"
+		//"${command:cmake.buildDirectory}/../www/html/develop/Test/Documents/TestTable.md"
+		//"${command:cmake.buildDirectory}/../www/html/develop/Test/Documents/TestTableScript.md"
+		//"${command:cmake.buildDirectory}/../www/html/develop/TestImage.docx"
+		//"${command:cmake.buildDirectory}/../www/html/develop/Test/Scripts/TestScriptImport.md"
+		//"${command:cmake.buildDirectory}/../www/html/develop/Test/Scripts/TestScript.md"
+		//"${command:cmake.buildDirectory}/../www/html/develop/Test/Scripts/TestScript.pie"
+		//"${workspaceFolder}/test/option/pie/text/cmark/test-cmark-1.md"
+		//"${workspaceFolder}/test/option/pie/text/script/test-pie-import-script-009.txt",
+		//"${workspaceFolder}/test/option/pie/text/test-pie-24.txt"
+		//"${workspaceFolder}/test/option/pie/text/test-pie-8.txt"
+		//"${workspaceFolder}/test/option/pie/text/test-pie-figure.pie"
+		//"${workspaceFolder}/test/option/pie/text/test-pie-include-001.pie"
+		//"${workspaceFolder}/test/option/pie/text/test-pie-link.pie"
+		//"${workspaceFolder}/test/option/pie/text/test-pie-subst-001.pie"
+		//"${workspaceFolder}/test/option/pie/text/test-pie-task.pie"
+		//"${workspaceFolder}/test/xml/generic.xml"
+		//"http://localhost:8183/cxproc/exe?path=Test/Documents/TestFigure.md","pie2html.xsl"
+	    ],
+	    "stopAtEntry": false,
+	    "cwd": "${workspaceFolder}",
+	    "environment": [
+		{"name": "CXP_PATH", "value": "${command:cmake.buildDirectory}/../www/html/pie//"},
+		{"name": "CXP_DIR_VERBOSITY", "value": "5"},
+	    ],
+	    "externalConsole": false,
+	    "MIMode": "gdb",
+	    "setupCommands": [
+		{
+		    "description": "Enable pretty-printing for gdb",
+		    "text": "-enable-pretty-printing",
+		    "ignoreFailures": true
+		},
+		{
+		    "description": "Set Disassembly Flavor to Intel",
+		    "text": "-gdb-set disassembly-flavor intel",
+		    "ignoreFailures": true
+		}
+	    ]
+	},
+        { // filex
+            "name": "(gdb) filex",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${command:cmake.buildDirectory}/../bin/filex",
+            "args": [
+		"${command:cmake.buildDirectory}/../www/html/develop/Test/Documents/TestContentDate.txt"
+		//"${command:cmake.buildDirectory}/../www/html/develop/Test/Documents/TestContentLists.md"
+		//"${command:cmake.buildDirectory}/../www/html/develop/Test/Documents/TestImage.txt"
+		//"${command:cmake.buildDirectory}/../www/html/develop/Test/Documents/TestTable.csv"
+		//"${command:cmake.buildDirectory}/../www/html/develop/Test/Documents/TestTable.txt"
+		//"${workspaceFolder}/doc/option/pie/examples/hello.md"
+		//"${workspaceFolder}/test/option/ics/2446.ics"
+		//"${workspaceFolder}/test/option/image/small.png"
+		//"${workspaceFolder}/test/option/pie/text/test-pie-include-003.md"
+		//"${workspaceFolder}/test/option/pie/text/test-pie-task.pie"
+		//"${workspaceFolder}/test/xml/blob.bin"
+	    ],
+            "stopAtEntry": false,
+            "cwd": "${fileDirname}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                },
+                {
+                    "description": "Set Disassembly Flavor to Intel",
+                    "text": "-gdb-set disassembly-flavor intel",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        { // pietextx
+            "name": "(gdb) pietextx",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${command:cmake.buildDirectory}/../bin/pietextx",
+            "args": [
+		"${workspaceFolder}/doc/option/pie/examples/hello.md"
+		//"${workspaceFolder}/test/option/ics/2446.ics"
+		//"${workspaceFolder}/test/option/pie/text/test-pie-9.txt"
+		//"${command:cmake.buildDirectory}/../www/html/develop/Test/Documents/TestTable.txt"
+		//"${command:cmake.buildDirectory}/../www/html/develop/Test/Documents/TestTable.csv"
+		//"${command:cmake.buildDirectory}/../www/html/develop/Test/Documents/TestContentLists.md"
+		//"${command:cmake.buildDirectory}/../www/html/develop/cxproc-odt.txt"
+	    ],
+            "stopAtEntry": false,
+            "cwd": "${fileDirname}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                },
+                {
+                    "description": "Set Disassembly Flavor to Intel",
+                    "text": "-gdb-set disassembly-flavor intel",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        { // dir2csv
+            "name": "(gdb) dir2csv",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${command:cmake.buildDirectory}/../bin/dir2csv",
+            "args": [
+		//"-h",
+		//"-r",
+		"-f",
+		"${workspaceFolder}/test/"
+	    ],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                },
+                {
+                    "description": "Set Disassembly Flavor to Intel",
+                    "text": "-gdb-set disassembly-flavor intel",
+                    "ignoreFailures": true
+                }
+            ]
+        }
+
+
+    ]
+}
