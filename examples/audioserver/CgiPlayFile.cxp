@@ -11,7 +11,6 @@
     </cxp:xml>
     <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.0">
       <xsl:output method="text" encoding="UTF-8" />
-      <!-- s. http://www.xspf.org/ -->
       <xsl:template match="file">
           <!-- -->
           <xsl:value-of select="concat('http://','%SERVER_NAME%','/',@urlprefix,'/',@urlname,'&#10;')" />
