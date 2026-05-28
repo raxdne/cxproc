@@ -531,7 +531,7 @@ dbProcessDirNode(resNodePtr prnArgDb, xmlNodePtr pndArgDir, cxpContextPtr pccArg
     int errornumber;
     int opt_match_pcre = PCRE2_UTF;
 
-    if (xmlHasProp(pndArgDir, BAD_CAST "imatch")) {
+    if (domGetPropValuePtr(pndArgDir, BAD_CAST "imatch") != NULL) {
       cxpCtxtLogPrint(pccArg,2, "Use caseless file match '%s' in %s with depth '%i'", pucAttrMatch, NAME_DIR, iDepth);
       opt_match_pcre |= PCRE2_CASELESS;
     }

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<cxp:make xmlns:cxp="http://www.tenbusch.info/cxproc" xmlns:pkg="http://www.tenbusch.info/pkg">
+  <cxp:subst string="%START%" to="arbeitsblatt"/>
+  <cxp:subst string="%TARGET%" to="papiervorlage"/>
+  <cxp:system message="TEST test-petrinet-004: one petrinet"/>
+  <cxp:xml name="result/test-petrinet-005.xml">
+    <cxp:xml name="result/test-petrinet-001.xml"/>
+    <cxp:xsl>
+      <cxp:xml name="result/test-petrinet-005.xsl">
+        <pkg:pathnet start="%START%" target="%TARGET%" lmax="4" lmin="1">
+          <cxp:xml name="result/test-petrinet-001.xml"/>
+        </pkg:pathnet>
+      </cxp:xml>
+    </cxp:xsl>
+  </cxp:xml>
+</cxp:make>

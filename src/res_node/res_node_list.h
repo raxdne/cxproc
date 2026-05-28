@@ -24,7 +24,9 @@
 
 #define RN_FIND_FILE       (1)
 
-#define RN_FIND_DIR        (2)
+#define RN_FIND_SYMLINK    (2)
+
+#define RN_FIND_DIR        (3)
 
 #define RN_FIND_IN_SUBDIR  (4)
 
@@ -36,7 +38,7 @@
 
 #define RN_FIND_IN_TEMP	  (64)
 
-#define RN_FIND_ALL        (RN_FIND_FILE | RN_FIND_DIR | RN_FIND_IN_SUBDIR | RN_FIND_IN_ARCHIVE | RN_FIND_NEXT)
+#define RN_FIND_ALL        (RN_FIND_FILE | RN_FIND_SYMLINK | RN_FIND_DIR | RN_FIND_IN_SUBDIR | RN_FIND_IN_ARCHIVE | RN_FIND_NEXT)
 
 extern BOOL_T
 resNodeListParse(resNodePtr prnArg, int iArgDepth, const pcre2_code *re_match);

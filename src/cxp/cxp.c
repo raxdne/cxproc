@@ -124,6 +124,9 @@ xmlNsPtr pnsCxp = NULL; /*!\todo use defined namespace "cxp" */
 #define IS_NODE_SOURCE(NODE) (IS_NODE_XML(NODE) || IS_NODE_XSL(NODE) || IS_NODE_INFO(NODE) || IS_NODE_XHTML(NODE) || IS_NODE_PLAIN(NODE) || IS_NODE_ZIP(NODE) || IS_NODE_IMAGE(NODE) || IS_NODE_DIR(NODE) || IS_NODE_FILE(NODE) || IS_NODE_PIE(NODE))
 
 static BOOL_T
+ValidateSchemaCxp(const xmlDocPtr pdocArgXml, cxpContextPtr pccArg);
+
+static BOOL_T
 ValidateSchema(const xmlDocPtr pdocArgXml, const xmlChar *pucArg, cxpContextPtr pccArg);
 
 static xmlDocPtr
@@ -162,6 +165,51 @@ extern xmlDocPtr
 pieProcessPieNode(xmlNodePtr pndMakePie, cxpContextPtr pccArg);
 
 #endif
+
+/*! \return TRUE if pndArg and descendants are valid cxp elements according to XML Schema
+
+  for complete DOM see ValidateSchema()
+  */
+BOOL_T
+ValidateSchemaCxp(const xmlDocPtr pdocArgXml, cxpContextPtr pccArg)
+{
+  BOOL_T fResult = FALSE;
+#if 0
+  if (pdocArgXml) {
+    xmlRelaxNGParserCtxtPtr rngparser;
+    #include "cxp_rng.h"
+
+    /*! parse relaxng file */
+    rngparser = xmlRelaxNGNewDocParserCtxt(pdocResult);
+    if (rngparser) {
+      xmlRelaxNGPtr schema;
+
+      schema = xmlRelaxNGParse(rngparser);
+      if (schema) {
+	xmlRelaxNGValidCtxtPtr validctxt;
+
+	validctxt = xmlRelaxNGNewValidCtxt(schema);
+	if (validctxt) {
+	  /*! validate DOM */
+	  fResult = (xmlRelaxNGValidateDoc(validctxt, pdocArgXml) == 0);
+	  if (fResult) {
+	    cxpCtxtLogPrint(pccArg, 2, "Validation against internal Schema successful");
+	  }
+	  else {
+	    cxpCtxtLogPrint(pccArg, 2, "Validation against internal Schema failed");
+	  }
+	  xmlRelaxNGFreeValidCtxt(validctxt);
+	}
+	xmlRelaxNGFree(schema);
+      }
+      xmlRelaxNGFreeParserCtxt(rngparser);
+    }
+    xmlFreeDoc(pdocResult);
+  }
+#endif
+  return fResult;
+} /* end of ValidateSchemaCxp() */
+
 
 /*! \return TRUE if pndArg and descendants are valid against relaxng
 
@@ -458,6 +506,30 @@ cxpProcessXmlNodeEmbedded(xmlNodePtr pndArg, cxpContextPtr pccArg)
 
 	pndRoot = xmlDocGetRootElement(pdocT);
 	if (pndRoot) {
+#if 0
+	  if (xmlStrcasecmp(pndRoot->name, BAD_CAST "html") == 0) {
+	    if ((pndResult = domGetFirstChild(pndRoot, BAD_CAST "body")) != NULL) {
+	      domUnlinkNodeList(pndResult);
+	      xmlNodeSetName(pndResult, BAD_CAST "div"); /* append this tree as "div" element */
+	    }
+	    else if ((pndResult = domGetFirstChild(pndRoot, BAD_CAST "head")) != NULL) {
+	      domUnlinkNodeList(pndResult);
+	    }
+	  }
+	  else if (xmlStrcasecmp(pndRoot->name, BAD_CAST "body") == 0) {
+	    pndResult = pndRoot;
+	    domUnlinkNodeList(pndResult);
+	    xmlNodeSetName(pndResult, BAD_CAST "div"); /* append this tree as "div" element */
+	  }
+	  else if (xmlStrcasecmp(pndRoot->name, BAD_CAST "head") == 0) {
+	    pndResult = pndRoot;
+	    domUnlinkNodeList(pndResult);
+	  }
+	  else {
+	    pndResult = xmlCopyNode(pndRoot,1);
+	  }
+	  domUnsetNs(pndResult);
+#else
 	  xmlNodePtr pndNew = NULL;
 
 	  if (domDocIsHtml(pdocT)) {
@@ -465,10 +537,12 @@ cxpProcessXmlNodeEmbedded(xmlNodePtr pndArg, cxpContextPtr pccArg)
 
 	    if ((pndToCopy = domGetFirstChild(pndRoot,BAD_CAST"body")) != NULL && pndToCopy->children != NULL) {
 	      pndNew = xmlCopyNode(pndToCopy,1);
+	      domUnsetNs(pndNew);
 	      xmlNodeSetName(pndNew,BAD_CAST"div"); /* append this tree as "div" element */
 	    }
 	    else if ((pndToCopy = domGetFirstChild(pndRoot,BAD_CAST"head")) != NULL && pndToCopy->children != NULL) {
 	      pndNew = xmlCopyNode(pndToCopy,1);
+	      domUnsetNs(pndNew);
 	    }
 	    else {
 	      cxpCtxtLogPrint(pccArg,1,"No usable 'html/head/*' or 'html/body/*' result");
@@ -480,9 +554,11 @@ cxpProcessXmlNodeEmbedded(xmlNodePtr pndArg, cxpContextPtr pccArg)
 	    /*!\todo processing without copying of tree (DANGER!!!) */
 
 	    pndNew = xmlCopyNode(pndRoot,1);
+	    domUnsetNs(pndNew);
 	  }
 	  /*! keep the inserted node 'pndNew' as the result */
 	  pndResult = pndNew;
+#endif
 	}
 	xmlFreeDoc(pdocT);
       }
@@ -494,8 +570,7 @@ cxpProcessXmlNodeEmbedded(xmlNodePtr pndArg, cxpContextPtr pccArg)
 
       pucT = cxpProcessPlainNode(pndArg, pccArg);
       if (STR_IS_NOT_EMPTY(pucT)) {
-	xmlReplaceNode(pndArg, xmlNewText(pucT));
-	xmlFreeNode(pndArg);
+	domNodeTransformToText(pndArg, pucT);
       }
       xmlFree(pucT);
     }
@@ -518,12 +593,9 @@ cxpProcessXmlNodeEmbedded(xmlNodePtr pndArg, cxpContextPtr pccArg)
 	/*! if there is a new result tree, replace the old processing node 'pndChild' with tree of resulting 'pndT' */
 	cxpCtxtLogPrint(pccArg,2,"Replacing tree of '%s'",pndChild->name);
 
-	assert(pndT->next == NULL);
 	/*!\todo compare type compatibility of nodes */
-
-	xmlReplaceNode(pndChild,pndT);
-	/*! free the unlinked processing node 'pndArg': Side effect!! */
-	xmlFreeNode(pndChild);
+	assert(pndT->next == NULL);
+	domReplaceNodeList(pndChild,pndT);
       }
       /* WARNING: pndChild was released eventually in cxpProcessEmbeddedNodes() */
       pndChild = pndChildNext;
@@ -946,6 +1018,8 @@ cxpProcessPlainNode(xmlNodePtr pndArg, cxpContextPtr pccArg)
       xmlNodePtr pndChild;
       xmlNodePtr pndChildNext;
 
+      cxpSubstInChildNodes(pndArg, NULL, pccHere);
+
       for (pucResult = NULL, pndChild = pndArg->children; pndChild != NULL; pndChild = pndChildNext) {
 	xmlChar *pucChildResult;
 	
@@ -1071,7 +1145,7 @@ cxpProcessXmlChildNodes(xmlNodePtr pndArg,cxpContextPtr pccArg)
     xmlNodePtr pndNew;
     xmlNodePtr pndRootNew;
     xmlNodePtr pndChild;
-    xmlNodePtr pndT;
+    xmlNodePtr pndT = NULL;
 
     pndRootNew  = xmlCopyNode(pndArg,0);
 
@@ -1094,10 +1168,15 @@ cxpProcessXmlChildNodes(xmlNodePtr pndArg,cxpContextPtr pccArg)
 	cxpCtxtLogPrint(pccArg,2,"Replacing tree of '%s'",pndChild->name);
 	assert(pndNew->next == NULL);
 	/*!\todo compare type compatibility of nodes */
-	xmlAddChild(pndRootNew,pndNew);
+        //domPutNodeString(stderr, BAD_CAST"Replacing tree ", pndNew);
+	domReplaceNodeList(pndChild,pndNew);
+      }
+      else if ((pndT = xmlCopyNode(pndChild,1)) != NULL) {
+	cxpCtxtLogPrint(pccArg,2,"Copying tree of '%s'",pndChild->name);
+	xmlAddChild(pndRootNew,pndT);
       }
       else {
-	xmlAddChild(pndRootNew,xmlCopyNode(pndChild,1));
+	xmlSetProp(pndRootNew,BAD_CAST"error",BAD_CAST"copy");
       }
 
       /* WARNING: pndChild was released eventually in cxpProcessEmbeddedNodes() */
@@ -1186,7 +1265,11 @@ cxpGetXmlSourceNode(xmlNodePtr pndArg, cxpContextPtr pccArg)
 
   for (pndChild=pndArg->children; pndChild != NULL; pndChild=pndChild->next) {
 
-    if (IS_NODE_XML(pndChild)) {
+    if (IS_NODE_INCLUDE(pndChild)) {
+      cxpCtxtLogPrint(pccArg, 1, "Includes must be processed before: '%s/%s[@name='%s']'",
+	pndArg->name, pndChild->name, domGetPropValuePtr(pndChild, BAD_CAST"name"));
+    }
+    else if (IS_NODE_XML(pndChild)) {
       if (pndResult) {
 	cxpCtxtLogPrint(pccArg, 1, "Ignoring redundant XML source: '%s/%s[@name='%s']'",
 	  pndArg->name, pndChild->name, domGetPropValuePtr(pndChild, BAD_CAST"name"));
@@ -1277,16 +1360,17 @@ cxpProcessXmlNode(xmlNodePtr pndArg, cxpContextPtr pccArg)
 #ifdef DEBUG
   cxpCtxtLogPrint(pccArg,3,"cxpProcessXmlNode(pndArg=%0x,pccArg=%0x)",pndArg,pccArg);
 #endif
+  assert(IS_NODE_XML(pndArg));
 
   if (IS_VALID_NODE(pndArg) == FALSE) {
     /* ignore NULL and invalid elements */
   }
-  else if (IS_NODE_XML(pndArg) && domGetPropFlag(pndArg,BAD_CAST"eval",TRUE) == FALSE) {
-    /* make a recursive copy of pndArg */
+  else if (domGetPropFlag(pndArg,BAD_CAST"eval",TRUE) == FALSE) {
+    /* make a recursive copy of pndArg only */
     pdocResult = domDocFromNodeNew(pndArg);
     xmlUnsetProp(xmlDocGetRootElement(pdocResult),BAD_CAST"eval");
   }
-  else if (IS_NODE_XML(pndArg)) {
+  else {
     xmlChar *pucSchema;
     xmlChar *pucT = NULL;
     xmlChar *pucAttrName;
@@ -1302,8 +1386,9 @@ cxpProcessXmlNode(xmlNodePtr pndArg, cxpContextPtr pccArg)
       cxpContextPtr pccHere = pccArg;
 
       //pccHere = cxpCtxtFromAttr(pccArg, pndArg);
+      cxpSubstInChildNodes(pndArg, NULL, pccHere);
 
-      if (IS_NODE_XML(pndChildSource) || IS_NODE_XHTML(pndChildSource)) {
+      if (IS_NODE_XML(pndChildSource)) {
 	pdocT = cxpProcessXmlNode(pndChildSource,pccHere);
       }
       else if (IS_NODE_DIR(pndChildSource) || IS_NODE_FILE(pndChildSource)) {
@@ -1366,8 +1451,6 @@ cxpProcessXmlNode(xmlNodePtr pndArg, cxpContextPtr pccArg)
 	pdocT = cxpProcessXmlChildNodes(pndArg,pccHere);
       }
 
-      /*!\todo cxpSubstitute(pndArg); */
-
       if (pdocT) {
 	/*! transform DOM by XSL if required */
 	if (cxpProcessTransformations(pdocT, pndArg, &pdocResult, NULL, pccHere) && pdocResult != NULL) {
@@ -1392,12 +1475,12 @@ cxpProcessXmlNode(xmlNodePtr pndArg, cxpContextPtr pccArg)
 	      cxpCtxtLogPrint(pccArg, 2, "'%s' evaluation", pndRoot->name);
 	      pdocResult = cxpProcessXmlNode(pndRoot, pccHere);
 	    }
+	    else {
+	      cxpCtxtLogPrint(pccArg, 1, "No XML source '%s'", pndRoot->name);
+	    }
 	  }
 	}
-
-	if (pdocResult != pdocT) {
-	  xmlFreeDoc(pdocT);
-	}
+	xmlFreeDoc(pdocT);
       }
     }
     else if (STR_IS_NOT_EMPTY(pucAttrName)) {
@@ -1427,13 +1510,13 @@ cxpProcessXmlNode(xmlNodePtr pndArg, cxpContextPtr pccArg)
 	      pdocResult->URL = NULL;
 	    }
 	  }
-	  else if (domGetPropFlag(pndArg, BAD_CAST "locator", FALSE)) {
+	  else if (domGetAncestorsPropFlag(pndArg, BAD_CAST "locator", FALSE)) {
 	    /* add additional attributes for navigation */
 	    xmlNodePtr pndRoot;
 
 	    pndRoot = xmlDocGetRootElement(pdocResult);
-	    domSetPropFileLocator(pndRoot,resNodeGetNameRelative(cxpCtxtRootGet(pccArg),prnFile));
-	    domSetPropFileXpath(pndRoot,BAD_CAST"fxpath",NULL);
+	    xmlSetProp(pndRoot, BAD_CAST "context", resNodeGetNameRelative(cxpCtxtRootGet(pccArg), prnFile));
+	    domSetPropXpath(pndRoot, BAD_CAST"fxpath", NULL);
 	  }
 	  cxpCtxtCacheAppendResNodeEat(pccArg,prnFile);
 	}
@@ -1442,21 +1525,24 @@ cxpProcessXmlNode(xmlNodePtr pndArg, cxpContextPtr pccArg)
 	  cxpCtxtLogPrint(pccArg,1,"XML source not readable '%s'", pucAttrName);
 	}
       }
+      cxpSubstInChildNodes(pndArg, NULL, pccArg);
 
       if (domGetPropFlag(pndArg,BAD_CAST "dump",FALSE)) {
 	cxpCtxtLogPrintDoc(pccArg, 1, NULL, pdocResult);
       }
     }
     else {
-      cxpCtxtLogPrint(pccArg,1,"Ignoring empty element '%s'",pndArg->name);
+      cxpCtxtLogPrint(pccArg,3,"Ignoring empty element '%s'",pndArg->name);
     }
 
     if (pdocResult) {
       xmlNodePtr pndRoot;
 
+      //cxpSubstInChildNodes(pndArg, NULL, pccArg);
+
       pucSchema = domGetPropValuePtr(pndArg, BAD_CAST "schema");
       if (pucSchema != NULL && xmlStrlen(pucSchema) > 4) {
-	if (ValidateSchema(pdocResult, pucSchema, pccArg) == FALSE) {
+	if (ValidateSchemaCxp(pdocResult, pccArg) == FALSE) {
 	  /*!\todo append validation error messages to existing meta element? */
 	}
       }
@@ -1464,19 +1550,15 @@ cxpProcessXmlNode(xmlNodePtr pndArg, cxpContextPtr pccArg)
 	cxpCtxtLogPrint(pccArg,4, "No Schema Validation requested");
       }
 
-      if (domGetPropFlag(pndArg,BAD_CAST "xpath",FALSE)) {
+      if (domGetAncestorsPropFlag(pndArg,BAD_CAST "locator",FALSE)) {
 	pndRoot = xmlDocGetRootElement(pdocResult);
 	if (pndRoot) {
 	  cxpCtxtLogPrint(pccArg,2,"Add XPath attribute to every element");
-	  domSetPropFileXpath(pndRoot,BAD_CAST"xpath",NULL);
+	  domSetPropXpath(pndRoot,BAD_CAST"xpath",NULL);
 	}
       }
     }
   }
-  else {
-    cxpCtxtLogPrint(pccArg,1,"Ignoring non XML element '%s'",pndArg->name);
-  }
-//  xmlAddChild(xmlDocGetRootElement(pdocResult),cxpGetLog());
 
   return pdocResult;
 }
@@ -1642,6 +1724,8 @@ cxpProcessMakeNode(xmlNodePtr pndArg,cxpContextPtr pccArg)
     xmlNodePtr pndChild;
     cxpContextPtr pccHere = pccArg;
 
+    //domPutNodeString(stderr, BAD_CAST"cxpProcessMakeNode ", pndArg);
+
     fValidation = domGetPropFlag(pndArg, BAD_CAST "validation", TRUE);
     if (fValidation == FALSE) {
       cxpCtxtLogPrint(pccArg, 3, "Skipping XML pre-substitution validation");
@@ -1681,7 +1765,8 @@ cxpProcessMakeNode(xmlNodePtr pndArg,cxpContextPtr pccArg)
       cxpCtxtLogPrint(pccArg, 2, "Compiled without threads");
 #endif
 
-      cxpSubstIncludeNodes(pndArg, pccHere);
+      cxpTraverseIncludeNodes(pndArg, pccHere);
+      //domPutNodeString(stderr, BAD_CAST"cxpProcessMakeNode ", pndArg);
       /*!\todo substitute format strings in text nodes */
       cxpSubstInChildNodes(pndArg, NULL, pccHere);
       //cxpSubstReplaceNodes(pndArg, pccHere);
@@ -1750,6 +1835,15 @@ cxpProcessMakeNode(xmlNodePtr pndArg,cxpContextPtr pccArg)
 #else
 	  cxpProcessMakeNode(pndChild, pccHere);
 #endif
+	}
+	else if (IS_NODE_XHTML(pndChild)) {
+	  xmlDocPtr pdocResultT;
+
+	  pdocResultT = cxpProcessXmlNode(pndChild, pccHere);
+	  if (pdocResultT) {
+	    xmlFreeDoc(pdocResultT);
+	    cxpViewNodeResult(pndChild, pccHere);
+	  }
 	}
 	else if (IS_NODE_XML(pndChild)) {
 	  /*! we must handle the result of cxpProcessXml(), run evaluation and free */
@@ -2082,7 +2176,7 @@ cxpProcessTransformations(const xmlDocPtr pdocArgXml, const xmlNodePtr pndArgPar
 	  pndT = xmlNewDocNode(pdocResult, NULL, BAD_CAST"dummy", NULL);
 	  xmlDocSetRootElement(pdocResult, pndT);
 	  pdocResult->encoding = xmlStrdup(BAD_CAST "UTF-8"); /* according to conversion in ParseImportNodePlainContent() */
-	  cxpCtxtLogPrint(pccArg, 1, "Use a new created dummy DOM");
+	  cxpCtxtLogPrint(pccArg, 3, "Use a new created dummy DOM");
 	}
 	else {
 	  cxpCtxtLogPrint(pccArg, 1, "Cant create new DOM");
@@ -2091,7 +2185,7 @@ cxpProcessTransformations(const xmlDocPtr pdocArgXml, const xmlNodePtr pndArgPar
       else {
 	pdocResult = xmlCopyDoc(pdocArgXml,1);
 	if (pdocResult) {
-	  cxpCtxtLogPrint(pccArg, 1, "Use a fresh copy of DOM");
+	  cxpCtxtLogPrint(pccArg, 3, "Use a fresh copy of DOM");
 	}
 	else {
 	  cxpCtxtLogPrint(pccArg, 1, "Cant copy DOM");
@@ -2238,24 +2332,20 @@ cxpProcessTransformations(const xmlDocPtr pdocArgXml, const xmlNodePtr pndArgPar
       }
 
       if (ppdocArgResult != NULL) { /* DOM result expected */
-	assert(ppucArgResult == NULL);
 	*ppdocArgResult = pdocResult;
-	fResult = TRUE;
+	fResult = *ppdocArgResult != NULL;
       }
-      else if (ppucArgResult != NULL) { /* plain text result expected */
-	int l = 0;
-
-	assert(ppdocArgResult == NULL);
+      else { /* plain text result expected */
+	assert(ppucArgResult != NULL);
 	if (pucResult) {
 	  *ppucArgResult = pucResult;
 	}
 	else {
+	  int l = 0;
 	  xmlDocDumpFormatMemoryEnc(pdocResult, ppucArgResult, &l, "UTF-8", 1);
-	  xmlFreeDoc(pdocResult);
 	}
-	fResult = TRUE;
-      }
-      else {
+	xmlFreeDoc(pdocResult);
+	fResult = *ppucArgResult != NULL;
       }
     }
   }
@@ -2381,8 +2471,8 @@ cxpXslRetrieve(const xmlNodePtr pndArgXsl, cxpContextPtr pccArg)
     }
   }
 
-  if (domGetXslOutputMethod(pdocResult)==NULL) {
-    cxpCtxtLogPrint(pccArg, 1, "This XSL DOM has no 'xsl:output' element, ignoring");
+  if (pdocResult != NULL && domGetXslOutputMethod(pdocResult) == NULL) {
+    cxpCtxtLogPrint(pccArg, 1, "This XSL DOM has no 'xsl:output' element, ignoring it");
     xmlFreeDoc(pdocResult);
     pdocResult = NULL;
   }
@@ -3313,6 +3403,12 @@ cxpProcessInfoNode(xmlNodePtr pndInfo, cxpContextPtr pccArg)
 #endif
 
     pndOption = xmlNewChild(pndProgram, NULL, BAD_CAST"option", NULL);
+    xmlSetProp(pndOption, BAD_CAST "name", BAD_CAST"libbase64");
+    xmlSetProp(pndOption, BAD_CAST "ns", BAD_CAST"https://github.com/aklomp/base64");
+    xmlSetProp(pndOption, BAD_CAST "select", BAD_CAST "yes");
+    xmlSetProp(pndOption, BAD_CAST "version", BAD_CAST "v0.5.2");
+
+    pndOption = xmlNewChild(pndProgram, NULL, BAD_CAST"option", NULL);
     xmlSetProp(pndOption, BAD_CAST "name", BAD_CAST"sqlite");
     xmlSetProp(pndOption, BAD_CAST "ns", BAD_CAST"http://www.sqlite.org/");
 #ifdef HAVE_LIBSQLITE3
@@ -3402,6 +3498,9 @@ cxpProcessInfoNode(xmlNodePtr pndInfo, cxpContextPtr pccArg)
     resNodePtr prnTest;
     cxpContextPtr pccI;
 #ifdef _MSC_VER
+
+#elif defined(_WIN32)
+
 #else
     uid_t u;
 

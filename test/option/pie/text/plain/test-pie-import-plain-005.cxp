@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cxp:make xmlns:cxp="http://www.tenbusch.info/cxproc">
+  <cxp:system mkdir="result/"/>
+  <cxp:system message="**** test-pie-import-plain-005: concatenation of plain files"/>
+  <cxp:xml name="result/test-pie-import-plain-005.pie">
+    <cxp:pie>
+      <import name="test-pie-import-plain-005-001.txt"/>
+      <import name="test-pie-import-plain-005-002.txt"/>
+    </cxp:pie>
+  </cxp:xml>
+</cxp:make>

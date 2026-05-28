@@ -408,6 +408,8 @@ resNodeListFindPath(resNodePtr prnArg, xmlChar *pucArgPath, int iArgOptions)
           ||
           ((iArgOptions & RN_FIND_IN_ARCHIVE) && resNodeGetType(prnArg) == rn_type_dir_in_archive)
 	  ||
+	  ((iArgOptions & RN_FIND_SYMLINK) && resNodeGetType(prnArg) == rn_type_symlink)
+	  ||
 	  ((iArgOptions & RN_FIND_FILE) && (resNodeGetType(prnArg) == rn_type_file || resNodeGetType(prnArg) == rn_type_archive))
 	  ||
 	  ((iArgOptions & RN_FIND_IN_ARCHIVE) && resNodeGetType(prnArg) == rn_type_file_in_archive)) {

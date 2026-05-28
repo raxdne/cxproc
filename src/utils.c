@@ -25,7 +25,6 @@
 #include <limits.h>
 
 #include <libxml/parser.h>
-#include <libxml/parserInternals.h>
 
 #include "basics.h"
 #include "utils.h"
@@ -316,7 +315,7 @@ StringDecodeNumericCharsNew(xmlChar *pucArg)
 	  k += j;
 	}
 	else {
-	  j = xmlCopyCharMultiByte(&pucResult[k], iCode);
+	  j = CopyCharMultiByte(&pucResult[k], iCode);
 	  assert(j > 0);
 	  k += j;
 	  i = (int)(pucT - pucArg - 1);
@@ -1039,41 +1038,12 @@ chomp(unsigned char *c)
 /* end of chomp() */
 
 /*
- * https://base64.guru/learn/base64-characters
- * */
-int
-base64removespaces(const void *data_buf)
-{
-  int iResult = 0;
-
-  if (data_buf) {
-    char *pcBegin = (char *)data_buf;
-    int i;
-    int j;
-
-    for (i = j = 0;; i++) {
-      if (pcBegin[i] == '\0') {
-	iResult = j;
-	pcBegin[iResult] = '\0';
-	break;
-      }
-      if (isalnum(pcBegin[i]) || pcBegin[i] == '+' || pcBegin[i] == '/' || pcBegin[i] == '=') {
-	pcBegin[j] = pcBegin[i];
-	j++;
-      }
-    }
-  }
-  return iResult;
-} /* end of base64removespaces() */
-
-
-/*
  * Base 64 encoding/decoding (s. http://en.wikibooks.org/wiki/Algorithm_Implementation/Miscellaneous/Base64)
  *
  * */
 
 int
-base64encode(const void* data_buf, size_t dataLength, char* result, size_t resultSize)
+base64encode(const void* data_buf, size_t dataLength, char* result, size_t *resultSize)
 {
    const char base64chars[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
    const uint8_t *data = (const uint8_t *)data_buf;
@@ -1108,29 +1078,35 @@ base64encode(const void* data_buf, size_t dataLength, char* result, size_t resul
        * if we have one byte available, then its encoding is spread
        * out over two characters
        */
-      if(resultIndex >= resultSize) return 0;   /* indicate failure: buffer too small */
+      if (resultIndex >= *resultSize) {
+	return 0; /* indicate failure: buffer too small */
+      }
       result[resultIndex++] = base64chars[n0];
-      if(resultIndex >= resultSize) return 0;   /* indicate failure: buffer too small */
+      if (resultIndex >= *resultSize) {
+	return 0; /* indicate failure: buffer too small */
+      }
       result[resultIndex++] = base64chars[n1];
 
       /*
        * if we have only two bytes available, then their encoding is
        * spread out over three chars
        */
-      if((x+1) < dataLength)
-      {
-         if(resultIndex >= resultSize) return 0;   /* indicate failure: buffer too small */
-         result[resultIndex++] = base64chars[n2];
+      if ((x + 1) < dataLength) {
+	if (resultIndex >= *resultSize) {
+	  return 0; /* indicate failure: buffer too small */
+	}
+	result[resultIndex++] = base64chars[n2];
       }
 
       /*
        * if we have all three bytes available, then their encoding is spread
        * out over four characters
        */
-      if((x+2) < dataLength)
-      {
-         if(resultIndex >= resultSize) return 0;   /* indicate failure: buffer too small */
-         result[resultIndex++] = base64chars[n3];
+      if ((x + 2) < dataLength) {
+	if (resultIndex >= *resultSize) {
+	  return 0; /* indicate failure: buffer too small */
+	}
+	result[resultIndex++] = base64chars[n3];
       }
    }
 
@@ -1138,16 +1114,20 @@ base64encode(const void* data_buf, size_t dataLength, char* result, size_t resul
     * create and add padding that is required if we did not have a multiple of 3
     * number of characters available
     */
-   if (padCount > 0)
-   {
-      for (; padCount < 3; padCount++)
-      {
-         if(resultIndex >= resultSize) return 0;   /* indicate failure: buffer too small */
-         result[resultIndex++] = '=';
-      }
+   if (padCount > 0) {
+     for (; padCount < 3; padCount++) {
+       if (resultIndex >= *resultSize) {
+	 return 0; /* indicate failure: buffer too small */
+       }
+       result[resultIndex++] = '=';
+     }
    }
-   if(resultIndex >= resultSize) return 0;   /* indicate failure: buffer too small */
+   if (resultIndex >= *resultSize) {
+     return 0; /* indicate failure: buffer too small */
+   }
    result[resultIndex] = 0;
+   *resultSize = resultIndex;
+
    return 1;   /* indicate success */
 }
 
@@ -1316,8 +1296,38 @@ GetPositionISO6709(const char *pchArg,double *pdArgLatitude,double *pdArgLongitu
 /* end of GetPositionISO6709() */
 
 
+/*!\return number of copied Bytes of the multi-byte character for val
+
+  Replacement for xmlCopyCharMultiByte()
+
+  RISK: end of buffer pucArg
+ */
+int
+CopyCharMultiByte(xmlChar *pucArg, int val)
+{
+  int iResult = 0; /* error by default */
+
+  if (pucArg != NULL && val > -1) {
+    xmlChar *pucCode;
+
+    pucCode = GetUTF8Bytes(val);
+    if (pucCode != NULL) {
+      size_t k;
+
+      k = strlen((const char *)pucCode); /* as BYTE length */
+      if (k > 0 && k < 8) {
+	memcpy(pucArg, pucCode, k);
+	iResult = k;
+      }
+      xmlFree(pucCode);
+    }
+  }
+  return iResult;
+} /* end of CopyCharMultiByte() */
+
+
 /**
- * derived from xmlCopyCharMultiByte()
+ * derived from libxml2/src/parserInternals.c/xmlCopyCharMultiByte()
 
  * @val:  the char value
  *
@@ -1326,49 +1336,49 @@ GetPositionISO6709(const char *pchArg,double *pdArgLatitude,double *pdArgLongitu
 xmlChar *
 GetUTF8Bytes(int val)
 {
-  xmlChar *out;
+  xmlChar *out = NULL;
 
-  out = BAD_CAST xmlMalloc(10);
-  if (out) {
-    /*
-     * We are supposed to handle UTF8, check it's valid
-     * From rfc2044: encoding of the Unicode values on UTF-8:
-     *
-     * UCS-4 range (hex.)           UTF-8 octet sequence (binary)
-     * 0000 0000-0000 007F   0xxxxxxx
-     * 0000 0080-0000 07FF   110xxxxx 10xxxxxx
-     * 0000 0800-0000 FFFF   1110xxxx 10xxxxxx 10xxxxxx
-     */
-    if  (val >= 0x80) {
-      xmlChar *savedout = out;
-      int bits;
+  if (val > -1) {
+    out = BAD_CAST xmlMalloc(10);
+    if (out) {
+      /*
+       * We are supposed to handle UTF8, check it's valid
+       * From rfc2044: encoding of the Unicode values on UTF-8:
+       *
+       * UCS-4 range (hex.)           UTF-8 octet sequence (binary)
+       * 0000 0000-0000 007F   0xxxxxxx
+       * 0000 0080-0000 07FF   110xxxxx 10xxxxxx
+       * 0000 0800-0000 FFFF   1110xxxx 10xxxxxx 10xxxxxx
+       */
+      if (val >= 0x80) {
+	xmlChar *savedout = out;
+	int bits;
 
-      if (val < 0x800) {
-	*out++= (val >>  6) | 0xC0;
-	bits=  0;
-      }
-      else if (val < 0x10000) {
-	*out++= (val >> 12) | 0xE0;
-	bits=  6;
-      }
-      else if (val < 0x110000) {
-	*out++= (val >> 18) | 0xF0;
-	bits=  12;
+	if (val < 0x800) {
+	  *out++ = (val >> 6) | 0xC0;
+	  bits = 0;
+	}
+	else if (val < 0x10000) {
+	  *out++ = (val >> 12) | 0xE0;
+	  bits = 6;
+	}
+	else if (val < 0x110000) {
+	  *out++ = (val >> 18) | 0xF0;
+	  bits = 12;
+	}
+	else {
+	  PrintFormatLog(1, "Internal error, GetUTF8Bytes(0x%X) out of bound\n", val);
+	  xmlFree(savedout);
+	  return NULL;
+	}
+	for (; bits >= 0; bits -= 6) { *out++ = ((val >> bits) & 0x3F) | 0x80; }
+	savedout[out - savedout] = (xmlChar)'\0'; /* string termination */
+	out = savedout;
       }
       else {
-	PrintFormatLog(1,"Internal error, GetUTF8Bytes(0x%X) out of bound\n",val);
-	xmlFree(savedout);
-	return NULL;
+	*out = (xmlChar)val; /* simple ASCII codes */
+	out[1] = (xmlChar)'\0';
       }
-      for ( ; bits >= 0; bits-= 6) {
-	*out++= ((val >> bits) & 0x3F) | 0x80 ;
-      }
-      savedout[out - savedout] = (xmlChar) '\0'; /* string termination */
-      out = savedout;
-    }
-    else {
-      *out = (xmlChar) val;
-      out[1] = (xmlChar) '\0';
     }
   }
   return out;
@@ -1781,44 +1791,6 @@ EncodeRFC1738(const xmlChar *input) {
   return buffer;
 }
 /* end of EncodeRFC1738() */
-
-
-/*! \return
-*/
-xmlChar *
-EncodeBase64(const xmlChar *pucArg)
-{
-  return NULL;
-}
-/* end of EncodeBase64() */
-
-
-/*! \return
-*/
-xmlChar *
-DecodeBase64(const xmlChar *pucArg)
-{
-  int ret;
-  char *pchT;
-  size_t inlen;
-  size_t outlen;
-
-  inlen = xmlStrlen(pucArg);
-  pchT = (char*)xmlMalloc(inlen * sizeof(char*));
-  outlen = inlen;
-
-  ret = base64decode((char*)pucArg, inlen, BAD_CAST pchT, &outlen);
-  if (ret == 0) {
-    PrintFormatLog(3, "Decoded '%i' byte to '%i'", inlen, outlen);
-  }
-  else {
-    return NULL;
-  }
-  pchT[outlen] = '\0';	/* string termination? */
-
-  return BAD_CAST pchT;
-}
-/* end of DecodeBase64() */
 
 
 /*
@@ -2672,7 +2644,7 @@ dt_parse_eternal_date(const char *str, size_t len, dt_t *dtp)
 size_t
 dt_parse_easter_date(const char *str, size_t len, dt_t *dtp)
 {
-  char *p;
+  char *p = NULL;
   int y, d;
   size_t n = 0;
 
@@ -2866,6 +2838,10 @@ dt_parse_iso_period(const char* str, size_t len, double* yp, double* mp, double*
       if (fabs(i) < DBL_EPSILON) {
 	continue; /* value is zero */
       }
+      else if (i < DBL_EPSILON) {
+	/* value is negative */
+	return 0;
+      }
 
       if (t) {
 	/*! time parsing */
@@ -2991,7 +2967,7 @@ localtime_offset(void)
     time_t gmt, rawtime = time(NULL);
     struct tm *ptm;
 
-#if !defined(WIN32)
+#if !defined(_WIN32)
     struct tm gbuf;
     ptm = gmtime_r(&rawtime, &gbuf);
 #else

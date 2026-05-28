@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<cxp:make xmlns:cxp="http://www.tenbusch.info/cxproc">
+  <cxp:system message="*** test-xhtml-011: more complex transforming of directory listing ***"/>
+  <cxp:xhtml name="result/test-xhtml-011.html">
+    <html>
+      <cxp:xhtml>
+        <cxp:xsl name="CgiPieUi.xsl">
+          <cxp:variable name="str_path" select="'TEST'"/>
+          <cxp:variable name="flag_header" select="true()"/>
+        </cxp:xsl>
+      </cxp:xhtml>
+      <body>
+        <cxp:xhtml>
+          <cxp:xml>
+            <cxp:dir depth="1" verbosity="3" urlencode="yes">
+              <cxp:dir name=".."/>
+            </cxp:dir>
+          </cxp:xml>
+          <cxp:xsl name="CgiPieUiDir.xsl"/>
+        </cxp:xhtml>
+      </body>
+    </html>
+  </cxp:xhtml>
+</cxp:make>

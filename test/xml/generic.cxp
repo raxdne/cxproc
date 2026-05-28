@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cxp:make xmlns:cxp="http://www.tenbusch.info/cxproc">
+  <cxp:xml name="-" locator="yes">
+    <root>
+      <cxp:xml name="generic.xml"/>
+      <cxp:xml name="generic.xml"/>
+    </root>
+  </cxp:xml>
+</cxp:make>

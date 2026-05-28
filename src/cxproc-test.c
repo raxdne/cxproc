@@ -157,7 +157,6 @@ main(int argc, char** argv, char** envp)
   /* register for exit() */
   if (atexit(xsltCleanupGlobals) != 0
       || atexit(xmlCleanupParser) != 0
-      || atexit(xmlMemoryDump) != 0
       || atexit(domCleanup) != 0
       || atexit(cxpCleanup) != 0
 #ifdef HAVE_PIE
@@ -328,6 +327,7 @@ main(int argc, char** argv, char** envp)
 	  iErrorCode += pieElementTest();
 	  iErrorCode += pieTextTagsTest();
 	  iErrorCode += pieTextBlocksTest();
+	  iErrorCode += pieTextCsvTest();
 	  iErrorCode += pieTextTest(pccT);
 #ifdef WITH_MARKDOWN
 	  iErrorCode += pieCmarkTest();

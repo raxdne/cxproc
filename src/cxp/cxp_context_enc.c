@@ -878,7 +878,10 @@ cxpCtxtEnvDup(cxpContextPtr pccArg, char *envp[])
 
   if (pccArg != NULL) {
     int i;
-    
+
+    for (i = 0; pccArg->ppcEnv != NULL && pccArg->ppcEnv[i] != NULL; i++) { 
+      xmlFree(pccArg->ppcEnv[i]); 
+    }
     xmlFree(pccArg->ppcEnv);
 
     for (i=0; envp != NULL && envp[i] != NULL; i++) ;
@@ -1058,7 +1061,7 @@ cxpCtxtCliGetName(cxpContextPtr pccArg, index_t iIndex)
 #endif
   }
   else {
-    cxpCtxtLogPrint(pccArg, 3, "No valid named arg for '%i'", iIndex);
+    cxpCtxtLogPrint(pccArg, 4, "No valid named arg for '%i'", iIndex);
   }
 
   return pucResult;
@@ -1179,7 +1182,7 @@ cxpCtxtCliGetValueByName(cxpContextPtr pccArg, xmlChar *pucArgName)
 #endif
     }
     else {
-      cxpCtxtLogPrint(pccArg, 3, "No valid named arg for '%s'", pucArgName);
+      cxpCtxtLogPrint(pccArg, 4, "No valid named arg for '%s'", pucArgName);
     }
   }
   return pucResult;
@@ -1263,6 +1266,28 @@ cxpCtxtCgiGetCount(cxpContextPtr pccArg)
 \param pccArg -- pointer to context
 \param iIndex -- index
 \return pointer to name of CGI parameter with index 'iIndex' or NULL else
+*/
+xmlChar*
+cxpCtxtCgiGetNamePtr(cxpContextPtr pccArg, index_t iIndex)
+{
+  xmlChar* pucResult = NULL;
+
+#ifdef HAVE_CGI
+  if (iIndex < cgi_num_entries && cgi_entries[iIndex].name != NULL && strlen(cgi_entries[iIndex].name) > 0) {
+    /* no conversion */
+    pucResult = BAD_CAST cgi_entries[iIndex].name;
+  }
+#else
+#endif
+  return pucResult;
+} /* end of cxpCtxtCgiGetNamePtr() */
+
+
+/*! cxp Ctxt Cgi Get Name
+
+\param pccArg -- pointer to context
+\param iIndex -- index
+\return pointer to copy of name of CGI parameter with index 'iIndex' or NULL else
 */
 xmlChar*
 cxpCtxtCgiGetName(cxpContextPtr pccArg, index_t iIndex)
@@ -1367,7 +1392,7 @@ cxpCtxtCgiGetValue(cxpContextPtr pccArg, index_t iIndex)
 #endif
     }
     else {
-      cxpCtxtLogPrint(pccArg, 3, "No valid named cgi for '%i'", iIndex);
+      cxpCtxtLogPrint(pccArg, 4, "No valid named cgi for '%i'", iIndex);
     }
   }
 #else
@@ -1390,13 +1415,11 @@ cxpCtxtCgiGetValueByName(cxpContextPtr pccArg, xmlChar *pucArgName)
   index_t i;
   xmlChar* pucT;
 
-  for (i = 0; (pucT = cxpCtxtCgiGetName(pccArg, i)); i++) {
+  for (i = 0; (pucT = cxpCtxtCgiGetNamePtr(pccArg, i)); i++) {
     if (xmlStrEqual(pucT, pucArgName)) {
       pucResult = cxpCtxtCgiGetValue(pccArg, i);
-      xmlFree(pucT);
       break;
     }
-    xmlFree(pucT);
   }
 
   if (pucResult) {
@@ -1405,7 +1428,7 @@ cxpCtxtCgiGetValueByName(cxpContextPtr pccArg, xmlChar *pucArgName)
 #endif
   }
   else {
-    cxpCtxtLogPrint(pccArg, 2, "No valid named cgi for '%s'", pucArgName);
+    cxpCtxtLogPrint(pccArg, 4, "No valid named cgi for '%s'", pucArgName);
   }
   return pucResult;
 } /* end of cxpCtxtCgiGetValueByName() */
@@ -1439,7 +1462,7 @@ cxpCtxtCgiGetNameByValue(cxpContextPtr pccArg, xmlChar *pucArgValue)
 #endif
   }
   else {
-    cxpCtxtLogPrint(pccArg, 2, "No valid named cgi for '%s'", pucArgValue);
+    cxpCtxtLogPrint(pccArg, 4, "No valid named cgi for '%s'", pucArgValue);
   }
   return pucResult;
 } /* end of cxpCtxtCgiGetNameByValue() */

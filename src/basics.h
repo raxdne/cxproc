@@ -141,7 +141,17 @@ typedef int index_t;
 #pragma warning (disable : 4101)
 #pragma warning (disable : 4127)
 
+#elif defined(_WIN32)
+
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <dirent.h>
+
+#define MAXFILENAME (256)
+
 #else
+
 #include <unistd.h>
 #include <pwd.h>
 #include <sys/types.h>

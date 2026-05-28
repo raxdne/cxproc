@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<pie xmlns:pie="http://www.tenbusch.info/pie" xmlns:cxp="http://www.tenbusch.info/cxproc">
+  <subst string="ABC" to="DEF"/>
+</pie>

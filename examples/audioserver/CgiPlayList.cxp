@@ -8,7 +8,7 @@
   <cxp:plain name='-' type='audio/x-mpegurl' disposition='attachement; filename="%CGITITLE%.m3u"'>
     <!--  -->
     <cxp:xml>
-      <cxp:dir name="%CGIPATH%" urlencode="yes" index="read" depth="10" verbosity="4" imatch="\.(mp3|ogg|wav)$" />
+      <cxp:dir name="%CGIPATH%" urlencode="yes" index="read" depth="10" verbosity="4" imatch="\.(mp3|ogg|wav|mp4|ts|avi)$" />
     </cxp:xml>
     <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.0">
       <xsl:output method="text" encoding="UTF-8" />

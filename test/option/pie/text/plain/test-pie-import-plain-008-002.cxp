@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cxp:make xmlns:cxp="http://www.tenbusch.info/cxproc">
+  <cxp:system mkdir="result/"/>
+  <cxp:system message="**** test-pie-import-plain-008-002: import from plain text node"/>
+  <cxp:xml name="result/test-pie-import-plain-008-002.pie">
+    <cxp:pie>
+      
+* ABC
+
+** DDD
+
+#subst("DDD","CCC")
+
+@DDD #DDD
+
+*** EEE
+
+#subst("%NOW%", now="%Y%m%dT%H:%M:%S")
+
+[DDD](http://www.DDD.org/)
+
+fksjhfksh ökäöläröwer
+
+Timestamp %NOW%
+    </cxp:pie>
+  </cxp:xml>
+</cxp:make>

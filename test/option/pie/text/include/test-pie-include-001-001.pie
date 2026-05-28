@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<pie version="0.1">
+  <section>
+    <h>Header String</h>
+    <p>XML PIE paragraph string.</p>
+  </section>
+</pie>

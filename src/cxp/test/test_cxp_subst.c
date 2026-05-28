@@ -66,55 +66,32 @@ cxpSubstTest(cxpContextPtr pccArg)
   }
 
   if (RUNTEST) {
+    int k;
     xmlNodePtr pndTest;
     xmlNodePtr pndInclude;
 
     i++;
-    printf("TEST %i in '%s:%i': cxpSubstIncludeNodes() = ",i,__FILE__,__LINE__);
+    printf("TEST %i in '%s:%i': cxpSubstIncludeNode() = ",i,__FILE__,__LINE__);
 
     pndTest = xmlNewNode(NULL,NAME_XML);
     pndInclude = xmlNewChild(pndTest,NULL,NAME_INCLUDE,NULL);
     xmlSetProp(pndInclude,BAD_CAST "name",BAD_CAST TESTPREFIX "option/pie/calendar/test-date.pie");
     
-    if (cxpSubstIncludeNodes(NULL,pccArg)) {
-      printf("Error 1 cxpSubstIncludeNodes()\n");
-    }
-    else if (cxpSubstIncludeNodes(pndTest,pccArg) == FALSE) {
-      printf("Error 2 cxpSubstIncludeNodes()\n");
+    //cxpTraverseIncludeNodes(NULL,pccArg);
+    cxpTraverseIncludeNodes(pndTest,pccArg);
+    //domPutNodeString(stderr, BAD_CAST"include", pndTest);
+
+    if ((k = domNumberOf(pndTest, BAD_CAST "section",0)) != 4) {
+      printf("Error 1 domNumberOf(): %i\n", k);
     }
     else {
       n_ok++;
       printf("OK\n");
     }
-    //domPutNodeString(stderr, BAD_CAST"include", pndTest);
+
     xmlFreeNode(pndTest);
   }
 
-  if (RUNTEST) {
-    xmlNodePtr pndTest;
-    xmlNodePtr pndInclude;
-
-    i++;
-    printf("TEST %i in '%s:%i': cxpSubstIncludeNodes() = ",i,__FILE__,__LINE__);
-
-    pndTest = xmlNewNode(NULL,NAME_MAKE);
-    pndInclude = xmlNewChild(pndTest,NULL,NAME_INCLUDE,NULL);
-    xmlSetProp(pndInclude,BAD_CAST "name",BAD_CAST TESTPREFIX "xml/config-xml-subst.cxp");
-    pndInclude = xmlNewChild(pndTest,NULL,NAME_INCLUDE,NULL);
-    xmlSetProp(pndInclude,BAD_CAST "name",BAD_CAST TESTPREFIX "xml/config-xml-cache.cxp");
-    xmlNewChild(pndTest,NULL,NAME_DIR,NULL);
-    //domPutNodeString(stderr, BAD_CAST"include", pndTest);
-
-    if (cxpSubstIncludeNodes(pndTest,pccArg) == FALSE) {
-      printf("Error 2 cxpSubstIncludeNodes()\n");
-    }
-    else {
-      n_ok++;
-      printf("OK\n");
-    }
-    //domPutNodeString(stderr, BAD_CAST"include", pndTest);
-    xmlFreeNode(pndTest);
-  }
 
   if (RUNTEST) {
     cxpSubstPtr pT;
@@ -287,6 +264,9 @@ cxpSubstTest(cxpContextPtr pccArg)
     }
     else if (cxpSubstInChildNodes(pndTest,NULL,pccArg) == FALSE) {
       printf("Error 2\n");
+    }
+    else if (xmlIsBlankNode(pndSubst) == FALSE) {
+      printf("Error 3\n");
     }
     else {
       n_ok++;

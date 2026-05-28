@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cxp:make xmlns:cxp="http://www.tenbusch.info/cxproc">
+  <cxp:system mkdir="result/"/>
+  <cxp:system message="**** test-pie-import-plain-008: import from plain text node"/>
+  <cxp:xml name="result/test-pie-import-plain-008-001.pie">
+    <cxp:pie url="yes" figure="no" date="yes" import="yes">
+      <import>
+
+* ABC
+
+** DDD
+
+*** EEE
+
+fksjhfksh ökäöläröwer
+
+
+      </import>
+    </cxp:pie>
+  </cxp:xml>
+</cxp:make>

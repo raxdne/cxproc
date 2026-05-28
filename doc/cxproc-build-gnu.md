@@ -15,7 +15,7 @@ Optional tools
 
 Core libraries
 
-    sudo apt install libc6-dev libpcre2-dev libarchive-dev zip unzip libzip-dev zlib1g zlib1g-dev libxml2 libxml2-utils libxml2-dev libxslt1-dev libxslt1.1 sqlite3 libsqlite3-dev liblzma-dev libbz2-dev duktape duktape-dev libssl-dev libcurl4-openssl-dev
+    sudo apt install libc6-dev libpcre2-dev libarchive-dev zip unzip libzip-dev zlib1g zlib1g-dev libxml2 libxml2-utils libxml2-dev libxslt1-dev libxslt1.1 sqlite3 libsqlite3-dev liblzma-dev libbz2-dev libcmark libcmark-dev duktape duktape-dev libssl-dev libcurl4-openssl-dev
 
 Graphic libraries (optional)
 
@@ -111,8 +111,10 @@ Development environment
 	# sudo dpkg --remove cmark libcmark0.29.0 libcmark-dev
 	git clone https://github.com/commonmark/cmark.git
 	# (cd ~/cxproc-build/cmark/ && git pull)
+	# according to installed "libcmark.so"
+	git checkout 0.30.2
 	mkdir -p ~/cxproc-build/cmark/build
-	(cd ~/cxproc-build/cmark/build && cmake .. "-GUnix Makefiles" -DCMAKE_BUILD_TYPE=Release)
+	(cd ~/cxproc-build/cmark/build && cmake .. "-GUnix Makefiles" -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=NO)
 	cmake --build ~/cxproc-build/cmark/build
 	cmake --install ~/cxproc-build/cmark/build --prefix $PREFIX/
 
@@ -132,12 +134,64 @@ select `~/cxproc-build/cxproc/third-party/duktape-src` as value for `DUKTAPE_INC
 
 ### sqlite as Source code
 
+### libbase64
+
+	cd ~/cxproc-build/cxproc
+	. misc/prepare-cmake.sh
+	cd ~/cxproc-build/
+	git clone https://github.com/aklomp/base64.git
+	cd ~/cxproc-build/base64/
+	git checkout v0.5.2
+	mkdir -p ~/cxproc-build/base64/build
+	(cd ~/cxproc-build/base64/build && cmake .. "-GUnix Makefiles" -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=NO)
+	cmake --build ~/cxproc-build/base64/build
+	cmake --install ~/cxproc-build/base64/build --prefix $PREFIX/
+
+
+## Debugging
+
+### libxml2
+
+	(cd ~/cxproc-build/ && wget https://download.gnome.org/sources/libxml2/2.9/libxml2-2.9.14.tar.xz && tar xJf libxml2-2.9.14.tar.xz)
+	(cd ~/cxproc-build/ && mkdir -p x86_64-gnu-linux-debug && cd libxml2-2.9.14 && sh ./configure --prefix=`pwd`/../x86_64-gnu-linux-debug --with-debug --with-c14n --with-catalog --with-ftp --with-html --with-http --with-iconv --without-icu --without-legacy --without-mem-debug --with-output --with-pattern --with-push --without-python --with-reader --with-regexps --without-run-debug --with-sax1 --with-schemas --with-schematron --with-tree --with-valid --with-writer --with-xinclude --with-xpath --with-xptr --without-modules --without-lzma --without-zlib && make -j 4 && make install)
+
+### libxslt
+
+	(cd ~/cxproc-build/ && wget https://download.gnome.org/sources/libxslt/1.1/libxslt-1.1.35.tar.xz && tar xJf libxslt-1.1.35.tar.xz)
+	(cd ~/cxproc-build/ && mkdir -p x86_64-gnu-linux-debug && cd libxslt-1.1.35 && sh ./configure --prefix=`pwd`/../x86_64-gnu-linux-debug --without-python --with-libxml-src=../libxml2-2.9.14 && make -j 4 && make install)
+
+### libarchive
+
+	(cd ~/cxproc-build/ && wget http://www.libarchive.org/downloads/libarchive-3.8.3.tar.xz && tar xJf libarchive-3.8.3.tar.xz)
+	(cd ~/cxproc-build/ && mkdir -p x86_64-gnu-linux-debug && cd libarchive-3.8.3 && cmake -G "Unix Makefiles" -DBUILD_SHARED_LIBS:BOOL=OFF -DENABLE_TEST:BOOL=OFF -DCMAKE_INSTALL_PREFIX:PATH=`pwd`/../x86_64-gnu-linux-debug . && make -j 4 && make install)
+
+### curl
+
+	(cd ~/cxproc-build/ && wget https://curl.se/download/curl-8.17.0.tar.xz && tar xJf curl-8.17.0.tar.xz)
+	(cd ~/cxproc-build/ && mkdir -p x86_64-gnu-linux-debug && cd curl-8.17.0 && cmake -G "Unix Makefiles" -DBUILD_SHARED_LIBS:BOOL=OFF -DCMAKE_INSTALL_PREFIX:PATH=`pwd`/../x86_64-gnu-linux-debug . && make -j 4 && make install)
+
+### pcre2
+
+	(cd ~/cxproc-build/ && wget https://github.com/PCRE2Project/pcre2/releases/download/pcre2-10.47/pcre2-10.47.tar.bz2 && tar xjf pcre2-10.47.tar.bz2)
+	(cd ~/cxproc-build/ && mkdir -p x86_64-gnu-linux-debug && cd pcre2-10.47 && cmake -G "Unix Makefiles" -DBUILD_SHARED_LIBS:BOOL=OFF -DPCRE2_BUILD_PCRE2GREP:BOOL=OFF -DPCRE2_BUILD_TESTS:BOOL=OFF -DCMAKE_INSTALL_PREFIX:PATH=`pwd`/../x86_64-gnu-linux-debug . && make -j 4 && make install)
+
+### duktape
+
+	(cd ~/cxproc-build/ && wget https://duktape.org/duktape-2.7.0.tar.xz && tar xJf duktape-2.7.0.tar.xz)
+	(cd ~/cxproc-build/ && mkdir -p x86_64-gnu-linux-debug && cd duktape-2.7.0 && make -j 4 -f Makefile.sharedlibrary install INSTALL_PREFIX=`pwd`/../x86_64-gnu-linux-debug)
+
+### using valgrind
+
+	(cd ~/cxproc-build/cxproc/test/xml/ && valgrind --tool=memcheck --leak-check=full --fullpath-after= --num-callers=20 ~/cxproc-build/x86_64-gnu-linux/bin/cxproc config-xml-subst.cxp &> ~/cxproc-build/x86_64-gnu-linux/memcheck.log)
+
 ## CMake
 
 build directory is defined by `misc/prepare-cmake.sh`
 
 	cd ~/cxproc-build/cxproc
 	. misc/prepare-cmake.sh
+	#cmake -S `pwd` -B $DIR_BUILD -G 'Unix Makefiles' -DCMAKE_BUILD_TYPE=Debug -DCXPROC_DOC:BOOL=OFF -DCXPROC_LEGACY:BOOL=OFF -DCXPROC_EXPERIMENTAL:BOOL=ON -DCXPROC_MARKDOWN:BOOL=OFF -DCXPROC_PCRE2:BOOL=OFF -DCXPROC_PETRINET:BOOL=OFF -DCXPROC_PIE:BOOL=OFF -DCXPROC_ARCHIVE:BOOL=OFF -DCXPROC_CURL:BOOL=OFF -DCXPROC_DUKTAPE:BOOL=OFF -DCXPROC_JSON:BOOL=OFF -DCXPROC_SQLITE3:BOOL=OFF -DCXPROC_TESTS:BOOL=ON
+	#cmake -S `pwd` -B $DIR_BUILD -G 'Unix Makefiles' --toolchain cmake/ToolChains/mingw-w64-x86_64.cmake
 	cmake -S `pwd` -B $DIR_BUILD -G 'Unix Makefiles' -DCMAKE_BUILD_TYPE=Release -DCXPROC_DOC:BOOL=OFF -DCXPROC_LEGACY:BOOL=ON -DCXPROC_EXPERIMENTAL:BOOL=ON -DCXPROC_MARKDOWN:BOOL=ON -DCXPROC_ARCHIVE:BOOL=ON -DCXPROC_CURL:BOOL=ON -DCXPROC_DUKTAPE:BOOL=ON -DCXPROC_SQLITE3:BOOL=ON
 	# cmake-gui -S `pwd` -B $DIR_BUILD &
 	cmake --build $DIR_BUILD -j 4 --target all

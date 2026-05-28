@@ -145,6 +145,8 @@ cxpCtxtOutputSaveFormat(cxpContextPtr pccArg,resNodePtr prnOut,xmlDocPtr pdocArg
 	}
 #else
 #endif
+	domUnsetNs(xmlDocGetRootElement(pdocArgOutput)); /* HTML output without Namespace */
+	//xmlSetNs(xmlDocGetRootElement(pdocArgOutput),domGetXhtmlNs());
 	iResult = htmlSaveFileFormat(resNodeGetNameNormalizedNative(prnOut),pdocArgOutput,encoding,format);
       }
       else if (encoding) {
@@ -476,6 +478,7 @@ cxpCtxtLogPrint(cxpContextPtr pccArg, int level, const char *fmt, ...)
   if (pccArg) {
     va_list ap;
     char mBuffer[BUFFER_LENGTH];
+    xmlChar *pucT;
 
     assert(fmt != NULL);
 
@@ -495,11 +498,11 @@ cxpCtxtLogPrint(cxpContextPtr pccArg, int level, const char *fmt, ...)
 
     va_end(ap);
 
-    cxpCtxtLogAppend(pccArg, BAD_CAST mBuffer);
-
-    //\todo cxpCtxtGetRunningTime();
+    //cxpCtxtLogAppend(pccArg, BAD_CAST mBuffer);
 #ifdef DEBUG
-    fprintf(stderr, "0x%8p: %s\n", (void *)pccArg, mBuffer);
+    pucT = GetNowFormatStr("%s");
+    fprintf(stderr, "0x%8p/%s: %s\n", (void *)pccArg, pucT, mBuffer);
+    xmlFree(pucT);
 #else
     fputs(mBuffer,stderr);
     fputs("\n",stderr);
@@ -1345,6 +1348,8 @@ cxpCtxtGetHostValueNamed(cxpContextPtr pccArgParent, const xmlChar *pucName)
   if (xmlStrEqual(BAD_CAST"os",pucName)) {
 #ifdef _MSC_VER
     pucResult = xmlStrdup(BAD_CAST "Windows");
+#elif defined(_WIN32)
+    pucResult = xmlStrdup(BAD_CAST "Windows/MinGW");
 #else
     struct utsname Uname;
 

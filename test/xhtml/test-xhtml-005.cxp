@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<cxp:make xmlns:cxp="http://www.tenbusch.info/cxproc">
+  <cxp:system message="*** Test 2: parsing of an existing XHTML file, transforming by XSL and save into a new XHTML file ***"/>
+  <cxp:xhtml name="result/test-xhtml-005.html">
+    <cxp:xhtml name="test.html"/>
+    <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.0">
+      <xsl:output method="html"/>
+      <xsl:template match="@*|node()">
+        <xsl:choose>
+          <xsl:when test="name()='head'"/>
+          <xsl:otherwise>
+            <xsl:copy>
+              <xsl:apply-templates select="@*|node()"/>
+            </xsl:copy>
+          </xsl:otherwise>
+        </xsl:choose>
+      </xsl:template>
+    </xsl:stylesheet>
+  </cxp:xhtml>
+</cxp:make>

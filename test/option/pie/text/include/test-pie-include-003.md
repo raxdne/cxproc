@@ -1,0 +1,21 @@
+
+# Test of Including
+
+## Sub-test
+
+#include("test-pie-include-none.pie")
+
+#include("test-pie-include-001.pie")
+
+#include("test-pie-include-001-001.pie")
+
+#include("test-pie-include-001-001.html")
+
+#include("test-pie-include-001-001.md")
+
+#include("test-pie-include-001-001.txt")
+
+#include("test-pie-include-001-001.js")
+
+#include("test-pie-include-001-001.dat")
+

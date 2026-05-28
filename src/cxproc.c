@@ -113,7 +113,6 @@ main(int argc, char *argv[], char *envp[])
   /* register for exit() */
   if (atexit(xsltCleanupGlobals) != 0
       || atexit(xmlCleanupParser) != 0
-      || atexit(xmlMemoryDump) != 0
       || atexit(domCleanup) != 0
       || atexit(cxpCleanup) != 0
 #ifdef HAVE_PETRINET
@@ -161,7 +160,7 @@ main(int argc, char *argv[], char *envp[])
     //cxpCtxtCacheEnable(pccMain, TRUE);
 
 #if defined(DEBUG)
-    cxpCtxtLogSetLevel(pccMain, 3);
+    cxpCtxtLogSetLevel(pccMain, LEVEL_MAX - 1);
 #else
     cxpCtxtLogSetLevel(pccMain, 1);
 #endif

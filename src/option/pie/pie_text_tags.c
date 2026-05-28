@@ -298,7 +298,7 @@ RecognizeHashtags(xmlNodePtr pndArg, pcre2_code* preArgHashTag, pcre2_code* preA
       fResult = FALSE;
     }
   }
-  else if (IS_VALID_NODE(pndArg) == FALSE || xmlHasProp(pndArg,BAD_CAST"hidden") != NULL) {
+  else if (IS_VALID_NODE(pndArg) == FALSE || IS_NODE_HIDDEN(pndArg)) {
     /* skip */
   }
   else if (IS_NODE_PIE_PIE(pndArg) || IS_NODE_PIE_BLOCK(pndArg)) {
@@ -354,6 +354,19 @@ RecognizeHashtags(xmlNodePtr pndArg, pcre2_code* preArgHashTag, pcre2_code* preA
   else if (IS_NODE_PIE_TAGS(pndArg)) {
     /* skip existing tag elements */
   }
+#if 0
+  else if (IS_NODE_PIE_FIG(pndArg)) {
+    /* tag these element by it's name */
+    xmlNewTextChild(pndArg, NULL, BAD_CAST NAME_PIE_TTAG, BAD_CAST "#fig");
+    for (pndIter = pndArg->children; fResult && pndIter != NULL; pndIter = pndIter->next) {
+      fResult = RecognizeHashtags(pndIter, preArgHashTag, preArgBlockTag); 
+    }
+  }
+  else if (IS_NODE_PIE_IMG(pndArg)) {
+    /* tag these element by it's name */
+    xmlNewTextChild(pndArg, NULL, BAD_CAST NAME_PIE_TTAG, BAD_CAST "#img");
+  }
+#endif
   else if ((IS_ENODE(pndArg) && (pndArg->ns==NULL /* || pndArg->ns==pnsPie */ )
 	    && (IS_NODE_PIE_LINK(pndArg) == FALSE || domGetPropValuePtr(pndArg, BAD_CAST"href") != NULL || domGetPropValuePtr(pndArg, BAD_CAST"id") != NULL))) {
 
@@ -363,7 +376,7 @@ RecognizeHashtags(xmlNodePtr pndArg, pcre2_code* preArgHashTag, pcre2_code* preA
 
       pndNext = (pndIter != NULL) ? pndIter->next : NULL;
 
-      if (xmlNodeIsText(pndIter) && (pucT = pndIter->content) != NULL) { /* pndIter is a text node */
+      if (pndIter != NULL && xmlNodeIsText(pndIter) && (pucT = pndIter->content) != NULL) { /* pndIter is a text node */
 	xmlNodePtr pndReplace;
 
 	pndReplace = SplitToTagNodes(pucT, preArgHashTag, preArgBlockTag);
@@ -657,7 +670,7 @@ RecognizeNodeTags(xmlNodePtr pndTags, xmlNodePtr pndArg, pcre2_code* preArg)
   if (preArg == NULL) {
     /* skip */
   }
-  else if (IS_VALID_NODE(pndArg) == FALSE || xmlHasProp(pndArg,BAD_CAST"hidden") != NULL) {
+  else if (IS_VALID_NODE(pndArg) == FALSE || IS_NODE_HIDDEN(pndArg)) {
     /* skip */
   }
   else if (IS_NODE_PIE_IGNORE_TAGS(pndArg)) {
@@ -821,7 +834,7 @@ RecognizeGlobalTags(xmlNodePtr pndTags, xmlNodePtr pndArg)
   if (IS_NODE_META(pndArg) || IS_NODE_PIE_PRE(pndArg) || IS_NODE_PIE_TT(pndArg)) {
     /* skip */
   }
-  else if (IS_VALID_NODE(pndArg) == FALSE || xmlHasProp(pndArg,BAD_CAST"hidden") != NULL) {
+  else if (IS_VALID_NODE(pndArg) == FALSE || IS_NODE_HIDDEN(pndArg)) {
     /* skip */
   }
   else if (IS_ENODE(pndArg) && (pndArg->ns==NULL)) { //  || pndArg->ns==pnsPie

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cxp:make xmlns:cxp="http://www.tenbusch.info/cxproc">
+  <!-- TEST 5: concatenate a text file three times -->
+  <cxp:plain name="result/test-plain-005.txt" mode="append">
+    <cxp:plain name="result/test-plain-001.txt"/>
+    <cxp:plain name="result/test-plain-001.txt"/>
+    <cxp:plain name="result/test-plain-001.txt"/>
+  </cxp:plain>
+</cxp:make>

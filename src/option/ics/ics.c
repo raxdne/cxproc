@@ -400,7 +400,16 @@ detectNextBlock(const char *pcArg, const int i0, const int i1, int *piArgOuterBe
 	*piArgOuterEnd = j1;
       }
     }
+#if 0
+    else if (StringBeginsWith((char *)&pcArg[j0], BAD_CAST "X-")) {
+   int n0, n1; /* name indexes */
+    int v0, v1; /* value indexes */
+
+    detectNextLine(pcArg, j0, i1, &n0, &n1, &v0, &v1);
+      fResult = detectNextBlock(pcArg,v1, i1 - v1, piArgOuterBegin, piArgInnerBegin, piArgInnerEnd, piArgOuterEnd);
+    }
     else {}
+#endif
   }
   return fResult;
 } /* end of detectNextBlock() */

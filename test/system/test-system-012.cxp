@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cxp:make xmlns:cxp="http://www.tenbusch.info/cxproc">
+  <cxp:system message="**** test-system-0012: Create and delete a new directory ****"/>
+  <cxp:system mkdir="result/TO_DELETE"/>
+  <cxp:system rmdir="result/TO_DELETE"/>
+  <cxp:system message="**** test-system-0012b: try to remove a non-empty directory ****"/>
+  <cxp:system rmdir="result/abc/def/hij"/>
+</cxp:make>

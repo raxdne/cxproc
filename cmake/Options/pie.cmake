@@ -4,7 +4,7 @@
 
 # TODO: cmake_dependent_option(USE_FOO "Use Foo" ON "USE_BAR;NOT USE_ZOT" OFF)
 
-IF (CXPROC_PCRE2)
+IF (PCRE2_LIBRARY)
   OPTION(CXPROC_PIE "Include PIE code" ON)
   IF (LIBCMARK_LIBRARY)
     OPTION(CXPROC_MARKDOWN "Compile MARKDOWN code" ON)
@@ -40,6 +40,8 @@ IF (CXPROC_PIE)
     ${CXPROC_SRC_DIR}/option/pie/pie_element.h
     ${CXPROC_SRC_DIR}/option/pie/pie_text_blocks.c
     ${CXPROC_SRC_DIR}/option/pie/pie_text_blocks.h
+    ${CXPROC_SRC_DIR}/option/pie/pie_csv.c
+    ${CXPROC_SRC_DIR}/option/pie/pie_csv.h
     ${CXPROC_SRC_DIR}/option/pie/pie_text_tags.c
     ${CXPROC_SRC_DIR}/option/pie/pie_text_tags.h
     ${CXPROC_SRC_DIR}/option/vcf/vcf.c
@@ -53,6 +55,8 @@ IF (CXPROC_PIE)
     ${CXPROC_SRC_DIR}/option/pie/pie_element.h
     ${CXPROC_SRC_DIR}/option/pie/pie_text_blocks.c
     ${CXPROC_SRC_DIR}/option/pie/pie_text_blocks.h
+    ${CXPROC_SRC_DIR}/option/pie/pie_csv.c
+    ${CXPROC_SRC_DIR}/option/pie/pie_csv.h
     ${CXPROC_SRC_DIR}/option/pie/pie_text_tags.c
     ${CXPROC_SRC_DIR}/option/pie/pie_text_tags.h
     )
@@ -65,6 +69,8 @@ IF (CXPROC_PIE)
     ${CXPROC_SRC_DIR}/option/pie/pie_element.h
     ${CXPROC_SRC_DIR}/option/pie/pie_text_blocks.c
     ${CXPROC_SRC_DIR}/option/pie/pie_text_blocks.h
+    ${CXPROC_SRC_DIR}/option/pie/pie_csv.c
+    ${CXPROC_SRC_DIR}/option/pie/pie_csv.h
     ${CXPROC_SRC_DIR}/option/pie/pie_text.c
     ${CXPROC_SRC_DIR}/option/pie/pie_text.h ${CXPROC_SRC_DIR}/option/pie/pie_dtd.h
     ${CXPROC_SRC_DIR}/option/pie/pie_text_tags.c
@@ -118,6 +124,14 @@ IF (BUILD_TESTING)
   add_test(NAME pietextx-cli
     WORKING_DIRECTORY ${CXPROC_PREFIX}
     COMMAND ${CXPROC_PREFIX}/bin/pietextx ${CXPROC_TEST_DIR}/option/pie/text/test-pie-9.txt)
+
+  add_test(NAME pie-cxp-include
+    WORKING_DIRECTORY ${CXPROC_TEST_DIR}/option/pie/text/include
+    COMMAND ${CXPROC_PREFIX}/bin/cxproc test-pie-include-001.cxp)
+
+  add_test(NAME pie-cxp-subst
+    WORKING_DIRECTORY ${CXPROC_TEST_DIR}/option/pie/text/subst
+    COMMAND ${CXPROC_PREFIX}/bin/cxproc test-pie-subst-001.cxp)
 
   add_test(NAME pie-cxp-import-circular
     WORKING_DIRECTORY ${CXPROC_TEST_DIR}/option/pie/text/circular
@@ -174,7 +188,7 @@ ENDIF (CXPROC_PIE)
 # 
 #
 
-IF (CXPROC_PCRE2)
+IF (PCRE2_LIBRARY)
   target_link_libraries(pietextx ${PCRE2_LIBRARY})
 ENDIF ()
 
@@ -189,7 +203,6 @@ ENDIF (CXPROC_LZMA)
 target_link_libraries(pietextx ${LIBICONV_LIBRARY} ${LIBCHARSET_LIBRARY} ${LIBXML2_LIBRARY})
 
 IF (CXPROC_MARKDOWN)
-  INCLUDE_DIRECTORIES(${LIBCMARK_BUILD_DIR} ${LIBCMARK_SRC_DIR} ${LIBCMARK_INCLUDE_DIR})
   add_compile_definitions(WITH_MARKDOWN)
   target_link_libraries(filex ${LIBCMARK_LIBRARY})
   target_link_libraries(pietextx ${LIBCMARK_LIBRARY})

@@ -160,6 +160,7 @@ typedef enum {
     Video formats
   */
   MIME_VIDEO_AVI,
+  MIME_VIDEO_MP2T,
   MIME_VIDEO_MP4,
   /*
     symbolic types only
@@ -178,7 +179,7 @@ typedef enum {
 
 
 extern RN_MIME_TYPE
-resMimeGetTypeFromDataBase64(const xmlChar *pucArg);
+resMimeGetTypeFromDataBase64(const xmlChar *pucArg, xmlChar **ppucArg);
 
 extern RN_MIME_TYPE
 resMimeGetTypeFromExt(const xmlChar *pucArg);

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cxp:make xmlns:cxp="http://www.tenbusch.info/cxproc">
+  <cxp:system mkdir="result/"/>
+  <cxp:system message="**** test-pie-import-plain-009: handling of empty text file"/>
+  <cxp:xml name="result/test-pie-import-plain-009.pie">
+    <cxp:pie url="yes" figure="no" date="yes" import="yes">
+      <section>
+        <h>Empty files</h>
+        <import name="test-pie-import-plain-009-001.txt"/>
+        <import name="test-pie-import-plain-009-002.txt"/>
+      </section>
+    </cxp:pie>
+  </cxp:xml>
+</cxp:make>

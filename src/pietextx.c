@@ -85,7 +85,7 @@ AppendBufferToDoc(xmlNodePtr pndArg, xmlChar *pucArgFileName, xmlChar* pucArgCon
 
 	pndRoot = xmlDocGetRootElement(pdocT);
 	if (IS_NODE_PIE_PIE(pndRoot)) {
-	  xmlUnlinkNode(pndRoot);
+	  domUnlinkNodeList(pndRoot);
 	  xmlNodeSetName(pndRoot, NAME_PIE_BLOCK);
 	  xmlAddChild(pndArg, pndRoot);
 	}
@@ -141,8 +141,8 @@ Recognize(xmlNodePtr pndArg)
     RecognizeSubsts(pndArg);
     RecognizeFigures(pndArg);
     RecognizeInlines(pndArg);
-    RecognizeUrls(pndArg);
     RecognizeSymbols(pndArg, LANG_DEFAULT);
+    RecognizeUrls(pndArg);
     RecognizeDates(pndArg, MIME_TEXT_PLAIN);
     RecognizeTasks(pndArg);
     RecognizeHashtags(pndArg, NULL, NULL);
@@ -167,7 +167,6 @@ main(int argc, char *argv[], char *envp[]) {
 
   /* register for exit() */
   if (atexit(xmlCleanupParser) != 0
-      || atexit(xmlMemoryDump) != 0
       || atexit(domCleanup) != 0
 #ifdef HAVE_PIE
       || atexit(pieTextBlocksCleanup) != 0

@@ -28,11 +28,15 @@
 
 #define NAME_INFO BAD_CAST "info"
 
+#define NAME_INCLUDE BAD_CAST "include"
+
 #define IS_NODE_META(NODE) (IS_NODE(NODE,NAME_META))
 
 #define IS_NODE_ERROR(NODE) (IS_NODE(NODE,NAME_ERROR))
 
 #define IS_NODE_INFO(NODE) (IS_NODE(NODE,NAME_INFO))
+
+#define IS_NODE_INCLUDE(NODE) (IS_NODE(NODE,NAME_INCLUDE))
 
 #define IS_NODE__XSL(NODE,NAME) (NODE != NULL && NODE->type == XML_ELEMENT_NODE && NODE->ns != NULL && NODE->ns->prefix != NULL && xmlStrEqual(NODE->ns->prefix,BAD_CAST "xsl") && NODE->name != NULL && xmlStrEqual(NODE->name,BAD_CAST NAME))
 
@@ -41,6 +45,12 @@
 #define IS_NODE_XSL_TEMPLATE(NODE) (IS_NODE__XSL(NODE,"template"))
 
 #define IS_NODE_XSL_VARIABLE(NODE) (IS_NODE__XSL(NODE,"variable"))
+
+#define IS_VALID_NODE(NODE) (NODE != NULL && NODE->type == XML_ELEMENT_NODE && domGetPropFlag(NODE,BAD_CAST "valid",TRUE))
+
+#define IS_ROOT(NODE) (NODE != NULL && NODE->type == XML_ELEMENT_NODE && NODE->doc != NULL && NODE == NODE->doc->children)
+
+#define IS_NODE_PI(NODE) (NODE != NULL && NODE->type == XML_PI_NODE)
 
 
 extern void
@@ -59,13 +69,7 @@ extern xmlDocPtr
 domGetXPathDoc(xmlDocPtr pdocArg, xmlChar *pucArg);
 
 extern void
-domUnsetPropFileLocator(xmlNodePtr pndArg);
-
-extern void
-domSetPropFileLocator(xmlNodePtr pndArg, xmlChar *pucArg);
-
-extern void
-domSetPropFileXpath(xmlNodePtr pndArg, xmlChar *pucArgName, xmlChar *pucArgPrefix);
+domSetPropXpath(xmlNodePtr pndArg, xmlChar *pucArgName, xmlChar *pucArgPrefix);
 
 #ifdef DEBUG
 extern int
@@ -75,7 +79,7 @@ extern int
 domPutDocString(FILE *out, xmlChar *pucArgMessage, xmlDocPtr pdocArg);
 
 extern BOOL_T
-domPutNodeGraphvizString(char *pchNameFile, xmlNodePtr pndArg, int iArgDepth);
+domPutNodeGraphvizString(char *pchNameFile, xmlNodePtr pndArgA, xmlNodePtr pndArgB, int iArgDepth);
 
 extern void
 domPutNodeGraphvizStringRecursive(FILE *out, xmlNodePtr pndArg, int iArgDepth);
@@ -117,9 +121,6 @@ extern BOOL_T
 domNodeIsDocRoot(xmlNodePtr pndArg);
 
 extern BOOL_T
-domNodeIsAttribute(xmlNodePtr pndArg);
-
-extern BOOL_T
 domNodeIsDescendant(xmlNodePtr pndArgTop, xmlNodePtr pndArg);
 
 extern xmlChar*
@@ -130,6 +131,9 @@ domNodeDumpMemoryEnc(xmlNodePtr pndArg, xmlChar **ppucArg, int *piArg, const cha
 
 extern int
 domGetPropInt(xmlNodePtr pndArg, xmlChar *pucNameAttr, int iDefault);
+
+extern void
+domSetPropInt(xmlNodePtr pndArg, xmlChar *pucNameAttr, int iArg);
 
 extern BOOL_T
 domGetPropFlag(xmlNodePtr pndArg, xmlChar *pucNameAttr, BOOL_T fDefault);
@@ -146,8 +150,17 @@ domCopyPropList(xmlNodePtr target, xmlNodePtr cur);
 extern xmlNodePtr
 domGetNextNode(xmlNodePtr pndArg, xmlChar *pucNameElement);
 
+extern xmlNodePtr
+domGetFirstChildTextNodePtr(xmlNodePtr pndArg);
+
+extern xmlNodePtr
+domGetBase64Nodes(void *pArg, size_t iArgLen);
+
 extern xmlNsPtr
 domGetNsXsl(void);
+
+extern xmlNsPtr
+domGetXhtmlNs(void);
 
 extern BOOL_T
 domSetNsRecursive(xmlNodePtr pndArg, xmlNsPtr ns);
@@ -156,10 +169,28 @@ extern void
 domUnsetNs(xmlNodePtr pndArg);
 
 extern BOOL_T
+domNodeTransformToText(xmlNodePtr pndArg, xmlChar *pucArgNew);
+
+extern BOOL_T
+domNodeTransformToNode(xmlNodePtr pndArg, xmlNodePtr pndArgSrc);
+
+extern BOOL_T
+domNodeTransformToPI(xmlNodePtr pndArg, xmlChar *pucArgNew);
+
+extern BOOL_T
+domNodeTransferDescendants(xmlNodePtr pndArgTo, xmlNodePtr pndArgFrom);
+
+extern BOOL_T
 domNodesAreEqual(xmlNodePtr pndA, xmlNodePtr pndB);
 
 extern xmlNodePtr
-domReplaceNodeList(xmlNodePtr old, xmlNodePtr cur);
+domAddNextSiblingNodeList(xmlNodePtr pndArg, xmlNodePtr pndArgList);
+
+extern xmlNodePtr
+domAddLastSiblingNodeList(xmlNodePtr pndArg, xmlNodePtr pndArgList);
+
+extern xmlNodePtr
+domReplaceNodeList(xmlNodePtr pndArg, xmlNodePtr pndArgList);
 
 extern void
 domUnlinkNodeList(xmlNodePtr cur);
@@ -193,6 +224,9 @@ extern xmlNodePtr
 domValidateTree(xmlNodePtr pndArg);
 
 extern xmlNodePtr
+domAddChildBase64(xmlNodePtr pndArg, xmlChar* pucArg);
+
+extern xmlNodePtr
 domAddNodeToError(xmlDocPtr pdocArg, xmlNodePtr pndArg);
 
 extern BOOL_T
@@ -203,6 +237,9 @@ domNodeGrepNew(xmlNodePtr pndArg, xmlChar *pucArgGrep);
 
 extern BOOL_T
 domGrepRegExpInTree(xmlNodePtr pndResultArg, xmlNodePtr pndArg, const pcre2_code *re_grep);
+
+extern BOOL_T
+domNodeIsSingleElementChild(xmlNodePtr pndArg);
 
 extern void
 domCleanup(void);

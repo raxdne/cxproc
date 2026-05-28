@@ -145,9 +145,6 @@ cxpScriptProcessText(xmlChar *pucArg, cxpContextPtr pccArg)
     duk_pop(pContext); /* pop result/error */
     xmlFree(pucScriptDecoded);
   }
-  else {
-    cxpCtxtLogPrint(pccArg, 1, "Empty Script code");
-  }
   return pucResult;
 } /* end of cxpScriptProcessText() */
 

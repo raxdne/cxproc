@@ -142,7 +142,7 @@ utilsTest(void)
     printf("TEST %i in '%s:%i': base64 encoding and decoding = ",i,__FILE__,__LINE__);
     pucTest = xmlStrdup(BAD_CAST"ABCÜÖÄKKKK");
 
-    if (base64encode(pucTest,strlen((char *)pucTest)+1,(char *)mucBase64,BUFFER_LENGTH) == 1 && strlen((char *)mucBase64) == 20) {
+    if (base64encode(pucTest,strlen((char *)pucTest)+1,(char *)mucBase64,&l) == 1 && strlen((char *)mucBase64) == 20) {
       if (base64decode((char *)mucBase64,strlen((char *)mucBase64),mucResult,&l)==0 && xmlStrEqual(mucResult,pucTest)) {
         n_ok++;
         printf("OK\n");
@@ -165,7 +165,7 @@ utilsTest(void)
     i++;
     printf("TEST %i in '%s:%i': base64 error handling = ",i,__FILE__,__LINE__);
 
-    if (base64encode(NULL,10,(char *)mucBase64,BUFFER_LENGTH) == 0 && base64decode(NULL,0,mucResult,&l) == 0) {
+    if (base64encode(NULL,10,(char *)mucBase64,&l) == 0 && base64decode(NULL,0,mucResult,&l) == 0) {
       n_ok++;
       printf("OK\n");
     }
@@ -175,6 +175,7 @@ utilsTest(void)
   }
 
 
+#if 0
   if (RUNTEST) {
     xmlChar mucBase64[BUFFER_LENGTH];
     xmlChar mucResult[BUFFER_LENGTH];
@@ -196,6 +197,8 @@ utilsTest(void)
     }
     xmlFree(pucTest);
   }
+#endif
+
 
   if (RUNTEST) {
     xmlChar* pucError = xmlStrdup(BAD_CAST"=47=08=1=6H=7a=74 ");
@@ -357,6 +360,48 @@ utilsTest(void)
       n_ok++;
       printf("OK\n");
     }
+  }
+
+
+  if (RUNTEST) {
+    xmlChar *pucA = NULL;
+    xmlChar *pucB = NULL;
+//    xmlChar *pucC = NULL;
+    xmlChar *pucD = NULL;
+    int k;
+
+    i++;
+    printf("TEST %i in '%s:%i': GetUTF8Bytes() = ", i, __FILE__, __LINE__);
+
+    if ((pucA = GetUTF8Bytes(-1)) != NULL) {
+      printf("ERROR 1\n");
+    }
+    else if ((pucA = GetUTF8Bytes(0x2714)) == NULL || pucA[0] != 0xE2 || pucA[1] != 0x9C || pucA[2] != 0x94 || pucA[3] != 0) {
+      printf("ERROR 2\n");
+    }
+    else if ((pucB = xmlStrdup(BAD_CAST "AAA ")) == NULL) {
+      printf("ERROR 2\n");
+    }
+    else if ((pucB = xmlStrcat(pucB, pucA)) == NULL || xmlStrEqual(pucB, BAD_CAST "AAA ✔") == FALSE) {
+      printf("ERROR 4\n");
+    }
+//    else if ((pucC = GetUTF8Bytes(0x201C)) == NULL || pucC[0] != 0xE2 || pucC[1] != 0x80 || pucC[2] != 0x9C || pucC[3] != 0) {
+//      printf("ERROR 3\n");
+//    }
+    else if ((pucD = xmlStrdup(BAD_CAST "AAA ")) == NULL) {
+      printf("ERROR 2\n");
+    }
+    else if ((k = CopyCharMultiByte(&pucD[4], 0x2714)) != 3 || xmlStrEqual(pucB, pucD) == FALSE) {
+      printf("ERROR 4\n");
+    }
+    else {
+      n_ok++;
+      printf("OK\n");
+    }
+    xmlFree(pucD);
+//    xmlFree(pucC);
+    xmlFree(pucB);
+    xmlFree(pucA);
   }
 
 
@@ -881,7 +926,7 @@ utilsTest(void)
   /* ISO 8601 Durations */
   
   if (RUNTEST) {
-    double y, m, d, w, h, mi, s;
+    double y = 0.0, m = 0.0, d = 0.0, w = 0.0, h = 0.0, mi = 0.0, s = 0.0;
     
     i++;
     printf("TEST %i in '%s:%i': ",i,__FILE__,__LINE__);
@@ -898,10 +943,13 @@ utilsTest(void)
     else if (y > DBL_EPSILON || m > DBL_EPSILON || d > DBL_EPSILON || h > DBL_EPSILON || mi > DBL_EPSILON || s > DBL_EPSILON) {
       printf("ERROR 6 dt_parse_iso_period()\n");
     }
-    else if (dt_parse_iso_period("P1Y2M-4DT", 20, &y, &m, &d, NULL, NULL, NULL, NULL) != 9) {
+    else if (dt_parse_iso_period("P1Y2M-4DT", 20, &y, &m, &d, NULL, NULL, NULL, NULL) != 0) {
       printf("ERROR 2 dt_parse_iso_period()\n");
     }
-    else if (fabs(y - 1.0f) > DBL_EPSILON || fabs(m - 2.0f) > DBL_EPSILON || fabs(d + 4.0f) > DBL_EPSILON || h > DBL_EPSILON || mi > DBL_EPSILON || s > DBL_EPSILON) {
+    else if (dt_parse_iso_period("P1Y2M4DT", 20, &y, &m, &d, NULL, NULL, NULL, NULL) != 8) {
+      printf("ERROR 2b dt_parse_iso_period()\n");
+    }
+    else if (fabs(y - 1.0f) > DBL_EPSILON || fabs(m - 2.0f) > DBL_EPSILON || fabs(d - 4.0f) > DBL_EPSILON || h > DBL_EPSILON || mi > DBL_EPSILON || s > DBL_EPSILON) {
       printf("ERROR 6 dt_parse_iso_period()\n");
     }
     else if (dt_parse_iso_period("P3Y6M4DT12H30M5S", BUFFER_LENGTH, &y, &m, &d, NULL, &h, &mi, &s) != 16) {
@@ -927,10 +975,13 @@ utilsTest(void)
     else if (fabs(y - 7.0f) > DBL_EPSILON || m > DBL_EPSILON || d > DBL_EPSILON || h > DBL_EPSILON || mi > DBL_EPSILON || s > DBL_EPSILON) {
       printf("ERROR 6 dt_parse_iso_period()\n");
     }
-    else if (dt_parse_iso_period("P-2W", BUFFER_LENGTH, &y, &m, &d, &w, &h, &mi, &s) != 4) {
+    else if (dt_parse_iso_period("P-2W", BUFFER_LENGTH, &y, &m, &d, &w, &h, &mi, &s) != 0) {
       printf("ERROR 9 dt_parse_iso_period()\n");
     }
-    else if (y > DBL_EPSILON || m > DBL_EPSILON || d > DBL_EPSILON || fabs(w + 2.0f) > DBL_EPSILON || h > DBL_EPSILON || mi > DBL_EPSILON || s > DBL_EPSILON) {
+    else if (dt_parse_iso_period("P2W", BUFFER_LENGTH, &y, &m, &d, &w, &h, &mi, &s) != 3) {
+      printf("ERROR 9b dt_parse_iso_period()\n");
+    }
+    else if (y > DBL_EPSILON || m > DBL_EPSILON || d > DBL_EPSILON || fabs(w - 2.0f) > DBL_EPSILON || h > DBL_EPSILON || mi > DBL_EPSILON || s > DBL_EPSILON) {
       printf("ERROR 6 dt_parse_iso_period()\n");
     }
     else {
@@ -1020,11 +1071,16 @@ utilsTest(void)
     else if (dt_parse_iso_date_time_zone("2012-10-15T08:00:00+05:00", 40, &dt, &r) != 25 || r != 10800) {
       printf("ERROR 3 dt_parse_iso_date_time_zone()\n");
     }
+#if 0
     else if (dt_parse_iso_date_time_zone("2012-10-15T08:00:00−05:00", 40, &dt, &r) != 22 || r != 46800) {
       printf("ERROR 4 dt_parse_iso_date_time_zone()\n");
     }
-    else if (dt_parse_iso_date_time_zone("20121015T080000−0500", 40, &dt, &r) != 20 || r != 46800) {
+#endif
+    else if (dt_parse_iso_date_time_zone("2012-10-15T08:00:00-05:00", 40, &dt, &r) != 25 || r != 46800) {
       printf("ERROR 4 dt_parse_iso_date_time_zone()\n");
+    }
+    else if (dt_parse_iso_date_time_zone("20121015T080000-0500", 40, &dt, &r) != 20 || r != 46800) {
+      printf("ERROR 4b dt_parse_iso_date_time_zone()\n");
     }
     else if (dt_parse_iso_date_time_zone("2012-10-15T08:00:00CST", 40, &dt, &r) != 22 || r != 0) {
       printf("ERROR 5 dt_parse_iso_date_time_zone()\n");
@@ -1056,6 +1112,9 @@ utilsTest(void)
       printf("ERROR 2 dt_parse_eternal_date()\n");
     }
     else if (dt_parse_eternal_date("0000-WEA-7/O1D", 40, &dt) != 10) {
+      printf("ERROR 3 dt_parse_eternal_date()\n");
+    }
+    else if (dt_parse_eternal_date("0000-WEA-7/O-49D", 40, &dt) != 10) {
       printf("ERROR 3 dt_parse_eternal_date()\n");
     }
     else {

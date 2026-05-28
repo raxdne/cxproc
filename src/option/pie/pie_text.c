@@ -46,6 +46,8 @@
 #include <petrinet/petrinet.h>
 #endif
 
+#define LIMIT_BLOCKS (1024)
+
 static void
 TraverseIncludeNodes(xmlNodePtr pndArg, cxpContextPtr pccArg);
 
@@ -59,7 +61,7 @@ static BOOL_T
 ProcessPieDoc(xmlNodePtr pndArgResult, xmlDocPtr pdocArgPie, cxpContextPtr pccArg);
 
 static BOOL_T
-ProcessIncludeNode(xmlNodePtr pndArgInclude, cxpContextPtr pccArg);
+_ProcessIncludeNode(xmlNodePtr pndArgInclude, cxpContextPtr pccArg);
 
 static BOOL_T
 IncludeNodeFile(xmlNodePtr pndArgInclude, cxpContextPtr pccArg);
@@ -86,7 +88,7 @@ static BOOL_T
 ImportNodeStdin(xmlNodePtr pndArgImport, cxpContextPtr pccArg);
 
 static void
-SetPropXpathInBlock(xmlNodePtr pndArg, xmlChar* pucArgPrefix);
+SetPropXpathPerBlock(xmlNodePtr pndArg, xmlChar* pucArgPrefix);
 
 static lang_t
 GetPieNodeLang(xmlNodePtr pndArg, cxpContextPtr pccArg);
@@ -107,7 +109,7 @@ pieEmbeddInChildNodes(xmlNodePtr pndArg, cxpContextPtr pccArg);
 /*!
 
 \param pndParent pointer to node to add info attributes
-
+\todo add DOM of RELAX NG "pie.rng"
 \return pointer to parent node
  */
 xmlNodePtr
@@ -276,7 +278,13 @@ pieSubstInChildNodes(xmlNodePtr pndArgTop, xmlNodePtr pndArgSubst, cxpContextPtr
 {
   BOOL_T fResult = FALSE;
 
-  if (IS_VALID_NODE(pndArgTop) == FALSE) {
+  if (pndArgTop == NULL) {
+    /* skip */
+  }
+  else if (pndArgTop->type == XML_COMMENT_NODE || pndArgTop->type == XML_PI_NODE) {
+    pieSubstInChildNodes(pndArgTop->next, NULL, pccArg);
+  }
+  else if (IS_VALID_NODE(pndArgTop) == FALSE) {
     /* ignore non-valid elements */
   }
   else if (pndArgSubst == NULL) {
@@ -314,12 +322,12 @@ pieSubstInChildNodes(xmlNodePtr pndArgTop, xmlNodePtr pndArgSubst, cxpContextPtr
 	) {
 
 	if (pndArgTop->parent != NULL && pndArgTop->parent->type == XML_DOCUMENT_NODE) {
-	  if (IS_VALID_NODE(pndArgTop)) {
+	  if (IS_VALID_NODE(pndArgTop) || IS_TEXT(pndArgTop)) {
 	    cxpSubstApply(pndArgTop, pcxpSubstT, pccArg);
 	  }
 	}
 	else {
-	  if (IS_VALID_NODE(pndArgSubst->next)) {
+	  if (IS_VALID_NODE(pndArgSubst->next) || IS_TEXT(pndArgSubst->next)) {
 	    cxpSubstApply(pndArgSubst->next, pcxpSubstT, pccArg);
 	  }
 	}
@@ -346,7 +354,13 @@ pieEmbeddInChildNodes(xmlNodePtr pndArg, cxpContextPtr pccArg)
 {
   BOOL_T fResult = FALSE;
 
-  if (IS_VALID_NODE(pndArg) == FALSE) {
+  if (pndArg == NULL) {
+    /* skip */
+  }
+  else if (pndArg->type == XML_COMMENT_NODE || pndArg->type == XML_PI_NODE) {
+    pieEmbeddInChildNodes(pndArg->next, pccArg);
+  }
+  else if (IS_VALID_NODE(pndArg) == FALSE) {
     /* ignore non-valid elements */
   }
   else if (IS_NODE_PIE_IMG(pndArg)) {
@@ -393,6 +407,7 @@ pieEmbeddInChildNodes(xmlNodePtr pndArg, cxpContextPtr pccArg)
 	//xmlUnsetProp(pndArg, BAD_CAST "src");
       }
       resNodeFree(prnSrc);
+      xmlNewTextChild(pndArg, NULL, BAD_CAST NAME_PIE_TTAG, BAD_CAST "#img");
     }
   }
   else if (IS_ENODE(pndArg)) {
@@ -495,31 +510,11 @@ pieProcessPieNode(xmlNodePtr pndArgPie, cxpContextPtr pccArg)
     pieSubstInChildNodes(pndBlock, NULL, pccArg);
 
     /* replace all subst nodes in tree by its result */
-    cxpCtxtLogPrint(pccArg, 2, "Start node substitution");
-    cxpSubstReplaceNodes(pndBlock, pccArg);
+    //cxpCtxtLogPrint(pccArg, 2, "Start node substitution");
+    //cxpSubstReplaceNodes(pndBlock, pccArg);
 
     ProcessImportOptions(pndPieRoot, pndArgPie, pccArg); /* detect urls, substs etc. */
     ProcessPieNodeOptions(pndPieRoot, pndArgPie, pccArg); /* build sub-structures for task, fig etc. */
-
-    pucAttr = domGetPropValuePtr(pndArgPie, BAD_CAST "xpath"); /* extract requested XPath as resulting DOM */
-    if (STR_IS_NOT_EMPTY(pucAttr) && xmlStrEqual(pucAttr,BAD_CAST"/*") == FALSE) {
-      xmlDocPtr pdocResultXPath;
-      
-      cxpCtxtLogPrint(pccArg, 2, "Locator XPath for '%s'", pucAttr);
-      if ((pdocResultXPath = domGetXPathDoc(pdocResult, pucAttr)) != NULL) {
-	xmlChar* pucRegExpTag = NULL;
-
-	/* collect all NAME_PIE_PI_TAG in current DOM and add result to sub-DOM pdocResultXPath */
-	if ((pndPieRoot = xmlDocGetRootElement(pdocResultXPath)) != NULL
-	  && (pucRegExpTag = GetBlockTagRegExpStr(xmlDocGetRootElement(pdocResult), NULL, TRUE)) != NULL) {
-	  xmlAddChild(pndPieRoot, xmlNewPI(BAD_CAST NAME_PIE_PI_TAG, pucRegExpTag));
-	  xmlFree(pucRegExpTag);
-	}
-
-	xmlFreeDoc(pdocResult);
-	pdocResult = pdocResultXPath;
-      }
-    }
 
     pndMeta = xmlNewChild(pndPieRoot, NULL, BAD_CAST NAME_META, NULL);
     xmlSetTreeDoc(pndMeta, pdocResult);
@@ -635,7 +630,7 @@ ImportNodeCxp(xmlNodePtr pndArgImport, cxpContextPtr pccArg)
 
   if ((pndChild = domGetFirstChild(pndArgImport, BAD_CAST NAME_XML)) != NULL) {
     xmlNodePtr pndPieRoot;
-    xmlDocPtr pdocPie;
+    xmlDocPtr pdocContent;
     /*! build an import result pndArgResult */
 
     cxpCtxtLogPrint(pccArg, 2, "Importing via cxp XML");
@@ -643,35 +638,36 @@ ImportNodeCxp(xmlNodePtr pndArgImport, cxpContextPtr pccArg)
       cxpCtxtLogPrint(pccArg, 2, "Next '%s' element will be ignored", pndChild->next->name);
     }
 
-    if ((pdocPie = cxpProcessXmlNode(pndChild, pccArg)) != NULL) { /* first child only !!! */
+    if ((pdocContent = cxpProcessXmlNode(pndChild, pccArg)) != NULL) { /* first child only !!! */
 
-      // cxpCtxtLogPrintDoc(pccArg, 4, "import result", pdocPie);
-      if ((pndPieRoot = xmlDocGetRootElement(pdocPie)) != NULL && IS_NODE_PIE_PIE(pndPieRoot)) {
+      // cxpCtxtLogPrintDoc(pccArg, 4, "import result", pdocContent);
+      if ((pndPieRoot = xmlDocGetRootElement(pdocContent)) != NULL && IS_NODE_PIE_PIE(pndPieRoot)) {
 	xmlNodePtr pndPieProcRoot;
-	xmlDocPtr pdocPieProc;
+	xmlDocPtr pdocContentProc;
 
-	if ((pdocPieProc = pieProcessPieNode(pndPieRoot, pccArg)) != NULL) {
-	  if ((pndPieProcRoot = xmlDocGetRootElement(pdocPieProc)) != NULL && IS_NODE_PIE_PIE(pndPieProcRoot) && pndPieProcRoot->children != NULL) {
+	if ((pdocContentProc = pieProcessPieNode(pndPieRoot, pccArg)) != NULL) {
+	  if ((pndPieProcRoot = xmlDocGetRootElement(pdocContentProc)) != NULL && IS_NODE_PIE_PIE(pndPieProcRoot) && pndPieProcRoot->children != NULL) {
 	    //domPutNodeString(stderr,BAD_CAST "ImportNodeCxp()",pndPieProcRoot);
-	    xmlUnlinkNode(pndPieProcRoot);
+	    domUnlinkNodeList(pndPieProcRoot);
 	    xmlNodeSetName(pndPieProcRoot, BAD_CAST NAME_PIE_BLOCK);
 	    xmlSetNs(pndPieProcRoot,NULL);
+	    domReplaceNodeList(pndArgImport, pndPieProcRoot);
+
 	    RecognizeIncludes(pndPieProcRoot);
 	    TraverseIncludeNodes(pndPieProcRoot, pccArg);
 	    RecognizeImports(pndPieProcRoot);
 	    ProcessImportOptions(pndPieProcRoot,pndPieRoot, pccArg); /* detect urls, substs etc. */
-	    xmlReplaceNode(pndArgImport, pndPieProcRoot);
-	    xmlFreeNode(pndArgImport);
 	    TraverseImportNodes(pndPieProcRoot, pccArg); /* parse result recursively */
 	    ProcessPieNodeOptions(pndPieProcRoot, pndPieRoot, pccArg); /* build sub-structures for task, fig etc. */
+
 	    fResult = TRUE;
 	  }
 	  else {
 	    //xmlSetProp(pndArgImport, BAD_CAST"error", BAD_CAST"schema");
 	  }
-	  xmlFreeDoc(pdocPieProc);
+	  xmlFreeDoc(pdocContentProc);
 	}
-	xmlFreeDoc(pdocPie);
+	xmlFreeDoc(pdocContent);
       }
     }
     else {
@@ -747,22 +743,22 @@ ImportNodeStdin(xmlNodePtr pndArgImport, cxpContextPtr pccArg)
 
   prnInput = cxpResNodeResolveNew(NULL, pndArgImport, NULL, CXP_O_NONE);
   if (prnInput) {
-    pucContent = plainGetContextTextEat(prnInput, 1024);
+    pucContent = plainGetContextTextEat(prnInput, LIMIT_BLOCKS);
     if (pucContent) {
       int iLen;
-      xmlDocPtr pdocPie;
+      xmlDocPtr pdocContent;
 
       fResult = TRUE;
 
       /* check for pie XML input first */
-      if ((iLen = xmlStrlen(pucContent)) > 10 && (pdocPie = xmlParseMemory((const char *)pucContent, iLen))) {
+      if ((iLen = xmlStrlen(pucContent)) > 10 && (pdocContent = xmlParseMemory((const char *)pucContent, iLen))) {
 	cxpCtxtLogPrint(pccArg, 2, "Importing %i byte PIE/XML from stdin", iLen);
-	if (ProcessPieDoc(pndArgImport, pdocPie, pccArg)) {
-	  //cxpCtxtLogPrintDoc(pccArg, 4, "import result", pdocPie);
+	if (ProcessPieDoc(pndArgImport, pdocContent, pccArg)) {
+	  //cxpCtxtLogPrintDoc(pccArg, 4, "import result", pdocContent);
 	}
 	else {
 	}
-	xmlFreeDoc(pdocPie);
+	xmlFreeDoc(pdocContent);
       }
       else {
 	cxpCtxtLogPrint(pccArg, 2, "Importing %i byte PIE/Plain from stdin", iLen);
@@ -810,12 +806,6 @@ ImportNodeFile(xmlNodePtr pndArgImport, cxpContextPtr pccArg)
     /*! \todo add cache handling for import */
 
     xmlSetNs(pndArgImport,NULL);
-    xmlNodeSetName(pndArgImport,BAD_CAST NAME_PIE_BLOCK);
-#ifdef HAVE_CGI
-    xmlSetProp(pndArgImport, BAD_CAST"context", resNodeGetNameRelative(cxpCtxtRootGet(pccArg), prnInput));
-#else
-    xmlSetProp(pndArgImport, BAD_CAST"context", resNodeGetURI(prnInput));
-#endif
 
     if (IsImportCircular(pndArgImport, prnInput)) { /*! check circular reference */
       xmlSetProp(pndArgImport, BAD_CAST"error", BAD_CAST"circular");
@@ -831,6 +821,12 @@ ImportNodeFile(xmlNodePtr pndArgImport, cxpContextPtr pccArg)
       RN_MIME_TYPE iMimeType;
       resNodePtr prnT;
       cxpContextPtr pccInput;
+
+#ifdef HAVE_CGI
+      xmlSetProp(pndArgImport, BAD_CAST "context", resNodeGetNameRelative(cxpCtxtRootGet(pccArg), prnInput));
+#else
+      xmlSetProp(pndArgImport, BAD_CAST "context", resNodeGetURI(prnInput));
+#endif
 
       if (resNodeGetChild(prnInput)) {
 	iMimeType = resNodeGetMimeType(resNodeGetChild(prnInput));
@@ -854,11 +850,14 @@ ImportNodeFile(xmlNodePtr pndArgImport, cxpContextPtr pccArg)
 
       if (resNodeGetNameNormalized(prnInput) != NULL
 	&& pucAttrType != NULL && xmlStrEqual(pucAttrType, BAD_CAST"pre")) {
-	cxpCtxtLogPrint(pccInput, 2, "Importing '%s' PIE '%s'", pucAttrType, resNodeGetNameNormalized(prnInput));
+
+#ifdef DEBUG
+	cxpCtxtLogPrint(pccInput, 3, "Importing '%s' PIE '%s'", pucAttrType, resNodeGetNameNormalized(prnInput));
+#endif
 
 	if ((pucContent = cxpCtxtCacheGetBuffer(pccInput, resNodeGetNameNormalized(prnInput))) == NULL) {
 	  /* there is no cached Buffer */
-	  pucContent = plainGetContextTextEat(prnInput, 1024);
+	  pucContent = plainGetContextTextEat(prnInput, LIMIT_BLOCKS);
 	}
 
 	if (STR_IS_NOT_EMPTY(pucContent)) {
@@ -884,11 +883,13 @@ ImportNodeFile(xmlNodePtr pndArgImport, cxpContextPtr pccArg)
 #endif
 	|| iMimeType == MIME_TEXT_CALENDAR)) {
 
-	cxpCtxtLogPrint(pccInput, 2, "Importing '%s' PIE '%s'", pucAttrType, resNodeGetNameNormalized(prnInput));
+#ifdef DEBUG
+	cxpCtxtLogPrint(pccInput, 3, "Importing '%s' PIE '%s'", pucAttrType, resNodeGetNameNormalized(prnInput));
+#endif
 
 	if ((pucContent = cxpCtxtCacheGetBuffer(pccInput, resNodeGetNameNormalized(prnInput))) == NULL) {
 	  /* there is no cached Buffer */
-	  pucContent = plainGetContextTextEat(prnInput, 1024);
+	  pucContent = plainGetContextTextEat(prnInput, LIMIT_BLOCKS);
 	}
 
 	if (STR_IS_NOT_EMPTY(pucContent)) {
@@ -907,11 +908,17 @@ ImportNodeFile(xmlNodePtr pndArgImport, cxpContextPtr pccArg)
 	  if (ParsePlainBuffer(pndArgImport, pucContent, m)) {
 	    RecognizeIncludes(pndArgImport);
 	    TraverseIncludeNodes(pndArgImport, pccInput);
-	    //ProcessPieNodeOptions(pndArgImport, pndArgImport, pccArg);
+	    ProcessPieNodeOptions(pndArgImport, pndArgImport, pccArg);
 	    RecognizeScripts(pndArgImport);
 	    RecognizeImports(pndArgImport);
 	    ProcessImportOptions(pndArgImport, pndArgImport, pccArg); /* detect urls, substs etc. */
 	    TraverseImportNodes(pndArgImport, pccInput); /* parse result recursively */
+#ifdef HAVE_CGI
+	    if (domGetAncestorsPropFlag(pndArgImport, BAD_CAST "locator", TRUE)) {
+	      cxpCtxtLogPrint(pccArg, 2, "Adding block-related XPath attributes for addressing");
+	      SetPropXpathPerBlock(pndArgImport, NULL);
+	    }
+#endif
 	  }
 	  else {
 	    xmlSetProp(pndArgImport, BAD_CAST "error", BAD_CAST "parse");
@@ -924,64 +931,93 @@ ImportNodeFile(xmlNodePtr pndArgImport, cxpContextPtr pccArg)
 	}
 	xmlFree(pucContent);
       }
+#ifdef HAVE_JS
       else if (resNodeGetNameNormalized(prnInput) != NULL &&
 	       ((pucAttrType != NULL && xmlStrEqual(pucAttrType, BAD_CAST "script")) || iMimeType == MIME_APPLICATION_X_JAVASCRIPT)) {
 
-	cxpCtxtLogPrint(pccInput, 2, "Importing '%s' Javascript result as PIE '%s'", pucAttrType, resNodeGetNameNormalized(prnInput));
+	xmlChar *pucScript = NULL;
 
-	if ((pucContent = cxpCtxtCacheGetBuffer(pccInput, resNodeGetNameNormalized(prnInput))) == NULL) {
+#ifdef DEBUG
+	cxpCtxtLogPrint(pccInput, 3, "Importing '%s' Javascript result as PIE '%s'", pucAttrType, resNodeGetNameNormalized(prnInput));
+#endif
+
+	if ((pucScript = cxpCtxtCacheGetBuffer(pccInput, resNodeGetNameNormalized(prnInput))) == NULL) {
 	  /* there is no cached Buffer */
-	  pucContent = plainGetContextTextEat(prnInput, 1024);
+	  pucScript = plainGetContextTextEat(prnInput, LIMIT_BLOCKS);
 	}
 
-	if (STR_IS_NOT_EMPTY(pucContent)) {
-	  xmlNodeSetContent(pndArgImport, pucContent);
-	  xmlSetProp(pndArgImport, BAD_CAST "type", BAD_CAST "script");
-	  xmlUnsetProp(pndArgImport, BAD_CAST "name");
-	  ImportNodeContent(pndArgImport, pccInput);
+	if (STR_IS_NOT_EMPTY(pucScript)) {
+	  pucContent = cxpScriptProcessText(pucScript, pccInput);
+	  if (STR_IS_NOT_EMPTY(pucContent)) {
+	    xmlSetProp(pndArgImport, BAD_CAST "name", NULL);
+	    xmlNodeSetContent(pndArgImport, pucContent);
+	    fResult = ImportNodeContent(pndArgImport, pccInput);
+	  }
+	  else {
+	    xmlSetProp(pndArgImport, BAD_CAST "result", BAD_CAST "empty");
+	  }
 	}
 	else {
-	  cxpCtxtLogPrint(pccInput, 1, "Cant read from '%s'", resNodeGetNameNormalized(prnInput));
-	  xmlSetProp(pndArgImport, BAD_CAST"error", BAD_CAST "script");
+	  xmlSetProp(pndArgImport, BAD_CAST "result", BAD_CAST "empty script");
 	}
 	xmlFree(pucContent);
+	xmlFree(pucScript);
       }
+#endif
       else if ((pucAttrType != NULL && xmlStrEqual(pucAttrType, BAD_CAST"xml"))
 	|| iMimeType == MIME_TEXT_XML
 	|| iMimeType == MIME_APPLICATION_PIE_XML) {
-	xmlDocPtr pdocPie;
+	xmlDocPtr pdocContent;
 
-	cxpCtxtLogPrint(pccInput, 2, "Importing XML PIE '%s'", (pucAttrCache ? pucAttrCache : resNodeGetNameNormalized(prnInput)));
+#ifdef DEBUG
+	cxpCtxtLogPrint(pccInput, 3, "Importing XML PIE '%s'", (pucAttrCache ? pucAttrCache : resNodeGetNameNormalized(prnInput)));
+#endif
 
-	if ((((pdocPie = cxpCtxtCacheGetDoc(pccInput, resNodeGetNameNormalized(prnInput))) != NULL) && (pdocPie = xmlCopyDoc(pdocPie,1)) != NULL)
-	  ||
-	  ((pdocPie = resNodeReadDoc(prnInput)) != NULL)) { /*! \todo remove redundant cache lookup */
+	if ((((pdocContent = cxpCtxtCacheGetDoc(pccInput, resNodeGetNameNormalized(prnInput))) != NULL) &&
+	     (pdocContent = xmlCopyDoc(pdocContent, 1)) != NULL) ||
+	    ((pdocContent = resNodeReadDoc(prnInput)) != NULL)) { /*! \todo remove redundant cache lookup */
 	  xmlNodePtr pndT;
 
-	  if ((pndT = xmlDocGetRootElement(pdocPie)) != NULL && IS_NODE_PIE_PIE(pndT) && pndT->children != NULL) {
-#if 1
-	    /* domUnlinkNodeList(pndT); is not yet usable when there is a mix of namspaces */
-	    pndT = xmlCopyNodeList(pndT->children);
-#else
-	    pndT = pndT->children;
-	    domUnlinkNodeList(pndT);
-#endif
-	    xmlAddChildList(pndArgImport, pndT);
+	  if ((pndT = xmlDocGetRootElement(pdocContent)) != NULL && IS_NODE_PIE_PIE(pndT) && pndT->children != NULL) {
+	    domNodeTransferDescendants(pndArgImport,pndT);
+	    xmlNodeSetName(pndArgImport, BAD_CAST NAME_PIE_BLOCK);
+	    TraverseIncludeNodes(pndArgImport, pccInput);
+	    // RecognizeImports(pndT);
+	    // ProcessPieNodeOptions(pndArgImport, pndT, pccArg);
+	    // ProcessImportOptions(pndArgImport, pndArgImport, pccArg); /* detect urls, substs etc. */
+	    TraverseImportNodes(pndArgImport, pccInput); /* parse result recursively */
 	  }
-	  xmlFreeDoc(pdocPie);
-	  RecognizeIncludes(pndArgImport);
-	  TraverseIncludeNodes(pndArgImport, pccInput);
-	  ProcessPieNodeOptions(pndArgImport, pndArgImport, pccArg); /* build sub-structures for task, fig etc. */
-	  RecognizeImports(pndArgImport);
-	  ProcessImportOptions(pndArgImport,pndArgImport,pccArg); /* detect urls, substs etc. */
-	  TraverseImportNodes(pndArgImport, pccInput); /* parse result recursively */
+	  else {
+	    xmlSetProp(pndArgImport, BAD_CAST "error", BAD_CAST "struct");
+	  }
+	  xmlFreeDoc(pdocContent);
 	}
 	else {
 	  cxpCtxtLogPrint(pccInput, 1, "Cant read from '%s'", resNodeGetNameNormalized(prnInput));
-	  xmlSetProp(pndArgImport, BAD_CAST"error", BAD_CAST"parse");
+	  xmlSetProp(pndArgImport, BAD_CAST "error", BAD_CAST "parse");
 	}
       }
+      else if (iMimeType == MIME_TEXT_HTML) {
+	xmlDocPtr pdocHtml;
 
+#ifdef DEBUG
+	cxpCtxtLogPrint(pccInput, 3, "Including HTML '%s'", (pucAttrCache ? pucAttrCache : resNodeGetNameNormalized(prnInput)));
+#endif
+
+	if ((((pdocHtml = cxpCtxtCacheGetDoc(pccInput, resNodeGetNameNormalized(prnInput))) != NULL) && (pdocHtml = xmlCopyDoc(pdocHtml, 1)) != NULL) ||
+	    ((pdocHtml = resNodeReadDoc(prnInput)) != NULL)) { /*! \todo remove redundant cache lookup */
+	  xmlNodePtr pndT;
+
+	  if ((pndT = xmlDocGetRootElement(pdocHtml)) != NULL && (pndT = domGetFirstChild(pndT, BAD_CAST "body")) != NULL) {
+	    pndT = xmlCopyNode(pndT,1);
+	    xmlNodeSetName(pndT, BAD_CAST NAME_PIE_HTML);
+	    xmlAddChild(pndArgImport, pndT);
+	    xmlNodeSetName(pndArgImport, BAD_CAST NAME_PIE_BLOCK);
+	  }
+	  xmlFreeDoc(pdocHtml);
+	}
+      }
+ 
       xmlUnsetProp(pndArgImport, BAD_CAST "name");
       xmlFree(pucAttrCache);
       if (pccArg == NULL) {
@@ -1026,7 +1062,8 @@ ImportNodeContent(xmlNodePtr pndArgImport, cxpContextPtr pccArg)
     }
 
     pucContent = cxpScriptProcessNode(pndArgImport, pccArg);
-    xmlNodeSetName(pndArgImport, BAD_CAST NAME_PIE_BLOCK);
+    //domNodeTransformToText(pndArgImport,NULL);
+    //xmlNodeSetName(pndArgImport, BAD_CAST NAME_PIE_BLOCK);
     xmlNodeSetContent(pndArgImport, NULL);
 #else
     xmlNodeSetName(pndArgImport, IS_NODE_STRUCT(pndArgImport->parent) ? BAD_CAST NAME_PIE_PRE : BAD_CAST NAME_PIE_TT);
@@ -1034,33 +1071,35 @@ ImportNodeContent(xmlNodePtr pndArgImport, cxpContextPtr pccArg)
   }
   else {
     pucContent = domNodeEatContent(pndArgImport);
-    xmlNodeSetName(pndArgImport, BAD_CAST NAME_PIE_BLOCK);
+    //xmlNodeSetName(pndArgImport, BAD_CAST NAME_PIE_BLOCK);
     xmlNodeSetContent(pndArgImport, NULL);
   }
 
   if (STR_IS_NOT_EMPTY(pucContent)) {
 
-    if (IS_NODE_STRUCT(pndArgImport->parent)) {
-      /* resulting tree must be inserted */
-      if (ParsePlainBuffer(pndArgImport, pucContent, GetModeByAttr(pndArgImport))) {
-	RecognizeIncludes(pndArgImport);
-	TraverseIncludeNodes(pndArgImport, pccArg);
-	ProcessPieNodeOptions(pndArgImport, pndArgImport, pccArg); /* build sub-structures for task, fig etc. */
-	RecognizeImports(pndArgImport);
-	ProcessImportOptions(pndArgImport, pndArgImport, pccArg); /* detect urls, substs etc. */
-	TraverseImportNodes(pndArgImport, pccArg); /* parse result recursively */
+    if (ParsePlainBuffer(pndArgImport, pucContent, GetModeByAttr(pndArgImport))) {
+      RecognizeIncludes(pndArgImport);
+      TraverseIncludeNodes(pndArgImport, pccArg);
+      RecognizeScripts(pndArgImport);
+      ProcessPieNodeOptions(pndArgImport, pndArgImport, pccArg); /* build sub-structures for task, fig etc. */
+      RecognizeImports(pndArgImport);
+      ProcessImportOptions(pndArgImport, pndArgImport, pccArg); /* detect urls, substs etc. */
+      TraverseImportNodes(pndArgImport, pccArg);		/* parse result recursively */
+
+      if (IS_NODE_STRUCT(pndArgImport->parent)) {
+	/* resulting tree must be inserted */
       }
       else {
-	xmlSetProp(pndArgImport, BAD_CAST "error", BAD_CAST "parse");
+	/* insert import result as a simple text node */
+	//xmlNodeSetName(pndArgImport->parent, BAD_CAST NAME_PIE_BLOCK);
       }
     }
     else {
-      /* insert import result as a simple text node */
-      xmlNodeAddContent(pndArgImport, pucContent);
+      xmlSetProp(pndArgImport, BAD_CAST "error", BAD_CAST "parse");
     }
   }
   else {
-    xmlSetProp(pndArgImport, BAD_CAST"result", BAD_CAST"empty");
+    xmlSetProp(pndArgImport, BAD_CAST "result", BAD_CAST "empty");
   }
   xmlFree(pucContent);
 
@@ -1078,16 +1117,22 @@ ImportNodeContent(xmlNodePtr pndArgImport, cxpContextPtr pccArg)
 void
 TraverseIncludeNodes(xmlNodePtr pndArg, cxpContextPtr pccArg)
 {
-  if (IS_VALID_NODE(pndArg) == FALSE) {
+  if (pndArg == NULL) {
+    /* skip */
+  }
+  else if (pndArg->type == XML_COMMENT_NODE || pndArg->type == XML_PI_NODE) {
+    TraverseIncludeNodes(pndArg->next, pccArg);
+  }
+  else if (IS_VALID_NODE(pndArg) == FALSE) {
     /* ignore NULL and invalid elements */
   }
   else if (IS_NODE_PIE_IMPORT(pndArg) || IS_NODE_PIE_PRE(pndArg) ) {
     /* skip */
   }
   else if (IS_NODE_PIE_INCLUDE(pndArg)) {
-    if (ProcessIncludeNode(pndArg, pccArg)) {
+    if (IncludeNodeFile(pndArg, pccArg)) {
+      /* result of include will be next sibbling of pndArg */
     }
-    //    xmlFreeNode(pndArg);
   }
   else {
     /*
@@ -1115,64 +1160,6 @@ TraverseIncludeNodes(xmlNodePtr pndArg, cxpContextPtr pccArg)
 /* end of TraverseIncludeNodes() */
 
 
-/*! process the single include node pndArgInclude in context of pccArg and replace it
-
-\param pndArgInclude node to test for include, else traversing childs
-\param pccArg the processing context
-
-\return TRUE if include was successful, else FALSE
-*/
-BOOL_T
-ProcessIncludeNode(xmlNodePtr pndArgInclude, cxpContextPtr pccArg)
-{
-  BOOL_T fResult = FALSE;
-
-#ifdef DEBUG
-  cxpCtxtLogPrint(pccArg, 3, "ProcessIncludeNode(pndArgInclude=%0x,pccArg=%0x)", pndArgInclude, pccArg);
-#endif
-
-  if (pndArgInclude != NULL
-    && (pndArgInclude->parent || pndArgInclude->prev || pndArgInclude->next) /* because of replacing pndArgInclude by include result */
-    && IS_NODE_PIE_INCLUDE(pndArgInclude)) {
-    cxpContextPtr pccHere = pccArg;	      /*! process context for include */
-    cxpContextPtr pccDoc = NULL;	      /*! process context for include (derived from DOM) */
-    xmlChar *pucAttrName = NULL;
-    xmlNodePtr pndT;
-    //xmlDocPtr pdocT = NULL;
-
-    //pccHere = cxpCtxtFromAttr(pccArg, pndArgInclude);
-    //pccDoc = cxpCtxtFromAttr(NULL, pndArgInclude);
-    pucAttrName = domGetPropValuePtr(pndArgInclude, BAD_CAST"name");
-
-    if (resPathIsStd(pucAttrName)) {
-
-    }
-#if 0
-    else if ((pdocT = cxpCtxtCacheGetDoc(pccHere, pucAttrName)) != NULL) {
-      /* matching DOM in cache found */
-      if ((pndT = xmlDocGetRootElement(pdocT)) != NULL && pndT->children != NULL && (pndT = xmlCopyNodeList(pndT->children)) != NULL) {
-	fResult = (xmlAddChildList(pndArgInclude, pndT) != NULL);
-	xmlNodeSetName(pndArgInclude, BAD_CAST NAME_PIE_BLOCK);
-      }
-    }
-#endif
-    else if (STR_IS_NOT_EMPTY(pucAttrName)) {
-      fResult = IncludeNodeFile(pndArgInclude, pccHere);
-    }
-    else {
-      xmlAddChild(pndArgInclude, xmlNewComment(BAD_CAST"unknown content type"));
-    }
-
-    cxpCtxtFree(pccDoc);
-    if (pccHere != pccArg) {
-      cxpCtxtIncrExitCode(pccArg, cxpCtxtGetExitCode(pccHere));
-    }
-  }
-  return fResult;
-}
-/* end of ProcessIncludeNode() */
-
-
 /*! process the include instructions of pndArgInclude in directory context of pccArg. 
 
 Simplified version of ImportNodeFile(). Does not create a separate 'block' element in pndArgInclude DOM.
@@ -1198,7 +1185,6 @@ IncludeNodeFile(xmlNodePtr pndArgInclude, cxpContextPtr pccArg)
   prnInput = cxpResNodeResolveNew(pccArg, pndArgInclude, NULL, CXP_O_READ);
   if (prnInput) {
     xmlChar *pucContext = NULL;
-    xmlNodePtr pndT = NULL;
 
     resNodeResetMimeType(prnInput);
 
@@ -1209,35 +1195,33 @@ IncludeNodeFile(xmlNodePtr pndArgInclude, cxpContextPtr pccArg)
 #endif
 
     /*! \todo add cache handling for include */
+#if 1
+#else
+    xmlSetNs(pndArgInclude,NULL);
+    xmlNodeSetName(pndArgInclude,BAD_CAST NAME_PIE_BLOCK);
+    xmlSetProp(pndArgInclude, BAD_CAST"context", pucContext);
+#endif
 
-    pndT = xmlCopyNode(pndArgInclude,0);
-    xmlSetNs(pndT,NULL);
-    xmlNodeSetName(pndT,BAD_CAST NAME_PIE_BLOCK);
-    xmlSetProp(pndT, BAD_CAST"context", pucContext);
-    
-    if (IsImportCircular(pndT, prnInput)) { /*! check circular reference */
-      xmlSetProp(pndT, BAD_CAST"error", BAD_CAST"circular");
+    if (IsImportCircular(pndArgInclude, prnInput)) { /*! check circular reference */
+      xmlSetProp(pndArgInclude, BAD_CAST"error", BAD_CAST"circular");
       /*! \bug circular check for cache too */
     }
     else if (resNodeIsReadable(prnInput) == FALSE && cxpCtxtCacheGetResNode(pccArg, resNodeGetNameNormalized(prnInput)) == NULL) {
-      xmlSetProp(pndT, BAD_CAST"error", BAD_CAST"read");
+      xmlSetProp(pndArgInclude, BAD_CAST"error", BAD_CAST"read");
     }
     else {
       xmlChar *pucAttrCache = NULL;
-      xmlChar *pucAttrType;
       xmlChar *pucContent = NULL;
       RN_MIME_TYPE iMimeType;
       resNodePtr prnT;
       cxpContextPtr pccInput;
 
-      xmlAddChild(pndT,xmlNewPI(BAD_CAST NAME_PIE_INCLUDE "-begin",pucContext));
       if (resNodeGetChild(prnInput)) {
 	iMimeType = resNodeGetMimeType(resNodeGetChild(prnInput));
       }
       else {
 	iMimeType = resNodeGetMimeType(prnInput);
       }
-      pucAttrType = domGetPropValuePtr(pndT, BAD_CAST"type");
 
       /* set a new cxpContext with file-based location */
       cxpCtxtLogPrint(pccArg, 1, "New context due to file-based include location '%s'", resNodeGetNameNormalized(prnInput));
@@ -1251,25 +1235,17 @@ IncludeNodeFile(xmlNodePtr pndArgInclude, cxpContextPtr pccArg)
       }
       resNodeFree(prnT);
 
-      if (resNodeGetNameNormalized(prnInput) != NULL
-	&& ((pucAttrType != NULL
-	&& (xmlStrEqual(pucAttrType, BAD_CAST"line")
-	|| xmlStrEqual(pucAttrType, BAD_CAST"csv")
-	|| xmlStrEqual(pucAttrType, BAD_CAST"log")
-	|| xmlStrEqual(pucAttrType, BAD_CAST"markdown")
-	|| xmlStrEqual(pucAttrType, BAD_CAST"par")))
-	|| iMimeType == MIME_TEXT_CSV
-	|| iMimeType == MIME_TEXT_PLAIN
+      if (resNodeGetNameNormalized(prnInput) != NULL && (iMimeType == MIME_TEXT_CSV || iMimeType == MIME_TEXT_PLAIN
 #ifdef WITH_MARKDOWN
-	|| iMimeType == MIME_TEXT_MARKDOWN
+							 || iMimeType == MIME_TEXT_MARKDOWN
 #endif
-	|| iMimeType == MIME_TEXT_CALENDAR)) {
+							 )) {
 
-	cxpCtxtLogPrint(pccInput, 2, "Including '%s' PIE '%s'", pucAttrType, resNodeGetNameNormalized(prnInput));
+	cxpCtxtLogPrint(pccInput, 2, "Including '%s'", resNodeGetNameNormalized(prnInput));
 
 	if ((pucContent = cxpCtxtCacheGetBuffer(pccInput, resNodeGetNameNormalized(prnInput))) == NULL) {
 	  /* there is no cached Buffer */
-	  pucContent = plainGetContextTextEat(prnInput, 1024);
+	  pucContent = plainGetContextTextEat(prnInput, LIMIT_BLOCKS);
 	}
 
 	if (STR_IS_NOT_EMPTY(pucContent)) {
@@ -1282,24 +1258,24 @@ IncludeNodeFile(xmlNodePtr pndArgInclude, cxpContextPtr pccArg)
 	    m = GetModeByMimeType(iMimeType);
 	  }
 	  else {
-	    m = GetModeByAttr(pndT);
+	    m = GetModeByAttr(pndArgInclude);
 	  }
 
-	  if (ParsePlainBuffer(pndT, pucContent, m)) {
-	    //TraverseIncludeNodes(pndT, pccInput); /* parse result recursively */
+	  if (ParsePlainBuffer(pndArgInclude, pucContent, m)) {
+	    xmlNodePtr pndList = pndArgInclude->children;
+
+	    domUnlinkNodeList(pndList);
+	    domNodeTransformToText(pndArgInclude, NULL);
+	    domAddNextSiblingNodeList(pndArgInclude, pndList);
 	  }
-	  else {
-	    xmlSetProp(pndT, BAD_CAST "error", BAD_CAST "parse");
-	  }
-	  // domPutNodeString(stderr,BAD_CAST "IncludeNodeFile()",pndArgResult);
 	}
 	else {
 	  cxpCtxtLogPrint(pccInput, 1, "Cant read from '%s'", resNodeGetNameNormalized(prnInput));
-	  xmlSetProp(pndT, BAD_CAST "error", BAD_CAST "empty");
+	  xmlSetProp(pndArgInclude, BAD_CAST "error", BAD_CAST "empty");
 	}
 	xmlFree(pucContent);
       }
-      else if ((pucAttrType != NULL && xmlStrEqual(pucAttrType, BAD_CAST "xml")) || iMimeType == MIME_TEXT_XML || iMimeType == MIME_APPLICATION_PIE_XML) {
+      else if (iMimeType == MIME_TEXT_XML || iMimeType == MIME_APPLICATION_PIE_XML) {
 	xmlDocPtr pdocPie;
 
 	cxpCtxtLogPrint(pccInput, 2, "Including XML PIE '%s'", (pucAttrCache ? pucAttrCache : resNodeGetNameNormalized(prnInput)));
@@ -1307,34 +1283,62 @@ IncludeNodeFile(xmlNodePtr pndArgInclude, cxpContextPtr pccArg)
 	if ((((pdocPie = cxpCtxtCacheGetDoc(pccInput, resNodeGetNameNormalized(prnInput))) != NULL) && (pdocPie = xmlCopyDoc(pdocPie,1)) != NULL)
 	  ||
 	  ((pdocPie = resNodeReadDoc(prnInput)) != NULL)) { /*! \todo remove redundant cache lookup */
-	  xmlNodePtr pndTT;
+	  xmlNodePtr pndT;
 
-	  if ((pndTT = xmlDocGetRootElement(pdocPie)) != NULL && IS_NODE_PIE_PIE(pndTT) && pndTT->children != NULL) {
-#if 0
-	    /* domUnlinkNodeList(pndT); is not yet usable when there is a mix of namspaces */
-	    pndTT = xmlCopyNodeList(pndT->children);
-#else
-	    pndTT = pndTT->children;
-	    domUnlinkNodeList(pndTT);
-#endif
-	    xmlAddChildList(pndT, pndTT);
+	  if ((pndT = xmlDocGetRootElement(pdocPie)) != NULL && IS_NODE_PIE_PIE(pndT) && pndT->children != NULL) {
+	    pndT = pndT->children;
+	    domUnlinkNodeList(pndT);
+	    domNodeTransformToText(pndArgInclude, NULL);
+	    domAddNextSiblingNodeList(pndArgInclude, pndT);
 	  }
 	  xmlFreeDoc(pdocPie);
-	  //TraverseIncludeNodes(pndT, pccInput); /* parse result recursively */
 	}
 	else {
 	  cxpCtxtLogPrint(pccInput, 1, "Cant read from '%s'", resNodeGetNameNormalized(prnInput));
-	  xmlSetProp(pndT, BAD_CAST"error", BAD_CAST"parse");
+	  xmlSetProp(pndArgInclude, BAD_CAST"error", BAD_CAST"parse");
 	}
       }
-      xmlAddChild(pndT,xmlNewPI(BAD_CAST NAME_PIE_INCLUDE "-end",pucContext));
+      else if (iMimeType == MIME_TEXT_HTML) {
+	xmlDocPtr pdocHtml;
 
-      //domPutNodeString(stderr, BAD_CAST "IncludeNodeFile()", pndT);
-      if (pndT != NULL && pndT->children != NULL) {
-	RecognizeSubsts(pndT);
-	domReplaceNodeList(pndArgInclude, pndT->children);
-	xmlFreeNodeList(pndArgInclude);
-	xmlFreeNode(pndT);
+	cxpCtxtLogPrint(pccInput, 2, "Including HTML '%s'", (pucAttrCache ? pucAttrCache : resNodeGetNameNormalized(prnInput)));
+
+	if ((((pdocHtml = cxpCtxtCacheGetDoc(pccInput, resNodeGetNameNormalized(prnInput))) != NULL) && (pdocHtml = xmlCopyDoc(pdocHtml, 1)) != NULL) ||
+	    ((pdocHtml = resNodeReadDoc(prnInput)) != NULL)) { /*! \todo remove redundant cache lookup */
+	  xmlNodePtr pndT;
+
+	  if ((pndT = xmlDocGetRootElement(pdocHtml)) != NULL && (pndT = domGetFirstChild(pndT, BAD_CAST "body")) != NULL) {
+	    domUnlinkNodeList(pndT);
+	    xmlNodeSetName(pndT, BAD_CAST NAME_PIE_HTML);
+	    domNodeTransformToText(pndArgInclude, NULL);
+	    domAddNextSiblingNodeList(pndArgInclude, pndT);
+	  }
+	  xmlFreeDoc(pdocHtml);
+	}
+      }
+      else if (iMimeType == MIME_APPLICATION_X_JAVASCRIPT) {
+
+	cxpCtxtLogPrint(pccInput, 2, "Including '%s'", resNodeGetNameNormalized(prnInput));
+
+	if ((pucContent = cxpCtxtCacheGetBuffer(pccInput, resNodeGetNameNormalized(prnInput))) == NULL) {
+	  /* there is no cached Buffer */
+	  pucContent = plainGetContextTextEat(prnInput, LIMIT_BLOCKS);
+	}
+
+	if (STR_IS_NOT_EMPTY(pucContent)) {
+	  xmlNodeSetContent(pndArgInclude, pucContent);
+	  xmlNodeSetName(pndArgInclude, BAD_CAST NAME_PIE_SCRIPT);
+	  //xmlSetProp(pndArgInclude, BAD_CAST"eval", BAD_CAST"no");
+	}
+	else {
+	  cxpCtxtLogPrint(pccInput, 1, "Cant read from '%s'", resNodeGetNameNormalized(prnInput));
+	  xmlSetProp(pndArgInclude, BAD_CAST "error", BAD_CAST "empty");
+	}
+	xmlFree(pucContent);
+      }
+      else {
+	cxpCtxtLogPrint(pccInput, 1, "Cant handle '%s'", resNodeGetNameNormalized(prnInput));
+	xmlNodeSetName(pndArgInclude, BAD_CAST "error");
       }
 
       xmlFree(pucAttrCache);
@@ -1345,6 +1349,9 @@ IncludeNodeFile(xmlNodePtr pndArgInclude, cxpContextPtr pccArg)
 
     resNodeFree(prnInput);
     fResult = TRUE;
+  }
+  else {
+    xmlNodeSetName(pndArgInclude, BAD_CAST "error");
   }
   return fResult;
 }
@@ -1360,16 +1367,21 @@ IncludeNodeFile(xmlNodePtr pndArgInclude, cxpContextPtr pccArg)
 void
 TraverseImportNodes(xmlNodePtr pndArg, cxpContextPtr pccArg)
 {
-  if (IS_VALID_NODE(pndArg) == FALSE) {
+  if (pndArg == NULL) {
+    /* skip */
+  }
+  else if (pndArg->type == XML_COMMENT_NODE || pndArg->type == XML_PI_NODE) {
+    TraverseImportNodes(pndArg->next, pccArg);
+  }
+  else if (IS_VALID_NODE(pndArg) == FALSE) {
     /* ignore NULL and invalid elements */
   }
-  else if (IS_NODE_PIE_PRE(pndArg) ) {
+  else if (IS_NODE_PIE_PRE(pndArg)) {
     /* skip */
   }
   else if (IS_NODE_PIE_IMPORT(pndArg)) {
     if (ProcessImportNode(pndArg, pccArg)) {
     }
-    //    xmlFreeNode(pndArg);
   }
   else {
     /*
@@ -1422,7 +1434,13 @@ TraverseImportNodes(xmlNodePtr pndArg, cxpContextPtr pccArg)
 void
 TraverseDateNodes(xmlNodePtr pndArg, cxpContextPtr pccArg)
 {
-  if (IS_VALID_NODE(pndArg) == FALSE) {
+  if (pndArg == NULL) {
+    /* skip */
+  }
+  else if (pndArg->type == XML_COMMENT_NODE || pndArg->type == XML_PI_NODE) {
+    TraverseDateNodes(pndArg->next, pccArg);
+  }
+  else if (IS_VALID_NODE(pndArg) == FALSE) {
     /* ignore NULL and invalid elements */
   }
   else if (IS_NODE_PIE_PRE(pndArg)
@@ -1432,7 +1450,7 @@ TraverseDateNodes(xmlNodePtr pndArg, cxpContextPtr pccArg)
   ) {
     /* skip */
   }
-  else if (IS_NODE_PIE_DATE(pndArg) && xmlHasProp(pndArg,BAD_CAST"iso") == NULL) {
+  else if (IS_NODE_PIE_DATE(pndArg) && domGetPropValuePtr(pndArg,BAD_CAST"iso") == NULL) {
     /* avoid redundant child 'date' */
 #ifdef PIE_STANDALONE
     /* no calendar element available */
@@ -1466,7 +1484,7 @@ TraverseDateNodes(xmlNodePtr pndArg, cxpContextPtr pccArg)
 BOOL_T
 ProcessImportOptions(xmlNodePtr pndArgPie, xmlNodePtr pndArgImport, cxpContextPtr pccArg)
 {
-  BOOL_T fResult = FALSE;
+  BOOL_T fResult = TRUE;
 
 #ifdef DEBUG
   cxpCtxtLogPrint(pccArg, 3, "ProcessImportOptions(pndArgImport=%0x,pccArg=%0x)", pndArgImport, pccArg);
@@ -1484,6 +1502,8 @@ ProcessImportOptions(xmlNodePtr pndArgPie, xmlNodePtr pndArgImport, cxpContextPt
 
     RecognizeInlines(pndArgPie);
 
+    RecognizeSymbols(pndArgPie, GetPieNodeLang(pndArgPie, pccArg));
+
     if (domGetPropFlag(pndArgImport, BAD_CAST "url", TRUE)) {
       cxpCtxtLogPrint(pccArg, 2, "Recognize URLs");
       /*! \todo use an attribute for regexp?? */
@@ -1492,8 +1512,6 @@ ProcessImportOptions(xmlNodePtr pndArgPie, xmlNodePtr pndArgImport, cxpContextPt
     else {
       cxpCtxtLogPrint(pccArg, 3, "Ignoring URLs");
     }
-
-    RecognizeSymbols(pndArgPie, GetPieNodeLang(pndArgPie, pccArg));
 
     if (domGetPropFlag(pndArgImport, BAD_CAST "date", TRUE)) {
       cxpCtxtLogPrint(pccArg, 2, "Recognize dates");
@@ -1520,7 +1538,7 @@ ProcessImportOptions(xmlNodePtr pndArgPie, xmlNodePtr pndArgImport, cxpContextPt
 BOOL_T
 ProcessPieNodeOptions(xmlNodePtr pndArgPie, xmlNodePtr pndArgImport, cxpContextPtr pccArg)
 {
-  BOOL_T fResult = FALSE;
+  BOOL_T fResult = TRUE;
 
 #ifdef DEBUG
   cxpCtxtLogPrint(pccArg, 3, "ProcessPieNodeOptions(pndArgImport=%0x,pccArg=%0x)", pndArgImport, pccArg);
@@ -1545,22 +1563,6 @@ ProcessPieNodeOptions(xmlNodePtr pndArgPie, xmlNodePtr pndArgImport, cxpContextP
     }
     else {
       cxpCtxtLogPrint(pccArg, 3, "Ignoring tasks markup");
-    }
-
-    if (domGetPropFlag(pndArgImport, BAD_CAST "locators", TRUE)) {
-      resNodePtr prnDoc;
-
-      cxpCtxtLogPrint(pccArg, 2, "Add locator attribute");
-      if (pndArgImport != NULL && pndArgImport->doc != NULL && (prnDoc = resNodeDirNew(BAD_CAST pndArgImport->doc->URL)) != NULL) {
-	SetPropXpathInBlock(pndArgPie, NULL);
-	resNodeFree(prnDoc);
-      }
-      else {
-	SetPropXpathInBlock(pndArgPie, NULL);
-      }
-    }
-    else {
-      cxpCtxtLogPrint(pccArg, 3, "Skipping locators");
     }
   }
   return fResult;
@@ -1611,11 +1613,13 @@ ProcessImportNode(xmlNodePtr pndArgImport, cxpContextPtr pccArg)
 	  TraverseImportNodes(pndArgImport, pccHere); /* parse result recursively */
 	}
       }
-      else if (IsImportCircularStr(pndArgImport, pucAttrName) == FALSE) {
-	fResult = ImportNodeFile(pndArgImport, pccHere);
+#if 0
+      else if (IsImportCircularStr(pndArgImport, pucAttrName)) {
+	xmlSetProp(pndArgImport, BAD_CAST "error", BAD_CAST "circular");
       }
+#endif
       else {
-	xmlAddChild(pndArgImport, xmlNewComment(BAD_CAST "unknown content type"));
+	fResult = ImportNodeFile(pndArgImport, pccHere);
       }
     }
     else {
@@ -1626,7 +1630,7 @@ ProcessImportNode(xmlNodePtr pndArgImport, cxpContextPtr pccArg)
 	fResult = ImportNodeContent(pndArgImport, (cxpCtxtLocationGet(pccDoc) ? pccDoc : pccHere));
       }
       else {
-	xmlAddChild(pndArgImport, xmlNewComment(BAD_CAST "unknown content type"));
+	xmlSetProp(pndArgImport, BAD_CAST "error", BAD_CAST "unknown content type");
       }
     }
 
@@ -1794,37 +1798,60 @@ pieGetSelfAncestorNodeList(xmlNodePtr pndArg, xmlChar *pucArgId)
 \param pucArgPrefix pointer to XPath prefix for childs
  */
 void
-SetPropXpathInBlock(xmlNodePtr pndArg, xmlChar* pucArgPrefix)
+SetPropXpathPerBlock(xmlNodePtr pndArg, xmlChar* pucArgPrefix)
 {
   if (IS_NODE_META(pndArg) || IS_NODE_ERROR(pndArg)) {
+    /* ignoring */
   }
   else if (IS_ENODE(pndArg)) {
+    int i;
+    xmlChar *pucPrefix = pucArgPrefix;
     xmlNodePtr pndChild;
-    int i=0;
 
-    for (pndChild = pndArg->children; pndChild != NULL; pndChild = pndChild->next) {
-      i++;
-      if ( ! IS_ENODE(pndChild) || xmlHasProp(pndChild, BAD_CAST"bxpath")) {
+    if (IS_NODE_PIE_BLOCK(pndArg) && domGetPropValuePtr(pndArg, BAD_CAST "context") != NULL) {
+
+      for (pndChild = pndArg->children; pndChild != NULL; pndChild = pndChild->next) {
+	if (IS_ENODE(pndChild)) {
+	  if (domGetPropValuePtr(pndChild, BAD_CAST "bxpath") != NULL) {
+	    /* attribute bxpath exists in tree, dont set attribute in descendant's tree again */
+	    return;
+	  }
+	  break;
+	}
       }
-      else if (IS_NODE_PIE_TTAG(pndChild) || IS_NODE_PIE_ETAG(pndChild) || IS_NODE_PIE_HTAG(pndChild) || IS_NODE_PIE_RULER(pndChild) || IS_NODE_PIE_META(pndChild) || IS_NODE_ERROR(pndChild)) {
-	/* dont set xpath attribute here */
-      }
-      else {
-	xmlChar mucT[BUFFER_LENGTH];
 
-	xmlStrPrintf(mucT, BUFFER_LENGTH, "%s/*[%i]", (pucArgPrefix == NULL ? BAD_CAST "/*" : pucArgPrefix), i);
-	xmlSetProp(pndChild, BAD_CAST "bxpath", mucT);
+      /* start new xpath for this branch */
+      pucPrefix = BAD_CAST "/*";
+    }
 
-	if (IS_NODE_PIE_PAR(pndChild) || IS_NODE_PIE_HEADER(pndChild) || IS_NODE_PIE_TABLE(pndChild)) {
-	  /* dont set bxpath attribute at childs */
+    if (pucArgPrefix == NULL) {
+      xmlSetProp(pndArg, BAD_CAST "bxpath", pucPrefix);
+    }
+
+    for (i = 0, pndChild = pndArg->children; pndChild != NULL; pndChild = pndChild->next) {
+      if (IS_ENODE(pndChild)) {
+	i++;
+	if (IS_NODE_PIE_TTAG(pndChild) || IS_NODE_PIE_ETAG(pndChild) || IS_NODE_PIE_HTAG(pndChild) || IS_NODE_PIE_RULER(pndChild) ||
+	    IS_NODE_PIE_META(pndChild) || IS_NODE_ERROR(pndChild)) {
+	  /* dont set bxpath attribute in descendant's tree */
 	}
 	else {
-	  SetPropXpathInBlock(pndChild, mucT);
+	  xmlChar mucT[BUFFER_LENGTH];
+
+	  xmlStrPrintf(mucT, BUFFER_LENGTH, "%s/*[%i]", pucPrefix, i);
+	  xmlSetProp(pndChild, BAD_CAST "bxpath", mucT);
+
+	  if (IS_NODE_PIE_PAR(pndChild) || IS_NODE_PIE_HEADER(pndChild) || IS_NODE_PIE_TABLE(pndChild)) {
+	    /* dont set bxpath attribute at child's tree */
+	  }
+	  else {
+	    SetPropXpathPerBlock(pndChild, mucT);
+	  }
 	}
       }
     }
   }
-} /* end of SetPropXpathInBlock() */
+} /* end of SetPropXpathPerBlock() */
 
 
 /*! increments value of property "w" by iArg numerically
@@ -1838,18 +1865,13 @@ IncrementWeightProp(xmlNodePtr pndArg, int iArg)
 
   if ((pndArg != NULL) && (pndArg->type == XML_ELEMENT_NODE) && iArg != 0) {
     int iCurrent;
-    xmlAttrPtr patT;
 
-    if ((patT = xmlHasProp(pndArg, BAD_CAST"w")) == NULL
-      || patT->children == NULL || STR_IS_EMPTY(patT->children->content)) {
-      /* there is no attribute value yet, initial value '1' */
-      iResult = 1;
-    }
-    else if ((iCurrent = atoi((const char *)patT->children->content)) != 0) {
+    if ((iCurrent = domGetPropInt(pndArg, BAD_CAST "w", 1)) > 1) {
       iResult = iCurrent + iArg;
     }
     else {
-      /*\todo remove property if iArg == 0? */
+      /* there is no attribute value yet, initial value '1' */
+      iResult = 1;
     }
 
     if (iResult) {
@@ -1951,7 +1973,7 @@ RecognizeRegExps(xmlNodePtr pndArg, pcre2_code* preArg)
     /* regexp error handling */
     //PrintFormatLog(1, "hashtag regexp '%s' error: '%i'", RE_HASHTAG, errornumber);
   }
-  else if (IS_VALID_NODE(pndArg) == FALSE || xmlHasProp(pndArg,BAD_CAST"hidden") != NULL) {
+  else if (IS_VALID_NODE(pndArg) == FALSE || IS_NODE_HIDDEN(pndArg)) {
     /* skip */
   }
   else if (IS_NODE_PIE_HEADER(pndArg) || IS_NODE_PIE_PAR(pndArg) || IS_NODE_PIE_LIST(pndArg)

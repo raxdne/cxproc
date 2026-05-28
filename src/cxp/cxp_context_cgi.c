@@ -163,12 +163,13 @@ cxpCtxtCgiParse(cxpContextPtr pccArg)
 {
   resNodePtr prnExecutable;
   xmlChar mpucNameFile[BUFFER_LENGTH];
+  xmlChar *pucCgiQuery = NULL;
   xmlChar *pucCgiCxp = NULL;
   xmlChar *pucCgiRedir = NULL;
   xmlChar *pucCgiPathTranslated = NULL;
-  xmlChar *pucT;
   xmlChar *pucCgiPath = NULL;
   xmlChar *pucCgiEncoding = NULL;
+  xmlChar *pucT;
   xmlNodePtr pndMake = NULL;
   xmlNodePtr pndPlain = NULL;
   xmlNodePtr pndXml = NULL;
@@ -228,7 +229,7 @@ cxpCtxtCgiParse(cxpContextPtr pccArg)
     xmlSetProp(pndPlain, BAD_CAST "name", BAD_CAST "-");
     xmlSetProp(pndPlain, BAD_CAST "status", BAD_CAST "404 Not Found"); /* default status */
 
-    while ((prnTest = resNodeListFindPath(cxpCtxtRootGet(pccArg), pucCgiRedir, (RN_FIND_FILE | RN_FIND_IN_SUBDIR))) != NULL) {
+    while ((prnTest = resNodeListFindPath(cxpCtxtRootGet(pccArg), pucCgiRedir, (RN_FIND_FILE | RN_FIND_SYMLINK | RN_FIND_DIR | RN_FIND_IN_SUBDIR))) != NULL) {
 
       if (cxpCtxtAccessIsPermitted(pccArg, prnTest) == FALSE || resNodeIsReadable(prnTest) == FALSE) {
 	// access error, continue
@@ -319,7 +320,7 @@ cxpCtxtCgiParse(cxpContextPtr pccArg)
 
     if ((prnTest = resNodeRootNew(cxpCtxtRootGet(pccArg), pucCgiPath)) == NULL || resNodeIsReadable(prnTest) == FALSE) {
       prnTest =
-	  resNodeListFindPath(cxpCtxtRootGet(pccArg), pucCgiPath, (RN_FIND_FILE | RN_FIND_IN_SUBDIR | RN_FIND_REGEXP));
+	  resNodeListFindPath(cxpCtxtRootGet(pccArg), pucCgiPath, (RN_FIND_FILE | RN_FIND_SYMLINK | RN_FIND_IN_SUBDIR | RN_FIND_REGEXP));
     }
 
     if (resNodeReadStatus(prnTest) && resNodeIsFile(prnTest) && cxpCtxtAccessIsPermitted(pccArg, prnTest) &&
@@ -359,15 +360,15 @@ cxpCtxtCgiParse(cxpContextPtr pccArg)
       //pndXml = xmlNewChild(pndMake, NULL, NAME_PLAIN, BAD_CAST"File not found");
     }
   }
-  else if ((pucT = cxpCtxtEnvGetValueByName(pccArg, BAD_CAST "QUERY_STRING")) != NULL && STR_IS_NOT_EMPTY(pucT) && xmlStrchr(pucT, '=') == NULL) { /*!\todo define a more stable criteria than '=' */
+  else if ((pucCgiQuery = cxpCtxtEnvGetValueByName(pccArg, BAD_CAST "QUERY_STRING")) != NULL && STR_IS_NOT_EMPTY(pucCgiQuery) && xmlStrchr(pucCgiQuery, '=') == NULL) { /*!\todo define a more stable criteria than '=' */
     /* copy file content to client */
     xmlNodePtr pndCopy = NULL;
     resNodePtr prnFrom = NULL;
 
-    if ((prnFrom = resNodeRootNew(cxpCtxtRootGet(pccArg), pucT)) != NULL && resNodeIsReadable(prnFrom)) {
+    if ((prnFrom = resNodeRootNew(cxpCtxtRootGet(pccArg), pucCgiQuery)) != NULL && resNodeIsReadable(prnFrom)) {
       pndCopy = xmlNewChild(pndMake, NULL, NAME_FILECOPY, NULL);
       //xmlSetProp(pndCopy, BAD_CAST "from", resNodeGetNameNormalized(prnFrom));
-      xmlSetProp(pndCopy, BAD_CAST "from", pucT);
+      xmlSetProp(pndCopy, BAD_CAST "from", pucCgiQuery);
       xmlSetProp(pndCopy, BAD_CAST "to", BAD_CAST "-");
       resNodeFree(prnFrom);
     }
@@ -393,7 +394,7 @@ cxpCtxtCgiParse(cxpContextPtr pccArg)
       resNodePtr prnTest = NULL;
 
       if ((prnTest = resNodeRootNew(cxpCtxtRootGet(pccArg), pucCgiPath)) == NULL || resNodeIsReadable(prnTest) == FALSE) {
-	prnTest = resNodeListFindPath(cxpCtxtRootGet(pccArg), pucCgiPath, (RN_FIND_FILE | RN_FIND_IN_SUBDIR | RN_FIND_REGEXP));
+	prnTest = resNodeListFindPath(cxpCtxtRootGet(pccArg), pucCgiPath, (RN_FIND_FILE | RN_FIND_SYMLINK | RN_FIND_IN_SUBDIR | RN_FIND_REGEXP));
       }
 
       if (resNodeReadStatus(prnTest) && resNodeIsDir(prnTest)) {
@@ -414,7 +415,7 @@ cxpCtxtCgiParse(cxpContextPtr pccArg)
 	  xmlSetProp(pndDir, BAD_CAST "name", resNodeGetNameRelative(cxpCtxtRootGet(pccArg), prnTest));
 	}
       }
-      else if (resNodeReadStatus(prnTest) && resNodeIsFile(prnTest)) {
+      else if (resNodeReadStatus(prnTest) && (resNodeIsFile(prnTest) || resNodeIsLink(prnTest))) {
 	if (cxpCtxtAccessIsPermitted(pccArg, prnTest) == FALSE) {
 	  // access error
 	}
@@ -560,6 +561,7 @@ cxpCtxtCgiParse(cxpContextPtr pccArg)
     /*
       release the allocated CGI values
     */
+    xmlFree(pucCgiQuery);
     xmlFree(pucCgiCxp);
     xmlFree(pucCgiEmbedd);
     xmlFree(pucCgiXsl);

@@ -382,7 +382,11 @@ resNodeMakeDirectory(resNodePtr prnArg, int mode)
 	eResult = rn_error_none;
       }
 #else
+#  ifdef _WIN32
+      i = mkdir(resNodeGetNameNormalizedNative(prnArg));
+#  else
       i = mkdir(resNodeGetNameNormalizedNative(prnArg), mode);
+#  endif
       if (i == 0 || errno == EEXIST) {
 	eResult = resNodeReadStatus(prnArg) ? rn_error_none : rn_error_undef;
       }

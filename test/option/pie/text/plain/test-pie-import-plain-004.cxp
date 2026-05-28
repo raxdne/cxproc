@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cxp:make xmlns:cxp="http://www.tenbusch.info/cxproc">
+  <cxp:system mkdir="result/"/>
+  <cxp:system message="**** test-pie-import-plain-004: parsing of a text file with URLs"/>
+  <cxp:xml name="result/test-pie-import-plain-004.pie">
+    <cxp:pie url="yes">
+      <import name="test-pie-import-plain-004.txt"/>
+    </cxp:pie>
+  </cxp:xml>
+</cxp:make>

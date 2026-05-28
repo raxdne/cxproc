@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cxp:make xmlns:cxp="http://www.tenbusch.info/cxproc">
+  <cxp:system mkdir="result/"/>
+  <cxp:system message="**** test-pie-import-xml-000-001: file doesnt exist, emtpy PIE node"/>
+  <cxp:xml name="result/test-pie-import-xml-000-001.pie">
+    <cxp:pie>
+    </cxp:pie>
+  </cxp:xml>
+  <cxp:system message="**** test-pie-import-xml-000-002: file doesnt exist, emtpy PIE node"/>
+  <cxp:xml name="result/test-pie-import-xml-000-002.pie">
+    <cxp:pie>
+      <import name="test-pie-import-xml-000.pie"/>
+    </cxp:pie>
+  </cxp:xml>
+</cxp:make>

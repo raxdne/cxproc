@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<pie version="0.1">
+  <subst string="KLM" to="MLK"/>
+  <p>KLM</p>
+  <section>
+    <h>ABC</h>
+    <p>DEF HIJ</p>
+    <section>
+      <h>must be ignored ✘</h>
+      <task class="req">
+        <h>QRS</h>
+        <p>HIJ</p>
+      </task>
+      <p>OPQ</p>
+      <!-- RST -->
+      <p>OPQ</p>
+    </section>
+    <list>
+      <p>OPQ</p>
+    </list>
+  </section>
+  <p>TODO: ABC DEF ✔</p>
+  <p>TODO: RST ✘</p>
+  <task>
+    <h>LMA ✔</h>
+    <p>HIJ</p>
+  </task>
+</pie>

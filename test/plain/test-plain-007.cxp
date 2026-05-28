@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cxp:make xmlns:cxp="http://www.tenbusch.info/cxproc">
+  <cxp:subst string="%CONTENT%">
+    <cxp:plain name="test-content-isolat1.txt"/>
+  </cxp:subst>
+  <cxp:subst string="%CONTENT16%">
+    <cxp:plain name="test-content-utf16be.txt"/>
+  </cxp:subst>
+  <!-- TEST 7: write substituted content into a new file -->
+  <cxp:plain name="result/test-plain-007-001.txt">%CONTENT%</cxp:plain>
+  <cxp:plain name="result/test-plain-007-002.txt">%CONTENT16%</cxp:plain>
+</cxp:make>

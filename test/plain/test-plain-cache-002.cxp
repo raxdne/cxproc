@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cxp:make xmlns:cxp="http://www.tenbusch.info/cxproc">
+  <!-- *** Test 0b: caching of an existing plain text file with cache name *** -->
+  <cxp:plain name="result/test-plain-cache-001.txt" cacheas="TEST-0b"/>
+  <cxp:plain name="result/test-plain-cache-002-001.txt">
+    <cxp:plain name="TEST-0b"/>
+  </cxp:plain>
+  <cxp:plain cacheas="TEST-0b">
+    <cxp:plain name="Length_1024.txt"/>
+  </cxp:plain>
+  <cxp:plain name="result/test-plain-cache-002-002.txt">
+    <cxp:plain name="TEST-0b"/>
+  </cxp:plain>
+</cxp:make>

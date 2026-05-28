@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cxp:make xmlns:cxp="http://www.tenbusch.info/cxproc">
+  <cxp:system mkdir="result/"/>
+  <cxp:system message="**** test-pie-import-xml-005: Stylesheet shortcut as XPath"/>
+  <cxp:xml name="result/test-pie-import-xml-005.pie">
+    <cxp:xml name="test-pie-import-xml-005.pie"/>
+    <cxp:xpath select="/pie/section[1]/h[1]"/>
+  </cxp:xml>
+</cxp:make>

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cxp:make xmlns:cxp="http://www.tenbusch.info/cxproc">
+  <!-- TEST 6: write content of a text file with 'byte order mark' to a new file -->
+  <cxp:plain name="result/test-plain-006-001.txt">
+    <cxp:plain name="test-unicode-bom.txt"/>
+  </cxp:plain>
+  <cxp:plain name="result/test-plain-006-002.txt">
+    <cxp:plain name="test-unicode16-bom.txt"/>
+  </cxp:plain>
+</cxp:make>

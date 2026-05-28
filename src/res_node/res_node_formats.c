@@ -26,6 +26,8 @@
 #include <libxml/uri.h>
 #include <libxml/parser.h>
 
+#include <libbase64.h>
+
 #include "basics.h"
 #include "utils.h"
 #include <res_node/res_node_io.h>
@@ -129,6 +131,7 @@ resNodeContentToDOM(xmlNodePtr pndArg, resNodePtr prnArg)
 	    pndPie = xmlNewNode(NULL, NAME_PIE);
 	    if (pndPie) {
 	      rmode_t m;
+	      xmlNodePtr pndPieChildren = NULL;
 
 	      if (iMimeType == MIME_TEXT_PLAIN) {
 		m = GetModeByExtension(resNodeGetExtension(prnArg));
@@ -137,7 +140,8 @@ resNodeContentToDOM(xmlNodePtr pndArg, resNodePtr prnArg)
 		m = GetModeByMimeType(iMimeType);
 	      }
 
-	      if (ParsePlainBuffer(pndPie, pucContent, m)) {
+	      pndPieChildren = xmlNewChild(pndPie,NULL,NAME_PIE_BLOCK,NULL);
+	      if (pndPieChildren != NULL && ParsePlainBuffer(pndPieChildren, pucContent, m)) {
 #ifdef HAVE_CGI
 		xmlSetProp(pndPie->children, BAD_CAST "context", resNodeGetNameShort(prnArg)); /* in CGI mode use short path only */
 #else
@@ -167,12 +171,12 @@ resNodeContentToDOM(xmlNodePtr pndArg, resNodePtr prnArg)
 	  RecognizeSubsts(pndPie);
 	  RecognizeImports(pndPie);
 	  RecognizeScripts(pndPie);
-	  RecognizeFigures(pndPie);
-	  RecognizeInlines(pndPie);
-	  RecognizeUrls(pndPie);
 	  RecognizeSymbols(pndPie, LANG_DEFAULT);
-	  RecognizeDates(pndPie, iMimeType);
+	  RecognizeFigures(pndPie);
+	  RecognizeUrls(pndPie);
 	  RecognizeTasks(pndPie);
+	  RecognizeInlines(pndPie);
+	  RecognizeDates(pndPie, iMimeType);
 	  RecognizeHashtags(pndPie,NULL, NULL);
 	  InheritHashtags(pndPie, pndPie);
 	  RecognizeGlobalTags(pndTags, pndPie);
@@ -240,7 +244,15 @@ resNodeContentToDOM(xmlNodePtr pndArg, resNodePtr prnArg)
 	  xmlNodePtr pndRootResult;
 	  
 	  if ((pndRootResult = xmlDocGetRootElement(pdocResult)) != NULL) {
-	    xmlAddChild(pndArg, xmlCopyNode(pndRootResult,1));
+	    xmlNodePtr pndRootCopy;
+
+	    pndRootCopy = xmlCopyNode(pndRootResult, 1);
+	    if (pndRootCopy) {
+	      //if (domGetPropFlag(pndArg, BAD_CAST "locator", TRUE)) {
+	      //  domSetPropXpath(pndRootCopy, BAD_CAST "xpath", NULL);
+	      //}
+	      xmlAddChild(pndArg, pndRootCopy);
+	    }
 	  }
 	  else {
 	    xmlSetProp(pndArg, BAD_CAST "error", BAD_CAST "parse");
@@ -415,26 +427,7 @@ resNodeContentToDOM(xmlNodePtr pndArg, resNodePtr prnArg)
       
     default: /* no addtitional file information details */
       {
-	xmlChar *pucContent;
-
-	pucContent = resNodeGetContentBase64Eat(prnArg,1024);
-	if (pucContent) {
-	  xmlNodePtr pndBase64;
-	  
-	  pndBase64 = xmlNewChild(pndArg,NULL,BAD_CAST NAME_BASE64,NULL);
-	  if (pndBase64) {
-	    xmlNodePtr pndBase64Text;
-
-	    xmlSetProp(pndBase64,BAD_CAST"type",BAD_CAST resNodeGetMimeTypeStr(prnArg));
-	    pndBase64Text = xmlNewText(NULL);
-	    if (pndBase64Text) {
-	      pndBase64Text->content = pucContent; /* direct use of buffer as node content, to avoid duplication of large buffers */
-	      pucContent = NULL;
-	      xmlAddChild(pndBase64,pndBase64Text);
-	    }
-	  }
-	  xmlFree(pucContent);
-	}
+	xmlAddChild(pndArg, domGetBase64Nodes(resNodeGetContentPtr(prnArg),resNodeGetSize(prnArg)));
       }
     }
     xmlAddChild(pndArg, xmlNewPI(BAD_CAST "end-of", resNodeGetNameBase(prnArg)));
@@ -487,11 +480,14 @@ check/merge code of dirNodeToResNodeList()
       size_t inlen;
       size_t outlen;
 
+      /*!\todo use domGetChildBase64() */
+
       inlen = xmlStrlen(pucT);
       pchT = (char *)xmlMalloc(inlen * sizeof(char *));
       outlen = inlen;
 
-      ret = base64decode((char *)pucT, inlen, BAD_CAST pchT, &outlen);
+      //ret = base64decode((char *)pucT, inlen, BAD_CAST pchT, &outlen);
+      ret = base64_decode((char *) pucT, inlen, pchT, &outlen, BASE64_FORCE_SSE42);
       if (ret==0) {
 	PrintFormatLog(3, "Decoded '%i' byte to '%i'", inlen, outlen);
 	prnResult->pContent = pchT;

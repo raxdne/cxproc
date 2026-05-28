@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cxp:make xmlns:cxp="http://www.tenbusch.info/cxproc">
+  <cxp:system message="TEST 9: "/>
+  <cxp:xml name="result/test-dir-ÄÖÜ-file.xml">
+    <cxp:file name="result/test-dir-014.xml" verbosity="7"/>
+  </cxp:xml>
+</cxp:make>

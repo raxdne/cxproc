@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cxp:make xmlns:cxp="http://www.tenbusch.info/cxproc">
+  <!-- TEST 2: write a text node into a text file -->
+  <cxp:plain name="result/test-plain-002.txt">Dies ist ein Test
+
+</cxp:plain>
+</cxp:make>

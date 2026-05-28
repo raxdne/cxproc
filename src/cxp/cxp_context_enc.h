@@ -123,6 +123,9 @@ extern int
 cxpCtxtCgiGetCount(cxpContextPtr pccArg);
 
 extern xmlChar*
+cxpCtxtCgiGetNamePtr(cxpContextPtr pccArg, index_t iIndex);
+
+extern xmlChar*
 cxpCtxtCgiGetName(cxpContextPtr pccArg, index_t iIndex);
 
 extern xmlChar*

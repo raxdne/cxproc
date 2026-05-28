@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cxp:make xmlns:cxp="http://www.tenbusch.info/cxproc">
+  <!--
+  <cxp:system message="**** test-system-0014: Change directory and call a script file ****"/>
+  <cxp:system chdir="result"/>
+  -->
+</cxp:make>

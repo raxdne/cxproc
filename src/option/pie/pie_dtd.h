@@ -141,12 +141,6 @@
 
 #define IS_NODE_PIE_HTAG(N) (IS_NODE(N,NAME_PIE_HTAG))
 
-/* all sort of tags */
-#define IS_NODE_PIE_TAGS(N) (IS_NODE(N,NAME_PIE_HTAG) || IS_NODE(N,NAME_PIE_ETAG) || IS_NODE(N,NAME_PIE_TTAG))
-
-/* all nodes to be ignored while tagging */
-#define IS_NODE_PIE_IGNORE_TAGS(N) (N == NULL || IS_NODE(N,NAME_PIE_META) || IS_NODE(N,NAME_PIE_IMPORT) || IS_NODE(N,NAME_PIE_SCRIPT) || IS_NODE(N,NAME_PIE_PRE) || IS_NODE(N,NAME_PIE_TT) || IS_NODE(N,NAME_PIE_DATE) || IS_NODE(N,NAME_PIE_LINK))
-
 #define IS_NODE_PIE_INCLUDE(N) (IS_NODE(N,NAME_PIE_INCLUDE))
 
 #define IS_NODE_PIE_IMPORT(N) (IS_NODE(N,NAME_PIE_IMPORT))
@@ -202,3 +196,15 @@
 #define IS_NODE_STRUCT(N) (IS_NODE_PIE_PIE(N) || IS_NODE_PIE_BLOCK(N) || IS_NODE_PIE_SECTION(N) || IS_NODE_PIE_TASK(N) || IS_NODE_PIE_TABLE(N))
 
 #define IS_NODE_NOT_STRUCT(N) ( ! IS_NODE_STRUCT(N))
+
+/* all sort of tags */
+#define IS_NODE_PIE_TAGS(N) (IS_NODE(N,NAME_PIE_HTAG) || IS_NODE(N,NAME_PIE_ETAG) || IS_NODE(N,NAME_PIE_TTAG))
+
+/* all nodes to be ignored while tagging */
+#define IS_NODE_PIE_IGNORE_TAGS(N) (N == NULL || N->type == XML_DOCUMENT_NODE || IS_NODE(N,NAME_PIE_META) || IS_NODE(N,NAME_PIE_IMPORT) || IS_NODE(N,NAME_PIE_INCLUDE) || IS_NODE_SUBST(N) || IS_NODE(N,NAME_PIE_SCRIPT) || IS_NODE(N,NAME_PIE_PRE) || IS_NODE(N,NAME_PIE_TT) || IS_NODE(N,NAME_PIE_DATE) || IS_NODE(N,NAME_PIE_LINK) || IS_NODE(N,NAME_BASE64))
+
+#define IS_NODE_NOT_HIDDEN(N) (N != NULL && domGetPropValuePtr(N,BAD_CAST"hidden") == NULL && (N->last != NULL && N->last->type == XML_TEXT_NODE && IS_PIE_CANCEL(N->last->content) == FALSE))
+
+#define IS_NODE_HIDDEN(N) (N == NULL || domGetPropValuePtr(N,BAD_CAST"hidden") != NULL || (N->last != NULL && N->last->type == XML_TEXT_NODE && IS_PIE_CANCEL(N->last->content)))
+
+#define IS_NODE_TEXT_EMPTY(N) (N != NULL && N->children != NULL && N->children->type == XML_TEXT_NODE && STR_IS_EMPTY(N->children->content))

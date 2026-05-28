@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cxp:make xmlns:cxp="http://www.tenbusch.info/cxproc">
+  <cxp:system message="**** test-system-009: Call copy command new filename in target directory ****"/>
+  <cxp:copy from="source.dat" to="result/xyz.dat"/>
+  <cxp:system message="**** test-system-009b: Call copy file content to stdout ****"/>
+  <cxp:copy from="source.txt" to="-"/>
+</cxp:make>

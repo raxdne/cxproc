@@ -1038,7 +1038,7 @@ resNodeTest(void)
     fputs((const char *)mucTestLabel,stderr);
     mucTestResult[0] = '\0';
 
-    pucTest = resPathCollapseStr(BAD_CAST TESTPREFIX "plain/test-plain-3.xml", FS_PATH_FULL);
+    pucTest = resPathCollapseStr(BAD_CAST TESTPREFIX "plain/test-plain-004.xml", FS_PATH_FULL);
 
     if ((prnT = resNodeDirNew(BAD_CAST "file://" TESTPREFIX)) == NULL) {
       xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeDirNew()\n");
@@ -1049,7 +1049,7 @@ resNodeTest(void)
     else if (resNodeGetType(prnDir) != rn_type_dir) {
       xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeGetType()\n");
     }
-    else if ((prnFile = resNodeAddChildNew(prnDir, BAD_CAST"test-plain-3.xml")) == NULL) {
+    else if ((prnFile = resNodeAddChildNew(prnDir, BAD_CAST"test-plain-004.xml")) == NULL) {
       xmlStrPrintf(mucTestResult,BUFFER_LENGTH,"Error resNodeAddChildNew()\n");
     }
     else if (resNodeGetType(prnFile) != rn_type_file) {

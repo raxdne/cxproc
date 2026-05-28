@@ -4,6 +4,7 @@
 #
 
 ARCH=$(uname -m)"-"$(uname -o | tr '[:upper:]' '[:lower:]' | tr '[:punct:]' '-')
+#ARCH=x64-mingw-static
 
 PREFIX=`pwd`/../$ARCH
 

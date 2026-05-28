@@ -161,7 +161,7 @@ cxpTest(cxpContextPtr pccArg)
     else if ((prnT = cxpResNodeResolveNew(pccTest, NULL, BAD_CAST "not.cxp", CXP_O_SEARCH)) != NULL) {
       printf("Error 5\n");
     }
-    else if ((prnT = cxpResNodeResolveNew(pccTest, NULL, BAD_CAST "circular/config-circular.cxp", CXP_O_READ)) != NULL) {
+    else if ((prnT = cxpResNodeResolveNew(pccTest, NULL, BAD_CAST "circular/test-pie-circular-001.cxp", CXP_O_READ)) != NULL) {
       printf("Error 2\n");
     }
     else if (resNodeIsReadable(prnT) == TRUE) {
@@ -224,13 +224,13 @@ cxpTest(cxpContextPtr pccArg)
     }
     resNodeFree(prnT);
 
-    if ((prnT = cxpResNodeResolveNew(pccTest, NULL, BAD_CAST "circular/config-circular.cxp", CXP_O_SEARCH | CXP_O_FILE | CXP_O_READ)) == NULL) {
+    if ((prnT = cxpResNodeResolveNew(pccTest, NULL, BAD_CAST "circular/test-pie-circular-001.cxp", CXP_O_SEARCH | CXP_O_FILE | CXP_O_READ)) == NULL) {
       printf("Error 8\n");
       fResult = FALSE;
     }
     resNodeFree(prnT);
 
-    if ((prnT = cxpResNodeResolveNew(pccTest, NULL, BAD_CAST "circular/config-circular.cxp", CXP_O_SEARCH | CXP_O_DIR)) != NULL) {
+    if ((prnT = cxpResNodeResolveNew(pccTest, NULL, BAD_CAST "circular/test-pie-circular-001.cxp", CXP_O_SEARCH | CXP_O_DIR)) != NULL) {
       printf("Error 9\n");
       fResult = FALSE;
     }
@@ -265,7 +265,7 @@ cxpTest(cxpContextPtr pccArg)
       || (prnT = cxpResNodeResolveNew(pccTest, pndRoot, NULL, CXP_O_SEARCH)) != NULL) {
       printf("Error 4\n");
     }
-    else if ((xmlSetProp(pndRoot, BAD_CAST"name", BAD_CAST "circular/config-circular.cxp")) == NULL
+    else if ((xmlSetProp(pndRoot, BAD_CAST"name", BAD_CAST "circular/test-pie-circular-001.cxp")) == NULL
       || (prnT = cxpResNodeResolveNew(pccTest, pndRoot, NULL, CXP_O_READ)) != NULL) {
       printf("Error 5\n");
     }
@@ -384,7 +384,7 @@ cxpTest(cxpContextPtr pccArg)
     else if ((prnTT = cxpResNodeResolveNew(pccTest, pndT, NULL, CXP_O_READ)) == NULL) {
       printf("Error 3\n");
     }
-    else if (resPathIsEquivalent(resNodeGetNameNormalized(prnTT),BAD_CAST TESTPREFIX "option/pie/text/xml/config-pie-import-xml.cxp") == FALSE) {
+    else if (resPathIsEquivalent(resNodeGetNameNormalized(prnTT),BAD_CAST TESTPREFIX "option/pie/text/include/test-pie-include-001.cxp") == FALSE) {
       printf("Error 4\n");
     }
     else if (resNodeIsReadable(prnTT) == FALSE) {
@@ -730,7 +730,7 @@ cxpTest(cxpContextPtr pccArg)
     printf("TEST %i in '%s:%i': cxpProcessXml() = ",i,__FILE__,__LINE__);
 
     if ((pndRoot = xmlNewNode(NULL, NAME_XML)) == NULL
-      || (xmlSetProp(pndRoot, BAD_CAST"name", BAD_CAST"test-plain-3.xml")) == NULL
+      || (xmlSetProp(pndRoot, BAD_CAST"name", BAD_CAST"test-plain-004.xml")) == NULL
       || (xmlSetProp(pndRoot, BAD_CAST"search", BAD_CAST"yes")) == NULL) {
       printf("Error 1\n");
     }
@@ -1054,7 +1054,7 @@ cxpTest(cxpContextPtr pccArg)
     printf("TEST %i in '%s:%i': subst in DOM = ", i, __FILE__, __LINE__);
 
     pndXml = xmlNewNode(NULL, NAME_XML);
-    pndChild = xmlNewChild(pndXml, NULL, NAME_XML, NULL);
+    pndChild = xmlNewChild(pndXml, NULL, NAME_INCLUDE, NULL);
     xmlSetProp(pndChild, BAD_CAST"name", BAD_CAST TESTPREFIX "xml/baustelle.pie");
     pndChild = xmlNewChild(pndXml, NULL, NAME_SUBST, NULL);
     xmlSetProp(pndChild, BAD_CAST"string", BAD_CAST "Baustelle");

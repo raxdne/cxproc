@@ -33,6 +33,7 @@
 #endif
 
 #include <pie/pie_text_tags.h>
+#include <pie/pie_csv.h>
 
 #define CXP_PIE_URL (BAD_CAST "http://www.tenbusch.info/pie")
 
@@ -97,16 +98,16 @@
   #define RE_ISO_TIME      "T[012]*[0-9](:*[0-5][0-9]){0,2}([\\.][0-9]{1,10})*" "(((\\+|\\-|" STR_UTF8_MINUS ")[0-9]{1,2}([:\\.]*[0-9]{1,2})*)" "|" "[A-Z]{3}" "|" "Z" ")*"
   #define RE_ISO_DAY_TIME  RE_ISO_DAY "(" RE_ISO_TIME ")*"
   #ifdef USE_ISO_EXTENSION
-    #define RE_ISO_PERIOD    "[PO](-*[0-9\\.]+[YMDW])*" "(T(-*[0-9\\.]+[HMS]))*"
+    #define RE_ISO_PERIOD    "[PO]" "([0-9\\.]+[YMDW])*" "(T([0-9\\.]+[HMS]))*"
   #else
-    #define RE_ISO_PERIOD    "P(-*[0-9\\.]+[YMDW])*" "(T(-*[0-9\\.]+[HMS]))*"
+    #define RE_ISO_PERIOD    "P" "([0-9\\.]+[YMDW])*" "(T([0-9\\.]+[HMS]))*"
   #endif
 #else
   #define RE_ISO_DAY_TIME  RE_ISO_DAY
   #ifdef USE_ISO_EXTENSION
-    #define RE_ISO_PERIOD    "[PO](-*[0-9\\.]+[YMDW])+"
+    #define RE_ISO_PERIOD    "[PO]" "([0-9\\.]+[YMDW])+"
   #else
-    #define RE_ISO_PERIOD    "P(-*[0-9\\.]+[YMDW])+"
+    #define RE_ISO_PERIOD    "P" "([0-9\\.]+[YMDW])+"
   #endif
 #endif
 
@@ -120,7 +121,7 @@
 
 #define RE_ISO_RECURRENCE   "R[0-9]{0,2}"
 
-/*!\todo define simple sub-set of ISO 8601 (no recurrence ...) */
+/*! a simple sub-set of ISO 8601 */
 
 #define RE_ISO_8601 \
   "(" RE_ISO_RECURRENCE "/)(" RE_ISO_DAY_TIME ")/(" RE_ISO_PERIOD ")" \
@@ -130,7 +131,9 @@
   "|"									\
   "(" RE_ISO_DAY_TIME ")/(" RE_ISO_PERIOD ")" \
   "|"									\
-  "(" RE_ISO_DAY_TIME ")/(" RE_ISO_DAY_TIME ")" \
+  "(" RE_ISO_DAY RE_ISO_TIME ")/(" RE_ISO_DAY RE_ISO_TIME ")" \
+  "|"									\
+  "(" RE_ISO_DAY ")/(" RE_ISO_DAY ")" \
   "|"									\
   \
   "(" RE_ISO_WEEK ")/(" RE_ISO_WEEK ")" \
@@ -148,6 +151,10 @@
   "|"									\
   \
   "(" RE_ISO_QUATER ")/(" RE_ISO_QUATER ")" \
+  "|"									\
+  "(" RE_ISO_QUATER ")/(" RE_ISO_PERIOD ")" \
+  "|"									\
+  "(" RE_ISO_PERIOD ")/(" RE_ISO_QUATER ")" \
   "|"									\
   "(" RE_ISO_QUATER ")" \
   "|"									\
@@ -216,7 +223,7 @@ extern xmlNodePtr
 RecognizeUrls(xmlNodePtr pndArg);
 
 extern xmlNodePtr
-ParsePlainBuffer(xmlNodePtr pndArgTop, xmlChar *pucArg, rmode_t eArgMode);
+ParsePlainBuffer(xmlNodePtr pndArgImport, xmlChar *pucArg, rmode_t eArgMode);
 
 extern xmlNodePtr
 SplitStringToScriptNode(const xmlChar *pucArg);
@@ -264,11 +271,8 @@ SplitStringToLinkNodes(const xmlChar *pucArg);
 extern xmlChar *
 TranslateUncToUrl(const xmlChar *pucArg);
 
-extern BOOL_T
-SplitNodeToTableDataNodes(xmlNodePtr pndArgParent, xmlChar *pucPatternSep);
-
 extern xmlNodePtr
-TransformToTable(xmlNodePtr pndArgParent, xmlNodePtr pndArg, xmlChar *pucPatternSep);
+TransformToTable(xmlNodePtr pndArg, xmlChar *pucPatternSep);
 
 extern xmlNodePtr
 FindElementNodeLast(xmlNodePtr pndArg);

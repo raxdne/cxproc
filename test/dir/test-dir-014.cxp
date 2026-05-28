@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cxp:make xmlns:cxp="http://www.tenbusch.info/cxproc">
+  <cxp:system message="TEST 8: Umlaute"/>
+  <cxp:system mkdir="result/test-dir/t-ÄÖÜ"/>
+  <cxp:copy from="test-dir-001.cxp" to="result/test-dir/t-ÄÖÜ/u-äüö.cxp"/>
+  <cxp:xml name="result/test-dir-014.xml">
+    <cxp:dir>
+      <cxp:dir name="result/test-dir" depth="9"/>
+    </cxp:dir>
+  </cxp:xml>
+</cxp:make>

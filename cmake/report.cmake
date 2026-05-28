@@ -29,6 +29,7 @@
   endforeach()
 
   MESSAGE(STATUS "")
+  MESSAGE(STATUS "  Enable checks (target cpp-check) .. : ${CXPROC_CHECK}")
   MESSAGE(STATUS "  Enable tests ...................... : ${BUILD_TESTING}")
   MESSAGE(STATUS "  Build test binary ................. : ${CXPROC_TESTS}")
   IF (BUILD_TESTING)
@@ -40,7 +41,6 @@
 #  MESSAGE(STATUS "  Buffer size for cxproc ............ : ${CXPROC_BUFSIZE}")
   MESSAGE(STATUS "  Compile cxproc code for legacy  ... : ${CXPROC_LEGACY}")
   MESSAGE(STATUS "  Compile cxproc experimental code .. : ${CXPROC_EXPERIMENTAL}")
-  MESSAGE(STATUS "  Enable checks (target cpp-check) .. : ${CXPROC_CHECK}")
   
 if (CXPROC_MARKDOWN)
   MESSAGE(STATUS "  Compile cxproc MARKDOWN code ...... : ${CXPROC_MARKDOWN}")

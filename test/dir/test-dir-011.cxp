@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cxp:make xmlns:cxp="http://www.tenbusch.info/cxproc">
+  <cxp:system message="TEST 5: directory parsing with error handling"/>
+  <cxp:xml name="result/test-dir-011.xml">
+    <cxp:dir name="/root" depth="2"/>
+  </cxp:xml>
+</cxp:make>

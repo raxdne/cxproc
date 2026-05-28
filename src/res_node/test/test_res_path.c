@@ -491,8 +491,8 @@ resNodeTestString(void)
 	|| resPathIsEquivalent(NULL, NULL) == TRUE || resPathIsEquivalent(BAD_CAST"", BAD_CAST"") == TRUE) {
       printf("Error 1\n");
     }
-    else if (resPathIsEquivalent(BAD_CAST"test-plain-3.xml", BAD_CAST"TEST") == TRUE
-	|| resPathIsEquivalent(BAD_CAST"TEST", BAD_CAST"test-plain-3.xml") == TRUE) {
+    else if (resPathIsEquivalent(BAD_CAST"test-plain-004.xml", BAD_CAST"TEST") == TRUE
+	|| resPathIsEquivalent(BAD_CAST"TEST", BAD_CAST"test-plain-004.xml") == TRUE) {
       printf("Error 2\n");
     }
     else if (resPathIsEquivalent(BAD_CAST"c:/temp/BBB.txt", BAD_CAST"C:\\temp\\BBB.txt") == FALSE) {

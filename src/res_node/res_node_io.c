@@ -994,6 +994,7 @@ resNodeGetContent(resNodePtr prnArg, int iArgMax)
   return pResult;
 } /* end of resNodeGetContent() */
 
+#if 0
 
 /*! Reads and returns the whole file content of this context as a Base 64 string.
 
@@ -1022,6 +1023,7 @@ resNodeGetContentBase64Eat(resNodePtr prnArg, int iArgMax)
   }
   return BAD_CAST pcResult;
 } /* end of resNodeGetContentBase64Eat() */
+#endif
 
 
 /*! callback procedure to concatenate the content of this resource.

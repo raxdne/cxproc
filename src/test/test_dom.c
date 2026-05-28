@@ -99,48 +99,72 @@ domTest(void)
 
 
   if (RUNTEST) {
-    xmlNodePtr pndTest;
+    int k = -1;
+    xmlDocPtr pdocResult = NULL;
+    xmlChar *pucT;
+    xmlNodePtr pndRoot;
 
     i++;
-    printf("TEST %i in '%s:%i': domPropIsEqual() + domGetPropFlag() = ",i,__FILE__,__LINE__);
+    printf("TEST %i in '%s:%i': domNodeListGetString ", i, __FILE__, __LINE__);
 
-    pndTest = xmlNewNode(NULL,BAD_CAST"p");
-    if (domPropIsEqual(pndTest, BAD_CAST"valid", NULL) == FALSE
-	&& domPropIsEqual(pndTest, NULL, NULL) == FALSE
-	&& domPropIsEqual(pndTest, BAD_CAST"valid", BAD_CAST"yes") == FALSE
-	&& domGetPropFlag(pndTest,BAD_CAST "valid",TRUE) == TRUE
-	&& domGetPropFlag(pndTest,BAD_CAST "valid",FALSE) == FALSE) {
-      xmlChar *pucTT = xmlStrdup(BAD_CAST"no");;
-      
-      domSetPropEat(pndTest,BAD_CAST"valid",pucTT);
-      if (domPropIsEqual(pndTest, BAD_CAST"valid", NULL) == FALSE
-	  && domPropIsEqual(pndTest, NULL, NULL) == FALSE
-	  && domPropIsEqual(pndTest, BAD_CAST"valid", BAD_CAST"yes") == FALSE
-	  && domPropIsEqual(pndTest, BAD_CAST"valid", BAD_CAST"no") == TRUE
-	  && domGetPropFlag(pndTest,BAD_CAST "valid",TRUE) == FALSE
-	  && domGetPropFlag(pndTest,BAD_CAST "valid",FALSE) == FALSE) {
-	
-	domUnsetPropAll(pndTest);
-	if (domPropIsEqual(pndTest, BAD_CAST"valid", NULL) == FALSE
-	    && domPropIsEqual(pndTest, NULL, NULL) == FALSE
-	    && domPropIsEqual(pndTest, BAD_CAST"valid", BAD_CAST"yes") == FALSE
-	    && domPropIsEqual(pndTest, BAD_CAST"valid", BAD_CAST"no") == FALSE
-	    && domGetPropFlag(pndTest,BAD_CAST "valid",TRUE) == TRUE
-	    && domGetPropFlag(pndTest,BAD_CAST "valid",FALSE) == FALSE) {
-	  n_ok++;
-	  printf("OK\n");
-	}
-	else {
-	  printf("Error\n");
-	}
-      }
-      else {
-	printf("Error\n");
-      }
+    if ((pdocResult = xmlParseFile(TESTPREFIX "option/pie/text/test-pie-14.pie")) == NULL || (pndRoot = xmlDocGetRootElement(pdocResult)) == NULL ||
+	pndRoot->children == NULL || pndRoot->children->children == NULL) {
+      printf("Error 1 xmlParseFile()\n");
+    }
+    else if ((pucT = domNodeListGetString(pndRoot->children,NULL)) == NULL || (k = xmlStrlen(pucT)) != 104) {
+      printf("Error 1 domNodeListGetString(): %i\n", k);
     }
     else {
+      n_ok++;
+      printf("OK\n");
+    }
+    xmlFree(pucT);
+    xmlFreeDoc(pdocResult);
+  }
+
+
+  if (RUNTEST) {
+    xmlNodePtr pndTest;
+    xmlChar *pucTT = xmlStrdup(BAD_CAST "no");
+
+    i++;
+    printf("TEST %i in '%s:%i': domPropIsEqual() + domGetPropFlag() = ", i, __FILE__, __LINE__);
+
+    pndTest = xmlNewNode(NULL, BAD_CAST "p");
+
+    if (domPropIsEqual(pndTest, NULL, NULL) == TRUE) {
       printf("Error\n");
     }
+    else if (domPropIsEqual(pndTest, BAD_CAST "valid", NULL) == TRUE) {
+      printf("Error\n");
+    }
+    else if (domPropIsEqual(pndTest, BAD_CAST "valid", BAD_CAST "yes") == TRUE) {
+      printf("Error\n");
+    }
+    else if (domGetPropFlag(pndTest, BAD_CAST "valid", TRUE) == FALSE) {
+      printf("Error\n");
+    }
+    else if (domGetPropFlag(pndTest, BAD_CAST "valid", FALSE) == TRUE) {
+      printf("Error\n");
+    }
+    else if (domSetPropEat(pndTest, BAD_CAST "valid", pucTT) == NULL) {
+      printf("Error\n");
+    }
+    else if (domPropIsEqual(pndTest, BAD_CAST "valid", BAD_CAST "yes") == TRUE) {
+      printf("Error\n");
+    }
+    else if (domGetPropFlag(pndTest, BAD_CAST "valid", TRUE) == TRUE) {
+      printf("Error\n");
+    }
+    else if (domGetPropFlag(pndTest, BAD_CAST "valid", FALSE) == TRUE) {
+      printf("Error\n");
+    }
+    else {
+      n_ok++;
+      printf("OK\n");
+    }
+
+    domUnsetPropAll(pndTest);
     xmlFreeNode(pndTest);
   }
 
@@ -150,7 +174,7 @@ domTest(void)
     xmlNodePtr pndTest;
 
     i++;
-    printf("TEST %i in '%s:%i': domNodeIsDocRoot() = ",i,__FILE__,__LINE__);
+    printf("TEST %i in '%s:%i': domNodeIsDescendant() = ",i,__FILE__,__LINE__);
 
     pdocTest = xmlParseFile(TESTPREFIX "option/pie/text/test-pie-14.pie");
     pndTest = xmlDocGetRootElement(pdocTest);
@@ -197,6 +221,40 @@ domTest(void)
     else {
       printf("Error\n");
     }
+    xmlFreeNode(pndB);
+    xmlFreeNode(pndA);
+  }
+
+
+  if (RUNTEST) {
+    xmlNodePtr pndA;
+    xmlNodePtr pndB;
+
+    i++;
+    printf("TEST %i in '%s:%i': domNodeTransferDescendants() = ",i,__FILE__,__LINE__);
+
+    pndA = xmlNewNode(NULL, NAME_XML);
+    xmlAddChild(pndA, xmlNewPI(NAME_ERROR, BAD_CAST"pre"));
+    xmlNewChild(pndA, NULL, BAD_CAST"p", BAD_CAST"par 1");
+    xmlNewChild(pndA, NULL, BAD_CAST"p", BAD_CAST"par 2");
+    xmlNewChild(pndA, NULL, BAD_CAST"p", BAD_CAST"par 3");
+    xmlAddChild(pndA, xmlNewPI(NAME_ERROR, BAD_CAST"post"));
+
+    pndB = xmlNewNode(NULL, NAME_XHTML);
+    xmlAddChild(pndB, xmlNewPI(NAME_ERROR, BAD_CAST"pre"));
+    xmlNewChild(pndB, NULL, BAD_CAST"p", BAD_CAST"par 1");
+    xmlNewChild(pndB, NULL, BAD_CAST"p", BAD_CAST"par 2");
+    xmlNewChild(pndB, NULL, BAD_CAST"p", BAD_CAST"par 3");
+    xmlAddChild(pndB, xmlNewPI(NAME_ERROR, BAD_CAST"post"));
+
+    if (pndA != NULL && pndB != NULL && domNodeTransferDescendants(pndA,pndB)) {
+      n_ok++;
+      printf("OK\n");
+    }
+    else {
+      printf("Error\n");
+    }
+    //domPutNodeString(stderr,BAD_CAST"domNodeTransferDescendants()",pndA);
     xmlFreeNode(pndB);
     xmlFreeNode(pndA);
   }
@@ -365,7 +423,90 @@ domTest(void)
   }
 
   if (RUNTEST) {
+    xmlDocPtr pdocTestA;
+    xmlNodePtr pndRootA;
+    xmlDocPtr pdocTestB;
+    xmlNodePtr pndRootB;
+
+    i++;
+    printf("TEST %i in '%s:%i': domAddNextSiblingNodeList() without namespaces = ", i, __FILE__, __LINE__);
+
+    pdocTestA = xmlParseFile(TESTPREFIX "option/pie/text/test-pie-14.pie");
+    pndRootA = xmlDocGetRootElement(pdocTestA);
+
+    //domPutDocString(stderr,BAD_CAST"xmlParseFile()",pdocTestA);
+
+    pdocTestB = xmlParseFile(TESTPREFIX "option/pie/text/test-pie-2d.pie");
+    pndRootB = xmlDocGetRootElement(pdocTestB);
+
+    if (domAddNextSiblingNodeList(pndRootA->children, pndRootB) == NULL) {
+      printf("Error 1\n");
+    }
+    else if (domNodeTransformToText(pndRootA->children, NULL) == FALSE || xmlIsBlankNode(pndRootA->children) == FALSE) {
+      printf("Error 3\n");
+    }
+    else {
+      n_ok++;
+      printf("OK\n");
+    }
+
+    //domPutDocString(stderr,BAD_CAST"domAddNextSiblingNodeList()",pdocTestA);
+    xmlFreeDoc(pdocTestB);
+    xmlFreeDoc(pdocTestA);
+  }
+
+  if (RUNTEST) {
+    xmlNsPtr pnsTestA;
+    xmlNsPtr pnsTestB;
+    xmlDocPtr pdocTestA;
+    xmlNodePtr pndRootA;
+    xmlNodePtr pndTestA;
+    xmlDocPtr pdocTestB;
+    xmlNodePtr pndRootB;
+    xmlNodePtr pndTestB;
+
+    i++;
+    printf("TEST %i in '%s:%i': domAddNextSiblingNodeList() with different namespaces = ", i, __FILE__, __LINE__);
+
+    pdocTestA = xmlParseFile(TESTPREFIX "option/pie/text/test-pie-14.pie");
+    pndRootA = xmlDocGetRootElement(pdocTestA);
+    pnsTestA = xmlNewNs(pndRootA, BAD_CAST "https://www.poc.com/", BAD_CAST "poc");
+    pndTestA = pndRootA->children->children;
+
+    //domPutDocString(stderr, BAD_CAST "xmlParseFile()", pdocTestA);
+
+    pnsTestB = xmlNewNs(NULL, BAD_CAST "https://www.pxc.com/", BAD_CAST "pxc");
+    pndRootB = xmlNewNode(pnsTestB, NAME_XML);
+    xmlAddChild(pndRootB, xmlNewPI(BAD_CAST "simple", BAD_CAST "pre"));
+    xmlNewChild(pndRootB, pnsTestB, BAD_CAST "p", BAD_CAST "par 1");
+    xmlNewChild(pndRootB, pnsTestB, BAD_CAST "p", BAD_CAST "par 2");
+    xmlAddChild(pndRootB, xmlNewComment(BAD_CAST " simple comment "));
+    xmlNewChild(pndRootB, pnsTestB, BAD_CAST "p", BAD_CAST "par 3");
+    xmlAddChild(pndRootB, xmlNewPI(BAD_CAST "simple", BAD_CAST "post"));
+    pndTestB = pndRootB->children;
+
+    //domPutNodeString(stderr, BAD_CAST "xmlNewNode()", pndRootB);
+
+    if (domAddNextSiblingNodeList(pndTestA, pndTestB) == NULL) {
+      printf("Error 1\n");
+    }
+    else if (domNodeTransformToText(pndTestA, NULL) == FALSE || xmlIsBlankNode(pndTestA) == FALSE) {
+      printf("Error 3\n");
+    }
+    else {
+      n_ok++;
+      printf("OK\n");
+    }
+
+    //domPutDocString(stderr, BAD_CAST "domAddNextSiblingNodeList()", pdocTestA);
+    xmlFreeDoc(pdocTestA);
+    xmlFreeNode(pndRootB);
+    xmlFreeNs(pnsTestB);
+  }
+
+  if (RUNTEST) {
     xmlDocPtr pdocTest;
+    xmlNsPtr pnsTest;
     xmlNodePtr pndRoot;
     xmlNodePtr pndOld;
     xmlNodePtr pndCur;
@@ -375,6 +516,7 @@ domTest(void)
 
     pdocTest = xmlParseFile(TESTPREFIX "option/pie/text/test-pie-14.pie");
     pndRoot = xmlDocGetRootElement(pdocTest);
+    pnsTest = xmlNewNs(pndRoot, BAD_CAST "https://www.pod.com/", BAD_CAST "pod");
     //domPutDocString(stderr,BAD_CAST"domReplaceNodeList()",pdocTest);
     pndOld = pndRoot->children->children->next;
 
@@ -386,7 +528,6 @@ domTest(void)
     xmlAddChild(pndCur, xmlNewPI(NAME_ERROR, BAD_CAST"post"));
 
     domReplaceNodeList(pndOld, pndCur->children);
-    xmlFreeNode(pndOld);
     xmlFreeNode(pndCur);
     xmlNewChild(pndRoot->children, NULL, NAME_META, NULL);
     //domPutDocString(stderr,BAD_CAST"domReplaceNodeList()",pdocTest);
@@ -399,18 +540,20 @@ domTest(void)
     xmlAddChild(pndCur, xmlNewPI(NAME_ERROR, BAD_CAST"post"));
 
     pndOld = pndRoot->children->last;
-    domReplaceNodeList(pndOld, pndCur->children);
     //domPutDocString(stderr,BAD_CAST"domReplaceNodeList()",pdocTest);
 
-    if (pndCur->children != NULL && pndCur->parent == NULL && domIsTreeOverlapping(pndRoot, pndCur) == FALSE) {
+    if (domReplaceNodeList(pndOld, pndCur->children) == NULL) {
+      printf("Error 1\n");
+    }
+    else if (domIsTreeOverlapping(pndRoot, pndCur)) {
+      printf("Error 2\n");
+    }
+    else {
       n_ok++;
       printf("OK\n");
     }
-    else {
-      printf("Error\n");
-    }
+
     xmlFreeNode(pndCur);
-    xmlFreeNode(pndOld);
     xmlFreeDoc(pdocTest);
   }
 
@@ -419,11 +562,11 @@ domTest(void)
     xmlNodePtr pndRoot;
 
     i++;
-    printf("TEST %i in '%s:%i': domSetPropFileXpath() = ",i,__FILE__,__LINE__);
+    printf("TEST %i in '%s:%i': domSetPropXpath() = ",i,__FILE__,__LINE__);
 
     pdocT = xmlParseFile(TESTPREFIX "option/pie/text/test-pie-14.pie");
     pndRoot = xmlDocGetRootElement(pdocT);
-    domSetPropFileXpath(pndRoot,BAD_CAST"xpath",NULL);
+    domSetPropXpath(pndRoot,BAD_CAST"xpath",NULL);
     if (domGetPropValuePtr(pndRoot->children,BAD_CAST"xpath")) {
       //domPutDocString(stderr,pdocT,BAD_CAST"cxpAddXpath()");
       n_ok++;
@@ -433,31 +576,6 @@ domTest(void)
       printf("Error \n");
     }
     xmlFreeDoc(pdocT);
-  }
-
-  if (RUNTEST) {
-    xmlDocPtr pdocTest;
-    xmlNodePtr pndRoot;
-
-    i++;
-    printf("TEST %i in '%s:%i': domSetPropFileLocator() and domSetPropFileXpath() = ",i,__FILE__,__LINE__);
-
-    pdocTest = xmlParseFile(TESTPREFIX "option/pie/text/test-pie-14.pie");
-    pndRoot = xmlDocGetRootElement(pdocTest);
-
-    domSetPropFileLocator(pndRoot,BAD_CAST pdocTest->URL);
-    domSetPropFileXpath(pndRoot,BAD_CAST"fxpath",BAD_CAST"//");
-    if (xmlStrEqual(domGetPropValuePtr(pndRoot->children,BAD_CAST"flocator"),pdocTest->URL)) {
-      xmlSaveFormatFileEnc(TEMPPREFIX "test-pie-14-locator.pie",pdocTest,"UTF-8",1);
-      domUnsetPropFileLocator(pndRoot);
-      xmlSaveFormatFileEnc(TEMPPREFIX "test-pie-14-locator-removed.pie",pdocTest,"UTF-8",1);
-      n_ok++;
-      printf("OK\n");
-    }
-    else {
-      printf("Error\n");
-    }
-    xmlFreeDoc(pdocTest);
   }
 
 
@@ -800,6 +918,35 @@ domTest(void)
   }
 #endif
 
+  if (RUNTEST) {
+    /* TEST:
+     */
+    xmlDocPtr pdocResult = NULL;
+    xmlNodePtr pndT;
+    char mT[BUFFER_LENGTH];
+
+    i++;
+    printf("TEST %i in '%s:%i': domGetBase64Nodes() ", i, __FILE__, __LINE__);
+
+    if ((pndT = domGetBase64Nodes(NULL, 10)) != NULL) {
+      printf("Error domGetBase64Nodes()\n");
+    }
+    /*
+    else if ((pndT = domGetBase64Nodes((void *)"1234567890", 10)) == NULL) {
+      printf("Error domGetBase64Nodes()\n");
+    }
+    */
+    else if ((pndT = domGetBase64Nodes((void *)mT, BUFFER_LENGTH)) == NULL) {
+      printf("Error domGetBase64Nodes()\n");
+    }
+    else {
+      n_ok++;
+      printf("OK\n");
+    }
+
+    //domPutNodeString(stderr, BAD_CAST "domGetBase64Nodes()", pndT);
+    xmlFreeNode(pndT);
+  }
 
   printf("Result in '%s': %i/%i OK\n\n", __FILE__, n_ok, i);
 

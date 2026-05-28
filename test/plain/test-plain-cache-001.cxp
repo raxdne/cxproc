@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cxp:make xmlns:cxp="http://www.tenbusch.info/cxproc">
+  <!-- *** Test 0a: Set a cache BUFFER *** -->
+  <cxp:plain name="result/test-plain-cache-001.txt" cache="yes">
+    TEST CACHE
+  </cxp:plain>
+  <cxp:plain name="result/test-plain-cache-001-001.txt">
+    <cxp:plain name="result/test-plain-cache-001.txt"/>
+  </cxp:plain>
+</cxp:make>
