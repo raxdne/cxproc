@@ -58,6 +58,10 @@ IF(CXPROC_TESTS)
   target_sources(cxproc-test PUBLIC ${CDT_SOURCE_FILES})
 ENDIF ()
 
+IF (CXPROC_HTTPD)
+  target_sources(cxproc-httpd PUBLIC ${CDT_SOURCE_FILES})
+ENDIF ()
+
 # add_library(cdt STATIC ${CDT_SOURCE_FILES})
 
 # SET (CDT_LIBRARY "${CXPROC_PREFIX}/libcdt.a")

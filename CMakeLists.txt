@@ -313,6 +313,19 @@ IF(CXPROC_TESTS)
     HTTPPREFIX="${CXPROC_HTTPPREFIX}")
 ENDIF ()
 
+IF (CXPROC_HTTPD)
+  ADD_EXECUTABLE(cxproc-httpd
+    ${CXPROC_SRC_DIR}/cxproc-httpd.c
+    ${CXPROC_SRC_DIR}/cxp/cxp_context_cgi.c
+    ${CXPROC_SRC_DIR}/cxp/cxp_context_cgi.h
+    #${CXPROC_SRCLIB_DIR}/cgi-util/cgi-util.c
+    #${CXPROC_SRCLIB_DIR}/cgi-util/cgi-util.h
+    ${CXPROC_SOURCES} ${CXPROC_HEADERS}
+  )
+
+  target_compile_definitions(cxproc-httpd PUBLIC HAVE_HTTPD)
+ENDIF ()
+
 IF(MSVC)
   target_sources(filex      PUBLIC ${CXPROC_SRC_DIR}/version.rc)
   target_sources(dir2csv    PUBLIC ${CXPROC_SRC_DIR}/version.rc)
@@ -320,6 +333,7 @@ IF(MSVC)
   target_sources(pietextx   PUBLIC ${CXPROC_SRC_DIR}/version.rc)
   target_sources(cxproc     PUBLIC ${CXPROC_SRC_DIR}/version.rc)
   target_sources(cxproc-cgi PUBLIC ${CXPROC_SRC_DIR}/version.rc)
+  target_sources(cxproc-httpd PUBLIC ${CXPROC_SRC_DIR}/version.rc)
 ENDIF(MSVC)
 
 ################################################################################
@@ -708,7 +722,7 @@ IF(CXPROC_TESTS)
 ENDIF ()
 
 IF (CXPROC_HTTPD)
- target_link_libraries(cxproc-httpd ${LIBICONV_LIBRARY} ${LIBCHARSET_LIBRARY} ${LIBXML2_LIBRARY} ${LIBXSLT_LIBRARIES} ${LIBMICROHTTPD_LIBRARIES})
+ target_link_libraries(cxproc-httpd ${LIBICONV_LIBRARY} ${LIBCHARSET_LIBRARY} ${LIBXML2_LIBRARY} ${LIBXSLT_LIBRARIES} ${LIBXSLT_EXSLT_LIBRARIES} ${LIBBASE64_LIBRARY} ${LIBMICROHTTPD_LIBRARY} gnutls)
 ENDIF ()
 
 ################################################################################
