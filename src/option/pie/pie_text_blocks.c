@@ -1165,8 +1165,11 @@ SplitStringToLinkNodes(const xmlChar *pucArg)
 	  }
 	}
 	else {
+	  pucUrlDisplay = xmlStrdup(pucUrl);
+	  DecodeRFC1738((char *)pucUrlDisplay);
 	  pndLink = xmlNewNode(NULL, BAD_CAST NAME_PIE_LINK);
-	  xmlNodeSetContent(pndLink, pucUrl);
+	  xmlNodeSetContent(pndLink, pucUrlDisplay);
+	  xmlSetProp(pndLink, BAD_CAST "href", pucUrl);
 	}
 	xmlFree(pucUrlDisplay);
 	xmlFree(pucUrl);
