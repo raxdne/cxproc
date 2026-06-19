@@ -1405,11 +1405,11 @@ fromhex(char ch)
 *  rfc1738_unescape() - Converts escaped characters (%xy numbers) in
 *  given the string.  %% is a %. %ab is the 8-bit hexadecimal number "ab"
 */
-void
+size_t
 DecodeRFC1738(char *s)
 {
-  int i, j;			/* i is write, j is read */
-  for (i = j = 0; s[j]; i++, j++) {
+  int i, j, r;			/* i is write, j is read */
+  for (r = i = j = 0; s[j]; i++, j++) {
     s[i] = s[j];
     if (s[j] != '%') {
       /* normal case, nothing more to do */
@@ -1430,10 +1430,12 @@ DecodeRFC1738(char *s)
       if (x > 0 && x <= 255) {
 	s[i] = x;
 	j += 2;
+	r++;
       }
     }
   }
   s[i] = '\0';
+  return r;
 }
 
 

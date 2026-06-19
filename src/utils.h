@@ -127,7 +127,7 @@ NormalizeStringNewLines(char *pchArg);
 extern xmlChar *
 EncodeRFC1738(const xmlChar *input);
 
-extern void
+extern size_t
 DecodeRFC1738(char *s);
 
 extern int

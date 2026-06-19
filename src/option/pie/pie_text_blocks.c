@@ -1150,26 +1150,20 @@ SplitStringToLinkNodes(const xmlChar *pucArg)
 	  pucUrlDisplay = xmlStrdup(&pucUrl[7]);
 	}
 
-	if (STR_IS_NOT_EMPTY(pucUrlDisplay)) {
-	  /*! Percent-encode non-ASCII chars (s. https://en.wikipedia.org/wiki/Percent-encoding) */
-	  DecodeRFC1738((char *)pucUrlDisplay);
-	  if (xmlCheckUTF8(pucUrlDisplay)) {
-	    /* OK */
-	    pndLink = xmlNewNode(NULL, BAD_CAST NAME_PIE_LINK);
-	    xmlNodeSetContent(pndLink, pucUrlDisplay);
+	pndLink = xmlNewNode(NULL, BAD_CAST NAME_PIE_LINK);
+	if (STR_IS_NOT_EMPTY(pucUrlDisplay) && xmlCheckUTF8(pucUrlDisplay)) {
+	  if (DecodeRFC1738((char *)pucUrlDisplay)) {
+	    /*! Percent-encode non-ASCII chars (s. https://en.wikipedia.org/wiki/Percent-encoding) */
 	    xmlSetProp(pndLink, BAD_CAST "href", pucUrl);
 	  }
-	  else {
-	    pndLink = xmlNewNode(NULL, BAD_CAST NAME_PIE_LINK);
-	    xmlNodeSetContent(pndLink, pucUrl);
-	  }
+	  xmlNodeSetContent(pndLink, pucUrlDisplay);
 	}
 	else {
 	  pucUrlDisplay = xmlStrdup(pucUrl);
-	  DecodeRFC1738((char *)pucUrlDisplay);
-	  pndLink = xmlNewNode(NULL, BAD_CAST NAME_PIE_LINK);
+	  if (DecodeRFC1738((char *)pucUrlDisplay)) {
+	    xmlSetProp(pndLink, BAD_CAST "href", pucUrl);
+	  }
 	  xmlNodeSetContent(pndLink, pucUrlDisplay);
-	  xmlSetProp(pndLink, BAD_CAST "href", pucUrl);
 	}
 	xmlFree(pucUrlDisplay);
 	xmlFree(pucUrl);
@@ -1285,17 +1279,12 @@ SplitStringToAutoLinkNodes(const xmlChar *pucArg)
 	  pucUrlDisplay = StringEncodeXmlDefaultEntitiesNew(pucUrl);
 	}
 
-	if (STR_IS_NOT_EMPTY(pucUrlDisplay)) {
+	if (STR_IS_NOT_EMPTY(pucUrlDisplay) && xmlCheckUTF8(pucUrlDisplay)) {
 	  /*! Percent-encode non-ASCII chars (s. https://en.wikipedia.org/wiki/Percent-encoding) */
-	  DecodeRFC1738((char *)pucUrlDisplay);
-	  if (xmlCheckUTF8(pucUrlDisplay) && xmlStrEqual(pucUrlDisplay,pucUrl) == 0) {
-	    /* OK */
-	    xmlNodeSetContent(pndLink, pucUrlDisplay);
+	  if (DecodeRFC1738((char *)pucUrlDisplay)) {
 	    xmlSetProp(pndLink, BAD_CAST "href", pucUrl);
 	  }
-	  else {
-	    xmlNodeSetContent(pndLink, pucUrl);
-	  }
+	  xmlNodeSetContent(pndLink, pucUrlDisplay);
 	}
 	xmlFree(pucUrlDisplay);
 	xmlFree(pucUrl);
