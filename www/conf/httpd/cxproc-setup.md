@@ -35,3 +35,8 @@ To be used in a trusted Web environment only!
     #sudo systemctl enable httpd.service
 
 
+## [Apache Reverse-Proxy](https://httpd.apache.org/docs/current/rewrite/remapping.html#old-to-new-intern)
+
+	#ProxyRequests Off
+	ProxyPass /cxproc/exe http://127.0.0.1:8888/
+	ProxyPassReverse /cxproc/exe http://127.0.0.1:8888/

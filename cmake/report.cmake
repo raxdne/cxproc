@@ -132,9 +132,9 @@ ENDIF (CXPROC_JSON)
 
   MESSAGE(STATUS "")
   
-  #IF (CXPROC_LIBMICROHTTPD)
-  #  MESSAGE(STATUS "  Build cxproc-httpd (libmicrohttpd). : ${CXPROC_LIBMICROHTTPD}")
-  #ENDIF ()
+  IF (CXPROC_HTTPD)
+   MESSAGE(STATUS "  Build cxproc-httpd (libmicrohttpd). : ${CXPROC_HTTPD}")
+  ENDIF ()
 
   IF(MINGW AND NOT CXPROC_STATIC)
     MESSAGE(STATUS "  Non-standard dll names (prefix) . : ${NON_STANDARD_LIB_PREFIX}")
