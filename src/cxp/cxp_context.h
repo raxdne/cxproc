@@ -64,6 +64,9 @@ struct _cxpContext {
   /*! internal node for log messages */
   xmlNodePtr pndLog;
 
+  /*! internal resource node for log messages */
+  resNodePtr prnLog;
+
   /*! list of search contexts */
   resNodePtr prnSearch;
 
@@ -171,8 +174,8 @@ cxpCtxtLogSetLevelStr(cxpContextPtr pccArg, xmlChar *pucArg);
 extern int
 cxpCtxtLogGetLevel(cxpContextPtr pccArg);
 
-extern BOOL_T
-cxpCtxtLogSetFile(cxpContextPtr pccArg, resNodePtr prnArg);
+extern int
+cxpCtxtLogSetFile(cxpContextPtr pccArg, const xmlChar *pucArg);
 
 extern BOOL_T
 cxpCtxtLogCloseFile(cxpContextPtr pccArg);

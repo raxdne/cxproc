@@ -1918,6 +1918,7 @@ resNodeConcat(resNodePtr prnArg, xmlChar *pucArgPath)
 	resNodeSetType(prnArg, rn_type_dir);
 	resNodeSetRecursion(prnArg, resPathIsDirRecursive(pucArgPath));
       }
+      fResult = TRUE;
       xmlFree(pucT);
     }
   }

@@ -113,6 +113,59 @@ cxpCtxtDup(cxpContextPtr pccArg)
 } /* end of cxpCtxtDup() */
 
 
+/*! creates a new cxproc Context based on XML file
+
+\param pccArg -- pointer to parent context
+\param pcArg -- path to XML file
+\return pointer to new allocated context
+*/
+cxpContextPtr
+cxpCtxtParseNew(cxpContextPtr pccArgParent, const char *pcArg)
+{
+  cxpContextPtr pccResult = NULL;
+
+  if ((pccResult = cxpCtxtNew())) {
+
+    if (STR_IS_NOT_EMPTY(pcArg)) {
+      resNodePtr prnConfig = resNodeCwdNew();
+
+      if (resNodeConcat(prnConfig, pcArg)) {
+	xmlNodePtr pndT;
+	xmlNodePtr pndRoot;
+	xmlDocPtr pdocConfig = resNodeGetContentDoc(prnConfig);
+	resNodePtr prnT = NULL;
+
+	if ((pndRoot = xmlDocGetRootElement(pdocConfig)) != NULL) {
+	  if ((pndT = domGetFirstChild(pndRoot, BAD_CAST "root")) != NULL && (prnT = resNodeDup(prnConfig, 0)) != NULL && resNodeSetToParent(prnT) &&
+	      resNodeConcat(prnT, xmlStrdup(domNodeGetContentPtr(pndT)))) {
+	    resNodeSetType(prnT, rn_type_dir);
+	    if (resNodeIsExist(prnT)) { //  || resNodeMakeDirectory(prnT,(S_IRUSR | S_IWUSR | S_IXUSR)) == rn_error_none
+	      cxpCtxtRootSet(pccResult, prnT);
+	    }
+	  }
+
+	  if ((pndT = domGetFirstChild(pndRoot, BAD_CAST "log"))) {
+	    cxpCtxtLogSetFile(pccResult, domNodeGetContentPtr(pndT));
+	  }
+
+	  if ((pndT = domGetFirstChild(pndRoot, BAD_CAST "port")) != NULL) {
+	    int p;
+
+	    p = atoi((const char *)domNodeGetContentPtr(pndT));
+	  }
+
+	  // xmlFreeDoc(pdocConfig);
+	}
+	resNodeFree(prnConfig);
+      }
+      else {
+	// use defaults
+      }
+    }
+  }
+  return pccResult;
+} /* end of cxpCtxtParseNew() */
+
 /*! wrapper fuction for xmlSaveFormatFileEnc() with filename decoding
 */
 int
@@ -479,6 +532,7 @@ cxpCtxtLogPrint(cxpContextPtr pccArg, int level, const char *fmt, ...)
     va_list ap;
     char mBuffer[BUFFER_LENGTH];
     xmlChar *pucT;
+    FILE *fhOut = stderr;
 
     assert(fmt != NULL);
 
@@ -498,18 +552,25 @@ cxpCtxtLogPrint(cxpContextPtr pccArg, int level, const char *fmt, ...)
 
     va_end(ap);
 
-    //cxpCtxtLogAppend(pccArg, BAD_CAST mBuffer);
+    if (pccArg->prnLog != NULL && resNodeGetHandleIO(pccArg->prnLog) != NULL) {
+      fhOut = resNodeGetHandleIO(pccArg->prnLog);
+    }
+
+    if (pccArg->pndLog) {
+      // cxpCtxtLogAppend(pccArg, BAD_CAST mBuffer);
+    }
+
 #ifdef DEBUG
     pucT = GetNowFormatStr("%s");
-    fprintf(stderr, "0x%8p/%s: %s\n", (void *)pccArg, pucT, mBuffer);
+    fprintf(fhOut, "0x%8p/%s: %s\n", (void *)pccArg, pucT, mBuffer);
     xmlFree(pucT);
 #else
-    fputs(mBuffer,stderr);
-    fputs("\n",stderr);
+    fputs(mBuffer,fhOut);
+    fputs("\n",fhOut);
 #endif
 
 #if defined(DEBUG) && defined(_WIN32)
-    fflush(stderr);
+    fflush(fhOut);
 #endif
   }
   return fResult;
@@ -693,6 +754,10 @@ cxpCtxtFree(cxpContextPtr pccArg)
     if (pccArg->pndLog) {
       //domPutNodeString(stderr, BAD_CAST "LOG", pccArg->pndLog);
       xmlFreeNode(pccArg->pndLog);
+    }
+
+    if (pccArg->prnLog) {
+        resNodeFree(pccArg->prnLog);
     }
 
 #ifdef HAVE_PCRE2
@@ -1336,6 +1401,34 @@ cxpCtxtLogGetLevel(cxpContextPtr pccArg)
   }
   return iResult;
 } /* end of cxpCtxtLogGetLevel() */
+
+
+/*! set the internal log file by name
+ */
+int
+cxpCtxtLogSetFile(cxpContextPtr pccArg, const xmlChar *pucName)
+{
+  int iResult = -1;
+
+  if (pccArg != NULL && STR_IS_NOT_EMPTY(pucName)) {
+    resNodePtr prnT = NULL;
+
+    if ((prnT = resNodeDup(pccArg->prnRoot, 0)) != NULL && resNodeConcat(prnT, xmlStrdup(pucName))) {
+      resNodeSetType(prnT, rn_type_file);
+      if (resNodeOpen(prnT, "w+")) {
+	pccArg->prnLog = prnT;
+	iResult = 0;
+      }
+      else {
+	resNodeFree(prnT);
+      }
+    }
+    else {
+      resNodeFree(prnT);
+    }
+  }
+  return iResult;
+} /* end of cxpCtxtLogSetFile() */
 
 
 /*! a mapper function with UTF-8 arguments and result

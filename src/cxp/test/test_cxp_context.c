@@ -37,20 +37,25 @@ cxpCtxtTest(cxpContextPtr pccArg)
     i++;
     printf("TEST %i in '%s:%i': cxpCtxtCliNew() = ",i,__FILE__,__LINE__);
 
-    pccT = cxpCtxtCliNew(-1, NULL, NULL);
-    if (pccT != NULL
-      && cxpCtxtSetReadonly(pccT, TRUE) == TRUE
-      && cxpCtxtIsReadonly(pccT) == TRUE
-      && cxpCtxtSetReadonly(pccT, FALSE) == FALSE
-      && cxpCtxtIsReadonly(pccT) == FALSE) {
-      //cxpCtxtLogInfo(pccT);
+    if ((pccT = cxpCtxtCliNew(-1, NULL, NULL)) == NULL) {
+      printf("Error cxpCtxtCliNew()\n");
+    }
+    else if (cxpCtxtSetReadonly(pccT, TRUE) == FALSE) {
+      printf("Error cxpCtxtSetReadonly()\n");
+    }
+    else if (cxpCtxtIsReadonly(pccT) == FALSE) {
+      printf("Error cxpCtxtIsReadonly()\n");
+    }
+    else if (cxpCtxtSetReadonly(pccT, FALSE) == TRUE) {
+      printf("Error cxpCtxtSetReadonly()\n");
+    }
+    else if (cxpCtxtIsReadonly(pccT) == TRUE) {
+      printf("Error cxpCtxtIsReadonly()\n");
+    }
+    else {
       n_ok++;
       printf("OK\n");
     }
-    else {
-      printf("Error \n");
-    }
-    cxpCtxtFree(pccT);
   }
 
 
@@ -58,19 +63,59 @@ cxpCtxtTest(cxpContextPtr pccArg)
     cxpContextPtr pccT;
 
     i++;
-    printf("TEST %i in '%s:%i': cxpCtxtCliNew() = ",i,__FILE__,__LINE__);
+    printf("TEST %i in '%s:%i': cxpCtxtCliNew() = ", i, __FILE__, __LINE__);
 
-    pccT = cxpCtxtNew();
-    if (pccT != NULL
-      && cxpCtxtLogGetLevel(pccT) == -1
-      && cxpCtxtLogSetLevel(pccT,2) == 0
-      && cxpCtxtLogGetLevel(pccT) == 2) {
-      //cxpCtxtLogInfo(pccT);
+    if ((pccT = cxpCtxtNew()) == NULL) {
+      printf("Error cxpCtxtNew()\n");
+    }
+    else if (cxpCtxtLogGetLevel(pccT) != -1) {
+      printf("Error cxpCtxtLogGetLevel()\n");
+    }
+    else if (cxpCtxtLogSetLevel(pccT, 2) != 0) {
+      printf("Error cxpCtxtLogSetLevel()\n");
+    }
+    else if (cxpCtxtLogGetLevel(pccT) != 2) {
+      printf("Error cxpCtxtLogGetLevel()\n");
+    }
+    else {
       n_ok++;
       printf("OK\n");
     }
+    cxpCtxtFree(pccT);
+  }
+
+
+  if (RUNTEST) {
+    resNodePtr prnT = NULL;
+    cxpContextPtr pccT;
+
+    i++;
+    printf("TEST %i in '%s:%i': cxpCtxtCliNew() = ",i,__FILE__,__LINE__);
+
+    if ((prnT = resNodeDirNew(BAD_CAST TESTPREFIX)) == NULL) {
+      printf("Error resNodeDirNew()\n");
+    }
+    else if ((pccT = cxpCtxtNew()) == NULL) {
+      printf("Error cxpCtxtNew()\n");
+    }
+    else if (cxpCtxtLogSetLevel(pccT, 2) != 0) {
+      printf("Error cxpCtxtLogSetLevel()\n");
+    }
+    else if (cxpCtxtRootSet(pccT, prnT) == FALSE) {
+      printf("Error cxpCtxtRootSet()\n");
+    }
+    else if (cxpCtxtLogSetFile(pccT,"test.log")) { /*  */
+      printf("Error 1 cxpCtxtLogSetFile()\n");
+    }
+    else if (cxpCtxtLogPrint(pccT,1,"Start TEST")) { /*  */
+      printf("Error 1 cxpCtxtLogPrint()\n");
+    }
+    else if (cxpCtxtLogPrint(pccT,1,"Stop TEST")) { /*  */
+      printf("Error 1 cxpCtxtLogPrint()\n");
+    }
     else {
-      printf("Error \n");
+      n_ok++;
+      printf("OK\n");
     }
     cxpCtxtFree(pccT);
   }

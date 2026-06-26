@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<cxp>
+  <root>/tmp</root>
+  <log>cxproc-httpd.log</log>
+  <level>3</level>
+  <port>8888</port>
+</cxp>

@@ -86,6 +86,8 @@ main(int argc, char *argv[], char *envp[])
   xmlChar *pucTT = NULL;
   FILE *cxperr = NULL;
 
+  /*!\todo to be aligned with cxpCtxtParseNew() */
+  
   if ((pucTT = BAD_CAST getenv("CXP_LOGFILE")) != NULL) {
     /* use defined value as log file location */
     pucT = xmlStrdup(pucTT);
