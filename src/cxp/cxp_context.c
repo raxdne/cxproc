@@ -127,40 +127,55 @@ cxpCtxtParseNew(cxpContextPtr pccArgParent, const char *pcArg)
   if ((pccResult = cxpCtxtNew())) {
 
     if (STR_IS_NOT_EMPTY(pcArg)) {
-      resNodePtr prnConfig = resNodeCwdNew();
+      resNodePtr prnRoot = resNodeCwdNew();
+      resNodePtr prnConfig = NULL;
 
-      if (resNodeConcat(prnConfig, pcArg)) {
+      if (resPathIsAbsolute(pcArg)) {
+	prnConfig = resNodeDirNew(pcArg);
+      }
+      else {
+	prnConfig = resNodeConcatNew(resNodeGetNameNormalized(prnRoot), pcArg);
+      }
+
+      if (resNodeIsReadable(prnConfig)) {
 	xmlNodePtr pndT;
 	xmlNodePtr pndRoot;
 	xmlDocPtr pdocConfig = resNodeGetContentDoc(prnConfig);
-	resNodePtr prnT = NULL;
 
 	if ((pndRoot = xmlDocGetRootElement(pdocConfig)) != NULL) {
-	  if ((pndT = domGetFirstChild(pndRoot, BAD_CAST "root")) != NULL && (prnT = resNodeDup(prnConfig, 0)) != NULL && resNodeSetToParent(prnT) &&
-	      resNodeConcat(prnT, xmlStrdup(domNodeGetContentPtr(pndT)))) {
-	    resNodeSetType(prnT, rn_type_dir);
-	    if (resNodeIsExist(prnT)) { //  || resNodeMakeDirectory(prnT,(S_IRUSR | S_IWUSR | S_IXUSR)) == rn_error_none
-	      cxpCtxtRootSet(pccResult, prnT);
+
+	  if ((pndT = domGetFirstChild(pndRoot, BAD_CAST "root")) != NULL) {
+	    resNodeConcat(prnRoot, xmlStrdup(domNodeGetContentPtr(pndT)));
+	    resNodeSetType(prnRoot, rn_type_dir);
+	  }
+
+	  if (resNodeIsExist(prnRoot)) {
+	    cxpCtxtRootSet(pccResult, prnRoot);
+	    if ((pndT = domGetFirstChild(pndRoot, BAD_CAST "port")) != NULL) {
+	      int p;
+
+	      p = atoi((const char *)domNodeGetContentPtr(pndT));
+	      if (p > 1024 || p < 1e5) {
+		pccResult->iPort = p;
+		if ((pndT = domGetFirstChild(pndRoot, BAD_CAST "log"))) {
+		  cxpCtxtLogSetFile(pccResult, domNodeGetContentPtr(pndT));
+		}
+	      }
 	    }
 	  }
-
-	  if ((pndT = domGetFirstChild(pndRoot, BAD_CAST "log"))) {
-	    cxpCtxtLogSetFile(pccResult, domNodeGetContentPtr(pndT));
+	  else {
+	    resNodeFree(prnRoot);
+	    cxpCtxtLogPutsExit(pccArgParent, 1, "ROOT does not exist");
 	  }
-
-	  if ((pndT = domGetFirstChild(pndRoot, BAD_CAST "port")) != NULL) {
-	    int p;
-
-	    p = atoi((const char *)domNodeGetContentPtr(pndT));
-	  }
-
-	  // xmlFreeDoc(pdocConfig);
 	}
-	resNodeFree(prnConfig);
       }
       else {
 	// use defaults
       }
+      resNodeFree(prnConfig);
+    }
+    else {
+	    cxpCtxtLogPutsExit(pccArgParent, 1, "ROOT does not exist");
     }
   }
   return pccResult;
@@ -756,10 +771,6 @@ cxpCtxtFree(cxpContextPtr pccArg)
       xmlFreeNode(pccArg->pndLog);
     }
 
-    if (pccArg->prnLog) {
-        resNodeFree(pccArg->prnLog);
-    }
-
 #ifdef HAVE_PCRE2
     if (pccArg->re_each) {
       pcre2_code_free(pccArg->re_each);
@@ -773,6 +784,8 @@ cxpCtxtFree(cxpContextPtr pccArg)
 #endif
 
     cxpCtxtEncFree(pccArg);
+
+    cxpCtxtLogCloseFile(pccArg);
 
     memset(pccArg, 0, sizeof(cxpContext));
     xmlFree(pccArg);
@@ -1429,6 +1442,42 @@ cxpCtxtLogSetFile(cxpContextPtr pccArg, const xmlChar *pucName)
   }
   return iResult;
 } /* end of cxpCtxtLogSetFile() */
+
+
+/*! set the internal log file by name
+ */
+void
+cxpCtxtLogCloseFile(cxpContextPtr pccArg)
+{
+  if (pccArg != NULL && pccArg->prnLog != NULL && resNodeGetHandleIO(pccArg->prnLog) != NULL) {
+    resNodeClose(pccArg->prnLog);
+    /* reset to default */
+    pccArg->prnLog = stderr;
+  }
+} /* end of cxpCtxtLogCloseFile() */
+
+
+/*! \return the port number of pccArg
+*/
+int
+cxpCtxtGetPortNumber(cxpContextPtr pccArg)
+{
+  int iResult = -1;
+
+  if (pccArg) {
+    cxpContextPtr pccParent;
+
+    if (pccArg->iPort > 0) {
+      iResult = pccArg->iPort;
+    }
+    else if ((pccParent = cxpCtxtGetParent(pccArg))) {
+      iResult = cxpCtxtGetPortNumber(pccParent);
+    }
+    else {
+    }
+  }
+  return iResult;
+} /* end of cxpCtxtGetPortNumber() */
 
 
 /*! a mapper function with UTF-8 arguments and result

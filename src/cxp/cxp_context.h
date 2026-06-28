@@ -61,6 +61,9 @@ struct _cxpContext {
 
 //  int tzOffsetToUTC = 9999; /*!> default Offset to UTC in Minutes while runtime */
 
+  /*! port number */
+  int iPort;
+
   /*! internal node for log messages */
   xmlNodePtr pndLog;
 
@@ -138,6 +141,9 @@ cxpCtxtFree(cxpContextPtr pccArg);
 extern cxpContextPtr
 cxpCtxtDup(cxpContextPtr pccArg);
 
+extern cxpContextPtr
+cxpCtxtParseNew(cxpContextPtr pccArgParent, const char *pcArg);
+
 extern int
 cxpCtxtOutputSaveFormat(cxpContextPtr pccArg,resNodePtr prnOut,xmlDocPtr pdocArgOutput,xmlChar *pucArgOutput,char *encoding,int format,BOOL_T fAppend);
 
@@ -177,8 +183,11 @@ cxpCtxtLogGetLevel(cxpContextPtr pccArg);
 extern int
 cxpCtxtLogSetFile(cxpContextPtr pccArg, const xmlChar *pucArg);
 
-extern BOOL_T
+extern void
 cxpCtxtLogCloseFile(cxpContextPtr pccArg);
+
+extern int
+cxpCtxtGetPortNumber(cxpContextPtr pccArg);
 
 extern int
 cxpCtxtGetRunningTime(cxpContextPtr pccArg);
