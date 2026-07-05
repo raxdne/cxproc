@@ -1,7 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <cxp>
-  <root>/tmp</root>
+  <root>C:\UserData\Develop\Documents</root>
   <log>cxproc-httpd.log</log>
+  <port>8188</port>
   <level>3</level>
-  <port>8888</port>
+  <param arg="no" env="yes" url="yes"/>
+  <service valid="yes">/info</service>
+  <service valid="yes">/redir</service>
+  <service valid="yes">/refresh</service>
+  <service valid="yes">/xml</service>
+  <service valid="yes">/exe</service>
 </cxp>

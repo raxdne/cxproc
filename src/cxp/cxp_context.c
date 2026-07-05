@@ -54,6 +54,9 @@
 #include <cxp/cxp_dir.h>
 #include "dom.h"
 
+#define TYPE_PARAM(T) (T == undef ? "undef" : (T == var ? "var" : (T == cgi ? "cgi" : (T == arg ? "arg" : (T == env ? "env" : "url")))))
+
+
 /*! creates a new empty cxproc Context
 
 \return pointer to new allocated context
@@ -111,6 +114,119 @@ cxpCtxtDup(cxpContextPtr pccArg)
 
   return pccResult;
 } /* end of cxpCtxtDup() */
+
+
+/*! creates a new cxproc Context based on config XML file
+
+\param pccArg -- pointer to parent context
+\param pcArg -- path to XML file
+\return pointer to new allocated context
+*/
+cxpContextPtr
+cxpCtxtMainNew(const int argc, const char *argv[], const char *envp[])
+{
+  cxpContextPtr pccResult = NULL;
+
+  if ((pccResult = cxpCtxtNew())) {
+    int i;
+    char *pcArg = NULL;
+    xmlNodePtr pndRoot = NULL;
+    xmlNodePtr pndT;
+    xmlDocPtr pdocConfig = NULL;
+    resNodePtr prnRoot = resNodeCwdNew();
+    resNodePtr prnConfig = NULL;
+
+    cxpCtxtLogSetLevel(pccResult, 3);
+
+    /*! read configuration DOM
+     */
+    if (argc == 2 && (pcArg = argv[1]) != NULL) {
+      if (resPathIsAbsolute(pcArg)) {
+	prnConfig = resNodeDirNew(pcArg);
+      }
+      else {
+	prnConfig = resNodeConcatNew(resNodeGetNameNormalized(prnRoot), pcArg);
+      }
+
+      if (resNodeIsReadable(prnConfig)) {
+	pdocConfig = resNodeGetContentDoc(prnConfig);
+	pndRoot = xmlDocGetRootElement(pdocConfig);
+      }
+    }
+
+    if ((pndT = domGetFirstChild(pndRoot, BAD_CAST "root")) != NULL) {
+      resNodeConcat(prnRoot, xmlStrdup(domNodeGetContentPtr(pndT)));
+      resNodeSetType(prnRoot, rn_type_dir);
+    }
+
+    if (resNodeIsExist(prnRoot)) {
+      cxpCtxtRootSet(pccResult, prnRoot);
+    }
+    else {
+      resNodeFree(prnRoot);
+      cxpCtxtLogPutsExit(pccResult, 1, "ROOT does not exist");
+    }
+
+    if ((pndT = domGetFirstChild(pndRoot, BAD_CAST "port")) != NULL) {
+      int p;
+
+      p = atoi((const char *)domNodeGetContentPtr(pndT));
+      if (p > 1024 || p < 1e5) {
+	pccResult->iPort = p;
+      }
+    }
+
+    if ((pndT = domGetFirstChild(pndRoot, BAD_CAST "log"))) {
+      cxpCtxtLogSetFile(pccResult, domNodeGetContentPtr(pndT));
+    }
+
+    if ((pndT = domGetFirstChild(pndRoot, BAD_CAST "param"))) {}
+
+    /*! register argv, only if there was no config XML
+     */
+    if (pdocConfig == NULL || domGetPropFlag(pndT, BAD_CAST "arg", FALSE)) {
+      for (i = 0; i < argc && i < 10; i++) {
+	if (STR_IS_NOT_EMPTY(argv[i])) {
+	  char mcT[128];
+
+	  mcT[0] = '0' + i;
+	  mcT[1] = '\0';
+	  cxpCtxtParamInit(pccResult, BAD_CAST mcT, BAD_CAST argv[i], arg);
+
+	  /*! check named args */
+	}
+      }
+    }
+
+    /*! register env */
+    if (pdocConfig == NULL || domGetPropFlag(pndT, BAD_CAST "env", TRUE)) {
+      for (i = 0; envp[i] != NULL && i < 1024; i++) {
+	if (STR_IS_NOT_EMPTY(envp[i])) {
+	  char *pcT;
+	  char mcT[128];
+
+	  pcT = strchr(envp[i], '=');
+	  if (STR_IS_EMPTY(pcT)) {
+	    /* no value */
+	  }
+	  else {
+	    size_t l;
+
+	    l = pcT - envp[i];
+	    memcpy(mcT, envp[i], l);
+	    mcT[l] = '\0';
+	    cxpCtxtParamInit(pccResult, BAD_CAST mcT, BAD_CAST & pcT[1], env);
+	  }
+	}
+      }
+    }
+
+    resNodeFree(prnConfig);
+    cxpCtxtParamPrint(pccResult);
+  }
+  return pccResult;
+} /* end of cxpCtxtMainNew() */
+
 
 
 /*! creates a new cxproc Context based on XML file
@@ -636,6 +752,222 @@ cxpCtxtLogPrintDoc(cxpContextPtr pccArg, int level, const char *pucArgLabel, xml
 #endif
   }
 } /* end of cxpCtxtLogPrintDoc() */
+
+
+
+/*!\return a fresh empty param node */
+cxpParamPtr
+cxpCtxtParamNew()
+{
+  cxpParamPtr pcpResult = NULL;
+
+  pcpResult = xmlMalloc(sizeof(cxpParam));
+  memset(pcpResult, 0, sizeof(cxpParam));
+
+  return pcpResult;
+} /* end of () */
+
+
+/*!\return a fresh empty param node */
+BOOL_T
+cxpCtxtParamInit(cxpContextPtr pccArg, xmlChar *pucKey, xmlChar *pucValue, param_t tArg)
+{
+  BOOL_T fResult = FALSE;
+  cxpParamPtr pcpResult;
+
+  //if ((pcpResult = cxpCtxtParamGetPtr(pccArg, pucKey, tArg)) == NULL) {
+    if ((pcpResult = cxpCtxtParamNew())) {
+      pcpResult->pucKey = xmlStrdup(pucKey);
+      cxpCtxtParamAppend(pccArg, pcpResult);
+    }
+  //}
+
+  if (pcpResult) {
+    //xmlFree(pcpResult->pucValue);
+    pcpResult->pucSourceValue = pucValue;
+    pcpResult->t = tArg;
+    fResult = TRUE;
+  }
+
+  return fResult;
+} /* end of cxpCtxtParamInit() */
+
+
+/*!\return a fresh empty param node */
+BOOL_T
+cxpCtxtParamReset(cxpContextPtr pccArg, xmlChar *pucKey, xmlChar *pucValue, param_t tArg)
+{
+  BOOL_T fResult = FALSE;
+  cxpParamPtr pcpResult;
+
+  if ((pcpResult = cxpCtxtParamGetPtr(pccArg, pucKey, tArg)) == NULL) {
+    if ((pcpResult = cxpCtxtParamNew())) {
+      pcpResult->pucKey = xmlStrdup(pucKey);
+      cxpCtxtParamAppend(pccArg, pcpResult);
+    }
+  }
+
+  if (pcpResult) {
+    xmlFree(pcpResult->pucValue);
+    pcpResult->pucValue = xmlStrdup(pucValue);
+    pcpResult->t = tArg;
+    fResult = TRUE;
+  }
+
+  return fResult;
+} /* end of cxpCtxtParamReset() */
+
+
+/*!\return a fresh empty param node */
+cxpParamPtr
+cxpCtxtParamGetPtr(cxpContextPtr pccArg, xmlChar *pucKey, param_t tArg)
+{
+  cxpParamPtr pcpResult = NULL;
+
+  if (pccArg != NULL && pccArg->ppList != NULL && pucKey != NULL) {
+    cxpParamPtr pcpIter;
+
+    for (pcpIter = pccArg->ppList; pcpIter; pcpIter = pcpIter->next) {
+      if (xmlStrEqual(pcpIter->pucKey, pucKey) && (tArg == undef || tArg == pcpIter->t)) {
+	pcpResult = pcpIter;
+	break;
+      }
+    }
+  }
+
+  return pcpResult;
+} /* end of cxpCtxtParamGetPtr() */
+
+
+/*!\return a fresh empty param node */
+BOOL_T
+cxpCtxtParamAppend(cxpContextPtr pccArg, cxpParamPtr pcpArg)
+{
+  cxpParamPtr pcpResult = pcpArg;
+
+  if (pccArg != NULL && pcpArg != NULL) {
+    if (pccArg->ppList) {
+      cxpParamPtr pcpIter;
+
+      for (pcpIter = pccArg->ppList;; pcpIter = pcpIter->next) {
+	if (pcpIter->next == NULL) {
+	  pcpIter->next = pcpArg;
+	  break;
+	}
+      }
+    }
+    else {
+      pccArg->ppList = pcpArg;
+    }
+  }
+  return pcpResult;
+} /* end of cxpCtxtParamAppend() */
+
+
+/*!\return a pointer to value of named parameter */
+xmlChar *
+cxpCtxtParamGetValuePtr(cxpContextPtr pccArg, xmlChar *pucKey, param_t tArg)
+{
+  xmlChar *pucResult = NULL;
+
+  if (pccArg != NULL && pccArg->ppList != NULL && pucKey != NULL) {
+    cxpParamPtr pcpT;
+
+    pcpT = cxpCtxtParamGetPtr(pccArg, pucKey, tArg);
+    if (pcpT != NULL) {
+
+      if (STR_IS_EMPTY(pcpT->pucSourceValue)) {
+	/*! no value found */
+      }
+      else if (STR_IS_EMPTY(pcpT->pucValue) && cxpCtxtEncGetFromArgv(pccArg)) {
+	char buffer_in[BUFFER_LENGTH];
+	char buffer_out[BUFFER_LENGTH];
+	char *pchOut;
+	char *pchIn;
+	size_t int_in;
+	size_t int_out;
+	size_t nconv;
+	cxpContextPtr pccT;
+
+	int_out = BUFFER_LENGTH - 1;
+	int_in = strlen(pcpT->pucSourceValue) + 1;
+	strncpy(buffer_in, pcpT->pucSourceValue, int_out);
+	buffer_in[int_in] = '\0';
+	pchIn = buffer_in;
+	pchOut = buffer_out;
+
+	nconv = iconv(cxpCtxtEncGetFromArgv(pccArg), (char **)&pchIn, &int_in, &pchOut, &int_out);
+	cxpCtxtEncError(pccArg, errno, nconv);
+	pucResult = pcpT->pucValue = xmlStrdup(BAD_CAST buffer_out);
+      }
+      else {
+	/* no conversion necessary */
+	pucResult = pcpT->pucValue = xmlStrdup(BAD_CAST pcpT->pucSourceValue);
+      }
+    }
+  }
+  return pucResult;
+} /* end of cxpCtxtParamGetValuePtr() */
+
+
+/*!\return  */
+BOOL_T
+cxpCtxtParamPrint(cxpContextPtr pccArg)
+{
+  BOOL_T fResult = FALSE;
+
+  if (pccArg != NULL && pccArg->ppList != NULL) {
+    cxpParamPtr pcpIter;
+
+    for (pcpIter = pccArg->ppList; pcpIter; pcpIter = pcpIter->next) {
+      cxpCtxtLogPrint(pccArg, 1, "Param '%s' is '%s' of type '%s'", pcpIter->pucKey, STR_IS_EMPTY(pcpIter->pucValue) ? pcpIter->pucSourceValue : pcpIter->pucValue, TYPE_PARAM(pcpIter->t));
+    }
+    fResult = TRUE;
+  }
+  return fResult;
+} /* end of cxpCtxtParamPrint() */
+
+
+/*!\return  */
+BOOL_T
+cxpCtxtParamListPrint(cxpContextPtr pccArg)
+{
+  BOOL_T fResult = FALSE;
+
+  if (pccArg != NULL && pccArg->ppList != NULL) {
+    cxpContextPtr pccIter;
+
+    cxpCtxtParamPrint(pccArg);
+    for (pccIter = pccArg->children; pccIter; pccIter = pccIter->next) { cxpCtxtParamPrint(pccIter); }
+    fResult = TRUE;
+  }
+  return fResult;
+} /* end of cxpCtxtParamListPrint() */
+
+
+/*!\return  */
+BOOL_T
+cxpCtxtParamInfo(xmlNodePtr pndArg, cxpContextPtr pccArg)
+{
+  BOOL_T fResult = FALSE;
+
+  if (pccArg != NULL && pccArg->ppList != NULL) {
+    cxpParamPtr pcpIter;
+
+    for (pcpIter = pccArg->ppList; pcpIter; pcpIter = pcpIter->next) {
+      xmlNodePtr pndParam;
+
+      pndParam = xmlNewChild(pndArg, NULL, BAD_CAST "param", NULL);
+      xmlSetProp(pndParam, BAD_CAST "name", BAD_CAST pcpIter->pucKey);
+      xmlSetProp(pndParam, BAD_CAST "value", BAD_CAST pcpIter->pucValue);
+      xmlSetProp(pndParam, BAD_CAST "type", BAD_CAST TYPE_PARAM(pcpIter->t));
+      //
+    }
+    fResult = TRUE;
+  }
+  return fResult;
+} /* end of cxpCtxtParamInfo() */
+
 
 
 /*! detect readonly, log, searchpath attributes
@@ -1428,7 +1760,7 @@ cxpCtxtLogSetFile(cxpContextPtr pccArg, const xmlChar *pucName)
 
     if ((prnT = resNodeDup(pccArg->prnRoot, 0)) != NULL && resNodeConcat(prnT, xmlStrdup(pucName))) {
       resNodeSetType(prnT, rn_type_file);
-      if (resNodeOpen(prnT, "w+")) {
+      if (resNodeOpen(prnT, "w")) {
 	pccArg->prnLog = prnT;
 	iResult = 0;
       }

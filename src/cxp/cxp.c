@@ -3518,6 +3518,8 @@ cxpProcessInfoNode(xmlNodePtr pndInfo, cxpContextPtr pccArg)
     xmlNewChild(pndRuntime, NULL, BAD_CAST"date", pucT);
     xmlFree(pucT);
 
+    cxpCtxtParamInfo(pndRuntime, pccArg);
+
     /*! program arguments */
     for (i = 0; (pucArgv = cxpCtxtCliGetValue(pccArg, i)); i++) {
       xmlNodePtr pndArgv;

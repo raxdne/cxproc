@@ -318,8 +318,6 @@ IF (CXPROC_HTTPD)
     ${CXPROC_SRC_DIR}/cxproc-httpd.c
     ${CXPROC_SRC_DIR}/cxp/cxp_context_cgi.c
     ${CXPROC_SRC_DIR}/cxp/cxp_context_cgi.h
-    #${CXPROC_SRCLIB_DIR}/cgi-util/cgi-util.c
-    #${CXPROC_SRCLIB_DIR}/cgi-util/cgi-util.h
     ${CXPROC_SOURCES} ${CXPROC_HEADERS}
   )
 

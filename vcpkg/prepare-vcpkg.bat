@@ -31,11 +31,11 @@ IF "1" == "1" (
   REM git clone https://github.com/microsoft/vcpkg.git
   cd vcpkg
   del status
-  bootstrap-vcpkg.bat -disableMetrics
   git pull
-  git checkout 2026.03.18
+  git checkout 2026.06.24
+  bootstrap-vcpkg.bat -disableMetrics
   .\vcpkg integrate install
-  .\vcpkg --vcpkg-root=%CXPBASE%\vcpkg --triplet %CXPARCH% --x-install-root=%CXPBASE% --recurse install curl[tool] zlib libzip liblzma libarchive pcre2 libxml2[tools] libxslt[tools] libexif sqlite3[tool] duktape cmark[tools]
+  .\vcpkg --vcpkg-root=%CXPBASE%\vcpkg --triplet %CXPARCH% --x-install-root=%CXPBASE% --recurse install curl[tool] zlib libzip liblzma libarchive pcre2 libxml2[tools] libxslt[tools] libexif sqlite3[tool] duktape cmark[tools] libmicrohttpd[core]
   REM imagemagick libgif libjpeg libpng libtiff
   popd
 )

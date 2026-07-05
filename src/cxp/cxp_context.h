@@ -24,6 +24,25 @@
 
 #include <res_node/res_node.h>
 
+typedef enum {undef, var, cfg, cgi, env, url, arg} param_t;
+
+typedef struct _cxpParam cxpParam;
+typedef cxpParam *cxpParamPtr;
+struct _cxpParam {
+
+  /*! is a dedicated context parameter
+  */
+
+  param_t t;
+
+  xmlChar *pucKey;
+  xmlChar *pucSourceValue;
+  xmlChar *pucValue;
+
+  struct _cxpParam *next;
+};
+
+
 typedef struct _cxpContext cxpContext;
 typedef cxpContext *cxpContextPtr;
 struct _cxpContext {
@@ -38,6 +57,8 @@ struct _cxpContext {
   /*! node to process (for new Thread e.g.) */
   xmlDocPtr pdocContextNode;
   xmlNodePtr pndContextNode;
+
+  cxpParamPtr ppList; /*! pointer to the list of parameters */
 
   /*! NULL pointer terminated array of environment variables */
   char **ppcEnv;
@@ -141,6 +162,10 @@ cxpCtxtFree(cxpContextPtr pccArg);
 extern cxpContextPtr
 cxpCtxtDup(cxpContextPtr pccArg);
 
+/*! new context, init params based on program's args, env and cgi */
+extern cxpContextPtr
+cxpCtxtMainNew(const int argc, const char *argv[], const char *envp[]);
+
 extern cxpContextPtr
 cxpCtxtParseNew(cxpContextPtr pccArgParent, const char *pcArg);
 
@@ -206,6 +231,41 @@ cxpCtxtGetExitCode(cxpContextPtr pccArg);
 
 extern int
 cxpCtxtIncrExitCode(cxpContextPtr pccArg, int iArg);
+
+
+extern cxpParamPtr
+cxpCtxtParamNew();
+
+/*! Read params from XML file */
+extern cxpParamPtr
+cxpCtxtParamRead(cxpContextPtr pccArg, xmlChar *pucFile);
+
+extern BOOL_T
+cxpCtxtParamReset(cxpContextPtr pccArg, xmlChar *pucKey, xmlChar *pucValue, param_t tArg);
+
+extern BOOL_T
+cxpCtxtParamInit(cxpContextPtr pccArg, xmlChar *pucKey, xmlChar *pucValue, param_t tArg);
+
+extern cxpParamPtr
+cxpCtxtParamFree(cxpContextPtr pccArg, cxpParamPtr ppArg);
+
+extern cxpParamPtr
+cxpCtxtParamGetPtr(cxpContextPtr pccArg, xmlChar *pucKey, param_t tArg);
+
+extern xmlChar *
+cxpCtxtParamGetValuePtr(cxpContextPtr pccArg, xmlChar *pucKey, param_t tArg);
+
+extern BOOL_T
+cxpCtxtParamAppend(cxpContextPtr pccArg, cxpParamPtr pcpArg);
+
+extern BOOL_T
+cxpCtxtParamPrint(cxpContextPtr pccArg);
+
+extern BOOL_T
+cxpCtxtParamListPrint(cxpContextPtr pccArg);
+
+extern BOOL_T
+cxpCtxtParamInfo(xmlNodePtr pndArg, cxpContextPtr pccArg);
 
 
 extern BOOL_T
