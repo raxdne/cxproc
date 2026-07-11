@@ -432,8 +432,10 @@ include(tests)
 
 IF (CXPROC_EXPERIMENTAL)
   include(archive)
+  include(microhttpd)
 ELSE (CXPROC_EXPERIMENTAL)
   UNSET(CXPROC_ARCHIVE CACHE)
+  UNSET(CXPROC_HTTPD CACHE)
 ENDIF (CXPROC_EXPERIMENTAL)
 
 include(audio)
@@ -446,7 +448,6 @@ include(c-dt)
 # TODO: include(rp)
 include(script)
 # TODO: include(vorbiscomment)
-include(microhttpd)
 
 ################################################################################
 #

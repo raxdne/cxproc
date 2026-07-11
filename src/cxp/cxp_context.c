@@ -130,6 +130,7 @@ cxpCtxtMainNew(const int argc, const char *argv[], const char *envp[])
   if ((pccResult = cxpCtxtNew())) {
     int i;
     char *pcArg = NULL;
+    xmlChar *pucT;
     xmlNodePtr pndRoot = NULL;
     xmlNodePtr pndT;
     xmlDocPtr pdocConfig = NULL;
@@ -154,8 +155,13 @@ cxpCtxtMainNew(const int argc, const char *argv[], const char *envp[])
       }
     }
 
-    if ((pndT = domGetFirstChild(pndRoot, BAD_CAST "root")) != NULL) {
-      resNodeConcat(prnRoot, xmlStrdup(domNodeGetContentPtr(pndT)));
+    if ((pndT = domGetFirstChild(pndRoot, BAD_CAST "root")) != NULL && (pucT = domNodeGetContentPtr(pndT)) != NULL) {
+      if (resPathIsAbsolute(pucT)) {
+	prnRoot = resNodeDirNew(pucT);
+      }
+      else {
+	resNodeConcat(prnRoot, xmlStrdup(pucT));
+      }
       resNodeSetType(prnRoot, rn_type_dir);
     }
 
