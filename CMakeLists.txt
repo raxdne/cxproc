@@ -528,6 +528,8 @@ ELSE(MSVC)
   #set(CMAKE_SHARED_LINKER_FLAGS "")
 ENDIF (MSVC)
 
+INCLUDE_DIRECTORIES(${LIBBASE64_INCLUDE_DIR})
+
 ################################################################################
 #
 # pcre2

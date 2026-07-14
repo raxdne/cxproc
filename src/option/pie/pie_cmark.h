@@ -19,6 +19,8 @@
 
 */
 
+#include <cmark.h>
+
 extern xmlNodePtr
 ParseMarkdownBuffer(xmlNodePtr pndArgImport, xmlChar* pucArg);
 
