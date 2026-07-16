@@ -3,6 +3,8 @@ REM
 REM
 REM
 
+REM Start "Cxproc" /B "C:\UserData\cxproc-build\x64-windows\www\http-bin\cxproc-httpd.exe" reverse-proxy-config.xml
+
 REM Start "HTTPD" /b "C:\User\Programme\Apache24\bin\httpd.exe" -w -f "C:\User\develop\cxproc-build\trunk\x86-windows-debug-dynamic\www\etc\Apache24\httpd.conf"
 Start "HTTPD" /b "C:\UserData\Programme\Apache24\bin\httpd.exe" -w
 

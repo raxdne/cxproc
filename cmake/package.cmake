@@ -9,6 +9,9 @@ set(CPACK_PACKAGE_DIRECTORY "${PROJECT_SOURCE_DIR}/..")
 
 INSTALL(TARGETS filex dir2csv dir2sqlite pietextx cxproc RUNTIME DESTINATION bin)
 INSTALL(TARGETS cxproc-cgi RUNTIME DESTINATION lib/cgi-bin)
+IF (CXPROC_HTTPD)
+  INSTALL(TARGETS cxproc-httpd RUNTIME DESTINATION lib/cgi-bin)
+ENDIF ()
 
 if (MSVC)
   set(CPACK_GENERATOR ZIP)
@@ -29,7 +32,11 @@ INSTALL(DIRECTORY doc DESTINATION share/doc/cxproc)
 INSTALL(DIRECTORY examples DESTINATION share/doc/cxproc)
 INSTALL(DIRECTORY "${PROJECT_SOURCE_DIR}/www/html" DESTINATION share/doc/cxproc/www)
 INSTALL(FILES LICENSE README.md DESTINATION share/doc/cxproc)
-INSTALL(FILES "${PROJECT_SOURCE_DIR}/www/conf/httpd/cxproc-template.conf" DESTINATION share/doc/cxproc/www/conf)
+INSTALL(FILES
+  "${PROJECT_SOURCE_DIR}/www/conf/httpd/cxproc-template.conf"
+  "${PROJECT_SOURCE_DIR}/www/conf/httpd/start-apache.bat"
+  "${PROJECT_SOURCE_DIR}/www/conf/reverse-proxy-config.xml"
+  DESTINATION share/doc/cxproc/www/conf)
 
 set(CPACK_PACKAGE_VENDOR "Vendor name")
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Some summary")
