@@ -1146,24 +1146,24 @@ SplitStringToLinkNodes(const xmlChar *pucArg)
 	  xmlFree(pucT);
 	}
 
-	if (xmlStrcasestr(pucUrl, BAD_CAST"mailto:") == pucUrl) {
-	  pucUrlDisplay = xmlStrdup(&pucUrl[7]);
+	if (StringBeginsWith((char *)pucUrl, "http://")) {
+	  pucUrlDisplay = StringEncodeXmlDefaultEntitiesNew(&pucUrl[7]);
 	}
-
-	pndLink = xmlNewNode(NULL, BAD_CAST NAME_PIE_LINK);
-	if (STR_IS_NOT_EMPTY(pucUrlDisplay) && xmlCheckUTF8(pucUrlDisplay)) {
-	  if (DecodeRFC1738((char *)pucUrlDisplay)) {
-	    /*! Percent-encode non-ASCII chars (s. https://en.wikipedia.org/wiki/Percent-encoding) */
-	    xmlSetProp(pndLink, BAD_CAST "href", pucUrl);
-	  }
-	  xmlNodeSetContent(pndLink, pucUrlDisplay);
+	else if (StringBeginsWith((char *)pucUrl, "https://")) {
+	  pucUrlDisplay = StringEncodeXmlDefaultEntitiesNew(&pucUrl[8]);
+	}
+	else if (xmlStrcasestr(pucUrl, BAD_CAST"mailto:") == pucUrl) {
+	  pucUrlDisplay = xmlStrdup(&pucUrl[7]);
 	}
 	else {
 	  pucUrlDisplay = xmlStrdup(pucUrl);
-	  if (DecodeRFC1738((char *)pucUrlDisplay)) {
-	    xmlSetProp(pndLink, BAD_CAST "href", pucUrl);
-	  }
+	}
+
+	if (STR_IS_NOT_EMPTY(pucUrlDisplay) && xmlCheckUTF8(pucUrlDisplay)) {
+	  DecodeRFC1738((char *)pucUrlDisplay); /*! Percent-encode non-ASCII chars (s. https://en.wikipedia.org/wiki/Percent-encoding) */
+	  pndLink = xmlNewNode(NULL, BAD_CAST NAME_PIE_LINK);
 	  xmlNodeSetContent(pndLink, pucUrlDisplay);
+	  xmlSetProp(pndLink, BAD_CAST "href", pucUrl);
 	}
 	xmlFree(pucUrlDisplay);
 	xmlFree(pucUrl);
@@ -1272,7 +1272,13 @@ SplitStringToAutoLinkNodes(const xmlChar *pucArg)
 	PrintFormatLog(4, "URL '%s' (%i..%i) in '%s'", pucUrl, ovector[0], ovector[1], pucArg);
 	pndLink = xmlNewNode(NULL, BAD_CAST NAME_PIE_LINK);
 
-	if (StringBeginsWith((char *)pucUrl, "mailto:")) {
+	if (StringBeginsWith((char *)pucUrl, "http://")) {
+	  pucUrlDisplay = StringEncodeXmlDefaultEntitiesNew(&pucUrl[7]);
+	}
+	else if (StringBeginsWith((char *)pucUrl, "https://")) {
+	  pucUrlDisplay = StringEncodeXmlDefaultEntitiesNew(&pucUrl[8]);
+	}
+	else if (StringBeginsWith((char *)pucUrl, "mailto:")) {
 	  pucUrlDisplay = StringEncodeXmlDefaultEntitiesNew(&pucUrl[7]);
 	}
 	else {
@@ -1280,11 +1286,9 @@ SplitStringToAutoLinkNodes(const xmlChar *pucArg)
 	}
 
 	if (STR_IS_NOT_EMPTY(pucUrlDisplay) && xmlCheckUTF8(pucUrlDisplay)) {
-	  /*! Percent-encode non-ASCII chars (s. https://en.wikipedia.org/wiki/Percent-encoding) */
-	  if (DecodeRFC1738((char *)pucUrlDisplay)) {
-	    xmlSetProp(pndLink, BAD_CAST "href", pucUrl);
-	  }
+	  DecodeRFC1738((char *)pucUrlDisplay); /*! Percent-encode non-ASCII chars (s. https://en.wikipedia.org/wiki/Percent-encoding) */
 	  xmlNodeSetContent(pndLink, pucUrlDisplay);
+	  xmlSetProp(pndLink, BAD_CAST "href", pucUrl);
 	}
 	xmlFree(pucUrlDisplay);
 	xmlFree(pucUrl);
