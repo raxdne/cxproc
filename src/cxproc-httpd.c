@@ -114,18 +114,18 @@ cxpCtxtRequestCallback(void *cls, struct MHD_Connection *connection, const char 
   cxpContextPtr pccRequest = NULL;
   struct MHD_Response *response = NULL;
 
-  if (strcmp("GET",method)) {
-    cxpCtxtLogPrint(pccServer, 1, "Unknown method %s", method);
-  }
-  else if (STR_IS_EMPTY(url)) {
-    // TEST: curl -v 'http://localhost:8888/' -i -L
-    cxpCtxtLogPrint(pccServer, 1, "Empty URL");
-  }
-  else if (StringBeginsWith(url, BAD_CAST STR_ACTION_INFO)) {
-    // TEST: curl -v 'http://localhost:8888/info?a=1&c=asdf&y=1929&m=12&d=11&z=ABCDEFGHIJ' -i -L
+  pccRequest = cxpCtxtNew();
+  if (pccRequest != NULL && cxpCtxtAddChild(pccServer, pccRequest)) {
 
-    pccRequest = cxpCtxtNew();
-    if (pccRequest != NULL && cxpCtxtAddChild(pccServer, pccRequest)) {
+    if (strcmp("GET", method)) {
+      cxpCtxtLogPrint(pccRequest, 1, "Unknown method %s", method);
+    }
+    else if (STR_IS_EMPTY(url)) {
+      // TEST: curl -v 'http://localhost:8888/' -i -L
+      cxpCtxtLogPrint(pccRequest, 1, "Empty URL");
+    }
+    else if (StringBeginsWith(url, BAD_CAST STR_ACTION_INFO)) {
+      // TEST: curl -v 'http://localhost:8888/info?a=1&c=asdf&y=1929&m=12&d=11&z=ABCDEFGHIJ' -i -L
 
       xmlChar *pucPage = "<html><body>Hello!</body></html>";
       xmlNodePtr pndMake;
@@ -160,46 +160,57 @@ cxpCtxtRequestCallback(void *cls, struct MHD_Connection *connection, const char 
 	MHD_destroy_response(response);
       }
     }
-  }
-  else if (StringBeginsWith(url, BAD_CAST STR_ACTION_REFRESH)) {
-	// TODO:
-  }
-  else if (StringBeginsWith(url,BAD_CAST STR_ACTION_REDIR)) {
-    /*!
-    search for this file name in CXP_ROOT using 'url' as regexp and redirect client to this URI
+    else if (StringBeginsWith(url, BAD_CAST STR_ACTION_REFRESH)) {
+      xmlChar *pucPage = "<html><body>Refreshing!</body></html>";
+      resNodePtr prnT = NULL;
 
-    TEST: curl -v 'http://localhost:8888/redir/TestLinks.txt' -i -L
-
-    */
-    xmlChar *pucRedir = NULL;
-    xmlChar *pucPattern = NULL;
-    xmlChar *pucContent = BAD_CAST "Redirect\n";
-    resNodePtr prnTest = NULL;
-    xmlChar mpucNameFile[BUFFER_LENGTH];
-
-    pucPattern = &url[strlen(STR_ACTION_REDIR)];
-    if ((prnTest = resNodeListFindPath(cxpCtxtRootGet(pccServer), pucPattern, (RN_FIND_FILE | RN_FIND_SYMLINK | RN_FIND_IN_SUBDIR))) != NULL &&
-	(pucRedir = resNodeGetNameRelative(cxpCtxtRootGet(pccServer), prnTest)) != NULL) {
-      xmlStrPrintf(mpucNameFile, BUFFER_LENGTH, "/%s", (char *)pucRedir);
-      response = MHD_create_response_from_buffer(strlen(pucContent), (void *)pucContent, MHD_RESPMEM_PERSISTENT);
-      MHD_add_response_header(response, "Location", mpucNameFile);
-      ret = MHD_queue_response(connection, MHD_HTTP_PERMANENT_REDIRECT, response);
+      response = MHD_create_response_from_buffer(strlen(pucPage), (void *)pucPage, MHD_RESPMEM_PERSISTENT);
+      ret = MHD_queue_response(connection, MHD_HTTP_OK, response);
+      prnT = resNodeDup(cxpCtxtRootGet(pccRequest), (RN_DUP_THIS | RN_DUP_READ));
+      cxpCtxtRootSet(pccRequest, prnT);
+      cxpCtxtLogPrint(pccRequest, 1, "Refreshing search index of '%s'", resNodeGetNameNormalized(prnT));
+      resNodeFree(prnT);
+      MHD_destroy_response(response);
     }
-    else {
-      xmlStrPrintf(mpucNameFile, BUFFER_LENGTH, "%s not found", pucPattern);
-      response = MHD_create_response_from_buffer(strlen(mpucNameFile), (void *)mpucNameFile, MHD_RESPMEM_PERSISTENT);
-      ret = MHD_queue_response(connection, MHD_HTTP_NOT_FOUND, response);
+    else if (StringBeginsWith(url, BAD_CAST STR_ACTION_REDIR)) {
+      /*!
+      search for this file name in CXP_ROOT using 'url' as regexp and redirect client to this URI
+
+      TEST: curl -v 'http://localhost:8888/redir/TestLinks.txt' -i -L
+
+      */
+      xmlChar *pucRedir = NULL;
+      xmlChar *pucPattern = NULL;
+      xmlChar *pucContent = BAD_CAST "Redirect\n";
+      resNodePtr prnTest = NULL;
+      xmlChar mpucNameFile[BUFFER_LENGTH];
+      resNodePtr prnT = NULL;
+
+      pucPattern = &url[strlen(STR_ACTION_REDIR)];
+
+      prnT = resNodeDup(cxpCtxtRootGet(pccRequest), (RN_DUP_THIS | RN_DUP_READ));
+      //prnT = cxpCtxtRootGet(pccServer);
+
+      if ((prnTest = resNodeListFindPath(prnT, pucPattern, (RN_FIND_FILE | RN_FIND_SYMLINK | RN_FIND_IN_SUBDIR))) != NULL &&
+	  (pucRedir = resNodeGetNameRelative(prnT, prnTest)) != NULL) {
+	xmlStrPrintf(mpucNameFile, BUFFER_LENGTH, "/%s", (char *)pucRedir);
+	response = MHD_create_response_from_buffer(strlen(pucContent), (void *)pucContent, MHD_RESPMEM_PERSISTENT);
+	MHD_add_response_header(response, "Location", mpucNameFile);
+	ret = MHD_queue_response(connection, MHD_HTTP_PERMANENT_REDIRECT, response);
+      }
+      else {
+	xmlStrPrintf(mpucNameFile, BUFFER_LENGTH, "%s not found", pucPattern);
+	response = MHD_create_response_from_buffer(strlen(mpucNameFile), (void *)mpucNameFile, MHD_RESPMEM_PERSISTENT);
+	ret = MHD_queue_response(connection, MHD_HTTP_NOT_FOUND, response);
+      }
+      cxpCtxtLogPrint(pccRequest, 1, "URL '%s' to Location: '%s'", url, mpucNameFile);
+      resNodeFree(prnT);
+
+      MHD_destroy_response(response);
     }
-    cxpCtxtLogPrint(pccRequest, 1, "URL '%s' to Location: '%s'", url, mpucNameFile);
+    else if (StringBeginsWith(url, BAD_CAST STR_ACTION_XML)) {
 
-    MHD_destroy_response(response);
-  }
-  else if (StringBeginsWith(url, BAD_CAST STR_ACTION_XML)) {
-
-    // TEST: curl -v 'http://localhost:8888/xml/Test/Documents/TestLinks.txt' -i -L
-
-    pccRequest = cxpCtxtNew();
-    if (pccRequest != NULL && cxpCtxtAddChild(pccServer, pccRequest)) {
+      // TEST: curl -v 'http://localhost:8888/xml/Test/Documents/TestLinks.txt' -i -L
 
       xmlChar *pucPage = "<html><body>Hello!</body></html>";
       xmlNodePtr pndMake;
@@ -220,8 +231,8 @@ cxpCtxtRequestCallback(void *cls, struct MHD_Connection *connection, const char 
       pndXml = xmlNewChild(pndPlain, NULL, BAD_CAST NAME_XML, NULL);
       // xmlSetProp(pndXml, BAD_CAST "name", BAD_CAST "-");
       pndFile = xmlNewChild(pndXml, NULL, BAD_CAST NAME_FILE, NULL);
-  xmlSetProp(pndFile, BAD_CAST "verbosity", BAD_CAST "5");
-xmlSetProp(pndFile, BAD_CAST "name", BAD_CAST (url + strlen(STR_ACTION_XML)));
+      xmlSetProp(pndFile, BAD_CAST "verbosity", BAD_CAST "5");
+      xmlSetProp(pndFile, BAD_CAST "name", BAD_CAST(url + strlen(STR_ACTION_XML)));
 
       // pucPage = cxpCtxtProcessDump(pccRequest);
       pucPage = cxpProcessPlainNode(pndPlain, pccRequest);
@@ -233,18 +244,19 @@ xmlSetProp(pndFile, BAD_CAST "name", BAD_CAST (url + strlen(STR_ACTION_XML)));
 	MHD_destroy_response(response);
       }
     }
+    else {
+      // TEST: curl -v 'http://localhost:8888/blahblah/' -i -L
+
+      char *pcPage = "<html><body>Hello!</body></html>";
+
+      cxpCtxtLogPrint(pccRequest, 1, "Invalid URL");
+
+      response = MHD_create_response_from_buffer(strlen(pcPage), (void *)pcPage, MHD_RESPMEM_PERSISTENT);
+      ret = MHD_queue_response(connection, MHD_HTTP_SERVICE_UNAVAILABLE, response);
+      MHD_destroy_response(response);
+    }
   }
-  else {
-    // TEST: curl -v 'http://localhost:8888/blahblah/' -i -L
 
-    char *pcPage = "<html><body>Hello!</body></html>";
-
-    cxpCtxtLogPrint(pccServer, 1, "Invalid URL");
-
-    response = MHD_create_response_from_buffer(strlen(pcPage), (void *)pcPage, MHD_RESPMEM_PERSISTENT);
-    ret = MHD_queue_response(connection, MHD_HTTP_SERVICE_UNAVAILABLE, response);
-    MHD_destroy_response(response);
-  }
   return ret;
 } /* end of cxpCtxtRequestCallback() */
 

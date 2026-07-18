@@ -622,6 +622,31 @@ cxpCtxtLogAppend(cxpContextPtr pccArg, xmlChar *pucArgLog)
 } /* end of cxpCtxtLogAppend() */
 
 
+/*! \return the file handle of context 'pccArg' self/ancestors or 'stderr' else
+*/
+FILE*
+cxpCtxtLogGetIO(cxpContextPtr pccArg)
+{
+  FILE* fhResult = stderr;
+
+  if (pccArg) {
+    cxpContextPtr pccParent;
+    FILE *fhT;
+
+    if (pccArg->prnLog != NULL && (fhT = resNodeGetHandleIO(pccArg->prnLog)) != NULL) {
+      fhResult = fhT;
+    }
+    else if ((pccParent = cxpCtxtGetParent(pccArg))) {
+      fhResult = cxpCtxtLogGetIO(pccParent);
+    }
+    else {
+      // NULL
+    }
+  }
+  return fhResult;
+} /* end of cxpCtxtLogGetIO() */
+
+
 /*! cxp Ctxt Log GetNode
 
 \param pccArg -- pointer to context
@@ -669,7 +694,7 @@ cxpCtxtLogPrint(cxpContextPtr pccArg, int level, const char *fmt, ...)
     va_list ap;
     char mBuffer[BUFFER_LENGTH];
     xmlChar *pucT;
-    FILE *fhOut = stderr;
+    FILE *fhOut = cxpCtxtLogGetIO(pccArg);
 
     assert(fmt != NULL);
 
@@ -689,10 +714,6 @@ cxpCtxtLogPrint(cxpContextPtr pccArg, int level, const char *fmt, ...)
 
     va_end(ap);
 
-    if (pccArg->prnLog != NULL && resNodeGetHandleIO(pccArg->prnLog) != NULL) {
-      fhOut = resNodeGetHandleIO(pccArg->prnLog);
-    }
-
     if (pccArg->pndLog) {
       // cxpCtxtLogAppend(pccArg, BAD_CAST mBuffer);
     }
@@ -701,13 +722,10 @@ cxpCtxtLogPrint(cxpContextPtr pccArg, int level, const char *fmt, ...)
     pucT = GetNowFormatStr("%s");
     fprintf(fhOut, "0x%8p/%s: %s\n", (void *)pccArg, pucT, mBuffer);
     xmlFree(pucT);
+    fflush(fhOut);
 #else
     fputs(mBuffer,fhOut);
     fputs("\n",fhOut);
-#endif
-
-#if defined(DEBUG) && defined(_WIN32)
-    fflush(fhOut);
 #endif
   }
   return fResult;
@@ -1232,7 +1250,7 @@ cxpCtxtRootSet(cxpContextPtr pccArg, resNodePtr prnArg)
     pucRoot = cxpCtxtEnvGetValueByName(pccArg,NAME_ROOT);
     if (STR_IS_EMPTY(pucRoot)) {
       cxpCtxtLogPrint(pccArg, 3, "No usable value of '%s'", NAME_ROOT);
-      prnRoot = prnArg;
+      prnRoot = resNodeDup(prnArg, RN_DUP_THIS);
     }
     else if (resPathIsRelative(pucRoot)) {
       cxpCtxtLogPrint(pccArg, 2, "Value of '%s' is not an absolute path", pucRoot);

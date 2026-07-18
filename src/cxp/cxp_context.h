@@ -181,6 +181,9 @@ cxpCtxtLogAppend(cxpContextPtr pccArg, xmlChar *pucArgLog);
 extern xmlNodePtr
 cxpCtxtLogGetNode(cxpContextPtr pccArg);
 
+extern FILE*
+cxpCtxtLogGetIO(cxpContextPtr pccArg);
+
 extern BOOL_T
 cxpCtxtLogInfo(cxpContextPtr pccArg);
 
