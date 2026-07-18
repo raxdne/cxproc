@@ -40,6 +40,10 @@
 #endif
 #endif
 
+#ifdef HAVE_HTTPD
+#include <microhttpd.h>
+#endif
+
 #ifdef HAVE_ZLIB
 #include <zlib.h>
 #endif
@@ -3332,6 +3336,16 @@ cxpProcessInfoNode(xmlNodePtr pndInfo, cxpContextPtr pccArg)
     xmlSetProp(pndOption, BAD_CAST "name", BAD_CAST"zlib");
     xmlSetProp(pndOption, BAD_CAST "ns", BAD_CAST"http://zlib.net/");
     xmlSetProp(pndOption, BAD_CAST "version", BAD_CAST ZLIB_VERSION);
+#endif
+
+#ifdef HAVE_HTTPD
+    pndOption = xmlNewChild(pndProgram, NULL, BAD_CAST"lib", NULL);
+    xmlSetProp(pndOption,BAD_CAST "name",BAD_CAST"libmicrohttpd");
+    xmlSetProp(pndOption,BAD_CAST "ns",BAD_CAST"https://www.gnu.org/software/libmicrohttpd/");
+    xmlSetProp(pndOption,BAD_CAST "select", BAD_CAST "yes");
+    //xmlStrPrintf(mpucOut,BUFFER_LENGTH, "%i.%i.%i.%i-%i", (MHD_VERSION >> 16) & 0x0F, (MHD_VERSION >> 12) & 0x0F, (MHD_VERSION >> 8) & 0x0F, (MHD_VERSION >> 4) & 0x0F, (MHD_VERSION) & 0x0F);
+    xmlStrPrintf(mpucOut,BUFFER_LENGTH, "%x", MHD_VERSION);
+    xmlSetProp(pndOption,BAD_CAST "version",mpucOut);
 #endif
 
     pndOption = xmlNewChild(pndProgram, NULL, BAD_CAST"lib", NULL);
