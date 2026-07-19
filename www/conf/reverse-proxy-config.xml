@@ -1,13 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <cxp>
   <root>C:\UserData\Develop\Documents</root>
-  <log>cxproc-httpd.log</log>
+  <logYY level="1">cxproc-httpd.log</logYY>
   <port>8188</port>
-  <level>3</level>
   <param arg="no" env="yes" url="yes"/>
   <service valid="yes">/info</service>
   <service valid="yes">/redir</service>
   <service valid="yes">/refresh</service>
-  <service valid="yes">/xml</service>
-  <service valid="yes">/exe</service>
+  <service valid="no">/xml</service>
+  <service valid="no">/exe</service>
 </cxp>

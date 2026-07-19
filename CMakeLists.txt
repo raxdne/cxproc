@@ -331,7 +331,9 @@ IF(MSVC)
   target_sources(pietextx   PUBLIC ${CXPROC_SRC_DIR}/version.rc)
   target_sources(cxproc     PUBLIC ${CXPROC_SRC_DIR}/version.rc)
   target_sources(cxproc-cgi PUBLIC ${CXPROC_SRC_DIR}/version.rc)
-  target_sources(cxproc-httpd PUBLIC ${CXPROC_SRC_DIR}/version.rc)
+  IF (CXPROC_HTTPD)
+    target_sources(cxproc-httpd PUBLIC ${CXPROC_SRC_DIR}/version.rc)
+  ENDIF ()
 ENDIF(MSVC)
 
 ################################################################################

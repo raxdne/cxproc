@@ -181,32 +181,37 @@ cxpCtxtRequestCallback(void *cls, struct MHD_Connection *connection, const char 
       */
       xmlChar *pucRedir = NULL;
       xmlChar *pucPattern = NULL;
-      xmlChar *pucContent = BAD_CAST "Redirect\n";
       resNodePtr prnTest = NULL;
       xmlChar mpucNameFile[BUFFER_LENGTH];
       resNodePtr prnT = NULL;
 
       pucPattern = &url[strlen(STR_ACTION_REDIR)];
-
-      prnT = resNodeDup(cxpCtxtRootGet(pccRequest), (RN_DUP_THIS | RN_DUP_READ));
-      //prnT = cxpCtxtRootGet(pccServer);
+      //prnT = resNodeDup(cxpCtxtRootGet(pccRequest), (RN_DUP_THIS | RN_DUP_READ));
+      prnT = cxpCtxtRootGet(pccServer);
 
       if ((prnTest = resNodeListFindPath(prnT, pucPattern, (RN_FIND_FILE | RN_FIND_SYMLINK | RN_FIND_IN_SUBDIR))) != NULL &&
 	  (pucRedir = resNodeGetNameRelative(prnT, prnTest)) != NULL) {
-	xmlStrPrintf(mpucNameFile, BUFFER_LENGTH, "/%s", (char *)pucRedir);
+	xmlChar *pucRedirEncoded = NULL;
+	xmlChar *pucContent = BAD_CAST "Redirect\n";
+
+	resPathChangeToSlashes(pucRedir);
+	pucRedirEncoded = EncodeRFC1738(pucRedir);
+	xmlStrPrintf(mpucNameFile, BUFFER_LENGTH, "/%s", (char *)pucRedirEncoded);
+	cxpCtxtLogPrint(pccRequest, 3, "URL '%s' to Location: '%s'", url, mpucNameFile);
 	response = MHD_create_response_from_buffer(strlen(pucContent), (void *)pucContent, MHD_RESPMEM_PERSISTENT);
 	MHD_add_response_header(response, "Location", mpucNameFile);
 	ret = MHD_queue_response(connection, MHD_HTTP_PERMANENT_REDIRECT, response);
+	MHD_destroy_response(response);
+	xmlFree(pucRedirEncoded);
       }
       else {
 	xmlStrPrintf(mpucNameFile, BUFFER_LENGTH, "%s not found", pucPattern);
+	cxpCtxtLogPrint(pccRequest, 1, "URL '%s' no Location found", url);
 	response = MHD_create_response_from_buffer(strlen(mpucNameFile), (void *)mpucNameFile, MHD_RESPMEM_PERSISTENT);
 	ret = MHD_queue_response(connection, MHD_HTTP_NOT_FOUND, response);
+	MHD_destroy_response(response);
       }
-      cxpCtxtLogPrint(pccRequest, 1, "URL '%s' to Location: '%s'", url, mpucNameFile);
-      resNodeFree(prnT);
-
-      MHD_destroy_response(response);
+      //resNodeFree(prnT);
     }
     else if (StringBeginsWith(url, BAD_CAST STR_ACTION_XML)) {
 
@@ -350,6 +355,8 @@ main(int argc, char *argv[], char *envp[])
     cxpCtxtEncSetPlain(pccServer, BAD_CAST "ISO-8859-1"); // TODO: use value of CXP_PLAIN_ENC
     cxpCtxtCacheEnable(pccServer, TRUE);
     // cxpCtxtParamReset(pccServer,BAD_CAST"demo",BAD_CAST "only", cgi);
+
+    if (resNodeListParse(cxpCtxtRootGet(pccServer), 99, NULL)) {}
 
 #ifdef OFFLINE
     /* Offline debugging */

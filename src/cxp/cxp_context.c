@@ -184,6 +184,7 @@ cxpCtxtMainNew(const int argc, const char *argv[], const char *envp[])
 
     if ((pndT = domGetFirstChild(pndRoot, BAD_CAST "log"))) {
       cxpCtxtLogSetFile(pccResult, domNodeGetContentPtr(pndT));
+      cxpCtxtLogSetLevel(pccResult, domGetPropInt(pndT,"level",3));
     }
 
     if ((pndT = domGetFirstChild(pndRoot, BAD_CAST "param"))) {}
@@ -1785,6 +1786,7 @@ cxpCtxtLogSetFile(cxpContextPtr pccArg, const xmlChar *pucName)
     if ((prnT = resNodeDup(pccArg->prnRoot, 0)) != NULL && resNodeConcat(prnT, xmlStrdup(pucName))) {
       resNodeSetType(prnT, rn_type_file);
       if (resNodeOpen(prnT, "w")) {
+	cxpCtxtLogPrint(pccArg, 1, "Starting log '%s'", resNodeGetNameNormalized(prnT));
 	pccArg->prnLog = prnT;
 	iResult = 0;
       }
