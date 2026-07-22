@@ -49,6 +49,7 @@
 #else
 #include <winsock2.h>
 #endif
+#include <netinet/in.h>
 #include <microhttpd.h>
 
 int iPort = 8183;
@@ -189,7 +190,7 @@ cxpCtxtRequestCallback(void *cls, struct MHD_Connection *connection, const char 
       //prnT = resNodeDup(cxpCtxtRootGet(pccRequest), (RN_DUP_THIS | RN_DUP_READ));
       prnT = cxpCtxtRootGet(pccServer);
 
-      if ((prnTest = resNodeListFindPath(prnT, pucPattern, (RN_FIND_FILE | RN_FIND_SYMLINK | RN_FIND_IN_SUBDIR))) != NULL &&
+      if ((prnTest = resNodeListFindPath(prnT, pucPattern, (RN_FIND_FILE | RN_FIND_IN_SUBDIR))) != NULL &&
 	  (pucRedir = resNodeGetNameRelative(prnT, prnTest)) != NULL) {
 	xmlChar *pucRedirEncoded = NULL;
 	xmlChar *pucContent = BAD_CAST "Redirect\n";
@@ -212,6 +213,7 @@ cxpCtxtRequestCallback(void *cls, struct MHD_Connection *connection, const char 
 	MHD_destroy_response(response);
       }
       //resNodeFree(prnT);
+      /*! REQ: automatic refresh of index after n seconds */
     }
     else if (StringBeginsWith(url, BAD_CAST STR_ACTION_XML)) {
 
@@ -270,7 +272,6 @@ cxpCtxtRequestCallback(void *cls, struct MHD_Connection *connection, const char 
 int
 main(int argc, char *argv[], char *envp[])
 {
-  struct MHD_Daemon *daemon;
 
   /*
   this is the HTTP daemon mode
@@ -358,22 +359,33 @@ main(int argc, char *argv[], char *envp[])
 
     if (resNodeListParse(cxpCtxtRootGet(pccServer), 99, NULL)) {}
 
-#ifdef OFFLINE
-    /* Offline debugging */
-    cxpCtxtRequestCallback(NULL, NULL, (const char *)"/redir/Test/dir.cxp", (const char *)"GET", (const char *)"1.1", NULL, 0, NULL);
-#else
-
     // TEST: curl -v 'http://localhost:8888/info?a=1&c=asdf&y=1929&m=12&d=11&z=ABCDEFGHIJ' -i -L
 
-    daemon = MHD_start_daemon(MHD_USE_SELECT_INTERNALLY, cxpCtxtGetPortNumber(pccServer), NULL, NULL, &cxpCtxtRequestCallback, NULL, MHD_OPTION_END);
-    if (NULL == daemon) {
-      return 1;
+    {
+      /* PROMPT: How to restrict responses of libmicrohttpd to localhost? */
+      int iPort;
+      struct MHD_Daemon *daemon;
+      struct sockaddr_in loopback_addr;
+
+      iPort = cxpCtxtGetPortNumber(pccServer);
+
+      // 1. configure the sockaddr struct for IPv4 loopback
+      loopback_addr.sin_family = AF_INET;
+      loopback_addr.sin_port = htons(iPort);
+      loopback_addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK); // Binds strictly to 127.0.0.1
+
+      // 2. Start the daemon using MHD_OPTION_SOCK_ADDR
+      daemon = MHD_start_daemon(MHD_USE_INTERNAL_POLLING_THREAD, iPort, NULL, NULL,					// No access policy callback needed
+				&cxpCtxtRequestCallback, NULL, MHD_OPTION_SOCK_ADDR, (struct sockaddr *)&loopback_addr, // Enforce localhost
+				MHD_OPTION_END);
+
+      if (daemon) {
+	cxpCtxtLogPrint(pccServer, 1, "Server running securely on http://127.0.0.1:%d\n", iPort);
+	(void)getchar();
+	MHD_stop_daemon(daemon);
+      }
     }
 
-    (void)getchar();
-
-    MHD_stop_daemon(daemon);
-#endif
     // cxpCtxtParamPrint(pccServer);
     iExit = cxpCtxtGetExitCode(pccServer);
     cxpCtxtFree(pccServer);

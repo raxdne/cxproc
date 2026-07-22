@@ -167,6 +167,7 @@ cxpCtxtMainNew(const int argc, const char *argv[], const char *envp[])
 
     if (resNodeIsExist(prnRoot)) {
       cxpCtxtRootSet(pccResult, prnRoot);
+      cxpCtxtSetReadonly(pccResult, domGetPropFlag(pndT, BAD_CAST "readonly", TRUE));
     }
     else {
       resNodeFree(prnRoot);
