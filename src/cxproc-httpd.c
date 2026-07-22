@@ -46,10 +46,10 @@
 #ifndef _WIN32
 #include <sys/select.h>
 #include <sys/socket.h>
+#include <netinet/in.h>
 #else
 #include <winsock2.h>
 #endif
-#include <netinet/in.h>
 #include <microhttpd.h>
 
 int iPort = 8183;
