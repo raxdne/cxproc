@@ -97,7 +97,7 @@ SetValueForKey(void *cls, enum MHD_ValueKind kind, const char *key, const char *
   cxpContextPtr pccT = (cxpContextPtr)cls;
 
    // cxpCtxtLogPrint(pccT, 1, "%s %s", key, value);
-    cxpCtxtParamReset(pccT,BAD_CAST key,BAD_CAST value, url);
+    cxpCtxtParamReset(pccT,BAD_CAST key,BAD_CAST value, query);
 
   return MHD_YES;
 } /* end of SetValueForKey() */
@@ -190,6 +190,8 @@ cxpCtxtRequestCallback(void *cls, struct MHD_Connection *connection, const char 
       //prnT = resNodeDup(cxpCtxtRootGet(pccRequest), (RN_DUP_THIS | RN_DUP_READ));
       prnT = cxpCtxtRootGet(pccServer);
 
+      MHD_get_connection_values(connection, MHD_GET_ARGUMENT_KIND, (MHD_KeyValueIterator)&SetValueForKey, (void *)pccRequest);
+
       if ((prnTest = resNodeListFindPath(prnT, pucPattern, (RN_FIND_FILE | RN_FIND_IN_SUBDIR))) != NULL &&
 	  (pucRedir = resNodeGetNameRelative(prnT, prnTest)) != NULL) {
 	xmlChar *pucRedirEncoded = NULL;
@@ -212,6 +214,7 @@ cxpCtxtRequestCallback(void *cls, struct MHD_Connection *connection, const char 
 	ret = MHD_queue_response(connection, MHD_HTTP_NOT_FOUND, response);
 	MHD_destroy_response(response);
       }
+      cxpCtxtParamPrint(pccRequest);
       //resNodeFree(prnT);
       /*! REQ: automatic refresh of index after n seconds */
     }
@@ -355,7 +358,9 @@ main(int argc, char *argv[], char *envp[])
     cxpCtxtEncSetDefaults(pccServer);
     cxpCtxtEncSetPlain(pccServer, BAD_CAST "ISO-8859-1"); // TODO: use value of CXP_PLAIN_ENC
     cxpCtxtCacheEnable(pccServer, TRUE);
+    
     // cxpCtxtParamReset(pccServer,BAD_CAST"demo",BAD_CAST "only", cgi);
+    cxpCtxtParamPrint(pccServer);
 
     if (resNodeListParse(cxpCtxtRootGet(pccServer), 99, NULL)) {}
 
@@ -380,13 +385,12 @@ main(int argc, char *argv[], char *envp[])
 				MHD_OPTION_END);
 
       if (daemon) {
-	cxpCtxtLogPrint(pccServer, 1, "Server running securely on http://127.0.0.1:%d\n", iPort);
+	cxpCtxtLogPrint(pccServer, 1, "Server running securely on http://127.0.0.1:%d", iPort);
 	(void)getchar();
 	MHD_stop_daemon(daemon);
       }
     }
 
-    // cxpCtxtParamPrint(pccServer);
     iExit = cxpCtxtGetExitCode(pccServer);
     cxpCtxtFree(pccServer);
   }

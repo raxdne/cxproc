@@ -24,7 +24,7 @@
 
 #include <res_node/res_node.h>
 
-typedef enum {undef, var, cfg, cgi, env, url, arg} param_t;
+typedef enum {undef, var, cfg, cgi, env, query, arg} param_t;
 
 typedef struct _cxpParam cxpParam;
 typedef cxpParam *cxpParamPtr;

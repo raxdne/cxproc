@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<cxp>
-  <root>C:\UserData\Develop\Documents</root>
-  <logYY level="1">cxproc-httpd.log</logYY>
+<cxp> <!-- arg="yes" env="no" url="yes" -->
+  <root readonly="yes">/home/developer/cxproc-build/x86_64-gnu-linux/www/html/develop</root>
+  <log level="1">-</log> <!-- cxproc-httpd.log -->
   <port>8188</port>
-  <param arg="no" env="yes" url="yes"/>
+  <param name="PARAM" value="test"/>
   <service valid="yes">/info</service>
   <service valid="yes">/redir</service>
   <service valid="yes">/refresh</service>

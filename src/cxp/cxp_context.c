@@ -54,7 +54,7 @@
 #include <cxp/cxp_dir.h>
 #include "dom.h"
 
-#define TYPE_PARAM(T) (T == undef ? "undef" : (T == var ? "var" : (T == cgi ? "cgi" : (T == arg ? "arg" : (T == env ? "env" : "url")))))
+#define TYPE_PARAM(T) (T == undef ? "undef" : (T == var ? "var" : (T == cgi ? "cgi" : (T == arg ? "arg" : (T == env ? "env" : (T == cfg ? "cfg" : "query"))))))
 
 
 /*! creates a new empty cxproc Context
@@ -141,7 +141,7 @@ cxpCtxtMainNew(const int argc, const char *argv[], const char *envp[])
 
     /*! read configuration DOM
      */
-    if (argc == 2 && (pcArg = argv[1]) != NULL) {
+    if (argc > 1 && (pcArg = argv[1]) != NULL) { // REQ: env CXP_CONFIG=config.xml
       if (resPathIsAbsolute(pcArg)) {
 	prnConfig = resNodeDirNew(pcArg);
       }
@@ -152,6 +152,56 @@ cxpCtxtMainNew(const int argc, const char *argv[], const char *envp[])
       if (resNodeIsReadable(prnConfig)) {
 	pdocConfig = resNodeGetContentDoc(prnConfig);
 	pndRoot = xmlDocGetRootElement(pdocConfig);
+      }
+    }
+
+    /*! register argv, only if there was no config XML
+     */
+    if (domGetPropFlag(pndRoot, BAD_CAST "arg", FALSE)) {
+      for (i = 0; i < argc && i < 10; i++) {
+	if (STR_IS_NOT_EMPTY(argv[i])) {
+	  char mcT[128];
+
+	  mcT[0] = '0' + i;
+	  mcT[1] = '\0';
+	  cxpCtxtParamInit(pccResult, BAD_CAST mcT, BAD_CAST argv[i], arg);
+
+	  /*! check named args */
+	}
+      }
+    }
+
+    /*! register env */
+    if (domGetPropFlag(pndRoot, BAD_CAST "env", FALSE)) {
+      for (i = 0; envp[i] != NULL && i < 1024; i++) {
+	if (STR_IS_NOT_EMPTY(envp[i])) {
+	  char *pcT;
+	  char mcT[128];
+
+	  pcT = strchr(envp[i], '=');
+	  if (STR_IS_EMPTY(pcT)) {
+	    /* no value */
+	  }
+	  else {
+	    size_t l;
+
+	    l = pcT - envp[i];
+	    memcpy(mcT, envp[i], l);
+	    mcT[l] = '\0';
+	    cxpCtxtParamInit(pccResult, BAD_CAST mcT, BAD_CAST & pcT[1], env);
+	  }
+	}
+      }
+    }
+
+    /*! append configured params */
+    for (pndT = domGetFirstChild(pndRoot, BAD_CAST "param"); pndT; pndT = pndT->next) {
+      xmlChar *pucName;
+      xmlChar *pucValue;
+
+      if (IS_NODE(pndT, "param") && (pucName = domGetPropValuePtr(pndT, BAD_CAST "name")) != NULL &&
+	  (pucValue = domGetPropValuePtr(pndT, BAD_CAST "value")) != NULL) {
+	cxpCtxtParamInit(pccResult, pucName, pucValue, cfg);
       }
     }
 
@@ -184,53 +234,23 @@ cxpCtxtMainNew(const int argc, const char *argv[], const char *envp[])
     }
 
     if ((pndT = domGetFirstChild(pndRoot, BAD_CAST "log"))) {
-      cxpCtxtLogSetFile(pccResult, domNodeGetContentPtr(pndT));
-      cxpCtxtLogSetLevel(pccResult, domGetPropInt(pndT,"level",3));
-    }
+      xmlChar *pucValue;
 
-    if ((pndT = domGetFirstChild(pndRoot, BAD_CAST "param"))) {}
-
-    /*! register argv, only if there was no config XML
-     */
-    if (pdocConfig == NULL || domGetPropFlag(pndT, BAD_CAST "arg", FALSE)) {
-      for (i = 0; i < argc && i < 10; i++) {
-	if (STR_IS_NOT_EMPTY(argv[i])) {
-	  char mcT[128];
-
-	  mcT[0] = '0' + i;
-	  mcT[1] = '\0';
-	  cxpCtxtParamInit(pccResult, BAD_CAST mcT, BAD_CAST argv[i], arg);
-
-	  /*! check named args */
-	}
+      pucValue = domNodeGetContentPtr(pndT);
+      if (STR_IS_EMPTY(pucValue) || resPathIsAbsolute(pucValue)) {
+	cxpCtxtLogSetFile(pccResult, pucValue);
       }
-    }
+      else {
+	xmlChar *pucT;
 
-    /*! register env */
-    if (pdocConfig == NULL || domGetPropFlag(pndT, BAD_CAST "env", TRUE)) {
-      for (i = 0; envp[i] != NULL && i < 1024; i++) {
-	if (STR_IS_NOT_EMPTY(envp[i])) {
-	  char *pcT;
-	  char mcT[128];
-
-	  pcT = strchr(envp[i], '=');
-	  if (STR_IS_EMPTY(pcT)) {
-	    /* no value */
-	  }
-	  else {
-	    size_t l;
-
-	    l = pcT - envp[i];
-	    memcpy(mcT, envp[i], l);
-	    mcT[l] = '\0';
-	    cxpCtxtParamInit(pccResult, BAD_CAST mcT, BAD_CAST & pcT[1], env);
-	  }
-	}
+	pucT = resPathConcatStr(resNodeGetNameNormalized(prnRoot), pucValue);
+	cxpCtxtLogSetFile(pccResult, pucT);
+	xmlFree(pucT);
       }
+      cxpCtxtLogSetLevel(pccResult, domGetPropInt(pndT, BAD_CAST "level", 3));
     }
 
     resNodeFree(prnConfig);
-    cxpCtxtParamPrint(pccResult);
   }
   return pccResult;
 } /* end of cxpCtxtMainNew() */
@@ -810,7 +830,7 @@ cxpCtxtParamInit(cxpContextPtr pccArg, xmlChar *pucKey, xmlChar *pucValue, param
 
   if (pcpResult) {
     //xmlFree(pcpResult->pucValue);
-    pcpResult->pucSourceValue = pucValue;
+    pcpResult->pucSourceValue = xmlStrdup(pucValue);
     pcpResult->t = tArg;
     fResult = TRUE;
   }
@@ -1781,22 +1801,31 @@ cxpCtxtLogSetFile(cxpContextPtr pccArg, const xmlChar *pucName)
 {
   int iResult = -1;
 
-  if (pccArg != NULL && STR_IS_NOT_EMPTY(pucName)) {
+  if (pccArg != NULL) {
     resNodePtr prnT = NULL;
 
-    if ((prnT = resNodeDup(pccArg->prnRoot, 0)) != NULL && resNodeConcat(prnT, xmlStrdup(pucName))) {
-      resNodeSetType(prnT, rn_type_file);
-      if (resNodeOpen(prnT, "w")) {
-	cxpCtxtLogPrint(pccArg, 1, "Starting log '%s'", resNodeGetNameNormalized(prnT));
-	pccArg->prnLog = prnT;
-	iResult = 0;
+    if (STR_IS_EMPTY(pucName) || xmlStrEqual(pucName, BAD_CAST "-")) {
+      prnT = resNodeNew();
+      resNodeSetType(prnT, rn_type_stderr);
+      pccArg->prnLog = prnT;
+      iResult = 0;
+    }
+    else {
+
+      if ((prnT = resNodeDup(pccArg->prnRoot, 0)) != NULL && resNodeConcat(prnT, xmlStrdup(pucName))) {
+	resNodeSetType(prnT, rn_type_file);
+	if (resNodeOpen(prnT, "w")) {
+	  cxpCtxtLogPrint(pccArg, 1, "Starting log '%s'", resNodeGetNameNormalized(prnT));
+	  pccArg->prnLog = prnT;
+	  iResult = 0;
+	}
+	else {
+	  resNodeFree(prnT);
+	}
       }
       else {
 	resNodeFree(prnT);
       }
-    }
-    else {
-      resNodeFree(prnT);
     }
   }
   return iResult;
